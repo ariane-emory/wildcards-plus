@@ -1901,7 +1901,7 @@ const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardOption, '|')));
 const NamedWildcardReference        = xform(seq(discard('@'),
-                                                optional('\^'),                                       // 0
+                                                optional('^'),                                       // 0
                                                 optional(xform(parseInt, /\d+/)),                     // 1
                                                 optional(xform(parseInt, (second(seq('-', /\d+/))))), // 2
                                                 optional(/[,&]/),                                     // 3
@@ -1917,7 +1917,11 @@ const NamedWildcardReference        = xform(seq(discard('@'),
                                               
                                               // console.log(inspect_fun({ident, min_count, join, caret}));
                                               
-                                              return new ASTNamedWildcardReference(ident, join, caret, min_count, max_count);
+                                              return new ASTNamedWildcardReference(ident,
+                                                                                   join,
+                                                                                   caret,
+                                                                                   min_count,
+                                                                                   max_count);
                                             });
 const NamedWildcardDesignator = xform(second(seq('@', ident)),
                                       ident => new ASTNamedWildcardReference(ident));
