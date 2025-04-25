@@ -1,0 +1,72 @@
+score_9, score_8_up, score_7_up, score_6_up,
+dark fantasy,
+masterpiece, ultra high resolution, 8k, detailed background, wide shot, \n
+
+{#m|#f}
+
+@weapon  := {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger}
+$weapon  := @weapon
+
+A
+// Character:
+{2 #wizard  {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
+             |?f beautiful|?m handsome|?f alluring|?m dashing|?f enchanting|?m charming|?f beguiling|?m captivating
+            }
+            {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchantress|?f enchantress}|druid|{?m priest|?f priestess}|adept|cultist|2 necromancer|?m warlock|?f witch}
+|  #warrior {mighty|#scary fearsome|resolute|2 proud|tattooed|#alone solitary
+            |?f beautiful|?m handsome|?f alluring|?m musclebound|?m dashing|?f enchanting|?m charming}
+            {2 warrior|knight|barbarian|2 gladiator|?m swordsman|?f swordswoman|?f amazon|?f huntress|?f valkyrie|mercenary|#scary {brigand|bandit}} 
+}
+
+// Clothing:
+{| clad in
+ {?wizard  {|swirling|shadowy|multicolored|oily|many-layered|ornate|occult|embroidered}
+           {3 robes|garb|vestments|?f dress},
+ |?warrior {2 {2|battered|blood-smeared|spiked|chainmail|leather|rusted|golden} armor|{hides|furs}},}
+}
+
+// Seating:
+{|{on a {|snowy|barren} mountaintop|in a desert|in an arena|3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace}|on a rocky crag|in a {barren|bleak} wasteland|in a jungle}, 
+ |{sitting on|lounging |astride|leading}
+    a
+    {{mighty|infernal|#scary terrifying|majestic|?warrior armored}
+      {2 beast|wolf|steed|destrier|horse|2 dragon}|throne|sofa
+   } ,
+}
+
+// Weapon/item:
+{|5 {presenting|brandishing|holding
+     |?warrior wielding|?warrior swinging
+     |?wizard cradling |?wizard waving|?wizard gesturing with}
+
+    a
+
+    {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|4}
+              {2 staff|2 wand|crystal ball|skull|spell book||dagger|2 candle|bell |2 {| glowing|?scary fiery} orb}
+    |?warrior {2 bloody|2 ornate|bejeweled|fiery|}
+              $weapon
+   }
+  ,
+}
+
+// Expression/looking at:
+{2 looking|#angry glaring|staring|beckoning|leering|#scary glowering|2 !scary {smiling|grinning}}
+
+{2 towards|downwards at} the viewer
+
+{#scary menacingly|pridefully|drunkenly|!scary !angry {jovially|fondly}
+|mockingly|roguishly|!scary victoriously |3}
+
+// Companions:
+{3|4 !alone , {accompanied by|surrounded by|encircled by|guarded by|alongside}
+                 {2 their|a}
+                 {{horde|host|?warrior gang|?warrior band|army|?wizard {coterie|coven}} of}
+                 {?warrior {fellow|loyal|brave|steadfast}
+                           {soldiers|warriors|companions|men at arms}
+                 |?wizard  {?scary {demonic|fearsome|slavering|3 undead|eldrich|loathsome}
+                 |                  {3 arcane|2 ensorceled|mysterious|exotic|obedient|worshipping|2 dancing}
+                          } 
+                          {familiars|2 minions|slaves|cultists|devils|spirits|apprentices}
+                 }
+}
+.

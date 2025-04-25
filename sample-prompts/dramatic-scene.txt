@@ -1,0 +1,31 @@
+@quality      := { rusty | masterwork | fine | bejeweled | glowing | magical |}
+@weapon       := {2 spear|2 {two-handed|bastard|short} sword|3 axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger|blade}
+@friend       := {father|mother|mentor|teacher|lover}
+
+@#weapon                // Set a latch on the @weapon wildcard, since we're going to make several references to the same weapon.
+@#friend                // Set a latch on the @friend wildcard, since we're going two references to the same friend.
+{#female|#male|#neuter} // Randomly pick one of these three alternatives and set a gender flag.
+
+// The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pronouns:
+@pronoun_3rd_object  := {?female her |?male him | ?neuter it  }
+@pronoun_3rd_subject := {?female she |?male he  | ?neuter it  }
+@pronoun_pos_adj     := {?female her |?male his | ?neuter its }
+@pronoun_pos         := {?female hers|?male his | ?neuter its }
+
+@^pronoun_3rd_subject { swung | brandished | presented } @pronoun_pos_adj @quality @weapon, that very same @weapon @pronoun_pos_adj
+{beloved|dear|long lost|} @friend had
+{{trained|taught} @pronoun_3rd_object to use|forged {for|with} @pronoun_3rd_object|given to @pronoun_3rd_object|bestowed upon @pronoun_3rd_object
+|entrusted @pronoun_3rd_object with|bequeathed unto @pronoun_3rd_object} so many years ago...
+if only @pronoun_pos_adj @friend were still {with|beside|watching} @pronoun_3rd_object today, to see how {skillfully|confidently|expertly}
+@pronoun_3rd_subject {gripped|held|wielded|handled} the @weapon now!
+
+The {menacing|brutish|foul} {demon|orc|warrior} {facing|looming over} @pronoun_3rd_object {snarled|growled|hissed|let out a battle cry|howled} and
+{lunged|advanced|leapt towards @pronoun_3rd_object}, raising its
+
+@!weapon /* Unlatch the @weapon wildcard, so that the next time we reference it will 're-roll' a new weapon for the next part of our sentance. */
+
+@weapon to meet @pronoun_pos_adj {|own|tightly-held} weapon with a clang, and their {battle|struggle|duel|deadly dance} began.
+
+/*
+She brandished her glowing scimitar, that very same scimitar her beloved mentor had entrusted her with many years ago... if only her mentor were still with her today to see how confidently she wielded the scimitar now! The foul demon looming over her hissed and leapt towards her, raising its axe to meet her tightly-held weapon with a clang, and their deadly dance began.
+*/
