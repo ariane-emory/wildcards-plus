@@ -10,6 +10,7 @@
 - Escaped characters
 - Setting 'boolean' flags and using guards
 - Putting it all together and some final thoughts
+- A quick on 'types' and names
 
 **Weighted alternatives in wildcards**
  
@@ -327,3 +328,7 @@ She swung her glowing two-handed sword, that very same two-handed sword her belo
 Wow! Dramatic stuff, huh? Probably not the best prompt for the purpose of generting images, but it should give you an idea of how much these features can let you do.
 
 Hopefully this readme has given you an idea of the sorts of things `wildcards-plus` can do, and maybe you've thought of a few ideas for interesting things to do with it... you'll probably even think of some ideas I haven't thought of myself yet! If you do, feel free to reply to the post in #scripts showing off what you've come up with. Maybe you've got ideas for other useful features that I could add toe the script? Let me know, I'd love to hear your thoughts and ideas!
+
+**A quick on 'types' and names:**j
+
+There are two 'types' of entity in this little language that have names: named wildcards and flags. These two types of entity each exist in their of 'namespace'. In other words, you could simultaneously have both a named wildward that is named `weapons` **and** have a flag named `weapons` and that's totally fine, there won't be any problem with the fact that they happen to have the same name. Both are global, there isn't any concept of 'scope', lexical or otherwise.
