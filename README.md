@@ -306,9 +306,9 @@ You'll see that every almost every feature covered thus far is used in the promp
 ```
 She brandished her glowing scimitar, that very same scimitar her beloved mentor had entrusted her with so many years ago... if only her mentor were still with her today to see how confidently she wielded the scimitar now! The foul demon looming over her hissed and leapt towards her, raising its axe to meet her tightly-held weapon with a clang, and their deadly dance began.
 
-It swung its rusty scimitar, that very same scimitar its lover had taught it to use so many years ago... if only its lover were still beside it today, to see how skillfully it held the scimitar now! The brutish orc looming over it let out a battle cry and leapt towards it, raising its two-handed sword to meet its weapon with a clang, and their deadly dance began.
+It swung its rusty scimitar, that very same scimitar its lover had taught it to use so many years ago... if only its lover were still beside it today, to see how skillfully it held the scimitar now! The brutish orc looming over it let out a battle cry and leapt towards it, raising its two-handed sword to meet its weapon with a clang, and their battle began.
 
-He swung his bejeweled halberd, that very same halberd his beloved mentor had bequeathed unto him so many years ago... if only his mentor were still with him today, to see how skillfully he handled the halberd now! The brutish orc facing him let out a battle cry and lunged, raising its sabre to meet his tightly-held weapon with a clang, and their deadly dance began.
+He swung his bejeweled halberd, that very same halberd his beloved mentor had bequeathed unto him so many years ago... if only his mentor were still with him today, to see how skillfully he handled the halberd now! The brutish orc facing him let out a battle cry and lunged, raising its sabre to meet his tightly-held weapon with a clang, and their duel began.
 
 He brandished his masterwork sabre, that very same sabre his long lost mother had trained him to use so many years ago... if only his mother were still beside him today, to see how expertly he handled the sabre now! The foul warrior facing him snarled and lunged, raising its mace to meet his weapon with a clang, and their struggle began.
 
