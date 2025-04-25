@@ -211,7 +211,7 @@ When selecting an alternative from a wildcard, the guards are first checked.
 
 'check' guards (`?tho_flag`) check that a flag *is* set: if an alternative has a 'check' guard (`?the_flag`) and that flag is not set, that alternative is unavailable and cannot be picked. 
 
-'not' guards (`!tho_flag`), on the other hand, check to make sure that the flag is *not* set: if an alternative has a 'not' guard (`!the_flag`) and that flag *is* set, that alternative is unavailable and cannatbe picked..
+'not' guards (`!tho_flag`), on the other hand, check to make sure that the flag is *not* set: if an alternative has a 'not' guard (`!the_flag`) and that flag *is* set, that alternative is unavailable and canno tbe picked..
 
 You could set up guards such that none of a wildcard's alternatives are available, in which case that wildcard will produce no output.
 
