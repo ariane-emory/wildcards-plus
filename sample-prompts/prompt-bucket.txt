@@ -1,4 +1,4 @@
-// This prompt faithfully emulates the user @spcopx's 'Prompt Bucket' script, translated it a wildcards-plus prompt:
+// This prompt faithfully emulates the user @spcopx's 'Prompt Bucket' script, translated into a wildcards-plus prompt:
 
 // Cinematic terms
 @cinematicTerms :=  {
