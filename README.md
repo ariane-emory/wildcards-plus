@@ -331,4 +331,4 @@ Hopefully this readme has given you an idea of the sorts of things `wildcards-pl
 
 **A quick on 'types' and names:**j
 
-There are two 'types' of entity in this little language that have names: named wildcards and flags. These two types of entity each exist in their of 'namespace'. In other words, you could simultaneously have both a named wildward that is named `weapons` **and** have a flag named `weapons` and that's totally fine, there won't be any problem with the fact that they happen to have the same name. Both are global, there isn't any concept of 'scope', lexical or otherwise.
+There are two 'types' of entity in this little language that have names: named wildcards and flags. These two types of entity each exist in their own 'namespace'. In other words, you could simultaneously have both a named wildward that is named `weapons` **and** have a flag named `weapons` and that's totally fine, there won't be any problem with the fact that they happen to have the same name. Both are global, there isn't any concept of 'scope', lexical or otherwise.
