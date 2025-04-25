@@ -1,8 +1,8 @@
 **New Features:**
 - Weighted alternatives in wildcards
-- Comments
-- 'Smart' text joining logic
 - Nested wildcards
+- 'Smart' text joining logic
+- Comments
 - Named wildcards - the basics
 - Named wildcards - 'latching' (and unlatching) a named wildcard's value
 - Named wildcards - getting multiple items at once
@@ -22,10 +22,15 @@ A { dog | 2 cat } in a { field | 3 kitchen }.
 
 This example will generate prompts containing 'cat' instead of 'dog' two times in three, and most of the time (three times in four) the animal will be in a kitchen.
 
-**Comments:**
+**Nested wildcards:**
 
-Prompts may include comments, which work in essentially the same way as they work in C. Both line comments (`//`) and block comments (`/* ... */`) are supported... this feature isn't very excitin, I'm just explaining it early because I'll be using comments in future examples of prompts to help explain how they work.
+The content of an alternative in a wildcard may include another wildcard, which is expanded recursively along with the enclosing wildcard.
 
+Example prompt:
+ `{ { brown | 3 spotted } dog | 2 { siamese | 2 tabby } cat } in a { field | 3 kitchen }`
+ 
+ This example is similar to the previous one, but it will generate `spotted dog`s more often than `brown dog`s, and it will prefer generating `tabby cat`s over generating `siamese cat`s
+ 
  **'Smart' text joining logic:**
  
  `wildcards-plus` uses a few simple strategies to join the fragments of generated text together in a way that I think produces nicer/more useful output: ordinarily, a single space is added between the fragments being joined together **unless** one of the following applies, in which case the fragments are joined without a space in between them.:
@@ -62,15 +67,10 @@ Would you like an apple?
 Would you like another one? 
 ```
 
-**Nested wildcards:**
+**Comments:**
 
-The content of an alternative in a wildcard may include another wildcard, which is expanded recursively along with the enclosing wildcard.
+Prompts may include comments, which work in essentially the same way as they work in C. Both line comments (`//`) and block comments (`/* ... */`) are supported... this feature isn't very excitin, I'm just explaining it early because I'll be using comments in future examples of prompts to help explain how they work.
 
-Example prompt:
- `{ { brown | 3 spotted } dog | 2 { siamese | 2 tabby } cat } in a { field | 3 kitchen }`
- 
- This example is similar to the previous one, but it will generate `spotted dog`s more often than `brown dog`s, and it will prefer generating `tabby cat`s over generating `siamese cat`s
- 
 **Named wildcards - the basics:**
  
 Named wildcards may be defined may be defined by employing the `:=` device. Defining a named wildcard produces no output immediately, but references the named wildcard found further on in the promp will pick a result from that named wildcard. The characters permitted in the names of named wildcards are basically the same as those permitted in identifiers in C (the characters A-Z, a-Z, 0-9 and `_`, but may not begin with a number). Examples of valid names for named wildcards include `foo`, `fo0`, `_foo` and `foo_bar`. Ordinarily, references to named wildcards a prefixed with a `@` (later on in 'Named wildcards - getting multiple items at once', we'll cover more complex prefixes, but you don't have to worry about those yet).
@@ -207,7 +207,11 @@ You're probably wondering what these flags are good for... they're good for only
 
 Guards must occur in one of a wildcard's alternatives before any of the alternative's 'content', near where alternatives' weights go, since placing a guard at the top level outside a wildcard wouldn't make a lot of sense.
 
-When selecting an alternative from a wildcard, the guards are first checked. If an alternative has a 'check' guard (`?the_flag`) and that flag is not set, that alternative is unavailable and cannot be picked. If an alternative has a 'not' guard (`!the_flag`) and that flag *is* set, that alternative is available and could be picked, otherwise it is unavailable.
+When selecting an alternative from a wildcard, the guards are first checked. 
+
+'check' guards (`?tho_flag`) check that a flag *is* set: if an alternative has a 'check' guard (`?the_flag`) and that flag is not set, that alternative is unavailable and cannot be picked. 
+
+'not' guards (`!tho_flag`), on the other hand, check to make sure that the flag is *not* set: if an alternative has a 'not' guard (`!the_flag`) and that flag *is* set, that alternative is unavailable and cannatbe picked..
 
 You could set up guards such that none of a wildcard's alternatives are available, in which case that wildcard will produce no output.
 
