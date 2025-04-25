@@ -205,13 +205,13 @@ Flags don't actually 'store' any value value per se: the only feature of a flag 
 
 You're probably wondering what these flags are good for... they're good for only one thing (or maybe two, depending on how you'd prefer to count): they can be used in guards. There are two types of guards: 'check' guards, which look like `?this_flag_must_be_set` and 'not' guards, which look like `!this_flag_must_not_be_set`... these might not be the best names for the two types, but they were the best I could think of right now.
 
-Guards must occur in one of a wildcard's alternatives before any of the alternative's 'content', near where alternatives' weights go, since placing a guard at the top level outside a wildcard wouldn't make a lot of sense.
+Guards must occur in one of a wildcard's alternatives before any of the alternative's 'content', near where an alternatives' weight goul. Placing a guard at the top level outside of any wildcard wouldn't make a lot of sense, and so is not supported.
 
 When selecting an alternative from a wildcard, the guards are first checked. 
 
-'check' guards (`?tho_flag`) check that a flag *is* set: if an alternative has a 'check' guard (`?the_flag`) and that flag is not set, that alternative is unavailable and cannot be picked. 
+'check' guards (`?tho_flag`) ensure that a flag *is* set: if an alternative has a 'check' guard (`?the_flag`) and that flag is not set, that alternative is unavailable and cannot be picked. 
 
-'not' guards (`!tho_flag`), on the other hand, check to make sure that the flag is *not* set: if an alternative has a 'not' guard (`!the_flag`) and that flag *is* set, that alternative is unavailable and canno tbe picked.
+'not' guards (`!tho_flag`), on the other hand, ensure that the flag is *not* set: if an alternative has a 'not' guard (`!the_flag`) and that flag *is* set, that alternative is unavailable and cannot tbe picked.
 
 You could set up guards such that none of a wildcard's alternatives are available, in which case that wildcard will produce no output.
 
