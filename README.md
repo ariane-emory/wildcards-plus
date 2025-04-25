@@ -203,7 +203,7 @@ You can set a flag including an item consisting of a `#` followed by an identifi
 
 Flags don't actually 'store' any value value per se: the only feature of a flag that ever matters is whether it is set or not. Any flag name that you have *not* explicitly set using a `#flag_name`-style item in the content of one of a wildcard's alternatives (and that alternative being picked) is simply not set. Once set, a flag is set permanently and cannot be unset: permitting that didn't seem very useful to me and it seemed like it could lead to confusing situations.
 
-You're probably wondering what these flags are good for... they're good for only one thing (or maybe two, depending on how you'd prefer to count): they can be used in guards. There are two types of guards 'check' guards, which look like `?this_flag_must_be_set` and 'not' guards, which look like `!this_flag_must_not_be_set`... these might not be the best names for the two types of guard, but they were the best I could think of right now.
+You're probably wondering what these flags are good for... they're good for only one thing (or maybe two, depending on how you'd prefer to count): they can be used in guards. There are two types of guards: 'check' guards, which look like `?this_flag_must_be_set` and 'not' guards, which look like `!this_flag_must_not_be_set`... these might not be the best names for the two types of guard, but they were the best I could think of right now.
 
 Guards must occur in one of a wildcard's alternatives before any of the alternative's 'content', near where alternatives' weights go, since placing a guard at the top level outside a wildcard wouldn't make a lot of sense.
 
