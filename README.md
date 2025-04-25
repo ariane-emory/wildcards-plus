@@ -273,11 +273,11 @@ A warrior holding a sword and a shield.
 A knight holding a spear.
 ```
 
-*Tip*: If you're clever, you could intentionally  create situations where guards leave only a single alternative available, depending on the particular flags that are set. This can let be used  steer named wildcards into producing particular results when certain flags are set. In the next section, you'll see an example where I use (or maybe abuse) this technique to give our character the correct pronouns for their gender.
+*Tip*: If you're clever, you could intentionally  create situations where guards leave only a single alternative available, depending on the particular flags that are set. This can let be used  steer named wildcards into producing particular results when certain flags are set. In the next section, you'll see an example where I use (or maybe abuse) this technique to give a character the correct pronouns for their gender.
 
 **Putting it all together and some final thoughts:**
 
-Let's have a little fun and make a fancier prompt that makes use of all the features that I've covered thus far. This prompt will be a little longer, but don't worry, it's not using any feature I haven't already explained, it should all make sense if you take the time to read through it. Here we go:
+Let's have a little fun and make a fancier prompt that makes use of most (not quite all) of the features that I've covered thus far. This prompt will be a little longer, but don't worry, it's not using any feature I haven't already explained, it should all make sense if you take the time to read through it. Here we go:
 
 ```
 @quality      := { rusty | masterwork | fine | bejeweled | glowing | magical |}
