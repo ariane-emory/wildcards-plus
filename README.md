@@ -211,7 +211,7 @@ When selecting an alternative from a wildcard, the guards are first checked.
 
 'check' guards (`?tho_flag`) check that a flag *is* set: if an alternative has a 'check' guard (`?the_flag`) and that flag is not set, that alternative is unavailable and cannot be picked. 
 
-'not' guards (`!tho_flag`), on the other hand, check to make sure that the flag is *not* set: if an alternative has a 'not' guard (`!the_flag`) and that flag *is* set, that alternative is unavailable and canno tbe picked..
+'not' guards (`!tho_flag`), on the other hand, check to make sure that the flag is *not* set: if an alternative has a 'not' guard (`!the_flag`) and that flag *is* set, that alternative is unavailable and canno tbe picked.
 
 You could set up guards such that none of a wildcard's alternatives are available, in which case that wildcard will produce no output.
 
@@ -244,11 +244,15 @@ Example prompt:
 Now, the second wildcard always picks its single alternative if `invisible` is set, but because the first wildcard in the prompt only chooses the alternative that sets the `invisible` flag half the time, the overall result is essentially same as the prior example. Let's make things a little more interesting:
 
 ```
- // randomly set either the #warrior or #wizard flag and output some text:
+ // first, let's randomly set either the #warrior or #wizard flag and output some text:
  A { #warrior { warrior | knight   |  barbarian } 
    | #wizard  { wizard  | sorcerer |  conjurer  } }
+   
+// now, we can use guards on the flag's we set to ensure our here has an appropriate weapon:
 holding a { ?warrior { sword | axe  | spear       }
           | ?wizard  { staff | wand | crystal ball } }
+          
+// unless they're a wizard, they might have a shield:
 { | !wizard and a shield }
 .
 ```
