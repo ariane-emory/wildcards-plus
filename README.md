@@ -156,7 +156,7 @@ Example prompt:
 @adjs         := {2 @adj |3 @adj @adjs_tail }
 @adjs_tail    := {and @adj| , @adj @adjs_tail }
 @adj          := {fierce|fearsome|cruel-edged|serrated|mighty|eldritch|otherwordly|beastly|fiery|malevolent|adamantine|spined
-                 |antediluvian|verdigris-encrusted|perl-inlaid|ominous|razor-edged|serpentine|viridian|sinuous|opalescent|venomous}
+                 |antediluvian|verdigris-encrusted|pearl-inlaid|ominous|razor-edged|serpentine|viridian|sinuous|opalescent|venomous}
 
 // Expand @weapon five imes, on a fresh line each time:
 @weapons. \n
@@ -170,7 +170,7 @@ Sample output:
 ```
 A mace... an antediluvian scimitar... a sword... a sinuous and serpentine rapier and a spear. 
 A beastly, fearsome and razor-edged kukri. 
-A perl-inlaid, razor-edged, spined and serrated halberd... an eldritch mace... a venomous sword and a cutlass. 
+A pearl-inlaid, razor-edged, spined and serrated halberd... an eldritch mace... a venomous sword and a cutlass. 
 An axe... an antediluvian, verdigris-encrusted and beastly sword... an antediluvian blade and a cruel-edged and serpentine sword. 
 A kukri and an opalescent, spined, fiery, verdigris-encrusted and spined spear. 
 ```

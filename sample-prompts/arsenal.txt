@@ -7,7 +7,7 @@
 @adjs         := {2 @adj |4 @adj @adjs_tail }
 @adjs_tail    := {and @adj| , @adj @adjs_tail }
 @adj          := {fierce|fearsome|cruel-edged|serrated|mighty|eldritch|otherwordly|beastly|fiery|malevolent|adamantine|spined
-                 |antediluvian|verdigris-encrusted|perl-inlaid|ominous|razor-edged|serpentine|viridian|sinuous|opalescent|venomous}
+                 |antediluvian|verdigris-encrusted|pearl-inlaid|ominous|razor-edged|serpentine|viridian|sinuous|opalescent|venomous}
 
 // Expand @weapon five imes, on a fresh line each time:
 @weapons. \n
