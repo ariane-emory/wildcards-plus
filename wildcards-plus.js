@@ -1881,6 +1881,7 @@ const make_ASTFlagCmd = (klass, ...rules) =>
 // ---------------------------------------------------------------------------------------
 // terminals:
 const plaintext               = /[^{|}\s]+/;
+const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_][0-9a-zA-Z_]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
@@ -1901,27 +1902,28 @@ const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardOption, '|')));
 const NamedWildcardReference        = xform(seq(discard('@'),
-                                                optional('^'),                                       // 0
-                                                optional(xform(parseInt, /\d+/)),                     // 1
-                                                optional(xform(parseInt, (second(seq('-', /\d+/))))), // 2
-                                                optional(/[,&]/),                                     // 3
-                                                ident),                                               // 4
+                                                optional('^'),                           // 0
+                                                optional(xform(parseInt, /\d+/)),         // 1
+                                                optional(xform(parseInt,
+                                                               second(seq('-', /\d+/)))), // 2
+                                                optional(/[,&]/),                         // 3
+                                                ident),                                   // 4
                                             arr => {
                                               // console.log(`NWR ARR: ${inspect_fun(arr)}`);
 
-                                              const ident     = arr[4];
-                                              const min_count = arr[1][0] ?? 1;
-                                              const max_count = arr[2][0] ?? min_count;
-                                              const join      = arr[3] ?? '';
-                                              const caret     = arr[0][0];
+                                              const ident  = arr[4];
+                                              const min_ct = arr[1][0] ?? 1;
+                                              const max_ct = arr[2][0] ?? min_ct;
+                                              const join   = arr[3] ?? '';
+                                              const caret  = arr[0][0];
                                               
-                                              // console.log(inspect_fun({ident, min_count, join, caret}));
+                                              // console.log(inspect_fun({ident, min_ct, join, caret}));
                                               
                                               return new ASTNamedWildcardReference(ident,
                                                                                    join,
                                                                                    caret,
-                                                                                   min_count,
-                                                                                   max_count);
+                                                                                   min_ct,
+                                                                                   max_ct);
                                             });
 const NamedWildcardDesignator = xform(second(seq('@', ident)),
                                       ident => new ASTNamedWildcardReference(ident));
@@ -1955,7 +1957,7 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               ScalarAssignmentSource));
 const Content                 = choice(ScalarReference, NamedWildcardReference,
                                        NamedWildcardUsage, 
-                                       SetFlag, AnonWildcard, comment, plaintext);
+                                       SetFlag, AnonWildcard, comment, low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 const Prompt                  = wst_star(choice(ScalarAssignment,
                                                 NamedWildcardDefinition,
