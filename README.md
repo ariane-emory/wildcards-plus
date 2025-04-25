@@ -277,7 +277,7 @@ A knight holding a spear.
 
 **Putting it all together and some final thoughts:**
 
-Let's have a little fun and make a fancier prompt that makes use of most (not quite all) o the features that w've covered thus far. This prompt will be a little longer, but don't worry, it's not using any feature I haven't already explained, it should all make sense if you take the time to read through it. Here we go:
+Let's have a little fun and make a fancier prompt that makes use of most (not quite all) o the features that w've covered thus far. This prompt will be a little longer, but don't worry, it's not using any features that I haven't already explained, it should all make sense if you take the time to read through it. Here we go:
 
 ```
 @quality      := { rusty | masterwork | fine | bejeweled | glowing | magical |}
