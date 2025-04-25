@@ -273,7 +273,7 @@ A warrior holding a sword and a shield.
 A knight holding a spear.
 ```
 
-*Tip*: If you're clever, by creating situations where the guards leave only a single alternative available depending on which flags that are set, you can cause a flag to steer named wildcards into producing particular results. In the next section, you'll see and example where I use (or maybe abuse) this technique to give our character the correct pronouns for their gender.
+*Tip*: If you're clever, you could intentionally  create situations where guards leave only a single alternative available, depending on the particular flags that are set. This can let be used  steer named wildcards into producing particular results when certain flags are set. In the next section, you'll see and example where I use (or maybe abuse) this technique to give our character the correct pronouns for their gender.
 
 **Putting it all together and some final thoughts:**
 
