@@ -326,4 +326,4 @@ She swung her glowing two-handed sword, that very same two-handed sword her belo
 
 Wow! Dramatic stuff, huh? Probably not the best prompt for the purpose of generting images, but it should give you an idea of how much these features can let you do.
 
-Hopefully this readme has given you an idea of the sorts of things `wildcards-plus` can do, and you've thought of a few ideas of interesting things that you can do with it... you'll probably even think of some ideas I haven't thought of yet! If you do, feel free to reply showing off what you've come up with. Maybe you've got ideas for other useful features that I could add toe the script? Let me know, I'd love to hear your thoughts and ideas!
+Hopefully this readme has given you an idea of the sorts of things `wildcards-plus` can do, and maybe you've thought of a few ideas for interesting things to do with it... you'll probably even think of some ideas I haven't thought of myself yet! If you do, feel free to reply to the post in #scripts showing off what you've come up with. Maybe you've got ideas for other useful features that I could add toe the script? Let me know, I'd love to hear your thoughts and ideas!
