@@ -2300,7 +2300,7 @@ const userSelection = requestFromUser("Wildcards", "", function() {
 		  this.slider(10, this.slider.fractional(0), 1, 500, "batch count")
     ]),
 	  this.section("about",
-                 `Wildcards Plus v0.2 by ariane-emory (based on wetcircuit's original wildcard.js script)
+                 `Wildcards Plus v0.5b by ariane-emory (based on wetcircuit's original wildcard.js script)
 
 Generate a batch of images using inline wildcards to randomize elements within the Prompt.
 
