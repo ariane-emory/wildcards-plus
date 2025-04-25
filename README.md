@@ -201,7 +201,7 @@ As you can see, the bacslashes in `\i\t\e\m` were simply removed while the backs
 
 You can set a flag including an item consisting of a `#` followed by an identifier in the content of a prompt or an alternative, like this `#the_flag_name`. Similarly to named wilcards, the names of flags follow the same rules as C identifiers.
 
-Flags don't actually store any value: the only feature of a flag that ever matters is whether it is set or not. Any flag name that you have explicitly set by including `#flag_name`-style item in the content that has been processed is not set. Once set, a flag is set permanently and cannot be unset: permitting that didn't seem very useful to me and it seemed like it could lead to confusing situations.
+Flags don't actually 'store' any value value per se: the only feature of a flag that ever matters is whether it is set or not. Any flag name that you have *not* explicitly set using a `#flag_name`-style item in the content of one of a wildcard's alternatives (and that alternative being picked) is simply not set. Once set, a flag is set permanently and cannot be unset: permitting that didn't seem very useful to me and it seemed like it could lead to confusing situations.
 
 You're probably wondering what these flags are good for... they're good for only one thing (or maybe two, dependong on how you'd prefer to count): they can be used in guards. There are two types of guards 'check' guards, which look like `?this_flag_must_be_set` and 'not' guards, which look like `!this_flag_must_not_be_set`... these might not be the best names for the two types of guard, but they were the best I could think of right now.
 
