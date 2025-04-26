@@ -38,7 +38,8 @@ A
 }
 
 // Seating: only reference any seating  half the time, because of the empty alternative at the start:
-{|{on a {|snowy|barren} mountaintop|in a desert|in an arena|3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace}|on a rocky crag|in a {barren|bleak} wasteland|in a jungle}, 
+{|{on a {|snowy|barren} mountaintop|in a desert|in an arena
+  |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace}|on a rocky crag|in a {barren|bleak} wasteland|in a jungle}, 
  |{sitting on|lounging |astride|leading}
     a
     {{mighty|infernal|#scary terrifying|majestic|?warrior armored}
@@ -54,7 +55,8 @@ A
     a
 
     {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|4}
-              {2 staff|2 wand|crystal ball|skull|spell book||dagger|2 candle|bell |2 {| glowing|?scary fiery} orb}
+              {2 staff|2 wand|crystal ball|amulet|artifact|skull|spell book||dagger|2 candle
+              |bell |2 {| glowing|?scary fiery} orb}
     |?warrior {2 bloody|2 ornate|bejeweled|fiery|}
               $weapon
    }
