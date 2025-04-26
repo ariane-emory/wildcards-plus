@@ -69,7 +69,7 @@ A
 
 {2 towards|downwards at} the viewer
 
-{#scary menacingly|pridefully|cunningly|drunkenly|!scary !angry {jovially|fondly}
+{#scary menacingly|pridefully|cunningly|drunkenly|!scary !angry {jovially|fondly|gleefully}
 |mockingly|roguishly|rakishly|!scary victoriously |3}
 
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
