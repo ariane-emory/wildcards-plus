@@ -84,9 +84,10 @@ A
 @look_aim := {past|towards|at|up {at|towards}|down {at|towards}}
 
 // Expression/looking at:
-{2 looking @look_aim|#angry glaring at|staring @look_aim
+{2 looking @look_aim|#angry glaring @look_aim|staring @look_aim
 |beckoning {|@look_aim}|leering {|@look_aim}
-|#scary glowering {|@look_aim}|2 !scary smiling|grinning|scowling @look_aim}
+|#scary glowering {|@look_aim}|2 !scary smiling|grinning
+|scowling @look_aim}
 
 // {2 towards|downwards at}
 the viewer
