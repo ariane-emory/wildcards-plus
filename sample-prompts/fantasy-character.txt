@@ -72,7 +72,9 @@ A
 
     {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
               {2 staff|2 wand|crystal ball|amulet|artifact|skull|spell book||dagger|2 candle
-              |bell |2 {| glowing|?scary fiery} orb}
+              |bell
+              |2 {| glowing|?scary fiery} orb
+              }
     |?warrior {2 bloody|2 ornate|bejeweled|fiery|}
               $weapon
    }
