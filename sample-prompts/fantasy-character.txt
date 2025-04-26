@@ -40,7 +40,7 @@ A
 // Seating: only reference any seating  half the time, because of the empty alternative at the start:
 {|{on a {|snowy|barren} mountaintop|in a desert|in an arena
   |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace}|on a rocky crag|in a {barren|bleak} wasteland|in a jungle}, 
- |{sitting on|lounging |astride|leading}
+ |{sitting on|lounging on|astride|leading}
     a
     {{mighty|infernal|#scary terrifying|majestic|?warrior armored}
       {2 beast|wolf|steed|destrier|horse|2 dragon}|throne|sofa
