@@ -14,7 +14,6 @@ masterpiece, ultra high resolution, 8k, detailed background, wide shot, \n
 
 $weapon  := @weapon // 
 
-
 A
 // Character:
 {2 #wizard  {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
