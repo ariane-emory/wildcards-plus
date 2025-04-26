@@ -26,14 +26,14 @@ A
             {2 warrior|knight|barbarian|2 gladiator|?m swordsman|?f swordswoman|?f amazon|?f huntress|?f valkyrie|mercenary|#scary {brigand|bandit}} 
 }
 
-// Clothing: only reference any clothing half the time because of the empty alternative at the start:
+// Clothing: only reference any clothing half the time, because of the empty alternative at the start:
 {| clad in
  {?wizard  {|swirling|shadowy|multicolored|oily|many-layered|ornate|occult|embroidered}
            {3 robes|garb|vestments|?f dress},
  |?warrior {2 {2|battered|blood-smeared|spiked|chainmail|leather|rusted|golden} armor|{hides|furs}},}
 }
 
-// Seating: only reference any seating  half the time because of the empty alternative at the start:
+// Seating: only reference any seating  half the time, because of the empty alternative at the start:
 {|{on a {|snowy|barren} mountaintop|in a desert|in an arena|3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace}|on a rocky crag|in a {barren|bleak} wasteland|in a jungle}, 
  |{sitting on|lounging |astride|leading}
     a
@@ -42,7 +42,7 @@ A
    } ,
 }
 
-// A weapon or item: don't mention a weapon/item one time in six because of the empty alternative at the start:
+// A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the start:
 {|5 {presenting|brandishing|holding
      |?warrior wielding|?warrior swinging
      |?wizard cradling |?wizard waving|?wizard gesturing with}
