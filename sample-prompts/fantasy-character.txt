@@ -18,8 +18,8 @@ dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide 
 
 $weapon  := @weapon 
 
-@adjectives := {?wizard  {#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
-                         |?f beautiful|?m handsome|?f alluring|?m dashing|?f enchanting|?m charming
+@adjectives := {?wizard  {#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise
+                         |?f seductive|?f beautiful|?f alluring|?m dashing|?f enchanting|?m charming
                          |?f beguiling|?f captivating}
                |?warrior {mighty|?m handsome|?m musclebound|#scary fearsome|resolute|2 proud|noble|tattooed|#alone solitary
                          |?f beautiful|?m handsome|?f alluring|?m musclebound|?m dashing|?f enchanting|?m charming}
