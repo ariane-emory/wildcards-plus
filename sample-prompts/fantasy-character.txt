@@ -87,8 +87,9 @@ A
 // {2 towards|downwards at}
 the viewer
 
-{2 ?scary menacingly|pridefully|cunningly|drunkenly|!scary !angry {jovially|fondly|gleefully|madly|?scary angrily|angrily}
-|mockingly|roguishly|rakishly|2 ?scary threateningly|!scary victoriously |3}
+{2 ?scary menacingly|pridefully|cunningly|drunkenly|!scary !angry jovially|!scary !angry fondly
+|!angry gleefully|madly|?scary angrily|angrily|mockingly|roguishly|rakishly
+|2 ?scary threateningly|!scary victoriously|3}
 
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
 {|2 !alone , {accompanied by|surrounded by|encircled by|guarded by|leading|commanding|directing|alongside}
