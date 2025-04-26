@@ -43,9 +43,7 @@ $weapon  := @weapon
 @pro_pos         := {?f hers|?m his | ?n its }
 @pro_pos_rand    := {a|2 @pro_pos_adj}
 
-A
-
-@0-3&character_adjectives @roles
+A @0-3&character_adjectives @roles
 
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
 {|{clad in|wearing} {|@pro_pos_rand}
@@ -98,15 +96,17 @@ the viewer
 |!angry gleefully|madly|?scary angrily|angrily|mockingly|roguishly|rakishly
 |2 ?scary threateningly|!scary victoriously|3}
 
+@minion_adjectives := {?scary {demonic|fearsome|slavering|3 undead|eldrich|loathsome} 
+                      |{3 arcane|cowering|bewitched|hypnotized|2 ensorceled|mysterious|exotic|obedient|worshipping|2 dancing}
+                      }
+
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
 {|2 !alone , {accompanied by|surrounded by|encircled by|guarded by|leading|commanding|directing|alongside}
                  {their|a|@pro_pos_adj}
                  {{horde|host|?warrior gang|?warrior band|army|2 ?wizard {coterie|coven|variety}} of}
                  {?warrior {fellow|loyal|brave|steadfast}
                            {soldiers|warriors|companions|men at arms}
-                 |?wizard  { ?scary {demonic|fearsome|slavering|3 undead|eldrich|loathsome} 
-                           | {3 arcane|2 ensorceled|mysterious|exotic|obedient|worshipping|2 dancing}
-                           }
+                 |?wizard  @0-2&minion_adjectives
                            {familiars|2 minions|slaves|cultists|devils|spirits|apprentices}
                  }
 }
