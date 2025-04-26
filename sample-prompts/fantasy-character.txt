@@ -104,11 +104,11 @@ the viewer
 |!angry gleefully|madly|?scary angrily|angrily|mockingly|roguishly|rakishly
 |2 ?scary threateningly|!scary victoriously|3}
 
-@minion_adjectives := {?scary {demonic|fearsome|slavering|3 undead|eldrich
-                              |loathsome|squamous|chtonian|repulsive|chitinous} 
-                      |       {2 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
-                              |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing}
-                      }
+@wizard_minion_adjectives := {?scary {demonic|fearsome|slavering|3 undead|eldrich
+                                     |loathsome|squamous|chtonian|repulsive|chitinous} 
+                             |       {2 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
+                                     |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing}
+                             }
 
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
 {|2 !alone , {accompanied by|surrounded by|encircled by|guarded by|leading|commanding|directing|alongside}
@@ -118,7 +118,7 @@ the viewer
              of 
              {?warrior {fellow|loyal|brave|steadfast}
                        {soldiers|warriors|companions|men at arms}
-             |?wizard  @1-3&minion_adjectives
+             |?wizard  @1-3&wizard_minion_adjectives
                        {familiars|2 minions|slaves|cultists|devils|spirits|apprentices}
              }
 }
