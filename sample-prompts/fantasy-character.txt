@@ -25,12 +25,10 @@ $weapon  := @weapon
                          |?f beautiful|?m handsome|?f alluring|?m musclebound|?m dashing|?f enchanting|?m charming}
                }
 
-@roles := {?wizard
-                   {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
-                   |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
-          |?warrior
-                   {2 warrior|paladin|knight|barbarian|rogue|2 gladiator|?m swordsman|?f swordswoman|?f amazon
-                   |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}} 
+@roles := {?wizard  {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
+                    |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
+          |?warrior {2 warrior|paladin|knight|barbarian|rogue|2 gladiator|?m swordsman|?f swordswoman|?f amazon
+                    |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}} 
           }
 
 A
