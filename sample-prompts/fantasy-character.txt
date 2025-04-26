@@ -18,12 +18,14 @@ dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide 
 
 $weapon  := @weapon 
 
+@wizard_adjectives := {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
+                       |?f beautiful|?m handsome|?f alluring|?m dashing|?f enchanting|?m charming
+                       |?f beguiling|?f captivating}
+
 A
 
 // Character, make wizards 60% of the time:
-{?wizard  {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
-           |?f beautiful|?m handsome|?f alluring|?m dashing|?f enchanting|?m charming
-           |?f beguiling|?f captivating}
+{?wizard  @2-3,wizard_adjectives
           {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
            |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
 |?warrior {mighty|?m handsome|?m musclebound|#scary fearsome|resolute|2 proud|noble|tattooed|#alone solitary
