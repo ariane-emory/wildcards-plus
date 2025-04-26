@@ -134,7 +134,7 @@ the viewer
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
 {|2 !alone {2 ,|while}
            {accompanied by|?many_minions surrounded by|?many_minions encircled by
-           |guarded by|leading|commanding|directing|alongside}
+           |guarded by|leading|commanding|directing|guiding|rallying|alongside}
            @pro_pos_rand
            {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang|?warrior band
                           |army|?wizard coterie|?wizard coven|?wizard variety}
