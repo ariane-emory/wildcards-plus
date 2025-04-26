@@ -26,7 +26,7 @@ A
             |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
 |2 #warrior {mighty|#scary fearsome|resolute|2 proud|tattooed|#alone solitary
             |?f beautiful|?m handsome|?f alluring|?m musclebound|?m dashing|?f enchanting|?m charming}
-            {2 warrior|paladin|knight|barbarian|2 gladiator|?m swordsman|?f swordswoman|?f amazon|?f huntress
+            {2 warrior|paladin|knight|barbarian|rogue||2 gladiator|?m swordsman|?f swordswoman|?f amazon|?f huntress
             |?f valkyrie|mercenary|#scary {brigand|bandit}} 
 }
 
@@ -70,7 +70,7 @@ A
 {2 towards|downwards at} the viewer
 
 {#scary menacingly|pridefully|cunningly|drunkenly|!scary !angry {jovially|fondly}
-|mockingly|roguishly|!scary victoriously |3}
+|mockingly|roguishly|rakishly|!scary victoriously |3}
 
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
 {3|4 !alone , {accompanied by|surrounded by|encircled by|guarded by|leading|commanding|directing|alongside}
