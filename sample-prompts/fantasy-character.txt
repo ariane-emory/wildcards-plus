@@ -113,8 +113,8 @@ the viewer
                                   |heavily armed|raucous|warlike|belligerant}
                       }
 
+// unless flagged as #alonse, warriors always have #many_minions, but wizards may have a single minion sometimes: 
 {?warrior #many_minions|?wizard {|3 #many_minions}}
-
 @pluralize_minions := { ?many_minions <s }
 
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
@@ -128,7 +128,7 @@ the viewer
              {?warrior @0-2&minion_adjectives
                        {soldiers|warriors|companions|men at arms}
              |?wizard  @1-3&minion_adjectives
-                       {familiar|2 minion|slave|cultist|devil|!demonic demon|spirit|apprentice}
+                       {familiar|2 minion|slave|cultist|devil|!demonic demon|spirit|apprentice|followers}
                        @pluralize_minions
              }
 }
