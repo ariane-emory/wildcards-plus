@@ -27,10 +27,10 @@ $weapon  := @weapon
 A
 
 // Character, make wizards 60% of the time:
-{?wizard  @2-3,wizard_adjectives
+{?wizard  @2-3&wizard_adjectives
           {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
            |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
-|?warrior @2-3,warrior_adjectives
+|?warrior @2-3&warrior_adjectives
           {2 warrior|paladin|knight|barbarian|rogue|j|2 gladiator|?m swordsman|?f swordswoman|?f amazon
           |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}} 
 }
