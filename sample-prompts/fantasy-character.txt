@@ -45,9 +45,11 @@ A
 
 @0-3&adjectives @roles
 
+@wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered|ornate|silken|brightly colored|occult|embroidered}
+
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
 {|{clad in|wearing} {|@pro_pos_rand}
- {?wizard  {|swirling|cowled|hooded|shadowy|multicolored|oily|many-layered|ornate|silken|brightly colored|occult|embroidered}
+ {?wizard  @0-2&wizard_clothing_adjs
            {3 robes|garb|raiment|vestments|?f dress},
  |?warrior {2 {2|battered|blood-smeared|leather|spiked|chainmail|leather|rusted|golden} armor|{hides|furs|leather}},}
 }
