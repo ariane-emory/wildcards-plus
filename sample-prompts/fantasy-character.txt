@@ -1,4 +1,4 @@
-// just in case it's a Pony-based model, hopefully shouldn't make a big, difference otherwise: 
+,// just in case it's a Pony-based model, hopefully shouldn't make a big, difference otherwise: 
 score_9, score_8_up, score_7_up, score_6_up, \n
 
 dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, \n
@@ -74,7 +74,7 @@ A
                  {?warrior {fellow|loyal|brave|steadfast}
                            {soldiers|warriors|companions|men at arms}
                  |?wizard  {?scary {demonic|fearsome|slavering|3 undead|eldrich|loathsome}
-                 |                  {3 arcane|2 ensorceled|mysterious|exotic|obedient|worshipping|2 dancing}
+                 |         {3 arcane|2 ensorceled|mysterious|exotic|obedient|worshipping|2 dancing}
                           } 
                           {familiars|2 minions|slaves|cultists|devils|spirits|apprentices}
                  }
