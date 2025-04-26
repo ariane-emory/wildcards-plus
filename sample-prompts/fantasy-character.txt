@@ -26,8 +26,8 @@ A
             |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
 |2 #warrior {mighty|#scary fearsome|resolute|2 proud|tattooed|#alone solitary
             |?f beautiful|?m handsome|?f alluring|?m musclebound|?m dashing|?f enchanting|?m charming}
-            {2 warrior|paladin|knight|barbarian|rogue||2 gladiator|?m swordsman|?f swordswoman|?f amazon|?f huntress
-            |?f valkyrie|mercenary|#scary {brigand|bandit}} 
+            {2 warrior|paladin|knight|barbarian|rogue|j|2 gladiator|?m swordsman|?f swordswoman|?f amazon
+            |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}} 
 }
 
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
