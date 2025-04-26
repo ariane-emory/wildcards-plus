@@ -88,7 +88,8 @@ A @0-3&character_adjectives @roles
 in a
 
 {!outdoors {|shadowy|smoky|crumbling|ruined|foggy|dimly lit|dusty|{candle|torch} <lit}
-           {temple|palace|crypt|cave|tavern|church|lair|cavern|library|castle|dungeon} }
+           {temple|palace|crypt|cave|tavern|church|lair|cavern|library|castle|dungeon}
+}
 
 {?outdoors {|shadowy|smoky|foggy|dimly lit|wintry|snowy|rainy}
            {swamp|forest|desert|alleyway|field|battlefield|courtyard|garden}
