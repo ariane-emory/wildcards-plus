@@ -20,8 +20,8 @@ $weapon  := @weapon
 
 @adjectives := {?wizard  {#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise
                          |?f seductive|?f beautiful|?f alluring|?m dashing|?f enchanting|?m !scary charming
-                         |?f beguiling|?f captivating|powerful|godlike}
-               |?warrior {mighty|?m handsome|?m musclebound|#scary fearsome|resolute|2 proud|noble|tattooed|#alone solitary
+                         |?f beguiling|?f captivating|powerful|godlike|!scary holy}
+               |?warrior {!scary heroic|mighty|?m handsome|?m musclebound|#scary fearsome|resolute|2 proud|noble|tattooed|#alone solitary
                          |athletic|steadfast|humongous|strong|?f beautiful|?m handsome|?f alluring|?m musclebound
                          |?m dashing|?f enchanting|?m !scary charming|!scary brave|!scary daring}
                }
@@ -38,12 +38,12 @@ A
 
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
 {|{clad in|wearing}
- {?wizard  {|swirling|cowled|shadowy|multicolored|oily|many-layered|ornate|occult|embroidered}
+ {?wizard  {|swirling|cowled|hooded|shadowy|multicolored|oily|many-layered|ornate|silken|brightly colored|occult|embroidered}
            {3 robes|garb|raiment|vestments|?f dress},
  |?warrior {2 {2|battered|blood-smeared|spiked|chainmail|leather|rusted|golden} armor|{hides|furs|leather}},}
 }
 
-// Setting or Seating: only reference any seating  half the time, because of the empty alternative at the start:
+// Setting or Seating: only reference any setting/seating half the time, because of the empty alternative at the start:
 {|{on a {|snowy|barren} mountaintop|in a desert|in an arena
   |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace}|on a rocky crag
   |in a {barren|bleak} wasteland|in a jungle|in a swamp}, 
