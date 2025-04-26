@@ -47,9 +47,9 @@ A
 {|{on a {|snowy|barren} mountaintop|in a desert|in an arena
   |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace}|on a rocky crag
   |in a {barren|bleak} wasteland|in a jungle|in a swamp}, 
- |{sitting on|lounging on|astride|leading}
+ |2 {sitting on|lounging on|astride|riding|leading}
     a
-    {{mighty|infernal|#scary terrifying|majestic|?warrior armored}
+    {2 {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
       {3 beast|wolf|lizard|reptile|snake|2 steed|2 destrier|2 horse|2 dragon}|throne|sofa
    } ,
 }
