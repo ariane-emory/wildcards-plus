@@ -19,10 +19,11 @@ dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide 
 $weapon  := @weapon 
 
 @adjectives := {?wizard  {#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise
-                         |?f seductive|?f beautiful|?f alluring|?m dashing|?f enchanting|?m charming
-                         |?f beguiling|?f captivating}
+                         |?f seductive|?f beautiful|?f alluring|?m dashing|?f enchanting|?m !scary charming
+                         |?f beguiling|?f captivating|powerful|godlike}
                |?warrior {mighty|?m handsome|?m musclebound|#scary fearsome|resolute|2 proud|noble|tattooed|#alone solitary
-                         |?f beautiful|?m handsome|?f alluring|?m musclebound|?m dashing|?f enchanting|?m charming}
+                         |athletic|steadfast|humongous|strong|?f beautiful|?m handsome|?f alluring|?m musclebound
+                         |?m dashing|?f enchanting|?m !scary charming|!scary brave|!scary daring}
                }
 
 @roles := {?wizard  {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
