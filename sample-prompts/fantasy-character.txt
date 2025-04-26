@@ -26,11 +26,11 @@ $weapon  := @weapon
                          |?m dashing|?f enchanting|?m !scary charming|!scary brave|!scary daring}
                }
 
-@roles := {?wizard  {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
-                    |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
-          |?warrior {2 warrior|!scary paladin|knight|barbarian|rogue|2 gladiator|?m swordsman|?f swordswoman|?f amazon
-                    |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}|!scary hero} 
-          }
+@roles      := {?wizard  {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
+                         |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
+               |?warrior {2 warrior|!scary paladin|knight|barbarian|rogue|2 gladiator|?m swordsman|?f swordswoman|?f amazon
+                         |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}|!scary hero} 
+               }
 
 A
 
