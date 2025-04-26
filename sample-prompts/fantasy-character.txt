@@ -94,7 +94,7 @@ in a
            {swamp|forest|desert|alleyway|field|battlefield|courtyard|garden}
 }
 
-,
+{,|and}
 
 @look_aim := {past|towards|at|up {at|towards}|down {at|towards}}
 
