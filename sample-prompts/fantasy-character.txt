@@ -43,14 +43,14 @@ A
 @0-3&adjectives @roles
 
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
-{|{clad in|wearing}
+{|{clad in|wearing} {|@pronoun_pos_adj}
  {?wizard  {|swirling|cowled|hooded|shadowy|multicolored|oily|many-layered|ornate|silken|brightly colored|occult|embroidered}
            {3 robes|garb|raiment|vestments|?f dress},
- |?warrior {2 {2|battered|blood-smeared|spiked|chainmail|leather|rusted|golden} armor|{hides|furs|leather}},}
+ |?warrior {2 {2|battered|blood-smeared|leather|spiked|chainmail|leather|rusted|golden} armor|{hides|furs|leather}},}
 }
 
 // Setting or Seating: only reference any setting/seating some of the time, because of the empty alternative at the start:
-{|{on a {|snowy|barren} mountaintop|in a desert|in an arena
+{|{on a {|snowy|barren} {mountaintop|hill|promontory}|in a desert|in an arena
   |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace|crypt}|on a rocky crag
   |in a {barren|bleak} wasteland|in a jungle|in a swamp}, 
  |2 {sitting on|lounging on|astride|riding|leading}
@@ -77,12 +77,13 @@ A
 }
 
 // Expression/looking at:
-{2 looking|#angry glaring|staring|beckoning|leering|#scary glowering|2 !scary smiling|grinning}
+{2 looking {down at|up at|towards}|#angry glaring at|staring {past|towards|at}|beckoning|leering|#scary glowering|2 !scary smiling|grinning|laughing at}
 
-{2 towards|downwards at} the viewer
+// {2 towards|downwards at}
+the viewer
 
-{#scary menacingly|pridefully|cunningly|drunkenly|!scary !angry {jovially|fondly|gleefully}
-|mockingly|roguishly|rakishly|!scary victoriously |3}
+{2 ?scary menacingly|pridefully|cunningly|drunkenly|!scary !angry {jovially|fondly|gleefully|madly|?scary angrily|angrily}
+|mockingly|roguishly|rakishly|2 ?scary threateningly|!scary victoriously |3}
 
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
 {3|4 !alone , {accompanied by|surrounded by|encircled by|guarded by|leading|commanding|directing|alongside}
