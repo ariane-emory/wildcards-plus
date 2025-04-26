@@ -34,7 +34,6 @@ $weapon  := @weapon
                          |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}|!scary hero|#scary raider} 
                }
 
-@wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered|ornate|silken|brightly colored|occult|embroidered}
 
 // The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pros:
 @pro_3rd_object  := {?f her |?m him | ?n it  }
@@ -45,11 +44,13 @@ $weapon  := @weapon
 
 A @0-3&character_adjectives @roles
 
+@wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered|ornate|silken|brightly colored|occult|embroidered}
+
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
 {|{clad in|wearing} {|@pro_pos_rand}
  {?wizard  @0-2&wizard_clothing_adjs
            {3 robes|garb|raiment|vestments|?f dress},
- |?warrior {2 {2|battered|blood-smeared|2 leather|spiked|chainmail|rusted|golden} armor|{hides|furs|leather}},}
+ |?warrior {3 {|battered|blood-smeared|2 leather|spiked|chainmail|rusted|ornate|golden} armor|{hides|furs|leather}},}
 }
 
 // Setting or Seating: only reference any setting/seating some of the time, because of the empty alternative at the start:
@@ -91,8 +92,10 @@ A @0-3&character_adjectives @roles
 |inviting {|@look_aim}
 |leering @look_aim
 |#scary glowering @look_aim
-|2 !scary smiling|grinning
-|scowling @look_aim}
+|2 !scary smiling @look_aim
+|grinning @look_aim
+|scowling @look_aim
+}
 
 the viewer
 
