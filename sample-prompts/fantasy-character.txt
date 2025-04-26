@@ -4,6 +4,7 @@ score_9, score_8_up, score_7_up, score_6_up, \n
 dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, \n
 
 {#m|#f} // set an 'm' or 'f' gender flag that will help guide the selection of adjectives later on.
+{3 #wizard|2 #warrior}
 
 @weapon  := {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger}
 
@@ -20,15 +21,15 @@ $weapon  := @weapon
 A
 
 // Character, make wizards 60% of the time:
-{3 #wizard  {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
-             |?f beautiful|?m handsome|?f alluring|?m dashing|?f enchanting|?m charming
-             |?f beguiling|?f captivating}
-            {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
-            |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
-|2 #warrior {mighty|?m handsome|?m musclebound|#scary fearsome|resolute|2 proud|noble|tattooed|#alone solitary
-            |?f beautiful|?m handsome|?f alluring|?m musclebound|?m dashing|?f enchanting|?m charming}
-            {2 warrior|paladin|knight|barbarian|rogue|j|2 gladiator|?m swordsman|?f swordswoman|?f amazon
-            |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}} 
+{?wizard  {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
+           |?f beautiful|?m handsome|?f alluring|?m dashing|?f enchanting|?m charming
+           |?f beguiling|?f captivating}
+          {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
+           |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
+|?warrior {mighty|?m handsome|?m musclebound|#scary fearsome|resolute|2 proud|noble|tattooed|#alone solitary
+          |?f beautiful|?m handsome|?f alluring|?m musclebound|?m dashing|?f enchanting|?m charming}
+          {2 warrior|paladin|knight|barbarian|rogue|j|2 gladiator|?m swordsman|?f swordswoman|?f amazon
+          |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}} 
 }
 
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
