@@ -127,7 +127,7 @@ the viewer
                                   |heavily armed|raucous|warlike|belligerant}
                       }
 
-// unless flagged as #alonse, warriors always have #many_minions, but wizards may have a single minion sometimes: 
+// unless flagged as #alone, warriors always have #many_minions, but wizards may have a single minion sometimes: 
 {?warrior #many_minions|?wizard {|3 #many_minions}}
 @pluralize_minions := { ?many_minions <s }
 
