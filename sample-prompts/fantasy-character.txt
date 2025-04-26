@@ -28,8 +28,8 @@ $weapon  := @weapon
                                    |?m !scary charming|!scary brave|!scary daring}
                          }
 
-@roles      := {?wizard  {{?m wizard|?f wizardress}|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest
-                         |?f priestess}|adept|cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
+@roles      := {?wizard  {{?m wizard|?f wizardress}|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|alchemist
+                         |{?m priest|?f priestess}|adept|cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
                |?warrior {2 warrior|!scary paladin|knight|barbarian|conqueror|rogue|2 gladiator|?m swordsman|?f swordswoman|?f amazon
                          |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}|!scary hero|#scary raider} 
                }
@@ -66,6 +66,7 @@ A @0-3&character_adjectives @roles
               {2 staff|2 wand|crystal ball|amulet|artifact
               |skull|spell book||dagger|2 candle|brazier|bell
               |2 {| glowing|?scary fiery} orb
+              |potion
               }
     |?warrior {2 bloody|2 ornate|bejeweled|fiery|}
               $weapon
