@@ -77,7 +77,7 @@ A
 }
 
 // Expression/looking at:
-{2 looking|#angry glaring|staring|beckoning|leering|#scary glowering|2 !scary {smiling|grinning}}
+{2 looking|#angry glaring|staring|beckoning|leering|#scary glowering|2 !scary smiling|grinning}
 
 {2 towards|downwards at} the viewer
 
