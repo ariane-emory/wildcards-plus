@@ -3,7 +3,7 @@ score_9, score_8_up, score_7_up, score_6_up, \n
 
 dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, \n
 
-{#m|#f} // set an 'm' or 'f' gener flag that will help guide the selection of adjectives later on.
+{#m|#f} // set an 'm' or 'f' gender flag that will help guide the selection of adjectives later on.
 
 @weapon  := {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger}
 
