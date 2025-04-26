@@ -1,5 +1,5 @@
 // just in case it's a Pony-based model, hopefully shouldn't make a big, difference otherwise: 
-score_9, score_8_up, score_7_up, score_6_up, \n
+// score_9, score_8_up, score_7_up, score_6_up, \n
 
 dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, \n
 
@@ -84,12 +84,16 @@ A @0-3&character_adjectives @roles
 @look_aim := {past|towards|at|up {at|towards}|down {at|towards}}
 
 // Expression/looking at:
-{2 looking @look_aim|#angry glaring @look_aim|staring @look_aim
-|beckoning {|@look_aim}|leering {|@look_aim}
-|#scary glowering {|@look_aim}|2 !scary smiling|grinning
+{2 looking @look_aim
+|#angry glaring @look_aim
+|staring @look_aim
+|beckoning {|@look_aim}
+|inviting {|@look_aim}
+|leering @look_aim
+|#scary glowering @look_aim
+|2 !scary smiling|grinning
 |scowling @look_aim}
 
-// {2 towards|downwards at}
 the viewer
 
 {2 ?scary menacingly|pridefully|cunningly|drunkenly|!scary !angry jovially|!scary !angry fondly
