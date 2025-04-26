@@ -51,7 +51,7 @@ A
 {|{clad in|wearing} {|@pro_pos_rand}
  {?wizard  @0-2&wizard_clothing_adjs
            {3 robes|garb|raiment|vestments|?f dress},
- |?warrior {2 {2|battered|blood-smeared|leather|spiked|chainmail|leather|rusted|golden} armor|{hides|furs|leather}},}
+ |?warrior {2 {2|battered|blood-smeared|2 leather|spiked|chainmail|rusted|golden} armor|{hides|furs|leather}},}
 }
 
 // Setting or Seating: only reference any setting/seating some of the time, because of the empty alternative at the start:
