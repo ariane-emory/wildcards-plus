@@ -105,7 +105,7 @@ the viewer
 |2 ?scary threateningly|!scary victoriously|3}
 
 @minion_adjectives := {?scary {demonic|fearsome|slavering|3 undead|eldrich
-                              |loathsome|squamous|chtonian|repulsive} 
+                              |loathsome|squamous|chtonian|repulsive|chitinous} 
                       |       {3 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
                               |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing}
                       }
