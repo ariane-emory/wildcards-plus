@@ -20,10 +20,10 @@ $weapon  := @weapon
 
 @character_adjectives := {?wizard  {#scary inhuman|#scary alien|#scary evil|#scary ominous|#scary sinister|#scary infernal
                                    |#alone lonesome|erudite|wise
-                         |?f seductive|?f beautiful|?f alluring|?m dashing|?f enchanting|?m !scary charming
-                         |?f beguiling|?f captivating|powerful|godlike|!scary holy}
+                                   |?f seductive|?f beautiful|?f alluring|?m dashing|?f enchanting|?m !scary charming
+                                   |?f beguiling|?f captivating|powerful|godlike|!scary holy}
                          |?warrior {!scary heroic|mighty|?m handsome|?m musclebound|#scary fearsome|resolute|2 proud
-                                   |noble|tattooed|#alone solitary|athletic|steadfast|?m humongous|strong|?f beautiful
+                                   |noble|tattooed|solitary #alone|athletic|steadfast|?m humongous|strong|?f beautiful
                                    |?m handsome|?f alluring|?m musclebound|#scary bloodthirsty|?m dashing|?f enchanting
                                    |?m !scary charming|!scary brave|!scary daring}
                          }
