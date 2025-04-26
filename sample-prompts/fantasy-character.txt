@@ -18,11 +18,11 @@ $weapon  := @weapon
 A
 
 // Character:
-{2 #wizard  {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
+{3 #wizard  {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
              |?f beautiful|?m handsome|?f alluring|?m dashing|?f enchanting|?m charming|?f beguiling|?m captivating
             }
             {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchantress|?f enchantress}|druid|{?m priest|?f priestess}|adept|cultist|2 necromancer|?m warlock|?f witch}
-|  #warrior {mighty|#scary fearsome|resolute|2 proud|tattooed|#alone solitary
+|  2 #warrior {mighty|#scary fearsome|resolute|2 proud|tattooed|#alone solitary
             |?f beautiful|?m handsome|?f alluring|?m musclebound|?m dashing|?f enchanting|?m charming}
             {2 warrior|knight|barbarian|2 gladiator|?m swordsman|?f swordswoman|?f amazon|?f huntress|?f valkyrie|mercenary|#scary {brigand|bandit}} 
 }
