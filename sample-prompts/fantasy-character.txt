@@ -28,8 +28,8 @@ $weapon  := @weapon
 
 @roles      := {?wizard  {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
                          |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
-               |?warrior {2 warrior|!scary paladin|knight|barbarian|rogue|2 gladiator|?m swordsman|?f swordswoman|?f amazon
-                         |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}|!scary hero} 
+               |?warrior {2 warrior|!scary paladin|knight|barbarian|conqueror|rogue|2 gladiator|?m swordsman|?f swordswoman|?f amazon
+                         |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}|!scary hero|#scary raider} 
                }
 
 A
@@ -37,10 +37,10 @@ A
 @0-3&adjectives @roles
 
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
-{|clad in
- {?wizard  {|swirling|shadowy|multicolored|oily|many-layered|ornate|occult|embroidered}
-           {3 robes|garb|vestments|?f dress},
- |?warrior {2 {2|battered|blood-smeared|spiked|chainmail|leather|rusted|golden} armor|{hides|furs}},}
+{|{clad in|wearing}
+ {?wizard  {|swirling|cowled|shadowy|multicolored|oily|many-layered|ornate|occult|embroidered}
+           {3 robes|garb|raiment|vestments|?f dress},
+ |?warrior {2 {2|battered|blood-smeared|spiked|chainmail|leather|rusted|golden} armor|{hides|furs|leather}},}
 }
 
 // Setting or Seating: only reference any seating  half the time, because of the empty alternative at the start:
