@@ -1,7 +1,7 @@
 // just in case it's a Pony-based model, hopefully shouldn't make a big, difference otherwise: 
 // score_9, score_8_up, score_7_up, score_6_up, \n
 
-dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot. \n
+dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, digital art styles to resemble a fine oil painting. \n
 
 {#m|#f}                // set an 'm' or 'f' gender flag that will help guide the selection of adjectives later on.
 {3 #wizard|2 #warrior} // character, make 'wizards' 60% of the time.
@@ -55,14 +55,22 @@ A @0-3&character_adjectives @roles
  |?warrior {3 {|battered|blood-smeared|2 leather|spiked|chainmail|rusted|ornate|golden} armor|{hides|furs|leather}},}
 }
 
-// Setting or Seating: only reference any setting/seating some of the time, because of the empty alternative at the start:
-{|{on a {|snowy|barren} {mountaintop|hill|promontory}|in a desert|in an arena
- |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace|crypt}|on a rocky crag
- |in a {barren|bleak} wasteland|in a jungle|in a swamp},
- |{sitting on|lounging on|laying on} @pro_pos_rand {throne|sofa|couch}
- |{sitting on|astride|riding|leading} @pro_pos_rand
-  {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
-  {3 beast|wolf|lizard|reptile|snake|2 steed|2 destrier|2 horse|2 dragon},
+{|#mounted}
+{?mounted #outdoors}
+
+{?mounted {sitting on|mounted on|riding on|astride|leading}
+          @pro_pos_rand
+          {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
+          {3 beast|wolf|lizard|reptile|snake|2 steed|2 destrier|2 horse|2 dragon}
+          ,
+}
+
+{!mounted {{lounging on|laying on} @pro_pos_rand {throne|sofa|couch}
+          |standing on a {|snowy|barren} {mountaintop|crag|promontory}
+          |in a {|shadowy|smoky|crumbling|ruined|foggy|dimly list}
+                {temple|palace|crypt|cave|swamp|forest|swamp|alley}
+          }
+          ,
 }
 
 // A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the start:
