@@ -1468,32 +1468,31 @@ function smart_join(arr) {
         !whitep(next_char) &&
         !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
         !(linkingp(next_char) || ')]'.includes(next_char)) &&
-        ( next_char !== '<' prev_char == '<' && prev_char_is_escaped))) &&
-    // ( next_char !== '<' && (! (prev_char === '<' && prev_char_is_escaped))) &&
-  !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
-    !punctuationp(next_char)) {
-  // console.log(`SPACE!`);
-  prev_char = ' ';
-  str += ' ';
-}
+        ( next_char !== '<' && (! (prev_char === '<' && prev_char_is_escaped))) &&
+        !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
+        !punctuationp(next_char)) {
+      // console.log(`SPACE!`);
+      prev_char = ' ';
+      str += ' ';
+    }
 
-if (next_char === '<' && right_word !== '<') {
-  // console.log(`CHOMP RIGHT!`);
-  right_word = right_word.substring(1);
-}
-else if (prev_char === '<' && !prev_char_is_escaped) {
-  // console.log(`CHOMP LEFT!`);
-  str = str.slice(0, -1);
-}
+    if (next_char === '<' && right_word !== '<') {
+      // console.log(`CHOMP RIGHT!`);
+      right_word = right_word.substring(1);
+    }
+    else if (prev_char === '<' && !prev_char_is_escaped) {
+      // console.log(`CHOMP LEFT!`);
+      str = str.slice(0, -1);
+    }
+    
+    left_word = right_word;
+    str += left_word;
+  }
+  
+  // console.log(`before = '${str}'`);
+  // console.log(`after  = '${unescape(str)}'`);
 
-left_word = right_word;
-str += left_word;
-}
-
-// console.log(`before = '${str}'`);
-// console.log(`after  = '${unescape(str)}'`);
-
-return unescape(str);
+  return unescape(str);
 }
 // ---------------------------------------------------------------------------------------
 
