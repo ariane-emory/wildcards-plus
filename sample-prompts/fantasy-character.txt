@@ -22,7 +22,7 @@ A
 // Character, make wizards 60% of the time:
 {3 #wizard  {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
              |?f beautiful|?m handsome|?f alluring|?m dashing|?f enchanting|?m charming|?f beguiling|?m captivating}
-            {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchantress|?f enchantress}|druid|{?m priest|?f priestess}|adept
+            {wizard|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|{?m priest|?f priestess}|adept
             |cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
 |2 #warrior {mighty|#scary fearsome|resolute|2 proud|tattooed|#alone solitary
             |?f beautiful|?m handsome|?f alluring|?m musclebound|?m dashing|?f enchanting|?m charming}
