@@ -73,9 +73,8 @@ A
                  {{horde|host|?warrior gang|?warrior band|army|?wizard {coterie|coven}} of}
                  {?warrior {fellow|loyal|brave|steadfast}
                            {soldiers|warriors|companions|men at arms}
-                 |?wizard  { {?scary {demonic|fearsome|slavering|3 undead|eldrich|loathsome}
-                           |{3 arcane|2 ensorceled|mysterious|exotic|obedient|worshipping|2 dancing}
-                           }
+                 |?wizard  { ?scary {demonic|fearsome|slavering|3 undead|eldrich|loathsome} 
+                           | {3 arcane|2 ensorceled|mysterious|exotic|obedient|worshipping|2 dancing}
                            }
                            {familiars|2 minions|slaves|cultists|devils|spirits|apprentices}
                  }
