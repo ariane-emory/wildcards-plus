@@ -32,6 +32,12 @@ $weapon  := @weapon
                          |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}|!scary hero|#scary raider} 
                }
 
+// The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pronouns:
+@pronoun_3rd_object  := {?f her |?m him | ?n it  }
+@pronoun_3rd_subject := {?f she |?m he  | ?n it  }
+@pronoun_pos_adj     := {?f her |?m his | ?n its }
+@pronoun_pos         := {?f hers|?m his | ?n its }
+
 A
 
 @0-3&adjectives @roles
@@ -59,7 +65,7 @@ A
      |?warrior wielding|?warrior swinging
      |?wizard cradling |?wizard waving|?wizard gesturing with}
 
-    a
+    {a|@pronoun_pos_adj}
 
     {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
               {2 staff|2 wand|crystal ball|amulet|artifact|skull|spell book||dagger|2 candle
