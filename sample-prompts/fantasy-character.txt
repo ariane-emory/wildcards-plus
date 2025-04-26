@@ -33,18 +33,21 @@ $weapon  := @weapon
                          |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}|!scary hero|#scary raider} 
                }
 
-// The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pronouns:
-@pronoun_3rd_object  := {?f her |?m him | ?n it  }
-@pronoun_3rd_subject := {?f she |?m he  | ?n it  }
-@pronoun_pos_adj     := {?f her |?m his | ?n its }
-@pronoun_pos         := {?f hers|?m his | ?n its }
+// The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pros:
+@pro_3rd_object  := {?f her |?m him | ?n it  }
+@pro_3rd_subject := {?f she |?m he  | ?n it  }
+@pro_pos_adj     := {?f her |?m his | ?n its }
+@pro_pos         := {?f hers|?m his | ?n its }
+
+
+@pro_pos_rand := {a|their|@pro_pos_adj}
 
 A
 
 @0-3&adjectives @roles
 
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
-{|{clad in|wearing} {|@pronoun_pos_adj}
+{|{clad in|wearing} {|@pro_pos_rand}
  {?wizard  {|swirling|cowled|hooded|shadowy|multicolored|oily|many-layered|ornate|silken|brightly colored|occult|embroidered}
            {3 robes|garb|raiment|vestments|?f dress},
  |?warrior {2 {2|battered|blood-smeared|leather|spiked|chainmail|leather|rusted|golden} armor|{hides|furs|leather}},}
@@ -55,7 +58,7 @@ A
   |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace|crypt}|on a rocky crag
   |in a {barren|bleak} wasteland|in a jungle|in a swamp}, 
  |2 {sitting on|lounging on|astride|riding|leading}
-    a
+    @pro_pos_rand
     {2 {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
       {3 beast|wolf|lizard|reptile|snake|2 steed|2 destrier|2 horse|2 dragon}|throne|sofa
    } ,
@@ -66,7 +69,7 @@ A
      |?warrior wielding|?warrior swinging
      |?wizard cradling |?wizard waving|?wizard gesturing with}
 
-    {a|@pronoun_pos_adj}
+    {@pro_pos_rand}
 
     {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
               {2 staff|2 wand|crystal ball|amulet|artifact|skull|spell book||dagger|2 candle
@@ -88,7 +91,7 @@ the viewer
 
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
 {3|4 !alone , {accompanied by|surrounded by|encircled by|guarded by|leading|commanding|directing|alongside}
-                 {their|a|@pronoun_pos_adj}
+                 {their|a|@pro_pos_adj}
                  {{horde|host|?warrior gang|?warrior band|army|2 ?wizard {coterie|coven|variety}} of}
                  {?warrior {fellow|loyal|brave|steadfast}
                            {soldiers|warriors|companions|men at arms}
