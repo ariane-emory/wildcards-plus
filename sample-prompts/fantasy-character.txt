@@ -42,7 +42,7 @@ $weapon  := @weapon
 @pro_pos         := {?f hers|?m his | ?n its }
 @pro_pos_rand    := {3 @pro_pos_adj|2 a|1 their}
 
-An oil painting for the cover of a fantasy novel published in the 1980s depicting a @0-3&character_adjectives @roles
+An oil painting for the cover of a fantasy novel published in the {1970s|1980s} depicting a @0-3&character_adjectives @roles
  
 @wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
                          |ornate|silken|brightly colored|occult|embroidered}
