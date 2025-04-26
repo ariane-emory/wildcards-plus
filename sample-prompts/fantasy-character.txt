@@ -37,7 +37,7 @@ A
  |?warrior {2 {2|battered|blood-smeared|spiked|chainmail|leather|rusted|golden} armor|{hides|furs}},}
 }
 
-// Seating: only reference any seating  half the time, because of the empty alternative at the start:
+// Setting or Seating: only reference any seating  half the time, because of the empty alternative at the start:
 {|{on a {|snowy|barren} mountaintop|in a desert|in an arena
   |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace}|on a rocky crag|in a {barren|bleak} wasteland|in a jungle}, 
  |{sitting on|lounging on|astride|leading}
