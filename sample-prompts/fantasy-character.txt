@@ -91,7 +91,7 @@ in a
            {temple|palace|crypt|cave|tavern|church|lair|cavern|library|castle|dungeon}
 }
 
-{?outdoors {|shadowy|smoky|foggy|dimly lit|wintry|snowy|rainy}
+{?outdoors {|shadowy|smoky|foggy|dimly lit|wintry|snowy|rainy|starlit|moonlit}
            {swamp|forest|desert|alleyway|field|battlefield|courtyard|garden}
 }
 
@@ -132,18 +132,19 @@ the viewer
 @pluralize_minions := { ?many_minions <s }
 
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
-{|2 !alone , {accompanied by|?many_minions surrounded by|?many_minions encircled by
-             |guarded by|leading|commanding|directing|alongside}
-             @pro_pos_rand
-             {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang|?warrior band
-                            |army|?wizard coterie|?wizard coven|?wizard variety}
-                            of
-             }
-             {?warrior @0-2&minion_adjectives
-                       {soldiers|warriors|companions|men at arms}
-             |?wizard  @1-3&minion_adjectives
-                       {familiar|2 minion|slave|cultist|devil|!demonic demon|spirit|apprentice|followers}
-                       @pluralize_minions
-             }
+{|2 !alone {2 ,|while}
+           {accompanied by|?many_minions surrounded by|?many_minions encircled by
+           |guarded by|leading|commanding|directing|alongside}
+           @pro_pos_rand
+           {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang|?warrior band
+                          |army|?wizard coterie|?wizard coven|?wizard variety}
+                          of
+           }
+           {?warrior @0-2&minion_adjectives
+                     {soldiers|warriors|companions|men at arms}
+           |?wizard  @1-3&minion_adjectives
+                     {familiar|2 minion|slave|cultist|devil|!demonic demon|spirit|apprentice|followers}
+                     @pluralize_minions
+           }
 }
 .
