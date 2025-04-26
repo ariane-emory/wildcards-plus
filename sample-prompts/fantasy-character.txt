@@ -68,7 +68,7 @@ A
      |?warrior wielding|?warrior swinging
      |?wizard cradling |?wizard waving|?wizard gesturing with}
 
-    {@pro_pos_rand}
+    @pro_pos_rand
 
     {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
               {2 staff|2 wand|crystal ball|amulet|artifact|skull|spell book||dagger|2 candle
