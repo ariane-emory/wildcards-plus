@@ -5,10 +5,16 @@ masterpiece, ultra high resolution, 8k, detailed background, wide shot, \n
 {#m|#f}
 
 @weapon  := {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger}
-$weapon  := @weapon
 
-// ^ oh no, an accidental Easter egg, I forgot to document scalar string variables
-//   in the readme. TODO: document this!
+// oh no, an accidental Easter egg, I completely forgot to document scalar string
+// variables in the readme. TODO: document this properly!
+//
+// in the mean time, this just picks an item from wepon and stashes it in a 
+// variable called $weapon:
+
+$weapon  := @weapon // 
+
+
 A
 // Character:
 {2 #wizard  {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
