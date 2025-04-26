@@ -1468,31 +1468,32 @@ function smart_join(arr) {
         !whitep(next_char) &&
         !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
         !(linkingp(next_char) || ')]'.includes(next_char)) &&
-        ( next_char !== '<' && (! (prev_char === '<' && prev_char_is_escaped))) &&
-        !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
-        !punctuationp(next_char)) {
-      // console.log(`SPACE!`);
-      prev_char = ' ';
-      str += ' ';
-    }
+        ( next_char !== '<' prev_char == '<' && prev_char_is_escaped))) &&
+    // ( next_char !== '<' && (! (prev_char === '<' && prev_char_is_escaped))) &&
+  !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
+    !punctuationp(next_char)) {
+  // console.log(`SPACE!`);
+  prev_char = ' ';
+  str += ' ';
+}
 
-    if (next_char === '<' && right_word !== '<') {
-      // console.log(`CHOMP RIGHT!`);
-      right_word = right_word.substring(1);
-    }
-    else if (prev_char === '<' && !prev_char_is_escaped) {
-      // console.log(`CHOMP LEFT!`);
-      str = str.slice(0, -1);
-    }
-    
-    left_word = right_word;
-    str += left_word;
-  }
-  
-  // console.log(`before = '${str}'`);
-  // console.log(`after  = '${unescape(str)}'`);
+if (next_char === '<' && right_word !== '<') {
+  // console.log(`CHOMP RIGHT!`);
+  right_word = right_word.substring(1);
+}
+else if (prev_char === '<' && !prev_char_is_escaped) {
+  // console.log(`CHOMP LEFT!`);
+  str = str.slice(0, -1);
+}
 
-  return unescape(str);
+left_word = right_word;
+str += left_word;
+}
+
+// console.log(`before = '${str}'`);
+// console.log(`after  = '${unescape(str)}'`);
+
+return unescape(str);
 }
 // ---------------------------------------------------------------------------------------
 
@@ -1506,20 +1507,20 @@ const is_node = typeof process !== "undefined" &&
       process.versions != null &&
       process.versions.node != null;
 
-// if (is_node) {
-//   const { inspect } = await import("util");
-//   inspect_fun = inspect;
-// }
+if (is_node) {
+  const { inspect } = await import("util");
+  inspect_fun = inspect;
+}
 // ---------------------------------------------------------------------------------------
 
 
 // =======================================================================================
 // the AST-walking function that I'll be using for the SD prompt grammar's output:
 // =======================================================================================
-function expand_wildcards(thing) {
+function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()) {
   const context = {
-    flags:            new Set(),
-    scalar_variables: new Map(),
+    flags:            flags,
+    scalar_variables: scalar_variables,
     named_wildcards:  new Map(),
     noisy:            false,
   };
@@ -1608,7 +1609,8 @@ function expand_wildcards(thing) {
     }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
-      let got = context.scalar_variables.get(thing.name) ?? 'NOT FOUND';
+      let got = context.scalar_variables.get(thing.name) ??
+          `SCALAR '${thing.name}' NOT FOUND}`;
 
       if (thing.capitalize)
         got = capitalize(got);
@@ -1703,8 +1705,8 @@ function expand_wildcards(thing) {
         let skip = false;
 
         for (const not_flag of option.not_flags) {
-          if (context.noisy)
-            console.log(`CHECKING FOR NOT ${inspect_fun(not_flag)}...`);
+          // if (context.noisy) 
+          //   console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)}...`);
 
           if (context.flags.has(not_flag.name)) {
             skip = true;
@@ -1716,7 +1718,8 @@ function expand_wildcards(thing) {
           continue;
         
         for (const check_flag of option.check_flags) {
-          // console.log(`CHECKING FOR ${inspect_fun(check_flag)}...`);
+          // if (context.noisy)
+          //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
           
           if (! context.flags.has(check_flag.name)) {
             skip = true;
@@ -1731,7 +1734,7 @@ function expand_wildcards(thing) {
       }
 
       if (new_picker.options.length == 0)
-        return 'NOPICK';
+        return '';
       
       const pick = new_picker.pick();
 
@@ -1883,6 +1886,7 @@ const make_ASTFlagCmd = (klass, ...rules) =>
 const plaintext               = /[^{|}\s]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+// const wb_uint                 = xform(parseInt, /\b\d+\b/);
 const ident                   = /[a-zA-Z_][0-9a-zA-Z_]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
