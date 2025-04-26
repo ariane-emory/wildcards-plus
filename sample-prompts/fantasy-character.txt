@@ -113,6 +113,10 @@ the viewer
                                   |heavily armed|raucous|warlike|belligerant}
                       }
 
+{?warrior #many_minions|?wizard {|3 #many_minions}}
+
+@pluralize_minions := { ?many_minions <s }
+
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
 {|2 !alone , {accompanied by|surrounded by|encircled by|guarded by|leading|commanding|directing|alongside}
              @pro_pos_rand
@@ -122,7 +126,8 @@ the viewer
              {?warrior @0-2&minion_adjectives
                        {soldiers|warriors|companions|men at arms}
              |?wizard  @1-3&minion_adjectives
-                       {familiars|2 minions|slaves|cultists|devils|spirits|apprentices}
+                       {familiar|2 minion|slave|cultist|devil|spirit|apprentice}
+                       @pluralize_minions
              }
 }
 .
