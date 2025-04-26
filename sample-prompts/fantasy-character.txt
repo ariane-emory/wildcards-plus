@@ -55,6 +55,24 @@ A @0-3&character_adjectives @roles
  |?warrior {3 {|battered|blood-smeared|2 leather|spiked|chainmail|rusted|ornate|golden} armor|{hides|furs|leather}},}
 }
 
+// A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the start:
+{|5 {presenting|brandishing|holding
+    |?warrior wielding|?warrior swinging
+    |?wizard cradling |?wizard waving|?wizard gesturing with}
+
+    @pro_pos_rand
+
+    {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
+              {2 staff|2 wand|crystal ball|amulet|artifact|skull|spell book||dagger|2 candle|brazier
+              |bell
+              |2 {| glowing|?scary fiery} orb
+              }
+    |?warrior {2 bloody|2 ornate|bejeweled|fiery|}
+              $weapon
+   }
+  ,
+}
+
 {|#outdoors}
 {|?outdoors #mounted}
 
@@ -77,25 +95,6 @@ in a
 }
 
 ,
-
-
-// A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the start:
-{|5 {presenting|brandishing|holding
-    |?warrior wielding|?warrior swinging
-    |?wizard cradling |?wizard waving|?wizard gesturing with}
-
-    @pro_pos_rand
-
-    {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
-              {2 staff|2 wand|crystal ball|amulet|artifact|skull|spell book||dagger|2 candle|brazier
-              |bell
-              |2 {| glowing|?scary fiery} orb
-              }
-    |?warrior {2 bloody|2 ornate|bejeweled|fiery|}
-              $weapon
-   }
-  ,
-}
 
 @look_aim := {past|towards|at|up {at|towards}|down {at|towards}}
 
