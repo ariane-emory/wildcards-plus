@@ -7,6 +7,8 @@ masterpiece, ultra high resolution, 8k, detailed background, wide shot, \n
 @weapon  := {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger}
 $weapon  := @weapon
 
+// ^ oh no, an accidental Easter egg, I forgot to document scalar string variables
+//   in the readme. TODO: document this!
 A
 // Character:
 {2 #wizard  {|#scary inhuman|#scary evil|#scary sinister|#scary infernal|#alone lonesome|erudite|wise|?fseductive
