@@ -86,7 +86,7 @@ A
 
 // Companions: mention some companions four times in seven, because of the empty alternative at the start 
 {3|4 !alone , {accompanied by|surrounded by|encircled by|guarded by|leading|commanding|directing|alongside}
-                 {2 their|a}
+                 {their|a|@pronoun_pos_adj}
                  {{horde|host|?warrior gang|?warrior band|army|2 ?wizard {coterie|coven|variety}} of}
                  {?warrior {fellow|loyal|brave|steadfast}
                            {soldiers|warriors|companions|men at arms}
