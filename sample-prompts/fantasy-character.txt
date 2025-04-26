@@ -1,12 +1,12 @@
 // just in case it's a Pony-based model, hopefully shouldn't make a big, difference otherwise: 
 // score_9, score_8_up, score_7_up, score_6_up, \n
 
-dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, digital art styles to resemble a fine oil painting. \n
+dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, digital art styled to resemble a fine oil painting. \n
 
 {#m|#f}                // set an 'm' or 'f' gender flag that will help guide the selection of adjectives later on.
 {3 #wizard|2 #warrior} // character, make 'wizards' 60% of the time.
 
-@weapon  := {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger}
+@weapon  := {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger|torch}
 
 // oh no, an accidental Easter egg, I completely forgot to document scalar string
 // variables in the README.md file.
@@ -55,8 +55,8 @@ A @0-3&character_adjectives @roles
  |?warrior {3 {|battered|blood-smeared|2 leather|spiked|chainmail|rusted|ornate|golden} armor|{hides|furs|leather}},}
 }
 
-{|#mounted}
-{?mounted #outdoors}
+{|#outdoors}
+{|?outdoors #mounted}
 
 {?mounted {sitting on|mounted on|riding on|astride|leading}
           @pro_pos_rand
@@ -65,13 +65,19 @@ A @0-3&character_adjectives @roles
           ,
 }
 
-{!mounted {{lounging on|laying on} @pro_pos_rand {throne|sofa|couch}
-          |standing on a {|snowy|barren} {mountaintop|crag|promontory}
-          |in a {|shadowy|smoky|crumbling|ruined|foggy|dimly list}
-                {temple|palace|crypt|cave|swamp|forest|swamp|alley}
-          }
-          ,
+{!outdoors {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair} }
+
+in a
+
+{!outdoors {|shadowy|smoky|crumbling|ruined|foggy|dimly lit|dusty|{candle|torch} <lit}
+           {temple|palace|crypt|cave|tavern|church|lair|cavern|library|castle|dungeon} }
+
+{?outdoors {|shadowy|smoky|foggy|dimly lit|wintry|snowy|rainy}
+           {swamp|forest|desert|alleyway|field|battlefield|courtyard|garden}
 }
+
+,
+
 
 // A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the start:
 {|5 {presenting|brandishing|holding
@@ -81,7 +87,7 @@ A @0-3&character_adjectives @roles
     @pro_pos_rand
 
     {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
-              {2 staff|2 wand|crystal ball|amulet|artifact|skull|spell book||dagger|2 candle
+              {2 staff|2 wand|crystal ball|amulet|artifact|skull|spell book||dagger|2 candle|brazier
               |bell
               |2 {| glowing|?scary fiery} orb
               }
