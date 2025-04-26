@@ -34,13 +34,12 @@ $weapon  := @weapon
                          |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}|!scary hero|#scary raider} 
                }
 
-
 // The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pros:
 @pro_3rd_object  := {?f her |?m him | ?n it  }
 @pro_3rd_subject := {?f she |?m he  | ?n it  }
 @pro_pos_adj     := {?f her |?m his | ?n its }
 @pro_pos         := {?f hers|?m his | ?n its }
-@pro_pos_rand    := {2 a|3 @pro_pos_adj|1 their}
+@pro_pos_rand    := {|3 @pro_pos_adj2 a|1 their}
 
 A @0-3&character_adjectives @roles
 
@@ -49,25 +48,24 @@ A @0-3&character_adjectives @roles
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
 {|{clad in|wearing} {|@pro_pos_rand}
  {?wizard  @0-2&wizard_clothing_adjs
-           {3 robes|garb|raiment|vestments|?f dress},
+           {3 robes|garb|raiment|vestments|?f dress|?f gown},
  |?warrior {3 {|battered|blood-smeared|2 leather|spiked|chainmail|rusted|ornate|golden} armor|{hides|furs|leather}},}
 }
 
 // Setting or Seating: only reference any setting/seating some of the time, because of the empty alternative at the start:
 {|{on a {|snowy|barren} {mountaintop|hill|promontory}|in a desert|in an arena
-  |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace|crypt}|on a rocky crag
-  |in a {barren|bleak} wasteland|in a jungle|in a swamp},
+ |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace|crypt}|on a rocky crag
+ |in a {barren|bleak} wasteland|in a jungle|in a swamp},
  |{sitting on|lounging on|laying on} @pro_pos_rand {throne|sofa|couch}
- |{sitting on|astride|riding|leading}
-    @pro_pos_rand
-    {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
-      {3 beast|wolf|lizard|reptile|snake|2 steed|2 destrier|2 horse|2 dragon},
+ |{sitting on|astride|riding|leading} @pro_pos_rand
+  {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
+  {3 beast|wolf|lizard|reptile|snake|2 steed|2 destrier|2 horse|2 dragon},
 }
 
 // A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the start:
 {|5 {presenting|brandishing|holding
-     |?warrior wielding|?warrior swinging
-     |?wizard cradling |?wizard waving|?wizard gesturing with}
+    |?warrior wielding|?warrior swinging
+    |?wizard cradling |?wizard waving|?wizard gesturing with}
 
     @pro_pos_rand
 
