@@ -9,7 +9,7 @@ masterpiece, ultra high resolution, 8k, detailed background, wide shot, \n
 // oh no, an accidental Easter egg, I completely forgot to document scalar string
 // variables in the readme. TODO: document this properly!
 //
-// in the mean time, this just picks an item from wepon and stashes it in a 
+// in the mean time, this just picks an item from @wepon and stashes it in a 
 // variable called $weapon:
 
 $weapon  := @weapon 
