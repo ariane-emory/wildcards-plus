@@ -1506,10 +1506,10 @@ const is_node = typeof process !== "undefined" &&
       process.versions != null &&
       process.versions.node != null;
 
-if (is_node) {
-  const { inspect } = await import("util");
-  inspect_fun = inspect;
-}
+// if (is_node) {
+//   const { inspect } = await import("util");
+//   inspect_fun = inspect;
+// }
 // ---------------------------------------------------------------------------------------
 
 

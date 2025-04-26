@@ -1,14 +1,16 @@
 // just in case it's a Pony-based model, hopefully shouldn't make a big, difference otherwise: 
 // score_9, score_8_up, score_7_up, score_6_up, \n
 
-dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, digital art styled to resemble a fine oil painting. \n
+dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot,
+an oil painting for the cover of a fantasy novel published in the 1980s.
+\n
 
 {#m|#f}                // set an 'm' or 'f' gender flag that will help guide the selection of adjectives later on.
 {3 #wizard|2 #warrior} // character, make 'wizards' 60% of the time.
 
 @weapon  := {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger|torch}
 
-// oh no, an accidental Easter egg, I completely forgot to document scalar string
+// oh no, an accidental Easter egg! I completely forgot to document scalar string
 // variables in the README.md file.
 //
 // TODO: document this properly!
