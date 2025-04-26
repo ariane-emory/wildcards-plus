@@ -12,7 +12,7 @@ masterpiece, ultra high resolution, 8k, detailed background, wide shot, \n
 // in the mean time, this just picks an item from wepon and stashes it in a 
 // variable called $weapon:
 
-$weapon  := @weapon // 
+$weapon  := @weapon 
 
 A
 // Character:
