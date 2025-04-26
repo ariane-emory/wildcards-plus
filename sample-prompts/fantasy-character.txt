@@ -50,7 +50,7 @@ A
  |{sitting on|lounging on|astride|leading}
     a
     {{mighty|infernal|#scary terrifying|majestic|?warrior armored}
-      {2 beast|wolf|steed|destrier|horse|2 dragon}|throne|sofa
+      {3 beast|wolf|lizard|reptile|snake|2 steed|2 destrier|2 horse|2 dragon}|throne|sofa
    } ,
 }
 
