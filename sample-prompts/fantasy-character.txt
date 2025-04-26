@@ -39,7 +39,7 @@ $weapon  := @weapon
 @pro_3rd_subject := {?f she |?m he  | ?n it  }
 @pro_pos_adj     := {?f her |?m his | ?n its }
 @pro_pos         := {?f hers|?m his | ?n its }
-@pro_pos_rand    := {a|their|@pro_pos_adj}
+@pro_pos_rand    := {a|their|2 @pro_pos_adj}
 
 A
 
