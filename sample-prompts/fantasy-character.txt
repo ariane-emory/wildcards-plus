@@ -45,7 +45,7 @@ A
 
 // Setting or Seating: only reference any setting/seating some of the time, because of the empty alternative at the start:
 {|{on a {|snowy|barren} mountaintop|in a desert|in an arena
-  |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace}|on a rocky crag
+  |3 in a {|shadowy|smoky|crumbling|ruined} {temple|palace|crypt}|on a rocky crag
   |in a {barren|bleak} wasteland|in a jungle|in a swamp}, 
  |2 {sitting on|lounging on|astride|riding|leading}
     a
