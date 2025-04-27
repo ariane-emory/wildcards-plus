@@ -136,6 +136,8 @@ in {3|the heart of|the depths of} a
 {2 looking @look_aim
 |#angry glaring @look_aim
 |staring @look_aim
+|staring blankly @look_aim
+|gazing @look_aim
 |beckoning {|@look_aim}
 |inviting {|@look_aim}
 |leering @look_aim
