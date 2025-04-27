@@ -50,7 +50,7 @@ $weapon  := @weapon
 |A promotional poster for a {upcoming|highly anticipated} video game {|2 from {Japan's FROM Software|Hidetaka Miyazaki}}
 }
 
-{which depicts|depicting} a @0-3&character_adjectives @roles
+, {which depicts|depicting} a @0-3&character_adjectives @roles
 
 @wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
                          |ornate|silken|brightly colored|occult|embroidered}
