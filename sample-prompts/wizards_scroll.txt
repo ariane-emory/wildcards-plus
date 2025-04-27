@@ -1304,7 +1304,7 @@
   ?artist__carlos_cruz_diez Conceptual, illusion, Kinetic, Light-art,  |
   ?artist__john_currin characters, conceptual, fashion, femininity, figurativism, portraits, whimsical,  |
   ?artist__krenz_cushart characters, digital, fantasy, illustration, manga-anime, portraits, whimsical,  |
-  ?artist__camilla_d'errico big-eyes, childhood, contemporary, fantasy, nature, portraits, vibrant, watercolor, whimsical,  |
+  ?artist__camilla_derrico big-eyes, childhood, contemporary, fantasy, nature, portraits, vibrant, watercolor, whimsical,  |
   ?artist__pino_daeni femininity, figurative, nostalgia, painting, romanticism,  |
   ?artist__salvador_dalí dark, dream-like, dreams, illusion, metaphysics, oil-painting, Spanish, surreal,  |
   ?artist__sunil_das contemporary, figurative, identity, portraits,  |
@@ -1316,7 +1316,7 @@
   ?artist__eugene_delacroix French, history, muted-colors, oil-painting, orientalism, romanticism, sketching,  |
   ?artist__robert_delaunay abstract, contemporary, cubism, geometric, modern, vibrant,  |
   ?artist__sonia_delaunay abstract, cubism, fashion, fauvism, female-figures, French, geometric, modern,  |
-  ?artist__gabriele_dell'otto comics, fantasy,  |
+  ?artist__gabriele_dellotto comics, fantasy,  |
   ?artist__nicolas_delort dark, eerie, fantasy, gothic, horror, labyrinths, monochromatic,  |
   ?artist__jean_delville dream-like, fantasy, magic, metaphysics, surreal,  |
   ?artist__posuka_demizu adventure, contemporary, fantasy, illustration, manga-anime, playful, whimsical,  |
@@ -1787,7 +1787,7 @@
   ?artist__dan_mumford colorful, digital, dreams, fantasy, psychedelic, surreal, vibrant,  |
   ?artist__edvard_munch anxiety, dark, expressionism, impressionism, melancholy, Norwegian, oil-painting,  |
   ?artist__alfred_munnings horses, modern, painting,  |
-  ?artist__gabriele_münter expressionism, Expressionism, painting, Symbolist,  |
+  ?artist__gabriele_munter expressionism, Expressionism, painting, Symbolist,  |
   ?artist__takashi_murakami contemporary, cute, flat-colors, Japanese, manga-anime, pop-art,  |
   ?artist__patrice_murciano colorful, contemporary, expressionism, messy, pop-art, portraits, surreal, vibrant,  |
   ?artist__scott_musgrove Adventure, Advertising, contemporary, Illustration, landscapes,  |
@@ -1821,7 +1821,7 @@
   ?artist__françois_de_nomé baroque, expressionism, mixed-media,  |
   ?artist__earl_norem battle-scenes, dark, fantasy, mythology,  |
   ?artist__phil_noto american, characters, comics, contemporary, impressionism, installation, portraits,  |
-  ?artist__georgia_o'keeffe abstract, American, figurativism, flowers, landscapes, modern, precisionism, southwest,  |
+  ?artist__georgia_okeeffe abstract, American, figurativism, flowers, landscapes, modern, precisionism, southwest,  |
   ?artist__terry_oakes adventure, fantasy, magic, outer-space, science-fiction,  |
   ?artist__chris_ofili afro-futurism, contemporary, expressionism, figurative, mixed-media, painting, post-colonialism, watercolor,  |
   ?artist__jack_ohman comics, contemporary, Illustration, politics, Satire,  |
@@ -2141,6 +2141,4 @@
   ?artist__ander_zorn etching, nudes, painting, portraits, Swedish, 
 }
 
-@#artists
-
-@artists style, stuff goes here, (by @artists: 1.4), (@artist_styles: 0.8)
+@#artists @artists style, more content here, (by @artists:1.4), (@artist_styles:0.8)

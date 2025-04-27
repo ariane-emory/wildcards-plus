@@ -1103,6 +1103,8 @@ for (let ix = 0; ix < artists.length; ix++) {
   const cleaned_name = full_name.toLowerCase()
         .replace(/\s+/g, '_')
         .replace(/\-/g, '_')
+        .replace(/\'/g, '')
+        .replace('ü', 'u')
         .replace(/\./g, '');
   const tags = `${removeAddedDate(artist[2]).replaceAll('|', ', ')}`;
   const alternative_body = `  ?artist__${cleaned_name} ${tags}`;
@@ -1112,3 +1114,5 @@ for (let ix = 0; ix < artists.length; ix++) {
               :`${alternative_body} |`);
 }
 console.log('}');
+console.log();
+console.log(`@#artists @artists style, more content here, (by @artists:1.4), (@artist_styles:0.8)`);
