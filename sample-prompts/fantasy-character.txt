@@ -171,7 +171,7 @@ the viewer
          {accompanied by|?many_minions surrounded by|?many_minions encircled by
          |guarded by|leading|commanding|directing|guiding|rallying|alongside}
          @pro_pos_rand
-         {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang|?warrior squad|
+         {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang|?warrior squad
                         |army|?wizard coterie|?wizard circle|?wizard coven|?wizard variety}
                         of
          }
