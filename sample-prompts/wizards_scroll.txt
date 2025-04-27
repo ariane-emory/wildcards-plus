@@ -1150,7 +1150,7 @@
   ?artist__jasmine_becket_griffith big-eyes, childhood, colorful, fairies, fantasy, gothic, magic, portraits, romanticism, whimsical |
   ?artist__vanessa_beecroft contemporary, expressionism, fashion, feminism, nudes, photography, photography-color, surreal |
   ?artist__beeple 3D-rendering, conceptual, cyberpunk, digital, futuristic, pastel-colors, science-fiction |
-  ?artist__zdzisław_beksiński contemporary, dark, dream-like, expressionism, fantasy, horror, illustration, surreal |
+  ?artist__zdzislaw_beksinski contemporary, dark, dream-like, expressionism, fantasy, horror, illustration, surreal |
   ?artist__katerina_belkina contemporary, Femininity, identity, painting, Photography, photography-color, portraits |
   ?artist__julie_bell dragons, fantasy, magic, mythology, nature, wilderness |
   ?artist__vanessa_bell fauvism, portraits |
@@ -1215,7 +1215,7 @@
   ?artist__allie_brosh autobiographical, comics, flat-colors, whimsical |
   ?artist__ford_madox_brown portraits, romanticism |
   ?artist__charles_le_brun baroque, portraits |
-  ?artist__elisabeth_vigée_le_brun baroque, fashion, femininity, portraits |
+  ?artist__elisabeth_vigee_le_brun baroque, fashion, femininity, portraits |
   ?artist__james_bullough contemporary, dream-like, portraits, street-art |
   ?artist__laurel_burch femininity, illustration, nature, vibrant, whimsical |
   ?artist__alejandro_burdisio atmospheric, dark, digital, eerie, fantasy, landscapes, magic, science-fiction |
@@ -1424,8 +1424,8 @@
   ?artist__artemisia_gentileschi baroque, expressionism, portraits, realism, religion, renaissance, romanticism |
   ?artist__orazio_gentileschi baroque, expressionism, portraits, realism, renaissance, romanticism, whimsical |
   ?artist__daniel_f_gerhartz expressionism, femininity, impressionism, nature, portraits, realism, romanticism, whimsical |
-  ?artist__theodore_géricault conceptual, dark, expressionism, impressionism, portraits, realism, romanticism |
-  ?artist__jean_leon_gérôme architecture, figure-studies, French, mythology, Orientalism, painting, romanticism |
+  ?artist__theodore_gericault conceptual, dark, expressionism, impressionism, portraits, realism, romanticism |
+  ?artist__jean_leon_gerome architecture, figure-studies, French, mythology, Orientalism, painting, romanticism |
   ?artist__mark_gertler expressionism, figurativism, figure-studies, impressionism, portraits, realism, still-life |
   ?artist__atey_ghailan characters, digital, dream-like, fantasy, illustration, manga-anime, surreal |
   ?artist__alberto_giacometti bronze, emaciation, expressionism, figurative, portraits, sculpture, Swiss |
@@ -1753,7 +1753,7 @@
   ?artist__john_everett_millais expressionism, impressionism, landscapes, portraits |
   ?artist__marilyn_minter erotica, messy, painting, photography, photography-color, photorealism, portraits |
   ?artist__januz_miralles contemporary, low-contrast, monochromatic, portraits, watercolor |
-  ?artist__joan_miró abstract, color-field, colorful, modern, playful, sculpture, Spanish |
+  ?artist__joan_miro abstract, color-field, colorful, modern, playful, sculpture, Spanish |
   ?artist__joan_mitchell abstract, expressionism, large-scale, messy |
   ?artist__hayao_miyazaki adventure, animation, fantasy, film, Japanese, kids-book, manga-anime, whimsical |
   ?artist__paula_modersohn_becker expressionism, family, female-figures, femininity, German, painting, portraits, self-portraits |
@@ -1906,7 +1906,7 @@
   ?artist__hyacinthe_rigaud baroque, expressionism, landscapes, portraits |
   ?artist__rembrandt_van_rijn baroque, Dutch, etching, history, portraits, religion, self-portraits |
   ?artist__faith_ringgold activism, African-American, contemporary, expressionism, feminism, pop-art, quilting |
-  ?artist__józsef_rippl_rónai hungarian, landscapes, post-impressionism, realism |
+  ?artist__jozsef_rippl_rónai hungarian, landscapes, post-impressionism, realism |
   ?artist__pipilotti_rist colorful, dream-like, female-figures, immersive, installation, playful, Swiss, vibrant, video-art |
   ?artist__charles_robinson painting, politics, Realism, Satire |
   ?artist__theodore_robinson contemporary, mixed-media |
@@ -2032,7 +2032,7 @@
   ?artist__jan_svankmajer animation, dark, horror, puppets, sculpture, surreal |
   ?artist__raymond_swanland atmospheric, dark, digital, eerie, fantasy |
   ?artist__annie_swynnerton femininity, feminism, mythology, portraits, spirituality |
-  ?artist__stanisław_szukalski Metaphysics, Mysticism, primitivism, Sculpture, surreal |
+  ?artist__stanislaw_szukalski Metaphysics, Mysticism, primitivism, Sculpture, surreal |
   ?artist__philip_taaffe abstract, contemporary, painting, Symbolist |
   ?artist__hiroyuki_mitsume_takahashi childhood, colorful, comics, contemporary, japanese, manga-anime, portraits, social-commentary |
   ?artist__dorothea_tanning dream-like, eerie, figure-studies, metamorphosis, surreal |
@@ -2126,7 +2126,7 @@
   ?artist__sulamith_wulfing dream-like, ethereal, fantasy, German, illustration, kids-book, spirituality, whimsical |
   ?artist__nc_wyeth American, illustration, kids-book, nature, nostalgia, realism, rural-life |
   ?artist__rose_wylie contemporary, figurative, observational, painting, portraits |
-  ?artist__stanisław_wyspiański painting, polish, romanticism |
+  ?artist__stanislaw_wyspianski painting, polish, romanticism |
   ?artist__takato_yamamoto dreams, fantasy, mysterious, portraits |
   ?artist__gene_luen_yang contemporary, graphic-novel, illustration, manga-anime |
   ?artist__ikenaga_yasunari contemporary, femininity, japanese, portraits |

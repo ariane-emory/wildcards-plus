@@ -1105,9 +1105,14 @@ for (let ix = 0; ix < artists.length; ix++) {
         .replace(/\-/g, '_')
         .replace(/\'/g, '')
         .replace('ü', 'u')
-        .replace('é', 'e')  
+        .replace('é', 'e')
+        .replace('ó', 'o')
+        .replace('ł', 'l')
+        .replace('ń', 'n')
+        .replace('é', 'e')
+        .replace('ô', 'o')
         .replace(/\./g, '');
-  let tags = `${removeAddedDate(artist[2]).replaceAll('|', ', ')}`;
+                 let tags = `${removeAddedDate(artist[2]).replaceAll('|', ', ')}`;
   tags = tags.substring(0, tags.length - 2);
   const alternative_body = `  ?artist__${cleaned_name} ${tags}`;
 
