@@ -1069,6 +1069,7 @@
   #artist__william_zorach William Zorach |
   #artist__ander_zorn Ander Zorn
 }
+
 @artist_styles := {
   ?artist__zacharias_martin_aagaard landscapes, Observational, painting, Romanticism, Slice-of-life |
   ?artist__slim_aarons fashion, luxury, nostalgia, pastel-colors, photography, photography-color, social-commentary |

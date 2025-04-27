@@ -1084,6 +1084,7 @@ function clean_name(name) {
     .replace(/\s+/g, '_')
     .replace(/\-/g, '_')
     .replace(/\'/g, '')
+    .replaceAll('ō', 'o')
     .replaceAll('ü', 'u')
     .replaceAll('é', 'e')
     .replaceAll('ó', 'o')
