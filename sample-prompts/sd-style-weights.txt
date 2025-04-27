@@ -1,4 +1,4 @@
-@nonZeroInteger := {<\1|<\2|<\3|<\4|<\5|<\6|<\7|<\8|<\9}
+@nonZeroInteger := {<1|<2|<3|<4|<5|<6|<7|<8|<9}
 @randomWeight   := { :1. @nonZeroInteger }
 
 A (cute @randomWeight) (orange @randomWeight) {cat|bird}. 
