@@ -68,7 +68,9 @@ $weapon  := @weapon
 , {which depicts|depicting} a
 
 @world_adjective := {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten|primitive
-                    |frightening|hellish|alien|{haunted|{ghost|demon}-haunted}}
+                    |frightening|hellish|alien|{haunted|{ghost|demon}-haunted}
+                    |ruined|abandoned|lonely
+                    }
                     
 {|a scene in a @world_adjective world {showing|featuring|focused on|centered on} a}
 
@@ -113,7 +115,7 @@ $weapon  := @weapon
     // {|,}
 }
 
-while
+{|while}
 
 {|#outdoors}
 {|?outdoors #mounted}
@@ -132,7 +134,7 @@ while
 
 in {3|the heart of|the depths of} a
 
-{!outdoors {|shadowy|cyclopean|smoky|crumbling|ruined|foggy|dimly lit|dusty|{candle|torch} <lit| eerily lit}
+{!outdoors {|shadowy|cyclopean|smoky|crumbling|abandoned|ruined|foggy|dimly lit|dusty|{candle|torch} <lit| eerily lit}
            {temple|palace|crypt|cave|tavern|church|lair|cavern
            |{|arcane|wizard's} library|castle|tunnel|dungeon|tower}
 }
