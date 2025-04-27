@@ -79,7 +79,7 @@
   #artist__jasmine_becket_griffith Jasmine Becket-Griffith |
   #artist__vanessa_beecroft Vanessa Beecroft |
   #artist__beeple Beeple |
-  #artist__zdzisław_beksiński Zdzisław Beksiński |
+  #artist__zdzislaw_beksinski Zdzisław Beksiński |
   #artist__katerina_belkina Katerina Belkina |
   #artist__julie_bell Julie Bell |
   #artist__vanessa_bell Vanessa Bell |
@@ -110,7 +110,7 @@
   #artist__umberto_boccioni Umberto Boccioni |
   #artist__anna_bocek Anna Bocek |
   #artist__lee_bogle Lee Bogle |
-  #artist__louis_léopold_boily Louis-Léopold Boily |
+  #artist__louis_leopold_boily Louis-Léopold Boily |
   #artist__giovanni_boldini Giovanni Boldini |
   #artist__enoch_bolles Enoch Bolles |
   #artist__david_bomberg David Bomberg |
@@ -144,7 +144,7 @@
   #artist__allie_brosh Allie Brosh |
   #artist__ford_madox_brown Ford Madox Brown |
   #artist__charles_le_brun Charles Le Brun |
-  #artist__élisabeth_vigée_le_brun Élisabeth Vigée Le Brun |
+  #artist__elisabeth_vigee_le_brun Élisabeth Vigée Le Brun |
   #artist__james_bullough James Bullough |
   #artist__laurel_burch Laurel Burch |
   #artist__alejandro_burdisio Alejandro Burdisio |
@@ -182,7 +182,7 @@
   #artist__patrick_caulfield Patrick Caulfield |
   #artist__nicoletta_ceccoli Nicoletta Ceccoli |
   #artist__agnes_cecile Agnes Cecile |
-  #artist__paul_cézanne Paul Cézanne |
+  #artist__paul_cezanne Paul Cézanne |
   #artist__paul_chabas Paul Chabas |
   #artist__marc_chagall Marc Chagall |
   #artist__tom_chambers Tom Chambers |
@@ -233,9 +233,9 @@
   #artist__carlos_cruz_diez Carlos Cruz-Diez |
   #artist__john_currin John Currin |
   #artist__krenz_cushart Krenz Cushart |
-  #artist__camilla_d'errico Camilla d'Errico |
+  #artist__camilla_derrico Camilla d'Errico |
   #artist__pino_daeni Pino Daeni |
-  #artist__salvador_dalí Salvador Dalí |
+  #artist__salvador_dali Salvador Dalí |
   #artist__sunil_das Sunil Das |
   #artist__ian_davenport Ian Davenport |
   #artist__stuart_davis Stuart Davis |
@@ -245,12 +245,12 @@
   #artist__eugene_delacroix Eugene Delacroix |
   #artist__robert_delaunay Robert Delaunay |
   #artist__sonia_delaunay Sonia Delaunay |
-  #artist__gabriele_dell'otto Gabriele Dell'otto |
+  #artist__gabriele_dellotto Gabriele Dell'otto |
   #artist__nicolas_delort Nicolas Delort |
   #artist__jean_delville Jean Delville |
   #artist__posuka_demizu Posuka Demizu |
   #artist__guy_denning Guy Denning |
-  #artist__monsù_desiderio Monsù Desiderio |
+  #artist__monsu_desiderio Monsù Desiderio |
   #artist__charles_maurice_detmold Charles Maurice Detmold |
   #artist__edward_julius_detmold Edward Julius Detmold |
   #artist__anne_dewailly Anne Dewailly |
@@ -260,7 +260,7 @@
   #artist__dima_dmitriev Dima Dmitriev |
   #artist__peter_doig Peter Doig |
   #artist__kees_van_dongen Kees van Dongen |
-  #artist__gustave_doré Gustave Doré |
+  #artist__gustave_dore Gustave Doré |
   #artist__dave_dorman Dave Dorman |
   #artist__emilio_giuseppe_dossena Emilio Giuseppe Dossena |
   #artist__david_downton David Downton |
@@ -294,7 +294,7 @@
   #artist__kilian_eng Kilian Eng |
   #artist__jason_a_engle Jason A. Engle |
   #artist__max_ernst Max Ernst |
-  #artist__romain_de_tirtoff_erté Romain de Tirtoff Erté |
+  #artist__romain_de_tirtoff_erte Romain de Tirtoff Erté |
   #artist__m_c_escher M. C. Escher |
   #artist__tim_etchells Tim Etchells |
   #artist__walker_evans Walker Evans |
@@ -337,7 +337,7 @@
   #artist__tom_fruin Tom Fruin |
   #artist__john_wayne_gacy John Wayne Gacy |
   #artist__justin_gaffrey Justin Gaffrey |
-  #artist__hashimoto_gahō Hashimoto Gahō |
+  #artist__hashimoto_gaho Hashimoto Gahō |
   #artist__neil_gaiman Neil Gaiman |
   #artist__stephen_gammell Stephen Gammell |
   #artist__hope_gangloff Hope Gangloff |
@@ -353,8 +353,8 @@
   #artist__artemisia_gentileschi Artemisia Gentileschi |
   #artist__orazio_gentileschi Orazio Gentileschi |
   #artist__daniel_f_gerhartz Daniel F. Gerhartz |
-  #artist__théodore_géricault Théodore Géricault |
-  #artist__jean_léon_gérôme Jean-Léon Gérôme |
+  #artist__theodore_gericault Théodore Géricault |
+  #artist__jean_leon_gerome Jean-Léon Gérôme |
   #artist__mark_gertler Mark Gertler |
   #artist__atey_ghailan Atey Ghailan |
   #artist__alberto_giacometti Alberto Giacometti |
@@ -428,7 +428,7 @@
   #artist__barkley_l_hendricks Barkley L. Hendricks |
   #artist__bill_henson Bill Henson |
   #artist__barbara_hepworth Barbara Hepworth |
-  #artist__hergé Hergé |
+  #artist__herge Hergé |
   #artist__carolina_herrera Carolina Herrera |
   #artist__george_herriman George Herriman |
   #artist__don_hertzfeldt Don Hertzfeldt |
@@ -525,7 +525,7 @@
   #artist__jun_kaneko Jun Kaneko |
   #artist__titus_kaphar Titus Kaphar |
   #artist__michal_karcz Michal Karcz |
-  #artist__gertrude_käsebier Gertrude Käsebier |
+  #artist__gertrude_kasebier Gertrude Käsebier |
   #artist__terada_katsuya Terada Katsuya |
   #artist__audrey_kawasaki Audrey Kawasaki |
   #artist__hasui_kawase Hasui Kawase |
@@ -558,7 +558,7 @@
   #artist__phil_koch Phil Koch |
   #artist__kazuo_koike Kazuo Koike |
   #artist__oskar_kokoschka Oskar Kokoschka |
-  #artist__käthe_kollwitz Käthe Kollwitz |
+  #artist__kathe_kollwitz Käthe Kollwitz |
   #artist__michael_komarck Michael Komarck |
   #artist__satoshi_kon Satoshi Kon |
   #artist__jeff_koons Jeff Koons |
@@ -576,7 +576,7 @@
   #artist__david_lachapelle David LaChapelle |
   #artist__raphael_lacoste Raphael Lacoste |
   #artist__lev_lagorio Lev Lagorio |
-  #artist__rené_lalique René Lalique |
+  #artist__rene_lalique René Lalique |
   #artist__abigail_larson Abigail Larson |
   #artist__gary_larson Gary Larson |
   #artist__denys_lasdun Denys Lasdun |
@@ -598,7 +598,7 @@
   #artist__tamara_de_lempicka Tamara de Lempicka |
   #artist__sol_lewitt Sol LeWitt |
   #artist__jc_leyendecker J.C. Leyendecker |
-  #artist__andré_lhote André Lhote |
+  #artist__andre_lhote André Lhote |
   #artist__roy_lichtenstein Roy Lichtenstein |
   #artist__rob_liefeld Rob Liefeld |
   #artist__fang_lijun Fang Lijun |
@@ -628,7 +628,7 @@
   #artist__keith_mallett Keith Mallett |
   #artist__johji_manabe Johji Manabe |
   #artist__milo_manara Milo Manara |
-  #artist__édouard_manet Édouard Manet |
+  #artist__edouard_manet Édouard Manet |
   #artist__henri_manguin Henri Manguin |
   #artist__jeremy_mann Jeremy Mann |
   #artist__sally_mann Sally Mann |
@@ -643,7 +643,7 @@
   #artist__serge_marshennikov Serge Marshennikov |
   #artist__agnes_martin Agnes Martin |
   #artist__adam_martinakis Adam Martinakis |
-  #artist__stephan_martinière Stephan Martinière |
+  #artist__stephan_martiniere Stephan Martinière |
   #artist__ilya_mashkov Ilya Mashkov |
   #artist__henri_matisse Henri Matisse |
   #artist__rodney_matthews Rodney Matthews |
@@ -682,7 +682,7 @@
   #artist__john_everett_millais John Everett Millais |
   #artist__marilyn_minter Marilyn Minter |
   #artist__januz_miralles Januz Miralles |
-  #artist__joan_miró Joan Miró |
+  #artist__joan_miro Joan Miró |
   #artist__joan_mitchell Joan Mitchell |
   #artist__hayao_miyazaki Hayao Miyazaki |
   #artist__paula_modersohn_becker Paula Modersohn-Becker |
@@ -696,7 +696,7 @@
   #artist__alan_moore Alan Moore |
   #artist__antonio_mora Antonio Mora |
   #artist__edward_moran Edward Moran |
-  #artist__kōji_morimoto Kōji Morimoto |
+  #artist__koji_morimoto Kōji Morimoto |
   #artist__berthe_morisot Berthe Morisot |
   #artist__daido_moriyama Daido Moriyama |
   #artist__james_wilson_morrice James Wilson Morrice |
@@ -716,7 +716,7 @@
   #artist__dan_mumford Dan Mumford |
   #artist__edvard_munch Edvard Munch |
   #artist__alfred_munnings Alfred Munnings |
-  #artist__gabriele_münter Gabriele Münter |
+  #artist__gabriele_munter Gabriele Münter |
   #artist__takashi_murakami Takashi Murakami |
   #artist__patrice_murciano Patrice Murciano |
   #artist__scott_musgrove Scott Musgrove |
@@ -747,16 +747,16 @@
   #artist__victor_nizovtsev Victor Nizovtsev |
   #artist__isamu_noguchi Isamu Noguchi |
   #artist__catherine_nolin Catherine Nolin |
-  #artist__françois_de_nomé François De Nomé |
+  #artist__francois_de_nome François De Nomé |
   #artist__earl_norem Earl Norem |
   #artist__phil_noto Phil Noto |
-  #artist__georgia_o'keeffe Georgia O'Keeffe |
+  #artist__georgia_okeeffe Georgia O'Keeffe |
   #artist__terry_oakes Terry Oakes |
   #artist__chris_ofili Chris Ofili |
   #artist__jack_ohman Jack Ohman |
   #artist__noriyoshi_ohrai Noriyoshi Ohrai |
   #artist__helio_oiticica Helio Oiticica |
-  #artist__tarō_okamoto Tarō Okamoto |
+  #artist__taro_okamoto Tarō Okamoto |
   #artist__tim_okamura Tim Okamura |
   #artist__naomi_okubo Naomi Okubo |
   #artist__atelier_olschinsky Atelier Olschinsky |
@@ -835,7 +835,7 @@
   #artist__hyacinthe_rigaud Hyacinthe Rigaud |
   #artist__rembrandt_van_rijn Rembrandt van Rijn |
   #artist__faith_ringgold Faith Ringgold |
-  #artist__józsef_rippl_rónai József Rippl-Rónai |
+  #artist__jozsef_rippl_ronai József Rippl-Rónai |
   #artist__pipilotti_rist Pipilotti Rist |
   #artist__charles_robinson Charles Robinson |
   #artist__theodore_robinson Theodore Robinson |
@@ -910,7 +910,7 @@
   #artist__masamune_shirow Masamune Shirow |
   #artist__tim_shumate Tim Shumate |
   #artist__yuri_shwedoff Yuri Shwedoff |
-  #artist__malick_sidibé Malick Sidibé |
+  #artist__malick_sidibe Malick Sidibé |
   #artist__jeanloup_sieff Jeanloup Sieff |
   #artist__bill_sienkiewicz Bill Sienkiewicz |
   #artist__marc_simonetti Marc Simonetti |
@@ -926,7 +926,7 @@
   #artist__barbara_stauffacher_solomon Barbara Stauffacher Solomon |
   #artist__simeon_solomon Simeon Solomon |
   #artist__hajime_sorayama Hajime Sorayama |
-  #artist__joaquín_sorolla Joaquín Sorolla |
+  #artist__joaquin_sorolla Joaquín Sorolla |
   #artist__ettore_sottsass Ettore Sottsass |
   #artist__amadeo_de_souza_cardoso Amadeo de Souza-Cardoso |
   #artist__millicent_sowerby Millicent Sowerby |
@@ -934,12 +934,12 @@
   #artist__sparth Sparth |
   #artist__jack_spencer Jack Spencer |
   #artist__art_spiegelman Art Spiegelman |
-  #artist__simon_stålenhag Simon Stålenhag |
+  #artist__simon_stalenhag Simon Stålenhag |
   #artist__ralph_steadman Ralph Steadman |
   #artist__philip_wilson_steer Philip Wilson Steer |
   #artist__william_steig William Steig |
   #artist__fred_stein Fred Stein |
-  #artist__théophile_steinlen Théophile Steinlen |
+  #artist__theophile_steinlen Théophile Steinlen |
   #artist__brian_stelfreeze Brian Stelfreeze |
   #artist__frank_stella Frank Stella |
   #artist__joseph_stella Joseph Stella |
@@ -961,7 +961,7 @@
   #artist__jan_svankmajer Jan Svankmajer |
   #artist__raymond_swanland Raymond Swanland |
   #artist__annie_swynnerton Annie Swynnerton |
-  #artist__stanisław_szukalski Stanisław Szukalski |
+  #artist__stanislaw_szukalski Stanisław Szukalski |
   #artist__philip_taaffe Philip Taaffe |
   #artist__hiroyuki_mitsume_takahashi Hiroyuki-Mitsume Takahashi |
   #artist__dorothea_tanning Dorothea Tanning |
@@ -1003,7 +1003,7 @@
   #artist__jan_van_kessel_the_elder Jan van Kessel the Elder |
   #artist__remedios_varo Remedios Varo |
   #artist__nick_veasey Nick Veasey |
-  #artist__diego_velázquez Diego Velázquez |
+  #artist__diego_velazquez Diego Velázquez |
   #artist__eve_ventrue Eve Ventrue |
   #artist__johannes_vermeer Johannes Vermeer |
   #artist__charles_vess Charles Vess |
@@ -1055,7 +1055,7 @@
   #artist__sulamith_wulfing Sulamith Wulfing |
   #artist__nc_wyeth N.C. Wyeth |
   #artist__rose_wylie Rose Wylie |
-  #artist__stanisław_wyspiański Stanisław Wyspiański |
+  #artist__stanislaw_wyspianski Stanisław Wyspiański |
   #artist__takato_yamamoto Takato Yamamoto |
   #artist__gene_luen_yang Gene Luen Yang |
   #artist__ikenaga_yasunari Ikenaga Yasunari |
@@ -1306,7 +1306,7 @@
   ?artist__krenz_cushart characters, digital, fantasy, illustration, manga-anime, portraits, whimsical |
   ?artist__camilla_derrico big-eyes, childhood, contemporary, fantasy, nature, portraits, vibrant, watercolor, whimsical |
   ?artist__pino_daeni femininity, figurative, nostalgia, painting, romanticism |
-  ?artist__salvador_dalí dark, dream-like, dreams, illusion, metaphysics, oil-painting, Spanish, surreal |
+  ?artist__salvador_dali dark, dream-like, dreams, illusion, metaphysics, oil-painting, Spanish, surreal |
   ?artist__sunil_das contemporary, figurative, identity, portraits |
   ?artist__ian_davenport abstract, colorful, contemporary, geometric, modern, vibrant |
   ?artist__stuart_davis abstract, American, cubism, rural-life, social-realism |
@@ -1321,7 +1321,7 @@
   ?artist__jean_delville dream-like, fantasy, magic, metaphysics, surreal |
   ?artist__posuka_demizu adventure, contemporary, fantasy, illustration, manga-anime, playful, whimsical |
   ?artist__guy_denning colorful, conceptual, expressionism, messy, portraits, social-commentary |
-  ?artist__monsù_desiderio contemporary, figurative, surreal |
+  ?artist__monsu_desiderio contemporary, figurative, surreal |
   ?artist__charles_maurice_detmold animals, art-nouveau, botanical, British, delicate, ethereal, illustration, kids-book, nature, opulent, Victorian, watercolor |
   ?artist__edward_julius_detmold animals, art-nouveau, botanical, British, delicate, illustration, kids-book, nature, opulent, Victorian, watercolor |
   ?artist__anne_dewailly characters, fashion, figurativism, identity, multimedia, photorealism, portraits, whimsical |
@@ -1408,7 +1408,7 @@
   ?artist__tom_fruin architecture, colorful, contemporary, geometric, installation, multimedia, sculpture, stained-glass, vibrant |
   ?artist__john_wayne_gacy clowns, dark, death, horror, portraits, vibrant |
   ?artist__justin_gaffrey environmentalism, installation, landscapes, large-scale, minimalism, nature, sculpture |
-  ?artist__hashimoto_gahō Kitsch, Politics, Printmaking, ukiyo-e |
+  ?artist__hashimoto_gaho Kitsch, Politics, Printmaking, ukiyo-e |
   ?artist__neil_gaiman comics, conceptual, dream-like, fantasy, portraits, whimsical |
   ?artist__stephen_gammell dark, eerie, high-contrast, horror, kids-book |
   ?artist__hope_gangloff colorful, contemporary, expressionism, portraits |
@@ -1596,7 +1596,7 @@
   ?artist__jun_kaneko abstract, contemporary, geometric, organic, sculpture, vibrant |
   ?artist__titus_kaphar African-American, conceptual, contemporary, figurativism, portraits, social-commentary |
   ?artist__michal_karcz digital, eerie, fantasy, futuristic, landscapes, photorealism, science-fiction, surreal |
-  ?artist__gertrude_käsebier American, family, female-figures, monochromatic, photography, photography-bw, portraits, rural-life |
+  ?artist__gertrude_kasebier American, family, female-figures, monochromatic, photography, photography-bw, portraits, rural-life |
   ?artist__terada_katsuya fantasy, magic, manga-anime, portraits |
   ?artist__audrey_kawasaki art-nouveau, contemporary, fantasy, japanese, magic-realism, manga-anime, portraits, whimsical |
   ?artist__hasui_kawase landscapes, Plein-air, Printmaking, Slice-of-life, ukiyo-e |
@@ -1629,7 +1629,7 @@
   ?artist__phil_koch atmospheric, colorful, contemporary, landscapes, nature, photography, photography-color, serenity, vibrant |
   ?artist__kazuo_koike comics, fantasy, manga-anime |
   ?artist__oskar_kokoschka Austrian, expressionism, german, landscapes, modern, portraits |
-  ?artist__käthe_kollwitz contemporary, expressionism, high-contrast, monochromatic, portraits, social-commentary |
+  ?artist__kathe_kollwitz contemporary, expressionism, high-contrast, monochromatic, portraits, social-commentary |
   ?artist__michael_komarck battle-scenes, contemporary, fantasy, illustration, painting |
   ?artist__satoshi_kon dream-like, fantasy, manga-anime, surreal, whimsical |
   ?artist__jeff_koons colorful, consumerism, contemporary, kitsch, pop-art, post-modern, sculpture |
@@ -1714,7 +1714,7 @@
   ?artist__serge_marshennikov contemporary, expressionism, impressionism, landscapes, portraits |
   ?artist__agnes_martin abstract-expressionism, color-field, contemporary, grids, minimalism, spirituality |
   ?artist__adam_martinakis 3D-rendering, conceptual, digital, dream-like, futuristic, multimedia, sculpture, virtual-reality |
-  ?artist__stephan_martinière atmospheric, dark, fantasy, futuristic, landscapes, science-fiction, surreal |
+  ?artist__stephan_martiniere atmospheric, dark, fantasy, futuristic, landscapes, science-fiction, surreal |
   ?artist__ilya_mashkov expressionism, painting, russian, Symbolist |
   ?artist__henri_matisse collage, color-field, colorful, cut-outs, fauvism, French, impressionism, sculpture |
   ?artist__rodney_matthews colorful, eerie, fantasy, futuristic, science-fiction |
@@ -1767,7 +1767,7 @@
   ?artist__alan_moore comics, dark, dystopia, fantasy, graphic-novel, grungy, horror, noir, science-fiction |
   ?artist__antonio_mora american, contemporary, landscapes, monochromatic, photography, photography-bw, portraits, surreal |
   ?artist__edward_moran american, hudson-river-school, landscapes, painting, seascapes |
-  ?artist__kōji_morimoto contemporary, cute, illustration, Japanese, monsters, surreal |
+  ?artist__koji_morimoto contemporary, cute, illustration, Japanese, monsters, surreal |
   ?artist__berthe_morisot domestic-scenes, feminism, fleeting-moments, French, impressionism, landscapes, portraits, still-life |
   ?artist__daido_moriyama documentary, grungy, Japanese, monochromatic, photography, photography-bw, post-war, urban-life |
   ?artist__james_wilson_morrice impressionism, landscapes, painting, plein-air |
@@ -1818,7 +1818,7 @@
   ?artist__victor_nizovtsev colorful, dream-like, fantasy, magic, magic-realism, mysterious, surreal, whimsical |
   ?artist__isamu_noguchi Japanese, landscape-architecture, organic, sculpture |
   ?artist__catherine_nolin conceptual, contemporary, feminism, portraits |
-  ?artist__françois_de_nome baroque, expressionism, mixed-media |
+  ?artist__francois_de_nome baroque, expressionism, mixed-media |
   ?artist__earl_norem battle-scenes, dark, fantasy, mythology |
   ?artist__phil_noto american, characters, comics, contemporary, impressionism, installation, portraits |
   ?artist__georgia_okeeffe abstract, American, figurativism, flowers, landscapes, modern, precisionism, southwest |
@@ -1827,7 +1827,7 @@
   ?artist__jack_ohman comics, contemporary, Illustration, politics, Satire |
   ?artist__noriyoshi_ohrai fantasy, futuristic, posters, science-fiction, vibrant |
   ?artist__helio_oiticica abstract, angular, contemporary, installation, interactive, multimedia |
-  ?artist__tarō_okamoto avant-garde, gutai, Japanese, performance, sculpture, surreal |
+  ?artist__taro_okamoto avant-garde, gutai, Japanese, performance, sculpture, surreal |
   ?artist__tim_okamura African-American, contemporary, expressionism, graffiti, landscapes, portraits, street-art |
   ?artist__naomi_okubo collage, colorful, empowerment, feminism, identity, politics |
   ?artist__atelier_olschinsky abstract, cityscapes, digital, geometric, minimalism, modern |
@@ -1906,7 +1906,7 @@
   ?artist__hyacinthe_rigaud baroque, expressionism, landscapes, portraits |
   ?artist__rembrandt_van_rijn baroque, Dutch, etching, history, portraits, religion, self-portraits |
   ?artist__faith_ringgold activism, African-American, contemporary, expressionism, feminism, pop-art, quilting |
-  ?artist__jozsef_rippl_rónai hungarian, landscapes, post-impressionism, realism |
+  ?artist__jozsef_rippl_ronai hungarian, landscapes, post-impressionism, realism |
   ?artist__pipilotti_rist colorful, dream-like, female-figures, immersive, installation, playful, Swiss, vibrant, video-art |
   ?artist__charles_robinson painting, politics, Realism, Satire |
   ?artist__theodore_robinson contemporary, mixed-media |
@@ -1997,7 +1997,7 @@
   ?artist__barbara_stauffacher_solomon Commercial-art, contemporary, Graphic-Design, Graphic-design, Pop-art |
   ?artist__simeon_solomon Jewish, LGBTQ, Metaphysics, painting, pre-raphaelite, Symbolist |
   ?artist__hajime_sorayama characters, erotica, futuristic, robots-cyborgs, science-fiction, technology |
-  ?artist__joaquín_sorolla beach-scenes, impressionism, landscapes, portraits, seascapes, spanish |
+  ?artist__joaquin_sorolla beach-scenes, impressionism, landscapes, portraits, seascapes, spanish |
   ?artist__ettore_sottsass architecture, art-deco, colorful, furniture, playful, sculpture |
   ?artist__amadeo_de_souza_cardoso cubism, futurism, modern, painting, Portuguese |
   ?artist__millicent_sowerby botanical, British, flowers, illustration, kids-book, nature |
@@ -2005,7 +2005,7 @@
   ?artist__sparth digital, fantasy, futuristic, landscapes, minimalism, science-fiction, surreal |
   ?artist__jack_spencer contemporary, muted-colors, photography, photography-color |
   ?artist__art_spiegelman American, animals, autobiographical, cartoon, comics, graphic-novel, history, Holocaust |
-  ?artist__simon_stålenhag digital, eerie, futurism, landscapes, nostalgia, rural-life, science-fiction, suburbia |
+  ?artist__simon_stalenhag digital, eerie, futurism, landscapes, nostalgia, rural-life, science-fiction, suburbia |
   ?artist__ralph_steadman cartoon, dark, grungy, illustration, messy, satire, surreal, whimsical |
   ?artist__philip_wilson_steer atmospheric, british, impressionism, landscapes, portraits, seascapes |
   ?artist__william_steig colorful, illustration, kids-book, playful, watercolor |

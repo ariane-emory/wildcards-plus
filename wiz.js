@@ -1079,14 +1079,34 @@ function removeAddedDate(inputString) {
   return inputString.replace(/added-\d{4}-\d{2}-\d{2}/, ''); // Matches and removes the pattern added-YYYY-MM-DD
 }
 
+function clean_name(name) {
+  return name.toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/\-/g, '_')
+    .replace(/\'/g, '')
+    .replaceAll('ü', 'u')
+    .replaceAll('é', 'e')
+    .replaceAll('ó', 'o')
+    .replaceAll('ł', 'l')
+    .replaceAll('ń', 'n')
+    .replaceAll('é', 'e')
+    .replaceAll('ô', 'o')
+    .replaceAll('á', 'a')
+    .replaceAll('í', 'i')
+    .replaceAll('ç', 'c')
+    .replaceAll('ù', 'u')
+    .replaceAll('ä', 'a')
+    .replaceAll('ō', 'o')
+    .replaceAll('è', 'e')
+    .replaceAll('å', 'a')
+    .replace(/\./g, '');
+}
+
 console.log('@artists := {');
 for (let ix = 0; ix < artists.length; ix++) {
   const artist = artists[ix];
   const full_name = `${artist[1]} ${artist[0]}`.trim();
-  const cleaned_name = full_name.toLowerCase()
-        .replace(/\s+/g, '_')
-        .replace(/\-/g, '_')
-        .replace(/\./g, '');
+  const cleaned_name = clean_name(full_name);
   const alternative_body = `  #artist__${cleaned_name} ${full_name}`;
 
   console.log(ix+1 == artists.length
@@ -1100,20 +1120,8 @@ console.log('@artist_styles := {');
 for (let ix = 0; ix < artists.length; ix++) {
   const artist = artists[ix];
   const full_name = `${artist[1]} ${artist[0]}`.trim();
-  const cleaned_name = full_name.toLowerCase()
-        .replace(/\s+/g, '_')
-        .replace(/\-/g, '_')
-        .replace(/\'/g, '')
-        .replace('ü', 'u')
-        .replace('é', 'e')
-        .replace('ó', 'o')
-        .replace('ł', 'l')
-        .replace('ń', 'n')
-        .replace('é', 'e')
-        .replace('ô', 'o')
-        .replace('á', 'a')
-        .replace(/\./g, '');
-  let tags = `${removeAddedDate(artist[2]).replaceAll('|', ', ')}`;
+  const cleaned_name = clean_name(full_name);
+    let tags = `${removeAddedDate(artist[2]).replaceAll('|', ', ')}`;
   tags = tags.substring(0, tags.length - 2);
   const alternative_body = `  ?artist__${cleaned_name} ${tags}`;
 
