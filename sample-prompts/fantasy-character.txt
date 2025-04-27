@@ -109,8 +109,8 @@ a
    night|3 on a {moonlit|starlit} night} ,
 }
 
-// A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the
-// start:
+// A weapon or item: don't mention a weapon/item one time in six, because of the empty
+// alternative at the start:
 {|5 {presenting|brandishing|holding
     |?warrior wielding|?warrior swinging|?wizard with @pro_pos_adj hands held over
     |?wizard cradling |?wizard waving|?wizard gesturing with}
@@ -137,7 +137,8 @@ a
 {?mounted {sitting on|mounted on|riding on|astride|leading}
           @pro_pos_rand
           {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
-          {3 beast|wolf|2 lizard|reptile|snake|serpent|insect|2 steed|2 destrier|2 horse|2 dragon}
+          {3 beast|wolf|2 lizard|reptile|snake|serpent|insect|2 steed|2 destrier
+          |2 horse|2 dragon}
           ,
 }
 
@@ -145,7 +146,9 @@ a
             |?wizard {standing|seated} {at|behind|before} @pro_pos_rand
                      {lectern|obelisk|monolith|podium|altar|desk|grimoire|idol
                      |crystal ball|{|bubbling} alchemical equipment}
-            |3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair} } }
+            |3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair}
+           }
+}
 
 in {3|the heart of|the depths of} a
 
