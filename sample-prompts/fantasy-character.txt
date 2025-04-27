@@ -77,8 +77,8 @@ $weapon  := @weapon
 
 , {which depicts|depicting}
 
-@world_adjective := {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten|primitive
-                    |frightening|hellish|alien|{haunted|{ghost|demon}-haunted}
+@world_adjective := {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten
+                    |primitive|frightening|hellish|alien|{haunted|{ghost|demon}-haunted}
                     |ruined|abandoned|lonely|chaotic|crowded|mythical|fantastical
                     }
                     
