@@ -3,9 +3,12 @@
 // =======================================================================================
 // This script is NOT the Draw Things script: that's over in wildcards-plus.js.
 //
-// This script uses the same code that the Draw Things script uses to parse and expand
-// wildcards, but it's set up so that you can run it from the command line (you'll need to
-// have Node.js installed) to see how your wildcards might be expanded.
+// This script is a tool you can use at the command line (you'll need to have Node.js
+// installed) to test out wildcards-plus prompts that you're working on to see how they'll
+// be expanded.
+//
+// The script takes a file name as its first argument, and an optional second argument
+// specifying how many expansions you'd like to see.
 //
 // Usage: ./wildcards-plus-tool.js <input-file> [<count>]
 // =======================================================================================
