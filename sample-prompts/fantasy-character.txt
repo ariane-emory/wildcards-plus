@@ -40,7 +40,7 @@ $weapon  := @weapon
           |?warrior {2 warrior|!scary paladin|knight|barbarian|conqueror|rogue|2 gladiator
                     |?m swordsman|?f swordswoman|?f amazon|dervish|blademaster|deulist
                     |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}
-                    |!scary hero|#scary raider|myrmidon|cataphract|hoplite}
+                    |!scary hero|#scary raider|myrmidon|cataphract|hoplite|legionnaire}
           }
 
 // The gender flag and the guards here will ensure that only one alternative remain available, forcing it to
