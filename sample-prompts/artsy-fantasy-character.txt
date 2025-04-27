@@ -2146,7 +2146,8 @@
 
 @#artists
 
-{|2 epic|3 dark} fantasy, masterpiece, ultra high resolution, 8k, detailed background,
+// {|2 epic|3 dark} fantasy, masterpiece,
+ultra high resolution, 8k, detailed background,
 wide shot,
 \n
 
