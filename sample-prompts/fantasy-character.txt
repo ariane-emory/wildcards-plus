@@ -72,11 +72,12 @@ $weapon  := @weapon
 @pluralize_clothing   := {!used_pro <s}
 
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
-{|{clad in|wearing|dressed in} {|@pro_pos_rand #used_pro}
- {?wizard  @0-2&wizard_clothing_adjs
+{|{clad in|wearing|dressed in} 
+ {?wizard  {|@pro_pos_rand #used_pro}
+           @0-2&wizard_clothing_adjs
            {3 robe @pluralize_clothing|garb|raiment|vestments|?f dress|?f gown},
  |?warrior {3 {|battered|blood-smeared|2 leather|spiked|chainmail|rusted|ornate|golden}
-           {3 armor|helmet|pauldrons|wargear|gauntlets}
+           {3 armor|{|@pro_pos_rand #used_pro} helmet|pauldrons|wargear|gauntlets}
            |{hides|furs|leather}
            }
  }
