@@ -65,14 +65,16 @@ $weapon  := @weapon
 |A promotional poster for a @video_game_descriptor video game @video_game_origin
 }
 
-, {which depicts|depicting} a
+, {which depicts|depicting}
 
 @world_adjective := {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten|primitive
                     |frightening|hellish|alien|{haunted|{ghost|demon}-haunted}
-                    |ruined|abandoned|lonely|chaotic|crowded|mythical|fantastic
+                    |ruined|abandoned|lonely|chaotic|crowded|mythical|fantastical
                     }
                     
-{|a scene in a @world_adjective world {showing|featuring|focused on|centered on} a}
+{|a scene in a @world_adjective world {showing|featuring|focused on|centered on}}
+
+a
 
 @2-3&character_adjectives @roles
 
