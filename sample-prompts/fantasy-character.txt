@@ -85,7 +85,7 @@ $weapon  := @weapon
 // A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the
 // start:
 {|5 {presenting|brandishing|holding
-    |?warrior wielding|?warrior swinging
+    |?warrior wielding|?warrior swinging|?wizard with @pro_pos_obj hands held over
     |?wizard cradling |?wizard waving|?wizard gesturing with}
 
     @pro_pos_rand
