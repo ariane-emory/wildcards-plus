@@ -61,7 +61,7 @@ $weapon  := @weapon
                    |3 {Yoshiaki Kawajiri|the anime movie \'Ninja Scroll'}
                    |2 an 'Ace double' novel|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover
                    |a Heavy Metal magazine cover}
-|A screenshot from a {cinematic|cutscene} {3|at the start of the first boss fight} in a @video_game_descriptor video game @video_game_origin
+|A screenshot from a {cinematic|cutscene} {3|before the first boss fight} in a @video_game_descriptor video game @video_game_origin
 |A promotional poster for a @video_game_descriptor video game @video_game_origin
 }
 
