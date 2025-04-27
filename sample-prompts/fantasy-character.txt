@@ -42,10 +42,11 @@ $weapon  := @weapon
 @pro_pos         := {?f hers|?m his | ?n its }
 @pro_pos_rand    := {3 @pro_pos_adj|2 a|1 their}
 
-{An oil painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
-|Digital artwork styled to resemble a fine oil painting
-|A screenshot from a cinematic in a {upcoming|highly anticipated} video game
-|A promotional poster for a {upcoming|highly anticipated} video game
+{4 An oil painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
+ , in the style of {Julie Bell|Boris Vallejo|Frank Frazetta|Ian Miller|Zdzislaw Beksinski|Brom
+                   |an Omni Magazine cover|a Weird Tales magazine cover|a Heavy Metal magazine cover}
+|2 A screenshot from a cinematic in a {upcoming|highly anticipated} video game {|from {FROM Software|Hidetaka Miyazaki}}
+|2 A promotional poster for a {upcoming|highly anticipated} video game {|from {FROM Software|Hidetaka Miyazaki}}
 }
 
 depicting a @0-3&character_adjectives @roles
