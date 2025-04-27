@@ -116,7 +116,7 @@ $weapon  := @weapon
 
 in {3|the heart of|the depths of} a
 
-{!outdoors {|shadowy|smoky|crumbling|ruined|foggy|dimly lit|dusty|{candle|torch} <lit}
+{!outdoors {|shadowy|smoky|crumbling|ruined|foggy|dimly lit|dusty|{candle|torch} <lit| eerily lit}
            {temple|palace|crypt|cave|tavern|church|lair|cavern
            |{|arcane|wizard's} library|castle|tunnel|dungeon}
 }
