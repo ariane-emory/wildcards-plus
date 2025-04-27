@@ -34,17 +34,18 @@ $weapon  := @weapon
                                    |!scary brave|!scary daring}
                          }
 
-@roles      := {?wizard  {{?m wizard|?f wizardress}|2 {?m sorcerer|?f sorceress}|2 {?m enchanter
-                         |?f enchantress}|druid|alchemist|{?m priest|?f priestess}|adept|cultist
-                         |vampire|lich|2 necromancer|?m warlock|?f witch}
-               |?warrior {2 warrior|!scary paladin|knight|barbarian|conqueror|rogue|2 gladiator
-                         |?m swordsman|?f swordswoman|?f amazon|dervish|blademaster
-                         |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}
-                         |!scary hero|#scary raider} 
-               }
+@roles := {?wizard  {{?m wizard|?f wizardress}|2 {?m sorcerer|?f sorceress}|2 {?m enchanter
+                    |?f enchantress}|druid|alchemist|{?m priest|?f priestess}|adept|cultist
+                    |vampire|lich|2 necromancer|?m warlock|?f witch|arcanist|sage|seer}
+          |?warrior {2 warrior|!scary paladin|knight|barbarian|conqueror|rogue|2 gladiator
+                    |?m swordsman|?f swordswoman|?f amazon|dervish|blademaster|deulist
+                    |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}
+                    |!scary hero|#scary raider|myrmidon|cataphract|hoplite}
+          }
 
-// The gender flag and the guards here will ensure that only one alternative is available, we'll
-// use that to pick appropriately gendered pros:
+// The gender flag and the guards here will ensure that only one alternative is available, forcing it to
+// 'pick' that alternative. wwe'll deliberatelyuse that to pick appropriately gendered prosnouns:
+
 @pro_3rd_object  := {?f her |?m him | ?n it  }
 @pro_3rd_subject := {?f she |?m he  | ?n it  }
 @pro_pos_adj     := {?f her |?m his | ?n its }
@@ -162,12 +163,12 @@ the viewer
 {?warrior #many_minions|?wizard {|3 #many_minions}}
 @pluralize_minions := { ?many_minions <s }
 
-// Companions: mention some companions four times in seven, because of the empty alternative at the start 
+// Companions: don't always mention the companions, because of the empty alternative at the start 
 {|2 !alone {2 ,|while}
            {accompanied by|?many_minions surrounded by|?many_minions encircled by
            |guarded by|leading|commanding|directing|guiding|rallying|alongside}
            @pro_pos_rand
-           {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang|?warrior band
+           {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang|?warrior squad|
                           |army|?wizard coterie|?wizard circle|?wizard coven|?wizard variety}
                           of
            }
