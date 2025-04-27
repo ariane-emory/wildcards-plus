@@ -53,7 +53,7 @@ $weapon  := @weapon
 |A promotional poster for a @video_game_descriptor video game @video_game_origin
 }
 
-, {which depicts|depicting} a @2&character_adjectives @roles
+, {which depicts|depicting} a @2,3&character_adjectives @roles
 
 @wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
                          |ornate|silken|brightly colored|occult|embroidered}
