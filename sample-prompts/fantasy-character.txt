@@ -65,7 +65,6 @@ $weapon  := @weapon
            {3 armor|helmet|pauldrons|wargear|gauntlets}
            |{hides|furs|leather}
            }
- ,
  }
 }
 
