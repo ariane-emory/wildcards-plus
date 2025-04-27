@@ -2178,9 +2178,11 @@ if (uiPrompt.includes('{') && uiPrompt.includes('}')) {
 // ---------------------------------------------------------------------------------------
 const docString = `Wildcards Plus v0.5b by ariane-emory (based on wetcircuit's original wildcard.js script)
 
-Generate a batch of images using inline wildcards to randomize elements within the prompt. This wildcard script adds a variety of useful features above and beyond simple wildcards, including: weighted alternatives in wildcards, nested wildcards, 'smart' text joining logic, comments, named wildcards (with 'latching' and the ability to retrieve multiple items at once), recursive wildcards, escaped characters, settable 'boolean' flags and guards.
+Generate a batch of images using inline wildcards to randomize elements within the prompt.
 
-The full documentation is far too large to fit in this tiny box, please see the README.md file for detailed descriptions of these features!`;
+The wildcards-plus script adds a variety of useful features above and beyond simple wildcards, including: weighted alternatives in wildcards, nested wildcards, 'smart' text joining logic, comments, named wildcards (with 'latching' and the ability to retrieve multiple items at once), recursive wildcards, escaped characters, settable 'boolean' flags and guards.
+
+The full documentation would be too large to fit in this tiny box, please see the README.md file for detailed descriptions of these features!`;
 
 const userSelection = requestFromUser("Wildcards", "", function() {
   return [
