@@ -67,7 +67,8 @@ $weapon  := @weapon
 
 , {which depicts|depicting} a @2-3&character_adjectives @roles
 
-{|in a {|ancient|medieval|Atlantean|Victorian|primitive|frightening|{haunted|{ghost|demon}-haunted}} world}
+{|in a {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten|primitive|frightening
+       |hellish|alien|{haunted|{ghost|demon}-haunted}} world}
 
 @wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
                          |ornate|silken|brightly colored|occult|embroidered}
@@ -191,4 +192,12 @@ the viewer
                    @pluralize_minions
          }
 }
+
+{3
+|and basking in {|2 @pro_pos_adj} glory
+|and reveling in {2 @pro_pos_adj|the} {chaos|destruction|silence|?warrior violence} 
+}
+
+
+
 .
