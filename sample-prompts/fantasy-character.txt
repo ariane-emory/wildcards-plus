@@ -34,14 +34,17 @@ $weapon  := @weapon
                                    |!scary brave|!scary daring}
                          }
 
-@roles      := {?wizard  {{?m wizard|?f wizardress}|2 {?m sorcerer|?f sorceress}|2 {?m enchanter|?f enchantress}|druid|alchemist
-                         |{?m priest|?f priestess}|adept|cultist|vampire|lich|2 necromancer|?m warlock|?f witch}
+@roles      := {?wizard  {{?m wizard|?f wizardress}|2 {?m sorcerer|?f sorceress}|2 {?m enchanter
+                         |?f enchantress}|druid|alchemist|{?m priest|?f priestess}|adept|cultist
+                         |vampire|lich|2 necromancer|?m warlock|?f witch}
                |?warrior {2 warrior|!scary paladin|knight|barbarian|conqueror|rogue|2 gladiator
                          |?m swordsman|?f swordswoman|?f amazon|dervish|blademaster
-                         |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}|!scary hero|#scary raider} 
+                         |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}
+                         |!scary hero|#scary raider} 
                }
 
-// The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pros:
+// The gender flag and the guards here will ensure that only one alternative is available, we'll
+// use that to pick appropriately gendered pros:
 @pro_3rd_object  := {?f her |?m him | ?n it  }
 @pro_3rd_subject := {?f she |?m he  | ?n it  }
 @pro_pos_adj     := {?f her |?m his | ?n its }
@@ -53,7 +56,8 @@ $weapon  := @weapon
 
 {2 An oil painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
  , in the style of {Julie Bell|Boris Vallejo|Frank Frazetta|Ian Miller|Zdzislaw Beksinski|Brom
-                   |an 'Ace double'|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover|a Heavy Metal magazine cover}
+                   |an 'Ace double'|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover
+                   |a Heavy Metal magazine cover}
 |A screenshot from a cinematic in a @video_game_descriptor video game @video_game_origin
 |A promotional poster for a @video_game_descriptor video game @video_game_origin
 }
@@ -75,7 +79,8 @@ $weapon  := @weapon
  }
 }
 
-{2|{ in the {|early} morning|2 at mid-day|3 in mid-evening|3 at midnight|3 in the dead of night|3 on a {moonlit|starlit} night} , }
+{2|{ in the {|early} morning|2 at mid-day|3 in mid-evening|3 at midnight|3 in the dead of night
+   |3 on a {moonlit|starlit} night} , }
 
 // A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the start:
 {|5 {presenting|brandishing|holding
