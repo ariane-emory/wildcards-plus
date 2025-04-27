@@ -11,6 +11,22 @@
 // specifying how many expansions you'd like to see.
 //
 // Usage: ./wildcards-plus-tool.js <input-file> [<count>]
+//
+// Example of usage:
+// $ ./wildcards-plus-tester.js ./sample-prompts/fantasy-character.txt 3
+// --------------------------------------------------------------------------------
+// Expansions:
+// --------------------------------------------------------------------------------
+// dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, 
+// An oil painting for the cover of a fantasy novel published in the 1990s, in the style of the artist Brom, which depicts a seductive, ominous and antediluvian cultist on a starlit night, cradling her jewel-encrusted spell book while standing in a crumbling church, glowering up at the viewer pridefully while commanding a coterie of demonic swarming slaves.
+//
+// dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, 
+// An oil painting for the cover of a fantasy novel published in the 1980s, in the style of Yoshiaki Kawajiri, depicting an athletic, handsome and charming cataphract while laying on his throne in a shadowy arcane library and inviting past the viewer.
+//
+// epic fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, 
+// A promotional poster for an award winning video game, which depicts a heroic, strong and athletic paladin wearing blood-smeared wargear holding his bejeweled flail while standing in an eerily lit lair, smiling towards the viewer victoriously.
+// --------------------------------------------------------------------------------
+
 // =======================================================================================
 
 
@@ -2013,7 +2029,7 @@ if (! result.is_finished)
 // console.log(`RESULT.VALUE: ${JSON.stringify(result.value)}`);
 // console.log();
 console.log('--------------------------------------------------------------------------------');
-console.log('Expanded:');
+console.log(`Expansion${count > 1 ? "s" : ''}:`);
 console.log('--------------------------------------------------------------------------------');
 for (let ix = 0; ix < count; ix++) {
   // console.log('--------------------------------------------------------------------------------');
