@@ -105,6 +105,8 @@ $weapon  := @weapon
     {|,}
 }
 
+while
+
 {|#outdoors}
 {|?outdoors #mounted}
 
@@ -115,7 +117,7 @@ $weapon  := @weapon
           ,
 }
 
-{!outdoors {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair} }
+{!outdoors standing|crouching|lurking|3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch| chair} }
 
 in {3|the heart of|the depths of} a
 
