@@ -49,9 +49,9 @@ $weapon  := @weapon
                     |!scary hero|#scary raider|myrmidon|cataphract|hoplite|legionnaire}
           }
 
-// The gender flag and the guards here will ensure that only one alternative remain available, forcing it to
-// 'pick' that alternative. we'll deliberately use that to pick appropriately gendered pronouns for our
-// character:
+// The gender flag and the guards here will ensure that only one alternative remain
+// available, forcing the script to pick that alternative. we'll deliberately use that to
+// pick appropriately gendered pronouns for our character:
 
 @pro_3rd_object  := {?f her |?m him | ?n it  }
 @pro_3rd_subject := {?f she |?m he  | ?n it  }
@@ -61,15 +61,17 @@ $weapon  := @weapon
 @pro_pos_rand    := {5 @pro_pos_adj|4 a|1 their}
 
 @video_game_descriptor := {highly anticipated|blockbuster|award winning}
-@video_game_origin     := {|3 from {Japan's FROM Software|2 Hidetaka Miyazaki}|, the sequel to Bloodborne}
-
-{3 A {|oil} painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
- , in the style of {3 Julie Bell|2 Boris Vallejo|2 Frank Frazetta|3 Ian Miller|3 Zdzislaw Beksinski
-                   |4 Gerald Brom|3 {Yoshiaki Kawajiri|the anime movie \'Ninja Scroll'}
-                   |2 an 'Ace double' novel|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover
-                   |a Heavy Metal magazine cover}
-|A screenshot from a {cinematic|cutscene} {3|before the first boss fight} in a @video_game_descriptor video
- sgame @video_game_origin
+@video_game_origin     := {|3 from {Japan's FROM Software|2 Hidetaka Miyazaki}|, the
+                            sequel to Bloodborne}
+{3 A {|oil} painting for the cover of a fantasy novel published in the
+ {3 1970s|2 1980s|1990s|early 2000s}
+ , in the style of
+ {3 Julie Bell|2 Boris Vallejo|2 Frank Frazetta|3 Ian Miller|3 Zdzislaw Beksinski
+ |4 Gerald Brom|3 {Yoshiaki Kawajiri|the anime movie \'Ninja Scroll'}
+ |2 an 'Ace double' novel|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover
+ |a Heavy Metal magazine cover}
+|A screenshot from a {cinematic|cutscene} {3|before the first boss fight} in a
+ @video_game_descriptor video sgame @video_game_origin
 |A promotional poster for a @video_game_descriptor video game @video_game_origin
 }
 
