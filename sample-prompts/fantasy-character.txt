@@ -48,7 +48,7 @@ $weapon  := @weapon
 
 {2 An oil painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
  , in the style of {Julie Bell|Boris Vallejo|Frank Frazetta|Ian Miller|Zdzislaw Beksinski|Brom
-                   |an Omni Magazine cover|a Weird Tales magazine cover|a Heavy Metal magazine cover}
+                   |an 'Ace double'|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover|a Heavy Metal magazine cover}
 |A screenshot from a cinematic in a @video_game_descriptor video game @video_game_origin
 |A promotional poster for a @video_game_descriptor video game @video_game_origin
 }
