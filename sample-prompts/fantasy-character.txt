@@ -136,7 +136,6 @@ in {3|the heart of|the depths of} a
 {2 looking @look_aim
 |#angry glaring @look_aim
 |staring @look_aim
-|staring blankly @look_aim
 |gazing @look_aim
 |beckoning {|@look_aim}
 |inviting {|@look_aim}
@@ -150,8 +149,8 @@ in {3|the heart of|the depths of} a
 the viewer
 
 {2 ?scary menacingly|pridefully|cunningly|drunkenly|!scary !angry jovially|!scary !angry fondly
-|!angry gleefully|madly|?scary angrily|angrily|mockingly|?f seductively|?m roguishly|?m rakishly
-|2 ?scary threateningly|!scary victoriously|3}
+|!angry gleefully|blankly|despondantly|madly|?scary angrily|angrily|mockingly|?f seductively
+|?m roguishly|?m rakishly|2 ?scary threateningly|!scary victoriously|3}
 
 @minion_adjectives := { ?wizard   {?scary {demonic #demonic|fearsome|slavering|3 undead|eldrich
                                           |loathsome|squamous|chtonian|repulsive|chitinous|ghoulish} 
