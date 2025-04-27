@@ -197,8 +197,8 @@ the viewer
                    |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing
                    |swarming}
            }
-|?warrior {fellow|loyal|brave|steadfast|armored|mighty
-             |heavily armed|raucous|warlike|belligerant}
+|?warrior  {fellow|loyal|brave|steadfast|armored|mighty
+           |heavily armed|raucous|warlike|belligerant}
 }
 
 // unless flagged as #alone, warriors always have #many_minions, but wizards may have a single minion
