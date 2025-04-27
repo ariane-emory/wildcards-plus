@@ -94,7 +94,7 @@ $weapon  := @weapon
     @pro_pos_rand
 
     {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
-              {2 staff|2 wand|scroll|tome|crystal ball|amulet|artifact
+              {2 staff|2 wand|scroll|tome|map|crystal ball|amulet|artifact
               |skull|spell book||dagger|2 candle|brazier|bell
               |2 {| glowing|?scary fiery} orb
               |potion
@@ -154,7 +154,8 @@ the viewer
 @minion_adjectives := { ?wizard   {?scary {demonic #demonic|fearsome|slavering|3 undead|eldrich
                                           |loathsome|squamous|chtonian|repulsive|chitinous} 
                                   |       {2 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
-                                          |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing}
+                                          |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing
+                                          |swarming}
                                   }
                       |  ?warrior {fellow|loyal|brave|steadfast|armored|mighty
                                   |heavily armed|raucous|warlike|belligerant}
