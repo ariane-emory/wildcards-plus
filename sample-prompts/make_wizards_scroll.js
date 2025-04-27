@@ -1103,6 +1103,7 @@ function clean_name(name) {
     .replace(/\./g, '');
 }
 
+console.log("\/\/ Big list of artists borrowed from 'The Wizard'S Large Scroll of Artist Summoning':");
 console.log('@artists := {');
 for (let ix = 0; ix < artists.length; ix++) {
   const artist = artists[ix];
@@ -1117,13 +1118,13 @@ for (let ix = 0; ix < artists.length; ix++) {
 console.log('}');
 
 console.log();
-
+console.log("\/\/ The matching list of styles:");
 console.log('@artist_styles := {');
 for (let ix = 0; ix < artists.length; ix++) {
   const artist = artists[ix];
   const full_name = `${artist[1]} ${artist[0]}`.trim();
   const cleaned_name = clean_name(full_name);
-    let tags = `${removeAddedDate(artist[2]).replaceAll('|', ', ')}`;
+  let tags = `${removeAddedDate(artist[2]).replaceAll('|', ', ')}`;
   tags = tags.substring(0, tags.length - 2);
   const alternative_body = `  ?artist__${cleaned_name} ${tags}`;
 
