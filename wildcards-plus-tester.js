@@ -26,7 +26,7 @@
 // epic fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, 
 // A promotional poster for an award winning video game, which depicts a heroic, strong and athletic paladin wearing blood-smeared wargear holding his bejeweled flail while standing in an eerily lit lair, smiling towards the viewer victoriously.
 // --------------------------------------------------------------------------------
-
+//
 // =======================================================================================
 
 
