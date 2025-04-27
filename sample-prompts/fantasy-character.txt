@@ -111,7 +111,7 @@ a
               {2 staff|2 wand|scroll|tome|map|crystal ball|amulet|artifact
               |skull|spell book|dagger|2 candle|brazier|bell
               |2 {| glowing|?scary fiery} orb
-              |potion
+              |potion|cauldron
               }
     |?warrior {2 bloody|2 ornate|bejeweled|fiery|}
               $weapon
