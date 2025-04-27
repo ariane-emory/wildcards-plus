@@ -161,7 +161,7 @@ the viewer
            }
            {?warrior @0-2&minion_adjectives
                      {soldiers|warriors|companions|men at arms|compatriots}
-           |?wizard  {@1-2&minion_adjectives|@2minion_adjectives}
+           |?wizard  {@1-3&minion_adjectives|@2minion_adjectives}
                      {familiar|2 minion|slave|cultist|devil|!demonic demon|spirit|apprentice|followers}
                      @pluralize_minions
            }
