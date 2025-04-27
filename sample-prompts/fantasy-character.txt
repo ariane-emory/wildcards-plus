@@ -1,11 +1,16 @@
-// just in case it's a Pony-based model, hopefully shouldn't make a big, difference otherwise: 
+// just in case it's a Pony-based model, hopefully shouldn't make a big, difference
+// otherwise:
 // score_9, score_8_up, score_7_up, score_6_up, \n
 
-{|2 epic|3 dark} fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot,
+{|2 epic|3 dark} fantasy, masterpiece, ultra high resolution, 8k, detailed background,
+wide shot,
 \n
 
-{#m|#f}                // set an 'm' or 'f' gender flag that will help guide the selection of picks later on.
-{3 #wizard|2 #warrior} // character, make 'wizards' 60% of the time.
+// set an 'm' or 'f' gender flag that will help guide the selection of picks later on.
+{#m|#f}                
+
+// character type flag, make 'wizards' 60% of the time:
+{3 #wizard|2 #warrior} 
 
 @weapon  := {2 spear|2 {|short|two-handed|bastard|curved} sword|axe|halbard|scimitar
             |falchion|kukri|rapier|sabre|cutlass|mace|dagger|torch|dirk|stiletto|blade
@@ -22,16 +27,17 @@
 
 $weapon  := @weapon 
 
-@character_adjectives := {?wizard  {#scary inhuman|#scary alien|#scary evil|#scary ominous|#scary sinister
-                                   |#scary infernal|#alone lonesome|erudite|wise|ancient|immortal|antediluvian
-                                   |?f seductive|?f beautiful|?f alluring|?m dashing|?f enchanting
-                                   |?m !scary charming|?f beguiling|?f captivating|powerful|godlike
-                                   |!scary holy}
-                         |?warrior {!scary heroic|mighty|?m handsome|?m musclebound|#scary fearsome|resolute
-                                   |2 proud|noble|tattooed|solitary #alone|athletic|steadfast|?m humongous
-                                   |strong|?f beautiful|?m handsome|?f alluring|?m musclebound
-                                   |#scary bloodthirsty|?m dashing|?f enchanting|?m !scary charming
-                                   |!scary brave|!scary daring}
+@character_adjectives := {?wizard  {#scary inhuman|#scary alien|#scary evil|#scary ominous
+                                   |#scary sinister|#scary infernal|#alone lonesome
+                                   |erudite|wise|ancient|immortal|antediluvian
+                                   |?f seductive|?f beautiful|?f alluring|?m dashing
+                                   |?f enchanting|?m !scary charming|?f beguiling
+                                   |?f captivating|powerful|godlike|!scary holy}
+                         |?warrior {!scary heroic|mighty|?m handsome|?m musclebound
+                                   |#scary fearsome|resolute|2 proud|noble|tattooed
+                                   |solitary #alone|athletic|steadfast|?m humongous|strong
+                                   |?f beautiful|?m handsome|?f alluring|?m musclebound
+                                   |?m !scary charming|!scary brave|!scary daring}
                          }
 
 @roles := {?wizard  {{?m wizard|?f wizardress}|2 {?m sorcerer|?f sorceress}|2 {?m enchanter
@@ -57,7 +63,7 @@ $weapon  := @weapon
 @video_game_descriptor := {highly anticipated|blockbuster|award winning}
 @video_game_origin     := {|3 from {Japan's FROM Software|2 Hidetaka Miyazaki}|, the sequel to Bloodborne}
 
-{3 An oil painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
+{3 A {|oil} painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
  , in the style of {3 Julie Bell|2 Boris Vallejo|2 Frank Frazetta|3 Ian Miller|3 Zdzislaw Beksinski
                    |4 Gerald Brom|3 {Yoshiaki Kawajiri|the anime movie \'Ninja Scroll'}
                    |2 an 'Ace double' novel|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover
