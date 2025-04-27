@@ -1974,307 +1974,187 @@ Prompt.finalize();
 // MAIN SECTION: All of the Draw Things-specific code goes down here.
 // ---------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
-const fallbackPrompt = String.raw`  // Cinematic terms
-  @cinematicTerms :=  {
-    IMAX spectacle | cinematic composition | widescreen format | 70mm film | anamorphic lens |
-    deep focus | shallow depth of field | Dutch angle | establishing shot | extreme close-up |
-    golden hour lighting | lens flare | magic hour | film grain | dramatic framing |
-    dolly zoom | tracking shot | crane shot | panoramic vista | film noir aesthetic |
-    extreme wideshot | symmetrical framing | forced perspective | rule of thirds |
-    dramatic panning | aerial view | bird's eye view | worm's eye view | tracking movement |
-    telephoto compression | wide-angle distortion | ultra high resolution | cinemascope |
-    ARRI camera | RED Digital Cinema | Panavision lenses | Hollywood production value |
-    volumetric lighting | diegetic lighting | high production value | Steadicam smoothness |
-    Christopher Nolan aesthetic | Denis Villeneuve composition | Wes Anderson symmetry |
-    Roger Deakins cinematography | Emmanuel Lubezki naturalism | IMAX resolution |
-    cross-processed colors | color grading | blockbuster production | studio-quality production |
-    director's cut | silver screen quality | motion picture grade | aspect ratio 2.39:1 }
+const fallbackPrompt = String.raw`// just in case it's a Pony-based model, hopefully shouldn't make a big, difference otherwise: 
+// score_9, score_8_up, score_7_up, score_6_up, \n
 
-  // 3D rendering terms
-  @renderingTerms := {
-    Cinema4D render | Octane render | V-Ray engine | Redshift render | Arnold renderer |
-    photorealistic texturing | subsurface scattering | volumetric lighting | raytracing |
-    ray tracing | global illumination | ambient occlusion | radiosity | reflection mapping |
-    refraction modeling | caustics | procedural texturing | HDR lighting | HDRI environment |
-    PBR materials | photogrammetry | 3D photorealism | displacement mapping | normal mapping |
-    hyper-detailed modeling | physically accurate rendering | specular highlights |
-    glossy reflections | photoreal CGI | 3D sculpting | micro-displacement | mesh subdivision |
-    polygonal detail | tessellation | parallax occlusion | path tracing | indirect lighting |
-    physically-based rendering | real-time rendering | bump mapping | geometric detail |
-    render farm quality | shadow casting | soft shadows | hard shadows | shadow falloff |
-    translucency | anisotropic shading | 3D compositing | multi-pass rendering |
-    motion blur | depth of field | focal blur | chromatic aberration | polygon mesh |
-    triangulation | metasurfaces | 3D asset | Digital Domain quality | ILM standards |
-    Weta Digital precision | frame rate 24 fps | antialiasing | texture resolution 8K |
-    Unreal Engine 5 quality | Nanite technology | Lumen lighting system | render pass }
+dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot,
+\n
 
-  // Rembrandt lighting and artistic terms
-  @lightingTerms := {
-    Rembrandt lighting | chiaroscuro effect | dramatic shadows | 45-degree lighting |
-    triangle light pattern | catch light in eyes | rim lighting | split lighting | broad lighting |
-    short lighting | butterfly lighting | loop lighting | clamshell lighting | key light |
-    fill light | back light | kicker light | practical light sources | motivated lighting |
-    hard light | soft light | diffused light | dramatic contrast | low-key lighting |
-    high-key lighting | practical lighting | three-point lighting | silhouette lighting |
-    contre-jour lighting | natural light interplay | shadow detail | tenebrism technique |
-    light ratio 4:1 | highlight retention | shadow recovery | shadow cascade | light falloff |
-    light wrap | atmospheric lighting | volumetric god rays | golden ratio lighting |
-    directional lighting | bounce light | reflected light | ambient light | specular highlight |
-    fresnel effect | fresnel highlights | dramatic illumination | atmospheric perspective }
+{#m|#f}                // set an 'm' or 'f' gender flag that will help guide the selection of picks later on.
+{3 #wizard|2 #warrior} // character, make 'wizards' 60% of the time.
 
-  // Subjects/scenes
-  @subjects := {
-    dystopian cityscape | cyberpunk street | ancient temple ruins | futuristic metropolis |
-    enchanted forest | underwater civilization | space colony | desert oasis | mountain fortress |
-    steampunk workshop | crystal cave | volcanic landscape | arctic research station |
-    forgotten library | neon-lit alleyway | post-apocalyptic wasteland | floating islands |
-    samurai dojo | medieval tavern | victorian mansion | underground bunker | martian settlement |
-    bamboo forest | tropical paradise | moonlit cemetery | flying fortress | clockwork city |
-    abandoned spacecraft | jungle temple | sky pirates | quantum laboratory | haunted lighthouse |
-    ancient colosseum | crystal palace | neon skyline | terraformed planet | art deco hotel lobby |
-    gothic cathedral | mist-shrouded valley | subterranean grotto | ornate throne room |
-    galactic spaceport | industrial complex | ethereal dreamscape | bio-luminescent cave |
-    interdimensional gateway | cherry blossom garden | retrofuturistic diner | alien marketplace |
-    time-worn ruins | bioluminescent jungle | urban sprawl | orbital station | underground city |
-    desert nomad camp | neo-tokyo streets | mountain temple | sunken city | corporate penthouse |
-    Blade Runner cityscape | Dune-inspired desert | magical academy | military outpost |
-    sprawling megacity | crystalline structure | secret underground base | floating market |
-    royal banquet hall | sci-fi medical bay | parallel dimension | high-tech laboratory |
-    mystical sanctuary | cosmic anomaly | holographic interface | mechanical clockwork world |
-    solar punk community | viking settlement | art nouveau cafe | dieselpunk airship }
+@weapon  := {2 spear|2 {|short|two-handed|bastard|curved} sword|axe|halberd|scimitar
+            |falchion|kukri|rapier|sabre|cutlass|mace|dagger|torch|dirk|stiletto|blade
+            |trident|harpoon|cleaver|hammer|warhammer|flail|whip|scourge|lash|morningstar
+            }
 
-  // Characters/entities
-  @characters := {
-    weathered explorer | cybernetic assassin | mystic shaman | battle-hardened warrior |
-    elegant aristocrat | rogue scientist | nomadic hunter | masked vigilante | royal diplomat |
-    eccentric inventor | spiritual guru | mechanical automaton | ethereal spirit |
-    hardened detective | alien ambassador | wasteland survivor | quantum physicist |
-    legendary swordsman | gifted sorcerer | space marine | tribal chieftain | ruthless bounty hunter |
-    ancient deity | digital consciousness | arctic ranger | shadow operative | divine messenger |
-    nano-enhanced human | time traveler | jungle survivalist | robotic companion | plague doctor |
-    wise oracle | master strategist | cosmic entity | notorious outlaw | haunted artist |
-    brilliant engineer | noble knight | wilderness guide | void navigator | mystical guardian |
-    chaos agent | dimensional traveler | artifact collector | mercenary captain | hivemind operator |
-    forgotten god | street samurai | data courier | stellar cartographer | genetic experiment |
-    memory dealer | reality hacker | cosmic pilgrim | dream architect | eldritch abomination |
-    synthetic human | telepathic spy | void-touched scholar | tech-priest | biomechanical hybrid |
-    holographic performer | reality bender | psionic adept | void walker | augmented veteran |
-    stellar navigator | temporal agent | urban shaman | ancestral spirit | psychic investigator |
-    corrupted paladin | peace negotiator | probability engineer | cosmic horror | energy being }
-  
-  // Moods/atmospheres
-  @moods := {
-    foreboding | mysterious | tranquil | chaotic | melancholic | ethereal | tense | serene |
-    ominous | whimsical | nostalgic | dystopian | hopeful | eerie | majestic | desolate |
-    vibrant | gritty | dreamlike | romantic | oppressive | harmonious | unsettling | triumphant |
-    bleak | mystical | intense | peaceful | haunting | exhilarating | contemplative | threatening |
-    awe-inspiring | somber | psychedelic | claustrophobic | liberating | surreal | suspenseful |
-    idyllic | turbulent | apocalyptic | visionary | nightmarish | heavenly | primal | elegant }
-  
-  // Time periods
-  @timePeriods := {
-    prehistoric era | ancient civilizations | medieval times | renaissance period | victorian age |
-    1920s art deco | 1950s retrofuturism | modern day | near future | distant future | post-apocalyptic future |
-    alternate history | steampunk era | cyberpunk era | space age | prehistoric future | neo-victorian |
-    dieselpunk 1940s | atomic age | information age | post-human era | bronze age | iron age |
-    classical antiquity | feudal period | industrial revolution | digital revolution | post-singularity |
-    interstellar age | galactic era | time collapse | end of time | beginning of universe |
-    parallel timeline | temporal anomaly | quantum timeline }
-  
-  // Color palettes
-  @colorPalettes := {
-    vibrant neon colors | muted earth tones | monochromatic blue scheme | high contrast black and white |
-    sepia tones | vibrant primary colors | pastel palette | dark gothic tones | cyberpunk neon and black |
-    ethereal iridescent hues | vintage color grading | desaturated post-apocalyptic palette |
-    rich jewel tones | technicolor vibrancy | neon noir palette | golden hour warmth |
-    cool blue night tones | red and teal contrast | sunset gradient | lush green and brown forest palette |
-    desert yellows and oranges | underwater blue-greens | arctic whites and blues | volcanic reds and blacks |
-    misty gray scale | high saturation anime palette | low saturation dystopian palette | split complementary colors |
-    analogous color harmony | triadic color scheme | cinematic color grading | sci-fi blue tint |
-    action orange and teal | horror red and black | fantasy golden glow | 8-bit pixel art colors |
-    oil painting richness | watercolor softness | metallic sheen | bioluminescent glow |
-    infrared photography style | X-ray negative | thermal imaging colors | bleach bypass look |
-    cross-processed film look | duotone stylization | technicolor dream | acid trip psychedelia }
-  
-  // Artistic styles
-  @artisticStyles := {
-    photorealistic | hyperrealistic | semi-realistic | stylized realism | impressionistic |
-    expressionist | surrealist | art nouveau | art deco | cubist | baroque | renaissance |
-    romantic | neoclassical | pop art | digital art | concept art | matte painting |
-    illustration | comic book style | anime-inspired | watercolor effect | oil painting style |
-    pencil sketch | ink drawing | pixel art | low poly | vaporwave aesthetic | minimalist |
-    maximalist | abstract | figurative | trompe l'oeil | ukiyo-e | graffiti art | retro futurism |
-    dieselpunk | biopunk | solarpunk | cassette futurism | atompunk | nanopunk | stonepunk |
-    clockpunk | sandalpunk | nowpunk | cyberpunk | steampunk | graphic novel | cel-shaded |
-    studio ghibli inspired | high renaissance | dutch golden age | bauhaus | synthwave | voxel art |
-    papercraft | silhouette art | cutout animation style | collage | macabre | grotesque |
-    psychedelic | outsider art | naive art | folk art | primitivism | brutalism | victorian illustration }
-  
-  // Video game graphics terms
-  @gameGraphicsTerms := {
-    RTX ray tracing | DLSS enhancement | 4K textures | 8K resolution | physically-based rendering |
-    procedural generation | dynamic lighting | real-time global illumination | tessellation |
-    LOD system | anti-aliasing | anisotropic filtering | ambient occlusion | screen space reflections |
-    subsurface scattering | motion capture animation | skeletal animation | particle effects |
-    volumetric fog | dynamic weather system | destructible environment | cloth physics |
-    fluid dynamics | hair works | photogrammetry assets | next-gen character models |
-    facial motion capture | high-polygon count | voxel-based rendering | real-time lighting |
-    cascaded shadow maps | physics-based animation | vertex shading | pixel shading |
-    post-processing effects | HDR rendering | tone mapping | bokeh depth of field |
-    temporal anti-aliasing | occlusion culling | Nanite micro-polygon rendering | Lumen GI system |
-    MetaHuman detail level | Quixel Megascans | parallax occlusion mapping | decal layering |
-    dynamic vegetation | inverse kinematics | real-time reflections | TXAA | FXAA | MSAA |
-    shader-based effects | realistic fur rendering | contact shadows | screen space global illumination |
-    texture streaming | mip-mapping | normal map detail | specular mapping | micro-surface detail |
-    hardware tessellation | DirectX ray tracing | Vulkan API | UE5 Virtual Shadow Maps |
-    UE5 Lumen reflections | frame generation | NVIDIA DLSS 3 | AMD FSR 3 | Intel XeSS }
-  
-  // Camera settings
-  @cameraSettings := {
-    f/1.4 aperture | f/2.8 aperture | f/8 aperture | 85mm lens | 24mm wide-angle | 200mm telephoto |
-    macro photography | ISO 100 | tilt-shift effect | panoramic view | long exposure | high-speed capture |
-    polarizing filter | neutral density filter | fish-eye lens | anamorphic lens | prime lens |
-    zoom lens | ultra-wide angle | medium format | full-frame sensor | shallow depth of field |
-    deep focus | focus pull | 3-point perspective | orthographic view | 1-point perspective |
-    2-point perspective | drone shot | GoPro wide | pinhole camera effect | 360-degree view |
-    stereoscopic 3D | time-lapse | motion blur | rack focus | snorkel lens | close-up lens |
-    "telephoto compression"
-  }
-  
-  // Film directors for style references
-  @directors := {
-    Stanley Kubrick | Christopher Nolan | Denis Villeneuve | Ridley Scott | Wes Anderson |
-    David Fincher | Andrei Tarkovsky | Akira Kurosawa | Steven Spielberg | James Cameron |
-    Guillermo del Toro | Terrence Malick | Wong Kar-wai | Quentin Tarantino | Peter Jackson |
-    Alfonso Cuarón | Hayao Miyazaki | David Lynch | Coen Brothers | George Miller |
-    Bong Joon-ho | Paul Thomas Anderson | Martin Scorsese | Spike Lee | Yorgos Lanthimos |
-    Park Chan-wook | Ari Aster | Robert Eggers | Jordan Peele | Andrzej Zulawski }
-  
-  // Technical details to add verisimilitude
-  @technicalDetails := {
-    rendered at 8K resolution | 1000 samples per pixel | Redshift render engine | 64GB memory usage |
-    100 hours render time | 24-core CPU calculation | dual A6000 GPU rendering | Xeon processor |
-    CUDA acceleration | OptiX denoising | AI-enhanced upscaling | super-sampling | 64-bit color depth |
-    captured at 120fps | retopologized mesh | billion-polygon scene | procedural generation |
-    trained on 10,000 reference images | hand-crafted topology | multi-pass rendering | composited in Nuke |
-    deep learning enhancement | path-traced lighting | multi-bounce GI | 4K texture resolution |
-    16K environment map | 12-stop dynamic range | filmed on IMAX 70mm | shot on RED camera |
-    physical camera simulation | lens distortion simulation | chromatic aberration simulation |
-    natural optical flaws | hand-animated | motion capture animation | 36-bit color space |
-    VFX industry standard | studio lighting setup | on-location motion capture | zero noise floor |
-    billion-triangle mesh | 16-bit floating point | photon mapping | particle simulation }
-  
-  // Adjectives for emphasis
-  @emphasisAdjectives := {
-    breathtaking | stunning | mesmerizing | photorealistic | hyperdetailed | intricate |
-    astonishing | spectacular | extraordinary | phenomenal | unparalleled | incomparable |
-    unmatched | magnificent | exquisite | impeccable | flawless | perfect | sublime |
-    transcendent | meticulous | precise | masterful | virtuosic | visionary | revolutionary |
-    groundbreaking | pioneering | innovative | cutting-edge | state-of-the-art | avant-garde |
-    ultra-high-definition | crystal-clear | razor-sharp | cinematic | theatrical | dramatic |
-    epic | grand | majestic | monumental | colossal | gigantic | immense | vast | sweeping |
-    panoramic | expansive | immersive | engrossing | captivating | spellbinding | enthralling |
-    enchanting | bewitching | hypnotic | surreal | dreamlike | fantastical | otherworldly |
-    ethereal | mystical | magical | hypnotic | uncanny | intense | powerful | dynamic |
-    energetic | vibrant | radiant | luminous | incandescent | lustrous | scintillating |
-    coruscating | dazzling | glittering | sparkling | shimmering | gleaming | glowing | 
-    phosphorescent | iridescent | resplendent | opulent | lavish | luxurious | sumptuous |
-    elegant | sophisticated | refined | polished | impeccable | pristine | immaculate }
-  
-  // Scene descriptions
-  @sceneDescriptors := {
-    a single moment frozen in time | the aftermath of an epic battle | a tranquil scene disrupted |
-    a pivotal moment of decision | an unexpected encounter | a revealing discovery |
-    the calm before the storm | a fateful reunion | a desperate escape | a triumphant return |
-    a moment of profound realization | a tense standoff | a spectacular reveal | a quiet moment of reflection |
-    a chaotic convergence of events | the beginning of a journey | the end of an era |
-    a mysterious ritual | an impossible occurrence | a dramatic transformation | a climactic confrontation |
-    a subtle exchange | a shocking betrayal | an emotional farewell | a miraculous survival |
-    a frightening revelation | an intimate conversation | a grand celebration | a somber ceremony |
-    a spectacular demonstration | a clandestine meeting | a desperate last stand | a new dawn |
-    the turning point | the final moments | an unexpected alliance | a moment of sacrifice |
-    a glorious victory | a crushing defeat | a narrow escape | a moment suspended in time |
-    the silence after chaos | a breathtaking vista revealed | a tense infiltration | a dazzling performance |
-    a crucial experiment | a solemn oath | a tragic loss | a hopeful beginning | an ominous warning |
-    a tearful reunion | a mysterious disappearance | an impossible choice | a desperate gamble |
-    a spectacular failure | a surprising success | a world-changing event | a personal revelation |
-    a quiet moment before action | the eye of the storm | a surreal dream sequence | a memory revisited |
-    an altered state of consciousness | a glimpse of another world | a premonition of things to come |
-    a vision of what might have been | the threshold of discovery | the brink of disaster |
-    the edge of the unknown | the culmination of events | the convergence of destinies |
-    the revelation of truth | the shattering of illusions | the moment everything changed }
-  
-  // Cinematography techniques
-  @cinematographyTechniques := {
-    tracking shot | steadicam movement | dolly zoom | extreme close-up | bird's eye view |
-    worm's eye view | Dutch angle | long take | slow motion | time-lapse | freeze frame |
-    split screen | rack focus | deep focus | shallow focus | handheld camera | whip pan |
-    crane shot | aerial shot | establishing shot | medium shot | two-shot | over-the-shoulder shot |
-    point-of-view shot | cutaway | insert shot | master shot | montage sequence | cross-cutting |
-    parallel editing | jump cut | match cut | smash cut | dissolve transition | fade to black |
-    lens flare | forced perspective | practical effects | anamorphic lens distortion | fish-eye perspective |
-    tilt-shift focus | day for night | pull focus | snap zoom | push in | pull out | circular dolly |
-    overhead shot | low-angle shot | high-angle shot | canted frame | locked-down shot | Snorricam |
-    bullet-time | ramping | crash zoom | contre-jour | silhouette | Vertigo effect | timelapse |
-    hyperlapse | dynamic framing | symmetrical composition | leading lines | rule of thirds }
+// oh no, an accidental Easter egg! I completely forgot to document scalar string
+// variables in the README.md file.
+//
+// TODO: document this properly!
+//
+// in the mean time, this just picks an item from @wepon and stashes it in a 
+// variable called $weapon:
 
-  // Weather/environment conditions
-  @weather := {
-    golden hour sunlight | blue hour twilight | misty morning | heavy rainfall | light drizzle |
-    snowfall | blizzard conditions | foggy atmosphere | hazy air | clear blue skies | stormy weather |
-    thunderstorm approaching | lightning strikes | gusty winds | calm stillness | dust storm |
-    sandstorm | heat wave distortion | aurora borealis | meteor shower | double rainbow |
-    sunset glow | sunrise illumination | dappled sunlight | moonlit night | starry sky |
-    cloudy overcast | partly cloudy | sunbeams through clouds | crepuscular rays | sunburst |
-    lens flare | god rays | glare effect | diffused lighting | harsh shadows | soft shadows |
-    rim lighting | backlit scene | silhouette | volumetric light | halo effect | light pollution |
-    desert heat | tropical humidity | arctic chill | seasonal changes | autumn leaves |
-    spring blossoms | summer haze | winter frost | morning dew | after rain wetness |
-    dry desert air | humid jungle atmosphere | crisp mountain air | salty sea breeze }
-  
-  // Materials and textures
-  @materialsTextures := {
-    brushed metal | polished chrome | burnished bronze | weathered copper | rusted iron |
-    carbon fiber | smooth glass | rough stone | polished marble | textured granite |
-    rough wood grain | smooth leather | woven fabric | coarse burlap | fine silk |
-    reflective surface | translucent material | transparent crystal | opaque material |
-    iridescent surface | pearlescent finish | matte finish | glossy finish | satin finish |
-    metallic sheen | plastic texture | rubber texture | ceramic glaze | porcelain smoothness |
-    paper texture | cardboard surface | concrete texture | asphalt roughness | sandpaper grit |
-    velvet softness | fur detail | feather detail | scale pattern | skin texture |
-    veined stone | crystalline structure | liquid surface | water droplets | ice crystals |
-    snow texture | sand granules | soil texture | grass blades | leaf texture |
-    bark texture | moss covering | lichen growth | coral texture | shell patterns |
-    bone structure | canvas weave | knitted pattern | woven pattern | embroidered detail |
-    quilted surface | beaded decoration | sequined embellishment | hammered metal |
-    etched surface | engraved detail | carved relief | 3D printed layers | anodized coating |
-    patinated finish | bioluminescent glow | phosphorescent material | holographic surface |
-    fractured glass | cracked leather | weathered wood | eroded stone | corroded meta }
-  
-  // Special effects
-  @specialEffects := {
-    particle effects | smoke simulation | fire dynamics | water simulation | cloth physics |
-    hair dynamics | explosion effects | shockwave distortion | bullet time | time dilation |
-    slow motion capture | speed ramping | motion blur | lens distortion | anamorphic lens flare |
-    chromatic aberration | depth of field | tilt-shift effect | barrel distortion | fish-eye distortion |
-    bloom effect | HDR lighting | tone mapping | color grading | LUT application |
-    film grain | noise reduction | sharpening | vignette effect | edge darkening |
-    glow effect | halo effect | god rays | light scattering | volumetric lighting |
-    subsurface scattering | caustics | refraction | reflection | specular highlights |
-    ambient occlusion | screen space reflections | ray-traced reflections | ray-traced shadows |
-    ray-traced global illumination | path tracing | photon mapping | radiosity | real-time GI |
-    soft particles | motion vectors | velocity buffer | atmospheric effects | weather system |
-    day-night cycle | seasonal changes | snow accumulation | rain effects | puddle formation |
-    wet surface reflections | dynamic weather | procedural clouds | volumetric clouds |
-    holographic projection | force field visualization | energy effect | magic visualization |
-    quantum effect | dimensional rift | optical illusion | mirage effect | heat distortion }
+$weapon  := @weapon 
 
-In a @moods, @timePeriods setting, a @characters appears in a @subjects, surrounded by @colorPalettes.
-The moment captures @sceneDescriptors, featuring @2-5,renderingTerms, @2-5,cinematicTerms, and @2-5,lightingTerms.
-Technical details include @gameGraphicsTerms, @2-5,gameGraphicsTerms, @1-3,technicalDetails.
-Shot with @1-3,cameraSettings, composed using @1-3,cinematographyTechniques techniques under @weather.
-The style leans toward @artisticStyles, influenced by @directors.
-The environment includes @1-3,materialsTextures, enhanced with @1-3,specialEffects.
+@character_adjectives := {?wizard  {#scary inhuman|#scary alien|#scary evil|#scary ominous|#scary sinister
+                                   |#scary infernal|#alone lonesome|erudite|wise|ancient|immortal|antediluvian
+                                   |?f seductive|?f beautiful|?f alluring|?m dashing|?f enchanting
+                                   |?m !scary charming|?f beguiling|?f captivating|powerful|godlike
+                                   |!scary holy}
+                         |?warrior {!scary heroic|mighty|?m handsome|?m musclebound|#scary fearsome|resolute
+                                   |2 proud|noble|tattooed|solitary #alone|athletic|steadfast|?m humongous
+                                   |strong|?f beautiful|?m handsome|?f alluring|?m musclebound
+                                   |#scary bloodthirsty|?m dashing|?f enchanting|?m !scary charming
+                                   |!scary brave|!scary daring}
+                         }
+
+@roles      := {?wizard  {{?m wizard|?f wizardress}|2 {?m sorcerer|?f sorceress}|2 {?m enchanter
+                         |?f enchantress}|druid|alchemist|{?m priest|?f priestess}|adept|cultist
+                         |vampire|lich|2 necromancer|?m warlock|?f witch}
+               |?warrior {2 warrior|!scary paladin|knight|barbarian|conqueror|rogue|2 gladiator
+                         |?m swordsman|?f swordswoman|?f amazon|dervish|blademaster
+                         |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}
+                         |!scary hero|#scary raider} 
+               }
+
+// The gender flag and the guards here will ensure that only one alternative is available, we'll
+// use that to pick appropriately gendered pros:
+@pro_3rd_object  := {?f her |?m him | ?n it  }
+@pro_3rd_subject := {?f she |?m he  | ?n it  }
+@pro_pos_adj     := {?f her |?m his | ?n its }
+@pro_pos         := {?f hers|?m his | ?n its }
+@pro_pos_rand    := {4 @pro_pos_adj|3 a|1 their}
+
+@video_game_descriptor := {highly anticipated|blockbuster|award winning}
+@video_game_origin     := {|2 from {Japan's FROM Software|Hidetaka Miyazaki}}
+
+{2 An oil painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
+ , in the style of {Julie Bell|Boris Vallejo|Frank Frazetta|Ian Miller|Zdzislaw Beksinski|Brom
+                   |an 'Ace double'|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover
+                   |a Heavy Metal magazine cover}
+|A screenshot from a cinematic in a @video_game_descriptor video game @video_game_origin
+|A promotional poster for a @video_game_descriptor video game @video_game_origin
+}
+
+, {which depicts|depicting} a @2-3&character_adjectives @roles
+
+@wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
+                         |ornate|silken|brightly colored|occult|embroidered}
+@pluralize_clothing   := { {!used_pro <s} }
+
+// Clothing: only reference any clothing half the time, because of the empty alternative at the start:
+{|{clad in|wearing|dressed in} {|@pro_pos_rand #used_pro}
+ {?wizard  @0-2&wizard_clothing_adjs
+           {3 robe @pluralize_clothing|garb|raiment|vestments|?f dress|?f gown},
+ |?warrior {3 {|battered|blood-smeared|2 leather|spiked|chainmail|rusted|ornate|golden}
+           {3 armor|helmet|pauldrons|wargear|gauntlets}
+           |{hides|furs|leather}
+           }
+ }
+}
+
+{2|{ in the {|early} morning|2 at mid-day|3 in mid-evening|3 at midnight|3 in the dead of night
+   |3 on a {moonlit|starlit} night} , }
+
+// A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the
+// start:
+{|5 {presenting|brandishing|holding
+    |?warrior wielding|?warrior swinging
+    |?wizard cradling |?wizard waving|?wizard gesturing with}
+
+    @pro_pos_rand
+
+    {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
+              {2 staff|2 wand|crystal ball|amulet|artifact
+              |skull|spell book||dagger|2 candle|brazier|bell
+              |2 {| glowing|?scary fiery} orb
+              |potion
+              }
+    |?warrior {2 bloody|2 ornate|bejeweled|fiery|}
+              $weapon
+    }
+    {|,}
+}
+
+{|#outdoors}
+{|?outdoors #mounted}
+
+{?mounted {sitting on|mounted on|riding on|astride|leading}
+          @pro_pos_rand
+          {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
+          {3 beast|wolf|2 lizard|reptile|snake|insect|2 steed|2 destrier|2 horse|2 dragon}
+          ,
+}
+
+{!outdoors {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair} }
+
+in {3|the heart of|the depths of} a
+
+{!outdoors {|shadowy|smoky|crumbling|ruined|foggy|dimly lit|dusty|{candle|torch} <lit}
+           {temple|palace|crypt|cave|tavern|church|lair|cavern
+           |{|arcane|wizard's} library|castle|tunnel|dungeon}
+}
+
+{?outdoors {|shadowy|smoky|foggy|dimly lit|wintry|snowy|rainy|starlit|moonlit}
+           {swamp|forest|desert|alleyway|field|battlefield|courtyard|garden}
+}
+
+{,|and}
+
+@look_aim := {past|towards|2 {|up|down} {at|towards}}
+
+// Expression/looking at:
+{2 looking @look_aim
+|#angry glaring @look_aim
+|staring @look_aim
+|beckoning {|@look_aim}
+|inviting {|@look_aim}
+|leering @look_aim
+|#scary glowering @look_aim
+|2 !scary smiling @look_aim
+|grinning @look_aim
+|scowling @look_aim
+}
+
+the viewer
+
+{2 ?scary menacingly|pridefully|cunningly|drunkenly|!scary !angry jovially|!scary !angry fondly
+|!angry gleefully|madly|?scary angrily|angrily|mockingly|?f seductively|?m roguishly|?m rakishly
+|2 ?scary threateningly|!scary victoriously|3}
+
+@minion_adjectives := { ?wizard   {?scary {demonic #demonic|fearsome|slavering|3 undead|eldrich
+                                          |loathsome|squamous|chtonian|repulsive|chitinous} 
+                                  |       {2 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
+                                          |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing}
+                                  }
+                      |  ?warrior {fellow|loyal|brave|steadfast|armored|mighty
+                                  |heavily armed|raucous|warlike|belligerant}
+                      }
+
+// unless flagged as #alone, warriors always have #many_minions, but wizards may have a single minion
+// sometimes: 
+{?warrior #many_minions|?wizard {|3 #many_minions}}
+@pluralize_minions := { ?many_minions <s }
+
+// Companions: mention some companions four times in seven, because of the empty alternative at the start 
+{|2 !alone {2 ,|while}
+           {accompanied by|?many_minions surrounded by|?many_minions encircled by
+           |guarded by|leading|commanding|directing|guiding|rallying|alongside}
+           @pro_pos_rand
+           {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang|?warrior band
+                          |army|?wizard coterie|?wizard circle|?wizard coven|?wizard variety}
+                          of
+           }
+           {?warrior @0-2&minion_adjectives
+                     {soldiers|warriors|companions|men at arms|compatriots}
+           |?wizard  {@1-3&minion_adjectives|@2minion_adjectives}
+                     {familiar|2 minion|slave|cultist|devil|!demonic demon|spirit|apprentice|followers}
+                     @pluralize_minions
+           }
+}
+.
 `;
 
 const configuration = pipeline.configuration;

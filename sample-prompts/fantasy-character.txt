@@ -4,7 +4,7 @@
 dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot,
 \n
 
-{#m|#f}                // set an 'm' or 'f' gender flag that will help guide the selection of adjectives later on.
+{#m|#f}                // set an 'm' or 'f' gender flag that will help guide the selection of picks later on.
 {3 #wizard|2 #warrior} // character, make 'wizards' 60% of the time.
 
 @weapon  := {2 spear|2 {|short|two-handed|bastard|curved} sword|axe|halberd|scimitar
@@ -82,7 +82,8 @@ $weapon  := @weapon
 {2|{ in the {|early} morning|2 at mid-day|3 in mid-evening|3 at midnight|3 in the dead of night
    |3 on a {moonlit|starlit} night} , }
 
-// A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the start:
+// A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the
+// start:
 {|5 {presenting|brandishing|holding
     |?warrior wielding|?warrior swinging
     |?wizard cradling |?wizard waving|?wizard gesturing with}
@@ -156,7 +157,8 @@ the viewer
                                   |heavily armed|raucous|warlike|belligerant}
                       }
 
-// unless flagged as #alone, warriors always have #many_minions, but wizards may have a single minion sometimes: 
+// unless flagged as #alone, warriors always have #many_minions, but wizards may have a single minion
+// sometimes: 
 {?warrior #many_minions|?wizard {|3 #many_minions}}
 @pluralize_minions := { ?many_minions <s }
 
