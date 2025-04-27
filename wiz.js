@@ -1105,6 +1105,7 @@ for (let ix = 0; ix < artists.length; ix++) {
         .replace(/\-/g, '_')
         .replace(/\'/g, '')
         .replace('ü', 'u')
+        .replace('é', 'e')  
         .replace(/\./g, '');
   let tags = `${removeAddedDate(artist[2]).replaceAll('|', ', ')}`;
   tags = tags.substring(0, tags.length - 2);

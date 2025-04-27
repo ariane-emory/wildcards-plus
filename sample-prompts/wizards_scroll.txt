@@ -1181,7 +1181,7 @@
   ?artist__umberto_boccioni colorful, cubism, futurism, muted-colors |
   ?artist__anna_bocek colorful, figurativism, messy, portraits |
   ?artist__lee_bogle dream-like, eerie, ethereal, fantasy, portraits |
-  ?artist__louis_léopold_boily contemporary, French, landscapes, nature, painting |
+  ?artist__louis_leopold_boily contemporary, French, landscapes, nature, painting |
   ?artist__giovanni_boldini impressionism, portraits |
   ?artist__enoch_bolles art-nouveau, characters, contemporary, portraits |
   ?artist__david_bomberg abstract, battle-scenes, cubism, expressionism, muted-colors |
@@ -1215,7 +1215,7 @@
   ?artist__allie_brosh autobiographical, comics, flat-colors, whimsical |
   ?artist__ford_madox_brown portraits, romanticism |
   ?artist__charles_le_brun baroque, portraits |
-  ?artist__élisabeth_vigée_le_brun baroque, fashion, femininity, portraits |
+  ?artist__elisabeth_vigée_le_brun baroque, fashion, femininity, portraits |
   ?artist__james_bullough contemporary, dream-like, portraits, street-art |
   ?artist__laurel_burch femininity, illustration, nature, vibrant, whimsical |
   ?artist__alejandro_burdisio atmospheric, dark, digital, eerie, fantasy, landscapes, magic, science-fiction |
@@ -1253,7 +1253,7 @@
   ?artist__patrick_caulfield colorful, contemporary, geometric, minimalism, pop-art, vibrant |
   ?artist__nicoletta_ceccoli animals, big-eyes, childhood, contemporary, dark, dream-like, portraits, surreal, whimsical |
   ?artist__agnes_cecile contemporary, messy, portraits, watercolor |
-  ?artist__paul_cézanne cubism, geometric, impressionism, landscapes, post-impressionism, romanticism, still-life |
+  ?artist__paul_cezanne cubism, geometric, impressionism, landscapes, post-impressionism, romanticism, still-life |
   ?artist__paul_chabas figurativism, impressionism, nudes, portraits |
   ?artist__marc_chagall colorful, dream-like, fauvism, folklore, French, impressionism, Jewish, romanticism, Russian |
   ?artist__tom_chambers contemporary, Fleeting-moments, Illustration, Observational |
@@ -1331,7 +1331,7 @@
   ?artist__dima_dmitriev figure-studies, impressionism, landscapes, nature, oil-painting, romanticism |
   ?artist__peter_doig British, Canadian, dream-like, figurativism, landscapes, large-scale, nature |
   ?artist__kees_van_dongen colorful, expressionism, fauvism, femininity, japanese, portraits, urban-life |
-  ?artist__gustave_doré engraving, fantasy, gothic, monochromatic, mythology |
+  ?artist__gustave_dore engraving, fantasy, gothic, monochromatic, mythology |
   ?artist__dave_dorman dark, fantasy, horror, photorealism, science-fiction |
   ?artist__emilio_giuseppe_dossena Conceptual, contemporary, metaphysics, Sculpture |
   ?artist__david_downton conceptual, expressionism, high-contrast, minimalism, portraits, whimsical |
@@ -1365,7 +1365,7 @@
   ?artist__kilian_eng atmospheric, digital, fantasy, illustration, landscapes, science-fiction |
   ?artist__jason_a_engle creatures, dark, fantasy, illustration |
   ?artist__max_ernst automatism, collage, Dadaism, expressionism, German, mythology, oil-painting, surreal |
-  ?artist__romain_de_tirtoff_erté art-deco, fashion, luxury, masks, Russian, silhouettes, theater |
+  ?artist__romain_de_tirtoff_erte art-deco, fashion, luxury, masks, Russian, silhouettes, theater |
   ?artist__m_c_escher angular, Dutch, geometric, illusion, lithography, mathematics, surreal, woodblock |
   ?artist__tim_etchells Conceptual, conceptual, contemporary, neon, text-based |
   ?artist__walker_evans American, documentary, great-depression, monochromatic, photography, photography-bw, portraits, social-commentary |
@@ -1424,8 +1424,8 @@
   ?artist__artemisia_gentileschi baroque, expressionism, portraits, realism, religion, renaissance, romanticism |
   ?artist__orazio_gentileschi baroque, expressionism, portraits, realism, renaissance, romanticism, whimsical |
   ?artist__daniel_f_gerhartz expressionism, femininity, impressionism, nature, portraits, realism, romanticism, whimsical |
-  ?artist__théodore_géricault conceptual, dark, expressionism, impressionism, portraits, realism, romanticism |
-  ?artist__jean_léon_gérôme architecture, figure-studies, French, mythology, Orientalism, painting, romanticism |
+  ?artist__theodore_géricault conceptual, dark, expressionism, impressionism, portraits, realism, romanticism |
+  ?artist__jean_leon_gérôme architecture, figure-studies, French, mythology, Orientalism, painting, romanticism |
   ?artist__mark_gertler expressionism, figurativism, figure-studies, impressionism, portraits, realism, still-life |
   ?artist__atey_ghailan characters, digital, dream-like, fantasy, illustration, manga-anime, surreal |
   ?artist__alberto_giacometti bronze, emaciation, expressionism, figurative, portraits, sculpture, Swiss |
@@ -1499,7 +1499,7 @@
   ?artist__barkley_l_hendricks african-american, contemporary, expressionism, femininity, figurativism, identity, portraits |
   ?artist__bill_henson conceptual, contemporary, dark, landscapes, photography, photography-color, portraits, whimsical |
   ?artist__barbara_hepworth abstract, modern, nature, organic, sculpture |
-  ?artist__hergé belgian, comics, contemporary |
+  ?artist__herge belgian, comics, contemporary |
   ?artist__carolina_herrera characters, contemporary, fashion, femininity, celebrity |
   ?artist__george_herriman comics, contemporary, Illustration, politics, Satire |
   ?artist__don_hertzfeldt animation, dark, drawing, surreal, whimsical |
@@ -1647,7 +1647,7 @@
   ?artist__david_lachapelle conceptual, contemporary, luxury, photography, photography-color, pop-art, vibrant |
   ?artist__raphael_lacoste atmospheric, dark, dream-like, eerie, fantasy, landscapes, mysterious |
   ?artist__lev_lagorio landscapes, Observational, painting, Plein-air, Realism |
-  ?artist__rené_lalique art-deco, art-nouveau, French, glasswork, jewelry, luxury, nature, sculpture |
+  ?artist__rene_lalique art-deco, art-nouveau, French, glasswork, jewelry, luxury, nature, sculpture |
   ?artist__abigail_larson dark, eerie, fantasy, kids-book, whimsical |
   ?artist__gary_larson American, animals, cartoon, comics, newspaper, pop-culture, satire, slice-of-life |
   ?artist__denys_lasdun Architecture, contemporary, metaphysics |
@@ -1669,7 +1669,7 @@
   ?artist__tamara_de_lempicka art-deco, cubism, fashion, luxury, portraits, romanticism |
   ?artist__sol_lewitt abstract, conceptual, contemporary, geometric, minimalism, sculpture, serial-art, wall-drawings |
   ?artist__jc_leyendecker American, illustration, nostalgia, pop-culture, portraits, posters |
-  ?artist__andré_lhote Cubism, impressionism, painting |
+  ?artist__andre_lhote Cubism, impressionism, painting |
   ?artist__roy_lichtenstein American, comics, expressionism, flat-colors, pop-art, portraits |
   ?artist__rob_liefeld comics, fantasy, science-fiction, superheroes |
   ?artist__fang_lijun contemporary, dutch, figurativism, portraits, realism, vibrant |
@@ -1699,7 +1699,7 @@
   ?artist__keith_mallett dark, figurativism, minimalism, modern, muted-colors, sculpture, urban-life |
   ?artist__johji_manabe comics, contemporary, Illustration, manga-anime, Metamorphosis, Science-fiction |
   ?artist__milo_manara Comics, Controversy, erotica, Femininity, Illustration |
-  ?artist__édouard_manet controversy, femininity, French, impressionism, modern-life, portraits, realism, still-life |
+  ?artist__edouard_manet controversy, femininity, French, impressionism, modern-life, portraits, realism, still-life |
   ?artist__henri_manguin colorful, fauvism, impressionism, painting |
   ?artist__jeremy_mann contemporary, dark, expressionism, grungy, messy, portraits, urban-life |
   ?artist__sally_mann childhood, family, monochromatic, photography, photography-bw, social-commentary, suburbia |
@@ -1818,7 +1818,7 @@
   ?artist__victor_nizovtsev colorful, dream-like, fantasy, magic, magic-realism, mysterious, surreal, whimsical |
   ?artist__isamu_noguchi Japanese, landscape-architecture, organic, sculpture |
   ?artist__catherine_nolin conceptual, contemporary, feminism, portraits |
-  ?artist__françois_de_nomé baroque, expressionism, mixed-media |
+  ?artist__françois_de_nome baroque, expressionism, mixed-media |
   ?artist__earl_norem battle-scenes, dark, fantasy, mythology |
   ?artist__phil_noto american, characters, comics, contemporary, impressionism, installation, portraits |
   ?artist__georgia_okeeffe abstract, American, figurativism, flowers, landscapes, modern, precisionism, southwest |
@@ -1981,7 +1981,7 @@
   ?artist__masamune_shirow cartoon, characters, comics, fantasy, manga-anime, robots-cyborgs, science-fiction |
   ?artist__tim_shumate animals, big-eyes, cartoon, childhood, dreams, portraits, whimsical |
   ?artist__yuri_shwedoff contemporary, Fantasy, Illustration, Surreal |
-  ?artist__malick_sidibé African-American, Documentary, Harlem-Renaissance, monochromatic, Photography, photography-bw, Slice-of-life |
+  ?artist__malick_sidibe African-American, Documentary, Harlem-Renaissance, monochromatic, Photography, photography-bw, Slice-of-life |
   ?artist__jeanloup_sieff erotica, fashion, landscapes, monochromatic, nudes, photography, photography-bw, portraits |
   ?artist__bill_sienkiewicz comics, dark, expressionism, figurativism, grungy, messy, pop-art, superheroes, watercolor |
   ?artist__marc_simonetti dark, digital, dream-like, fantasy, landscapes, surreal |
@@ -2010,7 +2010,7 @@
   ?artist__philip_wilson_steer atmospheric, british, impressionism, landscapes, portraits, seascapes |
   ?artist__william_steig colorful, illustration, kids-book, playful, watercolor |
   ?artist__fred_stein contemporary, impressionism, landscapes, realism |
-  ?artist__théophile_steinlen Allegory, Art-Nouveau, Observational, Printmaking |
+  ?artist__theophile_steinlen Allegory, Art-Nouveau, Observational, Printmaking |
   ?artist__brian_stelfreeze Activism, comics, contemporary, digital, Illustration, Social-realism |
   ?artist__frank_stella abstract, angular, colorful, cubism, expressionism, geometric, modern, vibrant |
   ?artist__joseph_stella angular, colorful, cubism, expressionism, geometric, minimalism, modern |
