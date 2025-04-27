@@ -57,9 +57,9 @@ $weapon  := @weapon
 @video_game_origin     := {|2 from {Japan's FROM Software|Hidetaka Miyazaki}}
 
 {3 An oil painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
- , in the style of {2 Julie Bell|Boris Vallejo|Frank Frazetta|2 Ian Miller|2 Zdzislaw Beksinski|2 Brom
-                   |2 {Yoshiaki Kawajiri|the anime movie \'Ninja Scroll'}
-                   |an 'Ace double' novel|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover
+ , in the style of {3 Julie Bell|2 Boris Vallejo|2 Frank Frazetta|3 Ian Miller|3 Zdzislaw Beksinski|4 the artist Brom
+                   |3 {Yoshiaki Kawajiri|the anime movie \'Ninja Scroll'}
+                   |2 an 'Ace double' novel|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover
                    |a Heavy Metal magazine cover}
 |A screenshot from a {cinematic|cutscene} in a @video_game_descriptor video game @video_game_origin
 |A promotional poster for a @video_game_descriptor video game @video_game_origin
