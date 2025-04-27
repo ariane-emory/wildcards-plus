@@ -197,11 +197,9 @@ the viewer
          }
 }
 
-{3
-|and basking in {|2 @pro_pos_adj} glory
-|and reveling in {2 @pro_pos_adj|the} {chaos|destruction|silence|?warrior violence} 
+{4 
+|and basking in {|2 @pro_pos_adj} {worship|glory}
+|and reveling in {|the} {chaos|destruction|silence|darkness|?warrior violence} 
 }
-
-
 
 .
