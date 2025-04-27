@@ -141,8 +141,10 @@ in {3|the heart of|the depths of} a
            |{|arcane|wizard's} library|castle|tunnel|dungeon|tower}
 }
 
-{?outdoors {|ancient|shadowy|smoky|foggy|dimly lit|stormy|wintry|icy|snowy|rainy|starlit|moonlit|burnt|lightning-{lit|blasted}}
-           {swamp|forest|desert|wasteland|ruin|alleyway|canal|field|battlefield|courtyard|garden|crater|thicket|scrubland}
+{?outdoors {|ancient|shadowy|smoky|foggy|dimly lit|stormy|wintry|icy|snowy
+            |rainy|starlit|moonlit|burnt|lightning-{lit|blasted}}
+           {swamp|forest|desert|wasteland|ruin|alleyway|canal|field|battlefield
+           |courtyard|garden|crater|canyon|thicket|scrubland}
 }
 
 {,|and}
