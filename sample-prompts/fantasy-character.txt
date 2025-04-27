@@ -118,7 +118,7 @@ while
           ,
 }
 
-{!outdoors |standing|crouching|lurking|3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch| chair} }
+{!outdoors { |standing|crouching|lurking|3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch| chair} } }
 
 in {3|the heart of|the depths of} a
 
@@ -141,7 +141,7 @@ in {3|the heart of|the depths of} a
 |staring @look_aim
 |gazing @look_aim
 |beckoning {|@look_aim}
-|inviting {|@look_aim}
+|inviting // no @look_aim on this one!
 |leering @look_aim
 |#scary glowering @look_aim
 |2 !scary smiling @look_aim
