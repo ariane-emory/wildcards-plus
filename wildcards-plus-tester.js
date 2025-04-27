@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // -*- fill-column: 90; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
-// This script is NOT the Draw Things script: that's over in wildcards-plus.js.
+// This file is NOT the Draw Things script: that's over in wildcards-plus.js.
 //
 // This script is a tool you can use at the command line (you'll need to have Node.js
 // installed) to test out wildcards-plus prompts that you're working on to see how they'll
