@@ -1594,20 +1594,10 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
     else if (thing instanceof ASTNamedWildcardReference) {
       const got = context.named_wildcards.get(thing.name);
 
-      // if (!got)
-      //   return `ERROR: Named wildcard $'{thing.name}' not found!`;
-
-      // console.log(`THE OBJ: ${inspect_fun(thing)}`);
-      
-      // console.log(`FETCH WC @${thing.name} = ${JSON.stringify(got)}`);
-
       if (!got)
         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
-
-      let res = [ walk(got, context) ];
-      
-      // console.log(`type: ${typeof walked}`);
+      const res = [ walk(got, context) ];
 
       if (thing.capitalize)
         res[0] = capitalize(res[0]);
@@ -1627,7 +1617,6 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
         res.push(val);
       }
 
-      // console.log(`'${thing.join}' vs '${','}'`);
       return thing.join == ','
         ? res.join(", ")
         : (thing.join == '&'
@@ -1642,8 +1631,6 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
       if (thing.capitalize)
         got = capitalize(got);
 
-      // console.log(`FETCH SCALAR $${thing.name} = ${JSON.stringify(got)}`);
-      
       return got;
     }
     // -----------------------------------------------------------------------------------
