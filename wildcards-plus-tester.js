@@ -2007,11 +2007,11 @@ const result = Prompt.match(input);
 if (! result.is_finished)
   throw new Error("error parsing prompt!");
 
-console.log(``);
-console.log(`FINISHED:     ${result.is_finished ? "yes" : "NO!"}`);
-console.log(`RESULT.VALUE: ${inspect_fun(result.value)}`);
+// console.log(``);
+// console.log(`FINISHED:     ${result.is_finished ? "yes" : "NO!"}`);
+// console.log(`RESULT.VALUE: ${inspect_fun(result.value)}`);
 // console.log(`RESULT.VALUE: ${JSON.stringify(result.value)}`);
-console.log();
+// console.log();
 console.log('--------------------------------------------------------------------------------');
 console.log('Expanded:');
 for (let ix = 0; ix < count; ix++) {
