@@ -10,7 +10,7 @@
 - Escaped characters
 - Setting 'boolean' flags and using guards
 - Putting it all together and some final thoughts
-- A quick on 'types' and names
+- A quick note on 'types' and names
 
 **Weighted alternatives in wildcards**
  

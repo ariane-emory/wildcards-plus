@@ -2176,6 +2176,12 @@ if (uiPrompt.includes('{') && uiPrompt.includes('}')) {
 // ---------------------------------------------------------------------------------------
 // UI:
 // ---------------------------------------------------------------------------------------
+const docString = `Wildcards Plus v0.5b by ariane-emory (based on wetcircuit's original wildcard.js script)
+
+Generate a batch of images using inline wildcards to randomize elements within the prompt. This wildcard script adds a variety of useful features above and beyond simple wildcards, including: weighted alternatives in wildcards, nested wildcards, 'smart' text joining logic, comments, named wildcards (with 'latching' and the ability to retrieve multiple items at once), recursive wildcards, escaped characters, settable 'boolean' flags and guards.
+
+The full documentation is far too large to fit in this tiny box, please see the README.md file for detailed descriptions of these features!`;
+
 const userSelection = requestFromUser("Wildcards", "", function() {
   return [
 	  this.section("Prompt", uiHint, [
@@ -2183,17 +2189,7 @@ const userSelection = requestFromUser("Wildcards", "", function() {
 		  this.slider(10, this.slider.fractional(0), 1, 500, "batch count")
     ]),
 	  this.section("about",
-                 `Wildcards Plus v0.5b by ariane-emory (based on wetcircuit's original wildcard.js script)
-
-Generate a batch of images using inline wildcards to randomize elements within the Prompt.
-
-Added features:
- -  support for weighted wildcards: if the first non-whitspace 'word' in an alternative is a positive integer, it is taken to be a weighting, otherwise an alternative's default weight is 1... so, this prompt generates 'cat' half of the time:
-    '{ dog | 2 cat | bird }'
-
-  - support for nested wildcards, for example the following prompt, which, when it generates a cat, will generate a siamese cat half of the time (note the empty alternative):
-    'A { dog | 2 { 2 siamese | tabby | } cat | bird } in a { 2 field | kitchen }.'
-`,
+                 docString,
                  [])
   ];
 });
