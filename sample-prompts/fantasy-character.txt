@@ -69,7 +69,7 @@ $weapon  := @weapon
 
 @wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
                          |ornate|silken|brightly colored|occult|embroidered}
-@pluralize_clothing   := { {!used_pro <s} }
+@pluralize_clothing   := {!used_pro <s}
 
 // Clothing: only reference any clothing half the time, because of the empty alternative at the start:
 {|{clad in|wearing|dressed in} {|@pro_pos_rand #used_pro}
