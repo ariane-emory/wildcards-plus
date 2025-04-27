@@ -199,7 +199,7 @@ the viewer
 
 {4 
 |and basking in {|2 @pro_pos_adj} {worship|glory}
-|and reveling in {|the} {chaos|destruction|silence|darkness|?warrior violence} 
+|and reveling in {|the} {chaos|destruction|din|silence|darkness|?alone solitude|?warrior violence} 
 }
 
 .
