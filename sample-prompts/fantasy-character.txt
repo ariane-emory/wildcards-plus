@@ -132,7 +132,7 @@ a
 }
 
 {!outdoors {|standing|crouching|lurking
-            |?wizard {standing|seated} {at|behind} @pro_pos_rand
+            |?wizard {standing|seated} {at|behind|before} @pro_pos_rand
                      {lectern|obelisk|monolith|podium|altar|desk|grimoire|idol
                      |crystal ball|{|bubbling} alchemical equipment}
             |3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair} } }
