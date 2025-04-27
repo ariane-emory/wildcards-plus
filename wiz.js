@@ -1111,8 +1111,9 @@ for (let ix = 0; ix < artists.length; ix++) {
         .replace('ń', 'n')
         .replace('é', 'e')
         .replace('ô', 'o')
+        .replace('á', 'a')
         .replace(/\./g, '');
-                 let tags = `${removeAddedDate(artist[2]).replaceAll('|', ', ')}`;
+  let tags = `${removeAddedDate(artist[2]).replaceAll('|', ', ')}`;
   tags = tags.substring(0, tags.length - 2);
   const alternative_body = `  ?artist__${cleaned_name} ${tags}`;
 

@@ -2074,7 +2074,7 @@
   ?artist__jan_van_kessel_the_elder Allegory, Baroque, Nature, Observational, painting, Still-Life |
   ?artist__remedios_varo low-contrast, magic-realism, Spanish, surreal |
   ?artist__nick_veasey contemporary, monochromatic, photography, photography-bw, urban-life |
-  ?artist__diego_velázquez baroque, history, oil-painting, portraits, realism, religion, royalty, Spanish |
+  ?artist__diego_velazquez baroque, history, oil-painting, portraits, realism, religion, royalty, Spanish |
   ?artist__eve_ventrue characters, costumes, dark, digital, fantasy, femininity, gothic, illustration |
   ?artist__johannes_vermeer baroque, domestic-scenes, Dutch, genre-scenes, illusion, interiors, portraits |
   ?artist__charles_vess comics, dream-like, fantasy, magic, mythology, romanticism, watercolor, whimsical |
