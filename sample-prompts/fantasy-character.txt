@@ -118,7 +118,9 @@ while
           ,
 }
 
-{!outdoors { |standing|crouching|lurking|3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch| chair} } }
+{!outdoors {|standing|crouching|lurking
+            |?wizard {standing|seated} {at|behind} @pro_pos_rand {lectern|podium|altar|desk}
+            |3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair} } }
 
 in {3|the heart of|the depths of} a
 
