@@ -5,7 +5,7 @@
 //
 // This script is a tool that you can use at the command line (you'll need to have Node.js
 // installed) to test out wildcards-plus prompts that you're working on to see how they'll
-// be expanded.
+// be expanded by wildcards-plus.
 //
 // The script takes a file name as its first argument, and an optional second argument
 // specifying how many expansions you'd like to see.
