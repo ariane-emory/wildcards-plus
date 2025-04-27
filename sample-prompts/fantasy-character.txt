@@ -51,7 +51,7 @@ $weapon  := @weapon
 }
 
 depicting a @0-3&character_adjectives @roles
- 
+
 @wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
                          |ornate|silken|brightly colored|occult|embroidered}
 
@@ -112,7 +112,7 @@ in a
 
 {,|and}
 
-@look_aim := {past|towards|at|up {at|towards}|down {at|towards}}
+@look_aim := {past|towards|2 {|up|down} {at|towards}}
 
 // Expression/looking at:
 {2 looking @look_aim
@@ -152,7 +152,7 @@ the viewer
            |guarded by|leading|commanding|directing|guiding|rallying|alongside}
            @pro_pos_rand
            {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang|?warrior band
-                          |army|?wizard coterie|?wizard coven|?wizard variety}
+                          |army|?wizard coterie|?wizard circle|?wizard coven|?wizard variety}
                           of
            }
            {?warrior @0-2&minion_adjectives
