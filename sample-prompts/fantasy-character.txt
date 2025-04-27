@@ -132,19 +132,19 @@ a
 
 {!outdoors {|standing|crouching|lurking
             |?wizard {standing|seated} {at|behind} @pro_pos_rand
-                     {lectern|podium|altar|desk|grimoire|idol|crystal ball|{|bubbling} alchemical equipment}
+                     {lectern|obelisk|monolith|podium|altar|desk|grimoire|idol|crystal ball|{|bubbling} alchemical equipment}
             |3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair} } }
 
 in {3|the heart of|the depths of} a
 
 {!outdoors {|shadowy|cyclopean|smoky|hidden|crumbling|abandoned
             |ruined|foggy|dimly lit|dusty|{candle|torch} <lit| eerily lit}
-           {temple|shrine|palace|crypt|cave|tavern|church|lair|cavern
-           |{|arcane|wizard's} library|castle|tunnel|dungeon|tower}
+           {temple|shrine|palace|crypt|cave|tavern|church|lair|cave|cavern|tomb
+           |{|arcane|wizard's} library|castle|throne room|tunnel|dungeon|tower}
 }
 
 {?outdoors {|ancient|shadowy|smoky|foggy|dimly lit|stormy|wintry|icy|snowy
-            |rainy|starlit|moonlit|secluded|burnt|lightning-{lit|blasted}}
+            |rainy|starlit|moonlit|secluded|lonely|burnt|lightning-{lit|blasted}}
            {swamp|forest|desert|wasteland|ruin|alleyway|canal|field|battlefield
            |slum|courtyard|garden|crater|canyon|thicket|scrubland|boat|ship}
 }
