@@ -190,15 +190,16 @@ the viewer
 |!scary victoriously
 }
 
-@minion_adjectives := { ?wizard   {?scary {demonic #demonic|fearsome|slavering|3 undead|eldrich
-                                          |loathsome|squamous|chtonian|repulsive|chitinous|ghoulish} 
-                                  |       {2 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
-                                          |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing
-                                          |swarming}
-                                  }
-                      |  ?warrior {fellow|loyal|brave|steadfast|armored|mighty
-                                  |heavily armed|raucous|warlike|belligerant}
-                      }
+@minion_adjectives := {
+ ?wizard   {?scary {demonic #demonic|fearsome|slavering|3 undead|eldrich
+                   |loathsome|squamous|chtonian|repulsive|chitinous|ghoulish}
+           |       {2 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
+                   |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing
+                   |swarming}
+           }
+|?warrior {fellow|loyal|brave|steadfast|armored|mighty
+             |heavily armed|raucous|warlike|belligerant}
+}
 
 // unless flagged as #alone, warriors always have #many_minions, but wizards may have a single minion
 // sometimes: 
