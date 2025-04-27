@@ -104,10 +104,11 @@ $weapon  := @weapon
 
 {!outdoors {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair} }
 
-in a
+in {3|the heart of|the depths of} a
 
 {!outdoors {|shadowy|smoky|crumbling|ruined|foggy|dimly lit|dusty|{candle|torch} <lit}
-           {temple|palace|crypt|cave|tavern|church|lair|cavern|{|arcane|wizard's} library|castle|dungeon}
+           {temple|palace|crypt|cave|tavern|church|lair|cavern
+           |{|arcane|wizard's} library|castle|tunnel|dungeon}
 }
 
 {?outdoors {|shadowy|smoky|foggy|dimly lit|wintry|snowy|rainy|starlit|moonlit}
