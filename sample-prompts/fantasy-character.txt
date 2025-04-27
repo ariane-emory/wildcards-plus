@@ -56,7 +56,7 @@ $weapon  := @weapon
 @video_game_descriptor := {highly anticipated|blockbuster|award winning}
 @video_game_origin     := {|2 from {Japan's FROM Software|Hidetaka Miyazaki}}
 
-{2 An oil painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
+{3 An oil painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
  , in the style of {2 Julie Bell|Boris Vallejo|Frank Frazetta|2 Ian Miller|2 Zdzislaw Beksinski|2 Brom
                    |2 {Yoshiaki Kawajiri|the anime movie \'Ninja Scroll'}
                    |an 'Ace double' novel|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover
