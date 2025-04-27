@@ -3,7 +3,7 @@
 // =======================================================================================
 // This file is NOT the Draw Things script: that's over in wildcards-plus.js.
 //
-// This script is a tool you can use at the command line (you'll need to have Node.js
+// This script is a tool that you can use at the command line (you'll need to have Node.js
 // installed) to test out wildcards-plus prompts that you're working on to see how they'll
 // be expanded.
 //
