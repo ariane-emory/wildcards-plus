@@ -67,6 +67,8 @@ $weapon  := @weapon
 
 , {which depicts|depicting} a @2-3&character_adjectives @roles
 
+{|in a {|ancient|medieval|Atlantean|Victorian|primitive|frightening|{haunted|{ghost|demon}-haunted}} world}
+
 @wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
                          |ornate|silken|brightly colored|occult|embroidered}
 @pluralize_clothing   := {!used_pro <s}
@@ -119,18 +121,19 @@ while
 }
 
 {!outdoors {|standing|crouching|lurking
-            |?wizard {standing|seated} {at|behind} @pro_pos_rand {lectern|podium|altar|desk}
+            |?wizard {standing|seated} {at|behind} @pro_pos_rand
+                     {lectern|podium|altar|desk|grimoire|idol|crystal ball|{|bubbling} alchemical equipment}
             |3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair} } }
 
 in {3|the heart of|the depths of} a
 
 {!outdoors {|shadowy|smoky|crumbling|ruined|foggy|dimly lit|dusty|{candle|torch} <lit| eerily lit}
            {temple|palace|crypt|cave|tavern|church|lair|cavern
-           |{|arcane|wizard's} library|castle|tunnel|dungeon}
+           |{|arcane|wizard's} library|castle|tunnel|dungeon|tower}
 }
 
-{?outdoors {|shadowy|smoky|foggy|dimly lit|wintry|snowy|rainy|starlit|moonlit}
-           {swamp|forest|desert|alleyway|field|battlefield|courtyard|garden}
+{?outdoors {|ancient|shadowy|smoky|foggy|dimly lit|stormy|wintry|icy|snowy|rainy|starlit|moonlit|burnt|lightning-{lit|blasted}}
+           {swamp|forest|desert|wasteland|ruin|alleyway|canal|field|battlefield|courtyard|garden|crater|thicket|scrubland}
 }
 
 {,|and}
