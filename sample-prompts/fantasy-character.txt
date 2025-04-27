@@ -8,8 +8,8 @@ dark fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide 
 {3 #wizard|2 #warrior} // character, make 'wizards' 60% of the time.
 
 @weapon  := {2 spear|2 {|short|two-handed|bastard|curved} sword|axe|halberd|scimitar
-            |falchion|kukri|rapier|sabre|cutlass|mace|dagger|torch|dirk|stiletto
-            |trident|harpoon|cleaver|hammer|flail|whip|lash|morningstar
+            |falchion|kukri|rapier|sabre|cutlass|mace|dagger|torch|dirk|stiletto|blade
+            |trident|harpoon|cleaver|hammer|warhammer|flail|whip|scourge|lash|morningstar
             }
 
 // oh no, an accidental Easter egg! I completely forgot to document scalar string
