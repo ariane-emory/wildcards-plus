@@ -2143,4 +2143,4 @@
 
 @#artists
 
-@artists style, stuff goes here, (by @artists: 1.4)
+@artists style, stuff goes here, (by @artists: 1.4), (@artist_styles: 0.8)
