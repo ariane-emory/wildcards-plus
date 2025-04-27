@@ -1115,6 +1115,7 @@ for (let ix = 0; ix < artists.length; ix++) {
 }
 console.log('}');
 
+console.log();
 
 console.log('@artist_styles := {');
 for (let ix = 0; ix < artists.length; ix++) {
