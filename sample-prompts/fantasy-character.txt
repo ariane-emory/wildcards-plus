@@ -86,7 +86,7 @@ $weapon  := @weapon
 
 a
 
-@2-3&character_adjectives @roles
+@1-2&character_adjectives @roles
 
 @wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
                          |ornate|silken|brightly colored|occult|embroidered}
