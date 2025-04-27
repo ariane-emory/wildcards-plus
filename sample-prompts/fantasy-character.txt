@@ -109,7 +109,7 @@ a
 
     {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
               {2 staff|2 wand|scroll|tome|map|crystal ball|amulet|artifact
-              |skull|spell book||dagger|2 candle|brazier|bell
+              |skull|spell book|dagger|2 candle|brazier|bell
               |2 {| glowing|?scary fiery} orb
               |potion
               }
