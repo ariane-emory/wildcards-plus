@@ -2208,7 +2208,7 @@ $weapon  := @weapon
 @video_game_origin     := {|3 from {Japan's FROM Software|2 Hidetaka Miyazaki}|, the
                             sequel to Bloodborne}
 
-A piece of art by @artists {which depicts|depicting}
+A masterpiece by @artists {which depicts|depicting}
 
 @world_adjective := {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten
                     |primitive|frightening|hellish|alien|{haunted|{ghost|demon}-haunted}
