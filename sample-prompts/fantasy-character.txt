@@ -201,31 +201,34 @@ the viewer
            |heavily armed|raucous|warlike|belligerant}
 }
 
-// unless flagged as #alone, warriors always have #many_minions, but wizards may have a single minion
-// sometimes: 
+// unless flagged as #alone, warriors always have #many_minions, but wizards may have a
+// single minion sometimes: 
 {?warrior #many_minions|?wizard {|3 #many_minions}}
 @pluralize_minions := { ?many_minions <s }
 
-// Companions: don't always mention the companions, because of the empty alternative at the start 
+// Companions: don't always mention the companions, because of the empty alternative at
+// the start:
 {|!alone {2 ,|while}
          {accompanied by|?many_minions surrounded by|?many_minions encircled by
          |guarded by|leading|commanding|directing|guiding|rallying|alongside}
          @pro_pos_rand
-         {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang|?warrior squad
-                        |army|?wizard coterie|?wizard circle|?wizard coven|?wizard variety}
+         {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang
+                        |?warrior squad|army|?wizard coterie|?wizard circle|?wizard coven
+                        |?wizard variety|?wizard menagerie}
                         of
          }
          {?warrior @0-2&minion_adjectives
                    {soldiers|warriors|companions|men at arms|compatriots}
          |?wizard  {@1-3&minion_adjectives|@2minion_adjectives}
-                   {familiar|2 minion|slave|cultist|devil|!demonic demon|spirit|apprentice|followers}
+                   {familiar|2 minion|slave|cultist|devil|!demonic demon|spirit
+                   |apprentice|follower}
                    @pluralize_minions
          }
 }
 
 {4 
 |and basking in {|2 @pro_pos_adj} {worship|glory}
-|and {reveling in|enjoying} the {chaos|destruction|din|silence|darkness|?alone solitude|?warrior violence} 
+|and {reveling in|enjoying} the {chaos|destruction|din|silence|darkness|?alone solitude
+                                |?warrior violence}
 }
-
 .
