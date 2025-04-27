@@ -54,7 +54,7 @@ $weapon  := @weapon
 @pro_pos_rand    := {4 @pro_pos_adj|3 a|1 their}
 
 @video_game_descriptor := {highly anticipated|blockbuster|award winning}
-@video_game_origin     := {|3 from {Japan's FROM Software|Hidetaka Miyazaki}|, the sequel to Bloodborne}
+@video_game_origin     := {|3 from {Japan's FROM Software|2 Hidetaka Miyazaki}|, the sequel to Bloodborne}
 
 {3 An oil painting for the cover of a fantasy novel published in the {3 1970s|2 1980s|1990s|early 2000s}
  , in the style of {3 Julie Bell|2 Boris Vallejo|2 Frank Frazetta|3 Ian Miller|3 Zdzislaw Beksinski|4 the artist Brom
