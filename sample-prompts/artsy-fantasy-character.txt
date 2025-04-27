@@ -2318,7 +2318,7 @@ in {3|the heart of|the depths of} a
 
 the viewer
 
-{3|2 ?scary menacingly|pridefully|cunningly|drunkenly|!scary !angry jovially
+{5|2 ?scary menacingly|pridefully|cunningly|drunkenly|!scary !angry jovially
 |!scary !angry fondly|!angry gleefully|blankly|despondantly|madly|?scary angrily|angrily
 |mockingly|?f seductively|?m roguishly|?m rakishly|2 ?scary threateningly
 |!scary victoriously
