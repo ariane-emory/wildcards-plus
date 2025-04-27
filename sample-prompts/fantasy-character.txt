@@ -43,7 +43,7 @@ $weapon  := @weapon
                     |!scary hero|#scary raider|myrmidon|cataphract|hoplite}
           }
 
-// The gender flag and the guards here will ensure that only one alternative is available, forcing it to
+// The gender flag and the guards here will ensure that only one alternative remain available, forcing it to
 // 'pick' that alternative. wwe'll deliberatelyuse that to pick appropriately gendered prosnouns:
 
 @pro_3rd_object  := {?f her |?m him | ?n it  }
