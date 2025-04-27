@@ -69,8 +69,7 @@ $weapon  := @weapon
  }
 }
 
-{in the {|early} morning|2 at mid-day|3 in mid-evening|4 at midnight|3 in the dead of night|3 on a {moonlit|starlit} night}
-,
+{2|{ in the {|early} morning|2 at mid-day|3 in mid-evening|3 at midnight|3 in the dead of night|3 on a {moonlit|starlit} night} , }
 
 // A weapon or item: don't mention a weapon/item one time in six, because of the empty alternative at the start:
 {|5 {presenting|brandishing|holding
