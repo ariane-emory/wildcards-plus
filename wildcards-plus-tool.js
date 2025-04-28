@@ -2041,112 +2041,117 @@ Prompt.finalize();
 // =======================================================================================
 // MAIN:
 // =======================================================================================
+async function main() {
+  // ---------------------------------------------------------------------------------------
+  // process the command-line arguments:
+  // ---------------------------------------------------------------------------------------
+  const args    = process.argv.slice(2);
+  let   count   = 1;
+  let   post    = false;
+  let   confirm = false;
+  let   from_stdin = false;
 
-// ---------------------------------------------------------------------------------------
-// process the command-line arguments:
-// ---------------------------------------------------------------------------------------
-const args    = process.argv.slice(2);
-let   count   = 1;
-let   post    = false;
-let   confirm = false;
-let   from_stdin = false;
-
-if (args.length == 0) {
-  throw new Error("Usage: ./wildcards-plus-tool.js [--post|--confirm] (--stdin | <input-file>) [<count>]");
-}
-
-if (args[0] === '--post') {
-  post = true;
-  args.shift();
-} else if (args[0] === '--confirm') {
-  post    = true;
-  confirm = true;
-  args.shift();
-}
-
-if (args.length === 0) {
-  throw new Error("Error: Must provide --stdin or an input file.");
-}
-
-if (args[0] === '--stdin') {
-  from_stdin = true;
-  args.shift();
-}
-
-if (args.length > 1) {
-  count = parseInt(args[1]);
-}
-
-// ---------------------------------------------------------------------------------------
-// read prompt input:
-// ---------------------------------------------------------------------------------------
-let prompt_input = '';
-
-if (from_stdin) {
-  // Read all stdin into a string
-  prompt_input = await new Promise((resolve, reject) => {
-    let data = '';
-    input.setEncoding('utf8');
-    input.on('data', chunk => data += chunk);
-    input.on('end', () => resolve(data));
-    input.on('error', err => reject(err));
-  });
-} else {
-  if (args.length === 0) {
-    throw new Error("Error: No input file provided.");
+  if (args.length == 0) {
+    throw new Error("Usage: ./wildcards-plus-tool.js [--post|--confirm] (--stdin | <input-file>) [<count>]");
   }
 
-  prompt_input = await fs.readFile(args[0], 'utf8');
-}
+  if (args[0] === '--post') {
+    post = true;
+    args.shift();
+  } else if (args[0] === '--confirm') {
+    post    = true;
+    confirm = true;
+    args.shift();
+  }
 
-// ---------------------------------------------------------------------------------------
-// parse the input and expand:
-// ---------------------------------------------------------------------------------------
-const result = Prompt.match(prompt_input);
+  if (args.length === 0) {
+    throw new Error("Error: Must provide --stdin or an input file.");
+  }
 
-if (! result.is_finished)
-  throw new Error("error parsing prompt!");
+  if (args[0] === '--stdin') {
+    from_stdin = true;
+    args.shift();
+  }
 
-console.log('--------------------------------------------------------------------------------');
-console.log(`Expansion${count > 1 ? "s" : ''}:`);
-console.log('--------------------------------------------------------------------------------');
-for (let ix = 0; ix < count; ix++) {
-  const expanded = expand_wildcards(result.value);
-  
-  console.log(expanded);
+  if (args.length > 1) {
+    count = parseInt(args[1]);
+  }
 
-  let shouldPost = true;
+  // ---------------------------------------------------------------------------------------
+  // read prompt input:
+  // ---------------------------------------------------------------------------------------
+  let prompt_input = '';
 
-  if (post) {
-    if (confirm) {
-      console.log();
-      
-      const answer = await ask('Post this? (N for no, digit for multiple renders) ');
-      
+  if (from_stdin) {
+    // Read all stdin into a string
+    prompt_input = await new Promise((resolve, reject) => {
+      let data = '';
+      input.setEncoding('utf8');
+      input.on('data', chunk => data += chunk);
+      input.on('end', () => resolve(data));
+      input.on('error', err => reject(err));
+    });
+  } else {
+    if (args.length === 0) {
+      throw new Error("Error: No input file provided.");
+    }
 
-      if (answer == 'n') {
-        continue;
-      }
-      else {
-        const parsed = parseInt(answer);
+    prompt_input = await fs.readFile(args[0], 'utf8');
+  }
 
-        if (parsed === NaN) { 
-          post_prompt(expanded);
+  // ---------------------------------------------------------------------------------------
+  // parse the input and expand:
+  // ---------------------------------------------------------------------------------------
+  const result = Prompt.match(prompt_input);
+
+  if (! result.is_finished)
+    throw new Error("error parsing prompt!");
+
+  console.log('--------------------------------------------------------------------------------');
+  console.log(`Expansion${count > 1 ? "s" : ''}:`);
+  console.log('--------------------------------------------------------------------------------');
+  for (let ix = 0; ix < count; ix++) {
+    const expanded = expand_wildcards(result.value);
+    
+    console.log(expanded);
+
+    let shouldPost = true;
+
+    if (post) {
+      if (confirm) {
+        console.log();
+        
+        const answer = await ask('Post this? (N for no, digit for multiple renders) ');
+        
+
+        if (answer == 'n') {
+          continue;
         }
-        else if (parsed > 0) {
-          for (let iix = 0; iix < parsed; iix++) {
+        else {
+          const parsed = parseInt(answer);
+
+          if (parsed === NaN) { 
             post_prompt(expanded);
           }
+          else if (parsed > 0) {
+            for (let iix = 0; iix < parsed; iix++) {
+              post_prompt(expanded);
+            }
+          }
         }
-        }
+      }
     }
+
+    if (ix+1 != count)
+      console.log();
   }
 
-  if (ix+1 != count)
-    console.log();
+  if (!post)
+    console.log('--------------------------------------------------------------------------------');
 }
+// ---------------------------------------------------------------------------------------
 
-if (!post)
-  console.log('--------------------------------------------------------------------------------');
-
-await rl.close();
+main().catch(err => {
+  console.error('Unhandled error:', err);
+  process.exit(1);
+});
