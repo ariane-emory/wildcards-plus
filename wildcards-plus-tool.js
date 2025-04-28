@@ -2149,7 +2149,7 @@ async function main() {
       else  {
         console.log();
         
-        const answer = await ask('POST this prompt? (N for no, digit for multiple images) ');
+        const answer = await ask('POST this prompt? (n for no, digit for multiple images) ');
 
         if (answer == 'n')//  || answer == '')
           continue;
