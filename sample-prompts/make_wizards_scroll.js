@@ -1103,7 +1103,7 @@ function clean_name(name) {
     .replace(/\./g, '');
 }
 
-console.log("\/\/ Big list of artists borrowed from 'The Wizard'S Large Scroll of Artist Summoning':");
+console.log("\/\/ Big list of artists borrowed from 'The Wizard's Large Scroll of Artist Summoning':");
 console.log('@artists := {');
 for (let ix = 0; ix < artists.length; ix++) {
   const artist = artists[ix];

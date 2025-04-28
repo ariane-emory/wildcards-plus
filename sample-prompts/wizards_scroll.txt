@@ -1,4 +1,4 @@
-// Big list of artists borrowed from 'The Wizard'S Large Scroll of Artist Summoning':
+// Big list of artists borrowed from 'The Wizard's Large Scroll of Artist Summoning':
 @artists := {
   #artist__zacharias_martin_aagaard Zacharias Martin Aagaard |
   #artist__slim_aarons Slim Aarons |
