@@ -1,5 +1,6 @@
-@toppings := {cheese|mushrooms|bacon|2 egg|sausage|ham|Spam|steak|shrimp}
-@sides    := {fries|soup|a salad|rice|hash browns|macaroni|beans|coleslaw}
-@formats  := {sandwich|wrap|plate|taco}
+@pluralize := { ?pluralize <s }
+@toppings  := {cheese|mushrooms|bacon|2 egg @pluralize|sausage @pluralize|ham|Spam|steak|shrimp|tomato @pluralize|ketchup}
+@sides     := {fries|soup|a salad|rice|hash browns|macaroni|beans|coleslaw}
+@formats   := {sandwich|wrap|plate #pluralize|taco}
 
-A @formats with @2-4&toppings with @2&sides. 
+A @formats with @3-5&toppings with @2&sides. 
