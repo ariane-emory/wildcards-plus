@@ -1930,12 +1930,12 @@ const make_ASTAnonWildcardOption = arr => {
   
   return new ASTAnonWildcardOption(
     arr[1][0],
-      check_flags,
-      not_flags,
-      [
-        ...flags.filter(f => f instanceof ASTSetFlag),
-        ...arr[3]
-      ]);
+    check_flags,
+    not_flags,
+    [
+      ...flags.filter(f => f instanceof ASTSetFlag),
+      ...arr[3]
+    ]);
 }
 // ---------------------------------------------------------------------------------------
 const make_ASTFlagCmd = (klass, ...rules) =>
