@@ -2132,20 +2132,14 @@ async function main() {
         if (answer == 'n') {
           continue;
         }
-        else {
-          const parsed = parseInt(answer);
+        
+        const parsed = parseInt(answer);
+        const count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
 
-          if (parsed === NaN) { 
-            post_prompt(expanded);
-          }
-          else if (parsed > 0) {
-            for (let iix = 0; iix < parsed; iix++) {
-              post_prompt(expanded);
-            }
-          }
-          else {
-            post_prompt(expanded);
-          }
+        console.log(`parsed = '${parsed}', count = '${count}'`);
+        
+        for (let iix = 0; iix < count; iix++) {
+          post_prompt(expanded);
         }
       }
       else {
