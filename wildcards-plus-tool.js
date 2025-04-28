@@ -39,8 +39,7 @@ import { stdin as input, stdout as output } from 'process';
 // helper functions:
 // ---------------------------------------------------------------------------------------
 function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
-  console.log("FAKE POST");
-  return;
+  console.log("POSTing!");
   
   const data = JSON.stringify({
     prompt: prompt,
