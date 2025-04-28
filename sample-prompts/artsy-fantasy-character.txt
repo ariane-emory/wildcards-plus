@@ -2304,7 +2304,7 @@ in {3|the heart of|the depths of} a
            |slum|courtyard|garden|crater|canyon|thicket|scrubland|boat|ship}
 }
 
-{,|and}
+{2 ,|and}
 
 @look_aim := {past|towards|2 {|up|down} {at|towards}}
 
@@ -2348,7 +2348,7 @@ the viewer
 
 // Companions: don't always mention the companions, because of the empty alternative at
 // the start:
-{|!alone {2 ,|while}
+{|!alone {,|2 while}
          {accompanied by|?many_minions surrounded by|?many_minions encircled by
          |guarded by|leading|commanding|directing|guiding|rallying|alongside}
          @pro_pos_rand
