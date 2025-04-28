@@ -4,8 +4,8 @@
 @toppings  := {3 cheese|mushrooms|bacon|corned beef|pastrami|2 !used_eggs egg @pluralize #egg|sausage @pluralize
               |ham|2 Spam|steak|shrimp|2 tomato @pluralize|!plate ketchup|peppers|pickles|onion|sauerkraut
               |{fried|grilled} chicken|lobster|gravy}
-@sides     := {2 fries|soup|2 {|a} salad|rice|hash browns|macaroni|beans|coleslaw|tater tots|pierogies|pilaf|poutine
-              |3 !used_bread a bialy|!used_bread a bagel|!used_bread toast}
+@sides     := {3 fries|2 soup|2 {|a} salad|2rice|hash browns|macaroni|beans|coleslaw|tater tots|pierogies|pilaf
+              |poutine|5 !used_bread a bialy|!used_bread a bagel|!used_bread toast}
 @relation  := {served with|paired with|accompanied by}
 @relation2 := {with|sitting {beside|next to}|alongside}
 @drink     := {glass of {milk|orange juice}
