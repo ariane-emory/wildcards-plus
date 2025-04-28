@@ -2,7 +2,7 @@
               |hoagie #used_bread|wrap|3 plate #pluralize #plate|burger|taco
               |omelette #used_eggs|scramble #used_eggs}
 @pluralize := {?pluralize <s}
-@toppings  := {4 {4|mozarella|cheddar|provolone|gouda|parmesan} cheese
+@toppings  := {4 {4|2mozarella|cheddar|provolone|gouda|parmesan|swiss|monterey jack|2 American|Colby} cheese
               |3 !#used_eggs egg @pluralize
               |!plate !used_eggs mayonnaise
 
@@ -16,7 +16,7 @@
               |lobster
               |crab
               |oysters
-              |{3|2grilled|ground|roast} beef
+              |{3|2 grilled|ground|roast} beef
               |pastrami
               |sausage @pluralize
               |steak
@@ -26,20 +26,21 @@
               |2 tomato @pluralize
               |2 mushrooms
               |kimchi
-              |{4|jalapeno|banana} peppers
+              |{4|jalapeno|banana|hot|chili} peppers
               |pickles
               |!plate capers
-              |3 onion
+              |3 {4|pickled|red|green} onion
               |sauerkraut
 
               // Sauces:
-              |!#sauced !plate ketchup 
+              |!#sauced !plate ketchup
+              |!#sauced sauce
               |!#sauced 2 gochujang 
               |!#sauced hot sauce
               |!#sauced satay sauce
               |!#sauced teriyaki sauce 
               |!#sauced !plate !used_eggs {|Dijon} mustard 
-              |!#sauced 3 gravy              
+              |!#sauced 4 gravy              
               }
 @sides     := {!#used_potatoes 3 {|French} fries|2 {4|2 chicken|wonton} soup
               |!#noodles 3 {|chow mein|rice|mi goreng|pad see ew|instant|Indo Mis} noodles
@@ -68,4 +69,4 @@
               |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
               |{glass|mug|can|bottle} of beer}
 
-A high-definition, 25-megapixel photograph of a @formats with @3-4&toppings @relation @2&sides @relation2 a @drink.
+A high-definition, 25-megapixel photograph of a {|2 delicious{|<-looking}|apetizing|2 fresh {|<ly made}|savory|2 mouth-watering} @formats with @3-4&toppings @relation @2&sides @relation2 a single @drink.
