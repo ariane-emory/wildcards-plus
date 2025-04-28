@@ -2151,7 +2151,7 @@ async function main() {
         
         const answer = await ask('POST this prompt? (N for no, digit for multiple images) ');
 
-        if (answer == 'n' || answer == '')
+        if (answer == 'n')//  || answer == '')
           continue;
         
         const parsed = parseInt(answer);
