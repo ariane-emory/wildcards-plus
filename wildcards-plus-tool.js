@@ -1833,9 +1833,9 @@ class ASTCheckFlag {
 class ASTNotFlag  {
   constructor(name) { // , set_immediately) {
     this.name = name;
-    // this.set_immediately = set_immediately;
-    // if (this.set_immediately)
-    //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
+    this.set_immediately = set_immediately;
+    if (this.set_immediately)
+      console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
 }
 // ---------------------------------------------------------------------------------------
