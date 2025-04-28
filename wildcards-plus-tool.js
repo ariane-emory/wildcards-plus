@@ -1937,6 +1937,7 @@ const make_ASTAnonWildcardOption = arr => {
     check_flags,
     not_flags,
     [
+      ...set_immediately_not_flags,
       ...set_flags,
       ...arr[3]
     ]);
