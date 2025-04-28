@@ -2129,7 +2129,6 @@ async function main() {
         console.log();
         
         const answer = await ask('Post this? (N for no, digit for multiple renders) ');
-        
 
         if (answer == 'n') {
           continue;
@@ -2146,6 +2145,9 @@ async function main() {
             }
           }
         }
+      }
+      else {
+        post_prompt(expanded);
       }
     }
 
