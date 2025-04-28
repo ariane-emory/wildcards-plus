@@ -36,8 +36,8 @@
 let inspect_fun = null;
 
 const is_node = typeof process !== "undefined" &&
-    process.versions != null &&
-    process.versions.node != null;
+      process.versions != null &&
+      process.versions.node != null;
 
 if (is_node) {
   const { inspect } = await import("util");
@@ -2002,12 +2002,18 @@ import * as http from 'http';
 // ---------------------------------------------------------------------------------------
 // process the command-line arguments:
 // ---------------------------------------------------------------------------------------
-const args = process.argv.slice(2);
-let   count   = 1;
+const args   = process.argv.slice(2);
+let   count  = 1;
+let   post   = false;
 
 if (args.length == 0)
   throw new Error("Usage: ./wildcards-plus-tool.js [<--post>] <input-file> [<count>]");
-  
+
+if (args[0] === '--post') {
+  post = true;
+  args.shift();
+}
+
 input = fs.readFileSync(args[0]).toString();
 
 if (args.length > 1) 
