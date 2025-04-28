@@ -97,7 +97,14 @@ a
 {|{clad in|wearing|dressed in} 
  {?wizard  {|@pro_pos_rand #used_pro}
            @0-2&wizard_clothing_adjs
-           {3 robe @pluralize_clothing|garb|raiment|vestments|?f dress|?f gown},
+           {3 robe @pluralize_clothing
+           |garb
+           |attire
+           |raiment @pluralize_clothing
+           |vestment @pluralize_clothing
+           |?f ?used_pro dress
+           |?f ?used_pro gown
+           },
  |?warrior {3 {|battered|blood-smeared|2 leather|spiked|chainmail|rusted|ornate|golden}
            {3 armor|{|@pro_pos_rand #used_pro} helmet|pauldrons|wargear|gauntlets}
            |{hides|furs|leather}

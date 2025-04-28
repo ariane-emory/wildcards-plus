@@ -2234,7 +2234,7 @@ a
            {3 robe @pluralize_clothing
            |garb
            |attire
-           |raiment @pluralize_clothing
+           |raiment
            |vestment @pluralize_clothing
            |?f ?used_pro dress
            |?f ?used_pro gown
