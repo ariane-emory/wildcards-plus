@@ -2071,8 +2071,10 @@ async function main() {
   }
 
   if (args[0] === '--stdin') {
+    if (confirm)
+      throw new Error(`the --confirm and --stdin options are incompatible.`);
+    
     from_stdin = true;
-    args.shift();
   }
 
   if (args.length > 1) {
@@ -2148,7 +2150,7 @@ async function main() {
       console.log();
   }
 
-  if (!post)
+  if (!confirm)
     console.log('--------------------------------------------------------------------------------');
 }
 // ---------------------------------------------------------------------------------------
