@@ -2143,6 +2143,9 @@ async function main() {
               post_prompt(expanded);
             }
           }
+          else {
+            post_prompt(expanded);
+          }
         }
       }
       else {
