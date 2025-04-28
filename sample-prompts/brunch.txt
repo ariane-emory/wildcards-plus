@@ -1,9 +1,9 @@
 @formats   := {burger|sandwich|wrap|plate #pluralize #plate|taco|omelette #used_eggs|scramble #used_eggs}
 @pluralize := {?pluralize <s}
-@toppings  := {2 cheese|mushrooms|bacon|corned beef|pastrami|2 !used_eggs egg @pluralize #egg|sausage @pluralize
+@toppings  := {3 cheese|mushrooms|bacon|corned beef|pastrami|2 !used_eggs egg @pluralize #egg|sausage @pluralize
               |ham|2 Spam|steak|shrimp|2 tomato @pluralize|!plate ketchup|peppers|pickles|onion|sauerkraut
               |{fried|grilled} chicken|lobster}
-@sides     := {fries|soup|a salad|rice|hash browns|macaroni|beans|coleslaw|tater tots|pierogies|pilaf}
+@sides     := {2 fries|soup|a salad|rice|hash browns|macaroni|beans|coleslaw|tater tots|pierogies|pilaf}
 @relation  := {served with|paired with|accompanied by}
 @relation2 := {with|sitting beside|alongside}
 @drink     := {glass of {milk|orange juice}
