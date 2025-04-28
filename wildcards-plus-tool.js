@@ -2122,9 +2122,6 @@ for (let ix = 0; ix < count; ix++) {
           }
         }
       }
-      else {
-        post_prompt(expanded);
-      }
     }
   }
 
