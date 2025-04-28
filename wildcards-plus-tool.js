@@ -2136,7 +2136,7 @@ async function main() {
         const parsed = parseInt(answer);
         const count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
 
-        console.log(`parsed = '${parsed}', count = '${count}'`);
+        // console.log(`parsed = '${parsed}', count = '${count}'`);
         
         for (let iix = 0; iix < count; iix++) {
           post_prompt(expanded);
@@ -2148,11 +2148,11 @@ async function main() {
     }
 
     if (ix+1 != count)
-      console.log();
+      console.log('--------------------------------------------------------------------------------');
   }
 
-  if (!confirm)
-    console.log('--------------------------------------------------------------------------------');
+   if (!confirm)
+     console.log('--------------------------------------------------------------------------------');
 }
 // ---------------------------------------------------------------------------------------
 
