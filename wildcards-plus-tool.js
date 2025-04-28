@@ -31,10 +31,9 @@
 import * as util from 'util';
 import * as http from 'http';
 import * as fs   from 'fs/promises';
-import * as readline from 'readline/promises';
+import * as readline from 'readline';
 import { stdin as input, stdout as output } from 'process';
 // ---------------------------------------------------------------------------------------
-const rl = readline.createInterface({ input, output });
 // ---------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------
