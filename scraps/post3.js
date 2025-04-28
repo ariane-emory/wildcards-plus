@@ -3,36 +3,39 @@
 // =======================================================================================
 import * as http from 'http';
 
-const random_seed = () => Math.floor(Math.random() * (2 ** 32));
+function post_prompt(prompt) {
 
-const data = JSON.stringify({
-  prompt: "a frog in a bog",
-  steps: 5,
-  seed: random_seed(),
-});
-
-const options = {
-  hostname: '127.0.0.1',
-  port: 7860,
-  path: '/sdapi/v1/txt2img',
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Content-Length': data.length
-  }
-};
-
-const req = http.request(options);
-
-req.on('socket', (socket) => {
-  socket.on('connect', () => {
-    req.write(data);
-    req.end();
-    socket.destroy(); 
+  const data = JSON.stringify({
+    prompt: prompt,
+    steps: 5,
+    seed: Math.floor(Math.random() * (2 ** 32)),
   });
-});
 
-req.on('error', (error) => {
-  if (error.message !== 'socket hang up')
-    console.error(`ERROR: ${error}`);
-});
+  const options = {
+    hostname: '127.0.0.1',
+    port: 7860,
+    path: '/sdapi/v1/txt2img',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': data.length
+    }
+  };
+
+  const req = http.request(options);
+
+  req.on('socket', (socket) => {
+    socket.on('connect', () => {
+      req.write(data);
+      req.end();
+      socket.destroy(); 
+    });
+  });
+
+  req.on('error', (error) => {
+    if (error.message !== 'socket hang up')
+      console.error(`ERROR: ${error}`);
+  });
+}
+
+post_prompt("a frog in a bog");
