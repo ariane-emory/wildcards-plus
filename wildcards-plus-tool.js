@@ -28,14 +28,16 @@
 // --------------------------------------------------------------------------------
 //
 // =======================================================================================
-
+import * as util from 'util';
+import * as http from 'http';
+import * as fs   from 'node:fs'
+// ---------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------
 // helper function to POST prompts:
 // ---------------------------------------------------------------------------------------
 function post_prompt(prompt) {
-  // console.log(`POSTing prompt '${prompt}'`);
-  
+
   const data = JSON.stringify({
     prompt: prompt,
     steps: 5,
@@ -49,34 +51,24 @@ function post_prompt(prompt) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(data)
+      'Content-Length': data.length
     }
   };
 
   const req = http.request(options);
 
-  // Only attach an error handler (important!)
-  req.on('error', (error) => {
-    if (error.message !== 'socket hang up') {
-      console.error(`ERROR: ${error}`);
-    }
-  });
-
   req.on('socket', (socket) => {
     socket.on('connect', () => {
-      req.end();       // finish sending the request
-      socket.destroy(); // immediately destroy the connection
-      // console.log("Request sent and socket destroyed.");
+      req.write(data);
+      req.end();
+      socket.destroy(); 
     });
   });
 
-  // Send the body and immediately end the request
-  req.write(data);
-  req.end();
-
-  console.log('--------------------------------------------------------------------------------');
-  console.log(`posted prompt!`);
-  console.log('--------------------------------------------------------------------------------');
+  req.on('error', (error) => {
+    if (error.message !== 'socket hang up')
+      console.error(`ERROR: ${error}`);
+  });
 }
 // ---------------------------------------------------------------------------------------
 
@@ -84,11 +76,7 @@ function post_prompt(prompt) {
 // =======================================================================================
 // set inspect_fun appropriately fore node.js:
 // =======================================================================================
-let inspect_fun = null;
-
-const { inspect } = await import("util");
-
-inspect_fun = inspect;
+let inspect_fun = util.inspect;
 // ----------------------------------------------------------------------------------------
 
 
@@ -2035,20 +2023,11 @@ Prompt.finalize();
 
 
 // =======================================================================================
-// VARS:
-// =======================================================================================
-let input = '';
-// ---------------------------------------------------------------------------------------
-
-
-// =======================================================================================
 // MAIN:
 // =======================================================================================
-// imports:
+// vars: 
 // ---------------------------------------------------------------------------------------
-import * as fs from 'node:fs'
-import * as http from 'http';
-
+let input = '';
 // ---------------------------------------------------------------------------------------
 // process the command-line arguments:
 // ---------------------------------------------------------------------------------------
