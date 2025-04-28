@@ -9,9 +9,13 @@
               |!plate !sauced !used_eggs {|Dijon} mustard #sauced
               |2 !sauced gravy #sauced
               |kimchi|peppers|pickles|!plate capers|2 onion|sauerkraut|{fried|grilled} chicken|{lobster|crab}}
-@sides     := {3 {|French }fries|2 soup|2 {|a} salad|2 {2|fried} rice|hash browns|macaroni|beans|coleslaw
-              |tater tots|pierogies|dumplings|pilaf|poutine|5 !used_bread a bialy #used_bread|pasta
-              |noodles|!used_bread a bagel #used_bread|vegetables|2 potatoes|2 cabbage rolls
+@sides     := {!used_potatoes 3 {|French }fries #used_potatoes|2 soup|2 {|a} salad|2 {2|fried} rice
+              |!used_potatoes hash browns #used_potatoes|macaroni|beans|coleslaw
+              |!used_potatoes tater tots #used_potatoes|pierogies|dumplings|pilaf
+              |!used_potatoes poutine #used_potatoes
+              |!used_potatoes potato chips #used_potatoes
+              |5 !used_bread a bialy #used_bread|pasta|noodles|!used_bread a bagel #used_bread
+              |vegetables|2 !used_potatoes potatoes #used_potatoes|2 cabbage rolls
               |3 !used_bread {|2 buttered} {toast|bread} #used_bread|pancakes}
 @relation  := {served with|paired with|accompanied by}
 @relation2 := {with|and|sitting {beside|next to}|alongside}
