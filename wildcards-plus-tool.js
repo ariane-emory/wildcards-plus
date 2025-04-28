@@ -1331,7 +1331,7 @@ const pascal_assign_op   = l(':=');
 const python_exponent_op = l('**');
 const python_logic_word  = r(/and|or|not|xor/);
 // ---------------------------------------------------------------------------------------
-// common punctuation:
+// common puntuation:
 const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
@@ -1497,7 +1497,7 @@ function capitalize(string) {
 function smart_join(arr) {
   // console.log(`JOINING ${inspect_fun(arr)}`);
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase());
-  const punctuationp = (ch)  => "'_-,.?!;:".includes(ch);
+  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => ch === "_" || ch === "-";
   const whitep       = (ch)  => ch === ' ' || ch === '\n';
   const unescape     = (str) => {
