@@ -2126,7 +2126,10 @@ async function main() {
     
     console.log(expanded);
 
-    if (post) {
+    if (!post) {
+      posted_count += 1; // a lie to make the counter correct.
+    }
+    else {
       if (!confirm) {
         post_prompt(expanded);
         posted_count += 1;
@@ -2150,8 +2153,6 @@ async function main() {
           posted_count += 1;
         }
       }
-    } else {
-      posted_count += 1; // a lie to make the counter correct.
     }
   }
 
