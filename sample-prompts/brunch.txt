@@ -6,8 +6,8 @@
               |!plate !sauced #sauced ketchup 
               |!plate !sauced #sauced gochujang 
               |!plate !sauced #sauced hot sauce 
+              |!plate !sauced #sauced !used_eggs {|Dijon} mustard 
               |!plate !used_eggs mayonnaise
-              |!plate !sauced !used_eggs {|Dijon} mustard #sauced
               |2 !sauced gravy #sauced
               |kimchi|peppers|pickles|!plate capers|2 onion|sauerkraut|{fried|grilled} chicken
               |{lobster|crab|oysters}}
