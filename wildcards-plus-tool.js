@@ -1831,8 +1831,11 @@ class ASTCheckFlag {
 }
 // ---------------------------------------------------------------------------------------
 class ASTNotFlag  {
-  constructor(name) {
+  constructor(name, set_immediately) {
     this.name = name;
+    this.set_immediately = set_immediately;
+    if (this.set_immediately)
+      console.log(`SET IMMEDIATELY = ${this.set_immediately}`);
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -1949,9 +1952,14 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
 // const NotFlag                 = make_ASTFlagCmd(ASTNotFlag,   '!');
-const NotFlag                 = xform(arr => new ASTNotFlag(arr[3], arr[1]),
+const NotFlag                 = xform(arr => {
+  // console.log(`ARR    = ${inspect_fun(arr)}`);
+  console.log(`ARR[0] = ${inspect_fun(arr[0])}`);
+  return new ASTNotFlag(arr[3], arr[1]);
+},
                                       second(seq('!', optional('#'),
-                                                 ident, /(?=\s|[{|}]|$)/)));
+                                                 ident, /(?=\s|[{|}]|$)/))
+                                     );
 const FlagTest                = choice(CheckFlag, NotFlag);
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
