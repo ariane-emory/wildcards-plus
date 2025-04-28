@@ -1831,11 +1831,11 @@ class ASTCheckFlag {
 }
 // ---------------------------------------------------------------------------------------
 class ASTNotFlag  {
-  constructor(name, set_immediately) {
+  constructor(name) { // , set_immediately) {
     this.name = name;
-    this.set_immediately = set_immediately;
-    if (this.set_immediately)
-      console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
+    // this.set_immediately = set_immediately;
+    // if (this.set_immediately)
+    //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -1954,7 +1954,7 @@ const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
 // const NotFlag                 = make_ASTFlagCmd(ASTNotFlag,   '!');
 const NotFlag                 = xform(arr => {
   // console.log(`ARR    = ${inspect_fun(arr)}`);
-  console.log(`ARR[0][0] = ${inspect_fun(arr[0][0])}`);
+  console.log(`ARR[1][0] = ${inspect_fun(arr[1][0])}`);
   return new ASTNotFlag(arr[3], arr[1][0]);
 },
                                       seq('!', optional('#'),
