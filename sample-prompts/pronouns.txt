@@ -1,4 +1,5 @@
-{#female|#male|#neuter} // Randomly pick one of these three alternatives and set a gender flag.
+// Randomly pick one of these three alternatives and set a gender flag.
+{#female|#male|#neuter}
 
 // The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pronouns:
 @pronoun_3rd_object  := {?female her |?male him |?neuter it  }
@@ -7,3 +8,8 @@
 @pronoun_pos         := {?female hers|?male his |?neuter its }
 
 @^pronoun_3rd_subject shook @pronoun_pos_adj head.
+
+// possible output:
+He shook his head.
+She shook her head.
+It shook its head.
