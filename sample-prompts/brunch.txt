@@ -5,7 +5,7 @@
               |ham|2 Spam|steak|{|garlic|fried|coconut} shrimp|2 tomato @pluralize|!plate ketchup|!plate !used_eggs mayonnaise
               |!plate !used_eggs {|Dijon} mustard|peppers|pickles|2 onion|sauerkraut|{fried|grilled} chicken
               |{lobster|crab}|2 gravy}
-@sides     := {3 fries|2 soup|2 {|a} salad|2 rice|hash browns|macaroni|beans|coleslaw|tater tots|pierogies|pilaf
+@sides     := {3 fries|2 soup|2 {|a} salad|2 {2|fried} rice|hash browns|macaroni|beans|coleslaw|tater tots|pierogies|pilaf
               |poutine|5 !used_bread a bialy|!used_bread a bagel|3 !used_bread {|2 buttered} {toast|bread}
               |vegetables}
 @relation  := {served with|paired with|accompanied by}
