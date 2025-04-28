@@ -8,7 +8,8 @@
               |!plate !used_eggs mayonnaise
               |!plate !sauced !used_eggs {|Dijon} mustard #sauced
               |2 !sauced gravy #sauced
-              |kimchi|peppers|pickles|!plate capers|2 onion|sauerkraut|{fried|grilled} chicken|{lobster|crab}}
+              |kimchi|peppers|pickles|!plate capers|2 onion|sauerkraut|{fried|grilled} chicken
+              |{lobster|crab|oysters}}
 @sides     := {!used_potatoes 3 {|French }fries #used_potatoes|2 soup|2 {|a} salad|2 {2|fried} rice
               |!used_potatoes hash browns #used_potatoes|macaroni|beans|coleslaw
               |!used_potatoes tater tots #used_potatoes|pierogies|dumplings|pilaf
