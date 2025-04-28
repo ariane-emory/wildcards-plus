@@ -1990,37 +1990,41 @@ Prompt.finalize();
 // vars:
 // ---------------------------------------------------------------------------------------
 let input = '';
-// ---------------------------------------------------------------------------------------
-// main:
+
+// =======================================================================================
+// MAIN:
+// =======================================================================================
+// imports:
 // ---------------------------------------------------------------------------------------
 import * as fs from 'node:fs'
+import * as http from 'http';
+
+// ---------------------------------------------------------------------------------------
+// process the command-line arguments:
 // ---------------------------------------------------------------------------------------
 const args = process.argv.slice(2);
 let   count   = 1;
 
 if (args.length == 0)
-  throw new Error("Usage: ./wildcards-plus-tool.js <input-file> [<count>]");
+  throw new Error("Usage: ./wildcards-plus-tool.js [<--post>] <input-file> [<count>]");
   
 input = fs.readFileSync(args[0]).toString();
 
 if (args.length > 1) 
   count = parseInt(args[1]);
+
+// ---------------------------------------------------------------------------------------
+// parse the input and print (and maybe POST) the expansion(s):
 // ---------------------------------------------------------------------------------------
 const result = Prompt.match(input);
 
 if (! result.is_finished)
   throw new Error("error parsing prompt!");
 
-// console.log(``);
-// console.log(`FINISHED:     ${result.is_finished ? "yes" : "NO!"}`);
-// console.log(`RESULT.VALUE: ${inspect_fun(result.value)}`);
-// console.log(`RESULT.VALUE: ${JSON.stringify(result.value)}`);
-// console.log();
 console.log('--------------------------------------------------------------------------------');
 console.log(`Expansion${count > 1 ? "s" : ''}:`);
 console.log('--------------------------------------------------------------------------------');
 for (let ix = 0; ix < count; ix++) {
-  // console.log('--------------------------------------------------------------------------------');
   console.log(expand_wildcards(result.value));
 
   if (ix+1 != count)
