@@ -18,7 +18,7 @@
               |!#used_potatoes poutine
               |!#used_potatoes potato chips
               |5 !#used_bread a bialy|!#used_bread a bagel
-              |vegetables|2 !#used_potatoes potatoes cabbage rolls
+              |vegetables|2 !#used_potatoes potatoes|cabbage rolls
               |3 !#used_bread {|2 buttered} {toast|bread}|pancakes}
 @relation  := {served with|paired with|accompanied by}
 @relation2 := {with|and|sitting {beside|next to}|alongside}
