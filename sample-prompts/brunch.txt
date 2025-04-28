@@ -3,8 +3,9 @@
 @pluralize := {?pluralize <s}
 @toppings  := {3 cheese|mushrooms|bacon|corned beef|pastrami|brisket|2 !used_eggs egg @pluralize #egg
               |sausage @pluralize|ham|2 Spam|steak|{|garlic|fried|coconut} shrimp|2 tomato @pluralize
-              |!plate !sauced ketchup #sauced
-              |!plate !sauced gochujang #sauced
+              |!plate !sauced #sauced ketchup 
+              |!plate !sauced #sauced gochujang 
+              |!plate !sauced #sauced hot sauce 
               |!plate !used_eggs mayonnaise
               |!plate !sauced !used_eggs {|Dijon} mustard #sauced
               |2 !sauced gravy #sauced
