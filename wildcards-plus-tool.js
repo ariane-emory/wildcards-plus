@@ -34,7 +34,7 @@
 // helper function to POST prompts:
 // ---------------------------------------------------------------------------------------
 function post_prompt(prompt) {
-  console.log(`POSTing prompt '${prompt}'`);
+  // console.log(`POSTing prompt '${prompt}'`);
   
   const data = JSON.stringify({
     prompt: prompt,
@@ -66,7 +66,6 @@ function post_prompt(prompt) {
     socket.on('connect', () => {
       req.end();       // finish sending the request
       socket.destroy(); // immediately destroy the connection
-      console.log("posted!");
       // console.log("Request sent and socket destroyed.");
     });
   });
@@ -75,7 +74,9 @@ function post_prompt(prompt) {
   req.write(data);
   req.end();
 
-  console.log("Request sent! Not waiting for a response.");
+  console.log('--------------------------------------------------------------------------------');
+  console.log(`posted prompt!`);
+  console.log('--------------------------------------------------------------------------------');
 }
 // ---------------------------------------------------------------------------------------
 
@@ -2085,10 +2086,12 @@ for (let ix = 0; ix < count; ix++) {
   
   console.log(expanded);
 
-  if (ix+1 != count)
-    console.log();
-
   if (post)
     post_prompt(expanded);
+
+  if (ix+1 != count)
+    console.log();
 }
-console.log('--------------------------------------------------------------------------------');
+
+if (!post)
+  console.log('--------------------------------------------------------------------------------');
