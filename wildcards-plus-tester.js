@@ -1607,7 +1607,7 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
       for (let ix = 1; ix < count; ix++) {
         let val = walk(got, context);
         
-        for (let iix = 0; iix < (got.options.length * 2); iix++) {
+        for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
           if (! res.includes(val))
             break;
 
