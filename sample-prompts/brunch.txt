@@ -1,15 +1,16 @@
 @formats   := {3 {2|grilled|toasted} sandwich #used_bread|panini #used_bread|hoagie #used_bread|wrap
               |3 plate #pluralize #plate|burger|taco|omelette #used_eggs|scramble #used_eggs}
 @pluralize := {?pluralize <s}
-@toppings  := {3 cheese|mushrooms|bacon|corned beef|pastrami|2 !used_eggs egg @pluralize #egg|sausage @pluralize
-              |ham|2 Spam|steak|{|garlic|fried|coconut} shrimp|2 tomato @pluralize|!plate ketchup|!plate !used_eggs mayonnaise
-              |!plate !used_eggs {|Dijon} mustard|peppers|pickles|2 onion|sauerkraut|{fried|grilled} chicken
-              |{lobster|crab}|2 gravy}
+@toppings  := {3 cheese|mushrooms|bacon|corned beef|pastrami|brisket|2 !used_eggs egg @pluralize #egg
+              |sausage @pluralize|ham|2 Spam|steak|{|garlic|fried|coconut} shrimp|2 tomato @pluralize
+              |!plate ketchup|!plate !used_eggs mayonnaise|!plate !used_eggs {|Dijon} mustard|peppers
+              |pickles|2 onion|sauerkraut|{fried|grilled} chicken|{lobster|crab}|2 gravy}
 @sides     := {3 {|French }fries|2 soup|2 {|a} salad|2 {2|fried} rice|hash browns|macaroni|beans|coleslaw|tater tots
-              |pierogies|dumplings|pilaf|poutine|5 !used_bread a bialy #used_bread|!used_bread a bagel #used_bread
-              |vegetables|3 !used_bread {|2 buttered} {toast|bread} #used_bread}
+              |pierogies|dumplings|pilaf|poutine|5 !used_bread a bialy #used_bread|pasta|noodles
+              |!used_bread a bagel #used_bread|vegetables|2 potatoes|2 cabbage rolls
+              |3 !used_bread {|2 buttered} {toast|bread} #used_bread}
 @relation  := {served with|paired with|accompanied by}
-@relation2 := {with|sitting {beside|next to}|alongside}
+@relation2 := {with|and|sitting {beside|next to}|alongside}
 @drink     := {glass of {milk|orange juice}
               |{mug|cup} of {{2|green} tea|coffee}
               |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
