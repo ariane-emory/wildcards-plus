@@ -26,9 +26,8 @@ const req = http.request(options);
 
 // Only attach an error handler (important!)
 req.on('error', (error) => {
-  if (error.message !== 'socket hang up') {
+  if (error.message !== 'socket hang up')
     console.error(`ERROR: ${error}`);
-  }
 });
 
 req.on('socket', (socket) => {

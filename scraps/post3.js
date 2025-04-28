@@ -6,7 +6,7 @@ import * as http from 'http';
 const random_seed = () => Math.floor(Math.random() * (2 ** 32));
 
 const data = JSON.stringify({
-  prompt: "a chupacabra",
+  prompt: "a frog in a bog",
   steps: 5,
   seed: random_seed(),
 });
@@ -18,31 +18,21 @@ const options = {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Content-Length': Buffer.byteLength(data)
+    'Content-Length': data.length
   }
 };
 
 const req = http.request(options);
 
-// Only attach an error handler (important!)
-req.on('error', (error) => {
-  if (error.message !== 'socket hang up') {
-    console.error(`ERROR: ${error}`);
-  }
-});
-
 req.on('socket', (socket) => {
   socket.on('connect', () => {
-    req.end();       // finish sending the request
-    socket.destroy(); // immediately destroy the connection
-    console.log("Request sent and socket destroyed.");
+    req.write(data);
+    req.end();
+    socket.destroy(); 
   });
 });
 
-
-// Send the body and immediately end the request
-req.write(data);
-req.end();
-
-// Don't set any 'response' handlers!
-console.log("Request sent! Not waiting for a response.");
+req.on('error', (error) => {
+  if (error.message !== 'socket hang up')
+    console.error(`ERROR: ${error}`);
+});
