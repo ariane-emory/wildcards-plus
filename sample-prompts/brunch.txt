@@ -27,4 +27,4 @@
               |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
               |{glass|mug|can|bottle} of beer}
 
-A high-resolution photograph of a @formats with @3-4&toppings @relation @2&sides @relation2 a @drink.
+A high-definition, 25-megapixel photograph of a @formats with @3-4&toppings @relation @2&sides @relation2 a @drink.
