@@ -5,9 +5,9 @@
               |sausage @pluralize|ham|2 Spam|steak|{|garlic|fried|coconut} shrimp|2 tomato @pluralize
               |!plate ketchup|!plate !used_eggs mayonnaise|!plate !used_eggs {|Dijon} mustard|peppers
               |pickles|2 onion|sauerkraut|{fried|grilled} chicken|{lobster|crab}|2 gravy}
-@sides     := {3 {|French }fries|2 soup|2 {|a} salad|2 {2|fried} rice|hash browns|macaroni|beans|coleslaw|tater tots
-              |pierogies|dumplings|pilaf|poutine|5 !used_bread a bialy #used_bread|pasta|noodles
-              |!used_bread a bagel #used_bread|vegetables|2 potatoes|2 cabbage rolls
+@sides     := {3 {|French }fries|2 soup|2 {|a} salad|2 {2|fried} rice|hash browns|macaroni|beans|coleslaw
+              |tater tots|pierogies|dumplings|pilaf|poutine|5 !used_bread a bialy #used_bread|pasta
+              |noodles|!used_bread a bagel #used_bread|vegetables|2 potatoes|2 cabbage rolls
               |3 !used_bread {|2 buttered} {toast|bread} #used_bread}
 @relation  := {served with|paired with|accompanied by}
 @relation2 := {with|and|sitting {beside|next to}|alongside}
