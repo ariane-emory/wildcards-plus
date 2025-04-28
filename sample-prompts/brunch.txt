@@ -1,11 +1,13 @@
-@formats   := {burger|2 sandwich|hoagie|wrap|2 plate #pluralize #plate|taco|omelette #used_eggs|scramble #used_eggs}
+@formats   := {2 {2|grilled|toasted} sandwich #used_bread|panini #used_bread|hoagie #used_bread|wrap
+              |2 plate #pluralize #plate|burger|taco|omelette #used_eggs|scramble #used_eggs}
 @pluralize := {?pluralize <s}
 @toppings  := {3 cheese|mushrooms|bacon|corned beef|pastrami|2 !used_eggs egg @pluralize #egg|sausage @pluralize
               |ham|2 Spam|steak|shrimp|2 tomato @pluralize|!plate ketchup|peppers|pickles|onion|sauerkraut
-              |{fried|grilled} chicken|lobster}
-@sides     := {2 fries|soup|a salad|rice|hash browns|macaroni|beans|coleslaw|tater tots|pierogies|pilaf}
+              |{fried|grilled} chicken|lobster|gravy}
+@sides     := {2 fries|soup|2 {|a} salad|rice|hash browns|macaroni|beans|coleslaw|tater tots|pierogies|pilaf|poutine
+              |!used_bread a bialy|!used_bread a bagel|!used_bread toast}
 @relation  := {served with|paired with|accompanied by}
-@relation2 := {with|sitting beside|alongside}
+@relation2 := {with|sitting {beside|next to}|alongside}
 @drink     := {glass of {milk|orange juice}
               |{mug|cup} of {tea|coffee}
               |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
