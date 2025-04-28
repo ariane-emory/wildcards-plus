@@ -1835,7 +1835,7 @@ class ASTNotFlag  {
     this.name = name;
     this.set_immediately = set_immediately;
     if (this.set_immediately)
-      console.log(`SET IMMEDIATELY = ${this.set_immediately}`);
+      console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -1954,11 +1954,11 @@ const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
 // const NotFlag                 = make_ASTFlagCmd(ASTNotFlag,   '!');
 const NotFlag                 = xform(arr => {
   // console.log(`ARR    = ${inspect_fun(arr)}`);
-  console.log(`ARR[0] = ${inspect_fun(arr[0])}`);
-  return new ASTNotFlag(arr[3], arr[1]);
+  console.log(`ARR[0][0] = ${inspect_fun(arr[0][0])}`);
+  return new ASTNotFlag(arr[3], arr[1][0]);
 },
-                                      second(seq('!', optional('#'),
-                                                 ident, /(?=\s|[{|}]|$)/))
+                                      seq('!', optional('#'),
+                                          ident, /(?=\s|[{|}]|$)/)
                                      );
 const FlagTest                = choice(CheckFlag, NotFlag);
 // ---------------------------------------------------------------------------------------
