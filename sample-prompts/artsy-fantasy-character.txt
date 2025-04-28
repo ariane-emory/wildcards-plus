@@ -2220,7 +2220,7 @@ A {masterpiece|piece|piece of art{|<work}} by @artists {which depicts|depicting}
 
 a
 
-@1-2&character_adjectives @roles
+@2-3&character_adjectives @roles
 
 @wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
                          |ornate|silken|brightly colored|occult|embroidered}
@@ -2268,9 +2268,8 @@ a
               $weapon
     }
     // {|,}
+    {, |while}
 }
-
-{|while}
 
 {|#outdoors}
 {|?outdoors #mounted}
