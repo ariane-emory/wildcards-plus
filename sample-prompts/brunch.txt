@@ -14,7 +14,7 @@
               |!plate !used_eggs mayonnaise
               |kimchi|{4|jalapeno|banana} peppers|pickles|!plate capers|3 onion|sauerkraut|2 {fried|grilled} chicken
               |{lobster|crab|oysters}}
-@sides     := {!#used_potatoes 3 {|French} fries|2 {4|2chicken|wonton} soup
+@sides     := {!#used_potatoes 3 {|French} fries|2 {4|2 chicken|wonton} soup
               |2 {|a} salad
               |2 {2|fried} rice
               |borscht
