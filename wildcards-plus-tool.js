@@ -2079,22 +2079,31 @@ for (let ix = 0; ix < count; ix++) {
     if (confirm) {
       console.log();
       
-      const answer = await rl.question('Post this? (Y/n) ');
+      const answer = await rl.question('Post this? (N for no, digit for multiple renders) ');
       
       if (answer.trim().toLowerCase() !== 'n') {
+        const parsed = parseInt(answer);
+
+        if (parsed === NaN) { 
+          post_prompt(expanded);
+        }
+        else if (parsed > 0) {
+          for (let iix = 0; iix < parsed; iix++) {
+            post_prompt(expanded);
+          }
+        }
+      }
+      else {
         post_prompt(expanded);
       }
-    }
-    else {
-      post_prompt(expanded);
     }
   }
 
   if (ix+1 != count)
-    console.log();
-}
+      console.log();
+  }
 
-if (!post)
-  console.log('--------------------------------------------------------------------------------');
+  if (!post)
+    console.log('--------------------------------------------------------------------------------');
 
-await rl.close();
+  await rl.close();
