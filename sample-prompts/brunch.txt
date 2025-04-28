@@ -1,0 +1,5 @@
+@toppings := {cheese|mushrooms|bacon|egg|sausage|ham|Spam|steak}
+@sides    := {fries|soup|a salad|rice|hash browns}
+@formats  := {sandwich|wrap|plate}
+
+A @formats with @2-4&toppings with @2&sides. 
