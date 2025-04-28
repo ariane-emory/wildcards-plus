@@ -1924,16 +1924,19 @@ class ASTAnonWildcardOption {
 // ---------------------------------------------------------------------------------------
 const make_ASTAnonWildcardOption = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
-
-  return (flags =>
-    new ASTAnonWildcardOption(
-      arr[1][0],
-      flags.filter(f => f instanceof ASTCheckFlag),
-      flags.filter(f => f instanceof ASTNotFlag),
+  const flags = ([ ...arr[0], ...arr[2] ]);
+  const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
+  const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
+  
+  return new ASTAnonWildcardOption(
+    arr[1][0],
+      check_flags,
+      not_flags,
       [
         ...flags.filter(f => f instanceof ASTSetFlag),
         ...arr[3]
-      ]))([ ...arr[0], ...arr[2] ])};
+      ]);
+}
 // ---------------------------------------------------------------------------------------
 const make_ASTFlagCmd = (klass, ...rules) =>
       xform(ident => new klass(ident),
