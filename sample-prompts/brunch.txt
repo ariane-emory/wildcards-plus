@@ -1,6 +1,6 @@
 @formats   := {sandwich|wrap|plate #pluralize #plate|taco|omelette #used_eggs|scramble #pluralize #scramble #used_eggs}
 @pluralize := {?pluralize <s}
-@toppings  := {cheese|mushrooms|bacon|!used_eggs 2 egg @pluralize #egg|sausage @pluralize|ham|Spam|steak|shrimp|tomato @pluralize|!plate ketchup}
+@toppings  := {cheese|mushrooms|bacon|2 !used_eggs egg @pluralize #egg|sausage @pluralize|ham|Spam|steak|shrimp|tomato @pluralize|!plate ketchup}
 @sides     := {fries|soup|a salad|rice|hash browns|macaroni|beans|coleslaw|tater tots|pierogies}
 @relation  := {served with|paired with|accompanied by}
 
