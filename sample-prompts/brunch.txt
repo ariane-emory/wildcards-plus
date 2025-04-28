@@ -9,7 +9,7 @@
 @drink     := {glass of {milk|orange juice}
               |{mug|cup} of {tea|coffee}
               |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
-              |{glass|mug|can} of beer}
+              |{glass|mug|can|bottle} of beer}
 
 A @formats with @3-4&toppings @relation @2&sides, @relation2 a @drink.
 
