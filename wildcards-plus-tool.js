@@ -30,7 +30,7 @@
 // =======================================================================================
 import * as util from 'util';
 import * as http from 'http';
-import * as fs   from 'node:fs'
+import * as fs   from 'fs/promises';
 import * as readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 // ---------------------------------------------------------------------------------------
@@ -2028,9 +2028,7 @@ Prompt.finalize();
 // =======================================================================================
 // MAIN:
 // =======================================================================================
-// vars: 
-// ---------------------------------------------------------------------------------------
-let prompt_input = '';
+
 // ---------------------------------------------------------------------------------------
 // process the command-line arguments:
 // ---------------------------------------------------------------------------------------
@@ -2038,9 +2036,11 @@ const args    = process.argv.slice(2);
 let   count   = 1;
 let   post    = false;
 let   confirm = false;
+let   from_stdin = false;
 
-if (args.length == 0)
-  throw new Error("Usage: ./wildcards-plus-tool.js [<--post>] <input-file> [<count>]");
+if (args.length == 0) {
+  throw new Error("Usage: ./wildcards-plus-tool.js [--post|--confirm] (--stdin | <input-file>) [<count>]");
+}
 
 if (args[0] === '--post') {
   post = true;
@@ -2051,14 +2051,43 @@ if (args[0] === '--post') {
   args.shift();
 }
 
+if (args.length === 0) {
+  throw new Error("Error: Must provide --stdin or an input file.");
+}
 
-prompt_input = fs.readFileSync(args[0]).toString();
+if (args[0] === '--stdin') {
+  from_stdin = true;
+  args.shift();
+}
 
-if (args.length > 1) 
+if (args.length > 1) {
   count = parseInt(args[1]);
+}
 
 // ---------------------------------------------------------------------------------------
-// parse the input and print (and maybe POST) the expansion(s):
+// read prompt input:
+// ---------------------------------------------------------------------------------------
+let prompt_input = '';
+
+if (from_stdin) {
+  // Read all stdin into a string
+  prompt_input = await new Promise((resolve, reject) => {
+    let data = '';
+    input.setEncoding('utf8');
+    input.on('data', chunk => data += chunk);
+    input.on('end', () => resolve(data));
+    input.on('error', err => reject(err));
+  });
+} else {
+  if (args.length === 0) {
+    throw new Error("Error: No input file provided.");
+  }
+
+  prompt_input = await fs.readFile(args[0], 'utf8');
+}
+
+// ---------------------------------------------------------------------------------------
+// parse the input and expand:
 // ---------------------------------------------------------------------------------------
 const result = Prompt.match(prompt_input);
 
@@ -2100,10 +2129,10 @@ for (let ix = 0; ix < count; ix++) {
   }
 
   if (ix+1 != count)
-      console.log();
-  }
+    console.log();
+}
 
-  if (!post)
-    console.log('--------------------------------------------------------------------------------');
+if (!post)
+  console.log('--------------------------------------------------------------------------------');
 
-  await rl.close();
+await rl.close();
