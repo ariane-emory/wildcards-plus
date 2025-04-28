@@ -2115,7 +2115,10 @@ async function main() {
 
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
-  for (let ix = 0; ix < count; ix++) {
+
+  let posted_count = 0;
+  
+  while (posted_count < count) {
     console.log('--------------------------------------------------------------------------------');
     const expanded = expand_wildcards(result.value);
     
@@ -2140,6 +2143,7 @@ async function main() {
         
         for (let iix = 0; iix < count; iix++) {
           post_prompt(expanded);
+          posted_count += 1;
         }
       }
       else {
