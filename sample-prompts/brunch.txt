@@ -1,7 +1,7 @@
 @formats   := {3 {2|grilled|toasted} sandwich #used_bread|panini #used_bread|hoagie #used_bread|wrap
               |3 plate #pluralize #plate|burger|taco|omelette #used_eggs|scramble #used_eggs}
 @pluralize := {?pluralize <s}
-@toppings  := {3 cheese|mushrooms|bacon|corned beef|pastrami|brisket|2 !used_eggs egg @pluralize #egg
+@toppings  := {3 cheese|mushrooms|bacon|corned beef|pastrami|brisket|2 !#usedeggs egg @pluralize 
               |sausage @pluralize|ham|2 Spam|steak|{|garlic|fried|coconut} shrimp|2 tomato @pluralize
               |!plate !#sauced ketchup 
               |!plate !#sauced gochujang 
