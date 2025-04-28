@@ -1948,7 +1948,10 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 // flag-related non-terminals:
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
-const NotFlag                 = make_ASTFlagCmd(ASTNotFlag,   '!');
+// const NotFlag                 = make_ASTFlagCmd(ASTNotFlag,   '!');
+const NotFlag                 = xform(arr => new ASTNotFlag(arr[3], arr[1]),
+                                      second(seq('!', optional('#'),
+                                                 ident, /(?=\s|[{|}]|$)/)));
 const FlagTest                = choice(CheckFlag, NotFlag);
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
