@@ -1,7 +1,13 @@
-@formats   := {sandwich|wrap|plate #pluralize #plate|taco|omelette #used_eggs|scramble #pluralize #used_eggs}
+@formats   := {burger|sandwich|wrap|plate #pluralize #plate|taco|omelette #used_eggs|scramble #used_eggs}
 @pluralize := {?pluralize <s}
-@toppings  := {cheese|mushrooms|bacon|2 !used_eggs egg @pluralize #egg|sausage @pluralize|ham|Spam|steak|shrimp|tomato @pluralize|!plate ketchup}
+@toppings  := {cheese|mushrooms|bacon|corned beef|pastrami|2 !used_eggs egg @pluralize #egg|sausage @pluralize
+              |ham|Spam|steak|shrimp|tomato @pluralize|!plate ketchup|peppers|pickles|onion}
 @sides     := {fries|soup|a salad|rice|hash browns|macaroni|beans|coleslaw|tater tots|pierogies}
 @relation  := {served with|paired with|accompanied by}
+@relation2 := {with|sitting beside|alongside}
+@drink     := {glass of {milk|orange juice}
+              |{mug|cup} of {tea|coffee}
+              |{|Rockstar|Monster|Red Bull} energy drink
+              |{glass|mug|can} of beer}
 
-A @formats with @3-4&toppings @relation @2&sides. 
+A @formats with @3-4&toppings @relation @2&sides, @relation2 a @drink.
