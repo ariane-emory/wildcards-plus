@@ -38,7 +38,21 @@ const rl = readline.createInterface({ input, output });
 // ---------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------
-// helper function to POST prompts:
+// helper functions:
+// ---------------------------------------------------------------------------------------
+function ask(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise(resolve => {
+    rl.question(question, answer => {
+      rl.close();  // close *this* readline after one question
+      resolve(answer.trim());
+    });
+  });
+}
 // ---------------------------------------------------------------------------------------
 function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
   const data = JSON.stringify({
@@ -2108,9 +2122,13 @@ for (let ix = 0; ix < count; ix++) {
     if (confirm) {
       console.log();
       
-      const answer = await rl.question('Post this? (N for no, digit for multiple renders) ');
+      const answer = await ask('Post this? (N for no, digit for multiple renders) ');
       
-      if (answer.trim().toLowerCase() !== 'n') {
+
+      if (answer == 'n') {
+        continue;
+      }
+      else {
         const parsed = parseInt(answer);
 
         if (parsed === NaN) { 
@@ -2121,7 +2139,7 @@ for (let ix = 0; ix < count; ix++) {
             post_prompt(expanded);
           }
         }
-      }
+        }
     }
   }
 
