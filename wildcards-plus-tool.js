@@ -31,6 +31,10 @@
 import * as util from 'util';
 import * as http from 'http';
 import * as fs   from 'node:fs'
+import * as readline from 'readline/promises';
+import { stdin as input, stdout as output } from 'process';
+// ---------------------------------------------------------------------------------------
+const rl = readline.createInterface({ input, output });
 // ---------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------
@@ -2026,7 +2030,7 @@ Prompt.finalize();
 // =======================================================================================
 // vars: 
 // ---------------------------------------------------------------------------------------
-let input = '';
+let prompt_input = '';
 // ---------------------------------------------------------------------------------------
 // process the command-line arguments:
 // ---------------------------------------------------------------------------------------
@@ -2043,7 +2047,7 @@ if (args[0] === '--post') {
   console.log("should POST!");
 }
 
-input = fs.readFileSync(args[0]).toString();
+prompt_input = fs.readFileSync(args[0]).toString();
 
 if (args.length > 1) 
   count = parseInt(args[1]);
@@ -2051,7 +2055,7 @@ if (args.length > 1)
 // ---------------------------------------------------------------------------------------
 // parse the input and print (and maybe POST) the expansion(s):
 // ---------------------------------------------------------------------------------------
-const result = Prompt.match(input);
+const result = Prompt.match(prompt_input);
 
 if (! result.is_finished)
   throw new Error("error parsing prompt!");
@@ -2064,8 +2068,15 @@ for (let ix = 0; ix < count; ix++) {
   
   console.log(expanded);
 
-  if (post)
-    post_prompt(expanded);
+  let shouldPost = true;
+
+  if (post) {
+    const answer = await rl.question('/nPost this? (Y/n) ');
+
+    if (answer.trim().toLowerCase() !== 'n') {
+      post_prompt(expanded);
+    }
+  }
 
   if (ix+1 != count)
     console.log();
@@ -2073,3 +2084,5 @@ for (let ix = 0; ix < count; ix++) {
 
 if (!post)
   console.log('--------------------------------------------------------------------------------');
+
+await rl.close();
