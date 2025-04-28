@@ -3,12 +3,12 @@
 @pluralize := {?pluralize <s}
 @toppings  := {3 cheese|mushrooms|bacon|corned beef|pastrami|brisket|2 !#usedeggs egg @pluralize 
               |sausage @pluralize|ham|2 Spam|steak|{|garlic|fried|coconut} shrimp|2 tomato @pluralize
-              |!plate !#sauced ketchup 
-              |!plate !#sauced gochujang 
-              |!plate !#sauced hot sauce 
-              |!plate !#sauced !used_eggs {|Dijon} mustard 
+              |!#sauced !plate ketchup 
+              |!#sauced !plate gochujang 
+              |!#sauced !plate hot sauce 
+              |!#sauced !plate !used_eggs {|Dijon} mustard 
+              |!#sauced 2 gravy
               |!plate !used_eggs mayonnaise
-              |2 !sauced gravy #sauced
               |kimchi|peppers|pickles|!plate capers|2 onion|sauerkraut|{fried|grilled} chicken
               |{lobster|crab|oysters}}
 @sides     := {!#used_potatoes 3 {|French} fries|2 soup|2 {|a} salad|2 {2|fried} rice
