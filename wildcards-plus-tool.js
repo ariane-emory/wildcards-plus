@@ -1925,15 +1925,19 @@ class ASTAnonWildcardOption {
 const make_ASTAnonWildcardOption = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
+  const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
   const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
   const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
+  const set_immediately_not_flags = not_flags
+        .filter(f => f.set_immediately)
+        .map(f => new ASTSetFlag(f.name)) ;
   
   return new ASTAnonWildcardOption(
     arr[1][0],
     check_flags,
     not_flags,
     [
-      ...flags.filter(f => f instanceof ASTSetFlag),
+      ...set_flags,
       ...arr[3]
     ]);
 }
