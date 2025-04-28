@@ -49,7 +49,7 @@ function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
 
   const options = {
     hostname: hostname,
-    port: post,
+    port: port,
     path: '/sdapi/v1/txt2img',
     method: 'POST',
     headers: {
@@ -2071,7 +2071,9 @@ for (let ix = 0; ix < count; ix++) {
   let shouldPost = true;
 
   if (post) {
-    const answer = await rl.question('/nPost this? (Y/n) ');
+    console.log();
+    
+    const answer = await rl.question('Post this? (Y/n) ');
 
     if (answer.trim().toLowerCase() !== 'n') {
       post_prompt(expanded);
