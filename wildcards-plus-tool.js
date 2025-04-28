@@ -2120,7 +2120,7 @@ async function main() {
   
   while (posted_count < count) {
     console.log('--------------------------------------------------------------------------------');
-    //console.log(`posted_count = ${posted_count}`);
+    console.log(`posted_count = ${posted_count}`);
     
     const expanded = expand_wildcards(result.value);
     
@@ -2139,9 +2139,8 @@ async function main() {
         
         const answer = await ask('POST this prompt? (N for no, digit for multiple images) ');
 
-        if (answer == 'n') {
+        if (answer == 'n' || answer == '')
           continue;
-        }
         
         const parsed = parseInt(answer);
         const count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
