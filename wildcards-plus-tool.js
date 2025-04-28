@@ -2128,12 +2128,10 @@ async function main() {
 
     if (post) {
       if (!confirm) {
-        console.log(`LEFT`);
         post_prompt(expanded);
         posted_count += 1;
       }
       else  {
-        console.log(`RIGHT`);
         console.log();
         
         const answer = await ask('POST this prompt? (N for no, digit for multiple images) ');
@@ -2152,6 +2150,8 @@ async function main() {
           posted_count += 1;
         }
       }
+    } else {
+      posted_count += 1; // a lie to make the counter correct.
     }
   }
 
