@@ -2148,18 +2148,19 @@ async function main() {
       }
       else  {
         console.log();
-        
-        const answer = await ask('POST this prompt? (n for no, digit for multiple images) ');
+
+        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter n for no or a positive integer for multiple images) `;
+        const answer = await ask(question);
 
         if (answer == 'n')//  || answer == '')
           continue;
         
         const parsed = parseInt(answer);
-        const count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
+        const gen_count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
 
         // console.log(`parsed = '${parsed}', count = '${count}'`);
         
-        for (let iix = 0; iix < count; iix++) {
+        for (let iix = 0; iix < gen_count; iix++) {
           post_prompt(expanded);
           posted_count += 1;
         }
