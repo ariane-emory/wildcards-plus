@@ -36,8 +36,7 @@ import * as fs   from 'node:fs'
 // ---------------------------------------------------------------------------------------
 // helper function to POST prompts:
 // ---------------------------------------------------------------------------------------
-function post_prompt(prompt) {
-
+function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
   const data = JSON.stringify({
     prompt: prompt,
     steps: 5,
@@ -45,8 +44,8 @@ function post_prompt(prompt) {
   });
 
   const options = {
-    hostname: '127.0.0.1',
-    port: 7860,
+    hostname: hostname,
+    port: post,
     path: '/sdapi/v1/txt2img',
     method: 'POST',
     headers: {
@@ -61,7 +60,7 @@ function post_prompt(prompt) {
     socket.on('connect', () => {
       req.write(data);
       req.end();
-      socket.destroy(); 
+      socket.destroy(); // don't wait for the response.
     });
   });
 
