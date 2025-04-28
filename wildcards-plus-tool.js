@@ -66,7 +66,8 @@ function post_prompt(prompt) {
     socket.on('connect', () => {
       req.end();       // finish sending the request
       socket.destroy(); // immediately destroy the connection
-      console.log("Request sent and socket destroyed.");
+      console.log("posted!");
+      // console.log("Request sent and socket destroyed.");
     });
   });
 
@@ -80,16 +81,19 @@ function post_prompt(prompt) {
 
 
 // =======================================================================================
-// deal with the possibility of not having util (or any module system) inside DT:
+// set inspect_fun appropriately fore node.js:
 // =======================================================================================
 let inspect_fun = null;
 
 const { inspect } = await import("util");
-inspect_fun = inspect;
 
+inspect_fun = inspect;
 // ----------------------------------------------------------------------------------------
+
+
+// =======================================================================================
 // Copy into wildcards-plus.js starting from this line!
-// ----------------------------------------------------------------------------------------
+// =======================================================================================
 inspect_fun = JSON.stringify;
 // ---------------------------------------------------------------------------------------
 
@@ -2018,8 +2022,8 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               assignment_operator,
                                               ScalarAssignmentSource));
 const Content                 = choice(ScalarReference, NamedWildcardReference,
-                                       NamedWildcardUsage, 
-                                       SetFlag, AnonWildcard, comment, low_pri_text, plaintext);
+                                       NamedWildcardUsage, SetFlag, AnonWildcard,
+                                       comment, low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 const Prompt                  = wst_star(choice(ScalarAssignment,
                                                 NamedWildcardDefinition,
@@ -2077,9 +2081,14 @@ console.log('-------------------------------------------------------------------
 console.log(`Expansion${count > 1 ? "s" : ''}:`);
 console.log('--------------------------------------------------------------------------------');
 for (let ix = 0; ix < count; ix++) {
-  console.log(expand_wildcards(result.value));
+  const expanded = expand_wildcards(result.value);
+  
+  console.log(expanded);
 
   if (ix+1 != count)
     console.log();
+
+  if (post)
+    post_prompt(expanded);
 }
 console.log('--------------------------------------------------------------------------------');
