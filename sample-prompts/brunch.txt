@@ -11,7 +11,7 @@
 @relation  := {served with|paired with|accompanied by}
 @relation2 := {with|sitting {beside|next to}|alongside}
 @drink     := {glass of {milk|orange juice}
-              |{mug|cup} of {tea|coffee}
+              |{mug|cup} of {{2|green} tea|coffee}
               |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
               |{glass|mug|can|bottle} of beer}
 
