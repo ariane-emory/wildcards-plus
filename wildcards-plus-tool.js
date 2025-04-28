@@ -2034,9 +2034,10 @@ let prompt_input = '';
 // ---------------------------------------------------------------------------------------
 // process the command-line arguments:
 // ---------------------------------------------------------------------------------------
-const args   = process.argv.slice(2);
-let   count  = 1;
-let   post   = false;
+const args    = process.argv.slice(2);
+let   count   = 1;
+let   post    = false;
+let   confirm = false;
 
 if (args.length == 0)
   throw new Error("Usage: ./wildcards-plus-tool.js [<--post>] <input-file> [<count>]");
@@ -2044,8 +2045,12 @@ if (args.length == 0)
 if (args[0] === '--post') {
   post = true;
   args.shift();
-  console.log("should POST!");
+} else if (args[0] === '--confirm') {
+  post    = true;
+  confirm = true;
+  args.shift();
 }
+
 
 prompt_input = fs.readFileSync(args[0]).toString();
 
@@ -2071,11 +2076,16 @@ for (let ix = 0; ix < count; ix++) {
   let shouldPost = true;
 
   if (post) {
-    console.log();
-    
-    const answer = await rl.question('Post this? (Y/n) ');
-
-    if (answer.trim().toLowerCase() !== 'n') {
+    if (confirm) {
+      console.log();
+      
+      const answer = await rl.question('Post this? (Y/n) ');
+      
+      if (answer.trim().toLowerCase() !== 'n') {
+        post_prompt(expanded);
+      }
+    }
+    else {
       post_prompt(expanded);
     }
   }
