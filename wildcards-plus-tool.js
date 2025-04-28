@@ -31,27 +31,12 @@
 import * as util from 'util';
 import * as http from 'http';
 import * as fs   from 'fs/promises';
-import * as readline from 'readline';
 import { stdin as input, stdout as output } from 'process';
-// ---------------------------------------------------------------------------------------
+// import * as readline from 'readline';
 // ---------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------
 // helper functions:
-// ---------------------------------------------------------------------------------------
-function ask(question) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  return new Promise(resolve => {
-    rl.question(question, answer => {
-      rl.close();  // close *this* readline after one question
-      resolve(answer.trim());
-    });
-  });
-}
 // ---------------------------------------------------------------------------------------
 function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
   const data = JSON.stringify({
@@ -2037,6 +2022,23 @@ const Prompt                  = wst_star(choice(ScalarAssignment,
 Prompt.finalize();
 // ---------------------------------------------------------------------------------------
 
+
+import * as readline from 'readline';
+
+function ask(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise(resolve => {
+    rl.question(question, answer => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
+}
+// ---------------------------------------------------------------------------------------
 
 // =======================================================================================
 // MAIN:
