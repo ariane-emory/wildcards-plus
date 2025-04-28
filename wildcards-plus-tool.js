@@ -39,7 +39,7 @@ import { stdin as input, stdout as output } from 'process';
 // helper functions:
 // ---------------------------------------------------------------------------------------
 function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
-  // console.log("POSTing!");
+  console.log("POSTing!");
   
   const data = JSON.stringify({
     prompt: prompt,
@@ -2120,14 +2120,20 @@ async function main() {
   
   while (posted_count < count) {
     console.log('--------------------------------------------------------------------------------');
+    console.log(`posted_count = ${posted_count}`);
+    
     const expanded = expand_wildcards(result.value);
     
     console.log(expanded);
 
-    let shouldPost = true;
-
     if (post) {
-      if (confirm) {
+      if (!confirm) {
+        console.log(`LEFT`);
+        post_prompt(expanded);
+        posted_count += 1;
+      }
+      else  {
+        console.log(`RIGHT`);
         console.log();
         
         const answer = await ask('POST this prompt? (N for no, digit for multiple images) ');
@@ -2145,9 +2151,6 @@ async function main() {
           post_prompt(expanded);
           posted_count += 1;
         }
-      }
-      else {
-        post_prompt(expanded);
       }
     }
   }
