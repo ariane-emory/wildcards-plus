@@ -2369,8 +2369,8 @@ the viewer
 
 {4 
 |and basking in {|2 @pro_pos_adj} {worship|glory}
-|and {reveling in|enjoying} the {chaos|destruction|din|silence|darkness|?alone solitude
-                                |?warrior violence}
+|and {reveling in|surveying|overlooking} the {chaos|destruction|din|silence|darkness|?alone solitude
+                                             |?warrior violence}
 }
 . \n
 

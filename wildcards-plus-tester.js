@@ -1755,6 +1755,7 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
       // console.log(`PICKED ${inspect_fun(pick)}`);
       
       return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
+      // return walk(pick, context);
     }
     // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
