@@ -2120,7 +2120,7 @@ async function main() {
   
   while (posted_count < count) {
     console.log('--------------------------------------------------------------------------------');
-    console.log(`posted_count = ${posted_count}`);
+    // console.log(`posted_count = ${posted_count}`);
     
     const expanded = expand_wildcards(result.value);
     
