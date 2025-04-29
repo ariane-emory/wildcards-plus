@@ -32,7 +32,7 @@
               |lobster
               |oysters
               |pastrami
-              |sausage @pluralize
+              |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
               |steak
               |{3|2 grilled|ground|roast} beef
               |{|garlic|fried|coconut} shrimp
