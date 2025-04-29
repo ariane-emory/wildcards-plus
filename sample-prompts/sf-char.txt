@@ -55,6 +55,8 @@
 |console
 }
 
+@place_phrase := {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at}
+
 @char_early_adj :=
 {3
 |mysterious
@@ -117,7 +119,7 @@
 }
 
 masterpiece, science fiction, futuristic. \n
-A @char_early_adj @char_late_adj @role {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at} {|@l2_place_phrase}
+A @char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {
 |2 ?weapon @weapon_phrase
 |2 ?tool   @tool_phrase }
