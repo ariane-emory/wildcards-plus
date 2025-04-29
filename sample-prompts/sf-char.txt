@@ -74,8 +74,11 @@
 @role :=
 {#weapon mercenary 
 |#tool   {3|hyperdrive|@ship_term} technician
-|#tool   scientist 
+|#tool   scientist
+|{#tool|#weapon} explorer
+|{#tool|#weapon} scout
 |#weapon soldier
+|#weapon {space|star} marine
 |        @ship_term pilot
 |        medic
 |        @ship_term captain
