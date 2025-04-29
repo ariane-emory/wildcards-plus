@@ -28,7 +28,7 @@
                 }
                 cheese
               |3 !#used_eggs egg @pluralize
-              |!used_eggs !plate mayonnaise
+              |!plate !used_eggs mayonnaise
               |!used_eggs aioli
               |horseradish
 
