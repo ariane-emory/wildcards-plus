@@ -274,6 +274,20 @@ A warrior holding a sword and a shield.
 A knight holding a spear.
 ```
 
+One pattern I've found myself using frequently are alternatives like this: `!some_flag #some_flag some content`, which basically means "don't pick this alternative if `some_flag` is already set but, if this alternative is picked, set `some_flag` and yield the text `some content`. For example, consider this wildcard:
+
+```
+@ingredients := { !used_meat #used_meat chicken | !used_meat #used_meat beef | vegetables | bread | rice }
+```
+
+If you get multiple items from this wildcard, you'll only get one meat item since the alternatives containing meat items both set the `used_meat` flag, preventing the selection of a second meat item.
+
+To make this pattern more convenient, a `!#` sequence can be used: `!#used_meat` means the same thing as `!used_meat #used_meat`, allowing the previous example to be simplified into:
+
+```
+@ingredients := { !#used_meat chicken | !#used_meat beef | vegetables | bread | rice }
+```
+
 *Tip*: If you're clever, you could intentionally  create situations where guards leave only a single alternative available, depending on the particular flags that are set. This can let be used  steer named wildcards into producing particular results when certain flags are set. In the next section, you'll see an example where I use (or maybe abuse) this technique to give a character the correct pronouns for their gender.
 
 **Putting it all together and some final thoughts:**
