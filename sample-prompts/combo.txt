@@ -2171,6 +2171,8 @@
                     |!scary hero|#scary raider|myrmidon|cataphract|hoplite|legionnaire}
           }
 
+$role := @roles
+
 // The gender flag and the guards here will ensure that only one alternative remain
 // available, forcing the script to pick that alternative. we'll deliberately use that to
 // pick appropriately gendered pronouns for our character:
@@ -2191,8 +2193,6 @@
 
 {?warrior #many_minions|?wizard {|3 #many_minions}}
 @pluralize_minions := { ?many_minions <s }
-
-@#roles
 
 // oh no, an accidental Easter egg! I completely forgot to document scalar string
 // variables in the README.md file.
@@ -2391,9 +2391,7 @@ ultra high resolution, 8k, detailed background,
 wide shot,
 \n
 
-
 A {masterpiece|piece|piece of art{|<work}} by @artists {which depicts|depicting}
-
                     
 {|2 a scene in a @world_adjective world {showing|featuring|focused on|centered on}}
 
