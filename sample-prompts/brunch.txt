@@ -1,5 +1,6 @@
 @formats   := {3 {2|grilled|toasted} sandwich #used_bread|banh mi #used_bread|panini #used_bread
               |hoagie #used_bread|wrap|3 plate #pluralize #plate|burger|taco
+              |mufaletta sandwich #used_bread
               // |scramble #used_eggs
               |omelette #used_eggs
               }
