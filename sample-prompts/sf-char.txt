@@ -15,7 +15,9 @@ on a @l2_place_adj {planet|world|moon}
 }
 
 @l2_place_adj := 
-{2
+{
+|strange
+|exotic
 |crowded
 |busy
 |remote
@@ -75,10 +77,12 @@ on a @l2_place_adj {planet|world|moon}
 @ship_term  := {starship|spacecraft|shuttle}
 @ship_term2 := {starship|spacecraft|shuttle|frigate|battleship|destroyer|merchant vessel}
 
-@weapon_phrase := {holding @pro_pos_rand
-                   {laser|plasma|gauss|automatic|primitive|high-tech|advanced}
-                   {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher}
-                  }
+@ranged_weapon := {{laser|plasma|gauss|automatic|primitive|high-tech|advanced}
+                   {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher}}
+@weapon_phrase :=
+{holding @pro_pos_rand
+ @ranged_weapon
+}
 
 @role :=
 {#weapon mercenary 
