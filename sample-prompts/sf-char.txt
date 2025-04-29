@@ -46,6 +46,7 @@
 
 @locations_to_be_at :=
 {warehouse
+|computer
 |helm
 |console
 }
@@ -73,15 +74,15 @@
 
 @role :=
 {#weapon mercenary 
-|#tool   {3|hyperdrive|@ship_term} technician
-|#tool   scientist
-|{#tool|#weapon} explorer
-|{#tool|#weapon} scout
-|#weapon soldier
-|#weapon {space|star} marine
-|        @ship_term pilot
-|        medic
-|        @ship_term captain
+|{3|hyperdrive|@ship_term} technician #tool
+|scientist           #tool
+|explorer            {#tool|#weapon}
+|scout               {#tool|#weapon} 
+|soldier             #weapon 
+|{space|star} marine #weapon
+|medic               {|#ool}
+|@ship_term captain
+|@ship_term pilot
 }
 
 A @char_early_adj @char_late_adj @role {in {a|the} @locations_to_be_in|at {a|the} @locations_to_be_at} @l2_locations.
