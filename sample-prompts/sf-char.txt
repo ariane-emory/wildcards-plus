@@ -27,7 +27,7 @@ on a @l2_place_adj {planet|world|moon}
 }
 
 @l2_place_phrase := {@l2_place {|orbitting a @orbit_phrase}}
-@orbit_phrase    := { {dim|distant|huge} {planet|ship|space station|asteroid|comet|star} }
+@orbit_phrase    := { {dim|distant|huge} {2 planet|ship|space station|asteroid|comet|2 star|black hole} }
 
 @place_to_be_in := 
 {2 #indoors  {crew cabin 
