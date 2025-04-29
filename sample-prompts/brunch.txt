@@ -121,4 +121,6 @@ A high-definition, {|award-winning} {\25|\50}-megapixel photograph of a
 |savory
 |tasty
 |2 mouth-watering
-} @formats with @3-4&toppings @relation @2&sides @relation2 a single @drink.
+} @formats with @3-4&toppings
+{2|made by a {world famous|award-winning|Michelin star} chef}
+@relation @2&sides @relation2 a single @drink.
