@@ -75,6 +75,11 @@ on a @l2_place_adj {planet|world|moon}
 @ship_term  := {starship|spacecraft|shuttle}
 @ship_term2 := {starship|spacecraft|shuttle|frigate|battleship|destroyer|merchant vessel}
 
+@weapon_phrase := {holding @pro_pos_rand
+                   {laser|plasma|gauss|automatic|primitive|high-tech|advanced}
+                   {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher}
+                  }
+
 @role :=
 {#weapon mercenary 
 |{3|hyperdrive|@ship_term} technician #tool
@@ -92,5 +97,5 @@ on a @l2_place_adj {planet|world|moon}
 
 masterpiece, sciente fiction, futuristic. \n
 A @char_early_adj @char_late_adj @role {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at} {|@l2_place_phrase}
-{?weapon holding @pro_pos_rand {laser|plasma|gauss|automatic|primitive|advanced} {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher}}
+{?weapon @weapon_phrase }
 .
