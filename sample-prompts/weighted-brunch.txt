@@ -123,6 +123,7 @@
                        |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
                        |{glass|mug|stein|can|bottle} of beer}
 
+@weightedChefs      := {@chefs|2 (@chefs @randomWeight)}
 @chefs              := {Gordon Ramsay
                        |Alvin Cailan
                        |Kenji López-Alt
@@ -152,5 +153,5 @@
 
 A high-definition, @photo_superlatives {\25|\50}-megapixel photograph, shot at infinite focus, of a
 @food_superlatives @weightedFormats with @1-3,weightedMeats, @2-3&weightedToppings
-{|made by @chefs}
+{|made by @weightedChefs}
 @relation @2&weightedSides @relation2 a single @drink.
