@@ -104,36 +104,41 @@ if (false)
 // Original project at: https://github.com/ariane-emory/jparse/
 // =======================================================================================
 //            
-// (Rule) -|  The core/basic Rules:
+// (Rule) -| The core/basic Rules:
 //         |
-//         |- Choice
-//         |- Enclosed ------- CuttingEnclosed
-//         |- Expect
-//         |- Optional
-//         |- Sequence ------- CuttingSequence
-//         |- Xform
+//         |-- Choice
+//         |-- Enclosed ------- CuttingEnclosed
+//         |-- Expect
+//         |-- Optional
+//         |-- Sequence ------- CuttingSequence
+//         |-- Xform
 //         |
-//         |- (Quantified) -|- Plus
-//         |                |- Star
+//         |-- (Quantified) -|-- Plus
+//         |                 |-- Star
 //         |
-//         |  Technically these next 3 could be implemented as Xforms, but 
-//         |  they're very convenient to have built-in (and are possibly faster
-//         |  this way than equivalent Xforms, at least for the for simpler use
-//         |  cases):
+//         | Technically these next 3 could be implemented as Xforms, but 
+//         | they're very convenient to have built-in (and are possibly faster
+//         | this way than equivalent Xforms, at least for the for simpler use
+//         | cases):
 //         |
-//         |- Discard
-//         |- Elem
-//         |- Label
+//         |-- Discard
+//         |-- Elem
+//         |-- Label
 //         |
-//         |  Rules that make sense only when input is an Array of Tokens:
+//         | Rules that make sense only when input is an Array of Tokens:
 //         |
-//         |- TokenLabel
+//         |-- TokenLabel
 //         |
-//         |  Rules that make sense only when input is a string:
+//         | Rules that make sense only when input is a string:
 //         |
-//         |- Literal
-//         |- Regex
-//
+//         |-- Literal
+//         |-- Regex
+//         |
+//         | TODO: not yet written:
+//         |
+//         |-- Fail: a rule that's not meant to ever be matched that immediately throws a parse error.
+//         |-- Unexpected(rule): throw a parse error if rule is matched, otherwise return a discard.
+//         |
 // ForwardReference (only needed when calling xform with a weird arg order)
 // LabeledValue
 // MatchResult
