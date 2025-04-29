@@ -39,8 +39,8 @@
               |pastrami
               |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
               |2 steak
-              |2 {3|2 grilled|ground|roast} beef
-              |{|garlic|fried|coconut} shrimp
+              |3 {3|2 grilled|ground|roast} beef
+              |{|garlic|fried|coconut|tiger|popcorn} shrimp
 
               // Veggies:
               |2 tomato @pluralize
@@ -68,7 +68,7 @@
               }
 
 @sides     := {!#used_potatoes 3 {|French} fries
-              |!#noodles 3 {|chow mein|rice|mi goreng|pad see ew|instant|Indo Mis} noodles
+              |!#noodles 4 {|chow mein|rice|mi goreng|pad see ew|udon|instant|Indo Mie} noodles
               |!#noodles pasta
               |!#used_bread a bagel
               |!#used_potatoes hash browns|macaroni
@@ -86,10 +86,12 @@
               |!#soup stew
               |!#salad coleslaw
               |!#salad 2 {|a} salad
+              |!#rice 3 {2|fried} rice
+              |!#rice pilaf
+              |bulgur
+              |couscous              
               |dumplings
               |pancakes
-              |!#rice 2 {2|fried} rice
-              |!#rice pilaf
               }
 
 @relation  := {served with|paired with|accompanied by}
