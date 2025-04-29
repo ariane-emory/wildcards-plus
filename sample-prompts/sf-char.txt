@@ -8,5 +8,15 @@
 
 @^pronoun_3rd_subject shook @pronoun_pos_adj head.
 
+@rooms_to_be_in     := {a crew cabin
+                       |a cockpit
+                       |a lounge
+                       |a bar
+                       |an equipment room
+                       |an engine room
+                       |a security room
+                       |a megacity street
+}
+                       
+// @locations_to_be_at := {
 
-j
