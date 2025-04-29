@@ -2157,7 +2157,7 @@ async function main() {
         const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /n.*/ for no or a positive integer for multiple images) `;
         const answer = await ask(question);
 
-        if (answer.startsWith('n') {
+        if (answer.startsWith('n'))
           continue;
           
           const parsed = parseInt(answer);
@@ -2169,15 +2169,15 @@ async function main() {
             post_prompt(expanded);
             posted_count += 1;
           }
+        }
       }
     }
+
+    console.log('--------------------------------------------------------------------------------');
   }
+  // ---------------------------------------------------------------------------------------
 
-  console.log('--------------------------------------------------------------------------------');
-}
-// ---------------------------------------------------------------------------------------
-
-main().catch(err => {
-  console.error('Unhandled error:', err);
-  process.exit(1);
-});
+  main().catch(err => {
+    console.error('Unhandled error:', err);
+    process.exit(1);
+  });

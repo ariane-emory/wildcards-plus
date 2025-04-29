@@ -12,6 +12,25 @@
                        |omelette #used_eggs
                        }
                        
+@meats              := {2 bacon
+                       |2 {|fried|grilled|roasted} chicken
+                       |2 Spam
+                       |{2|fried|grilled} fish
+                       |{|fried|roasted} turkey
+                       |brisket
+                       |corned beef
+                       |crab
+                       |ham
+                       |lobster
+                       |{|grilled|roasted} lamb
+                       |mititei              
+                       |oysters
+                       |pastrami
+                       |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
+                       |2 steak
+                       |3 {3|2 grilled|ground|roast} beef
+                       |{|garlic|fried|coconut|tiger|popcorn} shrimp}
+
 @toppings           := {4 !#cheese
                          {4 
                          |3 American
@@ -31,26 +50,6 @@
                        |!plate !used_eggs mayonnaise
                        |!used_eggs aioli
                        |horseradish
-
-                       // Meats:
-                       |2 bacon
-                       |2 {|fried|grilled|roasted} chicken
-                       |2 Spam
-                       |{2|fried|grilled} fish
-                       |{|fried|roasted} turkey
-                       |brisket
-                       |corned beef
-                       |crab
-                       |ham
-                       |lobster
-                       |{|grilled|roasted} lamb
-                       |mititei              
-                       |oysters
-                       |pastrami
-                       |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
-                       |2 steak
-                       |3 {3|2 grilled|ground|roast} beef
-                       |{|garlic|fried|coconut|tiger|popcorn} shrimp
 
                        // Veggies:
                        |2 tomato @pluralize
@@ -78,7 +77,7 @@
                        }
 
 @sides              := {!#used_potatoes 3 {|French} fries
-                       |!#noodles 4 {|chow mein|rice|mi goreng|pad see ew|udon|instant|Indo Mie} noodles
+                       |!#noodles 6 {|chow mein|rice|mi goreng|pad see ew|udon|instant|Indo Mie} noodles
                        |!#noodles pasta
                        |!#used_bread a bagel
                        |!#used_potatoes hash browns|macaroni
@@ -92,6 +91,7 @@
                        |{4|baked|refried|black} beans
                        |!#soup 2 {4|2 chicken|wonton} soup
                        |!#soup borscht
+                       |!#soup chili
                        |!#soup chowder
                        |!#soup stew
                        |!#salad coleslaw
@@ -140,6 +140,6 @@
 @photo_superlatives := {|award-winning|perfectly {composed|framed|lit}}
 
 A high-definition, @photo_superlatives {\25|\50}-megapixel photograph, shot at infinite focus, of a
-@food_superlatives @formats with @3-4&toppings
+@food_superlatives @formats with @1-3&meats, @2-3&toppings
 {|made by @chefs}
 @relation @2&sides @relation2 a single @drink.
