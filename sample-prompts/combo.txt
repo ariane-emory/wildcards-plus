@@ -2189,6 +2189,11 @@
                          |ornate|silken|brightly colored|occult|embroidered}
 @pluralize_clothing   := {!used_pro <s}
 
+{?warrior #many_minions|?wizard {|3 #many_minions}}
+@pluralize_minions := { ?many_minions <s }
+
+@#roles
+
 // oh no, an accidental Easter egg! I completely forgot to document scalar string
 // variables in the README.md file.
 //
@@ -2356,12 +2361,22 @@ $weapon  := @weapon
 
 @photo_superlatives := {|award-winning|perfectly {composed|framed|lit}}
 
+@world_adjective := {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten
+                    |primitive|frightening|hellish|alien|{haunted|{ghost|demon}-haunted}
+                    |ruined|abandoned|lonely|chaotic|crowded|mythical|fantastical
+                    }
 
+@minion_adjectives := {
+ ?wizard   {?scary {demonic #demonic|fearsome|slavering|3 undead|eldrich
+                   |loathsome|squamous|chtonian|repulsive|chitinous|ghoulish}
+           |       {2 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
+                   |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing
+                   |swarming}
+           }
+|?warrior  {fellow|loyal|brave|steadfast|armored|mighty
+           |heavily armed|raucous|warlike|belligerant}
+}
 
-{|2 epic|3 dark} fantasy, masterpiece,
-ultra high resolution, 8k, detailed background,
-wide shot,
-\n
 
 // set an 'm' or 'f' gender flag that will help guide the selection of picks later on.
 {#m|#f}                
@@ -2369,12 +2384,16 @@ wide shot,
 // character type flag, make 'wizards' 60% of the time:
 {3 #wizard|2 #warrior} 
 
+{ 2 // IN
+
+{|2 epic|3 dark} fantasy, masterpiece,
+ultra high resolution, 8k, detailed background,
+wide shot,
+\n
+
+
 A {masterpiece|piece|piece of art{|<work}} by @artists {which depicts|depicting}
 
-@world_adjective := {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten
-                    |primitive|frightening|hellish|alien|{haunted|{ghost|demon}-haunted}
-                    |ruined|abandoned|lonely|chaotic|crowded|mythical|fantastical
-                    }
                     
 {|2 a scene in a @world_adjective world {showing|featuring|focused on|centered on}}
 
@@ -2482,21 +2501,8 @@ the viewer
 |!scary victoriously
 }
 
-@minion_adjectives := {
- ?wizard   {?scary {demonic #demonic|fearsome|slavering|3 undead|eldrich
-                   |loathsome|squamous|chtonian|repulsive|chitinous|ghoulish}
-           |       {2 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
-                   |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing
-                   |swarming}
-           }
-|?warrior  {fellow|loyal|brave|steadfast|armored|mighty
-           |heavily armed|raucous|warlike|belligerant}
-}
-
 // unless flagged as #alone, warriors always have #many_minions, but wizards may have a
 // single minion sometimes: 
-{?warrior #many_minions|?wizard {|3 #many_minions}}
-@pluralize_minions := { ?many_minions <s }
 
 // Companions: don't always mention the companions, because of the empty alternative at
 // the start:
@@ -2527,9 +2533,11 @@ the viewer
 
 By @artists, @artist_styles.
 
-\n \n
+| 2 // BRANCH
 
 A high-definition, @photo_superlatives {\25|\50}-megapixel photograph, shot at infinite focus, of a
 @food_superlatives @weightedFormats with @1-3,weightedMeats, @2-3&weightedToppings
 {|made by @weightedChefs}
 @relation @2&weightedSides @relation2 a single @drink.
+
+} // OUT
