@@ -70,7 +70,7 @@ Would you like another one?
 
 **Comments:**
 
-Prompts may include comments, which work in essentially the same way as they work in C. Both line comments (`//`) and block comments (`/* ... */`) are supported... this feature isn't very excitin, I'm just explaining it early because I'll be using comments in future examples of prompts to help explain how they work.
+Prompts may include comments, which work in essentially the same way as they work in C. Both line comments (`//`) and block comments (`/* ... */`) are supported... this feature isn't very exciting, I'm just explaining it early because I'll be using comments in future examples of prompts to help explain how they work.
 
 **Named wildcards - the basics:**
  

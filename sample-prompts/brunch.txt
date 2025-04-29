@@ -140,6 +140,6 @@
 @photo_superlatives := {|award-winning|perfectly {composed|framed|lit}}
 
 A high-definition, @photo_superlatives {\25|\50}-megapixel photograph, shot at infinite focus, of a
-@food_superlatives @formats with @1-3&meats, @2-3&toppings
+@food_superlatives @formats with @1-3,meats, @2-3&toppings
 {|made by @chefs}
 @relation @2&sides @relation2 a single @drink.
