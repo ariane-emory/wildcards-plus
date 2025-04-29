@@ -24,15 +24,17 @@
 
               // Meats:
               |2 bacon
-              |2 {|fried|grilled} chicken
+              |2 {|fried|grilled|roasted} chicken
               |2 Spam
               |{2|fried|grilled} fish
               |{|fried|roasted} turkey
               |brisket
-              |ham
               |corned beef
               |crab
+              |ham
               |lobster
+              |{|grilled|roasted} lamb
+              |mititei              
               |oysters
               |pastrami
               |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
