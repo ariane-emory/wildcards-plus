@@ -1,22 +1,81 @@
-{#female|#male|#neuter} // Randomly pick one of these three alternatives and set a gender flag.
+{#female|#male|#neuter}
 
-// The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pronouns:
-@pronoun_3rd_object  := {?female her |?male him |?neuter it  }
-@pronoun_3rd_subject := {?female she |?male he  |?neuter it  }
-@pronoun_pos_adj     := {?female her |?male his |?neuter its }
-@pronoun_pos         := {?female hers|?male his |?neuter its }
+@pro_3rd_object  := {?female her |?male him |?neuter it  }
+@pro_3rd_subject := {?female she |?male he  |?neuter it  }
+@pro_pos_adj     := {?female her |?male his |?neuter its }
+@pro_pos         := {?female hers|?male his |?neuter its }
 
-@^pronoun_3rd_subject shook @pronoun_pos_adj head.
-
-@rooms_to_be_in     := {a crew cabin
-                       |a cockpit
-                       |a lounge
-                       |a bar
-                       |an equipment room
-                       |an engine room
-                       |a security room
-                       |a megacity street
+@locations_to_be_in := 
+{2 #indoors  {crew cabin 
+             |cockpit
+             |lounge
+             |bar
+             |laboratory
+             |equipment room
+             |engine room
+             |security room
+             |corridor
+             |{access|maintenance} tunnel
+             }
+|2 #outdoors {alley
+             |{|hive city|megacity} street
+             |crater
+             }
 }
-                       
-// @locations_to_be_at := {
 
+
+
+@l2_place_adj := 
+{1
+|crowded
+|busy
+|remote
+|secluded
+|run-down
+|advanced
+|primitive
+|backwater
+}
+
+@l2_locations :=
+{3
+|on a @l2_place_adj {planet|world|moon}
+|on a @l2_place_adj space station
+}
+
+@locations_to_be_at :=
+{
+warehouse
+}
+
+@char_early_adj :=
+{3
+|mysterious
+|solitary #sole
+|exotic
+|athletic
+|youthful
+|?f beautiful
+}
+
+@char_late_adj :=
+{3
+|alien
+|android
+|cyborg
+|human
+}
+
+@ship_term := {starship|spacecraft|shuttle}
+
+@role :=
+{#weapon mercenary 
+|#tool   {3|hyperdrive|@ship_term} technician
+|#tool   scientist 
+|#weapon soldier
+|        @ship_term pilot
+|        medic
+|        @ship_term captain
+}
+
+A @char_early_adj @char_late_adj @role {in {a|the} @locations_to_be_in|at {a|the} @locations_to_be_at} @l2_locations.
