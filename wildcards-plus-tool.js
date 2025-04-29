@@ -2154,7 +2154,7 @@ async function main() {
       else  {
         console.log();
 
-        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /n.*/ for no or a positive integer for multiple images) `;
+        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /n.*/ for no or a positive integer for multiple images)? `;
         const answer = await ask(question);
 
         if (answer.startsWith('n'))
