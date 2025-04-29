@@ -1,0 +1,156 @@
+@nonZeroInteger     := {/*<1|<2|*/ <3|<4|<5|<6|<7|<8|<9}
+@randomWeight       := {:1. @nonZeroInteger}
+
+// A (cute @randomWeight) (orange @randomWeight) {cat|bird}. 
+
+@pluralize          := {?pluralize <s}
+
+@weightedFormats    := {@formats|2 (@formats @randomWeight)}
+@formats            := {!#used_bread 3 {2|grilled|toasted} sandwich 
+                       |!#used_bread banh mi 
+                       |!#used_bread panini 
+                       |!#used_bread burger
+                       |!#used_bread hoagie
+                       |!#used_bread mufaletta sandwich
+                       |wrap
+                       |3 plate #pluralize #plate
+                       |taco
+                       // |scramble #used_eggs
+                       |omelette #used_eggs
+                       }
+                       
+@weightedMeats      := {@meats|2 (@meats @randomWeight)}
+@meats              := {2 bacon
+                       |2 {|fried|grilled|roasted} chicken
+                       |2 Spam
+                       |{2|fried|grilled} fish
+                       |{|fried|roasted} turkey
+                       |brisket
+                       |corned beef
+                       |crab
+                       |ham
+                       |lobster
+                       |{|grilled|roasted} lamb
+                       |mititei              
+                       |oysters
+                       |pastrami
+                       |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
+                       |2 steak
+                       |3 {3|2 grilled|ground|roast} beef
+                       |{|garlic|fried|coconut|tiger|popcorn} shrimp}
+
+@weightedToppings   := {@toppings|2 (@toppings @randomWeight)}
+@toppings           := {4 !#cheese
+                         {4 
+                         |3 American
+                         |3 mozarella
+                         |2 cheddar
+                         |2 provolone
+                         |blue
+                         |gouda
+                         |parmesan
+                         |2 Swiss
+                         |Monterey jack
+                         |Colby {|jack}
+                         |Oaxaca
+                         }
+                         cheese
+                       |3 !#used_eggs egg @pluralize
+                       |!plate !used_eggs mayonnaise
+                       |!used_eggs aioli
+                       |horseradish
+
+                       // Veggies:
+                       |2 tomato @pluralize
+                       |2 mushrooms
+                       |cucumber
+                       |kimchi
+                       |{4|jalapeno|banana|hot|chili} peppers
+                       |pickles
+                       |!plate capers
+                       |3 {4|pickled|red|green} onion
+                       |sauerkraut
+
+                       // Sauces:
+                       |!#sauced !plate ketchup
+                       |!#sauced salsa
+                       |!#sauced 3 sauce
+                       |!#sauced Sriracha sauce
+                       |!#sauced steak sauce
+                       |!#sauced 2 gochujang 
+                       |!#sauced hot sauce
+                       |!#sauced satay sauce
+                       |!#sauced teriyaki sauce 
+                       |!#sauced !plate !used_eggs {|Dijon} mustard 
+                       |!#sauced 4 {4|brown|chicken|beef|turkey} gravy              
+                        }
+
+@weightedSides      := {@sides|2 (@sides @randomWeight)}
+@sides              := {!#used_potatoes 3 {|French} fries
+                       |!#noodles 6 {|chow mein|rice|mi goreng|pad see ew|udon|instant|Indo Mie} noodles
+                       |!#noodles pasta
+                       |!#used_bread a bagel
+                       |!#used_potatoes hash browns|macaroni
+                       |!#used_potatoes potato chips
+                       |!#used_potatoes poutine
+                       |!#used_potatoes tater tots|pierogies
+                       |2 cabbage rolls
+                       |2 vegetables|2 !#used_potatoes potatoes
+                       |!#used_bread 3 {|2 buttered} {toast|bread}
+                       |!#used_bread 5 a bialy
+                       |{4|baked|refried|black} beans
+                       |!#soup 2 {4|2 chicken|wonton} soup
+                       |!#soup borscht
+                       |!#soup chili
+                       |!#soup chowder
+                       |!#soup stew
+                       |!#salad coleslaw
+                       |!#salad 2 {|a} salad
+                       |!#rice 3 {2|fried} rice
+                       |!#rice pilaf
+                       |bulgur
+                       |onion rings
+                       |couscous              
+                       |dumplings
+                       |pancakes
+                       }
+
+@relation           := {served with|paired with|accompanied by}
+@relation2          := {with|and|sitting {beside|next to}|alongside}
+
+@drink              := {glass of {milk|orange juice}
+                       |{mug|cup} of {{2|green} tea|coffee}
+                       |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
+                       |{glass|mug|stein|can|bottle} of beer}
+
+@chefs              := {Gordon Ramsay
+                       |Alvin Cailan
+                       |Kenji López-Alt
+                       |Anthony Bourdain
+                       |Matty Matheson
+                       |Wes Anderson
+                       |?used_bread George Motz
+                       |3 a {world famous
+                            |the world's best
+                            |celebrity
+                            |award-winning
+                            |Michelin star}
+                        chef}
+
+@food_superlatives  := {|2 delicious{|<-looking}
+                       |amazing
+                       |Michelin star
+                       |award-winning
+                       |appetizing
+                       |2 fresh {|<ly made}
+                       |savory
+                       |tasty
+                       |2 mouth-watering
+                       }
+
+@photo_superlatives := {|award-winning|perfectly {composed|framed|lit}}
+
+A high-definition, @photo_superlatives {\25|\50}-megapixel photograph, shot at infinite focus, of a
+@food_superlatives @weightedFormats with @1-3,weightedMeats, @2-3&weightedToppings
+{|made by @chefs}
+@relation @2&weightedSides @relation2 a single @drink.
