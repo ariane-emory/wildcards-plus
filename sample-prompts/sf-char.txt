@@ -98,7 +98,7 @@
 |2 datapad
 |2 communicator
 }
-@tool_phrase := {holding @pro_pos_rand {advanced|intricate} @tool}
+@tool_phrase := {holding @pro_pos_rand {advanced|intricate|alien|high-tech} @tool}
 
 @role :=
 {#weapon mercenary 
