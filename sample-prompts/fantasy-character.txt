@@ -215,7 +215,7 @@ the viewer
 
 // Companions: don't always mention the companions, because of the empty alternative at
 // the start:
-{|!alone {2 ,|while}
+{|!alone {,|2while}
          {accompanied by|?many_minions surrounded by|?many_minions encircled by
          |guarded by|leading|commanding|directing|guiding|rallying|alongside}
          @pro_pos_rand
@@ -238,4 +238,4 @@ the viewer
 |and {reveling in|enjoying} the {chaos|destruction|din|silence|darkness|?alone solitude
                                 |?warrior violence}
 }
-.
+. \n

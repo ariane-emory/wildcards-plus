@@ -2233,6 +2233,8 @@ A {masterpiece|piece|piece of art{|<work}} by @artists {which depicts|depicting}
 
 a
 
+@1-2&character_adjectives @roles
+
 // Clothing: only reference any clothing half the time, because of the empty alternative
 // at the start:
 {|{clad in|wearing|dressed in} 
@@ -2377,5 +2379,5 @@ the viewer
                                              |?warrior violence}
 }
 . \n
-
+ 
 By @artists, @artist_styles.
