@@ -7,7 +7,7 @@
 
 @locations_to_be_in := 
 {2 #indoors  {crew cabin 
-             |cockpit
+             |2 cockpit
              |lounge
              |bar
              |laboratory
@@ -41,12 +41,13 @@
 {3
 |on a @l2_place_adj {planet|world|moon}
 |on a @l2_place_adj space station
-|on a @l2_place_adj space station @ship_term
+|on a @l2_place_adj @ship_term2
 }
 
 @locations_to_be_at :=
-{
-warehouse
+{warehouse
+|helm
+|console
 }
 
 @char_early_adj :=
@@ -67,7 +68,8 @@ warehouse
 |human
 }
 
-@ship_term := {starship|spacecraft|shuttle}
+@ship_term  := {starship|spacecraft|shuttle}
+@ship_term2 := {starship|spacecraft|shuttle|frigate|battleship|destroyer|merchant vessel}
 
 @role :=
 {#weapon mercenary 
