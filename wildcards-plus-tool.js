@@ -43,7 +43,7 @@ function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
   
   const data = JSON.stringify({
     prompt: prompt,
-    steps: 5,
+    steps: 8,
     seed: Math.floor(Math.random() * (2 ** 32)),
   });
 
@@ -1960,10 +1960,10 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 // flag-related non-terminals:
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
-const NotFlag                 = xform(arr => {
+const NotFlag                 = xform((arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   return new ASTNotFlag(arr[2], arr[1][0]);
-},
+}),
                                       seq('!', optional('#'),
                                           ident, /(?=\s|[{|}]|$)/));
 const TestFlag                = choice(CheckFlag, NotFlag);
@@ -2154,21 +2154,21 @@ async function main() {
       else  {
         console.log();
 
-        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter n for no or a positive integer for multiple images) `;
+        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /n.*/ for no or a positive integer for multiple images) `;
         const answer = await ask(question);
 
-        if (answer == 'n')//  || answer == '')
+        if (answer.startsWith('n') {
           continue;
-        
-        const parsed = parseInt(answer);
-        const gen_count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
+          
+          const parsed = parseInt(answer);
+          const gen_count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
 
-        // console.log(`parsed = '${parsed}', count = '${count}'`);
-        
-        for (let iix = 0; iix < gen_count; iix++) {
-          post_prompt(expanded);
-          posted_count += 1;
-        }
+          // console.log(`parsed = '${parsed}', count = '${count}'`);
+          
+          for (let iix = 0; iix < gen_count; iix++) {
+            post_prompt(expanded);
+            posted_count += 1;
+          }
       }
     }
   }

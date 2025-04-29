@@ -66,7 +66,7 @@
                        // Sauces:
                        |!#sauced !plate ketchup
                        |!#sauced salsa
-                       |!#sauced sauce
+                       |!#sauced 3 sauce
                        |!#sauced Sriracha sauce
                        |!#sauced steak sauce
                        |!#sauced 2 gochujang 
@@ -116,6 +116,8 @@
                        |Alvin Cailan
                        |Kenji López-Alt
                        |Anthony Bourdain
+                       |Matty Matheson
+                       |Wes Anderson
                        |?used_bread George Motz
                        |3 a {world famous
                             |the world's best
@@ -137,7 +139,7 @@
 
 @photo_superlatives := {|award-winning|perfectly {composed|framed|lit}}
 
-A high-definition, @photo_superlatives {\25|\50}-megapixel photograph of a
+A high-definition, @photo_superlatives {\25|\50}-megapixel photograph, shot at infinite focus, of a
 @food_superlatives @formats with @3-4&toppings
 {|made by @chefs}
 @relation @2&sides @relation2 a single @drink.
