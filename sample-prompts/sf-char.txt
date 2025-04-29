@@ -4,6 +4,7 @@
 @pro_3rd_subject := {?female she |?male he  |?neuter it  }
 @pro_pos_adj     := {?female her |?male his |?neuter its }
 @pro_pos         := {?female hers|?male his |?neuter its }
+@pro_pos_rand    := {2 @pro_pos_adj|a|their}
 
 @locations_to_be_in := 
 {2 #indoors  {crew cabin 
@@ -85,4 +86,6 @@
 |@ship_term pilot
 }
 
-A @char_early_adj @char_late_adj @role {in {a|the} @locations_to_be_in|at {a|the} @locations_to_be_at} @l2_locations.
+A @char_early_adj @char_late_adj @role {in {a|the} @locations_to_be_in|at {a|the} @locations_to_be_at} @l2_locations
+{?weapon holding @pro_pos_rand {laser|plasma|gauss|automatic|primitive|advanced} {2 pistol|{|sniper|hunting} rifle|submachinegun}}
+.
