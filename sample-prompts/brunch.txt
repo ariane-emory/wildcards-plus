@@ -22,19 +22,19 @@
               |horseradish
 
               // Meats:
-              |2 Spam
               |2 bacon
               |2 {|fried|grilled} chicken
-              |ham
+              |2 Spam
               |brisket
+              |ham
               |corned beef
-              |lobster
               |crab
+              |lobster
               |oysters
-              |{3|2 grilled|ground|roast} beef
               |pastrami
               |sausage @pluralize
               |steak
+              |{3|2 grilled|ground|roast} beef
               |{|garlic|fried|coconut} shrimp
 
               // Veggies:
@@ -58,7 +58,7 @@
               |!#sauced !plate !used_eggs {|Dijon} mustard 
               |!#sauced 4 gravy              
               }
-@sides     := {!#used_potatoes 3 {|French} fries|2 {4|2 chicken|wonton} soup
+@sides     := {!#used_potatoes 3 {|French} fries
               |!#noodles 3 {|chow mein|rice|mi goreng|pad see ew|instant|Indo Mis} noodles
               |!#noodles pasta
               |!#used_bread a bagel
@@ -68,16 +68,19 @@
               |!#used_potatoes tater tots|pierogies
               |2 cabbage rolls
               |2 vegetables|2 !#used_potatoes potatoes
-              |2 {2|fried} rice
-              |2 {|a} salad
               |3 !#used_bread {|2 buttered} {toast|bread}
               |5 !#used_bread a bialy
-              |beans
-              |borscht
-              |coleslaw
+              |{4|baked|refried|black} beans
+              |!#soup 2 {4|2 chicken|wonton} soup
+              |!#soup borscht
+              |!#soup chowder
+              |!#soup stew
+              |!#salad coleslaw
+              |!#salad 2 {|a} salad
               |dumplings
               |pancakes
-              |pilaf}
+              |!#rice 2 {2|fried} rice
+              |!#rice pilaf}
 @relation  := {served with|paired with|accompanied by}
 @relation2 := {with|and|sitting {beside|next to}|alongside}
 @drink     := {glass of {milk|orange juice}
@@ -85,4 +88,14 @@
               |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
               |{glass|mug|can|bottle} of beer}
 
-A high-definition, 25-megapixel photograph of a {|2 delicious{|<-looking}|apetizing|2 fresh {|<ly made}|savory|tasty|2 mouth-watering} @formats with @3-4&toppings @relation @2&sides @relation2 a single @drink.
+A high-definition, 25-megapixel photograph of a
+{|2 delicious{|<-looking}
+|amazing
+|Michelin star
+|award-winning
+|appetizing
+|2 fresh {|<ly made}
+|savory
+|tasty
+|2 mouth-watering
+} @formats with @3-4&toppings @relation @2&sides @relation2 a single @drink.
