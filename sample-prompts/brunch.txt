@@ -1,6 +1,12 @@
-@formats   := {3 {2|grilled|toasted} sandwich #used_bread|banh mi #used_bread|panini #used_bread
-              |hoagie #used_bread|wrap|3 plate #pluralize #plate|burger|taco
-              |mufaletta sandwich #used_bread
+@formats   := {!#used_bread 3 {2|grilled|toasted} sandwich 
+              |!#used_bread banh mi 
+              |!#used_bread panini 
+              |!#used_bread burger
+              |!#used_bread hoagie
+              |!#used_bread mufaletta sandwich
+              |wrap
+              |3 plate #pluralize #plate
+              |taco
               // |scramble #used_eggs
               |omelette #used_eggs
               }
@@ -81,8 +87,8 @@
               |!#used_potatoes tater tots|pierogies
               |2 cabbage rolls
               |2 vegetables|2 !#used_potatoes potatoes
-              |3 !#used_bread {|2 buttered} {toast|bread}
-              |5 !#used_bread a bialy
+              |!#used_bread 3 {|2 buttered} {toast|bread}
+              |!#used_bread 5 a bialy
               |{4|baked|refried|black} beans
               |!#soup 2 {4|2 chicken|wonton} soup
               |!#soup borscht
@@ -105,7 +111,7 @@
               |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
               |{glass|mug|stein|can|bottle} of beer}
 
-A high-definition, 25-megapixel photograph of a
+A high-definition, {\25|\50}-megapixel photograph of a
 {|2 delicious{|<-looking}
 |amazing
 |Michelin star
