@@ -109,6 +109,8 @@ if (false)
 //         |-- Choice
 //         |-- Enclosed ------- CuttingEnclosed
 //         |-- Expect
+//         |-- Unexpected
+//         |-- Fail
 //         |-- Optional
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
@@ -124,7 +126,6 @@ if (false)
 //         |-- Discard
 //         |-- Elem
 //         |-- Label
-//         |-- Unexpected
 //         |
 //         | Rules that make sense only when input is an Array of Tokens:
 //         |
@@ -134,10 +135,6 @@ if (false)
 //         |
 //         |-- Literal
 //         |-- Regex
-//         |
-//         | TODO: not yet written:
-//         |
-//         |-- Fail: a rule that's not meant to ever be matched that immediately throws a parse error.
 //         |
 // ForwardReference (only needed when calling xform with a weird arg order)
 // LabeledValue
@@ -758,7 +755,7 @@ class Unexpected extends Rule {
         throw this.error_func(this, index, input)
       }
       else {
-        throw new Error(`unexpecteded (${this.rule} at ` +
+        throw new Error(`unexpected (${this.rule} at ` +
                         `char ${input[index].start}` +
                         `, found: ` +
                         `[ ${input.slice(index).join(", ")}` +
@@ -775,12 +772,46 @@ class Unexpected extends Rule {
   }
   // -------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
-    return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+    return `!${this.__vivify(this.rule).__toString(visited, next_id)}!`;
   }
 }
 // ---------------------------------------------------------------------------------------
 function unexpected(rule, error_func = null) { // convenience constructor
   return new Unexpected(rule, error_func);
+}
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// fail class
+// ---------------------------------------------------------------------------------------
+class Fail extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(error_func = null) {
+    super();
+    this.error_func = error_func;
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    throw this.error_func
+      ? this.error_func(this, index, input)
+      : new Error(`unexpected (${this.rule} at ` +
+                  `char ${input[index].start}` +
+                  `, found: ` +
+                  `[ ${input.slice(index).join(", ")}` +
+                  ` ]`);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `<FAIL!>`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function fail(error_func = null) { // convenience constructor
+  return new Fail(error_func);
 }
 // ---------------------------------------------------------------------------------------
 
