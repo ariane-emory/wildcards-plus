@@ -43,7 +43,7 @@ function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
   
   const data = JSON.stringify({
     prompt: prompt,
-    steps: 8,
+    // steps: 8,
     seed: Math.floor(Math.random() * (2 ** 32)),
   });
 
