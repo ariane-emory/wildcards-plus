@@ -131,7 +131,6 @@
                        |Kenji López-Alt
                        |Anthony Bourdain
                        |Matty Matheson
-                       |Wes Anderson
                        |?used_bread George Motz
                        |3 a {world famous
                             |the world's best
