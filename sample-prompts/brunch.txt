@@ -2,9 +2,24 @@
               |hoagie #used_bread|wrap|3 plate #pluralize #plate|burger|taco
               |omelette #used_eggs|scramble #used_eggs}
 @pluralize := {?pluralize <s}
-@toppings  := {4 {4|2mozarella|cheddar|provolone|gouda|parmesan|swiss|monterey jack|2 American|Colby} cheese
+@toppings  := {
+              4 !#cheese
+                {4 
+                |3 mozarella
+                |2 cheddar
+                |2 provolone
+                |gouda
+                |parmesan
+                |2 Swiss
+                |Monterey jack
+                |3 American
+                |Colby {|jack}
+                |Oaxaca}
+                cheese
               |3 !#used_eggs egg @pluralize
-              |!plate !used_eggs mayonnaise
+              |!used_eggs !plate mayonnaise
+              |!used_eggs aioli
+              |horseradish
 
               // Meats:
               |2 Spam
@@ -25,6 +40,7 @@
               // Veggies:
               |2 tomato @pluralize
               |2 mushrooms
+              |cucumber
               |kimchi
               |{4|jalapeno|banana|hot|chili} peppers
               |pickles
@@ -69,4 +85,4 @@
               |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
               |{glass|mug|can|bottle} of beer}
 
-A high-definition, 25-megapixel photograph of a {|2 delicious{|<-looking}|apetizing|2 fresh {|<ly made}|savory|2 mouth-watering} @formats with @3-4&toppings @relation @2&sides @relation2 a single @drink.
+A high-definition, 25-megapixel photograph of a {|2 delicious{|<-looking}|apetizing|2 fresh {|<ly made}|savory|tasty|2 mouth-watering} @formats with @3-4&toppings @relation @2&sides @relation2 a single @drink.
