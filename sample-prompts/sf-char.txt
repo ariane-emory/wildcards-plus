@@ -1,4 +1,3 @@
-
 @pro_3rd_object  := {?female her |?male him |?neuter it  }
 @pro_3rd_subject := {?female she |?male he  |?neuter it  }
 @pro_pos_adj     := {?female her |?male his |?neuter its }
@@ -8,8 +7,7 @@
 {#female|#male|#neuter}
 
 @l2_place :=
-{
-on a @l2_place_adj {planet|world|moon}
+{on a @l2_place_adj {planet|world|moon}
 |on a @l2_place_adj space station
 |on a @l2_place_adj @ship_term2
 }
@@ -27,9 +25,10 @@ on a @l2_place_adj {planet|world|moon}
 |primitive
 |backwater
 }
-
+@orbit_obj_adj   := {dim|distant|huge|luminous|shining}
+@orbit_obj       := {2 planet|ship|space station|asteroid|comet|2 star|black hole|satellite}
+@orbit_phrase    := {@orbit_obj_adj @orbit_obj}
 @l2_place_phrase := {@l2_place {|orbitting a @orbit_phrase}}
-@orbit_phrase    := { {dim|distant|huge} {2 planet|ship|space station|asteroid|comet|2 star|black hole} }
 
 @place_to_be_in := 
 {2 #indoors  {crew cabin 
@@ -60,10 +59,14 @@ on a @l2_place_adj {planet|world|moon}
 {3
 |mysterious
 |solitary #sole
+|daring
+|resolute
+|brave
+|intimidating
 |exotic
 |athletic
 |youthful
-|?f beautiful
+|beautiful
 }
 
 @char_late_adj :=
@@ -77,12 +80,25 @@ on a @l2_place_adj {planet|world|moon}
 @ship_term  := {starship|spacecraft|shuttle}
 @ship_term2 := {starship|spacecraft|shuttle|frigate|battleship|destroyer|merchant vessel}
 
-@ranged_weapon := {{laser|plasma|gauss|automatic|primitive|high-tech|advanced}
-                   {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher}}
-@weapon_phrase :=
-{holding @pro_pos_rand
- @ranged_weapon
+@ranged_weapon := {{|automatic|primitive|high-tech|advanced|alien}
+                   {|laser|plasma|gauss}
+                   {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher|stunner}
+                  }                
+@melee_weapon  := {{vibro|phase|energy} {sword|blade|baton}}                  
+@weapon_phrase := {holding @pro_pos_rand {2 @ranged_weapon|@melee_weapon}}
+
+@tool :=
+{hydrospanner
+|2 probe
+|2 scanner
+|2 toolkit
+|pair of binoculars
+|telescpe
+|optical device
+|2 datapad
+|2 communicator
 }
+@tool_phrase := {holding @pro_pos_rand {advanced|intricate} @tool}
 
 @role :=
 {#weapon mercenary 
@@ -99,7 +115,9 @@ on a @l2_place_adj {planet|world|moon}
 |{|@ship_term} {navigator|astrogator}
 }
 
-masterpiece, sciente fiction, futuristic. \n
+masterpiece, science fiction, futuristic. \n
 A @char_early_adj @char_late_adj @role {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at} {|@l2_place_phrase}
-{?weapon @weapon_phrase }
+{
+|2 ?weapon @weapon_phrase
+|2 ?tool   @tool_phrase }
 .
