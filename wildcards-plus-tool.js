@@ -82,11 +82,11 @@ function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
 let inspect_fun = util.inspect;
 // ----------------------------------------------------------------------------------------
 
-
-// =======================================================================================
-// Copy into wildcards-plus.js starting from this line!
-// =======================================================================================
-inspect_fun = JSON.stringify;
+if (false)
+  // =====================================================================================
+  // Copy into wildcards-plus.js starting from this line!
+  // =====================================================================================
+  inspect_fun = JSON.stringify;
 // ---------------------------------------------------------------------------------------
 
 
@@ -1757,6 +1757,8 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
       for (const option of thing.options) {
         let skip = false;
 
+        // console.log(`alternative is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
+        
         for (const not_flag of option.not_flags) {
           // if (context.noisy) 
           //   console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)}...`);
@@ -1958,7 +1960,10 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 // flag-related non-terminals:
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
-const NotFlag                 = xform(arr => new ASTNotFlag(arr[3], arr[1][0]),
+const NotFlag                 = xform(arr => {
+  // console.log(`ARR: ${inspect_fun(arr)}`);
+  return new ASTNotFlag(arr[2], arr[1][0]);
+},
                                       seq('!', optional('#'),
                                           ident, /(?=\s|[{|}]|$)/));
 const TestFlag                = choice(CheckFlag, NotFlag);
