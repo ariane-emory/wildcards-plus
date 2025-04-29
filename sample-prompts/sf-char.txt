@@ -41,6 +41,7 @@
 {3
 |on a @l2_place_adj {planet|world|moon}
 |on a @l2_place_adj space station
+|on a @l2_place_adj space station @ship_term
 }
 
 @locations_to_be_at :=
