@@ -108,12 +108,14 @@ if (false)
 //         |
 //         |-- Choice
 //         |-- Enclosed ------- CuttingEnclosed
-//         |-- Expect
-//         |-- Unexpected
-//         |-- Fail
 //         |-- Optional
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
+//         |
+//         | Rules triggering failure:
+//         |-- Expect
+//         |-- Unexpected
+//         |-- Fail
 //         |
 //         |-- (Quantified) -|-- Plus
 //         |                 |-- Star
@@ -686,136 +688,6 @@ function cutting_enc(start_rule, body_rule, end_rule) {
 // ---------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------
-// Expect class
-// ---------------------------------------------------------------------------------------
-class Expect extends Rule {
-  // -------------------------------------------------------------------------------------
-  constructor(rule, error_func = null) {
-    super();
-    this.rule       = make_rule_func(rule);
-    this.error_func = error_func;
-  }
-  // -------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
-
-    if (! match_result) {
-      if (this.error_func) {
-        throw this.error_func(this, index, input)
-      }
-      else {
-        throw new Error(`expected (${this.rule} at ` +
-                        `char ${input[index].start}` +
-                        `, found: ` +
-                        `[ ${input.slice(index).join(", ")}` +
-                        ` ]`);
-      }
-    };
-
-    return match_result;
-  }
-  // -------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
-    this.rule = this.__vivify(this.rule);    
-    this.rule.__finalize(indent + 1, visited);
-  }
-  // -------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
-  }
-}
-// ---------------------------------------------------------------------------------------
-function expect(rule, error_func = null) { // convenience constructor
-  return new Expect(rule, error_func);
-}
-// ---------------------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------------------
-// Unexpected class
-// ---------------------------------------------------------------------------------------
-class Unexpected extends Rule {
-  // -------------------------------------------------------------------------------------
-  constructor(rule, error_func = null) {
-    super();
-    this.rule       = make_rule_func(rule);
-    this.error_func = error_func;
-  }
-  // -------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
-
-    if (match_result) {
-      if (this.error_func) {
-        throw this.error_func(this, index, input)
-      }
-      else {
-        throw new Error(`unexpected (${this.rule} at ` +
-                        `char ${input[index].start}` +
-                        `, found: ` +
-                        `[ ${input.slice(index).join(", ")}` +
-                        ` ]`);
-      }
-    };
-
-    return new MatchResult(null, input, match_result.index);
-  }
-  // -------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
-    this.rule = this.__vivify(this.rule);    
-    this.rule.__finalize(indent + 1, visited);
-  }
-  // -------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    return `!${this.__vivify(this.rule).__toString(visited, next_id)}!`;
-  }
-}
-// ---------------------------------------------------------------------------------------
-function unexpected(rule, error_func = null) { // convenience constructor
-  return new Unexpected(rule, error_func);
-}
-// ---------------------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------------------
-// fail class
-// ---------------------------------------------------------------------------------------
-class Fail extends Rule {
-  // -------------------------------------------------------------------------------------
-  constructor(error_func = null) {
-    super();
-    this.error_func = error_func;
-  }
-  // -------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    throw this.error_func
-      ? this.error_func(this, index, input)
-      : new Error(`unexpected (${this.rule} at ` +
-                  `char ${input[index].start}` +
-                  `, found: ` +
-                  `[ ${input.slice(index).join(", ")}` +
-                  ` ]`);
-  }
-  // -------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
-    // do nothing
-  }
-  // -------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    return `<FAIL!>`;
-  }
-}
-// ---------------------------------------------------------------------------------------
-function fail(error_func = null) { // convenience constructor
-  return new Fail(error_func);
-}
-// ---------------------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------------------
 // Label class
 // ---------------------------------------------------------------------------------------
 class Label extends Rule {
@@ -1076,6 +948,136 @@ function xform(...things) { // convenience constructor with magic
 
     return new Xform(rule, fn);
   }
+}
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// Expect class
+// ---------------------------------------------------------------------------------------
+class Expect extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(rule, error_func = null) {
+    super();
+    this.rule       = make_rule_func(rule);
+    this.error_func = error_func;
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    const match_result = this.rule.match(
+      input,
+      index,
+      indent + 1);
+
+    if (! match_result) {
+      if (this.error_func) {
+        throw this.error_func(this, index, input)
+      }
+      else {
+        throw new Error(`expected (${this.rule} at ` +
+                        `char ${input[index].start}` +
+                        `, found: ` +
+                        `[ ${input.slice(index).join(", ")}` +
+                        ` ]`);
+      }
+    };
+
+    return match_result;
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);    
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function expect(rule, error_func = null) { // convenience constructor
+  return new Expect(rule, error_func);
+}
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// Unexpected class
+// ---------------------------------------------------------------------------------------
+class Unexpected extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(rule, error_func = null) {
+    super();
+    this.rule       = make_rule_func(rule);
+    this.error_func = error_func;
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    const match_result = this.rule.match(
+      input,
+      index,
+      indent + 1);
+
+    if (match_result) {
+      if (this.error_func) {
+        throw this.error_func(this, index, input)
+      }
+      else {
+        throw new Error(`unexpected (${this.rule} at ` +
+                        `char ${input[index].start}` +
+                        `, found: ` +
+                        `[ ${input.slice(index).join(", ")}` +
+                        ` ]`);
+      }
+    };
+
+    return new MatchResult(null, input, match_result.index);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);    
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `!${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function unexpected(rule, error_func = null) { // convenience constructor
+  return new Unexpected(rule, error_func);
+}
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// fail class
+// ---------------------------------------------------------------------------------------
+class Fail extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(error_func = null) {
+    super();
+    this.error_func = error_func;
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    throw this.error_func
+      ? this.error_func(this, index, input)
+      : new Error(`unexpected (${this.rule} at ` +
+                  `char ${input[index].start}` +
+                  `, found: ` +
+                  `[ ${input.slice(index).join(", ")}` +
+                  ` ]`);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `<FAIL!>`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function fail(error_func = null) { // convenience constructor
+  return new Fail(error_func);
 }
 // ---------------------------------------------------------------------------------------
 
