@@ -124,6 +124,7 @@ if (false)
 //         |-- Discard
 //         |-- Elem
 //         |-- Label
+//         |-- Unexpected
 //         |
 //         | Rules that make sense only when input is an Array of Tokens:
 //         |
@@ -137,7 +138,6 @@ if (false)
 //         | TODO: not yet written:
 //         |
 //         |-- Fail: a rule that's not meant to ever be matched that immediately throws a parse error.
-//         |-- Unexpected(rule): throw a parse error if rule is matched, otherwise return a discard.
 //         |
 // ForwardReference (only needed when calling xform with a weird arg order)
 // LabeledValue
@@ -733,6 +733,54 @@ class Expect extends Rule {
 // ---------------------------------------------------------------------------------------
 function expect(rule, error_func = null) { // convenience constructor
   return new Expect(rule, error_func);
+}
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// Unexpected class
+// ---------------------------------------------------------------------------------------
+class Unexpected extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(rule, error_func = null) {
+    super();
+    this.rule       = make_rule_func(rule);
+    this.error_func = error_func;
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    const match_result = this.rule.match(
+      input,
+      index,
+      indent + 1);
+
+    if (match_result) {
+      if (this.error_func) {
+        throw this.error_func(this, index, input)
+      }
+      else {
+        throw new Error(`unexpecteded (${this.rule} at ` +
+                        `char ${input[index].start}` +
+                        `, found: ` +
+                        `[ ${input.slice(index).join(", ")}` +
+                        ` ]`);
+      }
+    };
+
+    return new MatchResult(null, input, match_result.index);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);    
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function unexpected(rule, error_func = null) { // convenience constructor
+  return new Unexpected(rule, error_func);
 }
 // ---------------------------------------------------------------------------------------
 
