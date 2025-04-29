@@ -1,4 +1,3 @@
-{#female|#male|#neuter}
 
 @pro_3rd_object  := {?female her |?male him |?neuter it  }
 @pro_3rd_subject := {?female she |?male he  |?neuter it  }
@@ -6,7 +5,31 @@
 @pro_pos         := {?female hers|?male his |?neuter its }
 @pro_pos_rand    := {2 @pro_pos_adj|a|their}
 
-@locations_to_be_in := 
+{#female|#male|#neuter}
+
+@l2_place :=
+{
+on a @l2_place_adj {planet|world|moon}
+|on a @l2_place_adj space station
+|on a @l2_place_adj @ship_term2
+}
+
+@l2_place_adj := 
+{2
+|crowded
+|busy
+|remote
+|secluded
+|run-down
+|advanced
+|primitive
+|backwater
+}
+
+@l2_place_phrase := {@l2_place {|orbitting a @orbit_phrase}}
+@orbit_phrase    := { {dim|distant|huge} {planet|ship|space station|asteroid|comet|star} }
+
+@place_to_be_in := 
 {2 #indoors  {crew cabin 
              |2 cockpit
              |lounge
@@ -24,32 +47,8 @@
              }
 }
 
-
-
-@l2_place_adj := 
-{2
-|crowded
-|busy
-|remote
-|secluded
-|run-down
-|advanced
-|primitive
-|backwater
-}
-
-@l2_locations :=
-{
-on a @l2_place_adj {planet|world|moon}
-|on a @l2_place_adj space station
-|on a @l2_place_adj @ship_term2
-}
-
-@l2_location_phrase := {@l2_locations {2|orbitting a @orbit_obj}}
-@orbit_obj := { {dim|distant|huge} {planet|ship|space station|asteroid|comet|star} }
-
-@locations_to_be_at :=
-{warehouse
+@place_to_be_at :=
+{{ware|store} <house
 |computer
 |helm
 |console
@@ -79,16 +78,19 @@ on a @l2_place_adj {planet|world|moon}
 @role :=
 {#weapon mercenary 
 |{3|hyperdrive|@ship_term} technician #tool
-|scientist           #tool
-|explorer            {#tool|#weapon}
-|scout               {#tool|#weapon} 
-|soldier             #weapon 
-|{space|star} marine #weapon
-|medic               {|#ool}
+|communications officer {2|#tool|#weapon}
+|scientist              #tool
+|explorer               {#tool|#weapon}
+|scout                  {#tool|#weapon}
+|soldier                #weapon 
+|medic                  {|#tool}
+|{space|star} marine    #weapon
 |@ship_term captain
 |@ship_term pilot
+|{|@ship_term} {navigator|astrogator}
 }
 
-A @char_early_adj @char_late_adj @role {in {a|the} @locations_to_be_in|at {a|the} @locations_to_be_at} {|@l2_location_phrase}
+masterpiece, sciente fiction, futuristic. \n
+A @char_early_adj @char_late_adj @role {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at} {|@l2_place_phrase}
 {?weapon holding @pro_pos_rand {laser|plasma|gauss|automatic|primitive|advanced} {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher}}
 .
