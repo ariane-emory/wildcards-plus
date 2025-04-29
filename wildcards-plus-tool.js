@@ -2041,7 +2041,6 @@ const Prompt                  = wst_star(choice(ScalarAssignment,
 Prompt.finalize();
 // ---------------------------------------------------------------------------------------
 
-
 import * as readline from 'readline';
 
 function ask(question) {

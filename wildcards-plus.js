@@ -7,6 +7,13 @@
 // =======================================================================================
 
 
+// =====================================================================================
+// Copy into wildcards-plus.js starting from this line!
+// =====================================================================================
+inspect_fun = JSON.stringify;
+// ---------------------------------------------------------------------------------------
+
+
 // =======================================================================================
 // GRAMMAR.JS CONTENT:
 // =======================================================================================
@@ -1248,7 +1255,7 @@ const pascal_assign_op   = l(':=');
 const python_exponent_op = l('**');
 const python_logic_word  = r(/and|or|not|xor/);
 // ---------------------------------------------------------------------------------------
-// common punctuation:
+// common puntuation:
 const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
@@ -1414,7 +1421,7 @@ function capitalize(string) {
 function smart_join(arr) {
   // console.log(`JOINING ${inspect_fun(arr)}`);
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase());
-  const punctuationp = (ch)  => "'_-,.?!;:".includes(ch);
+  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => ch === "_" || ch === "-";
   const whitep       = (ch)  => ch === ' ' || ch === '\n';
   const unescape     = (str) => {
@@ -1498,22 +1505,6 @@ function smart_join(arr) {
 
 
 // =======================================================================================
-// deal with the possibility of not having util (or any module system) inside DT:
-// =======================================================================================
-let inspect_fun = JSON.stringify;
-
-const is_node = typeof process !== "undefined" &&
-      process.versions != null &&
-      process.versions.node != null;
-
-// if (is_node) {
-//   const { inspect } = await import("util");
-//   inspect_fun = inspect;
-// }
-// ---------------------------------------------------------------------------------------
-
-
-// =======================================================================================
 // the AST-walking function that I'll be using for the SD prompt grammar's output:
 // =======================================================================================
 function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()) {
@@ -1566,20 +1557,10 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
     else if (thing instanceof ASTNamedWildcardReference) {
       const got = context.named_wildcards.get(thing.name);
 
-      // if (!got)
-      //   return `ERROR: Named wildcard $'{thing.name}' not found!`;
-
-      // console.log(`THE OBJ: ${inspect_fun(thing)}`);
-      
-      // console.log(`FETCH WC @${thing.name} = ${JSON.stringify(got)}`);
-
       if (!got)
         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
-
-      let res = [ walk(got, context) ];
-      
-      // console.log(`type: ${typeof walked}`);
+      const res = [ walk(got, context) ];
 
       if (thing.capitalize)
         res[0] = capitalize(res[0]);
@@ -1589,7 +1570,7 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
       for (let ix = 1; ix < count; ix++) {
         let val = walk(got, context);
         
-        for (let iix = 0; ix < 5; ix++) {
+        for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
           if (! res.includes(val))
             break;
 
@@ -1599,7 +1580,6 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
         res.push(val);
       }
 
-      // console.log(`'${thing.join}' vs '${','}'`);
       return thing.join == ','
         ? res.join(", ")
         : (thing.join == '&'
@@ -1614,8 +1594,6 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
       if (thing.capitalize)
         got = capitalize(got);
 
-      // console.log(`FETCH SCALAR $${thing.name} = ${JSON.stringify(got)}`);
-      
       return got;
     }
     // -----------------------------------------------------------------------------------
@@ -1703,6 +1681,8 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
       for (const option of thing.options) {
         let skip = false;
 
+        // console.log(`alternative is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
+        
         for (const not_flag of option.not_flags) {
           // if (context.noisy) 
           //   console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)}...`);
@@ -1740,6 +1720,7 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
       // console.log(`PICKED ${inspect_fun(pick)}`);
       
       return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
+      // return walk(pick, context);
     }
     // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
@@ -1776,8 +1757,11 @@ class ASTCheckFlag {
 }
 // ---------------------------------------------------------------------------------------
 class ASTNotFlag  {
-  constructor(name) {
+  constructor(name, set_immediately) {
     this.name = name;
+    this.set_immediately = set_immediately;
+    // if (this.set_immediately)
+    //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -1866,16 +1850,24 @@ class ASTAnonWildcardOption {
 // ---------------------------------------------------------------------------------------
 const make_ASTAnonWildcardOption = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
-
-  return (flags =>
-    new ASTAnonWildcardOption(
-      arr[1][0],
-      flags.filter(f => f instanceof ASTCheckFlag),
-      flags.filter(f => f instanceof ASTNotFlag),
-      [
-        ...flags.filter(f => f instanceof ASTSetFlag),
-        ...arr[3]
-      ]))([ ...arr[0], ...arr[2] ])};
+  const flags = ([ ...arr[0], ...arr[2] ]);
+  const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
+  const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
+  const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
+  const set_immediately_not_flags = not_flags
+        .filter(f => f.set_immediately)
+        .map(f => new ASTSetFlag(f.name)) ;
+  
+  return new ASTAnonWildcardOption(
+    arr[1][0],
+    check_flags,
+    not_flags,
+    [
+      ...set_immediately_not_flags,
+      ...set_flags,
+      ...arr[3]
+    ]);
+}
 // ---------------------------------------------------------------------------------------
 const make_ASTFlagCmd = (klass, ...rules) =>
       xform(ident => new klass(ident),
@@ -1885,7 +1877,6 @@ const make_ASTFlagCmd = (klass, ...rules) =>
 const plaintext               = /[^{|}\s]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-// const wb_uint                 = xform(parseInt, /\b\d+\b/);
 const ident                   = /[a-zA-Z_][0-9a-zA-Z_]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
@@ -1893,14 +1884,19 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 // flag-related non-terminals:
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
-const NotFlag                 = make_ASTFlagCmd(ASTNotFlag,   '!');
-const FlagTest                = choice(CheckFlag, NotFlag);
+const NotFlag                 = xform((arr => {
+  // console.log(`ARR: ${inspect_fun(arr)}`);
+  return new ASTNotFlag(arr[2], arr[1][0]);
+}),
+                                      seq('!', optional('#'),
+                                          ident, /(?=\s|[{|}]|$)/));
+const TestFlag                = choice(CheckFlag, NotFlag);
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
-                                      seq(wst_star(choice(comment, FlagTest)),
+                                      seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
-                                          wst_star(choice(comment, FlagTest)),
+                                          wst_star(choice(comment, TestFlag)),
                                           () => ContentStar));
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardOption, '|')));
@@ -1959,8 +1955,8 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               assignment_operator,
                                               ScalarAssignmentSource));
 const Content                 = choice(ScalarReference, NamedWildcardReference,
-                                       NamedWildcardUsage, 
-                                       SetFlag, AnonWildcard, comment, low_pri_text, plaintext);
+                                       NamedWildcardUsage, SetFlag, AnonWildcard,
+                                       comment, low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 const Prompt                  = wst_star(choice(ScalarAssignment,
                                                 NamedWildcardDefinition,

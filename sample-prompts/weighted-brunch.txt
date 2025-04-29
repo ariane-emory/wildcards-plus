@@ -41,6 +41,7 @@
 
 @weightedToppings   := {@toppings|2 (@toppings @randomWeight)}
 @toppings           := {4 !#cheese
+                         {|melted}
                          {4 
                          |3 American
                          |3 mozarella
@@ -95,7 +96,8 @@
                        |!#used_potatoes poutine
                        |!#used_potatoes tater tots|pierogies
                        |2 cabbage rolls
-                       |2 vegetables|2 !#used_potatoes potatoes
+                       |2 vegetables
+                       |2 !#used_potatoes {2|mashed} potatoes
                        |!#used_bread 3 {|2 buttered} {toast|bread}
                        |!#used_bread 5 a bialy
                        |{4|baked|refried|black} beans
