@@ -107,6 +107,7 @@
 |scientist              #tool
 |explorer               {#tool|#weapon}
 |scout                  {#tool|#weapon}
+|bounty hunter          #weapon
 |soldier                #weapon 
 |medic                  {|#tool}
 |{space|star} marine    #weapon
