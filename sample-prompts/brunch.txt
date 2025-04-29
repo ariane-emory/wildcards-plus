@@ -2,19 +2,20 @@
               |hoagie #used_bread|wrap|3 plate #pluralize #plate|burger|taco
               |omelette #used_eggs|scramble #used_eggs}
 @pluralize := {?pluralize <s}
-@toppings  := {
-              4 !#cheese
+@toppings  := {4 !#cheese
                 {4 
+                |3 American
                 |3 mozarella
                 |2 cheddar
                 |2 provolone
+                |blue
                 |gouda
                 |parmesan
                 |2 Swiss
                 |Monterey jack
-                |3 American
                 |Colby {|jack}
-                |Oaxaca}
+                |Oaxaca
+                }
                 cheese
               |3 !#used_eggs egg @pluralize
               |!used_eggs !plate mayonnaise
@@ -25,6 +26,8 @@
               |2 bacon
               |2 {|fried|grilled} chicken
               |2 Spam
+              |{2|fried|grilled} fish
+              |{|fried|roasted} turkey
               |brisket
               |ham
               |corned beef
@@ -33,8 +36,8 @@
               |oysters
               |pastrami
               |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
-              |steak
-              |{3|2 grilled|ground|roast} beef
+              |2 steak
+              |2 {3|2 grilled|ground|roast} beef
               |{|garlic|fried|coconut} shrimp
 
               // Veggies:
@@ -50,14 +53,18 @@
 
               // Sauces:
               |!#sauced !plate ketchup
+              |!#sauced salsa
               |!#sauced sauce
+              |!#sauced Sriracha sauce
+              |!#sauced steak sauce
               |!#sauced 2 gochujang 
               |!#sauced hot sauce
               |!#sauced satay sauce
               |!#sauced teriyaki sauce 
               |!#sauced !plate !used_eggs {|Dijon} mustard 
-              |!#sauced 4 gravy              
+              |!#sauced 4 {4|brown|chicken|beef|turkey} gravy              
               }
+
 @sides     := {!#used_potatoes 3 {|French} fries
               |!#noodles 3 {|chow mein|rice|mi goreng|pad see ew|instant|Indo Mis} noodles
               |!#noodles pasta
@@ -80,13 +87,15 @@
               |dumplings
               |pancakes
               |!#rice 2 {2|fried} rice
-              |!#rice pilaf}
+              |!#rice pilaf
+              }
+
 @relation  := {served with|paired with|accompanied by}
 @relation2 := {with|and|sitting {beside|next to}|alongside}
 @drink     := {glass of {milk|orange juice}
               |{mug|cup} of {{2|green} tea|coffee}
               |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
-              |{glass|mug|can|bottle} of beer}
+              |{glass|mug|stein|can|bottle} of beer}
 
 A high-definition, 25-megapixel photograph of a
 {|2 delicious{|<-looking}
