@@ -27,7 +27,7 @@
 
 
 @l2_place_adj := 
-{1
+{2
 |crowded
 |busy
 |remote
@@ -39,11 +39,14 @@
 }
 
 @l2_locations :=
-{3
-|on a @l2_place_adj {planet|world|moon}
+{
+on a @l2_place_adj {planet|world|moon}
 |on a @l2_place_adj space station
 |on a @l2_place_adj @ship_term2
 }
+
+@l2_location_phrase := {@l2_locations {2|orbitting a @orbit_obj}}
+@orbit_obj := { {dim|distant|huge} {planet|ship|space station|asteroid|comet|star} }
 
 @locations_to_be_at :=
 {warehouse
@@ -86,6 +89,6 @@
 |@ship_term pilot
 }
 
-A @char_early_adj @char_late_adj @role {in {a|the} @locations_to_be_in|at {a|the} @locations_to_be_at} @l2_locations
+A @char_early_adj @char_late_adj @role {in {a|the} @locations_to_be_in|at {a|the} @locations_to_be_at} {|@l2_location_phrase}
 {?weapon holding @pro_pos_rand {laser|plasma|gauss|automatic|primitive|advanced} {2 pistol|{|sniper|hunting} rifle|submachinegun}}
 .
