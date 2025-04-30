@@ -1,9 +1,32 @@
+@quality      := { rusty | masterwork | fine | bejeweled | glowing | magical |}
+@weapon       := {2 spear|2 {two-handed|bastard|short} sword|3 axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger|blade}
+@friend       := {father|mother|mentor|teacher|lover}
+
+@#weapon                // Set a latch on the @weapon wildcard, since we're going to make several references to the same weapon.
+@#friend                // Set a latch on the @friend wildcard, since we're going two references to the same friend.
 {#female|#male|#neuter} // Randomly pick one of these three alternatives and set a gender flag.
 
-// The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pronouns:
-@pronoun_3rd_object  := {?female her |?male him |?neuter it  }
-@pronoun_3rd_subject := {?female she |?male he  |?neuter it  }
-@pronoun_pos_adj     := {?female her |?male his |?neuter its }
-@pronoun_pos         := {?female hers|?male his |?neuter its }
+// Commented out because these named wildcards are in the built-in prelude now and thus are always defined.
+// // The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pronouns:
+// @pro_3rd_obj  := {?female her |?male him | ?neuter it  }
+// @pro_3rd_subj := {?female she |?male he  | ?neuter it  }
+// @pro_pos_adj     := {?female her |?male his | ?neuter its }
+// @pro_pos         := {?female hers|?male his | ?neuter its }
 
-@^pronoun_3rd_subject shook @pronoun_pos_adj head.
+@^pro_3rd_subj { swung | brandished | presented } @pro_pos_adj @quality @weapon, that very same @weapon @pro_pos_adj
+{beloved|dear|long lost|} @friend had
+{{trained|taught} @pro_3rd_obj to use|forged {for|with} @pro_3rd_obj|given to @pro_3rd_obj|bestowed upon @pro_3rd_obj
+|entrusted @pro_3rd_obj with|bequeathed unto @pro_3rd_obj} so many years ago...
+if only @pro_pos_adj @friend were still {with|beside|watching} @pro_3rd_obj today, to see how {skillfully|confidently|expertly}
+@pro_3rd_subj {gripped|held|wielded|handled} the @weapon now!
+
+The {menacing|brutish|foul} {demon|orc|warrior} {facing|looming over} @pro_3rd_obj {snarled|growled|hissed|let out a battle cry|howled} and
+{lunged|advanced|leapt towards @pro_3rd_obj}, raising its
+
+@!weapon /* Unlatch the @weapon wildcard, so that the next time we reference it will 're-roll' a new weapon for the next part of our sentance. */
+
+@weapon to meet @pro_pos_adj {|own|tightly-held} weapon with a clang, and their {battle|struggle|duel|deadly dance} began.
+
+/*
+She brandished her glowing scimitar, that very same scimitar her beloved mentor had entrusted her with many years ago... if only her mentor were still with her today to see how confidently she wielded the scimitar now! The foul demon looming over her hissed and leapt towards her, raising its axe to meet her tightly-held weapon with a clang, and their deadly dance began.
+*/
