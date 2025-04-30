@@ -11,7 +11,6 @@
 |on a @l2_place_adj space station
 |on a @l2_place_adj @ship_term2
 }
-
 @l2_place_adj := 
 {
 |strange
@@ -47,20 +46,19 @@
              |crater
              }
 }
-
 @place_to_be_at :=
 {{ware|store} <house
 |computer
 |helm
 |console
 }
-
 @place_phrase := {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at}
 
 @char_early_adj :=
 {3
 |mysterious
 |solitary #sole
+|independant #sole
 |daring
 |resolute
 |brave
@@ -72,7 +70,7 @@
 }
 
 @char_late_adj :=
-{3
+{s3
 |alien
 |android
 |cyborg
@@ -102,20 +100,24 @@
 }
 @tool_phrase := {holding @pro_pos_rand {advanced|intricate|alien|high-tech} @tool}
 
+@probably_no_equipment := {2|#tool|#weapon}
+@tool_or_weapon := {#tool|#weapon}
+
 @role :=
 {#weapon mercenary 
-|{3|hyperdrive|@ship_term} technician #tool
-|communications officer {2|#tool|#weapon}
-|scientist              #tool
-|explorer               {#tool|#weapon}
-|scout                  {#tool|#weapon}
-|bounty hunter          #weapon
-|soldier                #weapon 
-|medic                  {|#tool}
-|{space|star} marine    #weapon
-|@ship_term captain
-|@ship_term pilot
-|{|@ship_term} {navigator|astrogator}
+|{3|hyperdrive|@ship_term} technician        #tool
+|communications officer                      @probably_no_equipment
+|scientist                                   #tool
+|explorer                                    @tool_or_weapon
+|scout                                       @tool_or_weapon
+|bounty hunter                               #weapon
+|soldier                                     #weapon 
+|medic                                       #tool
+|{space|star|interstellar} {trader|merchant} @probably_no_equipment
+|{space|star} marine                         #weapon
+|@ship_term captain                          @probably_no_equipment
+|@ship_term pilot                            @probably_no_equipment
+|{|@ship_term} {navigator|astrogator}        @probably_no_equipment
 }
 
 masterpiece, science fiction, futuristic. \n
