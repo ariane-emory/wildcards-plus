@@ -2161,10 +2161,11 @@ async function main() {
     throw new Error("Usage: ./wildcards-plus-tool.js [--post|--confirm] (--stdin | <input-file>) [<count>]");
   }
 
-  if (args[0] === '--post') {
+  if (["-p", "--post"].includes(args[0])) {
     post = true;
     args.shift();
-  } else if (args[0] === '--confirm') {
+  }
+  else if (["-c", "--confirm"].includes(args[0])) {
     post    = true;
     confirm = true;
     args.shift();
