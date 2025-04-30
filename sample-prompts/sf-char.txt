@@ -130,8 +130,8 @@ Necron, electricity, green glow, green theme, \n
 masterpiece, science fiction, futuristic, hyperrealistic. \n
 A @char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {
-|2 ?weapon @weapon_phrase
-|2 ?tool   @tool_phrase }
+|3 ?weapon @weapon_phrase
+|3 ?tool   @tool_phrase }
 .
-{|2 @clothing_phrase}
+{|3 @clothing_phrase}
 
