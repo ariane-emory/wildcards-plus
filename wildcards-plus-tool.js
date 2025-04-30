@@ -1430,6 +1430,7 @@ const dot                = l('.');
 const eq_arrow           = l('=>');
 const ellipsis           = l('...');
 const equals             = l('=');
+const percent            = l('%');
 const pipe               = l('|');
 const pound              = l('#');
 const question           = l('?');
