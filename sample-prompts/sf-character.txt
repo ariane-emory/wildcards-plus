@@ -49,14 +49,18 @@
 
 @char_early_adj :=
 {3
+|adventurous
 |mysterious
 |solitary #solo
 |independant #solo
 |daring
 |resolute
 |brave
+|cunning
+|inhuman
 |intimidating
 |exotic
+|otherworldly
 |athletic
 |muscular
 |youthful
@@ -65,15 +69,18 @@
 
 @char_late_adj :=
 {3
-|alien
+|alien #alien
 |android
-|cyborg
+|cyborg #cyborg
 |human
 }
 
 @ship_term  := {starship|spacecraft|space ship|shuttle}
 @ship_term2 := {starship|spacecraft|space ship|shuttle|frigate|battleship|destroyer|merchant vessel}
 
+// ---------------------------------------------------------------------------------------
+// weapons:
+// ---------------------------------------------------------------------------------------
 @ranged_weapon := {{|automatic|primitive|high-tech|advanced|alien}
                    {|laser|plasma|gauss}
                    {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher|stunner}
@@ -82,6 +89,9 @@
 @weapon_verb   := {3 holding|wielding|brandishing|displaying|presenting}
 @weapon_phrase := {@weapon_verb @pro_pos_rand {2 @ranged_weapon|@melee_weapon}}
 
+// ---------------------------------------------------------------------------------------
+// tool:
+// ---------------------------------------------------------------------------------------
 @tool :=
 {hydrospanner
 |2 probe
@@ -93,13 +103,20 @@
 |2 datapad
 |2 communicator
 }
+
 @tool_phrase := {holding @pro_pos_rand {advanced|intricate|alien|high-tech} @tool}
 
+// ---------------------------------------------------------------------------------------
+// inventory flags:
+// ---------------------------------------------------------------------------------------
 @maybe_no_equipment := {|2 #tool|#weapon}
 @tool_or_weapon     := {#tool|#weapon}
 @likely_weapon      := {#tool|2 #weapon}
 @likely_tool        := {2 #tool|#weapon}
 
+// ---------------------------------------------------------------------------------------
+// role:
+// ---------------------------------------------------------------------------------------
 @role :=
 {#weapon mercenary 
 |{3|hyperdrive|@ship_term} technician        @likely_tool
@@ -118,6 +135,9 @@
 |{|@ship_term} {navigator|astrogator}        @maybe_no_equipment
 }
 
+// ---------------------------------------------------------------------------------------
+// clothing:
+// ---------------------------------------------------------------------------------------
 @clothing_verb   := {2 wearing|clad in|dressed in}
 @clothing_phrase := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_adj    := {2|2 futuristic|advanced|tattered |{|starship|space ship|spacecraft} crew member's|high-tech|military}
@@ -127,15 +147,45 @@
                     |@pro_pos_rand @clothing_adj uniform
                     |@pro_pos_rand @clothing_adj {space|vacuum} suit
                     |@pro_pos_rand @clothing_adj exoskeleton}
+                    
+// ---------------------------------------------------------------------------------------
+// cyborg feature:
+// ---------------------------------------------------------------------------------------
+@cyborg_feature_phrase := {|3 ?cyborg
+  @^pro_3rd_subj has
+  {one mechanical arm
+  |mechanical arms
+  |mechanical arms
+  |one cybernetic eye
+  |cybernetic eyes
+  }
+  .
+}
+
+// ---------------------------------------------------------------------------------------
+// ailien feature:
+// ---------------------------------------------------------------------------------------
+@alien_feature_phrase := {|3 ?alien
+  @^pro_3rd_subj has
+  {an insectoid appearance
+  |digitigrade legs
+  |gills on her throat
+  |scaled skin
+  |a reptilian appearance
+  }
+  .
+}
+
+// =======================================================================================
 
 ethereon, \n
-Necron, electricity, green glow, green theme, \n
+/*Necron, electricity, /* green glow, green theme, */ \n
 masterpiece, science fiction, futuristic, hyperrealistic, wide shot. \n
-A @char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
+A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {
-|3 ?weapon @weapon_phrase
-|3 ?tool   @tool_phrase }
+|4 ?weapon @weapon_phrase
+|4 ?tool   @tool_phrase }
 .
-{|3 @clothing_phrase}
-
-(foo @random_weight)
+{|4 @clothing_phrase}
+@cyborg_feature_phrase
+@alien_feature_phrase

@@ -1728,7 +1728,7 @@ function make_context(flags = new Set(),
   };
 }
 // ---------------------------------------------------------------------------------------
-function make_context_with_prelude() {
+function load_prelude(into_context = make_context()) {
   const prelude = `
     @pro_3rd_subj       := {?female she |?male he  |?neuter it  }
     @pro_3rd_obj        := {?female her |?male him |?neuter it  }
@@ -1749,10 +1749,9 @@ function make_context_with_prelude() {
   `;
 
   const result  = Prompt.match(prelude);
-  const context = make_context();
-  const ignored = expand_wildcards(result.value, context);
+  const ignored = expand_wildcards(result.value, into_context);
 
-  return context;
+  return into_context;
 }
 // ---------------------------------------------------------------------------------------
 function expand_wildcards(thing, context = make_context()) {  
@@ -2307,7 +2306,7 @@ async function main() {
     console.log('--------------------------------------------------------------------------------');
     // console.log(`posted_count = ${posted_count}`);
 
-    const context  = make_context_with_prelude();
+    const context  = load_prelude();
     const expanded = expand_wildcards(result.value, context);
     
     console.log(expanded);
