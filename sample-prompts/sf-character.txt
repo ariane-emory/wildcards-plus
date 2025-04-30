@@ -7,14 +7,14 @@
 {#planet|#ship|#moon|#station}
 
 @ship_term  := {starship|spacecraft|space ship|shuttle}
-@ship_term2 := {starship|spacecraft|space ship|shuttle|space frigate|space battleship|space destroyer|merchant vessel}
+@ship_term2 := {starship|spacecraft|space ship|shuttle|space frigate|space battleship
+               |space destroyer|merchant vessel}
 
 // ---------------------------------------------------------------------------------------
 // L2 places:
 // ---------------------------------------------------------------------------------------
 @l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station
                  |?planet planet|?planet world|?moon moon}}
-
 @l2_place_adj := 
 {
 |strange
@@ -31,7 +31,8 @@
 @l2_orbit_obj_adj   := {dim|distant|huge|luminous|shining}
 @l2_orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship
                        |!planet !moon space station|!planet !moon asteroid
-                       |!planet comet|2 star|black hole|!planet !moon satellite}
+                       |!planet comet|2 {|2 yellow|2 red|green} star|black hole
+                       |!planet !moon satellite}
 @l2_orbit_phrase    := {@l2_orbit_obj_adj @l2_orbit_obj}
 @l2_place_phrase    := {@l2_place {|orbitting a @l2_orbit_phrase}}
 
@@ -45,6 +46,7 @@
              |bar
              |2 market             
              |laboratory
+             |{sky|hover|ground} {<car|transport}
              |equipment room
              |!planet !moon engine room
              |security room
@@ -63,11 +65,11 @@
 }
 @place_to_be_at :=
 {{ware|store} <house
-|computer
+|{2|holographic} computer
 |colony
 |!ship !station launch pad
 |!planet !moon helm
-|!planet !moon console
+|!planet !moon {|navigation|control|sensor|computer} console
 }
 @place_phrase := {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at}
 
@@ -115,7 +117,8 @@
 // ---------------------------------------------------------------------------------------
 // tool:
 // ---------------------------------------------------------------------------------------
-@tool_phrase := {holding @pro_pos_rand {!#advanced advanced|intricate|alien|!#high-tech high-tech} @tool}
+@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech}
+@tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
 @tool :=
 {hydrospanner
 |2 probe
@@ -206,7 +209,7 @@
 }
 
 // ---------------------------------------------------------------------------------------
-sky:
+// sky:
 // ---------------------------------------------------------------------------------------
 @sky_sentence := {?outdoors {2
 |{Two|Three} moons can be seen in the sky above.
@@ -217,11 +220,16 @@ sky:
 |Strangely coloured clouds can be seen in the sky above.
 |Strangely lights can be seen in the sky above.
 |Flocks of alien birds can be seen in the sky above.
+|A {|huge|gigantic} {2 |2 red|2 yellow|green} sun can be seen in the sky above.
 }}
 
 // =======================================================================================
+@colour_modifiers := {warm color pallete|warm lighting
+                     |?outdoors natural lighting|?outdoors golden hour}
 
-@aris_defaults, science fiction, futuristic, hyperrealistic, ethereon, infinite focus.
+@aris_defaults, science fiction, {|futuristic,} hyperrealistic, ethereon, infinite focus,
+@0-2,colour_modifiers
+.
 
 \n\n
 
