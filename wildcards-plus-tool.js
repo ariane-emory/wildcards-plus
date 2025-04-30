@@ -2307,7 +2307,8 @@ async function main() {
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
 
-  let posted_count = 0;
+  let posted_count    = 0;
+  let prior_expansion = null;
   
   while (posted_count < count) {
     console.log('--------------------------------------------------------------------------------');
@@ -2346,6 +2347,8 @@ async function main() {
         }
       }
     }
+
+    prior_expansion = expanded;
   }
 
   console.log('--------------------------------------------------------------------------------');
