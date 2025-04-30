@@ -194,10 +194,6 @@ A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {|4 @cyborg_feature_sentence}
 {|4 @alien_feature_sentence}
 
-{#!foo}
-
-
-
 {?outdoors {2
 |{Two|Three} moons can be seen in the sky above.
 |The planet's ring can be seen arching over in the sky above.
