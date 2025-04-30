@@ -2330,7 +2330,7 @@ async function main() {
       else  {
         console.log();
 
-        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /y.*/ for yes or a positive integer for multiple images)? `;
+        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /y.*/ for ye, positive integer for multiple images, or /p.*/ to rewind to the prior prompt)? `;
         const answer = await ask(question);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
@@ -2338,8 +2338,13 @@ async function main() {
 
         
         if (answer.match(/^p.*/i)) {
-          expanded = prior_expansion;
-          console.log(`rewound prompt to '${expanded}'`);
+          if (prior_expansion) { 
+            expanded = prior_expansion;
+            console.log(`rewound prompt to '${expanded}'`);
+          }
+          else {
+            console.log(`can't rewind, no prior prompt`);
+          }
         }
         else {          
           const parsed    = parseInt(answer);
