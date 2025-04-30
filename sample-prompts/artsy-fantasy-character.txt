@@ -54,12 +54,6 @@ $weapon  := @weapon
 
 @look_aim := {past|towards|2 {|up|down} {at|towards}}
 
-@#artists
-
-
-
-
-
 // {|2 epic|3 dark} fantasy, masterpiece,
 ultra high resolution, 8k, detailed background,
 wide shot,
