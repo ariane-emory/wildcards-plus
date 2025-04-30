@@ -1738,7 +1738,7 @@ function make_context_with_prelude() {
 
   const result = Prompt.match(prelude);
   const context = make_context();
-  const ignored = expand_wildcards(result.value, make_context());
+  const ignored = expand_wildcards(result.value, context);
 
   return context;
 }
@@ -2297,7 +2297,6 @@ async function main() {
     // console.log(`posted_count = ${posted_count}`);
 
     const context  = make_context_with_prelude();
-    console.log(`context w/prelude: ${inspect_fun(context)}`);
     const expanded = expand_wildcards(result.value, context);
     
     console.log(expanded);

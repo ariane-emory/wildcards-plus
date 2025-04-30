@@ -1,7 +1,3 @@
-@pro_3rd_subj := {?female she |?male he  |?neuter it  }
-@pro_3rd_obj  := {?female her |?male him |?neuter it  }
-@pro_pos_adj  := {?female her |?male his |?neuter its }
-@pro_pos      := {?female hers|?male his |?neuter its }
 @pro_pos_rand := {2 @pro_pos_adj|a}
 
 {3 #female|2 #male|#neuter}
