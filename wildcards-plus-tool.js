@@ -1854,6 +1854,9 @@ function expand_wildcards(thing, context = make_context()) {
     } 
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
+      if (context.named_wildcards.has(thing.destination.name))
+        throw new Error(`named wildcard '${thing.destination.name}' already defined!`);
+
       context.named_wildcards.set(thing.destination.name, thing.wildcard);
 
       return '';
