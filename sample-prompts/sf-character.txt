@@ -174,7 +174,7 @@
   |digitigrade legs
   |gills on her throat
   |razor sharp claws
-  |armored plates on @pro_pos_3rd skin
+  |armored plates on @pro_pos_adj skin
   |scaled skin
   |a prehensile tail
   |a reptilian appearance
