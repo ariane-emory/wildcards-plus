@@ -1022,14 +1022,15 @@ class Unexpected extends Rule {
       }
       else {
         throw new Error(`unexpected (${this.rule} at ` +
-                        `char ${input[index].start}` +
-                        `, found: ` +
-                        `[ ${input.slice(index).join(", ")}` +
-                        ` ]`);
+                        `char ${index}` +
+                        `, found: "` +
+                        input.substring(index, index + 20) +
+                        // `[ ${ (string_input_mode_enabled ? input.substring : input.slice)(index).join(", ")}` +
+                        `..."`);
       }
     };
 
-    return new MatchResult(null, input, match_result.index);
+    return null; // new MatchResult(null, input, match_result.index);
   }
   // -------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
@@ -2130,13 +2131,14 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 // flag-related non-terminals:
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
+const MalformedNotSetCombo    = unexpected('#!');
 const NotFlag                 = xform((arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   return new ASTNotFlag(arr[2], arr[1][0]);
 }),
                                       seq('!', optional('#'),
                                           ident, /(?=\s|[{|}]|$)/));
-const TestFlag                = choice(CheckFlag, NotFlag);
+const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
