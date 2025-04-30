@@ -18,15 +18,16 @@
 |backwater
 }
 @orbit_obj_adj   := {dim|distant|huge|luminous|shining}
-@orbit_obj       := {2 !planet planet|!planet !moon ship|!planet !moon space station|!planet !moon asteroid|!planet comet|2 star|black hole|!planet !moon satellite}
+@orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship|!planet !moon space station|!planet !moon asteroid|!planet comet|2 star|black hole|!planet !moon satellite}
 @orbit_phrase    := {@orbit_obj_adj @orbit_obj}
 @l2_place_phrase := {@l2_place {|orbitting a @orbit_phrase}}
 
 @place_to_be_in := 
-{2 #indoors  {crew cabin 
+{2 #indoors  {2 crew cabin 
              |!planet !moon 2 cockpit
              |lounge
              |bar
+             |2 market             
              |laboratory
              |equipment room
              |!planet !moon engine room
@@ -34,7 +35,7 @@
              |corridor
              |{access|maintenance} tunnel
              }
-|2 !ship !station #outdoors {alley
+|3 !ship !station #outdoors {alley
                             |{|hive city|megacity} street
                             |crater
                             }
@@ -81,17 +82,18 @@
 // ---------------------------------------------------------------------------------------
 // weapons:
 // ---------------------------------------------------------------------------------------
+@weapon_phrase := {@weapon_verb @pro_pos_rand {2 @ranged_weapon|@melee_weapon}}
+@weapon_verb   := {3 holding|wielding|brandishing|displaying|presenting}
+@melee_weapon  := {{vibro|phase|energy} {sword|blade|baton}}
 @ranged_weapon := {{|automatic|primitive|high-tech|advanced|alien}
                    {|laser|plasma|gauss}
                    {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher|stunner}
                   }                
-@melee_weapon  := {{vibro|phase|energy} {sword|blade|baton}}
-@weapon_verb   := {3 holding|wielding|brandishing|displaying|presenting}
-@weapon_phrase := {@weapon_verb @pro_pos_rand {2 @ranged_weapon|@melee_weapon}}
 
 // ---------------------------------------------------------------------------------------
 // tool:
 // ---------------------------------------------------------------------------------------
+@tool_phrase := {holding @pro_pos_rand {advanced|intricate|alien|high-tech} @tool}
 @tool :=
 {hydrospanner
 |2 probe
@@ -99,12 +101,13 @@
 |2 toolkit
 |pair of binoculars
 |telescpe
+|3 vacuum suit's helmet under one arm
 |optical device
 |2 datapad
 |2 communicator
+|1 radio
 }
 
-@tool_phrase := {holding @pro_pos_rand {advanced|intricate|alien|high-tech} @tool}
 
 // ---------------------------------------------------------------------------------------
 // inventory flags:
@@ -122,7 +125,7 @@
 |{3|hyperdrive|@ship_term} technician        @likely_tool
 |communications officer                      @maybe_no_equipment
 |scientist                                   #tool
-|explorer                                    @tool_or_weapon
+|explorer                                    @likely_tool
 |scout                                       @tool_or_weapon
 |{2|interstellar} bounty hunter              #weapon
 |soldier                                     #weapon
@@ -138,8 +141,8 @@
 // ---------------------------------------------------------------------------------------
 // clothing:
 // ---------------------------------------------------------------------------------------
+@clothing_phrase := {@^pro_3rd_subj is @clothing_verb @clothing_type}
 @clothing_verb   := {2 wearing|clad in|dressed in}
-@clothing_phrase := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_adj    := {2|2 futuristic|advanced|tattered |{|starship|space ship|spacecraft} crew member's|high-tech|military}
 @clothing_type   := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
                     |@pro_pos_rand @clothing_adj flight suit
@@ -147,11 +150,11 @@
                     |@pro_pos_rand @clothing_adj uniform
                     |@pro_pos_rand @clothing_adj {space|vacuum} suit
                     |@pro_pos_rand @clothing_adj exoskeleton}
-                    
+ 
 // ---------------------------------------------------------------------------------------
 // cyborg feature:
 // ---------------------------------------------------------------------------------------
-@cyborg_feature_phrase := {|3 ?cyborg
+@cyborg_feature_sentence := {?cyborg
   @^pro_3rd_subj has
   {one mechanical arm
   |mechanical arms
@@ -165,7 +168,7 @@
 // ---------------------------------------------------------------------------------------
 // ailien feature:
 // ---------------------------------------------------------------------------------------
-@alien_feature_phrase := {|3 ?alien
+@alien_feature_sentence := {?alien
   @^pro_3rd_subj has
   {an insectoid appearance
   |digitigrade legs
@@ -178,14 +181,17 @@
 
 // =======================================================================================
 
-ethereon, \n
-/*Necron, electricity, /* green glow, green theme, */ \n
-masterpiece, science fiction, futuristic, hyperrealistic, wide shot. \n
+@aris_defaults, science fiction, futuristic, hyperrealistic, ethereon. \n\n
+
 A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
-{
-|4 ?weapon @weapon_phrase
-|4 ?tool   @tool_phrase }
-.
+{|4 ?weapon @weapon_phrase}
+{|4 ?tool   @tool_phrase }
 {|4 @clothing_phrase}
-@cyborg_feature_phrase
-@alien_feature_phrase
+.
+{|4 @cyborg_feature_sentence}
+{|4 @alien_feature_sentence}
+
+{?outdoors {2
+|{Two|Three} moons can be seen in the sky above.
+|The planet's ring can be seen arching over in the sky above.
+}}
