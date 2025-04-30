@@ -46,8 +46,9 @@
              |bar
              |2 market             
              |laboratory
-             |{sky|hover|ground} {<car|transport}
+             |!ship {sky|hover|ground} {<car|transport}
              |equipment room
+             |control room
              |!planet !moon engine room
              |security room
              |corridor
@@ -78,8 +79,10 @@
 // ---------------------------------------------------------------------------------------
 @char_early_adj :=
 {adventurous
+|androgynous
 |mysterious
 |solitary #solo
+|inscrutable
 |independant #solo
 |daring
 |resolute
@@ -234,11 +237,12 @@
 \n\n
 
 A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
-{|4 ?weapon @weapon_phrase}
-{|4 ?tool   @tool_phrase}
+{|5 ?weapon @weapon_phrase}
+{|5 ?tool   @tool_phrase}
 .
-{|4 @clothing_sentence}
-{|4 @cyborg_feature_sentence}
-{|4 @alien_feature_sentence}
+
+{|5 @clothing_sentence}
+{|5 @cyborg_feature_sentence}
+{|5 @alien_feature_sentence}
 @sky_sentence
 
