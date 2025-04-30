@@ -18,7 +18,8 @@
 |backwater
 }
 @orbit_obj_adj   := {dim|distant|huge|luminous|shining}
-@orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship|!planet !moon space station|!planet !moon asteroid|!planet comet|2 star|black hole|!planet !moon satellite}
+@orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship|!planet !moon space station|!planet !moon asteroid
+                    |!planet comet|2 star|black hole|!planet !moon satellite}
 @orbit_phrase    := {@orbit_obj_adj @orbit_obj}
 @l2_place_phrase := {@l2_place {|orbitting a @orbit_phrase}}
 
@@ -143,7 +144,7 @@
 // ---------------------------------------------------------------------------------------
 @clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_verb     := {2 wearing|clad in|dressed in}
-@clothing_adj      := {2|2 futuristic|!#advanced advanced|tattered |{|starship|space ship|spacecraft} crew member's|!#high-tech high-tech|military}
+@clothing_adj      := {2|2 futuristic|!#advanced advanced|tattered|dusty|millitary|#high-tech high-tech|{|starship|space ship|spacecraft} crew member's}
 @clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
                       |@pro_pos_rand @clothing_adj flight suit
                       |@pro_pos_rand @clothing_adj body suit
@@ -184,7 +185,9 @@
 
 // =======================================================================================
 
-@aris_defaults, science fiction, futuristic, hyperrealistic, ethereon. \n\n
+@aris_defaults, science fiction, futuristic, hyperrealistic, ethereon, infinite focus.
+
+\n\n
 
 A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {|4 ?weapon @weapon_phrase}

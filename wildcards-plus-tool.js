@@ -2333,8 +2333,8 @@ async function main() {
         if (! (answer.match(/^y.*/i) || answer.match(/^\d+/i))) 
           continue;
 
-        const parsed = parseInt(answer);
-        const gen_count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
+        const parsed    = parseInt(answer);
+        const gen_count = isNaN(parsed) ? 1 : parsed;  
 
         // console.log(`parsed = '${parsed}', count = '${count}'`);
         
