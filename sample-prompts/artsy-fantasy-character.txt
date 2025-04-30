@@ -2175,11 +2175,6 @@
 // available, forcing the script to pick that alternative. we'll deliberately use that to
 // pick appropriately gendered pronouns for our character:
 
-@pro_3rd_object  := {?f her |?m him | ?n it  }
-@pro_3rd_subject := {?f she |?m he  | ?n it  }
-@pro_pos_adj     := {?f her |?m his | ?n its }
-@pro_pos         := {?f hers|?m his | ?n its }
-// @pro_pos_rand    := {4 @pro_pos_adj|3 a|1 their}
 @pro_pos_rand    := {5 @pro_pos_adj|4 a|1 their}
 
 @video_game_descriptor := {highly anticipated|blockbuster|award winning}

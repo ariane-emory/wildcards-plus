@@ -138,3 +138,4 @@ A @char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 .
 {|3 @clothing_phrase}
 
+(foo @random_weight)

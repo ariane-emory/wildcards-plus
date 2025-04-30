@@ -1730,13 +1730,17 @@ function make_context(flags = new Set(),
 // ---------------------------------------------------------------------------------------
 function make_context_with_prelude() {
   const prelude = `
-    @pro_3rd_subj := {?female she |?male he  |?neuter it  }
-    @pro_3rd_obj  := {?female her |?male him |?neuter it  }
-    @pro_pos_adj  := {?female her |?male his |?neuter its }
-    @pro_pos      := {?female hers|?male his |?neuter its }
+    @pro_3rd_subj       := {?female she |?male he  |?neuter it  }
+    @pro_3rd_obj        := {?female her |?male him |?neuter it  }
+    @pro_pos_adj        := {?female her |?male his |?neuter its }
+    @pro_pos            := {?female hers|?male his |?neuter its }
+    @_integer           := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
+    @_high_integer      := {<5|<6|<7|<8|<9}
+    @random_weight      := {:1. @_integer}
+    @high_random_weight := {:1. @_high_integer}
   `;
 
-  const result = Prompt.match(prelude);
+  const result  = Prompt.match(prelude);
   const context = make_context();
   const ignored = expand_wildcards(result.value, context);
 
@@ -1870,8 +1874,7 @@ function expand_wildcards(thing, context = make_context()) {
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination.name))
-        throw new Error(`named wildcard '${thing.destination.name}' already defined in ` +
-                        `${inspect_fun(context.named_wildcards)}!`);
+        console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
 
       context.named_wildcards.set(thing.destination.name, thing.wildcard);
 
