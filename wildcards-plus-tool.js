@@ -1541,6 +1541,12 @@ class WildcardPicker {
   }
   // -------------------------------------------------------------------------------------
   pick() {
+    if (this.options.length == 1) {
+      // console.log(`one option: ${inspect_fun(this.options[0][1])}`);
+
+      return this.options[0][1];
+    }
+    
     let   total   = 0;
     const random  = Math.random() * this.range;
 
@@ -1604,18 +1610,15 @@ function choose_indefinite_article(word) {
   const acronymStartsWithVowelSound = /^[aeiou]/i;
   const consonantYooSound = /^u[bcfhjkqrstn]/i;
 
-  if (silentHWords.includes(lower)) {
+  if (silentHWords.includes(lower))
     return 'an';
-  }
 
-  if (vowelSoundExceptions.some(re => re.test(lower))) {
+  if (vowelSoundExceptions.some(re => re.test(lower)))
     return 'a';
-  }
 
   // Words beginning with vowel letters
-  if ('aeiou'.includes(lower[0])) {
+  if ('aeiou'.includes(lower[0]))
     return 'an';
-  }
 
   return 'a';
 }
