@@ -103,17 +103,20 @@
 @tool_phrase := {holding @pro_pos_rand {advanced|intricate|alien|high-tech} @tool}
 
 @maybe_no_equipment := {|2 #tool|#weapon}
-@tool_or_weapon := {#tool|#weapon}
+@tool_or_weapon     := {#tool|#weapon}
+@likely_weapon      := {#tool|2 #weapon}
+@likely_tool        := {2 #tool|#weapon}
 
 @role :=
 {#weapon mercenary 
-|{3|hyperdrive|@ship_term} technician        #tool
+|{3|hyperdrive|@ship_term} technician        @likely_tool
 |communications officer                      @maybe_no_equipment
 |scientist                                   #tool
 |explorer                                    @tool_or_weapon
 |scout                                       @tool_or_weapon
 |{2|interstellar} bounty hunter              #weapon
-|soldier                                     #weapon 
+|soldier                                     #weapon
+|assassin                                    @likely_weapon
 |medic                                       #tool
 |{space|star|interstellar} {trader|merchant} @maybe_no_equipment
 |{space|star} marine                         #weapon

@@ -1583,7 +1583,7 @@ function capitalize(string) {
 // ---------------------------------------------------------------------------------------
 function smart_join(arr) {
   // console.log(`JOINING ${inspect_fun(arr)}`);
-  const vowelp       = (ch)  => "aeio".includes(ch.toLowerCase()); // 'u' excluded!
+  const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => ch === "_" || ch === "-";
   const whitep       = (ch)  => ch === ' ' || ch === '\n';
@@ -1612,7 +1612,8 @@ function smart_join(arr) {
     //             `next_char = '${next_char}'`);
 
     // handle "a" → "an" if necessary
-    if ((left_word === "a" || left_word.endsWith(" a")) && vowelp(next_char)) {
+    if ((left_word === "a" || left_word.endsWith(" a")) &&
+        vowelp(next_char)) { // || right_word.startsWith("un"))) {
       if (left_word === "a") {
         str = str.slice(0, -1) + "an";
         left_word = "an"; 
@@ -1623,7 +1624,8 @@ function smart_join(arr) {
     }
 
     // handle "A" → "An" if necessary
-    if ((left_word === "A" || left_word.endsWith(" A")) && vowelp(next_char)) {
+    if ((left_word === "A" || left_word.endsWith(" A"))  &&
+        vowelp(next_char)) { // || right_word.startsWith("un")) {
       if (left_word === "A") {
         str = str.slice(0, -1) + "An";
         left_word = "An"; 
@@ -1658,7 +1660,7 @@ function smart_join(arr) {
     left_word = right_word;
     str += left_word;
   }
-  
+
   // console.log(`before = '${str}'`);
   // console.log(`after  = '${unescape(str)}'`);
 
@@ -2246,25 +2248,25 @@ async function main() {
 
         if (answer.startsWith('n'))
           continue;
-          
-          const parsed = parseInt(answer);
-          const gen_count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
+        
+        const parsed = parseInt(answer);
+        const gen_count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
 
-          // console.log(`parsed = '${parsed}', count = '${count}'`);
-          
-          for (let iix = 0; iix < gen_count; iix++) {
-            post_prompt(expanded);
-            posted_count += 1;
-          }
+        // console.log(`parsed = '${parsed}', count = '${count}'`);
+        
+        for (let iix = 0; iix < gen_count; iix++) {
+          post_prompt(expanded);
+          posted_count += 1;
         }
       }
     }
-
-    console.log('--------------------------------------------------------------------------------');
   }
-  // ---------------------------------------------------------------------------------------
 
-  main().catch(err => {
-    console.error('Unhandled error:', err);
-    process.exit(1);
-  });
+  console.log('--------------------------------------------------------------------------------');
+}
+// ---------------------------------------------------------------------------------------
+
+main().catch(err => {
+  console.error('Unhandled error:', err);
+  process.exit(1);
+});
