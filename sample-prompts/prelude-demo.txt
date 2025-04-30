@@ -1,0 +1,4 @@
+@pony_score_7_up \n
+A masterpieze by @wizards_artists.
+A @gender in a room, @pro_3rd_subj is sitting on @pro_pos_adj ({chair|throne|couch} @high_random_weight). \n
+By @wizards_artists, @wizards_artist_styles.
