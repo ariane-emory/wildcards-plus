@@ -5,9 +5,10 @@
 @pro_pos_rand := {2 @pro_pos_adj|a}
 
 {3 #female|2 #male|#neuter}
+{#planet|#ship|#moon}
 
 @l2_place :=
-{on a @l2_place_adj {planet|world|moon}
+{on a @l2_place_adj {?planet planet|?planet world|?moon moon}
 |on a @l2_place_adj space station
 |on a @l2_place_adj @ship_term2
 }
@@ -25,7 +26,7 @@
 |backwater
 }
 @orbit_obj_adj   := {dim|distant|huge|luminous|shining}
-@orbit_obj       := {2 planet|ship|space station|asteroid|comet|2 star|black hole|satellite}
+@orbit_obj       := {2 !planet planet|!planet !moon ship|!planet !moon space station|!planet !moon asteroid|!planet comet|2 star|black hole|!planet !moon satellite}
 @orbit_phrase    := {@orbit_obj_adj @orbit_obj}
 @l2_place_phrase := {@l2_place {|orbitting a @orbit_phrase}}
 
@@ -126,10 +127,16 @@
 }
 
 @clothing_verb   := {2 wearing|clad in|dressed in}
-@clothing_phrase := {@^pro_3rd_subj is @clothing_verb @pro_pos_rand @clothing_adj @clothing_type.}
+@clothing_phrase := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_adj    := {2|2 futuristic|advanced|tattered |{|starship|space ship|spacecraft} crew member's|high-tech|military}
-@clothing_type   := {?weapon {|combat|power|space} armor|flight suit|body suit|uniform|{space|vacuum} suit|exoskeleton}
+@clothing_type   := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
+                    |@pro_pos_rand @clothing_adj flight suit
+                    |@pro_pos_rand @clothing_adj body suit
+                    |@pro_pos_rand @clothing_adj uniform
+                    |@pro_pos_rand @clothing_adj {space|vacuum} suit
+                    |@pro_pos_rand @clothing_adj exoskeleton}
 
+ethereon, \n
 Necron, electricity, green glow, green theme, \n
 masterpiece, science fiction, futuristic, hyperrealistic, wide shot. \n
 A @char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
