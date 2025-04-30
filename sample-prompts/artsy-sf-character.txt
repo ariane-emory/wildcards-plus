@@ -46,7 +46,7 @@
              |!planet !moon 2 cockpit
              |lounge
              |bar
-             |2 market             
+             |2 market
              |laboratory
              |!ship {sky|hover|ground} {<car|transport}
              |equipment room
