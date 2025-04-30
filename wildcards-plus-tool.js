@@ -1581,6 +1581,45 @@ function capitalize(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 // ---------------------------------------------------------------------------------------
+function choose_indefinite_article(word) {
+  if (!word)
+    return 'a'; // fallback
+
+  const lower = word.toLowerCase();
+
+  // Words that begin with vowel *sounds*
+  const vowelSoundExceptions = [
+    /^e[uw]/,          // eulogy, Europe
+    /^onc?e\b/,        // once
+    /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
+    /^u[bcfhjkqrstn]/, // unicorn, useful, usual
+    /^uk/,             // UK (spoken "you-kay")
+    /^ur[aeiou]/,      // uranium
+  ];
+
+  const silentHWords = [
+    'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
+  ];
+
+  const acronymStartsWithVowelSound = /^[aeiou]/i;
+  const consonantYooSound = /^u[bcfhjkqrstn]/i;
+
+  if (silentHWords.includes(lower)) {
+    return 'an';
+  }
+
+  if (vowelSoundExceptions.some(re => re.test(lower))) {
+    return 'a';
+  }
+
+  // Words beginning with vowel letters
+  if ('aeiou'.includes(lower[0])) {
+    return 'an';
+  }
+
+  return 'a';
+}
+// ---------------------------------------------------------------------------------------
 function smart_join(arr) {
   // console.log(`JOINING ${inspect_fun(arr)}`);
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
@@ -1612,6 +1651,9 @@ function smart_join(arr) {
     //             `next_char = '${next_char}'`);
 
     // handle "a" → "an" if necessary
+
+
+    
     if ((left_word === "a" || left_word.endsWith(" a")) &&
         vowelp(next_char)) { // || right_word.startsWith("un"))) {
       if (left_word === "a") {
