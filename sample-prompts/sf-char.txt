@@ -70,7 +70,7 @@
 }
 
 @char_late_adj :=
-{s3
+{3
 |alien
 |android
 |cyborg
