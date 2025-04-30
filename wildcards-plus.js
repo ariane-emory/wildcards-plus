@@ -28,36 +28,40 @@ inspect_fun = JSON.stringify;
 // Original project at: https://github.com/ariane-emory/jparse/
 // =======================================================================================
 //            
-// (Rule) -|  The core/basic Rules:
+// (Rule) -| The core/basic Rules:
 //         |
-//         |- Choice
-//         |- Enclosed ------- CuttingEnclosed
-//         |- Expect
-//         |- Optional
-//         |- Sequence ------- CuttingSequence
-//         |- Xform
+//         |-- Choice
+//         |-- Enclosed ------- CuttingEnclosed
+//         |-- Optional
+//         |-- Sequence ------- CuttingSequence
+//         |-- Xform
 //         |
-//         |- (Quantified) -|- Plus
-//         |                |- Star
+//         | Rules triggering failure:
+//         |-- Expect
+//         |-- Unexpected
+//         |-- Fail
 //         |
-//         |  Technically these next 3 could be implemented as Xforms, but 
-//         |  they're very convenient to have built-in (and are possibly faster
-//         |  this way than equivalent Xforms, at least for the for simpler use
-//         |  cases):
+//         |-- (Quantified) -|-- Plus
+//         |                 |-- Star
 //         |
-//         |- Discard
-//         |- Elem
-//         |- Label
+//         | Technically these next 3 could be implemented as Xforms, but 
+//         | they're very convenient to have built-in (and are possibly faster
+//         | this way than equivalent Xforms, at least for the for simpler use
+//         | cases):
 //         |
-//         |  Rules that make sense only when input is an Array of Tokens:
+//         |-- Discard
+//         |-- Elem
+//         |-- Label
 //         |
-//         |- TokenLabel
+//         | Rules that make sense only when input is an Array of Tokens:
 //         |
-//         |  Rules that make sense only when input is a string:
+//         |-- TokenLabel
 //         |
-//         |- Literal
-//         |- Regex
-//
+//         | Rules that make sense only when input is a string:
+//         |
+//         |-- Literal
+//         |-- Regex
+//         |
 // ForwardReference (only needed when calling xform with a weird arg order)
 // LabeledValue
 // MatchResult
@@ -608,54 +612,6 @@ function cutting_enc(start_rule, body_rule, end_rule) {
 // ---------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------
-// Expect class
-// ---------------------------------------------------------------------------------------
-class Expect extends Rule {
-  // -------------------------------------------------------------------------------------
-  constructor(rule, error_func = null) {
-    super();
-    this.rule       = make_rule_func(rule);
-    this.error_func = error_func;
-  }
-  // -------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
-
-    if (! match_result) {
-      if (this.error_func) {
-        throw this.error_func(this, index, input)
-      }
-      else {
-        throw new Error(`expected (${this.rule} at ` +
-                        `char ${input[index].start}` +
-                        `, found: ` +
-                        `[ ${input.slice(index).join(", ")}` +
-                        ` ]`);
-      }
-    };
-
-    return match_result;
-  }
-  // -------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
-    this.rule = this.__vivify(this.rule);    
-    this.rule.__finalize(indent + 1, visited);
-  }
-  // -------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
-  }
-}
-// ---------------------------------------------------------------------------------------
-function expect(rule, error_func = null) { // convenience constructor
-  return new Expect(rule, error_func);
-}
-// ---------------------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------------------
 // Label class
 // ---------------------------------------------------------------------------------------
 class Label extends Rule {
@@ -916,6 +872,137 @@ function xform(...things) { // convenience constructor with magic
 
     return new Xform(rule, fn);
   }
+}
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// Expect class
+// ---------------------------------------------------------------------------------------
+class Expect extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(rule, error_func = null) {
+    super();
+    this.rule       = make_rule_func(rule);
+    this.error_func = error_func;
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    const match_result = this.rule.match(
+      input,
+      index,
+      indent + 1);
+
+    if (! match_result) {
+      if (this.error_func) {
+        throw this.error_func(this, index, input)
+      }
+      else {
+        throw new Error(`expected (${this.rule} at ` +
+                        `char ${input[index].start}` +
+                        `, found: ` +
+                        `[ ${input.slice(index).join(", ")}` +
+                        ` ]`);
+      }
+    };
+
+    return match_result;
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);    
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function expect(rule, error_func = null) { // convenience constructor
+  return new Expect(rule, error_func);
+}
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// Unexpected class
+// ---------------------------------------------------------------------------------------
+class Unexpected extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(rule, error_func = null) {
+    super();
+    this.rule       = make_rule_func(rule);
+    this.error_func = error_func;
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    const match_result = this.rule.match(
+      input,
+      index,
+      indent + 1);
+
+    if (match_result) {
+      if (this.error_func) {
+        throw this.error_func(this, index, input)
+      }
+      else {
+        throw new Error(`unexpected (${this.rule} at ` +
+                        `char ${index}` +
+                        `, found: "` +
+                        input.substring(index, index + 20) +
+                        // `[ ${ (string_input_mode_enabled ? input.substring : input.slice)(index).join(", ")}` +
+                        `..."`);
+      }
+    };
+
+    return null; // new MatchResult(null, input, match_result.index);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);    
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `!${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function unexpected(rule, error_func = null) { // convenience constructor
+  return new Unexpected(rule, error_func);
+}
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// fail class
+// ---------------------------------------------------------------------------------------
+class Fail extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(error_func = null) {
+    super();
+    this.error_func = error_func;
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    throw this.error_func
+      ? this.error_func(this, index, input)
+      : new Error(`unexpected (${this.rule} at ` +
+                  `char ${input[index].start}` +
+                  `, found: ` +
+                  `[ ${input.slice(index).join(", ")}` +
+                  ` ]`);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `<FAIL!>`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function fail(error_func = null) { // convenience constructor
+  return new Fail(error_func);
 }
 // ---------------------------------------------------------------------------------------
 
@@ -1268,6 +1355,7 @@ const dot                = l('.');
 const eq_arrow           = l('=>');
 const ellipsis           = l('...');
 const equals             = l('=');
+const percent            = l('%');
 const pipe               = l('|');
 const pound              = l('#');
 const question           = l('?');
@@ -1378,6 +1466,12 @@ class WildcardPicker {
   }
   // -------------------------------------------------------------------------------------
   pick() {
+    if (this.options.length == 1) {
+      // console.log(`one option: ${inspect_fun(this.options[0][1])}`);
+
+      return this.options[0][1];
+    }
+    
     let   total   = 0;
     const random  = Math.random() * this.range;
 
@@ -1410,7 +1504,9 @@ function pretty_list(arr) {
   if (items.length === 1) return items[0];
   if (items.length === 2) return `${items[0]} and ${items[1]}`;
 
-  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  
+  return ret;
 }
 // ---------------------------------------------------------------------------------------
 function capitalize(string) {
@@ -1418,9 +1514,45 @@ function capitalize(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 // ---------------------------------------------------------------------------------------
+function choose_indefinite_article(word) {
+  if (!word)
+    return 'a'; // fallback
+
+  const lower = word.toLowerCase();
+
+  // Words that begin with vowel *sounds*
+  const vowelSoundExceptions = [
+    /^e[uw]/,          // eulogy, Europe
+    /^onc?e\b/,        // once
+    /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
+    /^u[bcfhjkqrstn]/, // unicorn, useful, usual
+    /^uk/,             // UK (spoken "you-kay")
+    /^ur[aeiou]/,      // uranium
+  ];
+
+  const silentHWords = [
+    'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
+  ];
+
+  const acronymStartsWithVowelSound = /^[aeiou]/i;
+  const consonantYooSound = /^u[bcfhjkqrstn]/i;
+
+  if (silentHWords.includes(lower))
+    return 'an';
+
+  if (vowelSoundExceptions.some(re => re.test(lower)))
+    return 'a';
+
+  // Words beginning with vowel letters
+  if ('aeiou'.includes(lower[0]))
+    return 'an';
+
+  return 'a';
+}
+// ---------------------------------------------------------------------------------------
 function smart_join(arr) {
   // console.log(`JOINING ${inspect_fun(arr)}`);
-  const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase());
+  const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => ch === "_" || ch === "-";
   const whitep       = (ch)  => ch === ' ' || ch === '\n';
@@ -1449,24 +1581,28 @@ function smart_join(arr) {
     //             `next_char = '${next_char}'`);
 
     // handle "a" → "an" if necessary
-    if ((left_word === "a" || left_word.endsWith(" a")) && vowelp(next_char)) {
-      if (left_word === "a") {
-        str = str.slice(0, -1) + "an";
-        left_word = "an"; 
-      } else {
-        str = str.slice(0, -2) + " an";
-        left_word = "an"; 
-      }
-    }
 
-    // handle "A" → "An" if necessary
-    if ((left_word === "A" || left_word.endsWith(" A")) && vowelp(next_char)) {
-      if (left_word === "A") {
-        str = str.slice(0, -1) + "An";
-        left_word = "An"; 
-      } else {
-        str = str.slice(0, -2) + " An";
-        left_word = "An"; 
+    const articleCorrection = (originalArticle, nextWord) => {
+      const expected = choose_indefinite_article(nextWord);
+      if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
+        return originalArticle === 'A' ? 'An' : 'an';
+      }
+      return originalArticle;
+    };
+
+    // Normalize article if needed
+    if (left_word === "a" || left_word.endsWith(" a") ||
+        left_word === "A" || left_word.endsWith(" A")) {
+      const nextWord = right_word;
+      const updatedArticle = articleCorrection(left_word.trim(), nextWord);
+      if (updatedArticle !== left_word.trim()) {
+        if (left_word === "a" || left_word === "A") {
+          str = str.slice(0, -1) + updatedArticle;
+          left_word = updatedArticle;
+        } else {
+          str = str.slice(0, -2) + " " + updatedArticle;
+          left_word = updatedArticle;
+        }
       }
     }
 
@@ -1495,7 +1631,7 @@ function smart_join(arr) {
     left_word = right_word;
     str += left_word;
   }
-  
+
   // console.log(`before = '${str}'`);
   // console.log(`after  = '${unescape(str)}'`);
 
@@ -1507,14 +1643,46 @@ function smart_join(arr) {
 // =======================================================================================
 // the AST-walking function that I'll be using for the SD prompt grammar's output:
 // =======================================================================================
-function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()) {
-  const context = {
-    flags:            flags,
+function make_context(flags = new Set(),
+                      scalar_variables = new Map(),
+                      named_wildcards = new Map(),
+                      noisy = false) {
+  return {
+    flags: flags,
     scalar_variables: scalar_variables,
-    named_wildcards:  new Map(),
-    noisy:            false,
+    named_wildcards: named_wildcards,
+    noisy: noisy,
   };
-  
+}
+// ---------------------------------------------------------------------------------------
+function load_prelude(into_context = make_context()) {
+  const prelude = `
+    @pro_3rd_subj       := {?female she |?male he  |?neuter it  }
+    @pro_3rd_obj        := {?female her |?male him |?neuter it  }
+    @pro_pos_adj        := {?female her |?male his |?neuter its }
+    @pro_pos            := {?female hers|?male his |?neuter its }
+
+    @__digit            := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
+    @__high_digit       := {<5|<6|<7|<8|<9}
+    @random_weight      := {:1. @__digit}
+    @high_random_weight := {:1. @__high_digit}
+
+    @pony_score_9       := {score_9}
+    @pony_score_8_up    := {score_9, score_8_up}
+    @pony_score_7_up    := {score_9, score_8_up, score_7_up}
+    @pony_score_6_up    := {score_9, score_8_up, score_7_up, score_6_up}
+    @pony_score_5_up    := {score_9, score_8_up, score_7_up, score_6_up, score_5_up}
+    @pony_score_4_up    := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up}
+    @aris_defaults      := {masterwork, 8k, ultra high resolution, detailed background, wide shot}
+  `;
+
+  const result  = Prompt.match(prelude);
+  const ignored = expand_wildcards(result.value, into_context);
+
+  return into_context;
+}
+// ---------------------------------------------------------------------------------------
+function expand_wildcards(thing, context = make_context()) {  
   function walk(thing, context) {
     // -----------------------------------------------------------------------------------
     // basic types (strings and Arrays):
@@ -1584,7 +1752,7 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
         ? res.join(", ")
         : (thing.join == '&'
            ? pretty_list(res)
-           :res.join(" "));
+           : res.join(" "));
     }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
@@ -1640,6 +1808,9 @@ function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()
     } 
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
+      if (context.named_wildcards.has(thing.destination.name))
+        console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
+
       context.named_wildcards.set(thing.destination.name, thing.wildcard);
 
       return '';
@@ -1877,20 +2048,21 @@ const make_ASTFlagCmd = (klass, ...rules) =>
 const plaintext               = /[^{|}\s]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const ident                   = /[a-zA-Z_][0-9a-zA-Z_]*\b/;
+const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
 // ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
+const MalformedNotSetCombo    = unexpected('#!');
 const NotFlag                 = xform((arr => {
-  // console.log(`ARR: ${inspect_fun(arr)}`);
+  //console.log(`ARR: ${inspect_fun(arr)}`);
   return new ASTNotFlag(arr[2], arr[1][0]);
 }),
                                       seq('!', optional('#'),
                                           ident, /(?=\s|[{|}]|$)/));
-const TestFlag                = choice(CheckFlag, NotFlag);
+const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
