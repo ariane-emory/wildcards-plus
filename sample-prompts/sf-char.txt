@@ -1,8 +1,8 @@
-@pro_3rd_object  := {?female her |?male him |?neuter it  }
-@pro_3rd_subject := {?female she |?male he  |?neuter it  }
-@pro_pos_adj     := {?female her |?male his |?neuter its }
-@pro_pos         := {?female hers|?male his |?neuter its }
-@pro_pos_rand    := {2 @pro_pos_adj|a|their}
+@pro_3rd_subj := {?female she |?male he  |?neuter it  }
+@pro_3rd_obj  := {?female her |?male him |?neuter it  }
+@pro_pos_adj  := {?female her |?male his |?neuter its }
+@pro_pos      := {?female hers|?male his |?neuter its }
+@pro_pos_rand := {2 @pro_pos_adj|a}
 
 {#female|#male|#neuter}
 
@@ -103,6 +103,8 @@
 @maybe_no_equipment := {|#tool|#weapon}
 @tool_or_weapon := {#tool|#weapon}
 
+@wearing_verb := {2 wearing|clad in|dressed in}
+
 @role :=
 {#weapon mercenary 
 |{3|hyperdrive|@ship_term} technician        #tool
@@ -120,9 +122,16 @@
 |{|@ship_term} {navigator|astrogator}        @maybe_no_equipment
 }
 
+@clothing_phrase := {@^pro_3rd_subj is @wearing_verb @pro_pos_rand @clothing_adj @clothing_type.}
+@clothing_adj    := {2|futuristic|advanced|a starship crew member's|high-tech}
+@clothing_type   := {{|combat|power} armor|flight suit|body suit|uniform}
+
+Necron, electricity, green glow, green theme, \n
 masterpiece, science fiction, futuristic. \n
 A @char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {
 |2 ?weapon @weapon_phrase
 |2 ?tool   @tool_phrase }
 .
+{|2 @clothing_phrase}
+
