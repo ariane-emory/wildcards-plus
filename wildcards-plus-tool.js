@@ -2330,9 +2330,18 @@ async function main() {
         const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /n.*/ for no or a positive integer for multiple images)? `;
         const answer = await ask(question);
 
-        if (answer.startsWith('n'))
+        if (answer.match(/^n.*/i) || answer == '') {
+          // console.log("ans: No!");
+
           continue;
-        
+        }
+
+        // if (answer.match(/^y.*/i))
+        //   console.log("ans: Yes!");
+
+        // if (answer.match(/\d+/))
+        //   console.log("ans: Number!");
+                
         const parsed = parseInt(answer);
         const gen_count  = !isNaN(parsed) && (parsed > 0) ? parsed : 1;
 
