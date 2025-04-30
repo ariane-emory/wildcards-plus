@@ -1652,28 +1652,27 @@ function smart_join(arr) {
 
     // handle "a" → "an" if necessary
 
-
-    
-    if ((left_word === "a" || left_word.endsWith(" a")) &&
-        vowelp(next_char)) { // || right_word.startsWith("un"))) {
-      if (left_word === "a") {
-        str = str.slice(0, -1) + "an";
-        left_word = "an"; 
-      } else {
-        str = str.slice(0, -2) + " an";
-        left_word = "an"; 
+    const articleCorrection = (originalArticle, nextWord) => {
+      const expected = choose_indefinite_article(nextWord);
+      if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
+        return originalArticle === 'A' ? 'An' : 'an';
       }
-    }
+      return originalArticle;
+    };
 
-    // handle "A" → "An" if necessary
-    if ((left_word === "A" || left_word.endsWith(" A"))  &&
-        vowelp(next_char)) { // || right_word.startsWith("un")) {
-      if (left_word === "A") {
-        str = str.slice(0, -1) + "An";
-        left_word = "An"; 
-      } else {
-        str = str.slice(0, -2) + " An";
-        left_word = "An"; 
+    // Normalize article if needed
+    if (left_word === "a" || left_word.endsWith(" a") ||
+        left_word === "A" || left_word.endsWith(" A")) {
+      const nextWord = right_word;
+      const updatedArticle = articleCorrection(left_word.trim(), nextWord);
+      if (updatedArticle !== left_word.trim()) {
+        if (left_word === "a" || left_word === "A") {
+          str = str.slice(0, -1) + updatedArticle;
+          left_word = updatedArticle;
+        } else {
+          str = str.slice(0, -2) + " " + updatedArticle;
+          left_word = updatedArticle;
+        }
       }
     }
 
