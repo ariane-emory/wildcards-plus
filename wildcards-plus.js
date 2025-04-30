@@ -2383,7 +2383,8 @@ console.log("\nwildcards prompt:\n");
 console.log(promptString + "\n");
 
 for (i = 0; i < batchCount; i++) {
-  editedString = expand_wildcards(result.value);
+  const context  = load_prelude();
+  editedString = expand_wildcards(result.value, context);
   configuration.seed = -1;
   let batchCountLog = `render ${i+1} of ${batchCount}`;
   console.log(batchCountLog);
