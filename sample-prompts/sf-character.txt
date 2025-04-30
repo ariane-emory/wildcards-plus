@@ -1,9 +1,20 @@
+// =======================================================================================
+// random sci-fi characters
+// =======================================================================================
 @pro_pos_rand := {2 @pro_pos_adj|a}
 
 {3 #female|2 #male|#neuter}
 {#planet|#ship|#moon|#station}
 
-@l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station|?planet planet|?planet world|?moon moon}}
+@ship_term  := {starship|spacecraft|space ship|shuttle}
+@ship_term2 := {starship|spacecraft|space ship|shuttle|space frigate|space battleship|space destroyer|merchant vessel}
+
+// ---------------------------------------------------------------------------------------
+// L2 places:
+// ---------------------------------------------------------------------------------------
+@l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station
+                 |?planet planet|?planet world|?moon moon}}
+
 @l2_place_adj := 
 {
 |strange
@@ -17,12 +28,16 @@
 |primitive
 |backwater
 }
-@orbit_obj_adj   := {dim|distant|huge|luminous|shining}
-@orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship|!planet !moon space station|!planet !moon asteroid
-                    |!planet comet|2 star|black hole|!planet !moon satellite}
-@orbit_phrase    := {@orbit_obj_adj @orbit_obj}
-@l2_place_phrase := {@l2_place {|orbitting a @orbit_phrase}}
+@l2_orbit_obj_adj   := {dim|distant|huge|luminous|shining}
+@l2_orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship
+                       |!planet !moon space station|!planet !moon asteroid
+                       |!planet comet|2 star|black hole|!planet !moon satellite}
+@l2_orbit_phrase    := {@l2_orbit_obj_adj @l2_orbit_obj}
+@l2_place_phrase    := {@l2_place {|orbitting a @l2_orbit_phrase}}
 
+// ---------------------------------------------------------------------------------------
+// places:
+// ---------------------------------------------------------------------------------------
 @place_to_be_in := 
 {2 #indoors  {2 crew cabin 
              |!planet !moon 2 cockpit
@@ -56,6 +71,9 @@
 }
 @place_phrase := {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at}
 
+// ---------------------------------------------------------------------------------------
+// character adjectives:
+// ---------------------------------------------------------------------------------------
 @char_early_adj :=
 {adventurous
 |mysterious
@@ -74,7 +92,6 @@
 |youthful
 |beautiful
 }
-
 @char_late_adj :=
 {3
 |alien #alien
@@ -82,9 +99,6 @@
 |cyborg #cyborg
 |human #human
 }
-
-@ship_term  := {starship|spacecraft|space ship|shuttle}
-@ship_term2 := {starship|spacecraft|space ship|shuttle|space frigate|space battleship|space destroyer|merchant vessel}
 
 // ---------------------------------------------------------------------------------------
 // weapons:
@@ -115,7 +129,6 @@
 |2 communicator
 |1 radio
 }
-
 
 // ---------------------------------------------------------------------------------------
 // inventory flags:
@@ -192,6 +205,20 @@
   .
 }
 
+// ---------------------------------------------------------------------------------------
+sky:
+// ---------------------------------------------------------------------------------------
+@sky_sentence := {?outdoors {2
+|{Two|Three} moons can be seen in the sky above.
+|The planet's ring can be seen arching over in the sky above.
+|A descending @ship_term2 can be seen in the sky above.
+|Falling meteors can be seen in the sky above.
+|An orbiting space station can be seen in the sky above.
+|Strangely coloured clouds can be seen in the sky above.
+|Strangely lights can be seen in the sky above.
+|Flocks of alien birds can be seen in the sky above.
+}}
+
 // =======================================================================================
 
 @aris_defaults, science fiction, futuristic, hyperrealistic, ethereon, infinite focus.
@@ -205,9 +232,5 @@ A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {|4 @clothing_sentence}
 {|4 @cyborg_feature_sentence}
 {|4 @alien_feature_sentence}
+@sky_sentence
 
-{?outdoors {2
-|{Two|Three} moons can be seen in the sky above.
-|The planet's ring can be seen arching over in the sky above.
-|A descending @ship_term2 can be seen in the sky above.
-}}
