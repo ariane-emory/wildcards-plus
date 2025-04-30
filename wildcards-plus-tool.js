@@ -2330,17 +2330,16 @@ async function main() {
       else  {
         console.log();
 
-        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /y.*/ for ye, positive integer for multiple images, or /p.*/ to rewind to the prior prompt)? `;
+        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /y.*/ for ye, positive integer for multiple images, or /p.*/ to POST the prior prompt)? `;
         const answer = await ask(question);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
           continue;
 
-        
         if (answer.match(/^p.*/i)) {
           if (prior_expansion) { 
-            expanded = prior_expansion;
-            console.log(`rewound prompt to '${expanded}'`);
+            console.log(`POSTing prior prompt '${expanded}'`);
+            post_prompt(prior_expansion);
           }
           else {
             console.log(`can't rewind, no prior prompt`);
