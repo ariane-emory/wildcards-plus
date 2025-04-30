@@ -4,7 +4,7 @@
 @pro_pos      := {?female hers|?male his |?neuter its }
 @pro_pos_rand := {2 @pro_pos_adj|a}
 
-{#female|#male|#neuter}
+{3 #female|2 #male|#neuter}
 
 @l2_place :=
 {on a @l2_place_adj {planet|world|moon}
@@ -77,15 +77,16 @@
 |human
 }
 
-@ship_term  := {starship|spacecraft|shuttle}
-@ship_term2 := {starship|spacecraft|shuttle|frigate|battleship|destroyer|merchant vessel}
+@ship_term  := {starship|spacecraft|space ship|shuttle}
+@ship_term2 := {starship|spacecraft|space ship|shuttle|frigate|battleship|destroyer|merchant vessel}
 
 @ranged_weapon := {{|automatic|primitive|high-tech|advanced|alien}
                    {|laser|plasma|gauss}
                    {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher|stunner}
                   }                
-@melee_weapon  := {{vibro|phase|energy} {sword|blade|baton}}                  
-@weapon_phrase := {holding @pro_pos_rand {2 @ranged_weapon|@melee_weapon}}
+@melee_weapon  := {{vibro|phase|energy} {sword|blade|baton}}
+@weapon_verb   := {3 holding|wielding|brandishing|displaying|presenting}
+@weapon_phrase := {@weapon_verb @pro_pos_rand {2 @ranged_weapon|@melee_weapon}}
 
 @tool :=
 {hydrospanner
@@ -102,8 +103,6 @@
 
 @maybe_no_equipment := {|#tool|#weapon}
 @tool_or_weapon := {#tool|#weapon}
-
-@wearing_verb := {2 wearing|clad in|dressed in}
 
 @role :=
 {#weapon mercenary 
@@ -122,9 +121,11 @@
 |{|@ship_term} {navigator|astrogator}        @maybe_no_equipment
 }
 
-@clothing_phrase := {@^pro_3rd_subj is @wearing_verb @pro_pos_rand @clothing_adj @clothing_type.}
-@clothing_adj    := {2|futuristic|advanced|a starship crew member's|high-tech}
-@clothing_type   := {{|combat|power} armor|flight suit|body suit|uniform}
+
+@clothing_verb := {2 wearing|clad in|dressed in}
+@clothing_phrase := {@^pro_3rd_subj is @clothing_verb @pro_pos_rand @clothing_adj @clothing_type.}
+@clothing_adj    := {2|2 futuristic|advanced|tattered |{|starship|space ship|spacecraft} crew member's|high-tech}
+@clothing_type   := {{|combat|power|space} armor|flight suit|body suit|uniform|{space|vacuum} suit|exoskeleton}
 
 Necron, electricity, green glow, green theme, \n
 masterpiece, science fiction, futuristic. \n
