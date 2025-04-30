@@ -5,13 +5,9 @@
 @pro_pos_rand := {2 @pro_pos_adj|a}
 
 {3 #female|2 #male|#neuter}
-{#planet|#ship|#moon}
+{#planet|#ship|#moon|#station}
 
-@l2_place :=
-{on a @l2_place_adj {?planet planet|?planet world|?moon moon}
-|on a @l2_place_adj space station
-|on a @l2_place_adj @ship_term2
-}
+@l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station|?planet planet|?planet world|?moon moon} }
 @l2_place_adj := 
 {
 |strange
@@ -32,7 +28,7 @@
 
 @place_to_be_in := 
 {2 #indoors  {crew cabin 
-             |2 cockpit
+             |!planet !moon 2 cockpit
              |lounge
              |bar
              |laboratory
@@ -42,16 +38,16 @@
              |corridor
              |{access|maintenance} tunnel
              }
-|2 #outdoors {alley
-             |{|hive city|megacity} street
-             |crater
-             }
+|2 !ship !station #outdoors {alley
+                            |{|hive city|megacity} street
+                            |crater
+                            }
 }
 @place_to_be_at :=
 {{ware|store} <house
 |computer
-|helm
-|console
+|!planet !moon helm
+|!planet !moon console
 }
 @place_phrase := {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at}
 
