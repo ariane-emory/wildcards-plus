@@ -160,6 +160,7 @@
 |prize fighter                               #weapon #melee
 |assassin                                    @likely_weapon
 |medic                                       #tool
+|worker                                      #tool
 |{space|star|interstellar} {trader|merchant} @maybe_no_equipment
 |{space|star} marine                         #weapon
 |@ship_term captain                          @maybe_no_equipment
