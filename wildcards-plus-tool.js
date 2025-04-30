@@ -1734,12 +1734,14 @@ function make_context_with_prelude() {
     @pro_3rd_obj        := {?female her |?male him |?neuter it  }
     @pro_pos_adj        := {?female her |?male his |?neuter its }
     @pro_pos            := {?female hers|?male his |?neuter its }
-    @__integer           := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
-    @__high_integer      := {<5|<6|<7|<8|<9}
-    @random_weight      := {:1. @__integer}
-    @high_random_weight := {:1. @__high_integer}
-    @pony_score_9       := {score_9, }
-    @pony_score_8_up    := {score_9, score_8_up, }
+
+    @__digit            := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
+    @__high_digit       := {<5|<6|<7|<8|<9}
+    @random_weight      := {:1. @__digit}
+    @high_random_weight := {:1. @__high_digit}
+
+    @pony_score_9       := {score_9,}
+    @pony_score_8_up    := {score_9, score_8_up,}
     @pony_score_7_up    := {score_9, score_8_up, score_7_up,}
     @pony_score_6_up    := {score_9, score_8_up, score_7_up, score_6_up,}
     @pony_score_5_up    := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
