@@ -1,5 +1,5 @@
 // Big list of artists borrowed from 'The Wizard's Large Scroll of Artist Summoning':
-@artists := {
+@wizards_artists := {
   #artist__zacharias_martin_aagaard Zacharias Martin Aagaard |
   #artist__slim_aarons Slim Aarons |
   #artist__elenore_abbott Elenore Abbott |
@@ -1072,7 +1072,7 @@
 }
 
 // The matching list of styles:
-@artist_styles := {
+@wizards_artist_styles := {
   ?artist__zacharias_martin_aagaard landscapes, Observational, painting, Romanticism, Slice-of-life |
   ?artist__slim_aarons fashion, luxury, nostalgia, pastel-colors, photography, photography-color, social-commentary |
   ?artist__elenore_abbott art-nouveau, dream-like, ethereal, femininity, mythology, pastel-colors, romanticism, watercolor |
@@ -2143,5 +2143,3 @@
   ?artist__william_zorach cubism, expressionism, folk-art, modern, sculpture |
   ?artist__ander_zorn etching, nudes, painting, portraits, Swedish
 }
-
-@#artists @artists style, more content here, (by @artists:1.4), (@artist_styles:0.8)
