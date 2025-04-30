@@ -384,4 +384,17 @@ They can be used like `(some_tag @high_random_weight)`.
 **Integrated content from @skeptict's 'Wizard's Scroll of Artist Summoning'**:
 The named wildcard `@wizards_artists` contains the artists from @skeptict's lovely 'Wizard's Scroll of Artist Summoning' script, and `@wizards_artists_styles` will retrieve the style list for the matching artist.
 
-Here's an example prompt making use of all of these built-in named wildcard's:
+Here's an example prompt making use of all of these built-in named wildcards:
+```
+@pony_score_7_up \n
+A masterpieze by @wizards_artists.
+A @gender in a room, @pro_3rd_subj is sitting on @pro_pos_adj ({chair|throne|couch} @high_random_weight). \n
+By @wizards_artists, @wizards_artist_styles.
+```
+
+Sample output:
+```
+score_9, score_8_up, score_7_up, 
+A masterpieze by Gerald Brom. A man in a room, he is sitting on his (couch: 1.7). 
+By Gerald Brom, dark, eerie, fantasy, gothic, horror, pulp.
+```

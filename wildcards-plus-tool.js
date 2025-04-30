@@ -1744,15 +1744,15 @@ function load_prelude(into_context = make_context()) {
     @random_weight       := {:1. @__digit}
     @high_random_weight  := {:1. @__high_digit}
 
-    @pony_score_9        := {score_9}
-    @pony_score_8_up     := {score_9, score_8_up}
-    @pony_score_7_up     := {score_9, score_8_up, score_7_up}
-    @pony_score_6_up     := {score_9, score_8_up, score_7_up, score_6_up}
-    @pony_score_5_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up}
-    @pony_score_4_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up}
+    @pony_score_9        := {score_9,}
+    @pony_score_8_up     := {score_9, score_8_up,}
+    @pony_score_7_up     := {score_9, score_8_up, score_7_up,}
+    @pony_score_6_up     := {score_9, score_8_up, score_7_up, score_6_up,}
+    @pony_score_5_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
+    @pony_score_4_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
     @aris_defaults       := {masterpiece, best quality, absurdres, aesthetic, 8k,
                              focused subject, ultra high resolution, detailed background,
-                             wide shot}
+                             wide shot,}
 
     // Integrated 'Wizard's Large Scroll of Artist Summoning':
     @wizards_artists   := { @#__wizards_artists @__wizards_artists }
