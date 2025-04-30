@@ -1728,6 +1728,21 @@ function make_context(flags = new Set(),
   };
 }
 // ---------------------------------------------------------------------------------------
+function make_context_with_prelude() {
+  const prelude = `
+    @pro_3rd_subj := {?female she |?male he  |?neuter it  }
+    @pro_3rd_obj  := {?female her |?male him |?neuter it  }
+    @pro_pos_adj  := {?female her |?male his |?neuter its }
+    @pro_pos      := {?female hers|?male his |?neuter its }
+  `;
+
+  const result = Prompt.match(prelude);
+  const context = make_context();
+  const ignored = expand_wildcards(result.value, make_context());
+
+  return context;
+}
+// ---------------------------------------------------------------------------------------
 function expand_wildcards(thing, context = make_context()) {  
   function walk(thing, context) {
     // -----------------------------------------------------------------------------------
@@ -2280,8 +2295,10 @@ async function main() {
   while (posted_count < count) {
     console.log('--------------------------------------------------------------------------------');
     // console.log(`posted_count = ${posted_count}`);
-    
-    const expanded = expand_wildcards(result.value, make_context());
+
+    const context  = make_context_with_prelude();
+    console.log(`context w/prelude: ${inspect_fun(context)}`);
+    const expanded = expand_wildcards(result.value, context);
     
     console.log(expanded);
 
