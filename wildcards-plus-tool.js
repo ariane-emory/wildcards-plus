@@ -1703,9 +1703,11 @@ function smart_join(arr) {
       // console.log(`CHOMP LEFT!`);
       str = str.slice(0, -1);
     }
-    
-    left_word = right_word;
-    str += left_word;
+
+    if (! (prev_char === ',' && next_char === ',')) {
+      left_word = right_word;
+      str += left_word;
+    }
   }
 
   // console.log(`before = '${str}'`);
