@@ -2333,17 +2333,24 @@ async function main() {
         const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /n.*/ for no or a positive integer for multiple images)? `;
         const answer = await ask(question);
 
-        if (! (answer.match(/^y.*/i) || answer.match(/^\d+/i))) 
+        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
           continue;
 
-        const parsed    = parseInt(answer);
-        const gen_count = isNaN(parsed) ? 1 : parsed;  
-
-        // console.log(`parsed = '${parsed}', count = '${count}'`);
         
-        for (let iix = 0; iix < gen_count; iix++) {
-          post_prompt(expanded);
-          posted_count += 1;
+        if (answer.match(/^p.*/i)) {
+          expanded = prior_expansion;
+          console.log(`rewound prompt to '${expanded}'`);
+        }
+        else {          
+          const parsed    = parseInt(answer);
+          const gen_count = isNaN(parsed) ? 1 : parsed;  
+          
+          // console.log(`parsed = '${parsed}', count = '${count}'`);
+          
+          for (let iix = 0; iix < gen_count; iix++) {
+            post_prompt(expanded);
+            posted_count += 1;
+          }
         }
       }
     }
