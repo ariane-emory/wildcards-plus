@@ -122,7 +122,7 @@
 }
 
 
-@clothing_verb := {2 wearing|clad in|dressed in}
+@clothing_verb   := {2 wearing|clad in|dressed in}
 @clothing_phrase := {@^pro_3rd_subj is @clothing_verb @pro_pos_rand @clothing_adj @clothing_type.}
 @clothing_adj    := {2|2 futuristic|advanced|tattered |{|starship|space ship|spacecraft} crew member's|high-tech}
 @clothing_type   := {{|combat|power|space} armor|flight suit|body suit|uniform|{space|vacuum} suit|exoskeleton}
