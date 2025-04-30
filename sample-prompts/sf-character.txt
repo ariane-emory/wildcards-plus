@@ -150,7 +150,7 @@
 // ---------------------------------------------------------------------------------------
 @clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_verb     := {2 wearing|clad in|dressed in}
-@clothing_adj      := {2|2 futuristic|!#advanced advanced|tattered|dusty|millitary|#high-tech high-tech|{|starship|space ship|spacecraft} crew member's}
+@clothing_adj      := {2|2 futuristic|!#advanced advanced|tattered|dusty|millitary|!#high-tech high-tech|{|starship|space ship|spacecraft} crew member's}
 @clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
                       |@pro_pos_rand @clothing_adj flight suit
                       |@pro_pos_rand @clothing_adj body suit

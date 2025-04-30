@@ -2133,7 +2133,7 @@ const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
 const MalformedNotSetCombo    = unexpected('#!');
 const NotFlag                 = xform((arr => {
-  // console.log(`ARR: ${inspect_fun(arr)}`);
+  console.log(`ARR: ${inspect_fun(arr)}`);
   return new ASTNotFlag(arr[2], arr[1][0]);
 }),
                                       seq('!', optional('#'),
