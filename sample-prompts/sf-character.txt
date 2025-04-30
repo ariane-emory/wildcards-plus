@@ -68,6 +68,7 @@
 {{ware|store} <house
 |{2|holographic} computer
 |colony
+|holographic projector
 |!ship !station launch pad
 |!planet !moon helm
 |!planet !moon {|navigation|control|sensor|computer} console
@@ -120,7 +121,7 @@
 // ---------------------------------------------------------------------------------------
 // tool:
 // ---------------------------------------------------------------------------------------
-@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech}
+@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic}
 @tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
 @tool :=
 {hydrospanner
