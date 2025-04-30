@@ -2123,7 +2123,7 @@ const make_ASTFlagCmd = (klass, ...rules) =>
 const plaintext               = /[^{|}\s]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const ident                   = /[a-zA-Z_][0-9a-zA-Z_]*\b/;
+const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
 // ---------------------------------------------------------------------------------------
