@@ -1648,6 +1648,9 @@ function smart_join(arr) {
     let prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
     const next_char = right_word[0] ?? '';
 
+    if (prev_char === ',' && right_word === ',')
+      continue;
+    
     // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
 
     // console.log(`str = '${str}', ` +
@@ -1704,10 +1707,8 @@ function smart_join(arr) {
       str = str.slice(0, -1);
     }
 
-    if (! (prev_char === ',' && next_char === ',')) {
-      left_word = right_word;
-      str += left_word;
-    }
+    left_word = right_word;
+    str += left_word;
   }
 
   // console.log(`before = '${str}'`);
