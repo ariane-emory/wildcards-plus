@@ -34,6 +34,11 @@
              |!planet !moon engine room
              |security room
              |corridor
+             |?ship docking bay
+             |?ship cargo bay
+             |?ship @ship_term<'s bridge
+             |?station docking bay
+             |?station cargo bay
              |{access|maintenance} tunnel
              }
 |3 !ship !station #outdoors {alley
@@ -44,6 +49,7 @@
 @place_to_be_at :=
 {{ware|store} <house
 |computer
+|!ship !station launch pad
 |!planet !moon helm
 |!planet !moon console
 }
@@ -191,7 +197,7 @@
 
 A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {|4 ?weapon @weapon_phrase}
-{|4 ?tool   @tool_phrase }
+{|4 ?tool   @tool_phrase}
 .
 {|4 @clothing_sentence}
 {|4 @cyborg_feature_sentence}
@@ -200,5 +206,5 @@ A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {?outdoors {2
 |{Two|Three} moons can be seen in the sky above.
 |The planet's ring can be seen arching over in the sky above.
+|A descending @ship_term2 can be seen in the sky above.
 }}
-
