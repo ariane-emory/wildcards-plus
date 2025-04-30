@@ -1855,7 +1855,8 @@ function expand_wildcards(thing, context = make_context()) {
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination.name))
-        throw new Error(`named wildcard '${thing.destination.name}' already defined!`);
+        throw new Error(`named wildcard '${thing.destination.name}' already defined in ` +
+                        `${inspect_fun(context.named_wildcards)}!`);
 
       context.named_wildcards.set(thing.destination.name, thing.wildcard);
 
@@ -2280,7 +2281,7 @@ async function main() {
     console.log('--------------------------------------------------------------------------------');
     // console.log(`posted_count = ${posted_count}`);
     
-    const expanded = expand_wildcards(result.value);
+    const expanded = expand_wildcards(result.value, make_context());
     
     console.log(expanded);
 
