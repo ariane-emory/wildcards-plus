@@ -1716,14 +1716,19 @@ function smart_join(arr) {
 // =======================================================================================
 // the AST-walking function that I'll be using for the SD prompt grammar's output:
 // =======================================================================================
-function expand_wildcards(thing, flags = new Set(), scalar_variables = new Map()) {
-  const context = {
-    flags:            flags,
+function make_context(flags = new Set(),
+                      scalar_variables = new Map(),
+                      named_wildcards = new Map(),
+                      noisy = false) {
+  return {
+    flags: flags,
     scalar_variables: scalar_variables,
-    named_wildcards:  new Map(),
-    noisy:            false,
+    named_wildcards: named_wildcards,
+    noisy: noisy,
   };
-  
+}
+// ---------------------------------------------------------------------------------------
+function expand_wildcards(thing, context = make_context()) {  
   function walk(thing, context) {
     // -----------------------------------------------------------------------------------
     // basic types (strings and Arrays):
