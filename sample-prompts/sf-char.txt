@@ -57,14 +57,15 @@
 @char_early_adj :=
 {3
 |mysterious
-|solitary #sole
-|independant #sole
+|solitary #solo
+|independant #solo
 |daring
 |resolute
 |brave
 |intimidating
 |exotic
 |athletic
+|muscular
 |youthful
 |beautiful
 }
@@ -101,7 +102,7 @@
 }
 @tool_phrase := {holding @pro_pos_rand {advanced|intricate|alien|high-tech} @tool}
 
-@maybe_no_equipment := {|#tool|#weapon}
+@maybe_no_equipment := {|2 #tool|#weapon}
 @tool_or_weapon := {#tool|#weapon}
 
 @role :=
