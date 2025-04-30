@@ -11,6 +11,7 @@
 - Setting 'boolean' flags and using guards
 - Putting it all together and some final thoughts
 - A quick note on 'types' and names
+- Some useful built in named wildwards
 
 **Weighted alternatives in wildcards**
  
@@ -346,3 +347,41 @@ Hopefully this readme has given you an idea of the sorts of things `wildcards-pl
 **A quick on 'types' and names:**j
 
 There are two 'types' of entity in this little language that have names: named wildcards and flags. These two types of entity each exist in their own 'namespace'. In other words, you could simultaneously have both a named wildward that is named `weapons` **and** have a flag named `weapons` and that's totally fine, there won't be any problem with the fact that they happen to have the same name. Both are global, there isn't any concept of 'scope', lexical or otherwise.
+
+**Some useful built in named wildwards:**
+
+For user convenient, `wildcards-plus` now includes some helpful built in named wildcards.
+
+**Named wildcards to generate consistent pronouns**:
+```
+@set_gender_if_unset := {!female !male !neuter {3 #female|2 #male|#neuter}}
+@gender              := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
+@pro_3rd_subj        := {@set_gender_if_unset {?female she |?male he  |?neuter it }}
+@pro_3rd_obj         := {@set_gender_if_unset {?female her |?male him |?neuter it }}
+@pro_pos_adj         := {@set_gender_if_unset {?female her |?male his |?neuter its}}
+@pro_pos             := {@set_gender_if_unset {?female hers|?male his |?neuter its}}
+```
+
+You may use these wildcards to generate pronouns for a character. Since they all expand `@set_gender_if_unset` first, the generated pronouns will be consistent. It will select female a bit more frequently than male, due to my own preferences (I'm usually more interested in drawing women than men), but if your preferences differ you can either set a gender flag yourself or redefine `@set_gender_if_unset` to align with your own preferences.
+
+**Named wildcards that generate random Pony score strings**:
+```
+@pony_score_9        := {score_9}
+@pony_score_8_up     := {score_9, score_8_up}
+@pony_score_7_up     := {score_9, score_8_up, score_7_up}
+@pony_score_6_up     := {score_9, score_8_up, score_7_up, score_6_up}
+@pony_score_5_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up}
+@pony_score_4_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up}
+```
+
+For the convenience of Pony users, these wildcards will generate commonly used Pony 'score' strings.
+
+**Named wildcards that generate SD style weighting suffixes**:
+The `@random_weight` and `@high_random_weight` wildcards will generate weighting strings like `:1.4`, with `@high_random_weight` ensuring the weighting is at least `:1.5`.
+
+They can be used like `(some_tag @high_random_weight)`.
+
+**Integrated content from @skeptict's 'Wizard's Scroll of Artist Summoning'**:
+The named wildcard `@wizards_artists` contains the artists from @skeptict's lovely 'Wizard's Scroll of Artist Summoning' script, and `@wizards_artists_styles` will retrieve the style list for the matching artist.
+
+Here's an example prompt making use of all of these built-in named wildcard's:
