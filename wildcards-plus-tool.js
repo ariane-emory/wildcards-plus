@@ -1733,11 +1733,10 @@ function make_context(flags = new Set(),
 // ---------------------------------------------------------------------------------------
 function load_prelude(into_context = make_context()) {
   const prelude = `
-    @pro_3rd_subj       := {?female she |?male he  |?neuter it  }
-    @pro_3rd_obj        := {?female her |?male him |?neuter it  }
-    @pro_pos_adj        := {?female her |?male his |?neuter its }
-    @pro_pos            := {?female hers|?male his |?neuter its }
-
+    @pro_3rd_subj       := {?female she |?male he  |?neuter it  | !female !male !neuter {3 #female|2 #male|#neuter} @pro_3rd_subj}
+    @pro_3rd_obj        := {?female her |?male him |?neuter it  | !female !male !neuter {3 #female|2 #male|#neuter} @pro_3rd_obj }
+    @pro_pos_adj        := {?female her |?male his |?neuter its | !female !male !neuter {3 #female|2 #male|#neuter} @pro_pos_adj }
+    @pro_pos            := {?female hers|?male his |?neuter its | !female !male !neuter {3 #female|2 #male|#neuter} @pro_pos     }
     @__digit            := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
     @__high_digit       := {<5|<6|<7|<8|<9}
     @random_weight      := {:1. @__digit}

@@ -5,7 +5,7 @@
 // =======================================================================================
 @pro_pos_rand := {2 @pro_pos_adj|a}
 
-{3 #female|2 #male|#neuter}
+// {3 #female|2 #male|#neuter}
 {#planet|#ship|#moon|#station}
 
 @ship_term  := {starship|spacecraft|space ship|shuttle}
@@ -223,7 +223,7 @@
 |Falling meteors can be seen in the sky above.
 |An orbiting space station can be seen in the sky above.
 |Strangely coloured clouds can be seen in the sky above.
-|Strangely lights can be seen in the sky above.
+|Strange lights can be seen in the sky above.
 |Flocks of alien birds can be seen in the sky above.
 |A {|huge|gigantic} {2 |2 red|2 yellow|green} sun can be seen in the sky above.
 }}
