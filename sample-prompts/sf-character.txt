@@ -49,6 +49,7 @@
 @place_to_be_at :=
 {{ware|store} <house
 |computer
+|colony
 |!ship !station launch pad
 |!planet !moon helm
 |!planet !moon console
