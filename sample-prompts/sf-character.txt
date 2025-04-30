@@ -3,7 +3,7 @@
 {3 #female|2 #male|#neuter}
 {#planet|#ship|#moon|#station}
 
-@l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station|?planet planet|?planet world|?moon moon} }
+@l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station|?planet planet|?planet world|?moon moon}}
 @l2_place_adj := 
 {
 |strange
@@ -49,8 +49,7 @@
 @place_phrase := {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at}
 
 @char_early_adj :=
-{3
-|adventurous
+{adventurous
 |mysterious
 |solitary #solo
 |independant #solo
@@ -73,11 +72,11 @@
 |alien #alien
 |android
 |cyborg #cyborg
-|human
+|human #human
 }
 
 @ship_term  := {starship|spacecraft|space ship|shuttle}
-@ship_term2 := {starship|spacecraft|space ship|shuttle|frigate|battleship|destroyer|merchant vessel}
+@ship_term2 := {starship|spacecraft|space ship|shuttle|space frigate|space battleship|space destroyer|merchant vessel}
 
 // ---------------------------------------------------------------------------------------
 // weapons:
@@ -86,8 +85,9 @@
 @weapon_verb   := {3 holding|wielding|brandishing|displaying|presenting}
 @melee_weapon  := {{vibro|phase|energy} {sword|blade|baton}}
 @ranged_weapon := {{|automatic|primitive|high-tech|advanced|alien}
-                   {|laser|plasma|gauss}
-                   {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|{grenade|rocket} launcher|stunner}
+                   {|laser|plasma|gauss|smart|combat|high-velocity}
+                   {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun
+                   |{grenade|rocket} launcher|stunner|cannon|disintegrator}
                   }                
 
 // ---------------------------------------------------------------------------------------
@@ -141,15 +141,15 @@
 // ---------------------------------------------------------------------------------------
 // clothing:
 // ---------------------------------------------------------------------------------------
-@clothing_phrase := {@^pro_3rd_subj is @clothing_verb @clothing_type}
-@clothing_verb   := {2 wearing|clad in|dressed in}
-@clothing_adj    := {2|2 futuristic|advanced|tattered |{|starship|space ship|spacecraft} crew member's|high-tech|military}
-@clothing_type   := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
-                    |@pro_pos_rand @clothing_adj flight suit
-                    |@pro_pos_rand @clothing_adj body suit
-                    |@pro_pos_rand @clothing_adj uniform
-                    |@pro_pos_rand @clothing_adj {space|vacuum} suit
-                    |@pro_pos_rand @clothing_adj exoskeleton}
+@clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
+@clothing_verb     := {2 wearing|clad in|dressed in}
+@clothing_adj      := {2|2 futuristic|advanced|tattered |{|starship|space ship|spacecraft} crew member's|high-tech|military}
+@clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
+                      |@pro_pos_rand @clothing_adj flight suit
+                      |@pro_pos_rand @clothing_adj body suit
+                      |@pro_pos_rand @clothing_adj uniform
+                      |@pro_pos_rand @clothing_adj {space|vacuum} suit
+                      |@pro_pos_rand @clothing_adj exoskeleton}
  
 // ---------------------------------------------------------------------------------------
 // cyborg feature:
@@ -173,7 +173,10 @@
   {an insectoid appearance
   |digitigrade legs
   |gills on her throat
+  |razor sharp claws
+  |armored plates on @pro_pos_3rd skin
   |scaled skin
+  |a prehensile tail
   |a reptilian appearance
   }
   .
@@ -186,8 +189,8 @@
 A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {|4 ?weapon @weapon_phrase}
 {|4 ?tool   @tool_phrase }
-{|4 @clothing_phrase}
 .
+{|4 @clothing_sentence}
 {|4 @cyborg_feature_sentence}
 {|4 @alien_feature_sentence}
 

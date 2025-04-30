@@ -1579,7 +1579,9 @@ function pretty_list(arr) {
   if (items.length === 1) return items[0];
   if (items.length === 2) return `${items[0]} and ${items[1]}`;
 
-  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  
+  return ret;
 }
 // ---------------------------------------------------------------------------------------
 function capitalize(string) {
@@ -1825,7 +1827,7 @@ function expand_wildcards(thing, context = make_context()) {
         ? res.join(", ")
         : (thing.join == '&'
            ? pretty_list(res)
-           :res.join(" "));
+           : res.join(" "));
     }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
