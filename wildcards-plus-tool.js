@@ -1583,7 +1583,7 @@ function capitalize(string) {
 // ---------------------------------------------------------------------------------------
 function smart_join(arr) {
   // console.log(`JOINING ${inspect_fun(arr)}`);
-  const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase());
+  const vowelp       = (ch)  => "aeio".includes(ch.toLowerCase()); // 'u' excluded!
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => ch === "_" || ch === "-";
   const whitep       = (ch)  => ch === ' ' || ch === '\n';
