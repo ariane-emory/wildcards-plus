@@ -100,24 +100,24 @@
 }
 @tool_phrase := {holding @pro_pos_rand {advanced|intricate|alien|high-tech} @tool}
 
-@probably_no_equipment := {2|#tool|#weapon}
+@maybe_no_equipment := {|#tool|#weapon}
 @tool_or_weapon := {#tool|#weapon}
 
 @role :=
 {#weapon mercenary 
 |{3|hyperdrive|@ship_term} technician        #tool
-|communications officer                      @probably_no_equipment
+|communications officer                      @maybe_no_equipment
 |scientist                                   #tool
 |explorer                                    @tool_or_weapon
 |scout                                       @tool_or_weapon
 |bounty hunter                               #weapon
 |soldier                                     #weapon 
 |medic                                       #tool
-|{space|star|interstellar} {trader|merchant} @probably_no_equipment
+|{space|star|interstellar} {trader|merchant} @maybe_no_equipment
 |{space|star} marine                         #weapon
-|@ship_term captain                          @probably_no_equipment
-|@ship_term pilot                            @probably_no_equipment
-|{|@ship_term} {navigator|astrogator}        @probably_no_equipment
+|@ship_term captain                          @maybe_no_equipment
+|@ship_term pilot                            @maybe_no_equipment
+|{|@ship_term} {navigator|astrogator}        @maybe_no_equipment
 }
 
 masterpiece, science fiction, futuristic. \n
