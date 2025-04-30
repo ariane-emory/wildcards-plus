@@ -33,7 +33,7 @@
              |bar
              |laboratory
              |equipment room
-             |engine room
+             |!planet !moon engine room
              |security room
              |corridor
              |{access|maintenance} tunnel
