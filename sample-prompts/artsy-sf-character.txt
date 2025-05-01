@@ -90,6 +90,7 @@
 @char_early_adj :=
 {adventurous
 |androgynous
+|?neuter 2 androgynous
 |mysterious
 |solitary #solo
 |inscrutable
