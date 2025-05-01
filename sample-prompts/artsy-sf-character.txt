@@ -126,7 +126,7 @@
 @ranged_weapon_late_adj  := {|laser|plasma|gauss|smart|pulse|combat|high-velocity|ion}
 @ranged_weapon           := {@ranged_weapon_early_adj
                              @ranged_weapon_late_adj
-                             {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun
+                             {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|blaster
                              |{grenade|rocket} launcher|stunner|cannon|disintegrator}
                             }                
 
