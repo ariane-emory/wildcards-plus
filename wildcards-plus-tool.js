@@ -4292,7 +4292,7 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 // const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
-                                      second(seq('?', ident, /(?=\s|[{|}]|$)/)))
+                                      second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
 const MalformedNotSetCombo    = unexpected('#!');
 const NotFlag                 = xform((arr => {
   //console.log(`ARR: ${inspect_fun(arr)}`);
@@ -4462,67 +4462,68 @@ async function main() {
   const result = Prompt.match(prompt_input);
 
   console.log(`result: ${inspect_fun(result.value)}`);
+  console.log(`result (JSON): ${JSON.stringify(result.value)}`);
   
   if (! result.is_finished)
-                throw new Error("error parsing prompt!");
+    throw new Error("error parsing prompt!");
 
-              console.log('--------------------------------------------------------------------------------');
-              console.log(`Expansion${count > 1 ? "s" : ''}:`);
+  console.log('--------------------------------------------------------------------------------');
+  console.log(`Expansion${count > 1 ? "s" : ''}:`);
 
-              let posted_count    = 0;
-              let prior_expansion = null;
-              
-              while (posted_count < count) {
-                console.log('--------------------------------------------------------------------------------');
-                // console.log(`posted_count = ${posted_count}`);
+  let posted_count    = 0;
+  let prior_expansion = null;
+  
+  while (posted_count < count) {
+    console.log('--------------------------------------------------------------------------------');
+    // console.log(`posted_count = ${posted_count}`);
 
-                const context  = load_prelude();
-                const expanded = expand_wildcards(result.value, context);
-                
-                console.log(expanded);
+    const context  = load_prelude();
+    const expanded = expand_wildcards(result.value, context);
+    
+    console.log(expanded);
 
-                if (!post) {
-                  posted_count += 1; // a lie to make the counter correct.
-                }
-                else {
-                  if (!confirm) {
-                    post_prompt(expanded);
-                    posted_count += 1;
-                  }
-                  else  {
-                    console.log();
+    if (!post) {
+      posted_count += 1; // a lie to make the counter correct.
+    }
+    else {
+      if (!confirm) {
+        post_prompt(expanded);
+        posted_count += 1;
+      }
+      else  {
+        console.log();
 
-                    const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /y.*/ for ye, positive integer for multiple images, or /p.*/ to POST the prior prompt)? `;
-                    const answer = await ask(question);
+        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /y.*/ for ye, positive integer for multiple images, or /p.*/ to POST the prior prompt)? `;
+        const answer = await ask(question);
 
-                    if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
-                      continue;
+        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
+          continue;
 
-                    if (answer.match(/^p.*/i)) {
-                      if (prior_expansion) { 
-                        console.log(`POSTing prior prompt '${expanded}'`);
-                        post_prompt(prior_expansion);
-                      }
-                      else {
-                        console.log(`can't rewind, no prior prompt`);
-                      }
-                    }
-                    else {          
-                      const parsed    = parseInt(answer);
-                      const gen_count = isNaN(parsed) ? 1 : parsed;  
-                      
-                      // console.log(`parsed = '${parsed}', count = '${count}'`);
-                      
-                      for (let iix = 0; iix < gen_count; iix++) {
-                        post_prompt(expanded);
-                        posted_count += 1;
-                      }
-                    }
-                  }
-                }
+        if (answer.match(/^p.*/i)) {
+          if (prior_expansion) { 
+            console.log(`POSTing prior prompt '${expanded}'`);
+            post_prompt(prior_expansion);
+          }
+          else {
+            console.log(`can't rewind, no prior prompt`);
+          }
+        }
+        else {          
+          const parsed    = parseInt(answer);
+          const gen_count = isNaN(parsed) ? 1 : parsed;  
+          
+          // console.log(`parsed = '${parsed}', count = '${count}'`);
+          
+          for (let iix = 0; iix < gen_count; iix++) {
+            post_prompt(expanded);
+            posted_count += 1;
+          }
+        }
+      }
+    }
 
-                prior_expansion = expanded;
-              }
+    prior_expansion = expanded;
+  }
 
   console.log('--------------------------------------------------------------------------------');
 }
