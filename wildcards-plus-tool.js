@@ -1654,7 +1654,7 @@ function smart_join(arr) {
     if (",.!?".includes(prev_char)&& ",.!?".includes(next_char)) {
       str = str.substring(0, str.length -1) + right_word;
       left_word = right_word;
-       continue;
+      continue;
     }
 
     // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
