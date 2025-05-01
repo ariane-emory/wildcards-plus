@@ -229,7 +229,8 @@
                     |{a|one} {bionic|cybernetic} eye
                     |{bionic|cybernetic} eyes
                     }
-@cyborg_feature_sentence := {?cyborg @^pro_3rd_subj has @cyborg_features . }
+@cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
+@early_cyborg_feature_sentence := {?cyborg with @cyborg_features . #ecfs }
 
 // ---------------------------------------------------------------------------------------
 // ailen feature:
@@ -253,8 +254,10 @@
                    |{smooth|shiny} fur
                    |quill {<-like|<s instead of} hair
                    |a reptilian appearance
-                   }
-@alien_feature_sentence := {?alien @^pro_3rd_subj has @alien_features . }
+                   }                   
+@alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @alien_features . }
+@early_alien_feature_sentence := {?alien with @alien_features . #eafs }
+
 
 // ---------------------------------------------------------------------------------------
 // sky:
