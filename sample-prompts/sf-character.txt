@@ -47,20 +47,20 @@
 // ---------------------------------------------------------------------------------------
 @place_to_be_in := 
 {2 #indoors  {2 crew cabin 
-             |!planet !moon 2 cockpit
-             |lounge
+             |air/raft
              |bar
-             |2 market
+             |control room
+             |corridor
+             |equipment room
              |laboratory
+             |lounge
+             |security room
+             |!ship 2 market
              |!ship aerodyne
              |!ship {sky|hover|grav} {<car|transport|vehicle}
              |!ship {ground|all-terrain} {<car|transport|vehicle}             
-             |air/raft
-             |equipment room
-             |control room
+             |!planet !moon 2 cockpit
              |!planet !moon engine room
-             |security room
-             |corridor
              |?ship docking bay
              |?ship cargo bay
              |?ship @ship_term<'s bridge
