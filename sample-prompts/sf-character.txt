@@ -48,6 +48,7 @@
              |bar
              |2 market
              |laboratory
+             |!ship aerodyne
              |!ship {sky|hover|grav} {<car|transport|vehicle}
              |!ship {ground|all-terrain} {<car|transport|vehicle}             
              |air/raft
@@ -236,7 +237,8 @@
 |Strangely coloured clouds can be seen in the sky above.
 |Strange lights can be seen in the sky above.
 |Flocks of alien birds can be seen in the sky above.
-|A {|huge|gigantic} {2 |2 red|2 yellow|green} sun can be seen in the sky above.
+|Flying vehicles can be seen in the sky above.
+|A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} can be seen in the sky above.
 }}
 
 // =======================================================================================
