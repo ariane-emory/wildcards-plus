@@ -4356,9 +4356,9 @@ const tld_fun = arr => {
 const TopLevelDirective       = xform(tld_fun,
                                       seq('%',
                                           ident,
-                                          '(',
-                                          wst_star(choice(sq_string, dq_string), ','),
-                                          ')',
+                                          enc('(',
+                                              wst_star(choice(sq_string, dq_string), ','),
+                                              ')'),
                                           /;s*|[\s\t]*\n/,
                                          ));
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
