@@ -3948,7 +3948,7 @@ function expand_wildcards(thing, context = make_context()) {
     // Flags:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSetFlag) {
-      console.log(`SET FLAG '${thing.name}'.`);
+      // console.log(`SET FLAG '${thing.name}'.`);
       
       context.flags.add(thing.name);
 
