@@ -1,4 +1,6 @@
-**New Features:**
+A feature-rich 'wildcards' script (and command-line tool) for Draw Things, providing numerous features to allow flexible prompt generation.
+
+**Features:**
 - Weighted alternatives in wildcards
 - Nested wildcards
 - 'Smart' text joining logic
