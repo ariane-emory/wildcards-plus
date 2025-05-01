@@ -177,6 +177,7 @@
 |scientist                                   #tool
 |explorer                                    @likely_tool
 |scout                                       @tool_or_weapon
+|wanderer                                    @tool_or_weapon
 |{2|interstellar} bounty hunter              #weapon
 |soldier                                     #weapon
 |prize fighter                               #weapon #melee
