@@ -82,7 +82,7 @@
 |holographic #indoors projector
 |?planet,moon #outdoors launch pad
 |?ship,station #indoors helm
-|?ship,station {|navigation|control|sensor|computer} console
+|?ship,station #indoors {|navigation|control|sensor|computer} console
 }
 @place_to_be_in_adj :=
 {3
@@ -96,7 +96,7 @@
 |2 ?outdoors smokey
 }
 @place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
-                 |at {a|the} @place_to_be_at}
+                 |at {a|the} @#place_tobe_at @place_to_be_at}
 
 // ---------------------------------------------------------------------------------------
 // character adjectives:
