@@ -230,7 +230,7 @@
                     |{bionic|cybernetic} eyes
                     }
 @cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
-@early_cyborg_feature_sentence := {?cyborg with @cyborg_features . #ecfs }
+@early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
 
 // ---------------------------------------------------------------------------------------
 // ailen feature:
@@ -256,8 +256,7 @@
                    |a reptilian appearance
                    }                   
 @alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @alien_features . }
-@early_alien_feature_sentence := {?alien with @alien_features . #eafs }
-
+@early_alien_feature_sentence := {?alien #eafs with @alien_features }
 
 // ---------------------------------------------------------------------------------------
 // sky:
@@ -292,7 +291,9 @@ hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour ren
 
 \n\n
 
-A @0-2&char_early_adj @char_late_adj @role @place_phrase {|3 @l2_place_phrase|5 ?outdoors @l2_place_phrase}
+A @0-2&char_early_adj @char_late_adj @role
+{2|@early_alien_feature_sentence} {2|@early_cyborg_feature_sentence}
+@place_phrase {|3 @l2_place_phrase|5 ?outdoors @l2_place_phrase}
 {|6 ?weapon @weapon_phrase}
 {|6 ?tool   @tool_phrase}
 .
