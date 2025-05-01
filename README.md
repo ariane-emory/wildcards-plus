@@ -366,7 +366,7 @@ For user convenient, `wildcards-plus` now includes some helpful built in named w
 
 You may use these wildcards to generate pronouns for a character. Since they all expand `@set_gender_if_unset` first, the generated pronouns will be consistent. It will select female a bit more frequently than male, due to my own preferences (I'm usually more interested in drawing women than men), but if your preferences differ you can either set a gender flag yourself or redefine `@set_gender_if_unset` to align with your own preferences.
 
-**Named wildcards that generate random Pony score strings**:
+**Named wildcards that generate Pony score strings**:
 ```
 @pony_score_9        := {score_9}
 @pony_score_8_up     := {score_9, score_8_up}
