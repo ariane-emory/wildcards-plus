@@ -1660,11 +1660,19 @@ function smart_join(arr) {
     if (prev_char === ',' && right_word === ',')
       continue;
 
-    // could be a bit smarter about considering entire next word:
-    if (",.!?".includes(prev_char)&& ",.!?".includes(next_char)) {
-      str = str.substring(0, str.length -1) + right_word;
-      left_word = right_word;
-      continue;
+    // might be too agressive, could kill ellipses:
+    while (",.!?".includes(prev_char)&& ",.!?".includes(next_char)) {
+      str = str.substring(0, str.length -1) + next_char;
+      left_word = left_word.substring(0, left_word.length -1) + next_char;
+      arr[ix] = right_word.substring(1);
+      update_pos();
+      
+      // ix -= 1;
+      // continue;
+      
+      // str = str.substring(0, str.length -1) + right_word;
+      // left_word = right_word;
+      // continue;
     }
 
     // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
