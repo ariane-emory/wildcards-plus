@@ -272,7 +272,7 @@
 @early_sky_verb_frag_no_s := {can be seen|hang|loom}
 @sky_sentence := {?outdoors {
 2 {Two|Three} {3 moons|suns} @early_sky_verb_frag_no_s @late_sky_verb_frag.
-|2 A {binary|trinary} { 2star|sun} @early_sky_verb_frag @late_sky_verb_frag.
+|2 A {binary|trinary} { 2 star|sun} @early_sky_verb_frag @late_sky_verb_frag.
 |3 ?moon The {planet|gas giant} that this @setting_word is orbiting @early_sky_verb_frag @late_sky_verb_frag. 
 |The planet's ring can be seen arching over @late_sky_verb_frag.
 |A descending @ship_term2 @early_sky_verb_frag @late_sky_verb_frag.

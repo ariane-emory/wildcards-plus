@@ -1650,32 +1650,32 @@ function smart_join(arr) {
     let prev_char_is_escaped = null
     let next_char = null;
 
-    const update_pos = () => {
+    const update_pos_vars = () => {
       right_word           = arr[ix]?.toString() ?? "";
       prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
-    }
+    };
     
-    update_pos();
+    const shift_left = (s) => {
+      str = str.substring(0, str.length -1) + s;
+      left_word = left_word.substring(0, left_word.length - 1) + s;
+      arr[ix] = right_word.substring(s.length);
+      update_pos_vars();
+    };
+
+    update_pos_vars();
     
     if (prev_char === ',' && right_word === ',')
       continue;
 
-    // might be too agressive, could kill ellipses:
-    while (",.!?".includes(prev_char)&& ",.!?".includes(next_char)) {
-      str = str.substring(0, str.length -1) + next_char;
-      left_word = left_word.substring(0, left_word.length -1) + next_char;
-      arr[ix] = right_word.substring(1);
-      update_pos();
-      
-      // ix -= 1;
-      // continue;
-      
-      // str = str.substring(0, str.length -1) + right_word;
-      // left_word = right_word;
-      // continue;
-    }
+
+    while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
+      shift_left('...');
+    
+    while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
+      shift_left(next_char);
+    
 
     // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
 
