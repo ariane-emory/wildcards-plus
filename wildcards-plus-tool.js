@@ -4376,12 +4376,12 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
                                               ScalarAssignmentSource));
-const Content                 = choice(ScalarReference, NamedWildcardReference,
-                                       NamedWildcardUsage, SetFlag, AnonWildcard,
-                                       comment, low_pri_text, plaintext);
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       AnonWildcard, comment, ScalarReference,
+                                       low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-const Prompt                  = wst_star(choice(ScalarAssignment,
-                                                NamedWildcardDefinition,
+const Prompt                  = wst_star(choice(NamedWildcardDefinition,
+                                                ScalarAssignment,
                                                 Content));
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
