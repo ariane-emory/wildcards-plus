@@ -4347,15 +4347,20 @@ const NotFlag                 = xform((arr => {
                                           ident, /(?=\s|[{|}]|$)/));
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
-// other non-terminals:
-// const TopLevelDirective       = second(seq('%',
-//                                            c_funcall(ident, choice(sq_string, dq_string)),
-//                                            /;s*|[\s\t]*\n/));
-const TopLevelDirective       = xform(arr => {
+const tld_fun = arr => {
   console.log(`TLD ARR: ${inspect_fun(arr)}`);
   return arr;
-},
-                                      second(seq('%', ident)));
+};
+// ---------------------------------------------------------------------------------------
+// other non-terminals:
+const TopLevelDirective       = xform(tld_fun,
+                                      seq('%',
+                                          ident,
+                                          '(',
+                                          wst_star(choice(sq_string, dq_string), ',')
+                                          //                                          /;s*|[\s\t]*\n/,
+                                         ));
+// const TopLevelDirective       = xform(tld_fun, second(seq('%', ident)));
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
