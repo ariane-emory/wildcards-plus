@@ -1643,11 +1643,20 @@ function smart_join(arr) {
   let str       = left_word;
 
   for (let ix = 1; ix < arr.length; ix++)  {
-    let right_word  = arr[ix]?.toString() ?? "";
-    let prev_char   = left_word[left_word.length - 1] ?? "";
-    let prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-    const next_char = right_word[0] ?? '';
+    let right_word = null;
+    let prev_char = null;
+    let prev_char_is_escaped = null
+    let next_char = null;
 
+    const update_pos = () => {
+      right_word  = arr[ix]?.toString() ?? "";
+      prev_char   = left_word[left_word.length - 1] ?? "";
+      prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
+      next_char = right_word[0] ?? '';
+    }
+    
+    update_pos();
+    
     if (prev_char === ',' && right_word === ',')
       continue;
 
