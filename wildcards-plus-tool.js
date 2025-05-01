@@ -4360,9 +4360,7 @@ const TopLevelDirective       = xform(tld_fun,
                                           wst_star(choice(sq_string, dq_string), ','),
                                           ')',
                                           /;s*|[\s\t]*\n/,
-                                          //                                          /;s*|[\s\t]*\n/,
                                          ));
-// const TopLevelDirective       = xform(tld_fun, second(seq('%', ident)));
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
