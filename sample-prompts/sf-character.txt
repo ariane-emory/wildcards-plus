@@ -55,11 +55,11 @@
              |laboratory
              |lounge
              |security room
-             |?planet,moon air/raft
              |?station 2 market
-             |?planet,moon aerodyne
-             |?planet,moon {sky|hover|grav} {<car|transport|vehicle}
-             |?planet,moon {ground|all-terrain} {<car|transport|vehicle}             
+             |?planet,moon #vehicle air/raft
+             |?planet,moon #vehicle aerodyne
+             |?planet,moon #vehicle {sky|hover|grav} {<car|transport|vehicle}
+             |?planet,moon #vehicle {ground|all-terrain} {<car|transport|vehicle}             
              |?ship,station 2 cockpit
              |?ship,station engine room
              |?ship,station airlock
@@ -83,7 +83,15 @@
 |?ship,station helm
 |?ship,station {|navigation|control|sensor|computer} console
 }
-@place_phrase := {in {a|the} @place_to_be_in|at {a|the} @place_to_be_at}
+@place_to_be_in_adj :=
+{3
+|!vehicle busy
+|!vehicle crowded
+|messy
+|noisy
+|cluttered
+}
+@place_phrase := {in {a|the} @place_to_be_in_adj @place_to_be_in|at {a|the} @place_to_be_at}
 
 // ---------------------------------------------------------------------------------------
 // character adjectives:
