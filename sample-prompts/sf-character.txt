@@ -1,6 +1,7 @@
 // =======================================================================================
 // random sci-fi characters
 // =======================================================================================
+
 @pro_pos_rand := {2 @pro_pos_adj|a}
 
 {3 #female|2 #male|#neuter}
@@ -27,7 +28,7 @@
 |!#advanced advanced
 |primitive
 |backwater
-#greebled greebled
+|#greebled greebled
 }
 @l2_orbit_obj_adj   := {dim|distant|huge|luminous|shining}
 @l2_orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship
@@ -126,7 +127,7 @@
 // tool:
 // ---------------------------------------------------------------------------------------
 @tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic#
-                |greebled greebled}
+                |#greebled greebled}
 @tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
 @tool :=
 {hydrospanner

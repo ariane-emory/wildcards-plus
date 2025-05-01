@@ -2,10 +2,9 @@
 // random sci-fi characters (w/artist styles)
 // =======================================================================================
 
-// =======================================================================================
 @pro_pos_rand := {2 @pro_pos_adj|a}
 
-// {3 #female|2 #male|#neuter}
+{3 #female|2 #male|#neuter}
 {#planet|#ship|#moon|#station}
 
 @ship_term  := {starship|spacecraft|space ship|shuttle}
@@ -29,6 +28,7 @@
 |!#advanced advanced
 |primitive
 |backwater
+|#greebled greebled
 }
 @l2_orbit_obj_adj   := {dim|distant|huge|luminous|shining}
 @l2_orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship
@@ -116,7 +116,8 @@
 @weapon_phrase := {@weapon_verb @pro_pos_rand {2 !melee @ranged_weapon|@melee_weapon}}
 @weapon_verb   := {3 holding|wielding|brandishing|displaying|presenting}
 @melee_weapon  := {{vibro|phase|energy|monomolecular|pulse} {sword|blade|knife|dagger|baton}}
-@ranged_weapon := {{|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien}
+@ranged_weapon := {{|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien
+                  |#greebled greebled}
                    {|laser|plasma|gauss|smart|pulse|combat|high-velocity}
                    {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun
                    |{grenade|rocket} launcher|stunner|cannon|disintegrator}
@@ -125,7 +126,8 @@
 // ---------------------------------------------------------------------------------------
 // tool:
 // ---------------------------------------------------------------------------------------
-@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic}
+@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic#
+                |#greebled greebled}
 @tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
 @tool :=
 {hydrospanner
@@ -183,7 +185,7 @@
 @clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_verb     := {2 wearing|clad in|dressed in}
 @clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|millitary|!#high-tech high-tech
-                      |{|starship|space ship|spacecraft} crew member's}
+                      |{|starship|space ship|spacecraft} crew member's|#greebled greebled}
 @clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
                       |@pro_pos_rand @clothing_adj flight suit
                       |@pro_pos_rand @clothing_adj body suit
