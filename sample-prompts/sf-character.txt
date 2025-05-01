@@ -281,23 +281,19 @@
 @colour_modifiers := {warm color pallete|warm lighting
                      |?outdoors natural lighting|?outdoors golden hour}
 
-// @aris_defaults, science fiction, {|futuristic,}
-// hyperrealistic, infinite focus, extremely detailed, 100-hour render time,
-// @0-2,colour_modifiers
-// .
+@aris_defaults, science fiction, {|futuristic,}
+hyperrealistic, infinite focus, extremely detailed, 100-hour render time,
+@0-2,colour_modifiers
+.
 
-// \n\n
+\n\n
 
-// A @0-2&char_early_adj @char_late_adj @role @place_phrase {|3 @l2_place_phrase}
-// {|5 ?weapon @weapon_phrase}
-// {|5 ?tool   @tool_phrase}
-// .
+A @0-2&char_early_adj @char_late_adj @role @place_phrase {|3 @l2_place_phrase}
+{|5 ?weapon @weapon_phrase}
+{|5 ?tool   @tool_phrase}
+.
 
-// {|5 @clothing_sentence}
-// {|5 @cyborg_feature_sentence}
-// {|5 @alien_feature_sentence}
-// {|5 @sky_sentence}
-
-@pro_pos_adj @pro_pos_adj @pro_pos_adj @pro_pos_adj @pro_pos_adj
-// @pro_pos_adj @pro_pos_adj @pro_pos_adj @pro_pos_adj @pro_pos_adj
-// @pro_pos_adj @pro_pos_adj @pro_pos_adj @pro_pos_adj @pro_pos_adj 
+{|5 @clothing_sentence}
+{|5 @cyborg_feature_sentence}
+{|5 @alien_feature_sentence}
+{|5 @sky_sentence}
