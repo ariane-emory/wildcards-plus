@@ -1740,8 +1740,7 @@ function make_context(flags = new Set(),
   };
 }
 // ---------------------------------------------------------------------------------------
-function load_prelude(into_context = make_context()) {
-  const prelude = `
+const prelude_text = `
     @set_gender_if_unset := {!female !male !neuter {3 #female|2 #male|#neuter}}
     @gender              := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
     @pro_3rd_subj        := {@set_gender_if_unset {?female she   |?male he  |?neuter it }}
@@ -3911,9 +3910,12 @@ function load_prelude(into_context = make_context()) {
       ?artist__ander_zorn etching, nudes, painting, portraits, Swedish
     }
    `;
-
-  const result  = Prompt.match(prelude);
-  const ignored = expand_wildcards(result.value, into_context);
+let prelude_parse_result = null;
+function load_prelude(into_context = make_context()) {
+  if (! prelude_parse_result)
+    prelude_parse_result = Prompt.match(prelude_text);
+  
+  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
   return into_context;
 }
