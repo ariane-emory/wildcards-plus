@@ -266,18 +266,20 @@
 // ---------------------------------------------------------------------------------------
 // sky:
 // ---------------------------------------------------------------------------------------
+@sky_verb_frag := {in the sky above|overhead}
 @sky_sentence := {?outdoors {
-2 {Two|Three} {3 moons|suns} can be seen in the sky above.
-|3 ?moon The {planet|gas giant} that this @setting_word is orbiting can be seen in the sky above. 
-|The planet's ring can be seen arching over in the sky above.
-|A descending @ship_term2 can be seen in the sky above.
-|Falling meteors can be seen in the sky above.
-|An orbiting space station can be seen in the sky above.
-|Strangely coloured clouds can be seen in the sky above.
-|Strange lights can be seen in the sky above.
-|Flocks of {|2 alien} {2 birds|insects} can be seen in the sky above.
-|Flying vehicles can be seen in the sky above.
-|A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} can be seen in the sky above.
+2 {Two|Three} {3 moons|suns} can be seen @sky_verb_frag.
+2 A {binary|trinary} {2star|sun} fcan be seen @sky_verb_frag.
+|3 ?moon The {planet|gas giant} that this @setting_word is orbiting can be seen @sky_verb_frag. 
+|The planet's ring can be seen arching over @sky_verb_frag.
+|A descending @ship_term2 can be seen @sky_verb_frag.
+|Falling meteors can be seen @sky_verb_frag.
+|An orbiting space station can be seen @sky_verb_frag.
+|Strangely coloured clouds can be seen @sky_verb_frag.
+|Strange lights can be seen @sky_verb_frag.
+|Flocks of {|2 alien} {2 birds|insects} can be seen @sky_verb_frag.
+|Flying vehicles can be seen @sky_verb_frag.
+|A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} can be seen @sky_verb_frag.
 }}
 
 // =======================================================================================
