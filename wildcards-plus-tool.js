@@ -1651,6 +1651,7 @@ function smart_join(arr) {
     if (prev_char === ',' && right_word === ',')
       continue;
 
+    // could be a bit smarter about considering entire next word:
     if (",.!?".includes(prev_char)&& ",.!?".includes(next_char)) {
       str = str.substring(0, str.length -1) + right_word;
       left_word = right_word;
