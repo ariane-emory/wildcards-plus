@@ -69,7 +69,7 @@
              |?ship @ship_term<'s bridge
              |{access|maintenance} tunnel
              }
-|?planet,moon #outdoors {alley
+|2 ?planet,moon #outdoors {alley
                         |{|2 hive city|2 megacity} street
                         |crater
                         |bazaar
@@ -250,7 +250,7 @@
   |scaled skin
   |a {|2 prehensile|spined} tail
   |skin like an amphibian
-  |more than two eyes
+  |{two|three|four|six} eyes
   |vicious fangs
   |a slitted nose
   |slitted eyes
