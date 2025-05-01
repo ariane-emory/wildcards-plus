@@ -1483,7 +1483,7 @@ const ternary            =
 const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 // ---------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule,  arg_rule, lpar = lpar, rpar = rpaw) => 
+const c_funcall = (fun_rule,  arg_rule, lpar = lpar, rpar = rpar) => 
       seq(fun_rule, wst_cutting_enc(lpar, wst_star(arg_rule, comma), rpar));
 // ---------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
