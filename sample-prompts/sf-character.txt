@@ -90,6 +90,7 @@
 |messy
 |noisy
 |cluttered
+|neon-lit
 }
 @place_phrase := {in {a|the} @place_to_be_in_adj @place_to_be_in|at {a|the} @place_to_be_at}
 
