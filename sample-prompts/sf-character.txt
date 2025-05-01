@@ -250,13 +250,9 @@
 // ---------------------------------------------------------------------------------------
 // sky:
 // ---------------------------------------------------------------------------------------
-@orbiting_thing := { The {planet|gas giant} this @setting_word is orbiting can be seen in the sky above. }
-
 @sky_sentence := {?outdoors {
 2 {Two|Three} {3 moons|suns} can be seen in the sky above.
-|3 ?moon @orbiting_thing
-|3 ?station @orbiting_thing
-|3 ?ship @orbiting_thing
+|3 ?moon The {planet|gas giant} that this @setting_word is orbiting can be seen in the sky above. 
 |The planet's ring can be seen arching over in the sky above.
 |A descending @ship_term2 can be seen in the sky above.
 |Falling meteors can be seen in the sky above.
