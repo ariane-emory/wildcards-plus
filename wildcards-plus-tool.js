@@ -4087,14 +4087,14 @@ function expand_wildcards(thing, context = make_context()) {
       for (const option of thing.options) {
         let skip = false;
 
-        if (option.not_flags.length > 1)
-          console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
+        // if (option.not_flags.length > 1)
+        //   console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
         
         for (const not_flag of option.not_flags) {
-          console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
+          // console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
 
           if (context.flags.has(not_flag.name)) {
-            console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
+            // console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
             skip = true;
             break;
           }
@@ -4110,10 +4110,10 @@ function expand_wildcards(thing, context = make_context()) {
           let dont_skip = false;
           
           for (const name of check_flag.names) {
-            console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
+            // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
             
             if (context.flags.has(name)) {
-              console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
+              // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
               dont_skip = true;
               break;
             }
