@@ -383,8 +383,8 @@ The `@random_weight` and `@high_random_weight` wildcards will generate weighting
 
 They can be used like `(some_tag @high_random_weight)`.
 
-**Integrated content from @skeptict's 'Wizard's Scroll of Artist Summoning'**:
-The named wildcard `@wizards_artists` contains the artists from @skeptict's lovely 'Wizard's Scroll of Artist Summoning' script, and `@wizards_artists_styles` will retrieve the style list for the matching artist.
+**Integrated content from @Wizard Whitebeard's 'Wizard's Scroll of Artist Summoning'**:
+The named wildcard `@wizards_artists` contains the artists from @Wizard Whitebeard's lovely 'Wizard's Scroll of Artist Summoning' script, and `@wizards_artists_styles` will retrieve the style list for the matching artist.
 
 Here's an example prompt making use of all of these built-in named wildcards:
 ```
