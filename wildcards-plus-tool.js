@@ -1650,7 +1650,12 @@ function smart_join(arr) {
 
     if (prev_char === ',' && right_word === ',')
       continue;
-    
+
+    if (prev_char === ',' && next_char === '.') {
+      str = str.substring(0, str.length -1) + ".";
+      continue;
+    }
+
     // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
 
     // console.log(`str = '${str}', ` +
