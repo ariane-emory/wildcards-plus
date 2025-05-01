@@ -68,16 +68,17 @@
              |?ship @ship_term<'s bridge
              |{access|maintenance} tunnel
              }
-|3 ?planet,moon #outdoors {alley
-                          |{|hive city|megacity} street
-                          |crater
-                          |2 bazaar
-                          }
+|?planet,moon #outdoors {alley
+                         |{|2 hive city|2 megacity} street
+                         |crater
+                         |2 bazaar
+                         |2 market
+                         }
 }
 @place_to_be_at :=
 {{ware|store} <house
 |{2|holographic} computer
-|?planet,moon colony
+|?planet,moon #outdoors colony
 |holographic projector
 |?planet,moon launch pad
 |?ship,station helm
@@ -91,9 +92,11 @@
 |noisy
 |cluttered
 |neon-lit
-|?outdoors smokey
+|?outdoors torchlit
+|2 ?outdoors smokey
 }
-@place_phrase := {in {a|the} @place_to_be_in_adj @place_to_be_in|at {a|the} @place_to_be_at}
+@place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
+                 |at {a|the} @place_to_be_at}
 
 // ---------------------------------------------------------------------------------------
 // character adjectives:
