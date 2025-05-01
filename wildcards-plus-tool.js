@@ -1649,10 +1649,10 @@ function smart_join(arr) {
     let next_char = null;
 
     const update_pos = () => {
-      right_word  = arr[ix]?.toString() ?? "";
-      prev_char   = left_word[left_word.length - 1] ?? "";
+      right_word           = arr[ix]?.toString() ?? "";
+      prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-      next_char = right_word[0] ?? '';
+      next_char            = right_word[0] ?? '';
     }
     
     update_pos();
