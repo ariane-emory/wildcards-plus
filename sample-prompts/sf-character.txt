@@ -6,7 +6,7 @@
 
 {3 #female|2 #male|#neuter}
 {#planet|#ship|#moon|#station}
-@setting_word := {?planet planet|?ship ship|?moon moon|?station station}
+@setting_word := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
 
 @ship_term     := {starship|spacecraft|space ship|shuttle}
 @ship_late_adj := {space|interstellar}
@@ -70,7 +70,7 @@
              |?ship @ship_term<'s bridge
              |{access|maintenance} tunnel
              }
-|2 ?planet,moon #outdoors {alley
+|3 ?planet,moon #outdoors {alley
                         |{|2 hive city|2 megacity} street
                         |crater
                         |bazaar
