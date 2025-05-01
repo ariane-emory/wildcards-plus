@@ -7,9 +7,12 @@
 {3 #female|2 #male|#neuter}
 {#planet|#ship|#moon|#station}
 
-@ship_term  := {starship|spacecraft|space ship|shuttle}
-@ship_term2 := {starship|spacecraft|space ship|shuttle|space frigate|space battleship
-               |space destroyer|merchant vessel}
+@ship_term     := {starship|spacecraft|space ship|shuttle}
+@ship_late_adj := {space|interstellar}
+@ship_term2    := {starship|spacecraft|@ship_late_adj ship|shuttle|@ship_late_adj frigate
+                  |@ship_late_adj battleship|@ship_late_adj destroyer
+                  |{|@ship_late_adj} merchant vessel
+                  |{|@ship_late_adj} vessel}
 
 // ---------------------------------------------------------------------------------------
 // L2 places:
@@ -28,7 +31,7 @@
 |!#advanced advanced
 |primitive
 |backwater
-|highly-detailed
+|#highly-detailed highly-detailed
 |#greebled {|highly} greebled
 }
 @l2_orbit_obj_adj   := {dim|distant|huge|luminous|shining}
@@ -119,7 +122,7 @@
 @weapon_verb   := {3 holding|wielding|brandishing|displaying|presenting}
 @melee_weapon  := {{vibro|phase|energy|monomolecular|pulse} {sword|blade|knife|dagger|baton}}
 @ranged_weapon := {{|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien
-                  |highly-detailed|#greebled {|highly} greebled}
+                  |#highly-detailed highly-detailed|#greebled {|highly} greebled}
                    {|laser|plasma|gauss|smart|pulse|combat|high-velocity}
                    {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun
                    |{grenade|rocket} launcher|stunner|cannon|disintegrator}
@@ -129,7 +132,7 @@
 // tool:
 // ---------------------------------------------------------------------------------------
 @tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic#
-                |highly-detailed|#greebled {|highly} greebled}
+                |#highly-detailed highly-detailed|#greebled {|highly} greebled}
 @tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
 @tool :=
 {hydrospanner
@@ -187,13 +190,13 @@
 @clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_verb     := {2 wearing|clad in|dressed in}
 @clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|millitary|!#high-tech high-tech
-                      |{|starship|space ship|spacecraft} crew member's|highly-detailed
+                      |{|starship|space ship|spacecraft} crew member's|#highly-detailed highly-detailed
                       |#greebled {|highly} greebled}
 @clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
                       |@pro_pos_rand @clothing_adj flight suit
                       |@pro_pos_rand @clothing_adj body suit
                       |@pro_pos_rand @clothing_adj uniform
-                      |@pro_pos_rand @clothing_adj {space|vacuum} suit
+                      |@pro_pos_rand @clothing_adj {|helmetless} {space|vacuum|hazardous environment} suit
                       |@pro_pos_rand @clothing_adj exoskeleton}
  
 // ---------------------------------------------------------------------------------------
