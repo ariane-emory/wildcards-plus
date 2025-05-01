@@ -4534,7 +4534,9 @@ async function main() {
       else  {
         console.log();
 
-        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to POST the prior prompt)? `;
+        const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
+              `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
+              `POST the prior prompt)? `;
         const answer = await ask(question);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
