@@ -69,11 +69,11 @@
              |{access|maintenance} tunnel
              }
 |?planet,moon #outdoors {alley
-                         |{|2 hive city|2 megacity} street
-                         |crater
-                         |2 bazaar
-                         |2 market
-                         }
+                        |{|2 hive city|2 megacity} street
+                        |crater
+                        |bazaar
+                        |market
+                        }
 }
 @place_to_be_at :=
 {{ware|store} #indoors <house
