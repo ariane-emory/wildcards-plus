@@ -4357,8 +4357,9 @@ const TopLevelDirective       = xform(tld_fun,
                                       seq('%',
                                           ident,
                                           '(',
-                                          wst_star(choice(sq_string, dq_string), ',')
-                                          ')'
+                                          wst_star(choice(sq_string, dq_string), ','),
+                                          ')',
+                                          /;s*|[\s\t]*\n/,
                                           //                                          /;s*|[\s\t]*\n/,
                                          ));
 // const TopLevelDirective       = xform(tld_fun, second(seq('%', ident)));
