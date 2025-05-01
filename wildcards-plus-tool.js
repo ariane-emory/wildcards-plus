@@ -4107,19 +4107,22 @@ function expand_wildcards(thing, context = make_context()) {
           // if (context.noisy)
           //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
 
-          let dont_skip = false;
+          let found = false;
           
           for (const name of check_flag.names) {
             // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
             
             if (context.flags.has(name)) {
               // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
-              dont_skip = true;
+              found = true;
               break;
             }
           }
 
-          skip = !dont_skip;
+          if (!found) {
+            skip = true;
+            break;
+          }
         }
 
         if (skip)
