@@ -188,6 +188,7 @@
 @role :=
 {#weapon mercenary 
 |{3|hyperdrive|@ship_term} technician        @likely_tool
+|engineer                                    @likely_tool
 |communications officer                      @maybe_no_equipment
 |scientist                                   #tool
 |explorer                                    @likely_tool
