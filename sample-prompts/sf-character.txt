@@ -229,7 +229,7 @@
   {{a|one} {bionic|mechanical} arm
   |{bionic|mechanical} arms
   |{a|one} {bionic|cybernetic} eye
-  |{a|one} {bionic|cybernetic} eyes
+  |{bionic|cybernetic} eyes
   }
   .
 }
