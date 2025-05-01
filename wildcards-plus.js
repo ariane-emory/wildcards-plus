@@ -1342,7 +1342,7 @@ const pascal_assign_op   = l(':=');
 const python_exponent_op = l('**');
 const python_logic_word  = r(/and|or|not|xor/);
 // ---------------------------------------------------------------------------------------
-// common puntuation:
+// common punctuation:
 const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
@@ -1572,6 +1572,15 @@ function smart_join(arr) {
     let prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
     const next_char = right_word[0] ?? '';
 
+    if (prev_char === ',' && right_word === ',')
+      continue;
+
+    if (prev_char === ',' && ",.!?".includes(next_char)) {
+      str = str.substring(0, str.length -1) + right_word;
+      left_word = right_word;
+      continue;
+    }
+
     // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
 
     // console.log(`str = '${str}', ` +
@@ -1627,7 +1636,7 @@ function smart_join(arr) {
       // console.log(`CHOMP LEFT!`);
       str = str.slice(0, -1);
     }
-    
+
     left_word = right_word;
     str += left_word;
   }
@@ -4021,11 +4030,20 @@ function expand_wildcards(thing, context = make_context()) {
         for (const check_flag of option.check_flags) {
           // if (context.noisy)
           //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
+
+          let dont_skip = false;
           
-          if (! context.flags.has(check_flag.name)) {
-            skip = true;
-            break;
+          for (const name of check_flag.names) {
+            // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(check_flag.name)}`);
+            
+            if (context.flags.has(name)) {
+              // console.log(`found ${name} in ${inspect_fun(Array.from(context.flags))}.`);
+              dont_skip = true;
+              break;
+            }
           }
+
+          skip = !dont_skip;
         }
 
         if (skip)
@@ -4073,8 +4091,8 @@ class ASTSetFlag {
 }
 // ----------------------------------------------------------------------------------------
 class ASTCheckFlag {
-  constructor(name) {
-    this.name = name;
+  constructor(names) {
+    this.names = names;
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4205,7 +4223,9 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 // ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
-const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
+// const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
+const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
+                                      second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
 const MalformedNotSetCombo    = unexpected('#!');
 const NotFlag                 = xform((arr => {
   //console.log(`ARR: ${inspect_fun(arr)}`);
