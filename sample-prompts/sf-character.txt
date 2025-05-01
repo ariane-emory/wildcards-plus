@@ -238,15 +238,15 @@
 // ---------------------------------------------------------------------------------------
 // sky:
 // ---------------------------------------------------------------------------------------
-@sky_sentence := {?outdoors {2
-|{Two|Three} moons can be seen in the sky above.
+@sky_sentence := {?outdoors {
+{Two|Three} moons can be seen in the sky above.
 |The planet's ring can be seen arching over in the sky above.
 |A descending @ship_term2 can be seen in the sky above.
 |Falling meteors can be seen in the sky above.
 |An orbiting space station can be seen in the sky above.
 |Strangely coloured clouds can be seen in the sky above.
 |Strange lights can be seen in the sky above.
-|Flocks of alien birds can be seen in the sky above.
+|Flocks of {|2 alien} {2 birds|insects} can be seen in the sky above.
 |Flying vehicles can be seen in the sky above.
 |A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} can be seen in the sky above.
 }}
@@ -269,4 +269,4 @@ A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
 {|5 @clothing_sentence}
 {|5 @cyborg_feature_sentence}
 {|5 @alien_feature_sentence}
-@sky_sentence
+{|5 @sky_sentence}
