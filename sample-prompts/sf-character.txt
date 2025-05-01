@@ -274,7 +274,7 @@
 
 \n\n
 
-A @0-2&char_early_adj @char_late_adj @role @place_phrase {|@l2_place_phrase}
+A @0-2&char_early_adj @char_late_adj @role @place_phrase {|2 @l2_place_phrase}
 {|5 ?weapon @weapon_phrase}
 {|5 ?tool   @tool_phrase}
 .
