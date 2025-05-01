@@ -6,6 +6,7 @@
 
 {3 #female|2 #male|#neuter}
 {#planet|#ship|#moon|#station}
+@setting_word := {?planet planet|?ship ship|?moon moon|?station station}
 
 @ship_term     := {starship|spacecraft|space ship|shuttle}
 @ship_late_adj := {space|interstellar}
@@ -225,11 +226,22 @@
   @^pro_3rd_subj has
   {an insectoid appearance
   |digitigrade legs
-  |gills on her throat
-  |razor sharp claws
+  |gills on @pro_pos_adj throat
+  |{{|razor} sharp|retractable} claws
+  |hooved feet
+  |{curling|back-curved} horns
   |chitinous armored plates on @pro_pos_adj skin
   |scaled skin
-  |a prehensile tail
+  |a {|2 prehensile|spined} tail
+  |skin like an amphibian
+  |more than two eyes
+  |vicious fangs
+  |a slitted nose
+  |slitted eyes
+  |compound eyes
+  |four arms
+  |{smooth|shiny} fur
+  |quill {<-like|<s instead of} hair
   |a reptilian appearance
   }
   .
@@ -238,8 +250,13 @@
 // ---------------------------------------------------------------------------------------
 // sky:
 // ---------------------------------------------------------------------------------------
+@orbiting_thing := { The {planet|gas giant} this @setting_word is orbiting can be seen in the sky above. }
+
 @sky_sentence := {?outdoors {
-{Two|Three} moons can be seen in the sky above.
+2 {Two|Three} {3 moons|suns} can be seen in the sky above.
+|3 ?moon @orbiting_thing
+|3 ?station @orbiting_thing
+|3 ?ship @orbiting_thing
 |The planet's ring can be seen arching over in the sky above.
 |A descending @ship_term2 can be seen in the sky above.
 |Falling meteors can be seen in the sky above.
