@@ -10,7 +10,8 @@
 
 @ship_term     := {starship|spacecraft|space ship|shuttle}
 @ship_late_adj := {space|interstellar}
-@ship_term2    := {starship|spacecraft|@ship_late_adj ship|shuttle|@ship_late_adj frigate
+@ship_term2    := {starship|spacecraft|@ship_late_adj ship|{|interplanetary} shuttle
+                  |@ship_late_adj frigate
                   |@ship_late_adj battleship|@ship_late_adj destroyer
                   |{|@ship_late_adj} merchant vessel
                   |{|@ship_late_adj} vessel}
@@ -41,7 +42,7 @@
                        |!planet comet|2 {|2 yellow|2 red|green} star|black hole
                        |!planet !moon satellite}
 @l2_orbit_phrase    := {@l2_orbit_obj_adj @l2_orbit_obj}
-@l2_place_phrase    := {@l2_place {|orbiting a @l2_orbit_phrase}}
+@l2_place_phrase    := {@l2_place {|2 orbiting a @l2_orbit_phrase}}
 
 // ---------------------------------------------------------------------------------------
 // places:
@@ -77,12 +78,14 @@
 }
 @place_to_be_at :=
 {{ware|store} #indoors <house
+|an alien ruin
+|the abandoned wreck of a @ship_term2
 |{2|holographic} computer
 |?planet,moon #outdoors colony
 |holographic #indoors projector
 |?planet,moon #outdoors launch pad
 |?ship,station #indoors helm
-|?ship,station #indoors {|navigation|control|sensor|computer} console
+|?ship,station #indoors 2 {|navigation|control|sensor|computer} console
 }
 @place_to_be_in_adj :=
 {3
@@ -282,18 +285,18 @@
                      |?outdoors natural lighting|?outdoors golden hour}
 
 @aris_defaults, science fiction, {|futuristic,}
-hyperrealistic, infinite focus, extremely detailed, 100-hour render time,
+hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time,
 @0-2,colour_modifiers
 .
 
 \n\n
 
-A @0-2&char_early_adj @char_late_adj @role @place_phrase {|3 @l2_place_phrase}
-{|5 ?weapon @weapon_phrase}
-{|5 ?tool   @tool_phrase}
+A @0-2&char_early_adj @char_late_adj @role @place_phrase {|5 @l2_place_phrase}
+{|6 ?weapon @weapon_phrase}
+{|6 ?tool   @tool_phrase}
 .
 
-{|5 @clothing_sentence}
-{|5 @cyborg_feature_sentence}
-{|5 @alien_feature_sentence}
-{|5 @sky_sentence}
+{|6 @clothing_sentence}
+{|6 @cyborg_feature_sentence}
+{|6 @alien_feature_sentence}
+{|6 @sky_sentence}
