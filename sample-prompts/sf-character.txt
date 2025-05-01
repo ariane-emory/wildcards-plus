@@ -78,7 +78,7 @@
 }
 @place_to_be_at :=
 {{ware|store} #indoors <house
-|an alien ruin
+|?planet,moon an alien ruin
 |the abandoned wreck of a @ship_term2
 |{2|holographic} computer
 |?planet,moon #outdoors colony
@@ -291,7 +291,7 @@ hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour ren
 
 \n\n
 
-A @0-2&char_early_adj @char_late_adj @role @place_phrase {|5 @l2_place_phrase}
+A @0-2&char_early_adj @char_late_adj @role @place_phrase {|3 @l2_place_phrase|5 ?outdoors @l2_place_phrase}
 {|6 ?weapon @weapon_phrase}
 {|6 ?tool   @tool_phrase}
 .
