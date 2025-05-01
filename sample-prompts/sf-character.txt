@@ -269,7 +269,8 @@
 @colour_modifiers := {warm color pallete|warm lighting
                      |?outdoors natural lighting|?outdoors golden hour}
 
-@aris_defaults, science fiction, {|futuristic,} hyperrealistic, ethereon, infinite focus,
+@aris_defaults, science fiction, {|futuristic,}
+hyperrealistic, infinite focus, extremely detailed,
 @0-2,colour_modifiers
 .
 

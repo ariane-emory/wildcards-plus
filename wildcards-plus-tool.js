@@ -4290,7 +4290,9 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 // ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
-const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
+// const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
+const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
+                                      second(seq('?', ident, /(?=\s|[{|}]|$)/)))
 const MalformedNotSetCombo    = unexpected('#!');
 const NotFlag                 = xform((arr => {
   //console.log(`ARR: ${inspect_fun(arr)}`);
@@ -4459,66 +4461,68 @@ async function main() {
   // ---------------------------------------------------------------------------------------
   const result = Prompt.match(prompt_input);
 
-  if (! result.is_finished)
-    throw new Error("error parsing prompt!");
-
-  console.log('--------------------------------------------------------------------------------');
-  console.log(`Expansion${count > 1 ? "s" : ''}:`);
-
-  let posted_count    = 0;
-  let prior_expansion = null;
+  console.log(`result: ${inspect_fun(result.value)}`);
   
-  while (posted_count < count) {
-    console.log('--------------------------------------------------------------------------------');
-    // console.log(`posted_count = ${posted_count}`);
+  if (! result.is_finished)
+                throw new Error("error parsing prompt!");
 
-    const context  = load_prelude();
-    const expanded = expand_wildcards(result.value, context);
-    
-    console.log(expanded);
+              console.log('--------------------------------------------------------------------------------');
+              console.log(`Expansion${count > 1 ? "s" : ''}:`);
 
-    if (!post) {
-      posted_count += 1; // a lie to make the counter correct.
-    }
-    else {
-      if (!confirm) {
-        post_prompt(expanded);
-        posted_count += 1;
-      }
-      else  {
-        console.log();
+              let posted_count    = 0;
+              let prior_expansion = null;
+              
+              while (posted_count < count) {
+                console.log('--------------------------------------------------------------------------------');
+                // console.log(`posted_count = ${posted_count}`);
 
-        const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /y.*/ for ye, positive integer for multiple images, or /p.*/ to POST the prior prompt)? `;
-        const answer = await ask(question);
+                const context  = load_prelude();
+                const expanded = expand_wildcards(result.value, context);
+                
+                console.log(expanded);
 
-        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
-          continue;
+                if (!post) {
+                  posted_count += 1; // a lie to make the counter correct.
+                }
+                else {
+                  if (!confirm) {
+                    post_prompt(expanded);
+                    posted_count += 1;
+                  }
+                  else  {
+                    console.log();
 
-        if (answer.match(/^p.*/i)) {
-          if (prior_expansion) { 
-            console.log(`POSTing prior prompt '${expanded}'`);
-            post_prompt(prior_expansion);
-          }
-          else {
-            console.log(`can't rewind, no prior prompt`);
-          }
-        }
-        else {          
-          const parsed    = parseInt(answer);
-          const gen_count = isNaN(parsed) ? 1 : parsed;  
-          
-          // console.log(`parsed = '${parsed}', count = '${count}'`);
-          
-          for (let iix = 0; iix < gen_count; iix++) {
-            post_prompt(expanded);
-            posted_count += 1;
-          }
-        }
-      }
-    }
+                    const question = `POST this prompt as #${posted_count+1} out of ${count} (enter /y.*/ for ye, positive integer for multiple images, or /p.*/ to POST the prior prompt)? `;
+                    const answer = await ask(question);
 
-    prior_expansion = expanded;
-  }
+                    if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
+                      continue;
+
+                    if (answer.match(/^p.*/i)) {
+                      if (prior_expansion) { 
+                        console.log(`POSTing prior prompt '${expanded}'`);
+                        post_prompt(prior_expansion);
+                      }
+                      else {
+                        console.log(`can't rewind, no prior prompt`);
+                      }
+                    }
+                    else {          
+                      const parsed    = parseInt(answer);
+                      const gen_count = isNaN(parsed) ? 1 : parsed;  
+                      
+                      // console.log(`parsed = '${parsed}', count = '${count}'`);
+                      
+                      for (let iix = 0; iix < gen_count; iix++) {
+                        post_prompt(expanded);
+                        posted_count += 1;
+                      }
+                    }
+                  }
+                }
+
+                prior_expansion = expanded;
+              }
 
   console.log('--------------------------------------------------------------------------------');
 }
