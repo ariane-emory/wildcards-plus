@@ -1483,8 +1483,8 @@ const ternary            =
 const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 // ---------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule,  arg_rule, lpar = lpar, rpar = rpar) => 
-      seq(fun_rule, wst_cutting_enc(lpar, wst_star(arg_rule, comma), rpar));
+const c_funcall = (fun_rule,  arg_rule, open_rule = lpar, close_rule = rpar) => 
+      seq(fun_rule, wst_cutting_enc(open_rule, wst_star(arg_rule, comma), close_rule));
 // ---------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
 // ---------------------------------------------------------------------------------------
@@ -4348,6 +4348,12 @@ const NotFlag                 = xform((arr => {
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
+const TopLevelDirective       =
+      second(seq('%',
+          c_funcall(ident, choice(sq_string, dq_string)),
+                 /[\s\t]*\n/));
+          
+
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
