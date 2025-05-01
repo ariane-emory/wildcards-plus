@@ -41,7 +41,7 @@
                        |!planet comet|2 {|2 yellow|2 red|green} star|black hole
                        |!planet !moon satellite}
 @l2_orbit_phrase    := {@l2_orbit_obj_adj @l2_orbit_obj}
-@l2_place_phrase    := {@l2_place {|orbitting a @l2_orbit_phrase}}
+@l2_place_phrase    := {@l2_place {|orbiting a @l2_orbit_phrase}}
 
 // ---------------------------------------------------------------------------------------
 // places:
@@ -77,7 +77,7 @@
 @place_to_be_at :=
 {{ware|store} <house
 |{2|holographic} computer
-|colony
+|?planet,moon colony
 |holographic projector
 |?planet,moon launch pad
 |?ship,station helm
@@ -275,7 +275,7 @@ hyperrealistic, infinite focus, extremely detailed, 100-hour render time,
 
 \n\n
 
-A @0-2&char_early_adj @char_late_adj @role @place_phrase {|2 @l2_place_phrase}
+A @0-2&char_early_adj @char_late_adj @role @place_phrase {|3 @l2_place_phrase}
 {|5 ?weapon @weapon_phrase}
 {|5 ?tool   @tool_phrase}
 .
