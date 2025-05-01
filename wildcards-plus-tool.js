@@ -4088,11 +4088,11 @@ function expand_wildcards(thing, context = make_context()) {
       for (const option of thing.options) {
         let skip = false;
 
-        // console.log(`alternative is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
+        console.log(`alternative is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
         
         for (const not_flag of option.not_flags) {
-          // if (context.noisy) 
-          //   console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)}...`);
+          if (context.noisy) 
+            console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)}...`);
 
           if (context.flags.has(not_flag.name)) {
             skip = true;

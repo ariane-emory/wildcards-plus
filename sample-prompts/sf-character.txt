@@ -71,7 +71,7 @@
 |3 ?planet,moon #outdoors {alley
                           |{|hive city|megacity} street
                           |crater
-                          |2 market
+                          |2 bazaar
                           }
 }
 @place_to_be_at :=
@@ -91,6 +91,7 @@
 |noisy
 |cluttered
 |neon-lit
+|?outdoors smokey
 }
 @place_phrase := {in {a|the} @place_to_be_in_adj @place_to_be_in|at {a|the} @place_to_be_at}
 
