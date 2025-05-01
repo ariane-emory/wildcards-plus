@@ -226,11 +226,10 @@
 // ---------------------------------------------------------------------------------------
 @cyborg_feature_sentence := {?cyborg
   @^pro_3rd_subj has
-  {one mechanical arm
+  {{a|one} {bionic|mechanical} arm
   |{bionic|mechanical} arms
-  |{bionic|mechanical} arms
-  |one {bionic|cybernetic} eye
-  |{bionic|cybernetic} eyes
+  |{a|one} {bionic|cybernetic} eye
+  |{a|one} {bionic|cybernetic} eyes
   }
   .
 }
