@@ -236,27 +236,27 @@
 // ailen feature:
 // ---------------------------------------------------------------------------------------
 @alien_features := {an insectoid appearance
-                   |digitigrade legs
+                   |2 digitigrade legs
                    |gills on @pro_pos_adj throat
-                   |{{|razor} sharp|retractable} claws
+                   |!#alien_claws {{|razor} sharp|retractable} claws
                    |hooved feet
-                   |{curling|back-curved} horns
+                   |!#alien_horns {curling|back-curved} horns
                    |chitinous armored plates on @pro_pos_adj skin
                    |scaled skin
-                   |a {|2 prehensile|spined} tail
+                   |!#alien_tail a {|2 prehensile|spined} tail
                    |skin like an amphibian
-                   |{two|three|four|six} eyes
+                   |!#alien_eyes {two|three|four|six} eyes
                    |vicious fangs
                    |a slitted nose
-                   |slitted eyes
-                   |compound eyes
+                   |!#alien_eyes slitted eyes
+                   |!#alien_eyes compound eyes
                    |four arms
-                   |{smooth|shiny} fur
-                   |quill {<-like|<s instead of} hair
+                   |!#alien_fur {smooth|shiny} fur
+                   |!#alien_quills quill {<-like|<s instead of} hair
                    |a reptilian appearance
                    }                   
-@alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @alien_features . }
-@early_alien_feature_sentence := {?alien #eafs with @alien_features }
+@alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
+@early_alien_feature_sentence := {?alien #eafs with @1-2&alien_features }
 
 // ---------------------------------------------------------------------------------------
 // sky:
@@ -292,7 +292,8 @@ hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour ren
 \n\n
 
 A @0-2&char_early_adj @char_late_adj @role
-{2|@early_alien_feature_sentence} {2|@early_cyborg_feature_sentence}
+{2|@early_alien_feature_sentence}
+{2|@early_cyborg_feature_sentence}
 @place_phrase {|3 @l2_place_phrase|5 ?outdoors @l2_place_phrase}
 {|6 ?weapon @weapon_phrase}
 {|6 ?tool   @tool_phrase}
