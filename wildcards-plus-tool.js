@@ -1726,7 +1726,7 @@ function smart_join(arr) {
 
 
 // =======================================================================================
-// the AST-walking function that I'll be using for the SD prompt grammar's output:
+// helper functions for making contexts and dealing with the prelude:
 // =======================================================================================
 function make_context(flags = new Set(),
                       scalar_variables = new Map(),
@@ -3922,6 +3922,11 @@ function load_prelude(into_context = make_context()) {
   return into_context;
 }
 // ---------------------------------------------------------------------------------------
+
+
+// =======================================================================================
+// the AST-walking function that I'll be using for the SD prompt grammar's output:
+// =======================================================================================
 function expand_wildcards(thing, context = make_context()) {  
   function walk(thing, context) {
     // -----------------------------------------------------------------------------------
