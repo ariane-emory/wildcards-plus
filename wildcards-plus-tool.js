@@ -4417,6 +4417,7 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 const Prompt                  = wst_star(choice(NamedWildcardDefinition,
+                                                TopLevelDirective,
                                                 ScalarAssignment,
                                                 Content));
 // ---------------------------------------------------------------------------------------
