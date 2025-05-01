@@ -48,7 +48,8 @@
              |bar
              |2 market
              |laboratory
-             |!ship {sky|hover|ground} {<car|transport}
+             |!ship {sky|hover|grav} {<car|transport|vehicle}
+             |!ship {ground|all-terrain} {<car|transport|vehicle}             
              |air/raft
              |equipment room
              |control room
