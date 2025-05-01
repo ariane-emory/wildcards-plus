@@ -96,7 +96,7 @@
 |2 ?outdoors smokey
 }
 @place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
-                 |at {a|the} @#place_tobe_at @place_to_be_at}
+                 |at {a|the} @#place_to_be_at @place_to_be_at}
 
 // ---------------------------------------------------------------------------------------
 // character adjectives:
