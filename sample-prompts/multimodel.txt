@@ -1,4 +1,4 @@
-   one  two three
+   (two)
 %foo("bar", "bar")
 %foo(  "corge"  , "grault");
 baz

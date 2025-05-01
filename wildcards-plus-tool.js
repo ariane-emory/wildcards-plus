@@ -4432,7 +4432,7 @@ const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 //                                                 TopLevelDirective,
 //                                                 ScalarAssignment,
 //                                                 Content));
-const Prompt                  = label('test', wst_seq('one', 'two', 'three'));
+const Prompt                  = label('test', wst_seq('(', 'two', ')'));
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // ---------------------------------------------------------------------------------------
