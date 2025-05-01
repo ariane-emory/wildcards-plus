@@ -128,10 +128,15 @@
 |2 probe
 |2 scanner
 |2 toolkit
+|equipment
+|instruments
 |pair of binoculars
-|telescpe
+|telescope
+|plasma cutter
 |3 vacuum suit's helmet under one arm
 |optical device
+|tricorder
+|cyberdeck
 |2 datapad
 |2 communicator
 |1 radio
