@@ -224,15 +224,12 @@
 // ---------------------------------------------------------------------------------------
 // cyborg feature:
 // ---------------------------------------------------------------------------------------
-@cyborg_feature_sentence := {?cyborg
-  @^pro_3rd_subj has
-  {{a|one} {bionic|mechanical} arm
-  |{bionic|mechanical} arms
-  |{a|one} {bionic|cybernetic} eye
-  |{bionic|cybernetic} eyes
-  }
-  .
-}
+@cyborg_features := {{a|one} {bionic|mechanical} arm
+                    |{bionic|mechanical} arms
+                    |{a|one} {bionic|cybernetic} eye
+                    |{bionic|cybernetic} eyes
+                    }
+@cyborg_feature_sentence := {?cyborg @^pro_3rd_subj has @cyborg_features . }
 
 // ---------------------------------------------------------------------------------------
 // ailen feature:
