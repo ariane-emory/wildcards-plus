@@ -32,8 +32,8 @@
 |!#advanced advanced
 |primitive
 |backwater
-|#highly-detailed highly-detailed
-|#greebled {|highly} greebled
+|!#highly-detailed highly-detailed
+|!#greebled {|highly} greebled
 }
 @l2_orbit_obj_adj   := {dim|distant|huge|luminous|shining}
 @l2_orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship
@@ -138,7 +138,7 @@
 @melee_weapon            := {{vibro|phase|energy|monomolecular|pulse}
                              {sword|blade|knife|dagger|baton}}
 @ranged_weapon_early_adj := {|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien
-                            |#highly-detailed highly-detailed|#greebled {|highly} greebled}
+                            |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
 @ranged_weapon_late_adj  := {|laser|plasma|gauss|smart|pulse|combat|high-velocity|ion}
 @ranged_weapon           := {@ranged_weapon_early_adj
                              @ranged_weapon_late_adj
@@ -150,7 +150,7 @@
 // tool:
 // ---------------------------------------------------------------------------------------
 @tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
-                |#highly-detailed highly-detailed|#greebled {|highly} greebled}
+                |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
 @tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
 @tool :=
 {hydrospanner
