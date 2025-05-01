@@ -1657,10 +1657,11 @@ function smart_join(arr) {
       next_char            = right_word[0] ?? '';
     };
     
-    const shift_left = (s) => {
-      str = str.substring(0, str.length -1) + s;
-      left_word = left_word.substring(0, left_word.length - 1) + s;
-      arr[ix] = right_word.substring(s.length);
+    const shift_left = (n) => {
+      const shifted_str = right_word.substring(0, n);
+      str = str.substring(0, str.length -1) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - 1) + shifted_str;
+      arr[ix] = right_word.substring(n);
       update_pos_vars();
     };
 
@@ -1670,10 +1671,10 @@ function smart_join(arr) {
       continue;
 
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
-      shift_left('...');
+      shift_left(3);
     
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
-      shift_left(next_char);
+      shift_left(1);
     
 
     // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
