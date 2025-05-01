@@ -134,7 +134,7 @@
 // ---------------------------------------------------------------------------------------
 // tool:
 // ---------------------------------------------------------------------------------------
-@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic#
+@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
                 |#highly-detailed highly-detailed|#greebled {|highly} greebled}
 @tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
 @tool :=
