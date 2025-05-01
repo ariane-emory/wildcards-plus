@@ -62,12 +62,10 @@
              |!ship {ground|all-terrain} {<car|transport|vehicle}             
              |!planet !moon 2 cockpit
              |!planet !moon engine room
-             |?ship airlock
-             |?ship cargo bay
+             |?ship,station airlock
+             |?ship,station cargo bay
              |?ship docking bay
              |?ship @ship_term<'s bridge
-             |?station docking bay
-             |?station cargo bay
              |{access|maintenance} tunnel
              }
 |3 !ship !station #outdoors {alley
@@ -270,7 +268,7 @@
                      |?outdoors natural lighting|?outdoors golden hour}
 
 @aris_defaults, science fiction, {|futuristic,}
-hyperrealistic, infinite focus, extremely detailed,
+hyperrealistic, infinite focus, extremely detailed, 100-hour render time,
 @0-2,colour_modifiers
 .
 

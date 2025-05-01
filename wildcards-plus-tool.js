@@ -4470,8 +4470,8 @@ async function main() {
   // ---------------------------------------------------------------------------------------
   const result = Prompt.match(prompt_input);
 
-  console.log(`result: ${inspect_fun(result.value)}`);
-  console.log(`result (JSON): ${JSON.stringify(result.value)}`);
+  // console.log(`result: ${inspect_fun(result.value)}`);
+  // console.log(`result (JSON): ${JSON.stringify(result.value)}`);
   
   if (! result.is_finished)
     throw new Error("error parsing prompt!");
