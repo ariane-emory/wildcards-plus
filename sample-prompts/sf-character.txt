@@ -242,8 +242,8 @@
                    |hooved feet
                    |!#alien_wings {|diaphanous|batlike} wings
                    |!#alien_horns {curling|back-curved} horns
-                   |!#alien_skinchitinous armored plates on @pro_pos_adj skin
-                   |!#alien_skinscaled skin
+                   |!#alien_skin chitinous armored plates on @pro_pos_adj skin
+                   |!#alien_skin scaled skin
                    |!#alien_tail a {|2 prehensile|spined} tail
                    |!#alien_skinskin like an amphibian
                    |!#alien_eyes {two|three|four|six} eyes

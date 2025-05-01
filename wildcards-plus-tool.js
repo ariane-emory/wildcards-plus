@@ -3910,7 +3910,9 @@ const prelude_text = `
       ?artist__ander_zorn etching, nudes, painting, portraits, Swedish
     }
    `;
+// ---------------------------------------------------------------------------------------
 let prelude_parse_result = null;
+// ---------------------------------------------------------------------------------------
 function load_prelude(into_context = make_context()) {
   if (! prelude_parse_result)
     prelude_parse_result = Prompt.match(prelude_text);
