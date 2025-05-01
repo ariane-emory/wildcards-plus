@@ -237,30 +237,27 @@
 // ---------------------------------------------------------------------------------------
 // ailen feature:
 // ---------------------------------------------------------------------------------------
-@alien_feature_sentence := {?alien
-  @^pro_3rd_subj has
-  {an insectoid appearance
-  |digitigrade legs
-  |gills on @pro_pos_adj throat
-  |{{|razor} sharp|retractable} claws
-  |hooved feet
-  |{curling|back-curved} horns
-  |chitinous armored plates on @pro_pos_adj skin
-  |scaled skin
-  |a {|2 prehensile|spined} tail
-  |skin like an amphibian
-  |{two|three|four|six} eyes
-  |vicious fangs
-  |a slitted nose
-  |slitted eyes
-  |compound eyes
-  |four arms
-  |{smooth|shiny} fur
-  |quill {<-like|<s instead of} hair
-  |a reptilian appearance
-  }
-  .
-}
+@alien_features := {an insectoid appearance
+                   |digitigrade legs
+                   |gills on @pro_pos_adj throat
+                   |{{|razor} sharp|retractable} claws
+                   |hooved feet
+                   |{curling|back-curved} horns
+                   |chitinous armored plates on @pro_pos_adj skin
+                   |scaled skin
+                   |a {|2 prehensile|spined} tail
+                   |skin like an amphibian
+                   |{two|three|four|six} eyes
+                   |vicious fangs
+                   |a slitted nose
+                   |slitted eyes
+                   |compound eyes
+                   |four arms
+                   |{smooth|shiny} fur
+                   |quill {<-like|<s instead of} hair
+                   |a reptilian appearance
+                   }
+@alien_feature_sentence := {?alien @^pro_3rd_subj has @alien_features . }
 
 // ---------------------------------------------------------------------------------------
 // sky:
