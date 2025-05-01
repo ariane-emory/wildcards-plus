@@ -60,7 +60,7 @@
              |?planet,moon #vehicle air/raft
              |?planet,moon #vehicle aerodyne
              |?planet,moon #vehicle {sky|hover|grav} {<car|transport|vehicle}
-             |?planet,moon #vehicle {ground|all-terrain} {<car|transport|vehicle}             
+             |?planet,moon #vehicle {ground|all-terrain\ } {<car|transport|vehicle}             
              |?ship,station 2 cockpit
              |?ship,station engine room
              |?ship,station airlock
