@@ -25,8 +25,8 @@
 {
 |strange
 |exotic
-|crowded
-|busy
+|!#crowded crowded
+|!#busy busy 
 |remote
 |secluded
 |run-down
@@ -89,8 +89,8 @@
 }
 @place_to_be_in_adj :=
 {3
-|!vehicle busy
-|!vehicle crowded
+|!vehicle !#busy busy
+|!vehicle !#crowded crowded
 |messy
 |noisy
 |cluttered
