@@ -76,12 +76,12 @@
                          }
 }
 @place_to_be_at :=
-{{ware|store} <house
+{{ware|store} #indoors <house
 |{2|holographic} computer
 |?planet,moon #outdoors colony
-|holographic projector
-|?planet,moon launch pad
-|?ship,station helm
+|holographic #indoors projector
+|?planet,moon #outdoors launch pad
+|?ship,station #indoors helm
 |?ship,station {|navigation|control|sensor|computer} console
 }
 @place_to_be_in_adj :=
