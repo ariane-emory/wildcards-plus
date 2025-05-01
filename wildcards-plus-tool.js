@@ -1627,6 +1627,8 @@ function choose_indefinite_article(word) {
 }
 // ---------------------------------------------------------------------------------------
 function smart_join(arr) {
+  arr = [...arr];
+  
   // console.log(`JOINING ${inspect_fun(arr)}`);
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
