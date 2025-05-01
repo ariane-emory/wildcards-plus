@@ -7,9 +7,12 @@
 {3 #female|2 #male|#neuter}
 {#planet|#ship|#moon|#station}
 
-@ship_term  := {starship|spacecraft|space ship|shuttle}
-@ship_term2 := {starship|spacecraft|space ship|shuttle|space frigate|space battleship
-               |space destroyer|merchant vessel}
+@ship_term     := {starship|spacecraft|space ship|shuttle}
+@ship_late_adj := {space|interstellar}
+@ship_term2    := {starship|spacecraft|@ship_late_adj ship|shuttle|@ship_late_adj frigate
+                  |@ship_late_adj battleship|@ship_late_adj destroyer
+                  |{|@ship_late_adj} merchant vessel
+                  |{|@ship_late_adj} vessel}
 
 // ---------------------------------------------------------------------------------------
 // L2 places:
