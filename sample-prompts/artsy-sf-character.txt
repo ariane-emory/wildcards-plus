@@ -47,7 +47,6 @@
 // ---------------------------------------------------------------------------------------
 @place_to_be_in := 
 {2 #indoors  {2 crew cabin 
-             |air/raft
              |bar
              |control room
              |corridor
@@ -55,12 +54,14 @@
              |laboratory
              |lounge
              |security room
+             |!ship air/raft
              |!ship 2 market
              |!ship aerodyne
              |!ship {sky|hover|grav} {<car|transport|vehicle}
              |!ship {ground|all-terrain} {<car|transport|vehicle}             
              |!planet !moon 2 cockpit
              |!planet !moon engine room
+             |?ship airlock
              |?ship docking bay
              |?ship cargo bay
              |?ship @ship_term<'s bridge

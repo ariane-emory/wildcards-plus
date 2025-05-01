@@ -1418,7 +1418,7 @@ const pascal_assign_op   = l(':=');
 const python_exponent_op = l('**');
 const python_logic_word  = r(/and|or|not|xor/);
 // ---------------------------------------------------------------------------------------
-// common puntuation:
+// common punctuation:
 const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
@@ -1651,8 +1651,9 @@ function smart_join(arr) {
     if (prev_char === ',' && right_word === ',')
       continue;
 
-    if (prev_char === ',' && next_char === '.') {
-      str = str.substring(0, str.length -1) + ".";
+    if (prev_char === ',' && ",.!?".includes(next_char)) {
+      str = str.substring(0, str.length -1) + right_word;
+      left_word = right_word;
       continue;
     }
 
