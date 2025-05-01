@@ -49,6 +49,7 @@
              |2 market
              |laboratory
              |!ship {sky|hover|ground} {<car|transport}
+             |air/raft
              |equipment room
              |control room
              |!planet !moon engine room
