@@ -1,4 +1,5 @@
+   one  two three
 %foo("bar", "bar")
-%foo("corge", "grault");
+%foo(  "corge"  , "grault");
 baz
 quux

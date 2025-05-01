@@ -4361,6 +4361,7 @@ const TopLevelDirective       = xform(tld_fun,
                                               ')'),
                                           /;s*|[\s\t]*\n/,
                                          ));
+
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
@@ -4426,10 +4427,12 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        AnonWildcard, comment, ScalarReference,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-const Prompt                  = wst_star(choice(NamedWildcardDefinition,
-                                                TopLevelDirective,
-                                                ScalarAssignment,
-                                                Content));
+// const Prompt                  = wst_star(choice(TestRule,
+//                                                 NamedWildcardDefinition,
+//                                                 TopLevelDirective,
+//                                                 ScalarAssignment,
+//                                                 Content));
+const Prompt                  = label('test', wst_seq('one', 'two', 'three'));
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // ---------------------------------------------------------------------------------------
