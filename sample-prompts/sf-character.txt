@@ -282,7 +282,7 @@
 
 // =======================================================================================
 @colour_modifiers := {warm color pallete|warm lighting
-                     |?outdoors natural lighting|?outdoors golden hour}
+                     |natural lighting|?outdoors golden hour}
 
 @aris_defaults, science fiction, {|futuristic,}
 hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time,
