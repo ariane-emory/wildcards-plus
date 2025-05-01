@@ -1651,7 +1651,7 @@ function smart_join(arr) {
     if (prev_char === ',' && right_word === ',')
       continue;
 
-    while (",.!?".includes(prev_char)&& ",.!?".includes(next_char)) {
+    if (",.!?".includes(prev_char)&& ",.!?".includes(next_char)) {
       str = str.substring(0, str.length -1) + right_word;
       left_word = right_word;
       // continue;
