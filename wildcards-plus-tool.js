@@ -925,9 +925,15 @@ class Sequence extends Rule {
     
     const values = [];
     index        = last_match_result.index;
-    
-    if (last_match_result.value || last_match_result.value === '')
+
+    if (log_match_enabled)
+      log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
+
+    if (last_match_result.value !== null) {
+      if (log_match_enabled)
+        log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
       values.push(last_match_result.value);
+    }
     else if (log_match_enabled)
       log(indent + 1, `discarding ${JSON.stringify(last_match_result)}!`);
 
