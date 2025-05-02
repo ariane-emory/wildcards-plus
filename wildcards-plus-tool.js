@@ -4482,7 +4482,7 @@ const SpecialFunctionName     = l('include'); // choice('include', 'models');
 const SpecialFunction         = xform(tld_fun,
                                       seq(c_funcall(seq('%', SpecialFunctionName),
                                                     choice(sq_string, dq_string)),
-                                          /;|[\s\t]*\n/));
+                                          /\s*;|[\s\t]*\n/));
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
