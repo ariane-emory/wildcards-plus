@@ -220,7 +220,7 @@ if (false)
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_finalize_enabled      = false;
-let log_match_enabled         = true; 
+let log_match_enabled         = false; 
 // ---------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // ---------------------------------------------------------------------------------------
@@ -4819,8 +4819,8 @@ async function main() {
 
   AST = process_includes(AST, base_context);
 
-  // if (false) // comment to see AST...
-  console.log(`after process_includes: ${inspect_fun(AST)}`);
+  if (false) // comment to see AST after includes...
+    console.log(`after process_includes: ${inspect_fun(AST)}`);
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
