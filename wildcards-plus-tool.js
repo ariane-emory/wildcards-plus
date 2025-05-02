@@ -4503,7 +4503,7 @@ const PromptBody              = wst_star(choice(NamedWildcardDefinition,
                                                 Content));
 const Prompt                  = (dt_hosted
                                  ? PromptBody
-                                 : xform(arr => arr.flat(1),
+                                 : xform(arr => arr, // .flat(1),
                                          wst_seq(
                                            wst_star(SpecialFunction),
                                            PromptBody)));
