@@ -231,8 +231,8 @@
 // ---------------------------------------------------------------------------------------
 @cyborg_features := {{a|one} {bionic|mechanical} arm
                     |{bionic|mechanical} arms
-                    |{a|one} {bionic|cybernetic} eye
-                    |{bionic|cybernetic} eyes
+                    |{a|one} {bionic|cyber {|<netic}} eye
+                    |{bionic|cyber {|<netic}} eyes
                     }
 @cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
 @early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
