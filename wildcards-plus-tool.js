@@ -4662,7 +4662,7 @@ async function main() {
   // do some new special walk over AST to handle 'include' SpecialFunctions,
   // updating files as we go and bodging result back onto (or replacing?) AST?
 
-  AST = process_includes(AST, base_context);
+  AST = process_includes(AST, base_context).flat(Infinity);
 
   // console.log(`after process_includes: ${inspect_fun(AST)}`);
   
