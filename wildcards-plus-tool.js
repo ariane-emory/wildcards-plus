@@ -4022,7 +4022,9 @@ function process_includes(thing, context = new Context()) {
       const current_file = context.files[context.files.length - 1];
       const res = [];
       
-      for (const filename of thing.args) {
+      for (let filename of thing.args) {
+        filename = path.join(path.dirname(current_file), filename);
+        
         if (context.files.includes(filename)) {
           console(`WARNING: skipping duplicate include of '${filename}'.`);
 
