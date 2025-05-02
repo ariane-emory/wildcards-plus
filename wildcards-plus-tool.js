@@ -1757,18 +1757,28 @@ function smart_join(arr) {
 // helper functions for making contexts and dealing with the prelude:
 // =======================================================================================
 class Context {
-  constructor({flags = new Set(),
-               scalar_variables = new Map(),
-               named_wildcards = new Map(),
-               noisy = false,
-               files = []} = {}) {
-    return {
-      flags: flags,
-      scalar_variables: scalar_variables,
-      named_wildcards: named_wildcards,
-      noisy: noisy,
-      files: files,
-    };
+  constructor({ 
+    flags = new Set(),
+    scalar_variables = new Map(),
+    named_wildcards = new Map(),
+    noisy = false,
+    files = []
+  } = {}) {
+    this.flags = flags;
+    this.scalar_variables = scalar_variables;
+    this.named_wildcards = named_wildcards;
+    this.noisy = noisy;
+    this.files = files;
+  }
+  // -------------------------------------------------------------------------------------
+  clone() {
+    return new Context({
+      flags: new Set(this.flags),
+      scalar_variables: new Map(this.scalar_variables),
+      named_wildcards: new Map(this.named_wildcards),
+      noisy: this.noisy,
+      files: [...this.files]
+    });
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4553,19 +4563,23 @@ async function main() {
   if (! result.is_finished)
     throw new Error("error parsing prompt!");
 
+  const base_context  = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
+
+  // SpecialFunctions will be in result.value[0], do stuff with them and update ast and
+  // base_context here?
+
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
 
   let posted_count    = 0;
   let prior_expansion = null;
-  
+
   while (posted_count < count) {
     console.log('--------------------------------------------------------------------------------');
     // console.log(`posted_count = ${posted_count}`);
 
-    const context  = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
-
-    // SpecialFunctions will be in result.value[0], do stuff with them and update context here?
+    const context  = base_context.clone();
+    
     
     const expanded = expand_wildcards(result.value[1], context);
     
