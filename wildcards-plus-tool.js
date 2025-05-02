@@ -845,7 +845,7 @@ class Optional extends Rule {
       indent + 1);
 
     if (match_result === null) {
-      const mr = new MatchResult((this.default_value || this.default_value === '')
+      const mr = new MatchResult(this.default_value !== null
                                  ? [ this.default_value ]
                                  : [],
                                  input, index)
