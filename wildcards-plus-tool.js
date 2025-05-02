@@ -1751,9 +1751,11 @@ const json_object_with_comments = xform(arr =>  Object.fromEntries(arr),
                                         wst_cutting_enc('{',
                                                         wst_star(
 
-                                                          xform(arr => [arr[0], arr[2]], wst_seq( () => json_string, // 0 originally
-                                                                                                  ':',               // 1 originally 
-                                                                                                  json))             // 2 originally
+                                                          xform(arr => [arr[0], arr[2]],
+
+                                                                wst_seq( () => json_string, // 0 originally
+                                                                         ':',               // 1 originally 
+                                                                         json))             // 2 originally
 
                                                           , ','),
                                                         '}'));
