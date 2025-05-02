@@ -608,8 +608,6 @@ class Element extends Rule {
       return null;
 
     if (log_match_enabled) {
-      // throw new Error("bang");
-      
       log(indent, `taking elem ${this.index} from ` +
           `${JSON.stringify(rule_match_result)}'s value.`);
     }
@@ -962,9 +960,6 @@ class Sequence extends Rule {
 
       if (log_match_enabled)
         log(indent + 1, `matched sequence item #${ix}.`);
-
-      // if (last_match_result.value === undefined)
-      //   throw new Error("bang");
 
       if (last_match_result.value !== null && last_match_result.value !== undefined) {
         if (log_match_enabled)
