@@ -4386,7 +4386,7 @@ const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardOption, '|')));
 const NamedWildcardReference        = xform(seq(discard('@'),
-                                                optional('^'),                           // 0
+                                                optional('^'),                            // 0
                                                 optional(xform(parseInt, /\d+/)),         // 1
                                                 optional(xform(parseInt,
                                                                second(seq('-', /\d+/)))), // 2
