@@ -106,6 +106,9 @@ function process_includes(thing, context = new Context()) {
       context = context.shallow_copy();
       
       for (let filename of thing.args) {
+        if (typeof filename !== 'string')
+          throw new Error(`include's arguments must be strings, got ${inspect_fun(filename)}`);
+        
         filename = path.join(path.dirname(current_file), filename);
         
         if (context.files.includes(filename)) {
