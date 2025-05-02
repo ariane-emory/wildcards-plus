@@ -4181,7 +4181,7 @@ function expand_wildcards(thing, context = make_context()) {
     // -----------------------------------------------------------------------------------
     // TLDs, not yet implemented:
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof LabeledValue) {
+    else if (thing instanceof ASTTopLevelDirective) {
       console.log(`IGNORING ${inspect_fun(thing)}`);
     }
     // -----------------------------------------------------------------------------------
@@ -4287,6 +4287,15 @@ class ASTScalarAssignment  {
   }
 }
 // ---------------------------------------------------------------------------------------
+// Directives:
+// ---------------------------------------------------------------------------------------
+class ASTTopLevelDirective {
+  constructor(directive, args) {
+    this.directive = directive;
+    this.args = args;
+  }
+}
+// ---------------------------------------------------------------------------------------
 // AnonWildcards:
 // ---------------------------------------------------------------------------------------
 class ASTAnonWildcard {
@@ -4360,7 +4369,8 @@ const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag)
 // ---------------------------------------------------------------------------------------
 const tld_fun = arr => {
   console.log(`TLD ARR: ${inspect_fun(arr)}`);
-  return new LabeledValue("TLD", [ arr[0][0][1], ...arr[0][1] ]);
+  return new ASTTopLevelDirective(arr[0][0][1],
+                                  arr[0][1].map(s => s.substring(1, s.length - 1)));
 };
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
