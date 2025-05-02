@@ -30,7 +30,7 @@
 // =======================================================================================
 import * as util from 'util';
 import * as http from 'http';
-import * as fs   from 'fs/promises';
+import * as fs   from 'fs';
 import * as readline from 'readline';
 import { stdin as input, stdout as output } from 'process';
 
@@ -40,8 +40,8 @@ import { stdin as input, stdout as output } from 'process';
 // ---------------------------------------------------------------------------------------
 // helper functions:
 // ---------------------------------------------------------------------------------------
-async function parse_file(filename) {
-  const prompt_input = await fs.readFile(filename, 'utf8');
+function parse_file(filename) {
+  const prompt_input = fs.readFileSync(filename, 'utf8');
   const result = Prompt.match(prompt_input);
   return result;
 }
@@ -4592,7 +4592,7 @@ async function main() {
     if (args.length === 0) 
       throw new Error("Error: No input file provided.");
 
-    result = await parse_file(args[0]);
+    result = parse_file(args[0]);
     // prompt_input = await fs.readFile(args[0], 'utf8');
   }
 
