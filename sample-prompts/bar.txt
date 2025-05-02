@@ -1,1 +1,2 @@
+%include("quux.txt")
 @bar := { baz | corge | grault }
