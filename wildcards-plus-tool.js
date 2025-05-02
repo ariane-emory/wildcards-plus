@@ -1488,7 +1488,6 @@ const c_funcall = (fun_rule, arg_rule, open = '(', close = ')', sep = ',') =>
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
                           close));
-
 // ---------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
 // ---------------------------------------------------------------------------------------
