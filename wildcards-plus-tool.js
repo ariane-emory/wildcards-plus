@@ -1922,7 +1922,7 @@ const prelude_text = `
     @pony_score_5_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
     @pony_score_4_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
     @aris_defaults       := {masterpiece, best quality, absurdres, aesthetic, 8k,
-                             focused subject, ultra high resolution, detailed background,
+                             depth of field, ultra high resolution, detailed background,
                              wide shot,}
 
     // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
