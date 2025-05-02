@@ -902,8 +902,8 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     // if (log_match_enabled)
-      log(indent + 1, `matching sequence item #1 out of ` +
-          `${this.elements.length}...`);
+    log(indent + 1, `matching sequence item #1 out of ` +
+        `${this.elements.length}...`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2);
@@ -927,8 +927,10 @@ class Sequence extends Rule {
 
     log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
     
-    if (last_match_result.value !== null)
+    if (last_match_result.value !== null) {
+      log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
       values.push(last_match_result.value);
+    }
     else if (log_match_enabled)
       log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
 
@@ -955,8 +957,10 @@ class Sequence extends Rule {
       if (log_match_enabled)
         log(indent + 1, `matched sequence item #${ix}.`);
       
-      if (last_match_result.value === '' || last_match_result.value)
+      if (last_match_result.value !== null) {
+        log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
         values.push(last_match_result.value);
+      }
 
       index = last_match_result.index;
     }
