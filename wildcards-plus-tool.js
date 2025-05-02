@@ -221,7 +221,7 @@ let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
-let prelude_enabled           = false; 
+let disable_prelude           = false; 
 // ---------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // ---------------------------------------------------------------------------------------
@@ -2025,7 +2025,7 @@ class Context {
   }
 }
 // ---------------------------------------------------------------------------------------
-const prelude_text = `
+const prelude_text = disable_prelude ? '' : `
     @set_gender_if_unset := {!female !male !neuter {3 #female|2 #male|#neuter}}
     @gender              := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
     @pro_3rd_subj        := {@set_gender_if_unset {?female she   |?male he  |?neuter it }}
