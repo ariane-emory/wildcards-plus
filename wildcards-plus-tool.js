@@ -4640,7 +4640,7 @@ const tld_fun = arr =>
 // other non-terminals:
 const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
 const SpecialFunction         = xform(tld_fun,
-                                      c_funcall(seq('%', SpecialFunctionName),json));
+                                      c_funcall(seq('%', SpecialFunctionName), json));
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                optional(wb_uint, 1),
