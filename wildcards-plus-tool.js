@@ -32,6 +32,7 @@ import * as util from 'util';
 import * as http from 'http';
 import * as fs   from 'fs';
 import * as readline from 'readline';
+import path from 'path';
 import { stdin as input, stdout as output } from 'process';
 
 // import * as readline from 'readline';
@@ -1803,13 +1804,13 @@ class Context {
     scalar_variables = new Map(),
     named_wildcards = new Map(),
     noisy = false,
-    files = []
+    files = new Set(),
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
     this.named_wildcards = named_wildcards;
     this.noisy = noisy;
-    this.files = files;
+    this.files = Array.isArray(files) ? new Set(files) : files;
   }
   // -------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -4020,16 +4021,16 @@ function process_includes(thing, context = new Context()) {
     if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
       const res = [];
       
-      console.log(`FILES: ${context.files}`);
-
       for (const filename of thing.args) {
-        if (context.files.includes(filename)) {
+        if (context.files.has(filename)) {
           console(`WARNING: skipping duplicate include of '${filename}'.`);
+
           continue;
         }
 
-        context.files.push(filename);
-        res.push(walk(parse_file(filename).value, context));
+        context.files.add(filename);
+        const parse_file_result = parse_file(filename);
+        res.push(walk(parse_file_result.value, context));
       }
 
       return res;
@@ -4049,8 +4050,6 @@ function process_includes(thing, context = new Context()) {
     }
   }
 
-  // throw "zap";
-  
   return walk(thing, context);
 }
 // ---------------------------------------------------------------------------------------
