@@ -1730,10 +1730,17 @@ const json_fractionalPart = r(/\.[0-9]+/);
 // ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
 const json_exponentPart = r(/[eE][+-]?\d+/);
 // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
-const json_number = xform(arr => {
-  // console.log(`json_number ARR: ${inspect_fun(arr)}`);
+const reify_json_number = arr => {
+  const multiplier      = arr[0].length > 0 ? -1 : 1;
+  const integer_part    = arr[1];
+  const fractional_part = arr[2];
+  const exponent        = arr[3];
+  const number          =  multiplier * ((integer_part + fractional_part)**exponent);
+
+  return number;
   return arr;
-},
+};
+const json_number = xform(reify_json_number,
                           seq(optional(json_minus),
                               xform(parseInt, json_integralPart), 
                               xform(arr => {
