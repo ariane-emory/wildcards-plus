@@ -1684,7 +1684,7 @@ function load_prelude(into_context = make_context()) {
     @pony_score_5_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
     @pony_score_4_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
     @aris_defaults       := {masterpiece, best quality, absurdres, aesthetic, 8k,
-                             depth of field, ultra high resolution, detailed background,
+                             high depth of field, ultra high resolution, detailed background,
                              wide shot,
 }
 
