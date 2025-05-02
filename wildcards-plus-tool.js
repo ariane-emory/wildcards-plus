@@ -1673,21 +1673,21 @@ class WildcardPicker {
 
 // =======================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
-const json_top = choice(() => json_object, () => json_array, () => json_string,
-                        () => json_true, () => json_false, () => json_null,
+const json = choice(() => json_object, () => json_array, () => json_string,
+                        () => json_true,   () => json_false, () => json_null,
                         () => json_number);
 // Object ← "{"
 // ( String ":" JSON ( "," String ":" JSON )*
 //   / S? )
 // "}"
 const json_object = wst_cutting_enc('{',
-                                    wst_star(wst_seq(() => json_string, ':', json_top), ','),
+                                    wst_star(wst_seq(() => json_string, ':', json), ','),
                                     '}');
 // Array ← "["
 // ( JSON ( "," JSON )*
 //   / S? )
 // "]"
-const json_array = wst_cutting_enc('[', wst_star(json_top, ','), ']');
+const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = dq_string; // placeholder
 // UnicodeEscape ← "u" [0-9A-Fa-f]{4}
@@ -1716,7 +1716,7 @@ const json_number = seq(optional(json_minus),
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // ---------------------------------------------------------------------------------------
-json_top.finalize();
+json.finalize();
 // =======================================================================================
 
 

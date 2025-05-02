@@ -86,7 +86,7 @@
 |holographic #indoors projector
 |?planet,moon #outdoors launch pad
 |?ship,station #indoors helm
-|?ship,station #indoors 2 {|navigation|control|sensor|computer} console
+|?ship,station 2 #indoors {|navigation|control|sensor|computer} console
 }
 @place_to_be_in_adj :=
 {3
