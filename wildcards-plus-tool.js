@@ -138,7 +138,7 @@ function process_includes(thing, context = new Context()) {
     }
   }
 
-  return walk(thing, context);
+  return walk(thing, context).flat(Infinity);
 }
 // ---------------------------------------------------------------------------------------
 
@@ -4684,7 +4684,7 @@ async function main() {
   // do some new special walk over AST to handle 'include' SpecialFunctions,
   // updating files as we go and bodging result back onto (or replacing?) AST?
 
-  AST = process_includes(AST, base_context).flat(Infinity);
+  AST = process_includes(AST, base_context);
 
   if (false) // comment to see AST...
     console.log(`after process_includes: ${inspect_fun(AST)}`);
