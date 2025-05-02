@@ -1733,15 +1733,10 @@ const json = choice(() => json_object, () => json_array, () => json_string,
 // ( String ":" JSON ( "," String ":" JSON )*
 //   / S? ) 
 // "}"
-const make_json_object = arr => {
-  const obj = {};
-
-  for (const pair of arr)
-    obj[pair[0]] = pair[1];
-  
-  return obj;
+const make_obj_from_json = arr => {
+  return Object.fromEntries(arr);
 };
-const json_object = xform(make_json_object,
+const json_object = xform(make_obj_from_json,
                           wst_cutting_enc('{',
                                           wst_star(
                                             xform(arr => [arr[0], arr[2]],
