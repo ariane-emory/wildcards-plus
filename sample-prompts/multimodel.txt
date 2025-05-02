@@ -1,4 +1,4 @@
-%foo("bar", "bar")    
-%foo(  "corge"  , "grault");
+%include("bar", "bar")    
+%models(  "corge"  , "grault");
 baz
 quux
