@@ -4595,16 +4595,19 @@ async function main() {
     result = parse_file(args[0]);
   }
 
-  // ---------------------------------------------------------------------------------------
-  // check that the parsed result is complete and expand:
-  // ---------------------------------------------------------------------------------------
-
+  // -------------------------------------------------------------------------------------
+  // just for debugging, comment next line to see result:
+  // -------------------------------------------------------------------------------------
   if (false)
   {
     console.log(`result: ${inspect_fun(result.value)}`);
     console.log(`result (JSON): ${JSON.stringify(result.value)}`);
   }
   
+  // -------------------------------------------------------------------------------------
+  // check that the parsed result is complete and expand:
+  // -------------------------------------------------------------------------------------
+
   if (! result.is_finished)
     throw new Error("error parsing prompt!");
 
