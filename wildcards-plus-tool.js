@@ -935,7 +935,7 @@ class Sequence extends Rule {
       values.push(last_match_result.value);
     }
     else if (log_match_enabled)
-      log(indent + 1, `discarding ${JSON.stringify(last_match_result)}!`);
+      log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
