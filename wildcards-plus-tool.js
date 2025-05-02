@@ -1483,9 +1483,6 @@ const ternary            =
 const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 // ---------------------------------------------------------------------------------------
 // C-like function calls:
-// const c_funcall = (fun_rule,  arg_rule, open_rule = lpar, close_rule = rpar) => 
-//       seq(fun_rule, wst_cutting_enc(open_rule, wst_star(arg_rule, comma), close_rule));
-
 const c_funcall = (fun_rule, arg_rule, open = '(', close = ')', sep = ',') =>
       seq(fun_rule,
           wst_cutting_enc(open,
@@ -4373,7 +4370,8 @@ const tld_fun = arr => {
 //                                                )));
 const TopLevelDirective       = label("tld",
                                       xform(tld_fun,
-                                            c_funcall(seq('%', ident), choice(sq_string, dq_string))));
+                                            c_funcall(second(seq('%', ident)),
+                                                      choice(sq_string, dq_string))));
 
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
