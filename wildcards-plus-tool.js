@@ -261,10 +261,10 @@ class Rule {
                       `this is likely a programmer error`);
     }
     
-    if (ret && ret?.value === null) {
-      throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
-                      `this is likely a programmer error`);
-    }
+    // if (ret && ret?.value === null) {
+    //   throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
+    //                   `this is likely a programmer error`);
+    // }
     
     if (log_match_enabled) {
       if (ret)
@@ -629,8 +629,11 @@ class Element extends Rule {
       log(indent, `taking elem ${this.index} from ` +
           `${JSON.stringify(rule_match_result)}'s value.`);
     }
+
+    if (log_match_enabled)
+      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result)}`);
     
-    rule_match_result.value = rule_match_result.value[this.index] ?? null;
+    rule_match_result.value = rule_match_result.value[this.index] ?? DISCARD;
     
     return rule_match_result
   }
@@ -923,9 +926,9 @@ class Sequence extends Rule {
   __match(indent, input, index) {
     const start_rule = input[0];
 
-    // if (log_match_enabled)
-    log(indent + 1, `matching first sequence item #1 out of ` +
-        `${this.elements.length}: ${inspect_fun(this.elements[0])}...`);
+     if (log_match_enabled)
+       log(indent + 1, `matching first sequence item #1 out of ` +
+           `${this.elements.length}: ${this.elements[0]}...`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2);
@@ -961,9 +964,9 @@ class Sequence extends Rule {
       log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
 
     for (let ix = 1; ix < this.elements.length; ix++) {
-      // if (log_match_enabled)
-        log(indent + 1, `matching sequence item #${ix+1} out of ` +
-            `${this.elements.length}: ${inspect_fun(this.elements[ix])}...`);
+       if (log_match_enabled)
+         log(indent + 1, `matching sequence item #${ix+1} out of ` +
+             `${this.elements.length}: ${this.elements[ix]}...`);
       
       const element = this.elements[ix];
 
@@ -988,7 +991,7 @@ class Sequence extends Rule {
         values.push(last_match_result.value);
 
         if (values.includes(null))
-          throw new Error("STOP @ PUSH 2");
+          throw new Error(`STOP @ PUSH 2 AFTER ${this.elements[ix]}`);
       }
 
       index = last_match_result.index;
@@ -998,7 +1001,7 @@ class Sequence extends Rule {
       throw new Error("STOP @ RET");
     
     const mr = new MatchResult(values, input, last_match_result.index);
-    console.log(`SEQ MR = ${inspect_fun(mr)}`);
+    // console.log(`SEQ MR = ${inspect_fun(mr)}`);
     return mr;
   }
   // -------------------------------------------------------------------------------------
@@ -4676,7 +4679,7 @@ const NamedWildcardReference        = xform(seq(discard('@'),
                                             });
 const NamedWildcardDesignator = second(seq('@', ident));                                      
 const NamedWildcardDefinition = xform(arr => {
-  console.log(`NWCD ARR: ${inspect_fun(arr)}`);
+  // console.log(`NWCD ARR: ${JSON.stringify(arr)}`);
   
   return new ASTNamedWildcardDefinition(...arr);
 },
