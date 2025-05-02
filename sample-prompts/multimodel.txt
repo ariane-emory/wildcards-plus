@@ -1,2 +1,2 @@
-%include("bar")    
+%include("./sample-prompts/bar.txt")    
 @bar

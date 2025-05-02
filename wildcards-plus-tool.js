@@ -4029,7 +4029,7 @@ function process_includes(thing, context = new Context()) {
         }
 
         context.files.push(filename);
-        res.push(walk(parse_file(filename), context));
+        res.push(walk(parse_file(filename).value, context));
       }
 
       return res;
