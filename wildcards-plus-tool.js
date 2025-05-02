@@ -4356,8 +4356,8 @@ const tld_fun = arr => {
 const TopLevelDirective       = xform(tld_fun,
                                       seq('%',
                                           ident,
-                                          enc('(',
-                                              wst_star(choice(sq_string, dq_string), ','),
+                                          cutting_enc('(',
+                                                      wst_star(choice(sq_string, dq_string), ','),
                                               ')'),
                                           /;s*|[\s\t]*\n/,
                                          ));
