@@ -79,16 +79,20 @@ function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
 
 
 // =======================================================================================
-// set inspect_fun appropriately fore node.js:
+// set inspect_fun appropriately fore nod.js:
 // =======================================================================================
 let inspect_fun = util.inspect;
+let dt_hosted   = false;
 // ----------------------------------------------------------------------------------------
 
 if (false)
   // =====================================================================================
   // DEV NOTE: Copy into wildcards-plus.js starting from this line!
   // =====================================================================================
+{
   inspect_fun = JSON.stringify;
+  dt_hosted = true;
+}
 // ---------------------------------------------------------------------------------------
 
 
@@ -110,6 +114,7 @@ if (false)
 //         |
 //         |-- Choice
 //         |-- Enclosed ------- CuttingEnclosed
+//         |-- NeverMatch
 //         |-- Optional
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
@@ -482,10 +487,13 @@ class Discard extends Rule  {
   // -------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     this.rule = this.__vivify(this.rule);    
-    this.rule.__finalize(indent + 1, visited);
+    this.rule?.__finalize(indent + 1, visited);
   }
   // -------------------------------------------------------------------------------------
   __match(indent, input, index) {
+    if (! this.rule)
+      return new MatchResult(null, input, index);
+    
     const match_result = this.rule.match(
       input,
       index,
@@ -493,7 +501,7 @@ class Discard extends Rule  {
 
     if (! match_result)
       return null;
-
+    
     return new MatchResult(null, input, match_result.index);
   } 
   // -------------------------------------------------------------------------------------
@@ -727,6 +735,31 @@ class Label extends Rule {
 function label(label, rule) {
   return new Label(label, rule);
 }
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// NeverMatch class
+// ---------------------------------------------------------------------------------------
+class NeverMatch extends Rule  {
+  // -------------------------------------------------------------------------------------
+  constructor() {
+    super();
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing.
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    return null;
+  } 
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `<NEVER MATCH>`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+const never_match = new NeverMatch();
 // ---------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------
@@ -1051,7 +1084,7 @@ function unexpected(rule, error_func = null) { // convenience constructor
 // ---------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------
-// fail class
+// Fail class
 // ---------------------------------------------------------------------------------------
 class Fail extends Rule {
   // -------------------------------------------------------------------------------------
@@ -4465,9 +4498,10 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        AnonWildcard, comment, ScalarReference,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
+// dt_hosted = true;
 const Prompt                  = xform(arr => arr.flat(1),
                                       wst_seq(
-                                        wst_star(SpecialFunction),
+                                        wst_star(dt_hosted ? never_match : SpecialFunction),
                                         wst_star(choice(NamedWildcardDefinition,
                                                         ScalarAssignment,
                                                         Content))));
