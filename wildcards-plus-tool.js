@@ -4582,6 +4582,9 @@ async function main() {
 
     const context  = context_with_prelude.clone();
     const expanded = expand_wildcards(AST, context);
+
+    // expansion may have included files, copy the files list back to the base context.
+    context_with_prelude.files = context.files;
     
     console.log(expanded);
 
