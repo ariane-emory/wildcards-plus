@@ -1733,10 +1733,7 @@ const json = choice(() => json_object, () => json_array, () => json_string,
 // ( String ":" JSON ( "," String ":" JSON )*
 //   / S? ) 
 // "}"
-const make_obj_from_json = arr => {
-  return Object.fromEntries(arr);
-};
-const json_object = xform(make_obj_from_json,
+const json_object = xform(arr =>  Object.fromEntries(arr), 
                           wst_cutting_enc('{',
                                           wst_star(
                                             xform(arr => [arr[0], arr[2]],
