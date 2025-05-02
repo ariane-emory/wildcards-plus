@@ -220,7 +220,8 @@ if (false)
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_finalize_enabled      = false;
-let log_match_enabled         = false; 
+let log_match_enabled         = false;
+let prelude_enabled           = false; 
 // ---------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // ---------------------------------------------------------------------------------------
