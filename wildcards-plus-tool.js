@@ -4606,9 +4606,9 @@ async function main() {
   const AST          = result.value;
   
   // do some new special walk over AST to handle 'include' SpecialFunctions,
-  // updating files as we and bodging result back onto AST?
+  // updating files as we go and bodging result back onto (or replacing?) AST?
   
-  base_context.reset_temporaries(); // might not need to do this after all?
+  base_context.reset_temporaries(); // might not need to do this here after all?
 
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
