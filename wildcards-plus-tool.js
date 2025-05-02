@@ -4707,159 +4707,159 @@ Prompt.finalize();
 // MAIN:
 // =======================================================================================
 async function main() {
-  // // ---------------------------------------------------------------------------------------
-  // // process the command-line arguments:
-  // // ---------------------------------------------------------------------------------------
-  // const args    = process.argv.slice(2);
-  // let   count   = 1;
-  // let   post    = false;
-  // let   confirm = false;
-  // let   from_stdin = false;
+  // ---------------------------------------------------------------------------------------
+  // process the command-line arguments:
+  // ---------------------------------------------------------------------------------------
+  const args    = process.argv.slice(2);
+  let   count   = 1;
+  let   post    = false;
+  let   confirm = false;
+  let   from_stdin = false;
 
-  // if (args.length == 0) 
-  //   throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
-  //                   `(--stdin | <input-file>) [<count>]`);
+  if (args.length == 0) 
+    throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
+                    `(--stdin | <input-file>) [<count>]`);
 
-  // if (["-p", "--post"].includes(args[0])) {
-  //   post = true;
-  //   args.shift();
-  // }
-  // else if (["-c", "--confirm"].includes(args[0])) {
-  //   post    = true;
-  //   confirm = true;
-  //   args.shift();
-  // }
+  if (["-p", "--post"].includes(args[0])) {
+    post = true;
+    args.shift();
+  }
+  else if (["-c", "--confirm"].includes(args[0])) {
+    post    = true;
+    confirm = true;
+    args.shift();
+  }
 
-  // if (args.length === 0) {
-  //   throw new Error("Error: Must provide --stdin or an input file.");
-  // }
+  if (args.length === 0) {
+    throw new Error("Error: Must provide --stdin or an input file.");
+  }
 
-  // if (args[0] === '--stdin') {
-  //   if (confirm)
-  //     throw new Error(`the --confirm and --stdin options are incompatible.`);
+  if (args[0] === '--stdin') {
+    if (confirm)
+      throw new Error(`the --confirm and --stdin options are incompatible.`);
+    
+    from_stdin = true;
+  }
+
+  if (args.length > 1) {
+    count = parseInt(args[1]);
+  }
+
+  // ---------------------------------------------------------------------------------------
+  // read prompt input:
+  // ---------------------------------------------------------------------------------------
+  let prompt_input = '';
+  let result = null;
   
-  //   from_stdin = true;
-  // }
+  if (from_stdin) {
+    // Read all stdin into a string
+    prompt_input = await new Promise((resolve, reject) => {
+      let data = '';
+      input.setEncoding('utf8');
+      input.on('data', chunk => data += chunk);
+      input.on('end', () => resolve(data));
+      input.on('error', err => reject(err));
+    });
+    result = Prompt.match(prompt_input);
+  } else if (args.length === 0) {
+    throw new Error("Error: No input file provided.");
+  }
+  else {
+    result = parse_file(args[0]);
+  }
 
-  // if (args.length > 1) {
-  //   count = parseInt(args[1]);
-  // }
-
-  // // ---------------------------------------------------------------------------------------
-  // // read prompt input:
-  // // ---------------------------------------------------------------------------------------
-  // let prompt_input = '';
-  // let result = null;
+  // -------------------------------------------------------------------------------------
+  // just for debugging, comment next line to see result:
+  // -------------------------------------------------------------------------------------
+  if (false)
+  {
+    console.log(`result: ${inspect_fun(result.value)}`);
+    console.log(`result (JSON): ${JSON.stringify(result.value)}`);
+  }
   
-  // if (from_stdin) {
-  //   // Read all stdin into a string
-  //   prompt_input = await new Promise((resolve, reject) => {
-  //     let data = '';
-  //     input.setEncoding('utf8');
-  //     input.on('data', chunk => data += chunk);
-  //     input.on('end', () => resolve(data));
-  //     input.on('error', err => reject(err));
-  //   });
-  //   result = Prompt.match(prompt_input);
-  // } else if (args.length === 0) {
-  //   throw new Error("Error: No input file provided.");
-  // }
-  // else {
-  //   result = parse_file(args[0]);
-  // }
+  // -------------------------------------------------------------------------------------
+  // check that the parsed result is complete and expand:
+  // -------------------------------------------------------------------------------------
 
-  // // -------------------------------------------------------------------------------------
-  // // just for debugging, comment next line to see result:
-  // // -------------------------------------------------------------------------------------
-  // if (false)
-  // {
-  //   console.log(`result: ${inspect_fun(result.value)}`);
-  //   console.log(`result (JSON): ${JSON.stringify(result.value)}`);
-  // }
+  if (! result.is_finished)
+    throw new Error("error parsing prompt!");
+
+  const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
+  let   AST          = result.value;
   
-  // // -------------------------------------------------------------------------------------
-  // // check that the parsed result is complete and expand:
-  // // -------------------------------------------------------------------------------------
+  // do some new special walk over AST to handle 'include' SpecialFunctions,
+  // updating files as we go and bodging result back onto (or replacing?) AST?
 
-  // if (! result.is_finished)
-  //   throw new Error("error parsing prompt!");
+  AST = process_includes(AST, base_context);
 
-  // const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
-  // let   AST          = result.value;
+  if (false) // comment to see AST...
+    console.log(`after process_includes: ${inspect_fun(AST)}`);
   
-  // // do some new special walk over AST to handle 'include' SpecialFunctions,
-  // // updating files as we go and bodging result back onto (or replacing?) AST?
+  // base_context.reset_temporaries(); // might not need to do this here after all?
 
-  // AST = process_includes(AST, base_context);
+  console.log('--------------------------------------------------------------------------------');
+  console.log(`Expansion${count > 1 ? "s" : ''}:`);
 
-  // if (false) // comment to see AST...
-  //   console.log(`after process_includes: ${inspect_fun(AST)}`);
-  
-  // // base_context.reset_temporaries(); // might not need to do this here after all?
+  let posted_count    = 0;
+  let prior_expansion = null;
 
-  // console.log('--------------------------------------------------------------------------------');
-  // console.log(`Expansion${count > 1 ? "s" : ''}:`);
+  while (posted_count < count) {
+    console.log('--------------------------------------------------------------------------------');
+    // console.log(`posted_count = ${posted_count}`);
 
-  // let posted_count    = 0;
-  // let prior_expansion = null;
+    const context  = base_context.clone();
+    const expanded = expand_wildcards(AST, context);
 
-  // while (posted_count < count) {
-  //   console.log('--------------------------------------------------------------------------------');
-  //   // console.log(`posted_count = ${posted_count}`);
+    // expansion may have included files, copy the files list back to the base context.
+    // ED: might not be needed here after all...
+    // context_with_prelude.files = context.files;
+    
+    console.log(expanded);
 
-  //   const context  = base_context.clone();
-  //   const expanded = expand_wildcards(AST, context);
+    if (!post) {
+      posted_count += 1; // a lie to make the counter correct.
+    }
+    else {
+      if (!confirm) {
+        post_prompt(expanded);
+        posted_count += 1;
+      }
+      else  {
+        console.log();
 
-  //   // expansion may have included files, copy the files list back to the base context.
-  //   // ED: might not be needed here after all...
-  //   // context_with_prelude.files = context.files;
-  
-  //   console.log(expanded);
+        const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
+              `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
+              `POST the prior prompt)? `;
+        const answer = await ask(question);
 
-  //   if (!post) {
-  //     posted_count += 1; // a lie to make the counter correct.
-  //   }
-  //   else {
-  //     if (!confirm) {
-  //       post_prompt(expanded);
-  //       posted_count += 1;
-  //     }
-  //     else  {
-  //       console.log();
+        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
+          continue;
 
-  //       const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
-  //             `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
-  //             `POST the prior prompt)? `;
-  //       const answer = await ask(question);
+        if (answer.match(/^p.*/i)) {
+          if (prior_expansion) { 
+            console.log(`POSTing prior prompt '${expanded}'`);
+            post_prompt(prior_expansion);
+          }
+          else {
+            console.log(`can't rewind, no prior prompt`);
+          }
+        }
+        else {          
+          const parsed    = parseInt(answer);
+          const gen_count = isNaN(parsed) ? 1 : parsed;  
+          
+          // console.log(`parsed = '${parsed}', count = '${count}'`);
+          
+          for (let iix = 0; iix < gen_count; iix++) {
+            post_prompt(expanded);
+            posted_count += 1;
+          }
+        }
+      }
+    }
 
-  //       if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
-  //         continue;
-
-  //       if (answer.match(/^p.*/i)) {
-  //         if (prior_expansion) { 
-  //           console.log(`POSTing prior prompt '${expanded}'`);
-  //           post_prompt(prior_expansion);
-  //         }
-  //         else {
-  //           console.log(`can't rewind, no prior prompt`);
-  //         }
-  //       }
-  //       else {          
-  //         const parsed    = parseInt(answer);
-  //         const gen_count = isNaN(parsed) ? 1 : parsed;  
-  
-  //         // console.log(`parsed = '${parsed}', count = '${count}'`);
-  
-  //         for (let iix = 0; iix < gen_count; iix++) {
-  //           post_prompt(expanded);
-  //           posted_count += 1;
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   prior_expansion = expanded;
-  // }
+    prior_expansion = expanded;
+  }
 
   console.log('--------------------------------------------------------------------------------');
 
