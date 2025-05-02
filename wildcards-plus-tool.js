@@ -4494,7 +4494,7 @@ class ASTAnonWildcard {
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTAnonWildcardOption {
+class ASTAnonWildcardAlternative {
   constructor(weight, check_flags, not_flags, body) {
     this.weight = weight;
     this.check_flags = check_flags;
@@ -4510,7 +4510,7 @@ class ASTAnonWildcardOption {
 // =======================================================================================
 // helper funs used by xforms:
 // ---------------------------------------------------------------------------------------
-const make_ASTAnonWildcardOption = arr => {
+const make_ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
@@ -4520,7 +4520,7 @@ const make_ASTAnonWildcardOption = arr => {
         .filter(f => f.set_immediately)
         .map(f => new ASTSetFlag(f.name)) ;
   
-  return new ASTAnonWildcardOption(
+  return new ASTAnonWildcardAlternative(
     arr[1][0],
     check_flags,
     not_flags,
@@ -4567,13 +4567,13 @@ const SpecialFunctionName     = l('include'); // choice('include', 'models');
 const SpecialFunction         = xform(tld_fun,
                                       c_funcall(seq('%', SpecialFunctionName),
                                                 choice(sq_string, dq_string)));
-const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
-                                      seq(wst_star(choice(comment, TestFlag)),
+const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
+                                           seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
                                           wst_star(choice(comment, TestFlag)),
                                           () => ContentStar));
-const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardOption, '|')));
+const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
+                                            brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const NamedWildcardReference        = xform(seq(discard('@'),
                                                 optional('^'),                            // 0
                                                 optional(xform(parseInt, /\d+/)),         // 1
