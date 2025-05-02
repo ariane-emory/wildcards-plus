@@ -845,11 +845,14 @@ class Optional extends Rule {
       indent + 1);
 
     if (match_result === null) {
-      console.log(`returning default ${this.default_value}`);
-      return new MatchResult((this.default_value || this.default_value === '')
-                             ? [ this.default_value ]
-                             : [],
-                             input, index);
+      const mr = new MatchResult(this.default_value !== null
+                                 ? [ this.default_value ]
+                                 : [],
+                                 input, index);
+
+      console.log(`returning default ${this.default_value}: ${inspect_fun(mr)}`);
+      
+      return mr;
     }
     
     match_result.value = [ match_result.value ];
@@ -905,6 +908,9 @@ class Sequence extends Rule {
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2);
     let last_match_result = start_rule_match_result;
+
+    if (last_match_result !== null)
+      console.log(`first last_match_result.value = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result === null) {
       if (log_match_enabled)
