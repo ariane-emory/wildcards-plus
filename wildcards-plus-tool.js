@@ -1699,13 +1699,12 @@ const json = choice(() => json_object, () => json_array, () => json_string,
                     () => json_number);
 // Object ← "{"
 // ( String ":" JSON ( "," String ":" JSON )*
-//   / S? )
+//   / S? ) 
 // "}"
-const jsoh_unquote = str => str.substring(1, str.length - 1);
+const json_unquote = str => str.substring(1, str.length - 1);
 const json_object = wst_cutting_enc('{',
                                     wst_star(
-                                      xform(arr => [arr[0].substring(1, arr[0].length - 1),
-                                                    arr[2]],
+                                      xform(arr => [json_unquote(arr[0]), arr[2]],
                                             wst_seq(() => json_string, ':', json)),
                                       ','),
                                     '}');
