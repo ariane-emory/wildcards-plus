@@ -4564,7 +4564,7 @@ async function main() {
     throw new Error("error parsing prompt!");
 
   const base_context  = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
-
+  
   // SpecialFunctions will be in result.value[0], do stuff with them and update ast and
   // base_context here?
 
@@ -4579,8 +4579,6 @@ async function main() {
     // console.log(`posted_count = ${posted_count}`);
 
     const context  = base_context.clone();
-    
-    
     const expanded = expand_wildcards(result.value[1], context);
     
     console.log(expanded);
