@@ -1925,7 +1925,8 @@ const prelude_text = `
                              focused subject, ultra high resolution, detailed background,
                              wide shot,}
 
-    // Integrated 'Wizard's Large Scroll of Artist Summoning':
+    // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
+    // Artist Summoning':
     @wizards_artists   := { @#__wizards_artists @__wizards_artists }
     @__wizards_artists := {
       #artist__zacharias_martin_aagaard Zacharias Martin Aagaard |
