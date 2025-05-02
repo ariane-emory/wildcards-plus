@@ -1990,47 +1990,47 @@ class Context {
     flags = new Set(),
     scalar_variables = new Map(),
     named_wildcards = new Map(),
-                                                     noisy = false,
-                                                     files = [],
-                                                     top_file = true,
-                                                   } = {}) {
-                                                     this.flags = flags;
-                                                     this.scalar_variables = scalar_variables;
-                                                     this.named_wildcards = named_wildcards;
-                                                     this.noisy = noisy;
-                                                     this.files = files;
-                                                     this.top_file = top_file;
-                                                   }
-                                                   // -------------------------------------------------------------------------------------
-                                                   reset_temporaries() {
-                                                     this.flags = new Set();
-                                                     this.scalar_variables = new Map();
-                                                   }
-                                                   // -------------------------------------------------------------------------------------
-                                                   clone() {
-                                                     return new Context({
-                                                       flags: new Set(this.flags),
-                                                       scalar_variables: new Map(this.scalar_variables),
-                                                       named_wildcards: new Map(this.named_wildcards),
-                                                       noisy: this.noisy,
-                                                       files: [...this.files],
-                                                       top_file: this.top_file,
-                                                     });
-                                                   }
-                                                   // -------------------------------------------------------------------------------------
-                                                   shallow_copy() {
-                                                     return new Context({
-                                                       flags: this.flags,
-                                                       scalar_variables: this.scalar_variables,
-                                                       named_wildcards: this.named_wildcards,
-                                                       noisy: this.noisy,
-                                                       files: this.files,
-                                                       top_file: false,
-                                                     });
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 const prelude_text = disable_prelude ? '' : `
+    noisy = false,
+    files = [],
+    top_file = true,
+  } = {}) {
+    this.flags = flags;
+    this.scalar_variables = scalar_variables;
+    this.named_wildcards = named_wildcards;
+    this.noisy = noisy;
+    this.files = files;
+    this.top_file = top_file;
+  }
+  // -------------------------------------------------------------------------------------
+  reset_temporaries() {
+    this.flags = new Set();
+    this.scalar_variables = new Map();
+  }
+  // -------------------------------------------------------------------------------------
+  clone() {
+    return new Context({
+      flags: new Set(this.flags),
+      scalar_variables: new Map(this.scalar_variables),
+      named_wildcards: new Map(this.named_wildcards),
+      noisy: this.noisy,
+      files: [...this.files],
+      top_file: this.top_file,
+    });
+  }
+  // -------------------------------------------------------------------------------------
+  shallow_copy() {
+    return new Context({
+      flags: this.flags,
+      scalar_variables: this.scalar_variables,
+      named_wildcards: this.named_wildcards,
+      noisy: this.noisy,
+      files: this.files,
+      top_file: false,
+    });
+  }
+}
+// ---------------------------------------------------------------------------------------
+const prelude_text = disable_prelude ? '' : `
 @set_gender_if_unset := {!female !male !neuter {3 #female|2 #male|#neuter}}
 @gender              := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
 @pro_3rd_subj        := {@set_gender_if_unset {?female she   |?male he  |?neuter it }}
@@ -4201,584 +4201,584 @@ class Context {
  ?artist__ander_zorn etching, nudes, painting, portraits, Swedish
 }
 `;
-                                                 // ---------------------------------------------------------------------------------------
-                                                 let prelude_parse_result = null;
-                                                 // ---------------------------------------------------------------------------------------
-                                                 function load_prelude(into_context = new Context()) {
-                                                   if (! prelude_parse_result) {
-                                                     const old_log_match_enabled = log_match_enabled;
-                                                     log_match_enabled = false; 
-                                                     prelude_parse_result = Prompt.match(prelude_text);
-                                                     log_match_enabled = old_log_match_enabled;
-                                                   }
-                                                   
-                                                   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+// ---------------------------------------------------------------------------------------
+let prelude_parse_result = null;
+// ---------------------------------------------------------------------------------------
+function load_prelude(into_context = new Context()) {
+  if (! prelude_parse_result) {
+    const old_log_match_enabled = log_match_enabled;
+    log_match_enabled = false; 
+    prelude_parse_result = Prompt.match(prelude_text);
+    log_match_enabled = old_log_match_enabled;
+  }
+  
+  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
-                                                   return into_context;
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-
-
-                                                 // =======================================================================================
-                                                 // the AST-walking function that I'll be using for the SD prompt grammar's output:
-                                                 // =======================================================================================
-                                                 function expand_wildcards(thing, context = new Context()) {
-                                                   function walk(thing, context) {
-                                                     // -----------------------------------------------------------------------------------
-                                                     // basic types (strings and Arrays):
-                                                     // -----------------------------------------------------------------------------------
-                                                     if (typeof thing === 'string')
-                                                       return thing
-                                                     else if (Array.isArray(thing)) {
-                                                       // return thing.map(x => walk(x, context));
-                                                       
-                                                       const ret = [];
-
-                                                       for (const t of thing) {
-                                                         if (context.noisy)
-                                                           console.log(`WALKING ` +
-                                                                       typeof t === 'object'
-                                                                       ? inspect_fun(t)
-                                                                       : `${typeof t} '${t}'`);
-                                                         
-                                                         const val = walk(t, context);
-
-                                                         ret.push(val);
-                                                       }
-
-                                                       return ret;
-                                                     }
-                                                     // -----------------------------------------------------------------------------------
-                                                     // Flags:
-                                                     // -----------------------------------------------------------------------------------
-                                                     else if (thing instanceof ASTSetFlag) {
-                                                       // console.log(`SET FLAG '${thing.name}'.`);
-                                                       
-                                                       context.flags.add(thing.name);
-
-                                                       return ''; // produce nothing
-                                                     }
-                                                     // -----------------------------------------------------------------------------------
-                                                     // References:
-                                                     // -----------------------------------------------------------------------------------
-                                                     else if (thing instanceof ASTNamedWildcardReference) {
-                                                       const got = context.named_wildcards.get(thing.name);
-
-                                                       if (!got)
-                                                         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
-
-                                                       const res = [ walk(got, context) ];
-
-                                                       if (thing.capitalize)
-                                                         res[0] = capitalize(res[0]);
-
-                                                       const count = rand_int(thing.min_count, thing.max_count);
-                                                       
-                                                       for (let ix = 1; ix < count; ix++) {
-                                                         let val = walk(got, context);
-                                                         
-                                                         for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
-                                                           if (! res.includes(val))
-                                                             break;
-
-                                                           val = walk(got, context);
-                                                         }
-
-                                                         res.push(val);
-                                                       }
-
-                                                       return thing.joiner == ','
-                                                         ? res.join(", ")
-                                                         : (thing.joiner == '&'
-                                                            ? pretty_list(res)
-                                                            : res.join(" "));
-                                                     }
-                                                     // -----------------------------------------------------------------------------------
-                                                     else if (thing instanceof ASTScalarReference) {
-                                                       let got = context.scalar_variables.get(thing.name) ??
-                                                           `SCALAR '${thing.name}' NOT FOUND}`;
-
-                                                       if (thing.capitalize)
-                                                         got = capitalize(got);
-
-                                                       return got;
-                                                     }
-                                                     // -----------------------------------------------------------------------------------
-                                                     // NamedWildcards:
-                                                     // -----------------------------------------------------------------------------------
-                                                     else if (thing instanceof ASTLatchNamedWildcard) {
-                                                       const got = context.named_wildcards.get(thing.name);
-                                                       
-                                                       if (!got)
-                                                         return `ERROR: Named wildcard ${thing.name} not found!`;
-
-                                                       if (got instanceof ASTLatchedNamedWildcardedValue) {
-                                                         if (context.noisy)
-                                                           console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
-
-                                                         return '';
-                                                       }
-
-                                                       const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
-
-                                                       if (context.noisy)
-                                                         console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
-                                                       
-                                                       context.named_wildcards.set(thing.name, latched);
-
-                                                       return '';
-                                                     }
-                                                     // -----------------------------------------------------------------------------------
-                                                     else if (thing instanceof ASTUnlatchNamedWildcard) {
-                                                       let got = context.named_wildcards.get(thing.name);
-
-                                                       if (!got)
-                                                         return `ERROR: Named wildcard ${thing.name} not found!`;
-
-                                                       if (! (got instanceof ASTLatchedNamedWildcardedValue))
-                                                         throw new Error(`NOT LATCHED: '${thing.name}'`);
-
-                                                       context.named_wildcards.set(thing.name, got.original_value);
-
-                                                       if (context.noisy)
-                                                         console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
-
-                                                       return ''; // produce no text.
-                                                     } 
-                                                     // -----------------------------------------------------------------------------------
-                                                     else if (thing instanceof ASTNamedWildcardDefinition) {
-                                                       if (context.named_wildcards.has(thing.destination))
-                                                         console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
-                                                       // else
-                                                       //   console.log(`SETTING ${inspect_fun(thing)} IN ${inspect_fun(context.named_wildcards)}` );
-
-                                                       context.named_wildcards.set(thing.destination, thing.wildcard);
-
-                                                       return '';
-                                                     }
-                                                     // -----------------------------------------------------------------------------------
-                                                     // internal objects:
-                                                     // -----------------------------------------------------------------------------------
-                                                     else if (thing instanceof ASTLatchedNamedWildcardedValue) {
-                                                       return thing.latched_value;
-                                                     }
-                                                     // -----------------------------------------------------------------------------------
-                                                     // scalar assignment:
-                                                     // -----------------------------------------------------------------------------------
-                                                     else if (thing instanceof ASTScalarAssignment) {
-                                                       if (context.noisy) {
-                                                         console.log();
-                                                         console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
-                                                                     `TO '${thing.destination.name}'`);
-                                                       }
-
-                                                       const val = walk(thing.source, context);
-
-                                                       if (context.noisy)
-                                                         console.log(`ASSIGNED ${inspect_fun(val)} TO "${thing.destination.name}'`);
-                                                       
-                                                       context.scalar_variables.set(thing.destination.name, val);
-
-                                                       if (context.noisy)
-                                                         console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
-                                                       
-                                                       return '';
-                                                     }
-                                                     // -----------------------------------------------------------------------------------
-                                                     // AnonWildcards:
-                                                     // -----------------------------------------------------------------------------------
-                                                     else if (thing instanceof ASTAnonWildcard) {
-                                                       const new_picker = new WildcardPicker();
-
-                                                       for (const option of thing.options) {
-                                                         let skip = false;
-
-                                                         // if (option.not_flags.length > 1)
-                                                         //   console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
-                                                         
-                                                         for (const not_flag of option.not_flags) {
-                                                           // console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
-
-                                                           if (context.flags.has(not_flag.name)) {
-                                                             // console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
-                                                             skip = true;
-                                                             break;
-                                                           }
-                                                         }
-
-                                                         if (skip)
-                                                           continue;
-                                                         
-                                                         for (const check_flag of option.check_flags) {
-                                                           // if (context.noisy)
-                                                           //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
-
-                                                           let found = false;
-                                                           
-                                                           for (const name of check_flag.names) {
-                                                             // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
-                                                             
-                                                             if (context.flags.has(name)) {
-                                                               // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
-                                                               found = true;
-                                                               break;
-                                                             }
-                                                           }
-
-                                                           if (!found) {
-                                                             skip = true;
-                                                             break;
-                                                           }
-                                                         }
-
-                                                         if (skip)
-                                                           continue;
-
-                                                         new_picker.add(option.weight, option.body);
-                                                       }
-
-                                                       if (new_picker.options.length == 0)
-                                                         return '';
-                                                       
-                                                       const pick = new_picker.pick();
-
-                                                       // console.log(`PICKED ${inspect_fun(pick)}`);
-                                                       
-                                                       return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
-                                                       // return walk(pick, context);
-                                                     }
-                                                     // -----------------------------------------------------------------------------------
-                                                     // TLDs, not yet implemented:
-                                                     // -----------------------------------------------------------------------------------
-                                                     else if (thing instanceof ASTSpecialFunction) {
-                                                       console.log(`IGNORING ${inspect_fun(thing)}`);
-                                                     }
-                                                     // -----------------------------------------------------------------------------------
-                                                     // error case, unrecognized objects:
-                                                     // -----------------------------------------------------------------------------------
-                                                     else {
-                                                       throw new Error(`confusing thing: ` +
-                                                                       (typeof thing === 'object'
-                                                                        ? thing.constructor.name
-                                                                        : typeof thing) +
-                                                                       ' ' +
-                                                                       inspect_fun(thing));
-                                                     }
-                                                   }
-                                                   return smart_join(walk(thing, context).flat(Infinity).filter(s => s !== ''));
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
+  return into_context;
+}
+// ---------------------------------------------------------------------------------------
 
 
-                                                 // =======================================================================================
-                                                 // SD PROMPT AST CLASSES:
-                                                 // ---------------------------------------------------------------------------------------
-                                                 // Flags:
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTSetFlag {
-                                                   constructor(name) {
-                                                     this.name = name;
-                                                   }
-                                                 }
-                                                 // ----------------------------------------------------------------------------------------
-                                                 class ASTCheckFlag {
-                                                   constructor(names) {
-                                                     this.names = names;
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTNotFlag  {
-                                                   constructor(name, set_immediately) {
-                                                     this.name = name;
-                                                     this.set_immediately = set_immediately;
-                                                     // if (this.set_immediately)
-                                                     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 // References:
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTNamedWildcardReference {
-                                                   constructor(name, joiner, capitalize, min_count, max_count) {
-                                                     this.name       = name;
-                                                     this.min_count  = min_count;
-                                                     this.max_count  = max_count;
-                                                     this.joiner     = joiner;
-                                                     this.capitalize = capitalize;
-                                                     // console.log(`BUILT ${inspect_fun(this)}`);
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTScalarReference {
-                                                   constructor(name, capitalize) {
-                                                     this.name       = name;
-                                                     this.capitalize = capitalize;
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 // NamedWildcards:
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTLatchNamedWildcard {
-                                                   constructor(name) {
-                                                     this.name = name;
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTUnlatchNamedWildcard {
-                                                   constructor(name) {
-                                                     this.name = name;
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTNamedWildcardDefinition {
-                                                   constructor(destination, wildcard) {
-                                                     this.destination = destination;
-                                                     this.wildcard    = wildcard;
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 // internal usage.. might not /really/ be part of the AST per se?
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTLatchedNamedWildcardedValue {
-                                                   constructor(latched_value, original_value) {
-                                                     this.latched_value  = latched_value;
-                                                     this.original_value = original_value;
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 // scalar assignment:
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTScalarAssignment  {
-                                                   constructor(destination, source) {
-                                                     this.destination = destination;
-                                                     this.source = source;
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 // Directives:
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTSpecialFunction {
-                                                   constructor(directive, args) {
-                                                     this.directive = directive;
-                                                     this.args = args;
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 // AnonWildcards:
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTAnonWildcard {
-                                                   constructor(options) {
-                                                     this.options = options;
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 class ASTAnonWildcardAlternative {
-                                                   constructor(weight, check_flags, not_flags, body) {
-                                                     this.weight = weight;
-                                                     this.check_flags = check_flags;
-                                                     this.not_flags = not_flags;
-                                                     this.body = body;
-                                                   }
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
+// =======================================================================================
+// the AST-walking function that I'll be using for the SD prompt grammar's output:
+// =======================================================================================
+function expand_wildcards(thing, context = new Context()) {
+  function walk(thing, context) {
+    // -----------------------------------------------------------------------------------
+    // basic types (strings and Arrays):
+    // -----------------------------------------------------------------------------------
+    if (typeof thing === 'string')
+      return thing
+    else if (Array.isArray(thing)) {
+      // return thing.map(x => walk(x, context));
+      
+      const ret = [];
+
+      for (const t of thing) {
+        if (context.noisy)
+          console.log(`WALKING ` +
+                      typeof t === 'object'
+                      ? inspect_fun(t)
+                      : `${typeof t} '${t}'`);
+        
+        const val = walk(t, context);
+
+        ret.push(val);
+      }
+
+      return ret;
+    }
+    // -----------------------------------------------------------------------------------
+    // Flags:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSetFlag) {
+      // console.log(`SET FLAG '${thing.name}'.`);
+      
+      context.flags.add(thing.name);
+
+      return ''; // produce nothing
+    }
+    // -----------------------------------------------------------------------------------
+    // References:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTNamedWildcardReference) {
+      const got = context.named_wildcards.get(thing.name);
+
+      if (!got)
+        return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
+
+      const res = [ walk(got, context) ];
+
+      if (thing.capitalize)
+        res[0] = capitalize(res[0]);
+
+      const count = rand_int(thing.min_count, thing.max_count);
+      
+      for (let ix = 1; ix < count; ix++) {
+        let val = walk(got, context);
+        
+        for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
+          if (! res.includes(val))
+            break;
+
+          val = walk(got, context);
+        }
+
+        res.push(val);
+      }
+
+      return thing.joiner == ','
+        ? res.join(", ")
+        : (thing.joiner == '&'
+           ? pretty_list(res)
+           : res.join(" "));
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTScalarReference) {
+      let got = context.scalar_variables.get(thing.name) ??
+          `SCALAR '${thing.name}' NOT FOUND}`;
+
+      if (thing.capitalize)
+        got = capitalize(got);
+
+      return got;
+    }
+    // -----------------------------------------------------------------------------------
+    // NamedWildcards:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTLatchNamedWildcard) {
+      const got = context.named_wildcards.get(thing.name);
+      
+      if (!got)
+        return `ERROR: Named wildcard ${thing.name} not found!`;
+
+      if (got instanceof ASTLatchedNamedWildcardedValue) {
+        if (context.noisy)
+          console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
+
+        return '';
+      }
+
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
+
+      if (context.noisy)
+        console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+      
+      context.named_wildcards.set(thing.name, latched);
+
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTUnlatchNamedWildcard) {
+      let got = context.named_wildcards.get(thing.name);
+
+      if (!got)
+        return `ERROR: Named wildcard ${thing.name} not found!`;
+
+      if (! (got instanceof ASTLatchedNamedWildcardedValue))
+        throw new Error(`NOT LATCHED: '${thing.name}'`);
+
+      context.named_wildcards.set(thing.name, got.original_value);
+
+      if (context.noisy)
+        console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+
+      return ''; // produce no text.
+    } 
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTNamedWildcardDefinition) {
+      if (context.named_wildcards.has(thing.destination))
+        console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
+      // else
+      //   console.log(`SETTING ${inspect_fun(thing)} IN ${inspect_fun(context.named_wildcards)}` );
+
+      context.named_wildcards.set(thing.destination, thing.wildcard);
+
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    // internal objects:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTLatchedNamedWildcardedValue) {
+      return thing.latched_value;
+    }
+    // -----------------------------------------------------------------------------------
+    // scalar assignment:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTScalarAssignment) {
+      if (context.noisy) {
+        console.log();
+        console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
+                    `TO '${thing.destination.name}'`);
+      }
+
+      const val = walk(thing.source, context);
+
+      if (context.noisy)
+        console.log(`ASSIGNED ${inspect_fun(val)} TO "${thing.destination.name}'`);
+      
+      context.scalar_variables.set(thing.destination.name, val);
+
+      if (context.noisy)
+        console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    // AnonWildcards:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTAnonWildcard) {
+      const new_picker = new WildcardPicker();
+
+      for (const option of thing.options) {
+        let skip = false;
+
+        // if (option.not_flags.length > 1)
+        //   console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
+        
+        for (const not_flag of option.not_flags) {
+          // console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
+
+          if (context.flags.has(not_flag.name)) {
+            // console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
+            skip = true;
+            break;
+          }
+        }
+
+        if (skip)
+          continue;
+        
+        for (const check_flag of option.check_flags) {
+          // if (context.noisy)
+          //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
+
+          let found = false;
+          
+          for (const name of check_flag.names) {
+            // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
+            
+            if (context.flags.has(name)) {
+              // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
+              found = true;
+              break;
+            }
+          }
+
+          if (!found) {
+            skip = true;
+            break;
+          }
+        }
+
+        if (skip)
+          continue;
+
+        new_picker.add(option.weight, option.body);
+      }
+
+      if (new_picker.options.length == 0)
+        return '';
+      
+      const pick = new_picker.pick();
+
+      // console.log(`PICKED ${inspect_fun(pick)}`);
+      
+      return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
+      // return walk(pick, context);
+    }
+    // -----------------------------------------------------------------------------------
+    // TLDs, not yet implemented:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunction) {
+      console.log(`IGNORING ${inspect_fun(thing)}`);
+    }
+    // -----------------------------------------------------------------------------------
+    // error case, unrecognized objects:
+    // -----------------------------------------------------------------------------------
+    else {
+      throw new Error(`confusing thing: ` +
+                      (typeof thing === 'object'
+                       ? thing.constructor.name
+                       : typeof thing) +
+                      ' ' +
+                      inspect_fun(thing));
+    }
+  }
+  return smart_join(walk(thing, context).flat(Infinity).filter(s => s !== ''));
+}
+// ---------------------------------------------------------------------------------------
 
 
-                                                 // =======================================================================================
-                                                 // SD PROMPT GRAMMAR:
-                                                 // =======================================================================================
-                                                 // helper funs used by xforms:
-                                                 // ---------------------------------------------------------------------------------------
-                                                 const make_ASTAnonWildcardAlternative = arr => {
-                                                   // console.log(`ARR: ${inspect_fun(arr)}`);
-                                                   const flags = ([ ...arr[0], ...arr[2] ]);
-                                                   const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
-                                                   const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
-                                                   const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
-                                                   const set_immediately_not_flags = not_flags
-                                                         .filter(f => f.set_immediately)
-                                                         .map(f => new ASTSetFlag(f.name)) ;
-                                                   
-                                                   return new ASTAnonWildcardAlternative(
-                                                     arr[1][0],
-                                                     check_flags,
-                                                     not_flags,
-                                                     [
-                                                       ...set_immediately_not_flags,
-                                                       ...set_flags,
-                                                       ...arr[3]
-                                                     ]);
-                                                 }
-                                                 // ---------------------------------------------------------------------------------------
-                                                 const make_ASTFlagCmd = (klass, ...rules) =>
-                                                       xform(ident => new klass(ident),
-                                                             second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
-                                                 // ---------------------------------------------------------------------------------------
-                                                 // terminals:
-                                                 const plaintext               = /[^{|}\s]+/;
-                                                 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
-                                                 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-                                                 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
-                                                 const comment                 = discard(choice(c_block_comment, c_line_comment));
-                                                 const assignment_operator     = xform(arr => {
-                                                   // console.log(`A_R RETURNING ${arr.toString()}`);
-                                                   return arr;
-                                                 }, discard(seq(wst_star(comment), ':=', wst_star(comment))));
-                                                 // ---------------------------------------------------------------------------------------
-                                                 // flag-related non-terminals:
-                                                 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
-                                                 // const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
-                                                 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
-                                                                                       second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
-                                                 const MalformedNotSetCombo    = unexpected('#!');
-                                                 const NotFlag                 = xform((arr => {
-                                                   //console.log(`ARR: ${inspect_fun(arr)}`);
-                                                   return new ASTNotFlag(arr[2], arr[1][0]);
-                                                 }),
-                                                                                       seq('!', optional('#'),
-                                                                                           ident, /(?=\s|[{|}]|$)/));
-                                                 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
-                                                 // ---------------------------------------------------------------------------------------
-                                                 const tld_fun = arr => new ASTSpecialFunction(...arr);
-                                                 // ---------------------------------------------------------------------------------------
-                                                 // other non-terminals:
-                                                 const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
-                                                 const SpecialFunction         = xform(tld_fun,
-                                                                                       c_funcall(second(seq('%', SpecialFunctionName)), json));
-                                                 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
-                                                                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
-                                                                                                optional(wb_uint, 1),
-                                                                                                wst_star(choice(comment, TestFlag, SetFlag)),
-                                                                                                () => ContentStar));
-                                                 const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
-                                                                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
-                                                 const NamedWildcardReference        = xform(seq(discard('@'),
-                                                                                                 optional('^'),                            // 0
-                                                                                                 optional(xform(parseInt, /\d+/)),         // 1
-                                                                                                 optional(xform(parseInt,
-                                                                                                                second(seq('-', /\d+/)))), // 2
-                                                                                                 optional(/[,&]/),                         // 3
-                                                                                                 ident),                                   // 4
-                                                                                             arr => {
-                                                                                               // console.log(`NWR ARR: ${inspect_fun(arr)}`);
-
-                                                                                               const ident  = arr[4];
-                                                                                               const min_ct = arr[1][0] ?? 1;
-                                                                                               const max_ct = arr[2][0] ?? min_ct;
-                                                                                               const join   = arr[3][0] ?? '';
-                                                                                               const caret  = arr[0][0];
-                                                                                               
-                                                                                               // console.log(inspect_fun([ident, min_ct, (typeof join), join, caret]));
-                                                                                               
-                                                                                               return new ASTNamedWildcardReference(ident,
-                                                                                                                                    join,
-                                                                                                                                    caret,
-                                                                                                                                    min_ct,
-                                                                                                                                    max_ct);
-                                                                                             });
-                                                 const NamedWildcardDesignator = second(seq('@', ident));                                      
-                                                 const NamedWildcardDefinition = xform(arr => {
-                                                   // console.log(`NWCD ARR: ${JSON.stringify(arr)}`);
-                                                   
-                                                   return new ASTNamedWildcardDefinition(...arr);
-                                                 },
-                                                                                       wst_seq(NamedWildcardDesignator,
-                                                                                               assignment_operator,
-                                                                                               AnonWildcard));
-                                                 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
-                                                                                       arr => {
-                                                                                         const [ bang, hash, ident, objs ] =
-                                                                                               [ arr[1][0], arr[2][0], arr[3], []];
-                                                                                         
-                                                                                         if (!bang && !hash)
-                                                                                           return new ASTNamedWildcardReference(ident);
-
-                                                                                         if (bang) // goes before hash so that "@!#" works correctly.
-                                                                                           objs.push(new ASTUnlatchNamedWildcard(ident));
-
-                                                                                         if (hash)
-                                                                                           objs.push(new ASTLatchNamedWildcard(ident));
-
-                                                                                         return objs;
-                                                                                       });
-                                                 const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
-                                                                                       arr => new ASTScalarReference(arr[1], arr[0][0]));
-                                                 const ScalarAssignmentSource  = choice(ScalarReference, NamedWildcardReference,
-                                                                                        AnonWildcard);
-                                                 const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
-                                                                                       wst_seq(ScalarReference,
-                                                                                               assignment_operator,
-                                                                                               ScalarAssignmentSource));
-                                                 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
-                                                                                        AnonWildcard, comment, ScalarReference,
-                                                                                        low_pri_text, plaintext);
-                                                 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-                                                 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
-                                                 //                                                 ScalarAssignment,
-                                                 //                                                 Content));
-                                                 const PromptBody              = wst_star(choice(SpecialFunction,
-                                                                                                 NamedWildcardDefinition,
-                                                                                                 ScalarAssignment,
-                                                                                                 Content));
-                                                 // const Prompt                  = (dt_hosted
-                                                 //                                  ? PromptBody
-                                                 //                                  : xform(arr => arr.flat(1),
-                                                 //                                          wst_seq(
-                                                 //                                            wst_star(SpecialFunction),
-                                                 //                                            PromptBody)));
-                                                 const Prompt                  = xform(arr => arr.flat(Infinity), PromptBody);
-                                                 // ---------------------------------------------------------------------------------------
-                                                 Prompt.finalize();
-                                                 // =====================================================================================
-                                                 // DEV NOTE: Copy into wildcards-plus.js starting through this line!
-                                                 // =====================================================================================
+// =======================================================================================
+// SD PROMPT AST CLASSES:
+// ---------------------------------------------------------------------------------------
+// Flags:
+// ---------------------------------------------------------------------------------------
+class ASTSetFlag {
+  constructor(name) {
+    this.name = name;
+  }
+}
+// ----------------------------------------------------------------------------------------
+class ASTCheckFlag {
+  constructor(names) {
+    this.names = names;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTNotFlag  {
+  constructor(name, set_immediately) {
+    this.name = name;
+    this.set_immediately = set_immediately;
+    // if (this.set_immediately)
+    //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
+  }
+}
+// ---------------------------------------------------------------------------------------
+// References:
+// ---------------------------------------------------------------------------------------
+class ASTNamedWildcardReference {
+  constructor(name, joiner, capitalize, min_count, max_count) {
+    this.name       = name;
+    this.min_count  = min_count;
+    this.max_count  = max_count;
+    this.joiner     = joiner;
+    this.capitalize = capitalize;
+    // console.log(`BUILT ${inspect_fun(this)}`);
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTScalarReference {
+  constructor(name, capitalize) {
+    this.name       = name;
+    this.capitalize = capitalize;
+  }
+}
+// ---------------------------------------------------------------------------------------
+// NamedWildcards:
+// ---------------------------------------------------------------------------------------
+class ASTLatchNamedWildcard {
+  constructor(name) {
+    this.name = name;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTUnlatchNamedWildcard {
+  constructor(name) {
+    this.name = name;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTNamedWildcardDefinition {
+  constructor(destination, wildcard) {
+    this.destination = destination;
+    this.wildcard    = wildcard;
+  }
+}
+// ---------------------------------------------------------------------------------------
+// internal usage.. might not /really/ be part of the AST per se?
+// ---------------------------------------------------------------------------------------
+class ASTLatchedNamedWildcardedValue {
+  constructor(latched_value, original_value) {
+    this.latched_value  = latched_value;
+    this.original_value = original_value;
+  }
+}
+// ---------------------------------------------------------------------------------------
+// scalar assignment:
+// ---------------------------------------------------------------------------------------
+class ASTScalarAssignment  {
+  constructor(destination, source) {
+    this.destination = destination;
+    this.source = source;
+  }
+}
+// ---------------------------------------------------------------------------------------
+// Directives:
+// ---------------------------------------------------------------------------------------
+class ASTSpecialFunction {
+  constructor(directive, args) {
+    this.directive = directive;
+    this.args = args;
+  }
+}
+// ---------------------------------------------------------------------------------------
+// AnonWildcards:
+// ---------------------------------------------------------------------------------------
+class ASTAnonWildcard {
+  constructor(options) {
+    this.options = options;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTAnonWildcardAlternative {
+  constructor(weight, check_flags, not_flags, body) {
+    this.weight = weight;
+    this.check_flags = check_flags;
+    this.not_flags = not_flags;
+    this.body = body;
+  }
+}
+// ---------------------------------------------------------------------------------------
 
 
-                                                 // =======================================================================================
-                                                 // MAIN:
-                                                 // =======================================================================================
-                                                 async function main() {
-                                                   // ---------------------------------------------------------------------------------------
-                                                   // process the command-line arguments:
-                                                   // ---------------------------------------------------------------------------------------
-                                                   const args    = process.argv.slice(2);
-                                                   let   count   = 1;
-                                                   let   post    = false;
-                                                   let   confirm = false;
-                                                   let   from_stdin = false;
+// =======================================================================================
+// SD PROMPT GRAMMAR:
+// =======================================================================================
+// helper funs used by xforms:
+// ---------------------------------------------------------------------------------------
+const make_ASTAnonWildcardAlternative = arr => {
+  // console.log(`ARR: ${inspect_fun(arr)}`);
+  const flags = ([ ...arr[0], ...arr[2] ]);
+  const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
+  const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
+  const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
+  const set_immediately_not_flags = not_flags
+        .filter(f => f.set_immediately)
+        .map(f => new ASTSetFlag(f.name)) ;
+  
+  return new ASTAnonWildcardAlternative(
+    arr[1][0],
+    check_flags,
+    not_flags,
+    [
+      ...set_immediately_not_flags,
+      ...set_flags,
+      ...arr[3]
+    ]);
+}
+// ---------------------------------------------------------------------------------------
+const make_ASTFlagCmd = (klass, ...rules) =>
+      xform(ident => new klass(ident),
+            second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
+// ---------------------------------------------------------------------------------------
+// terminals:
+const plaintext               = /[^{|}\s]+/;
+const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
+const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
+const comment                 = discard(choice(c_block_comment, c_line_comment));
+const assignment_operator     = xform(arr => {
+  // console.log(`A_R RETURNING ${arr.toString()}`);
+  return arr;
+}, discard(seq(wst_star(comment), ':=', wst_star(comment))));
+// ---------------------------------------------------------------------------------------
+// flag-related non-terminals:
+const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
+// const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
+const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
+                                      second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
+const MalformedNotSetCombo    = unexpected('#!');
+const NotFlag                 = xform((arr => {
+  //console.log(`ARR: ${inspect_fun(arr)}`);
+  return new ASTNotFlag(arr[2], arr[1][0]);
+}),
+                                      seq('!', optional('#'),
+                                          ident, /(?=\s|[{|}]|$)/));
+const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
+// ---------------------------------------------------------------------------------------
+const tld_fun = arr => new ASTSpecialFunction(...arr);
+// ---------------------------------------------------------------------------------------
+// other non-terminals:
+const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
+const SpecialFunction         = xform(tld_fun,
+                                      c_funcall(second(seq('%', SpecialFunctionName)), json));
+const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
+                                           seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                               optional(wb_uint, 1),
+                                               wst_star(choice(comment, TestFlag, SetFlag)),
+                                               () => ContentStar));
+const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
+                                            brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const NamedWildcardReference        = xform(seq(discard('@'),
+                                                optional('^'),                            // 0
+                                                optional(xform(parseInt, /\d+/)),         // 1
+                                                optional(xform(parseInt,
+                                                               second(seq('-', /\d+/)))), // 2
+                                                optional(/[,&]/),                         // 3
+                                                ident),                                   // 4
+                                            arr => {
+                                              // console.log(`NWR ARR: ${inspect_fun(arr)}`);
 
-                                                   if (args.length == 0) 
-                                                     throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
-                                                                     `(--stdin | <input-file>) [<count>]`);
+                                              const ident  = arr[4];
+                                              const min_ct = arr[1][0] ?? 1;
+                                              const max_ct = arr[2][0] ?? min_ct;
+                                              const join   = arr[3][0] ?? '';
+                                              const caret  = arr[0][0];
+                                              
+                                              // console.log(inspect_fun([ident, min_ct, (typeof join), join, caret]));
+                                              
+                                              return new ASTNamedWildcardReference(ident,
+                                                                                   join,
+                                                                                   caret,
+                                                                                   min_ct,
+                                                                                   max_ct);
+                                            });
+const NamedWildcardDesignator = second(seq('@', ident));                                      
+const NamedWildcardDefinition = xform(arr => {
+  // console.log(`NWCD ARR: ${JSON.stringify(arr)}`);
+  
+  return new ASTNamedWildcardDefinition(...arr);
+},
+                                      wst_seq(NamedWildcardDesignator,
+                                              assignment_operator,
+                                              AnonWildcard));
+const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
+                                      arr => {
+                                        const [ bang, hash, ident, objs ] =
+                                              [ arr[1][0], arr[2][0], arr[3], []];
+                                        
+                                        if (!bang && !hash)
+                                          return new ASTNamedWildcardReference(ident);
 
-                                                   if (["-p", "--post"].includes(args[0])) {
-                                                     post = true;
-                                                     args.shift();
-                                                   }
-                                                   else if (["-c", "--confirm"].includes(args[0])) {
-                                                     post    = true;
-                                                     confirm = true;
-                                                     args.shift();
-                                                   }
+                                        if (bang) // goes before hash so that "@!#" works correctly.
+                                          objs.push(new ASTUnlatchNamedWildcard(ident));
 
-                                                   if (args.length === 0) {
-                                                     throw new Error("Error: Must provide --stdin or an input file.");
-                                                   }
+                                        if (hash)
+                                          objs.push(new ASTLatchNamedWildcard(ident));
 
-                                                   if (args[0] === '--stdin') {
-                                                     if (confirm)
-                                                       throw new Error(`the --confirm and --stdin options are incompatible.`);
-                                                     
-                                                     from_stdin = true;
-                                                   }
+                                        return objs;
+                                      });
+const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
+                                      arr => new ASTScalarReference(arr[1], arr[0][0]));
+const ScalarAssignmentSource  = choice(ScalarReference, NamedWildcardReference,
+                                       AnonWildcard);
+const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
+                                      wst_seq(ScalarReference,
+                                              assignment_operator,
+                                              ScalarAssignmentSource));
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       AnonWildcard, comment, ScalarReference,
+                                       low_pri_text, plaintext);
+const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
+// const PromptBody              = wst_star(choice(NamedWildcardDefinition,
+//                                                 ScalarAssignment,
+//                                                 Content));
+const PromptBody              = wst_star(choice(SpecialFunction,
+                                                NamedWildcardDefinition,
+                                                ScalarAssignment,
+                                                Content));
+// const Prompt                  = (dt_hosted
+//                                  ? PromptBody
+//                                  : xform(arr => arr.flat(1),
+//                                          wst_seq(
+//                                            wst_star(SpecialFunction),
+//                                            PromptBody)));
+const Prompt                  = xform(arr => arr.flat(Infinity), PromptBody);
+// ---------------------------------------------------------------------------------------
+Prompt.finalize();
+// =====================================================================================
+// DEV NOTE: Copy into wildcards-plus.js starting through this line!
+// =====================================================================================
 
-                                                   if (args.length > 1) {
-                                                     count = parseInt(args[1]);
-                                                   }
 
-                                                   // ---------------------------------------------------------------------------------------
-                                                   // read prompt input:
-                                                   // ---------------------------------------------------------------------------------------
-                                                   let prompt_input = '';
+// =======================================================================================
+// MAIN:
+// =======================================================================================
+async function main() {
+  // ---------------------------------------------------------------------------------------
+  // process the command-line arguments:
+  // ---------------------------------------------------------------------------------------
+  const args    = process.argv.slice(2);
+  let   count   = 1;
+  let   post    = false;
+  let   confirm = false;
+  let   from_stdin = false;
+
+  if (args.length == 0) 
+    throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
+                    `(--stdin | <input-file>) [<count>]`);
+
+  if (["-p", "--post"].includes(args[0])) {
+    post = true;
+    args.shift();
+  }
+  else if (["-c", "--confirm"].includes(args[0])) {
+    post    = true;
+    confirm = true;
+    args.shift();
+  }
+
+  if (args.length === 0) {
+    throw new Error("Error: Must provide --stdin or an input file.");
+  }
+
+  if (args[0] === '--stdin') {
+    if (confirm)
+      throw new Error(`the --confirm and --stdin options are incompatible.`);
+    
+    from_stdin = true;
+  }
+
+  if (args.length > 1) {
+    count = parseInt(args[1]);
+  }
+
+  // ---------------------------------------------------------------------------------------
+  // read prompt input:
+  // ---------------------------------------------------------------------------------------
+  let prompt_input = '';
   let result = null;
   
   if (from_stdin) {
@@ -4907,8 +4907,13 @@ class Context {
   let json_str = `[false, null, {"foo": 123, "bar": 456}]`;
   console.log(inspect_fun(json.match(json_str)));
   console.log(JSON.stringify(json.match(json_str).value));
+
   json_str = `"bar.txt"`;
   console.log(inspect_fun(json.match(json_str)));
+  console.log(JSON.stringify(json.match(json_str).value));
+
+  json_str = `"[1, 2, 3]"`;
+  console.log(inspect_fun(json_array.match(json_str)));
   console.log(JSON.stringify(json.match(json_str).value));
 }
 
