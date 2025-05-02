@@ -4015,6 +4015,11 @@ function load_prelude(into_context = new Context()) {
 // =======================================================================================
 // the AST-walking function that I'll be using for the SD prompt grammar's output:
 // =======================================================================================
+function process_includes(thing, context = new Context()) {
+  function walk(thing, context) {
+  }
+}
+// ---------------------------------------------------------------------------------------
 function expand_wildcards(thing, context = new Context()) {
   function walk(thing, context) {
     // -----------------------------------------------------------------------------------
@@ -4616,8 +4621,10 @@ async function main() {
   
   // do some new special walk over AST to handle 'include' SpecialFunctions,
   // updating files as we go and bodging result back onto (or replacing?) AST?
+
+  process_includes(AST, base_context);
   
-  base_context.reset_temporaries(); // might not need to do this here after all?
+  // base_context.reset_temporaries(); // might not need to do this here after all?
 
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
