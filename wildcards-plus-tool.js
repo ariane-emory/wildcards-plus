@@ -4904,7 +4904,9 @@ async function main() {
 
   console.log('--------------------------------------------------------------------------------');
 
-  let json_str = `[false, null, {"foo": 123, "bar": 456}]`;
+  let json_str = '';
+
+  json_str = `[false, null, {"foo": 123, "bar": 456}]`;
   console.log(inspect_fun(json.match(json_str)));
   console.log(JSON.stringify(json.match(json_str).value));
 
@@ -4912,9 +4914,11 @@ async function main() {
   console.log(inspect_fun(json.match(json_str)));
   console.log(JSON.stringify(json.match(json_str).value));
 
-  json_str = `"[1, 2, 3]"`;
-  console.log(inspect_fun(json_array.match(json_str)));
-  console.log(JSON.stringify(json.match(json_str).value));
+  console.log("THIS ONE:");
+  json_str = `[1, 2, 3]`;
+  console.log(`matched: ${inspect_fun(json_array.match(json_str))}`);
+  console.log(`matched (as JSON): ${JSON.stringify(json_array.match(json_str))}`);
+
 }
 
 // ---------------------------------------------------------------------------------------
