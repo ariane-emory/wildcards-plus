@@ -254,8 +254,8 @@ class Rule {
 
     const ret = this.__match(indent, input, index);
 
-    if (ret?.value === undefined) {
-      throw new Error(`got undefined from ${this.constructor.name} ${inspect_fun(this)}`);
+    if (ret && ret?.value === undefined) {
+      throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}`);
     }
     
     if (log_match_enabled) {
@@ -613,8 +613,8 @@ class Element extends Rule {
           `${JSON.stringify(rule_match_result)}'s value.`);
     }
     
-    rule_match_result.value = rule_match_result.value[this.index];
-
+    rule_match_result.value = rule_match_result.value[this.index] ?? null;
+    
     return rule_match_result
   }
   // -------------------------------------------------------------------------------------
