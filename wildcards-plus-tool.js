@@ -1701,7 +1701,6 @@ const json = choice(() => json_object, () => json_array, () => json_string,
 // ( String ":" JSON ( "," String ":" JSON )*
 //   / S? ) 
 // "}"
-const json_unquote = str => str.substring(1, str.length - 1);
 const json_object = wst_cutting_enc('{',
                                     wst_star(
                                       xform(arr => [arr[0], arr[2]],
@@ -1714,6 +1713,7 @@ const json_object = wst_cutting_enc('{',
 // "]"
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
+const json_unquote = str => str.substring(1, str.length - 1);
 const json_string = xform(json_unquote, dq_string); // placeholder, C-like double-quoted strings, might not handle all unicode.
 // UnicodeEscape ← "u" [0-9A-Fa-f]{4}
 const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
