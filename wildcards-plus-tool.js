@@ -4638,7 +4638,7 @@ const tld_fun = arr =>
                              .map(s => unescape(s.substring(1, s.length - 1))));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const SpecialFunctionName     = l('include', 'fake'); // choice('include', 'models');
+const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
 const SpecialFunction         = xform(tld_fun,
                                       c_funcall(seq('%', SpecialFunctionName),wse(json)));
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
@@ -4712,8 +4712,8 @@ const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
 //                                                 ScalarAssignment,
 //                                                 Content));
-const PromptBody              = wst_star(choice(NamedWildcardDefinition,
-                                                SpecialFunction,
+const PromptBody              = wst_star(choice(SpecialFunction,
+                                                NamedWildcardDefinition,
                                                 ScalarAssignment,
                                                 Content));
 // const Prompt                  = (dt_hosted
