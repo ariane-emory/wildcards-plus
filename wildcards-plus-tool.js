@@ -4360,12 +4360,12 @@ const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag)
 // ---------------------------------------------------------------------------------------
 const tld_fun = arr => {
   console.log(`TLD ARR: ${inspect_fun(arr)}`);
-  return new LabeledValue("TLD", arr);
+  return new LabeledValue("TLD", [ arr[0][0][1], ...arr[0][1] ]);
 };
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const TopLevelDirective       = xform(tld_fun,
-                                      seq(c_funcall(second(seq('%', ident)),
+                                      seq(c_funcall(seq('%', ident),
                                                     choice(sq_string, dq_string)),
                                           /;|[\s\t]*\n/));
 
