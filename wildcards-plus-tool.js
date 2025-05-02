@@ -1735,7 +1735,8 @@ class WildcardPicker {
 const json = choice(() => json_object, () => json_array, () => json_string,
                     () => json_true,   () => json_false, () => json_null,
                     () => json_number);
-const json_with_comments = choice(() => json_object, () => json_array_with_comments, () => json_string,
+const json_with_comments = choice(() => json_object_with_comments,
+                                  () => json_array_with_comments, () => json_string,
                                   () => json_true,   () => json_false, () => json_null,
                                   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
@@ -1746,6 +1747,13 @@ const json_object = xform(arr =>  Object.fromEntries(arr),
                                                   wst_seq(() => json_string, ':', json)),
                                             ','),
                                           '}'));
+const json_object_with_comments = xform(arr =>  Object.fromEntries(arr), 
+                                        wst_cutting_enc('{',
+                                                        wst_star(
+                                                          xform(arr => [arr[0], arr[2]],
+                                                                wst_seq(() => json_string, ':', json)),
+                                                          ','),
+                                                        '}'));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
 const json_array_with_comments = wst_cutting_enc('[',
@@ -4922,7 +4930,9 @@ async function main() {
   json_str = `
 [1, 2, /* comment */ 3]
 `;
-  log_match_enabled = true;
+
+  // log_match_enabled = true;
+
   console.log(`matched: ${inspect_fun(json_array_with_comments.match(json_str))}`);
   // console.log(`matched (as JSON): ${JSON.stringify(json_array.match(json_str))}`);
 
