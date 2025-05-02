@@ -4572,10 +4572,10 @@ const SpecialFunction         = xform(tld_fun,
                                       c_funcall(seq('%', SpecialFunctionName),
                                                 choice(sq_string, dq_string)));
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
-                                           seq(wst_star(choice(comment, TestFlag)),
-                                          optional(wb_uint, 1),
-                                          wst_star(choice(comment, TestFlag)),
-                                          () => ContentStar));
+                                           seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                               optional(wb_uint, 1),
+                                               wst_star(choice(comment, TestFlag, SetFlag)),
+                                               () => ContentStar));
 const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const NamedWildcardReference        = xform(seq(discard('@'),
