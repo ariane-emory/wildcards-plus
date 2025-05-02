@@ -1757,6 +1757,7 @@ const json_unquote = str => str.substring(1, str.length - 1);
 const json_string_content = r(/(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*/);
 //const json_string =  r(/^"((?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*)"/);
 const json_string_fun = s => {
+  console.log(`HERE: '${s}'`);
   return s;
 };
 
