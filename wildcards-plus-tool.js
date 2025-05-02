@@ -844,11 +844,13 @@ class Optional extends Rule {
       index,
       indent + 1);
 
-    if (match_result === null)
-      return new MatchResult((this.default_value || this.default_value === '')
-                             ? [ this.default_value ]
-                             : [],
-                             input, index);
+    if (match_result === null) {
+      const mr = new MatchResult((this.default_value || this.default_value === '')
+                                 ? [ this.default_value ]
+                                 : [],
+                                 input, index)
+      return mr;
+    }
     
     match_result.value = [ match_result.value ];
 
@@ -1674,8 +1676,8 @@ class WildcardPicker {
 // =======================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
 const json = choice(() => json_object, () => json_array, () => json_string,
-                        () => json_true,   () => json_false, () => json_null,
-                        () => json_number);
+                    () => json_true,   () => json_false, () => json_null,
+                    () => json_number);
 // Object ← "{"
 // ( String ":" JSON ( "," String ":" JSON )*
 //   / S? )
