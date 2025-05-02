@@ -1739,6 +1739,7 @@ const json_with_comments = choice(() => json_object_with_comments,
                                   () => json_array_with_comments, () => json_string,
                                   () => json_true,   () => json_false, () => json_null,
                                   () => json_number);
+const json_comments = wst_star(choice(c_block_comment, c_line_comment));
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const json_object = xform(arr =>  Object.fromEntries(arr), 
                           wst_cutting_enc('{',
@@ -1751,20 +1752,25 @@ const json_object_with_comments = xform(arr =>  Object.fromEntries(arr),
                                         wst_cutting_enc('{',
                                                         wst_star(
 
-                                                          xform(arr => [arr[0], arr[2]],
+                                                          xform(arr => [arr[1], arr[5]],
 
-                                                                wst_seq( () => json_string, // 0 originally
-                                                                         ':',               // 1 originally 
-                                                                         json))             // 2 originally
+                                                                wst_seq(json_comments,
+                                                                        () => json_string,  // 0 originally
+                                                                        json_comments,
+                                                                        ':',                // 1 originally
+                                                                        json_comments,
+                                                                        json_with_comments, // 2 originally
+                                                                        json_comments
+                                                                       ))             
 
                                                           , ','),
                                                         '}'));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
 const json_array_with_comments = wst_cutting_enc('[',
-                                                 wst_star(second(seq(wst_star(choice(c_block_comment, c_line_comment)),
+                                                 wst_star(second(seq(json_comments,
                                                                      json_with_comments,
-                                                                     wst_star(choice(c_block_comment, c_line_comment)))),
+                                                                     json_comments)),
                                                           ','),
                                                  ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
@@ -4931,7 +4937,7 @@ async function main() {
   console.log(inspect_fun(json.match(json_str)));
   console.log(JSON.stringify(json.match(json_str).value));
 
-  console.log("THIS ONE:");
+  console.log("\nTHIS ONE:");
   json_str = `
 [1, 2, /* comment */ 3]
 `;
@@ -4941,6 +4947,12 @@ async function main() {
   console.log(`matched: ${inspect_fun(json_array_with_comments.match(json_str))}`);
   // console.log(`matched (as JSON): ${JSON.stringify(json_array.match(json_str))}`);
 
+  console.log("\nTHIS ONE 2:");
+  json_str = `
+{"foo": 123, /* comment */ "bar"//another comment
+: 456}
+`;
+  console.log(`matched: ${inspect_fun(json_object_with_comments.match(json_str))}`);  
 }
 
 // ---------------------------------------------------------------------------------------
