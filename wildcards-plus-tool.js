@@ -1756,16 +1756,20 @@ function smart_join(arr) {
 // =======================================================================================
 // helper functions for making contexts and dealing with the prelude:
 // =======================================================================================
-function make_context(flags = new Set(),
-                      scalar_variables = new Map(),
-                      named_wildcards = new Map(),
-                      noisy = false) {
-  return {
-    flags: flags,
-    scalar_variables: scalar_variables,
-    named_wildcards: named_wildcards,
-    noisy: noisy,
-  };
+class Context {
+  constructor({flags = new Set(),
+               scalar_variables = new Map(),
+               named_wildcards = new Map(),
+               noisy = false,
+               files = []} = {}) {
+    return {
+      flags: flags,
+      scalar_variables: scalar_variables,
+      named_wildcards: named_wildcards,
+      noisy: noisy,
+      files: files,
+    };
+  }
 }
 // ---------------------------------------------------------------------------------------
 const prelude_text = `
@@ -3941,7 +3945,7 @@ const prelude_text = `
 // ---------------------------------------------------------------------------------------
 let prelude_parse_result = null;
 // ---------------------------------------------------------------------------------------
-function load_prelude(into_context = make_context()) {
+function load_prelude(into_context = new Context()) {
   if (! prelude_parse_result)
     prelude_parse_result = Prompt.match(prelude_text);
   
@@ -3955,7 +3959,7 @@ function load_prelude(into_context = make_context()) {
 // =======================================================================================
 // the AST-walking function that I'll be using for the SD prompt grammar's output:
 // =======================================================================================
-function expand_wildcards(thing, context = make_context()) {  
+function expand_wildcards(thing, context = new Context()) {  
   function walk(thing, context) {
     // -----------------------------------------------------------------------------------
     // basic types (strings and Arrays):
@@ -4559,7 +4563,7 @@ async function main() {
     console.log('--------------------------------------------------------------------------------');
     // console.log(`posted_count = ${posted_count}`);
 
-    const context  = load_prelude();
+    const context  = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
     const expanded = expand_wildcards(result.value, context);
     
     console.log(expanded);
