@@ -4605,7 +4605,7 @@ async function main() {
   const base_context = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
   const AST          = result.value;
   
-  // do some new special walk over AST to handle includes in SpecialFunctions,
+  // do some new special walk over AST to handle 'include' SpecialFunctions,
   // updating files as we and bodging result back onto AST?
   
   base_context.reset_temporaries(); // might not need to do this after all?
