@@ -543,7 +543,7 @@ function choice(...options) { // convenience constructor
 // ---------------------------------------------------------------------------------------
 // Discard class
 // ---------------------------------------------------------------------------------------
-class Discard extends Rule  {
+class Discard extends Rule {
   // -------------------------------------------------------------------------------------
   constructor(rule) {
     super();
@@ -1689,7 +1689,7 @@ const json_object = wst_cutting_enc('{',
 // "]"
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
-const json_string = dq_string; // placeholder
+const json_string = dq_string; // placeholder, C-like double-quoted strings, might not handle all unicode.
 // UnicodeEscape ← "u" [0-9A-Fa-f]{4}
 const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
 // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
@@ -1716,8 +1716,12 @@ const json_number = seq(optional(json_minus),
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // ---------------------------------------------------------------------------------------
-json.finalize();
+json.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
 // =======================================================================================
+
+
+class BuiltinJSON extends Rule {
+}
 
 
 // =======================================================================================
