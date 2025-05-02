@@ -222,7 +222,8 @@ let log_enabled               = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
-let print_ast_enabled         = true;
+let print_before_ast_enabled  = true;
+let print_after_ast_enabled   = false;
 // ---------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // ---------------------------------------------------------------------------------------
@@ -4819,10 +4820,21 @@ async function main() {
   // do some new special walk over AST to handle 'include' SpecialFunctions,
   // updating files as we go and bodging result back onto (or replacing?) AST?
 
+  if (print_before_ast_enabled) {
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`before process_includes:`);
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`${inspect_fun(AST)}`);
+  }
+
   AST = process_includes(AST, base_context);
 
-  if (print_ast_enabled) // comment to see the AST after includes...
-    console.log(`after process_includes: ${inspect_fun(AST)}`);
+  if (print_after_ast_enabled) { 
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`after process_includes:`);
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`${inspect_fun(AST)}`);
+  }
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
