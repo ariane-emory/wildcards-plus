@@ -1,4 +1,4 @@
-%foo("bar", "bar")
+%foo("bar", "bar")    
 %foo(  "corge"  , "grault");
 baz
 quux

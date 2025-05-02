@@ -4378,7 +4378,7 @@ const TopLevelDirective       = label("tld",
 
                                             seq(c_funcall(second(seq('%', ident)),
                                                           choice(sq_string, dq_string)),
-                                                     /;s*|[\s\t]*\n/)
+                                                     /;|[\s\t]*\n/)
 
                                            ));
 
