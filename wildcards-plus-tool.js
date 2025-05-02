@@ -4564,6 +4564,9 @@ async function main() {
     // console.log(`posted_count = ${posted_count}`);
 
     const context  = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
+
+    // SpecialFunctions will be in result.value[0], do stuff with them and update context here?
+    
     const expanded = expand_wildcards(result.value[1], context);
     
     console.log(expanded);
