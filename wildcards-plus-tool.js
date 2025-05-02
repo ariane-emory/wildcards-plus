@@ -4027,13 +4027,16 @@ function process_includes(thing, context = new Context()) {
         
         if (context.files.includes(filename)) {
           console(`WARNING: skipping duplicate include of '${filename}'.`);
-
           continue;
         }
 
         context.files.push(filename);
-        
+
         const parse_file_result = parse_file(filename);
+
+        if (! parse_file_result.is_finished)
+          throw new Error(`error parsing ${filename}! ${inspect_fun(parse_file_result)}`);
+        
         res.push(walk(parse_file_result.value, context));
       }
 
@@ -4048,7 +4051,7 @@ function process_includes(thing, context = new Context()) {
       return ret;
     }
     else {
-      console.log(`thing is ${inspect_fun(thing)}`);
+      // console.log(`thing is ${inspect_fun(thing)}`);
             
       return thing;
     }
@@ -4661,7 +4664,7 @@ async function main() {
 
   AST = process_includes(AST, base_context);
 
-  console.log(`after process_includes: ${inspect_fun(AST)}`);
+  // console.log(`after process_includes: ${inspect_fun(AST)}`);
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
