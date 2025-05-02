@@ -220,7 +220,7 @@ if (false)
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_finalize_enabled      = false;
-let log_match_enabled         = false;
+let log_match_enabled         = true; 
 // ---------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // ---------------------------------------------------------------------------------------
@@ -4199,8 +4199,12 @@ const prelude_text = `
 let prelude_parse_result = null;
 // ---------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
-  if (! prelude_parse_result)
+  if (! prelude_parse_result) {
+    const old_log_match_enabled = log_match_enabled;
+    log_match_enabled = false; 
     prelude_parse_result = Prompt.match(prelude_text);
+    log_match_enabled = old_log_match_enabled;
+  }
   
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
