@@ -254,7 +254,7 @@ class Rule {
 
     const ret = this.__match(indent, input, index);
 
-    if (ret === undefined) {
+    if (ret?.value === undefined) {
       throw new Error(`got undefined from ${this.constructor.name} ${inspect_fun(this)}`);
     }
     
