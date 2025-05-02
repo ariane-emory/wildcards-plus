@@ -4895,7 +4895,7 @@ async function main() {
 
   console.log('--------------------------------------------------------------------------------');
 
-  const json_str = `[false, {"foo": 123, "bar": 456}]`;
+  const json_str = `[false, null, {"foo": 123, "bar": 456}]`;
   console.log(inspect_fun(json.match(json_str)));
   console.log(JSON.stringify(json.match(json_str).value));
 }
