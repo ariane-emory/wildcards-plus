@@ -943,7 +943,7 @@ class Sequence extends Rule {
     }
 
     for (let ix = 1; ix < this.elements.length; ix++) {
-      // if (log_match_enabled)
+      if (log_match_enabled)
         log(indent + 1, `matching sequence item #${ix} out of ` +
             `${this.elements.length}: ${this.elements[ix]}...`);
       
@@ -964,8 +964,8 @@ class Sequence extends Rule {
         log(indent + 1, `matched sequence item #${ix}.`);
 
       if (last_match_result.value !== null) {
-        // if (log_match_enabled)
-        log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
+        if (log_match_enabled)
+          log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
         values.push(last_match_result.value);
       }
       else {
@@ -4433,7 +4433,7 @@ function expand_wildcards(thing, context = new Context()) {
     else {
       throw new Error(`confusing thing: ` +
                       (typeof thing === 'object'
-                       ? thing.constructor.name
+                       ? thing?.constructor.name
                        : typeof thing) +
                       ' ' +
                       inspect_fun(thing));
