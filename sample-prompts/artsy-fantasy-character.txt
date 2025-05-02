@@ -7,7 +7,7 @@ wide shot,
 \n
 
 // set an 'm' or 'f' gender flag that will help guide the selection of picks later on.
-{!male !female !neuter {#male|#female|#neuter}}
+{!male !female !neuter {#male|#female}}
 
 // character type flag, make 'wizards' 60% of the time:
 {3 #wizard|2 #warrior} 
