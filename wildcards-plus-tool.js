@@ -512,14 +512,14 @@ class Choice extends Rule  {
         input, index, indent + 2);
 
       if (match_result !== null) {
-        // if (log_match_enabled)
-        log(indent + 1, `Chose option #${ix}!`);
+        if (log_match_enabled)
+          log(indent + 1, `Chose option #${ix}!`);
         
         return match_result;
       }
 
-      /// if (log_match_enabled)
-      log(indent + 1, `Rejected option #${ix}.`);
+      if (log_match_enabled)
+        log(indent + 1, `Rejected option #${ix}.`);
 
     }
 
@@ -905,15 +905,16 @@ class Sequence extends Rule {
   __match(indent, input, index) {
     const start_rule = input[0];
 
-    // if (log_match_enabled)
-    log(indent + 1, `matching sequence item #1 out of ` +
-        `${this.elements.length}: ${this.elements[0]}...`);
+    if (log_match_enabled)
+      log(indent + 1, `matching sequence item #1 out of ` +
+          `${this.elements.length}: ${this.elements[0]}...`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2);
     let last_match_result = start_rule_match_result;
 
-    if (/* log_match_enabled && */ last_match_result !== null)
+    if (log_match_enabled &&
+        last_match_result !== null)
       log(indent + 1, `first last_match_result = ${inspect_fun(last_match_result)}`);
     
     if (last_match_result === null) {
@@ -929,15 +930,15 @@ class Sequence extends Rule {
     const values = [];
     index        = last_match_result.index;
 
-    // if (log_match_enabled)
-    log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
+    if (log_match_enabled)
+      log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== null) {
-      // if (log_match_enabled)
-      log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
+      if (log_match_enabled)
+        log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
       values.push(last_match_result.value);
     }
-    else /* if (log_match_enabled) */ {
+    else if (log_match_enabled) {
       log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
     }
 
