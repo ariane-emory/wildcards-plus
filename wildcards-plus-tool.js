@@ -31,7 +31,9 @@
 import * as util from 'util';
 import * as http from 'http';
 import * as fs   from 'fs/promises';
+import * as readline from 'readline';
 import { stdin as input, stdout as output } from 'process';
+
 // import * as readline from 'readline';
 // ---------------------------------------------------------------------------------------
 
@@ -1769,6 +1771,11 @@ class Context {
     this.named_wildcards = named_wildcards;
     this.noisy = noisy;
     this.files = files;
+  }
+  // -------------------------------------------------------------------------------------
+  reset_temporaries() {
+    this.flags = new Set();
+    this.scalar_variables = new Map();
   }
   // -------------------------------------------------------------------------------------
   clone() {
@@ -4467,9 +4474,6 @@ const Prompt                  = xform(arr => arr.flat(1),
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // ---------------------------------------------------------------------------------------
-
-import * as readline from 'readline';
-
 function ask(question) {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -4563,8 +4567,8 @@ async function main() {
   if (! result.is_finished)
     throw new Error("error parsing prompt!");
 
-  const base_context = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
-  const AST          = result.value;
+  const context_with_prelude = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
+  const AST                  = result.value;
   
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
@@ -4576,7 +4580,7 @@ async function main() {
     console.log('--------------------------------------------------------------------------------');
     // console.log(`posted_count = ${posted_count}`);
 
-    const context  = base_context.clone();
+    const context  = context_with_prelude.clone();
     const expanded = expand_wildcards(AST, context);
     
     console.log(expanded);
