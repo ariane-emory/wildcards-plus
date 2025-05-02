@@ -4576,15 +4576,20 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        AnonWildcard, comment, ScalarReference,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-const PromptBody              = wst_star(choice(NamedWildcardDefinition,
+// const PromptBody              = wst_star(choice(NamedWildcardDefinition,
+//                                                 ScalarAssignment,
+//                                                 Content));
+const PromptBody              = wst_star(choice(SpecialFunction,
+                                                NamedWildcardDefinition,
                                                 ScalarAssignment,
                                                 Content));
-const Prompt                  = (dt_hosted
-                                 ? PromptBody
-                                 : xform(arr => arr.flat(1),
-                                         wst_seq(
-                                           wst_star(SpecialFunction),
-                                           PromptBody)));
+// const Prompt                  = (dt_hosted
+//                                  ? PromptBody
+//                                  : xform(arr => arr.flat(1),
+//                                          wst_seq(
+//                                            wst_star(SpecialFunction),
+//                                            PromptBody)));
+const Prompt                  = PromptBody;
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // =====================================================================================
