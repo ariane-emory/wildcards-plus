@@ -580,7 +580,7 @@ class Discard extends Rule {
     if (! match_result)
       return null;
     
-    return new MatchResult(null, input, match_result.index);
+    return new MatchResult(DISCARD, input, match_result.index);
   } 
   // -------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
