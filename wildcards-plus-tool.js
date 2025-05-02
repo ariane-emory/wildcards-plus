@@ -4378,7 +4378,7 @@ const tld_fun = arr => {
 };
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const SpecialFunctionName     = choice('include', /* 'models' */);
+const SpecialFunctionName     = l('include'); // choice('include', 'models');
 const SpecialFunction         = xform(tld_fun,
                                       seq(c_funcall(seq('%', SpecialFunctionName),
                                                     choice(sq_string, dq_string)),
