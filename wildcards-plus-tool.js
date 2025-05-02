@@ -918,9 +918,9 @@ class Sequence extends Rule {
   __match(indent, input, index) {
     const start_rule = input[0];
 
-    if (log_match_enabled)
-      log(indent + 1, `matching sequence item #1 out of ` +
-          `${this.elements.length}...`);
+    // if (log_match_enabled)
+    log(indent + 1, `matching first sequence item #1 out of ` +
+        `${this.elements.length}: ${inspect_fun(this.elements[0])}...`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2);
@@ -956,9 +956,9 @@ class Sequence extends Rule {
       log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
 
     for (let ix = 1; ix < this.elements.length; ix++) {
-      if (log_match_enabled)
-        log(indent + 1, `matching sequence item #${ix} out of ` +
-            `${this.elements.length}...`);
+      // if (log_match_enabled)
+        log(indent + 1, `matching sequence item #${ix+1} out of ` +
+            `${this.elements.length}: ${inspect_fun(this.elements[ix])}...`);
       
       const element = this.elements[ix];
 
@@ -979,10 +979,11 @@ class Sequence extends Rule {
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
           log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
+
         values.push(last_match_result.value);
+
         if (values.includes(null))
           throw new Error("STOP @ PUSH 2");
-                
       }
 
       index = last_match_result.index;
