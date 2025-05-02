@@ -4019,8 +4019,9 @@ function load_prelude(into_context = new Context()) {
 function process_includes(thing, context = new Context()) {
   function walk(thing, context) {
     if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
+      const current_file = context.files[context.files.length - 1];
       const res = [];
-
+      
       for (const filename of thing.args) {
         if (context.files.includes(filename)) {
           console(`WARNING: skipping duplicate include of '${filename}'.`);
