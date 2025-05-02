@@ -4017,7 +4017,23 @@ function load_prelude(into_context = new Context()) {
 // =======================================================================================
 function process_includes(thing, context = new Context()) {
   function walk(thing, context) {
+    if (thing instanceof ASTSpecialFunction && thing.directive === 'include') {
+      res = [];
+      
+      for (const filename of thing.args) {
+        context.filenames.push(filename);
+
+        res.push(walk(parse_file(thing), context));
+      }
+
+      return res;
+    }
+    else {
+      return thing;
+    }
   }
+  
+  return walk(thing, context);
 }
 // ---------------------------------------------------------------------------------------
 function expand_wildcards(thing, context = new Context()) {
@@ -4617,12 +4633,12 @@ async function main() {
     throw new Error("error parsing prompt!");
 
   const base_context = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
-  const AST          = result.value;
+  let   AST          = result.value;
   
   // do some new special walk over AST to handle 'include' SpecialFunctions,
   // updating files as we go and bodging result back onto (or replacing?) AST?
 
-  process_includes(AST, base_context);
+  AST = process_includes(AST, base_context);
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
