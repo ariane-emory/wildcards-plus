@@ -83,6 +83,50 @@ function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
   });
 }
 // ---------------------------------------------------------------------------------------
+function process_includes(thing, context = new Context()) {
+  function walk(thing, context) {
+    if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
+      const current_file = context.files[context.files.length - 1];
+      const res = [];
+      
+      for (let filename of thing.args) {
+        filename = path.join(path.dirname(current_file), filename);
+        
+        if (context.files.includes(filename)) {
+          console.log(`WARNING: skipping duplicate include of '${filename}'.`);
+          continue;
+        }
+
+        context.files.push(filename);
+
+        const parse_file_result = parse_file(filename);
+
+        if (! parse_file_result.is_finished)
+          throw new Error(`error parsing ${filename}! ${inspect_fun(parse_file_result)}`);
+        
+        res.push(walk(parse_file_result.value, context));
+      }
+
+      return res;
+    }
+    else if (Array.isArray(thing)) {
+      const ret = [];
+
+      for (const t of thing)
+        ret.push(walk(t, context));
+
+      return ret;
+    }
+    else {
+      // console.log(`thing is ${inspect_fun(thing)}`);
+      
+      return thing;
+    }
+  }
+
+  return walk(thing, context);
+}
+// ---------------------------------------------------------------------------------------
 
 
 // =======================================================================================
@@ -4016,50 +4060,6 @@ function load_prelude(into_context = new Context()) {
 // =======================================================================================
 // the AST-walking function that I'll be using for the SD prompt grammar's output:
 // =======================================================================================
-function process_includes(thing, context = new Context()) {
-  function walk(thing, context) {
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
-      const current_file = context.files[context.files.length - 1];
-      const res = [];
-      
-      for (let filename of thing.args) {
-        filename = path.join(path.dirname(current_file), filename);
-        
-        if (context.files.includes(filename)) {
-          console.log(`WARNING: skipping duplicate include of '${filename}'.`);
-          continue;
-        }
-
-        context.files.push(filename);
-
-        const parse_file_result = parse_file(filename);
-
-        if (! parse_file_result.is_finished)
-          throw new Error(`error parsing ${filename}! ${inspect_fun(parse_file_result)}`);
-        
-        res.push(walk(parse_file_result.value, context));
-      }
-
-      return res;
-    }
-    else if (Array.isArray(thing)) {
-      const ret = [];
-
-      for (const t of thing)
-        ret.push(walk(t, context));
-
-      return ret;
-    }
-    else {
-      // console.log(`thing is ${inspect_fun(thing)}`);
-            
-      return thing;
-    }
-  }
-
-  return walk(thing, context);
-}
-// ---------------------------------------------------------------------------------------
 function expand_wildcards(thing, context = new Context()) {
   function walk(thing, context) {
     // -----------------------------------------------------------------------------------
