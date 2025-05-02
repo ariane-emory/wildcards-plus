@@ -250,7 +250,7 @@
                    |!#alien_skin chitinous armored plates on @pro_pos_adj skin
                    |!#alien_skin scaled skin
                    |!#alien_tail a {|2 prehensile|spined} tail
-                   |!#alien_skinskin like an amphibian
+                   |!#alien_skin skin like an amphibian
                    |!#alien_eyes {two|three|four|six} eyes
                    |vicious fangs
                    |a slitted nose
