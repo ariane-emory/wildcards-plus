@@ -378,7 +378,8 @@ class Quantified extends Rule {
     if (match_result === null)
       return new MatchResult([], input, index);
 
-    if (match_result.value === '' || match_result.value)
+    // if (match_result.value === '' || match_result.value)
+    if (match_result.value !== DISCARD)
       values.push(match_result.value);
     
     update_index(match_result.index);
@@ -430,7 +431,7 @@ class Quantified extends Rule {
         break;
       }
 
-      if (match_result.value === '' || match_result.value)
+      if (match_result.value !== DISCARD)
         values.push(match_result.value);
       
       update_index(match_result.index);
@@ -940,7 +941,7 @@ class Sequence extends Rule {
     if (log_match_enabled)
       log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
-    if (last_match_result.value !== null) {
+    if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
         log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
       values.push(last_match_result.value);
@@ -969,7 +970,7 @@ class Sequence extends Rule {
       if (log_match_enabled)
         log(indent + 1, `matched sequence item #${ix}.`);
 
-      if (last_match_result.value !== null) {
+      if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
           log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
         values.push(last_match_result.value);
