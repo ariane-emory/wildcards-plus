@@ -580,8 +580,12 @@ class Discard extends Rule {
 
     if (! match_result)
       return null;
+
+    const mr = new MatchResult(DISCARD, input, match_result.index);
+
+    // console.log(`MR: ${inspect_fun(mr)}`);
     
-    return new MatchResult(DISCARD, input, match_result.index);
+    return mr;
   } 
   // -------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -978,8 +982,12 @@ class Sequence extends Rule {
 
       index = last_match_result.index;
     }
-
-    return new MatchResult(values, input, last_match_result.index);
+    if (values.includes(null))
+      throw new Error("STOP @ RET");
+    
+    const mr = new MatchResult(values, input, last_match_result.index);
+    console.log(`SEQ MR = ${inspect_fun(mr)}`);
+    return mr;
   }
   // -------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -4324,6 +4332,8 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination))
         console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
+      // else
+      //   console.log(`SETTING ${inspect_fun(thing)} IN ${inspect_fun(context.named_wildcards)}` );
 
       context.named_wildcards.set(thing.destination, thing.wildcard);
 
@@ -4592,7 +4602,10 @@ const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
-const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+const assignment_operator     = xform(arr => {
+  console.log(`A_R RETURNING ${arr.toString()}`);
+  return arr;
+}, discard(seq(wst_star(comment), ':=', wst_star(comment))));
 // ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
@@ -4650,7 +4663,11 @@ const NamedWildcardReference        = xform(seq(discard('@'),
                                                                                    max_ct);
                                             });
 const NamedWildcardDesignator = second(seq('@', ident));                                      
-const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
+const NamedWildcardDefinition = xform(arr => {
+  console.log(`NWCD ARR: ${inspect_fun(arr)}`);
+  
+  return new ASTNamedWildcardDefinition(...arr);
+},
                                       wst_seq(NamedWildcardDesignator,
                                               assignment_operator,
                                               AnonWildcard));
