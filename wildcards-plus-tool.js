@@ -1674,236 +1674,236 @@ class WildcardPicker {
 // =======================================================================================
 // helper functions:
 // =======================================================================================
-  function rand_int(x, y) {
-    y ||= x;
-    // console.log(`RAND_INT(${inspect_fun(x)}, ${inspect_fun(y)})`);
-    const min = Math.min(x, y);
-    const max = Math.max(x, y);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-  // ---------------------------------------------------------------------------------------
-  function pretty_list(arr) {
-    const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
+function rand_int(x, y) {
+  y ||= x;
+  // console.log(`RAND_INT(${inspect_fun(x)}, ${inspect_fun(y)})`);
+  const min = Math.min(x, y);
+  const max = Math.max(x, y);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+// ---------------------------------------------------------------------------------------
+function pretty_list(arr) {
+  const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
 
-    if (items.length === 0) return "";
-    if (items.length === 1) return items[0];
-    if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
 
-    const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
-    
-    return ret;
-  }
-  // ---------------------------------------------------------------------------------------
-  function capitalize(string) {
-    // console.log(`CAPITALIZING '${string}'`);
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-  // ---------------------------------------------------------------------------------------
-  function choose_indefinite_article(word) {
-    if (!word)
-      return 'a'; // fallback
+  const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  
+  return ret;
+}
+// ---------------------------------------------------------------------------------------
+function capitalize(string) {
+  // console.log(`CAPITALIZING '${string}'`);
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+// ---------------------------------------------------------------------------------------
+function choose_indefinite_article(word) {
+  if (!word)
+    return 'a'; // fallback
 
-    const lower = word.toLowerCase();
+  const lower = word.toLowerCase();
 
-    // Words that begin with vowel *sounds*
-    const vowelSoundExceptions = [
-      /^e[uw]/,          // eulogy, Europe
-      /^onc?e\b/,        // once
-      /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
-      /^u[bcfhjkqrstn]/, // unicorn, useful, usual
-      /^uk/,             // UK (spoken "you-kay")
-      /^ur[aeiou]/,      // uranium
-    ];
+  // Words that begin with vowel *sounds*
+  const vowelSoundExceptions = [
+    /^e[uw]/,          // eulogy, Europe
+    /^onc?e\b/,        // once
+    /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
+    /^u[bcfhjkqrstn]/, // unicorn, useful, usual
+    /^uk/,             // UK (spoken "you-kay")
+    /^ur[aeiou]/,      // uranium
+  ];
 
-    const silentHWords = [
-      'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
-    ];
+  const silentHWords = [
+    'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
+  ];
 
-    const acronymStartsWithVowelSound = /^[aeiou]/i;
-    const consonantYooSound = /^u[bcfhjkqrstn]/i;
+  const acronymStartsWithVowelSound = /^[aeiou]/i;
+  const consonantYooSound = /^u[bcfhjkqrstn]/i;
 
-    if (silentHWords.includes(lower))
-      return 'an';
+  if (silentHWords.includes(lower))
+    return 'an';
 
-    if (vowelSoundExceptions.some(re => re.test(lower)))
-      return 'a';
-
-    // Words beginning with vowel letters
-    if ('aeiou'.includes(lower[0]))
-      return 'an';
-
+  if (vowelSoundExceptions.some(re => re.test(lower)))
     return 'a';
-  }
-  // ---------------------------------------------------------------------------------------
-  function unescape(str) {
-    return str
-      .replace(/\\n/g,   '\n')
-      .replace(/\\ /g,   ' ')
-      .replace(/\\(.)/g, '$1')
-  };
-  // ---------------------------------------------------------------------------------------
-  function smart_join(arr) {
-    arr = [...arr];
+
+  // Words beginning with vowel letters
+  if ('aeiou'.includes(lower[0]))
+    return 'an';
+
+  return 'a';
+}
+// ---------------------------------------------------------------------------------------
+function unescape(str) {
+  return str
+    .replace(/\\n/g,   '\n')
+    .replace(/\\ /g,   ' ')
+    .replace(/\\(.)/g, '$1')
+};
+// ---------------------------------------------------------------------------------------
+function smart_join(arr) {
+  arr = [...arr];
+  
+  // console.log(`JOINING ${inspect_fun(arr)}`);
+  const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
+  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
+  const linkingp     = (ch)  => ch === "_" || ch === "-";
+  const whitep       = (ch)  => ch === ' ' || ch === '\n';
+  
+  let left_word = arr[0]?.toString() ?? "";
+  let str       = left_word;
+
+  for (let ix = 1; ix < arr.length; ix++)  {
+    let right_word = null;
+    let prev_char = null;
+    let prev_char_is_escaped = null
+    let next_char = null;
+
+    const update_pos_vars = () => {
+      right_word           = arr[ix]?.toString() ?? "";
+      prev_char            = left_word[left_word.length - 1] ?? "";
+      prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
+      next_char            = right_word[0] ?? '';
+    };
     
-    // console.log(`JOINING ${inspect_fun(arr)}`);
-    const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
-    const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-    const linkingp     = (ch)  => ch === "_" || ch === "-";
-    const whitep       = (ch)  => ch === ' ' || ch === '\n';
-    
-    let left_word = arr[0]?.toString() ?? "";
-    let str       = left_word;
-
-    for (let ix = 1; ix < arr.length; ix++)  {
-      let right_word = null;
-      let prev_char = null;
-      let prev_char_is_escaped = null
-      let next_char = null;
-
-      const update_pos_vars = () => {
-        right_word           = arr[ix]?.toString() ?? "";
-        prev_char            = left_word[left_word.length - 1] ?? "";
-        prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-        next_char            = right_word[0] ?? '';
-      };
-      
-      const shift_left = (n) => {
-        const shifted_str = right_word.substring(0, n);
-        str = str.substring(0, str.length -1) + shifted_str;
-        left_word = left_word.substring(0, left_word.length - 1) + shifted_str;
-        arr[ix] = right_word.substring(n);
-        update_pos_vars();
-      };
-
+    const shift_left = (n) => {
+      const shifted_str = right_word.substring(0, n);
+      str = str.substring(0, str.length -1) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - 1) + shifted_str;
+      arr[ix] = right_word.substring(n);
       update_pos_vars();
-      
-      if (prev_char === ',' && right_word === ',')
-        continue;
+    };
 
-      while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
-        shift_left(3);
-      
-      while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
-        shift_left(1);
-      
+    update_pos_vars();
+    
+    if (prev_char === ',' && right_word === ',')
+      continue;
 
-      // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
+    while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
+      shift_left(3);
+    
+    while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
+      shift_left(1);
+    
 
-      // console.log(`str = '${str}', ` +
-      //             `left_word = '${left_word}', ` +
-      //             `right_word = '${right_word}', ` +
-      //             `prev_char = '${prev_char}', ` +
-      //             `next_char = '${next_char}'`);
+    // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
 
-      // handle "a" → "an" if necessary
+    // console.log(`str = '${str}', ` +
+    //             `left_word = '${left_word}', ` +
+    //             `right_word = '${right_word}', ` +
+    //             `prev_char = '${prev_char}', ` +
+    //             `next_char = '${next_char}'`);
 
-      const articleCorrection = (originalArticle, nextWord) => {
-        const expected = choose_indefinite_article(nextWord);
-        if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-          return originalArticle === 'A' ? 'An' : 'an';
+    // handle "a" → "an" if necessary
+
+    const articleCorrection = (originalArticle, nextWord) => {
+      const expected = choose_indefinite_article(nextWord);
+      if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
+        return originalArticle === 'A' ? 'An' : 'an';
+      }
+      return originalArticle;
+    };
+
+    // Normalize article if needed
+    if (left_word === "a" || left_word.endsWith(" a") ||
+        left_word === "A" || left_word.endsWith(" A")) {
+      const nextWord = right_word;
+      const updatedArticle = articleCorrection(left_word.trim(), nextWord);
+      if (updatedArticle !== left_word.trim()) {
+        if (left_word === "a" || left_word === "A") {
+          str = str.slice(0, -1) + updatedArticle;
+          left_word = updatedArticle;
+        } else {
+          str = str.slice(0, -2) + " " + updatedArticle;
+          left_word = updatedArticle;
         }
-        return originalArticle;
-      };
-
-      // Normalize article if needed
-      if (left_word === "a" || left_word.endsWith(" a") ||
-          left_word === "A" || left_word.endsWith(" A")) {
-        const nextWord = right_word;
-        const updatedArticle = articleCorrection(left_word.trim(), nextWord);
-        if (updatedArticle !== left_word.trim()) {
-          if (left_word === "a" || left_word === "A") {
-            str = str.slice(0, -1) + updatedArticle;
-            left_word = updatedArticle;
-          } else {
-            str = str.slice(0, -2) + " " + updatedArticle;
-            left_word = updatedArticle;
-          }
-        }
       }
-
-      if (!(!str || !right_word) && 
-          !whitep(prev_char) &&
-          !whitep(next_char) &&
-          !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
-          !(linkingp(next_char) || ')]'.includes(next_char)) &&
-          ( next_char !== '<' && (! (prev_char === '<' && prev_char_is_escaped))) &&
-          !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
-          !punctuationp(next_char)) {
-        // console.log(`SPACE!`);
-        prev_char = ' ';
-        str += ' ';
-      }
-
-      if (next_char === '<' && right_word !== '<') {
-        // console.log(`CHOMP RIGHT!`);
-        right_word = right_word.substring(1);
-      }
-      else if (prev_char === '<' && !prev_char_is_escaped) {
-        // console.log(`CHOMP LEFT!`);
-        str = str.slice(0, -1);
-      }
-
-      left_word = right_word;
-      str += left_word;
     }
 
-    // console.log(`before = '${str}'`);
-    // console.log(`after  = '${unescape(str)}'`);
+    if (!(!str || !right_word) && 
+        !whitep(prev_char) &&
+        !whitep(next_char) &&
+        !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
+        !(linkingp(next_char) || ')]'.includes(next_char)) &&
+        ( next_char !== '<' && (! (prev_char === '<' && prev_char_is_escaped))) &&
+        !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
+        !punctuationp(next_char)) {
+      // console.log(`SPACE!`);
+      prev_char = ' ';
+      str += ' ';
+    }
 
-    return unescape(str);
+    if (next_char === '<' && right_word !== '<') {
+      // console.log(`CHOMP RIGHT!`);
+      right_word = right_word.substring(1);
+    }
+    else if (prev_char === '<' && !prev_char_is_escaped) {
+      // console.log(`CHOMP LEFT!`);
+      str = str.slice(0, -1);
+    }
+
+    left_word = right_word;
+    str += left_word;
   }
-  // ---------------------------------------------------------------------------------------
+
+  // console.log(`before = '${str}'`);
+  // console.log(`after  = '${unescape(str)}'`);
+
+  return unescape(str);
+}
+// ---------------------------------------------------------------------------------------
 
 
-  // =======================================================================================
-  // helper functions for making contexts and dealing with the prelude:
-  // =======================================================================================
-  class Context {
-    constructor({ 
-      flags = new Set(),
-      scalar_variables = new Map(),
-      named_wildcards = new Map(),
-      noisy = false,
-      files = [],
-      top_file = true,
-    } = {}) {
-      this.flags = flags;
-      this.scalar_variables = scalar_variables;
-      this.named_wildcards = named_wildcards;
-      this.noisy = noisy;
-      this.files = files;
-      this.top_file = top_file;
-    }
-    // -------------------------------------------------------------------------------------
-    reset_temporaries() {
-      this.flags = new Set();
-      this.scalar_variables = new Map();
-    }
-    // -------------------------------------------------------------------------------------
-    clone() {
-      return new Context({
-        flags: new Set(this.flags),
-        scalar_variables: new Map(this.scalar_variables),
-        named_wildcards: new Map(this.named_wildcards),
-        noisy: this.noisy,
-        files: [...this.files],
-        top_file: this.top_file,
-      });
-    }
-    // -------------------------------------------------------------------------------------
-    shallow_copy() {
-      return new Context({
-        flags: this.flags,
-        scalar_variables: this.scalar_variables,
-        named_wildcards: this.named_wildcards,
-        noisy: this.noisy,
-        files: this.files,
-        top_file: false,
-      });
-    }
+// =======================================================================================
+// helper functions for making contexts and dealing with the prelude:
+// =======================================================================================
+class Context {
+  constructor({ 
+    flags = new Set(),
+    scalar_variables = new Map(),
+    named_wildcards = new Map(),
+    noisy = false,
+    files = [],
+    top_file = true,
+  } = {}) {
+    this.flags = flags;
+    this.scalar_variables = scalar_variables;
+    this.named_wildcards = named_wildcards;
+    this.noisy = noisy;
+    this.files = files;
+    this.top_file = top_file;
   }
-  // ---------------------------------------------------------------------------------------
-  const prelude_text = `
+  // -------------------------------------------------------------------------------------
+  reset_temporaries() {
+    this.flags = new Set();
+    this.scalar_variables = new Map();
+  }
+  // -------------------------------------------------------------------------------------
+  clone() {
+    return new Context({
+      flags: new Set(this.flags),
+      scalar_variables: new Map(this.scalar_variables),
+      named_wildcards: new Map(this.named_wildcards),
+      noisy: this.noisy,
+      files: [...this.files],
+      top_file: this.top_file,
+    });
+  }
+  // -------------------------------------------------------------------------------------
+  shallow_copy() {
+    return new Context({
+      flags: this.flags,
+      scalar_variables: this.scalar_variables,
+      named_wildcards: this.named_wildcards,
+      noisy: this.noisy,
+      files: this.files,
+      top_file: false,
+    });
+  }
+}
+// ---------------------------------------------------------------------------------------
+const prelude_text = `
     @set_gender_if_unset := {!female !male !neuter {3 #female|2 #male|#neuter}}
     @gender              := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
     @pro_3rd_subj        := {@set_gender_if_unset {?female she   |?male he  |?neuter it }}
@@ -4073,481 +4073,481 @@ class WildcardPicker {
       ?artist__ander_zorn etching, nudes, painting, portraits, Swedish
     }
    `;
-  // ---------------------------------------------------------------------------------------
-  let prelude_parse_result = null;
-  // ---------------------------------------------------------------------------------------
-  function load_prelude(into_context = new Context()) {
-    if (! prelude_parse_result)
-      prelude_parse_result = Prompt.match(prelude_text);
-    
-    const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+// ---------------------------------------------------------------------------------------
+let prelude_parse_result = null;
+// ---------------------------------------------------------------------------------------
+function load_prelude(into_context = new Context()) {
+  if (! prelude_parse_result)
+    prelude_parse_result = Prompt.match(prelude_text);
+  
+  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
-    return into_context;
-  }
-  // ---------------------------------------------------------------------------------------
+  return into_context;
+}
+// ---------------------------------------------------------------------------------------
 
 
-  // =======================================================================================
-  // the AST-walking function that I'll be using for the SD prompt grammar's output:
-  // =======================================================================================
-  function expand_wildcards(thing, context = new Context()) {
-    function walk(thing, context) {
-      // -----------------------------------------------------------------------------------
-      // basic types (strings and Arrays):
-      // -----------------------------------------------------------------------------------
-      if (typeof thing === 'string')
-        return thing
-      else if (Array.isArray(thing)) {
-        // return thing.map(x => walk(x, context));
+// =======================================================================================
+// the AST-walking function that I'll be using for the SD prompt grammar's output:
+// =======================================================================================
+function expand_wildcards(thing, context = new Context()) {
+  function walk(thing, context) {
+    // -----------------------------------------------------------------------------------
+    // basic types (strings and Arrays):
+    // -----------------------------------------------------------------------------------
+    if (typeof thing === 'string')
+      return thing
+    else if (Array.isArray(thing)) {
+      // return thing.map(x => walk(x, context));
+      
+      const ret = [];
+
+      for (const t of thing) {
+        if (context.noisy)
+          console.log(`WALKING ` +
+                      typeof t === 'object'
+                      ? inspect_fun(t)
+                      : `${typeof t} '${t}'`);
         
-        const ret = [];
+        const val = walk(t, context);
 
-        for (const t of thing) {
-          if (context.noisy)
-            console.log(`WALKING ` +
-                        typeof t === 'object'
-                        ? inspect_fun(t)
-                        : `${typeof t} '${t}'`);
-          
-          const val = walk(t, context);
+        ret.push(val);
+      }
 
-          ret.push(val);
+      return ret;
+    }
+    // -----------------------------------------------------------------------------------
+    // Flags:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSetFlag) {
+      // console.log(`SET FLAG '${thing.name}'.`);
+      
+      context.flags.add(thing.name);
+
+      return ''; // produce nothing
+    }
+    // -----------------------------------------------------------------------------------
+    // References:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTNamedWildcardReference) {
+      const got = context.named_wildcards.get(thing.name);
+
+      if (!got)
+        return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
+
+      const res = [ walk(got, context) ];
+
+      if (thing.capitalize)
+        res[0] = capitalize(res[0]);
+
+      const count = rand_int(thing.min_count, thing.max_count);
+      
+      for (let ix = 1; ix < count; ix++) {
+        let val = walk(got, context);
+        
+        for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
+          if (! res.includes(val))
+            break;
+
+          val = walk(got, context);
         }
 
-        return ret;
+        res.push(val);
       }
-      // -----------------------------------------------------------------------------------
-      // Flags:
-      // -----------------------------------------------------------------------------------
-      else if (thing instanceof ASTSetFlag) {
-        // console.log(`SET FLAG '${thing.name}'.`);
-        
-        context.flags.add(thing.name);
 
-        return ''; // produce nothing
+      return thing.joiner == ','
+        ? res.join(", ")
+        : (thing.joiner == '&'
+           ? pretty_list(res)
+           : res.join(" "));
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTScalarReference) {
+      let got = context.scalar_variables.get(thing.name) ??
+          `SCALAR '${thing.name}' NOT FOUND}`;
+
+      if (thing.capitalize)
+        got = capitalize(got);
+
+      return got;
+    }
+    // -----------------------------------------------------------------------------------
+    // NamedWildcards:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTLatchNamedWildcard) {
+      const got = context.named_wildcards.get(thing.name);
+      
+      if (!got)
+        return `ERROR: Named wildcard ${thing.name} not found!`;
+
+      if (got instanceof ASTLatchedNamedWildcardedValue) {
+        if (context.noisy)
+          console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
+
+        return '';
       }
-      // -----------------------------------------------------------------------------------
-      // References:
-      // -----------------------------------------------------------------------------------
-      else if (thing instanceof ASTNamedWildcardReference) {
-        const got = context.named_wildcards.get(thing.name);
 
-        if (!got)
-          return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
 
-        const res = [ walk(got, context) ];
+      if (context.noisy)
+        console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+      
+      context.named_wildcards.set(thing.name, latched);
 
-        if (thing.capitalize)
-          res[0] = capitalize(res[0]);
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTUnlatchNamedWildcard) {
+      let got = context.named_wildcards.get(thing.name);
 
-        const count = rand_int(thing.min_count, thing.max_count);
+      if (!got)
+        return `ERROR: Named wildcard ${thing.name} not found!`;
+
+      if (! (got instanceof ASTLatchedNamedWildcardedValue))
+        throw new Error(`NOT LATCHED: '${thing.name}'`);
+
+      context.named_wildcards.set(thing.name, got.original_value);
+
+      if (context.noisy)
+        console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+
+      return ''; // produce no text.
+    } 
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTNamedWildcardDefinition) {
+      if (context.named_wildcards.has(thing.destination))
+        console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
+
+      context.named_wildcards.set(thing.destination, thing.wildcard);
+
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    // internal objects:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTLatchedNamedWildcardedValue) {
+      return thing.latched_value;
+    }
+    // -----------------------------------------------------------------------------------
+    // scalar assignment:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTScalarAssignment) {
+      if (context.noisy) {
+        console.log();
+        console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
+                    `TO '${thing.destination.name}'`);
+      }
+
+      const val = walk(thing.source, context);
+
+      if (context.noisy)
+        console.log(`ASSIGNED ${inspect_fun(val)} TO "${thing.destination.name}'`);
+      
+      context.scalar_variables.set(thing.destination.name, val);
+
+      if (context.noisy)
+        console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    // AnonWildcards:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTAnonWildcard) {
+      const new_picker = new WildcardPicker();
+
+      for (const option of thing.options) {
+        let skip = false;
+
+        // if (option.not_flags.length > 1)
+        //   console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
         
-        for (let ix = 1; ix < count; ix++) {
-          let val = walk(got, context);
-          
-          for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
-            if (! res.includes(val))
-              break;
+        for (const not_flag of option.not_flags) {
+          // console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
 
-            val = walk(got, context);
+          if (context.flags.has(not_flag.name)) {
+            // console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
+            skip = true;
+            break;
           }
-
-          res.push(val);
         }
 
-        return thing.joiner == ','
-          ? res.join(", ")
-          : (thing.joiner == '&'
-             ? pretty_list(res)
-             : res.join(" "));
-      }
-      // -----------------------------------------------------------------------------------
-      else if (thing instanceof ASTScalarReference) {
-        let got = context.scalar_variables.get(thing.name) ??
-            `SCALAR '${thing.name}' NOT FOUND}`;
-
-        if (thing.capitalize)
-          got = capitalize(got);
-
-        return got;
-      }
-      // -----------------------------------------------------------------------------------
-      // NamedWildcards:
-      // -----------------------------------------------------------------------------------
-      else if (thing instanceof ASTLatchNamedWildcard) {
-        const got = context.named_wildcards.get(thing.name);
+        if (skip)
+          continue;
         
-        if (!got)
-          return `ERROR: Named wildcard ${thing.name} not found!`;
+        for (const check_flag of option.check_flags) {
+          // if (context.noisy)
+          //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
 
-        if (got instanceof ASTLatchedNamedWildcardedValue) {
-          if (context.noisy)
-            console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
-
-          return '';
-        }
-
-        const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
-
-        if (context.noisy)
-          console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
-        
-        context.named_wildcards.set(thing.name, latched);
-
-        return '';
-      }
-      // -----------------------------------------------------------------------------------
-      else if (thing instanceof ASTUnlatchNamedWildcard) {
-        let got = context.named_wildcards.get(thing.name);
-
-        if (!got)
-          return `ERROR: Named wildcard ${thing.name} not found!`;
-
-        if (! (got instanceof ASTLatchedNamedWildcardedValue))
-          throw new Error(`NOT LATCHED: '${thing.name}'`);
-
-        context.named_wildcards.set(thing.name, got.original_value);
-
-        if (context.noisy)
-          console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
-
-        return ''; // produce no text.
-      } 
-      // -----------------------------------------------------------------------------------
-      else if (thing instanceof ASTNamedWildcardDefinition) {
-        if (context.named_wildcards.has(thing.destination))
-          console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
-
-        context.named_wildcards.set(thing.destination, thing.wildcard);
-
-        return '';
-      }
-      // -----------------------------------------------------------------------------------
-      // internal objects:
-      // -----------------------------------------------------------------------------------
-      else if (thing instanceof ASTLatchedNamedWildcardedValue) {
-        return thing.latched_value;
-      }
-      // -----------------------------------------------------------------------------------
-      // scalar assignment:
-      // -----------------------------------------------------------------------------------
-      else if (thing instanceof ASTScalarAssignment) {
-        if (context.noisy) {
-          console.log();
-          console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
-                      `TO '${thing.destination.name}'`);
-        }
-
-        const val = walk(thing.source, context);
-
-        if (context.noisy)
-          console.log(`ASSIGNED ${inspect_fun(val)} TO "${thing.destination.name}'`);
-        
-        context.scalar_variables.set(thing.destination.name, val);
-
-        if (context.noisy)
-          console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
-        
-        return '';
-      }
-      // -----------------------------------------------------------------------------------
-      // AnonWildcards:
-      // -----------------------------------------------------------------------------------
-      else if (thing instanceof ASTAnonWildcard) {
-        const new_picker = new WildcardPicker();
-
-        for (const option of thing.options) {
-          let skip = false;
-
-          // if (option.not_flags.length > 1)
-          //   console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
+          let found = false;
           
-          for (const not_flag of option.not_flags) {
-            // console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
-
-            if (context.flags.has(not_flag.name)) {
-              // console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
-              skip = true;
-              break;
-            }
-          }
-
-          if (skip)
-            continue;
-          
-          for (const check_flag of option.check_flags) {
-            // if (context.noisy)
-            //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
-
-            let found = false;
+          for (const name of check_flag.names) {
+            // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
             
-            for (const name of check_flag.names) {
-              // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
-              
-              if (context.flags.has(name)) {
-                // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
-                found = true;
-                break;
-              }
-            }
-
-            if (!found) {
-              skip = true;
+            if (context.flags.has(name)) {
+              // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
+              found = true;
               break;
             }
           }
 
-          if (skip)
-            continue;
-
-          new_picker.add(option.weight, option.body);
+          if (!found) {
+            skip = true;
+            break;
+          }
         }
 
-        if (new_picker.options.length == 0)
-          return '';
-        
-        const pick = new_picker.pick();
+        if (skip)
+          continue;
 
-        // console.log(`PICKED ${inspect_fun(pick)}`);
-        
-        return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
-        // return walk(pick, context);
+        new_picker.add(option.weight, option.body);
       }
-      // -----------------------------------------------------------------------------------
-      // TLDs, not yet implemented:
-      // -----------------------------------------------------------------------------------
-      else if (thing instanceof ASTSpecialFunction) {
-        console.log(`IGNORING ${inspect_fun(thing)}`);
-      }
-      // -----------------------------------------------------------------------------------
-      // error case, unrecognized objects:
-      // -----------------------------------------------------------------------------------
-      else {
-        throw new Error(`confusing thing: ` +
-                        (typeof thing === 'object'
-                         ? thing.constructor.name
-                         : typeof thing) +
-                        ' ' +
-                        inspect_fun(thing));
-      }
+
+      if (new_picker.options.length == 0)
+        return '';
+      
+      const pick = new_picker.pick();
+
+      // console.log(`PICKED ${inspect_fun(pick)}`);
+      
+      return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
+      // return walk(pick, context);
     }
-    return smart_join(walk(thing, context).flat(Infinity).filter(s => s !== ''));
+    // -----------------------------------------------------------------------------------
+    // TLDs, not yet implemented:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunction) {
+      console.log(`IGNORING ${inspect_fun(thing)}`);
+    }
+    // -----------------------------------------------------------------------------------
+    // error case, unrecognized objects:
+    // -----------------------------------------------------------------------------------
+    else {
+      throw new Error(`confusing thing: ` +
+                      (typeof thing === 'object'
+                       ? thing.constructor.name
+                       : typeof thing) +
+                      ' ' +
+                      inspect_fun(thing));
+    }
   }
-  // ---------------------------------------------------------------------------------------
+  return smart_join(walk(thing, context).flat(Infinity).filter(s => s !== ''));
+}
+// ---------------------------------------------------------------------------------------
 
 
-  // =======================================================================================
-  // SD PROMPT AST CLASSES:
-  // ---------------------------------------------------------------------------------------
-  // Flags:
-  // ---------------------------------------------------------------------------------------
-  class ASTSetFlag {
-    constructor(name) {
-      this.name = name;
-    }
+// =======================================================================================
+// SD PROMPT AST CLASSES:
+// ---------------------------------------------------------------------------------------
+// Flags:
+// ---------------------------------------------------------------------------------------
+class ASTSetFlag {
+  constructor(name) {
+    this.name = name;
   }
-  // ----------------------------------------------------------------------------------------
-  class ASTCheckFlag {
-    constructor(names) {
-      this.names = names;
-    }
+}
+// ----------------------------------------------------------------------------------------
+class ASTCheckFlag {
+  constructor(names) {
+    this.names = names;
   }
-  // ---------------------------------------------------------------------------------------
-  class ASTNotFlag  {
-    constructor(name, set_immediately) {
-      this.name = name;
-      this.set_immediately = set_immediately;
-      // if (this.set_immediately)
-      //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
-    }
+}
+// ---------------------------------------------------------------------------------------
+class ASTNotFlag  {
+  constructor(name, set_immediately) {
+    this.name = name;
+    this.set_immediately = set_immediately;
+    // if (this.set_immediately)
+    //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
-  // ---------------------------------------------------------------------------------------
-  // References:
-  // ---------------------------------------------------------------------------------------
-  class ASTNamedWildcardReference {
-    constructor(name, joiner, capitalize, min_count, max_count) {
-      this.name       = name;
-      this.min_count  = min_count;
-      this.max_count  = max_count;
-      this.joiner     = joiner;
-      this.capitalize = capitalize;
-      // console.log(`BUILT ${inspect_fun(this)}`);
-    }
+}
+// ---------------------------------------------------------------------------------------
+// References:
+// ---------------------------------------------------------------------------------------
+class ASTNamedWildcardReference {
+  constructor(name, joiner, capitalize, min_count, max_count) {
+    this.name       = name;
+    this.min_count  = min_count;
+    this.max_count  = max_count;
+    this.joiner     = joiner;
+    this.capitalize = capitalize;
+    // console.log(`BUILT ${inspect_fun(this)}`);
   }
-  // ---------------------------------------------------------------------------------------
-  class ASTScalarReference {
-    constructor(name, capitalize) {
-      this.name       = name;
-      this.capitalize = capitalize;
-    }
+}
+// ---------------------------------------------------------------------------------------
+class ASTScalarReference {
+  constructor(name, capitalize) {
+    this.name       = name;
+    this.capitalize = capitalize;
   }
-  // ---------------------------------------------------------------------------------------
-  // NamedWildcards:
-  // ---------------------------------------------------------------------------------------
-  class ASTLatchNamedWildcard {
-    constructor(name) {
-      this.name = name;
-    }
+}
+// ---------------------------------------------------------------------------------------
+// NamedWildcards:
+// ---------------------------------------------------------------------------------------
+class ASTLatchNamedWildcard {
+  constructor(name) {
+    this.name = name;
   }
-  // ---------------------------------------------------------------------------------------
-  class ASTUnlatchNamedWildcard {
-    constructor(name) {
-      this.name = name;
-    }
+}
+// ---------------------------------------------------------------------------------------
+class ASTUnlatchNamedWildcard {
+  constructor(name) {
+    this.name = name;
   }
-  // ---------------------------------------------------------------------------------------
-  class ASTNamedWildcardDefinition {
-    constructor(destination, wildcard) {
-      this.destination = destination;
-      this.wildcard    = wildcard;
-    }
+}
+// ---------------------------------------------------------------------------------------
+class ASTNamedWildcardDefinition {
+  constructor(destination, wildcard) {
+    this.destination = destination;
+    this.wildcard    = wildcard;
   }
-  // ---------------------------------------------------------------------------------------
-  // internal usage.. might not /really/ be part of the AST per se?
-  // ---------------------------------------------------------------------------------------
-  class ASTLatchedNamedWildcardedValue {
-    constructor(latched_value, original_value) {
-      this.latched_value  = latched_value;
-      this.original_value = original_value;
-    }
+}
+// ---------------------------------------------------------------------------------------
+// internal usage.. might not /really/ be part of the AST per se?
+// ---------------------------------------------------------------------------------------
+class ASTLatchedNamedWildcardedValue {
+  constructor(latched_value, original_value) {
+    this.latched_value  = latched_value;
+    this.original_value = original_value;
   }
-  // ---------------------------------------------------------------------------------------
-  // scalar assignment:
-  // ---------------------------------------------------------------------------------------
-  class ASTScalarAssignment  {
-    constructor(destination, source) {
-      this.destination = destination;
-      this.source = source;
-    }
+}
+// ---------------------------------------------------------------------------------------
+// scalar assignment:
+// ---------------------------------------------------------------------------------------
+class ASTScalarAssignment  {
+  constructor(destination, source) {
+    this.destination = destination;
+    this.source = source;
   }
-  // ---------------------------------------------------------------------------------------
-  // Directives:
-  // ---------------------------------------------------------------------------------------
-  class ASTSpecialFunction {
-    constructor(directive, args) {
-      this.directive = directive;
-      this.args = args;
-    }
+}
+// ---------------------------------------------------------------------------------------
+// Directives:
+// ---------------------------------------------------------------------------------------
+class ASTSpecialFunction {
+  constructor(directive, args) {
+    this.directive = directive;
+    this.args = args;
   }
-  // ---------------------------------------------------------------------------------------
-  // AnonWildcards:
-  // ---------------------------------------------------------------------------------------
-  class ASTAnonWildcard {
-    constructor(options) {
-      this.options = options;
-    }
+}
+// ---------------------------------------------------------------------------------------
+// AnonWildcards:
+// ---------------------------------------------------------------------------------------
+class ASTAnonWildcard {
+  constructor(options) {
+    this.options = options;
   }
-  // ---------------------------------------------------------------------------------------
-  class ASTAnonWildcardOption {
-    constructor(weight, check_flags, not_flags, body) {
-      this.weight = weight;
-      this.check_flags = check_flags;
-      this.not_flags = not_flags;
-      this.body = body;
-    }
+}
+// ---------------------------------------------------------------------------------------
+class ASTAnonWildcardOption {
+  constructor(weight, check_flags, not_flags, body) {
+    this.weight = weight;
+    this.check_flags = check_flags;
+    this.not_flags = not_flags;
+    this.body = body;
   }
-  // ---------------------------------------------------------------------------------------
+}
+// ---------------------------------------------------------------------------------------
 
 
-  // =======================================================================================
-  // SD PROMPT GRAMMAR:
-  // =======================================================================================
-  // helper funs used by xforms:
-  // ---------------------------------------------------------------------------------------
-  const make_ASTAnonWildcardOption = arr => {
-    // console.log(`ARR: ${inspect_fun(arr)}`);
-    const flags = ([ ...arr[0], ...arr[2] ]);
-    const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
-    const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
-    const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
-    const set_immediately_not_flags = not_flags
-          .filter(f => f.set_immediately)
-          .map(f => new ASTSetFlag(f.name)) ;
-    
-    return new ASTAnonWildcardOption(
-      arr[1][0],
-      check_flags,
-      not_flags,
-      [
-        ...set_immediately_not_flags,
-        ...set_flags,
-        ...arr[3]
-      ]);
-  }
-  // ---------------------------------------------------------------------------------------
-  const make_ASTFlagCmd = (klass, ...rules) =>
-        xform(ident => new klass(ident),
-              second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
-  // ---------------------------------------------------------------------------------------
-  // terminals:
-  const plaintext               = /[^{|}\s]+/;
-  const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
-  const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-  const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
-  const comment                 = discard(choice(c_block_comment, c_line_comment));
-  const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
-  // ---------------------------------------------------------------------------------------
-  // flag-related non-terminals:
-  const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
-  // const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
-  const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
-                                        second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
-  const MalformedNotSetCombo    = unexpected('#!');
-  const NotFlag                 = xform((arr => {
-    //console.log(`ARR: ${inspect_fun(arr)}`);
-    return new ASTNotFlag(arr[2], arr[1][0]);
-  }),
-                                        seq('!', optional('#'),
-                                            ident, /(?=\s|[{|}]|$)/));
-  const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
-  // ---------------------------------------------------------------------------------------
-  const tld_fun = arr =>
-        new ASTSpecialFunction(arr[0][1],
-                               arr[1]
-                               .map(s => unescape(s.substring(1, s.length - 1))));
-  // ---------------------------------------------------------------------------------------
-  // other non-terminals:
-  const SpecialFunctionName     = l('include'); // choice('include', 'models');
-  const SpecialFunction         = xform(tld_fun,
-                                        c_funcall(seq('%', SpecialFunctionName),
-                                                  choice(sq_string, dq_string)));
-  const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
-                                        seq(wst_star(choice(comment, TestFlag)),
-                                            optional(wb_uint, 1),
-                                            wst_star(choice(comment, TestFlag)),
-                                            () => ContentStar));
-  const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
-                                        brc_enc(wst_star(AnonWildcardOption, '|')));
-  const NamedWildcardReference        = xform(seq(discard('@'),
-                                                  optional('^'),                            // 0
-                                                  optional(xform(parseInt, /\d+/)),         // 1
-                                                  optional(xform(parseInt,
-                                                                 second(seq('-', /\d+/)))), // 2
-                                                  optional(/[,&]/),                         // 3
-                                                  ident),                                   // 4
-                                              arr => {
-                                                // console.log(`NWR ARR: ${inspect_fun(arr)}`);
+// =======================================================================================
+// SD PROMPT GRAMMAR:
+// =======================================================================================
+// helper funs used by xforms:
+// ---------------------------------------------------------------------------------------
+const make_ASTAnonWildcardOption = arr => {
+  // console.log(`ARR: ${inspect_fun(arr)}`);
+  const flags = ([ ...arr[0], ...arr[2] ]);
+  const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
+  const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
+  const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
+  const set_immediately_not_flags = not_flags
+        .filter(f => f.set_immediately)
+        .map(f => new ASTSetFlag(f.name)) ;
+  
+  return new ASTAnonWildcardOption(
+    arr[1][0],
+    check_flags,
+    not_flags,
+    [
+      ...set_immediately_not_flags,
+      ...set_flags,
+      ...arr[3]
+    ]);
+}
+// ---------------------------------------------------------------------------------------
+const make_ASTFlagCmd = (klass, ...rules) =>
+      xform(ident => new klass(ident),
+            second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
+// ---------------------------------------------------------------------------------------
+// terminals:
+const plaintext               = /[^{|}\s]+/;
+const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
+const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
+const comment                 = discard(choice(c_block_comment, c_line_comment));
+const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+// ---------------------------------------------------------------------------------------
+// flag-related non-terminals:
+const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
+// const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
+const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
+                                      second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
+const MalformedNotSetCombo    = unexpected('#!');
+const NotFlag                 = xform((arr => {
+  //console.log(`ARR: ${inspect_fun(arr)}`);
+  return new ASTNotFlag(arr[2], arr[1][0]);
+}),
+                                      seq('!', optional('#'),
+                                          ident, /(?=\s|[{|}]|$)/));
+const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
+// ---------------------------------------------------------------------------------------
+const tld_fun = arr =>
+      new ASTSpecialFunction(arr[0][1],
+                             arr[1]
+                             .map(s => unescape(s.substring(1, s.length - 1))));
+// ---------------------------------------------------------------------------------------
+// other non-terminals:
+const SpecialFunctionName     = l('include'); // choice('include', 'models');
+const SpecialFunction         = xform(tld_fun,
+                                      c_funcall(seq('%', SpecialFunctionName),
+                                                choice(sq_string, dq_string)));
+const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
+                                      seq(wst_star(choice(comment, TestFlag)),
+                                          optional(wb_uint, 1),
+                                          wst_star(choice(comment, TestFlag)),
+                                          () => ContentStar));
+const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardOption, '|')));
+const NamedWildcardReference        = xform(seq(discard('@'),
+                                                optional('^'),                            // 0
+                                                optional(xform(parseInt, /\d+/)),         // 1
+                                                optional(xform(parseInt,
+                                                               second(seq('-', /\d+/)))), // 2
+                                                optional(/[,&]/),                         // 3
+                                                ident),                                   // 4
+                                            arr => {
+                                              // console.log(`NWR ARR: ${inspect_fun(arr)}`);
 
-                                                const ident  = arr[4];
-                                                const min_ct = arr[1][0] ?? 1;
-                                                const max_ct = arr[2][0] ?? min_ct;
-                                                const join   = arr[3][0] ?? '';
-                                                const caret  = arr[0][0];
-                                                
-                                                // console.log(inspect_fun([ident, min_ct, (typeof join), join, caret]));
-                                                
-                                                return new ASTNamedWildcardReference(ident,
-                                                                                     join,
-                                                                                     caret,
-                                                                                     min_ct,
-                                                                                     max_ct);
-                                              });
-  const NamedWildcardDesignator = second(seq('@', ident));                                      
-  const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
-                                        wst_seq(NamedWildcardDesignator,
-                                                assignment_operator,
-                                                AnonWildcard));
-  const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
+                                              const ident  = arr[4];
+                                              const min_ct = arr[1][0] ?? 1;
+                                              const max_ct = arr[2][0] ?? min_ct;
+                                              const join   = arr[3][0] ?? '';
+                                              const caret  = arr[0][0];
+                                              
+                                              // console.log(inspect_fun([ident, min_ct, (typeof join), join, caret]));
+                                              
+                                              return new ASTNamedWildcardReference(ident,
+                                                                                   join,
+                                                                                   caret,
+                                                                                   min_ct,
+                                                                                   max_ct);
+                                            });
+const NamedWildcardDesignator = second(seq('@', ident));                                      
+const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
+                                      wst_seq(NamedWildcardDesignator,
+                                              assignment_operator,
+                                              AnonWildcard));
+const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
                                               [ arr[1][0], arr[2][0], arr[3], []];
