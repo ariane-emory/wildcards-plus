@@ -1748,8 +1748,8 @@ const json_object = xform(arr =>  Object.fromEntries(arr),
                                           '}'));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
-const json_array_with_comments = wst_cutting_enc('[', wst_star(choice(c_line_comment,
-                                                                      c_block_comment,
+const json_array_with_comments = wst_cutting_enc('[', wst_star(choice(c_block_comment,
+                                                                      c_line_comment,
                                                                       json), ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
@@ -4915,8 +4915,9 @@ async function main() {
   console.log(JSON.stringify(json.match(json_str).value));
 
   console.log("THIS ONE:");
-  json_str = `[1, 2, 3]`;
-  console.log(`matched: ${inspect_fun(json_array.match(json_str))}`);
+  json_str = `[1, 2, /* foo */ 3]`;
+  // console.log(`matched: ${inspect_fun(json_array.match(json_str))}`);
+  console.log(`matched: ${inspect_fun(json_array_with_comments.match(json_str))}`);
   console.log(`matched (as JSON): ${JSON.stringify(json_array.match(json_str))}`);
 
 }
