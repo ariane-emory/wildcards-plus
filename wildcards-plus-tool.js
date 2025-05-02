@@ -4018,6 +4018,7 @@ function load_prelude(into_context = new Context()) {
 function process_includes(thing, context = new Context()) {
   function walk(thing, context) {
     if (thing instanceof ASTSpecialFunction && thing.directive === 'include') {
+      throw "bang";
       res = [];
       
       for (const filename of thing.args) {
