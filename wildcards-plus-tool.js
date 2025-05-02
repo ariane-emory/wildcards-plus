@@ -1674,8 +1674,8 @@ class WildcardPicker {
 // =======================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
 const json = choice(() => json_object, () => json_array, () => json_string,
-                        () => json_true,   () => json_false, () => json_null,
-                        () => json_number);
+                    () => json_true,   () => json_false, () => json_null,
+                    () => json_number);
 // Object ← "{"
 // ( String ":" JSON ( "," String ":" JSON )*
 //   / S? )
@@ -4566,10 +4566,10 @@ const SpecialFunction         = xform(tld_fun,
                                       c_funcall(seq('%', SpecialFunctionName),
                                                 choice(sq_string, dq_string)));
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
-                                           seq(wst_star(choice(comment, TestFlag)),
-                                          optional(wb_uint, 1),
-                                          wst_star(choice(comment, TestFlag)),
-                                          () => ContentStar));
+                                           seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                               optional(wb_uint, 1),
+                                               wst_star(choice(comment, TestFlag, SetFlag)),
+                                               () => ContentStar));
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const NamedWildcardReference        = xform(seq(discard('@'),
