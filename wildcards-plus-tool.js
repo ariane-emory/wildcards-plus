@@ -4639,6 +4639,8 @@ async function main() {
   // updating files as we go and bodging result back onto (or replacing?) AST?
 
   AST = process_includes(AST, base_context);
+
+  console.log(`after process_includes: ${inspect_fun(AST)}`);
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
