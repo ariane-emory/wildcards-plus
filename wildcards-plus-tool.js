@@ -4606,7 +4606,7 @@ async function main() {
   const base_context           = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
   const SpecialFunctions       = result.value[0];
   const AST                    = result.value[1];
-  const specialFunctionResults =  [];
+  const specialFunctionResults = [];
   
   for (specialFunction of SpecialFunctions) {
     // handle includes in SpecialFunctions, updating files.
