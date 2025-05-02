@@ -1704,7 +1704,7 @@ const json = choice(() => json_object, () => json_array, () => json_string,
 const json_unquote = str => str.substring(1, str.length - 1);
 const json_object = wst_cutting_enc('{',
                                     wst_star(
-                                      xform(arr => [json_unquote(arr[0]), arr[2]],
+                                      xform(arr => [arr[0], arr[2]],
                                             wst_seq(() => json_string, ':', json)),
                                       ','),
                                     '}');
@@ -1714,7 +1714,7 @@ const json_object = wst_cutting_enc('{',
 // "]"
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
-const json_string = dq_string; // placeholder, C-like double-quoted strings, might not handle all unicode.
+const json_string = xform(json_unquote, dq_string); // placeholder, C-like double-quoted strings, might not handle all unicode.
 // UnicodeEscape ← "u" [0-9A-Fa-f]{4}
 const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
 // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
@@ -1757,10 +1757,6 @@ const json_S = whites_plus;
 // ---------------------------------------------------------------------------------------
 json.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
 // =======================================================================================
-
-
-class BuiltinJSON extends Rule {
-}
 
 
 // =======================================================================================
