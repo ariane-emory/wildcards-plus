@@ -844,11 +844,13 @@ class Optional extends Rule {
       index,
       indent + 1);
 
-    if (! match_result)
+    if (match_result === null) {
+      console.log(`returning default ${this.default_value}`);
       return new MatchResult((this.default_value || this.default_value === '')
                              ? [ this.default_value ]
                              : [],
                              input, index);
+    }
     
     match_result.value = [ match_result.value ];
 
@@ -904,7 +906,7 @@ class Sequence extends Rule {
           this.elements[0].match(input, index, indent + 2);
     let last_match_result = start_rule_match_result;
 
-    if (! last_match_result) {
+    if (last_match_result === null) {
       if (log_match_enabled)
         log(indent + 1, `did not match sequence item #1.`);
       return null;
@@ -916,11 +918,15 @@ class Sequence extends Rule {
     
     const values = [];
     index        = last_match_result.index;
+
+    console.log(`last_match_result.value = ${inspect_fun(last_match_result.value)}`);
     
-    if (last_match_result.value || last_match_result.value === '')
+    if (last_match_result.value !== null)
       values.push(last_match_result.value);
     else if (log_match_enabled)
-      log(indent + 1, `discarding ${JSON.stringify(last_match_result)}!`);
+      console.log(indent + 1, `discarding ${JSON.stringify(last_match_result)}!`);
+
+    console.log(`discarding ${JSON.stringify(last_match_result)}!`);
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
@@ -1709,10 +1715,17 @@ const json_fractionalPart = r(/\.[0-9]+/);
 // ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
 const json_exponentPart = r(/[eE][+-]?\d+/);
 // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
-const json_number = seq(optional(json_minus),
-                        json_integralPart,
-                        optional(json_fractionalPart),
-                        optional(json_exponentPart));
+const json_number = xform(arr => {
+  console.log(`json_number ARR: ${inspect_fun(arr)}`);
+  return arr;
+},
+                          seq(optional(json_minus),
+                              xform(parseInt, json_integralPart), 
+                              xform(arr => {
+                                console.log(`fractional part ARR: ${inspect_fun(arr)}`);
+                                return parseFloat(arr[0]);
+                              }, optional(json_fractionalPart, 0.0)),
+                              xform(parseInt, optional(json_exponentPart, 1))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // ---------------------------------------------------------------------------------------
