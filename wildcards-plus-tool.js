@@ -4588,9 +4588,9 @@ async function main() {
   let   confirm = false;
   let   from_stdin = false;
 
-  if (args.length == 0) {
-    throw new Error("Usage: ./wildcards-plus-tool.js [--post|--confirm] (--stdin | <input-file>) [<count>]");
-  }
+  if (args.length == 0) 
+    throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
+                    `(--stdin | <input-file>) [<count>]`);
 
   if (["-p", "--post"].includes(args[0])) {
     post = true;
