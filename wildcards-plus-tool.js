@@ -1804,13 +1804,13 @@ class Context {
     scalar_variables = new Map(),
     named_wildcards = new Map(),
     noisy = false,
-    files = new Set(),
+    files = [],
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
     this.named_wildcards = named_wildcards;
     this.noisy = noisy;
-    this.files = Array.isArray(files) ? new Set(files) : files;
+    this.files = files;
   }
   // -------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -4020,15 +4020,16 @@ function process_includes(thing, context = new Context()) {
   function walk(thing, context) {
     if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
       const res = [];
-      
+
       for (const filename of thing.args) {
-        if (context.files.has(filename)) {
+        if (context.files.includes(filename)) {
           console(`WARNING: skipping duplicate include of '${filename}'.`);
 
           continue;
         }
 
-        context.files.add(filename);
+        context.files.push(filename);
+        
         const parse_file_result = parse_file(filename);
         res.push(walk(parse_file_result.value, context));
       }
