@@ -4153,9 +4153,9 @@ function expand_wildcards(thing, context = new Context()) {
         res.push(val);
       }
 
-      return thing.join == ','
+      return thing.joiner == ','
         ? res.join(", ")
-        : (thing.join == '&'
+        : (thing.joiner == '&'
            ? pretty_list(res)
            : res.join(" "));
     }
@@ -4363,11 +4363,11 @@ class ASTNotFlag  {
 // References:
 // ---------------------------------------------------------------------------------------
 class ASTNamedWildcardReference {
-  constructor(name, join, capitalize, min_count, max_count) {
+  constructor(name, joiner, capitalize, min_count, max_count) {
     this.name       = name;
     this.min_count  = min_count;
     this.max_count  = max_count;
-    this.join       = join;
+    this.joiner     = joiner;
     this.capitalize = capitalize;
     // console.log(`BUILT ${inspect_fun(this)}`);
   }
@@ -4531,10 +4531,10 @@ const NamedWildcardReference        = xform(seq(discard('@'),
                                               const ident  = arr[4];
                                               const min_ct = arr[1][0] ?? 1;
                                               const max_ct = arr[2][0] ?? min_ct;
-                                              const join   = arr[3] ?? '';
+                                              const join   = arr[3][0] ?? '';
                                               const caret  = arr[0][0];
                                               
-                                              // console.log(inspect_fun({ident, min_ct, join, caret}));
+                                              // console.log(inspect_fun([ident, min_ct, (typeof join), join, caret]));
                                               
                                               return new ASTNamedWildcardReference(ident,
                                                                                    join,
