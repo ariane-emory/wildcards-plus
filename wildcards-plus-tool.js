@@ -1724,10 +1724,17 @@ const json_fractionalPart = r(/\.[0-9]+/);
 // ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
 const json_exponentPart = r(/[eE][+-]?\d+/);
 // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
-const json_number = seq(optional(json_minus),
-                        json_integralPart,
-                        optional(json_fractionalPart),
-                        optional(json_exponentPart));
+const json_number = xform(arr => {
+  // console.log(`json_number ARR: ${inspect_fun(arr)}`);
+  return arr;
+},
+                          seq(optional(json_minus),
+                              xform(parseInt, json_integralPart), 
+                              xform(arr => {
+                                // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
+                                return parseFloat(arr[0]);
+                              }, optional(json_fractionalPart, 0.0)),
+                              xform(parseInt, optional(json_exponentPart, 1))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // ---------------------------------------------------------------------------------------
