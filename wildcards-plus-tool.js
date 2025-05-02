@@ -4017,22 +4017,39 @@ function load_prelude(into_context = new Context()) {
 // =======================================================================================
 function process_includes(thing, context = new Context()) {
   function walk(thing, context) {
-    if (thing instanceof ASTSpecialFunction && thing.directive === 'include') {
-      throw "bang";
-      res = [];
+    if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
+      const res = [];
       
-      for (const filename of thing.args) {
-        context.filenames.push(filename);
+      console.log(`FILES: ${context.files}`);
 
+      for (const filename of thing.args) {
+        if (context.files.includes(filename)) {
+          console(`WARNING: skipping duplicate include of '${filename}'.`);
+          continue;
+        }
+
+        context.files.push(filename);
         res.push(walk(parse_file(thing), context));
       }
 
       return res;
     }
+    else if (Array.isArray(thing)) {
+      const ret = [];
+
+      for (const t of thing)
+        ret.push(walk(t, context));
+
+      return ret;
+    }
     else {
+      console.log(`thing is ${inspect_fun(thing)}`);
+            
       return thing;
     }
   }
+
+  // throw "zap";
   
   return walk(thing, context);
 }
@@ -4633,7 +4650,7 @@ async function main() {
   if (! result.is_finished)
     throw new Error("error parsing prompt!");
 
-  const base_context = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
+  const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   let   AST          = result.value;
   
   // do some new special walk over AST to handle 'include' SpecialFunctions,
