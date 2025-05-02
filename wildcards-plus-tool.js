@@ -1483,8 +1483,15 @@ const ternary            =
 const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 // ---------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule,  arg_rule, open_rule = lpar, close_rule = rpar) => 
-      seq(fun_rule, wst_cutting_enc(open_rule, wst_star(arg_rule, comma), close_rule));
+// const c_funcall = (fun_rule,  arg_rule, open_rule = lpar, close_rule = rpar) => 
+//       seq(fun_rule, wst_cutting_enc(open_rule, wst_star(arg_rule, comma), close_rule));
+
+const c_funcall = (fun_rule, arg_rule, open = '(', close = ')', sep = ',') =>
+      seq(fun_rule,
+          wst_cutting_enc(open,
+                          wst_star(arg_rule, sep),
+                          close));
+
 // ---------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
 // ---------------------------------------------------------------------------------------
@@ -4355,15 +4362,19 @@ const tld_fun = arr => {
 };
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const TopLevelDirective       = label("TLD",
+// const TopLevelDirective       = label("TLD",
+//                                       xform(tld_fun,
+//                                             seq('%',
+//                                                 ident,
+//                                                 wst_cutting_enc('(',
+//                                                                 wst_star(choice(sq_string, dq_string), ','),
+//                                                                 ')'),
+//                                                 /;s*|[\s\t]*\n/,
+//                                                )));
+const TopLevelDirective       = label("tld",
                                       xform(tld_fun,
-                                            seq('%',
-                                                ident,
-                                                wst_cutting_enc('(',
-                                                                wst_star(choice(sq_string, dq_string), ','),
-                                                                ')'),
-                                                /;s*|[\s\t]*\n/,
-                                               )));
+                                            c_funcall(seq('%', ident), choice(sq_string, dq_string))));
+
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
