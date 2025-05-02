@@ -949,6 +949,8 @@ class Sequence extends Rule {
       if (log_match_enabled)
         log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
       values.push(last_match_result.value);
+      if (values.includes(null))
+        throw new Error("STOP @ PUSH 1");
     }
     else if (log_match_enabled)
       log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
@@ -978,10 +980,14 @@ class Sequence extends Rule {
         if (log_match_enabled)
           log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
         values.push(last_match_result.value);
+        if (values.includes(null))
+          throw new Error("STOP @ PUSH 2");
+                
       }
 
       index = last_match_result.index;
     }
+
     if (values.includes(null))
       throw new Error("STOP @ RET");
     
