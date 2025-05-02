@@ -4635,10 +4635,7 @@ const NotFlag                 = xform((arr => {
                                           ident, /(?=\s|[{|}]|$)/));
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
-const tld_fun = arr =>
-      new ASTSpecialFunction(arr[0][1],
-                             arr[1]
-                             .map(s => unescape(s)));
+const tld_fun = arr => new ASTSpecialFunction(arr[0][1], arr[1]);
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
@@ -4904,12 +4901,12 @@ async function main() {
 
   console.log('--------------------------------------------------------------------------------');
 
-  // let json_str = `[false, null, {"foo": 123, "bar": 456}]`;
-  // console.log(inspect_fun(json.match(json_str)));
-  // console.log(JSON.stringify(json.match(json_str).value));
-  // json_str = `"bar.txt"`;
-  // console.log(inspect_fun(json.match(json_str)));
-  // console.log(JSON.stringify(json.match(json_str).value));
+  let json_str = `[false, null, {"foo": 123, "bar": 456}]`;
+  console.log(inspect_fun(json.match(json_str)));
+  console.log(JSON.stringify(json.match(json_str).value));
+  json_str = `"bar.txt"`;
+  console.log(inspect_fun(json.match(json_str)));
+  console.log(JSON.stringify(json.match(json_str).value));
 }
 
 // ---------------------------------------------------------------------------------------
