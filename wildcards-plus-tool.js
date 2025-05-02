@@ -4499,16 +4499,9 @@ const NotFlag                 = xform((arr => {
                                           ident, /(?=\s|[{|}]|$)/));
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
-// const tld_fun = arr => {
-//   // console.log(`TLD ARR: ${inspect_fun(arr)}`);
-//   return new ASTSpecialFunction(arr[0][0][1],
-//                                 arr[0][1].map(s => s.substring(1, s.length - 1)));
-// };
-const tld_fun = arr => {
-  // console.log(`TLD ARR: ${inspect_fun(arr)}`);
-  return new ASTSpecialFunction(arr[0][1],
-                                arr[1].map(s => s.substring(1, s.length - 1)));
-};
+const tld_fun = arr => new ASTSpecialFunction(arr[0][1],
+                                              arr[1]
+                                              .map(s => s.substring(1, s.length - 1)));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const SpecialFunctionName     = l('include'); // choice('include', 'models');
