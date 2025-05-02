@@ -41,7 +41,7 @@ import { stdin as input, stdout as output } from 'process';
 // helper functions:
 // ---------------------------------------------------------------------------------------
 async function parse_file(filename) {
-  const prompt_input = prompt_input = await fs.readFile(args[0], 'utf8');
+  const prompt_input = await fs.readFile(filename, 'utf8');
   const result = Prompt.match(prompt_input);
   return result;
 }
@@ -657,318 +657,318 @@ class Enclosed extends Rule {
   }
 }
 // ---------------------------------------------------------------------------------------
-                    function enc(start_rule, body_rule, end_rule) { // convenience constructor
-                      return new Enclosed(start_rule, body_rule, end_rule);
-                    }
-                    // ---------------------------------------------------------------------------------------
+function enc(start_rule, body_rule, end_rule) { // convenience constructor
+  return new Enclosed(start_rule, body_rule, end_rule);
+}
+// ---------------------------------------------------------------------------------------
 
-                    // ---------------------------------------------------------------------------------------
-                    // CuttingEnclosed class
-                    // ---------------------------------------------------------------------------------------
-                    class CuttingEnclosed extends Enclosed {
-                      // -------------------------------------------------------------------------------------
-                      constructor(start_rule, body_rule, end_rule) {
-                        super(start_rule, body_rule, end_rule);
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __fail_or_throw_error(start_rule_result, failed_rule_result,
-                                            input, index) {
-                        if (string_input_mode_enabled) {
-                          throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
-                                          `after ${this.start_rule} at ` +
-                                          `char ${index}` +
-                                          `, found: ` +
-                                          `"${input.substring(start_rule_result.index)}"`);
-                        }
-                        else {
-                          throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
-                                          `after ${this.start_rule} at ` +
-                                          `char ${input[start_rule_result.index].start}` +
-                                          `, found: ` +
-                                          `[ ${input.slice(start_rule_result.index).join(", ")}` +
-                                          ` ]`);
-                        }
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __impl_toString(visited, next_id) {
-                        return `[${this.__vivify(this.start_rule).__toString(visited, next_id)} ` +
-                          `${this.__vivify(this.body_rule).__toString(visited, next_id)}! ` +
-                          `${this.__vivify(this.end_rule).__toString(visited, next_id)}!]`
-                      }
-                    }
-                    // ---------------------------------------------------------------------------------------
-                    // convenience constructor:
-                    function cutting_enc(start_rule, body_rule, end_rule) {
-                      return new CuttingEnclosed(start_rule, body_rule, end_rule);
-                    }
-                    // ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// CuttingEnclosed class
+// ---------------------------------------------------------------------------------------
+class CuttingEnclosed extends Enclosed {
+  // -------------------------------------------------------------------------------------
+  constructor(start_rule, body_rule, end_rule) {
+    super(start_rule, body_rule, end_rule);
+  }
+  // -------------------------------------------------------------------------------------
+  __fail_or_throw_error(start_rule_result, failed_rule_result,
+                        input, index) {
+    if (string_input_mode_enabled) {
+      throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
+                      `after ${this.start_rule} at ` +
+                      `char ${index}` +
+                      `, found: ` +
+                      `"${input.substring(start_rule_result.index)}"`);
+    }
+    else {
+      throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
+                      `after ${this.start_rule} at ` +
+                      `char ${input[start_rule_result.index].start}` +
+                      `, found: ` +
+                      `[ ${input.slice(start_rule_result.index).join(", ")}` +
+                      ` ]`);
+    }
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `[${this.__vivify(this.start_rule).__toString(visited, next_id)} ` +
+      `${this.__vivify(this.body_rule).__toString(visited, next_id)}! ` +
+      `${this.__vivify(this.end_rule).__toString(visited, next_id)}!]`
+  }
+}
+// ---------------------------------------------------------------------------------------
+// convenience constructor:
+function cutting_enc(start_rule, body_rule, end_rule) {
+  return new CuttingEnclosed(start_rule, body_rule, end_rule);
+}
+// ---------------------------------------------------------------------------------------
 
-                    // ---------------------------------------------------------------------------------------
-                    // Label class
-                    // ---------------------------------------------------------------------------------------
-                    class Label extends Rule {
-                      // -------------------------------------------------------------------------------------
-                      constructor(label, rule) {
-                        super();
-                        this.label = label;
-                        this.rule = make_rule_func(rule);
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __impl_finalize(indent, visited) {
-                        this.rule = this.__vivify(this.rule);
-                        this.rule.__finalize(indent + 1, visited);
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __match(indent, input, index) {
-                        const rule_match_result = this.rule.match(
-                          input, index, indent);
+// ---------------------------------------------------------------------------------------
+// Label class
+// ---------------------------------------------------------------------------------------
+class Label extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(label, rule) {
+    super();
+    this.label = label;
+    this.rule = make_rule_func(rule);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    const rule_match_result = this.rule.match(
+      input, index, indent);
 
-                        if (! rule_match_result)
-                          return null;
+    if (! rule_match_result)
+      return null;
 
-                        return new MatchResult(
-                          new LabeledValue(this.label, rule_match_result.value),
-                          input,
-                          rule_match_result.index);
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __impl_toString(visited, next_id) {
-                        return `L('${this.label}', ` +
-                          `${this.__vivify(this.rule).__toString(visited, next_id)})`;
-                      }
-                    }
-                    // ---------------------------------------------------------------------------------------
-                    function label(label, rule) {
-                      return new Label(label, rule);
-                    }
-                    // ---------------------------------------------------------------------------------------
+    return new MatchResult(
+      new LabeledValue(this.label, rule_match_result.value),
+      input,
+      rule_match_result.index);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `L('${this.label}', ` +
+      `${this.__vivify(this.rule).__toString(visited, next_id)})`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function label(label, rule) {
+  return new Label(label, rule);
+}
+// ---------------------------------------------------------------------------------------
 
-                    // ---------------------------------------------------------------------------------------
-                    // NeverMatch class
-                    // ---------------------------------------------------------------------------------------
-                    class NeverMatch extends Rule  {
-                      // -------------------------------------------------------------------------------------
-                      constructor() {
-                        super();
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __impl_finalize(indent, visited) {
-                        // do nothing.
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __match(indent, input, index) {
-                        return null;
-                      } 
-                      // -------------------------------------------------------------------------------------
-                      __impl_toString(visited, next_id) {
-                        return `<NEVER MATCH>`;
-                      }
-                    }
-                    // ---------------------------------------------------------------------------------------
-                    const never_match = new NeverMatch();
-                    // ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// NeverMatch class
+// ---------------------------------------------------------------------------------------
+class NeverMatch extends Rule  {
+  // -------------------------------------------------------------------------------------
+  constructor() {
+    super();
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing.
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    return null;
+  } 
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `<NEVER MATCH>`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+const never_match = new NeverMatch();
+// ---------------------------------------------------------------------------------------
 
-                    // ---------------------------------------------------------------------------------------
-                    // Optional class
-                    // ---------------------------------------------------------------------------------------
-                    class Optional extends Rule {
-                      // -------------------------------------------------------------------------------------
-                      constructor(rule, default_value = null) {
-                        super();
-                        this.rule          = make_rule_func(rule);
-                        this.default_value = default_value;
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __match(indent, input, index) {
-                        const match_result = this.rule.match(
-                          input,
-                          index,
-                          indent + 1);
+// ---------------------------------------------------------------------------------------
+// Optional class
+// ---------------------------------------------------------------------------------------
+class Optional extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(rule, default_value = null) {
+    super();
+    this.rule          = make_rule_func(rule);
+    this.default_value = default_value;
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    const match_result = this.rule.match(
+      input,
+      index,
+      indent + 1);
 
-                        if (! match_result)
-                          return new MatchResult((this.default_value || this.default_value === '')
-                                                 ? [ this.default_value ]
-                                                 : [],
-                                                 input, index);
-                        
-                        match_result.value = [ match_result.value ];
+    if (! match_result)
+      return new MatchResult((this.default_value || this.default_value === '')
+                             ? [ this.default_value ]
+                             : [],
+                             input, index);
+    
+    match_result.value = [ match_result.value ];
 
-                        return match_result;
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __impl_finalize(indent, visited) {
-                        this.rule = this.__vivify(this.rule);
-                        
-                        this.rule.__finalize(indent + 1, visited);
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __impl_toString(visited, next_id) {
-                        return `${this.__vivify(this.rule).__toString(visited, next_id)}?`;
-                      }
-                    }
-                    // ---------------------------------------------------------------------------------------
-                    function optional(rule, default_value = null) { // convenience constructor
-                      return new Optional(rule, default_value);
-                    }
-                    // ---------------------------------------------------------------------------------------
+    return match_result;
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id)}?`;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function optional(rule, default_value = null) { // convenience constructor
+  return new Optional(rule, default_value);
+}
+// ---------------------------------------------------------------------------------------
 
-                    // ---------------------------------------------------------------------------------------
-                    // Sequence class
-                    // ---------------------------------------------------------------------------------------
-                    class Sequence extends Rule {
-                      // -------------------------------------------------------------------------------------
-                      constructor(...elements) {
-                        super();
-                        this.elements = elements.map(make_rule_func);
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __fail_or_throw_error(start_rule_result, failed_rule_result,
-                                            input, index) {
-                        return null;
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __impl_finalize(indent, visited) {
-                        for (let ix = 0; ix < this.elements.length; ix++) {
-                          this.elements[ix] = this.__vivify(this.elements[ix]);
-                          this.elements[ix].__finalize(indent + 1, visited);
-                        }
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __match(indent, input, index) {
-                        const start_rule = input[0];
+// ---------------------------------------------------------------------------------------
+// Sequence class
+// ---------------------------------------------------------------------------------------
+class Sequence extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(...elements) {
+    super();
+    this.elements = elements.map(make_rule_func);
+  }
+  // -------------------------------------------------------------------------------------
+  __fail_or_throw_error(start_rule_result, failed_rule_result,
+                        input, index) {
+    return null;
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    for (let ix = 0; ix < this.elements.length; ix++) {
+      this.elements[ix] = this.__vivify(this.elements[ix]);
+      this.elements[ix].__finalize(indent + 1, visited);
+    }
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    const start_rule = input[0];
 
-                        if (log_match_enabled)
-                          log(indent + 1, `matching sequence item #1 out of ` +
-                              `${this.elements.length}...`);
-                        
-                        const start_rule_match_result =
-                              this.elements[0].match(input, index, indent + 2);
-                        let last_match_result = start_rule_match_result;
+    if (log_match_enabled)
+      log(indent + 1, `matching sequence item #1 out of ` +
+          `${this.elements.length}...`);
+    
+    const start_rule_match_result =
+          this.elements[0].match(input, index, indent + 2);
+    let last_match_result = start_rule_match_result;
 
-                        if (! last_match_result) {
-                          if (log_match_enabled)
-                            log(indent + 1, `did not match sequence item #1.`);
-                          return null;
-                        }
+    if (! last_match_result) {
+      if (log_match_enabled)
+        log(indent + 1, `did not match sequence item #1.`);
+      return null;
+    }
 
-                        if (log_match_enabled)
-                          log(indent + 1, `matched sequence item #1: ` +
-                              `${JSON.stringify(last_match_result)}.`);
-                        
-                        const values = [];
-                        index        = last_match_result.index;
-                        
-                        if (last_match_result.value || last_match_result.value === '')
-                          values.push(last_match_result.value);
-                        else if (log_match_enabled)
-                          log(indent + 1, `discarding ${JSON.stringify(last_match_result)}!`);
+    if (log_match_enabled)
+      log(indent + 1, `matched sequence item #1: ` +
+          `${JSON.stringify(last_match_result)}.`);
+    
+    const values = [];
+    index        = last_match_result.index;
+    
+    if (last_match_result.value || last_match_result.value === '')
+      values.push(last_match_result.value);
+    else if (log_match_enabled)
+      log(indent + 1, `discarding ${JSON.stringify(last_match_result)}!`);
 
-                        for (let ix = 1; ix < this.elements.length; ix++) {
-                          if (log_match_enabled)
-                            log(indent + 1, `matching sequence item #${ix} out of ` +
-                                `${this.elements.length}...`);
-                          
-                          const element = this.elements[ix];
+    for (let ix = 1; ix < this.elements.length; ix++) {
+      if (log_match_enabled)
+        log(indent + 1, `matching sequence item #${ix} out of ` +
+            `${this.elements.length}...`);
+      
+      const element = this.elements[ix];
 
-                          last_match_result = element.match(
-                            input, index, indent + 2);
+      last_match_result = element.match(
+        input, index, indent + 2);
 
-                          if (! last_match_result) {
-                            if (log_match_enabled)
-                              log(indent + 1, `did not match sequence item #${ix}.`);
-                            return this.__fail_or_throw_error(start_rule_match_result,
-                                                              last_match_result,
-                                                              input, index);
-                          }
+      if (! last_match_result) {
+        if (log_match_enabled)
+          log(indent + 1, `did not match sequence item #${ix}.`);
+        return this.__fail_or_throw_error(start_rule_match_result,
+                                          last_match_result,
+                                          input, index);
+      }
 
-                          if (log_match_enabled)
-                            log(indent + 1, `matched sequence item #${ix}.`);
-                          
-                          if (last_match_result.value === '' || last_match_result.value)
-                            values.push(last_match_result.value);
+      if (log_match_enabled)
+        log(indent + 1, `matched sequence item #${ix}.`);
+      
+      if (last_match_result.value === '' || last_match_result.value)
+        values.push(last_match_result.value);
 
-                          index = last_match_result.index;
-                        }
+      index = last_match_result.index;
+    }
 
-                        return new MatchResult(values, input, last_match_result.index);
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __impl_toString(visited, next_id) {
-                        return `(${this.elements
+    return new MatchResult(values, input, last_match_result.index);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `(${this.elements
                .map((x) => this.__vivify(x)
                            .__toString(visited, next_id)).join(" ")})`;
-                      }
-                    }
-                    // ---------------------------------------------------------------------------------------
-                    function seq(...elements) { // convenience constructor
-                      return new Sequence(...elements);
-                    }
-                    // ---------------------------------------------------------------------------------------
+  }
+}
+// ---------------------------------------------------------------------------------------
+function seq(...elements) { // convenience constructor
+  return new Sequence(...elements);
+}
+// ---------------------------------------------------------------------------------------
 
-                    // ---------------------------------------------------------------------------------------
-                    // CuttingSequence class
-                    // ---------------------------------------------------------------------------------------
-                    class CuttingSequence extends Sequence {
-                      // -------------------------------------------------------------------------------------
-                      constructor(leading_rule, ...expected_rules) {
-                        super(leading_rule, ...expected_rules);
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __fail_or_throw_error(start_rule_result, failed_rule_result,
-                                            input, index) {
-                        throw new Error(`expected (${this.elements.slice(1).join(" ")}) ` +
-                                        `after ${this.elements[0]} at ` +
-                                        `char ${input[start_rule_result.index].start}` +
-                                        `, found: ` +
-                                        `[ ${input.slice(start_rule_result.index).join(", ")}` +
-                                        ` ]`);
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __impl_toString(visited, next_id) {
-                        return `${this.__vivify(this.elements[0]).__toString(visited, next_id)}=>` +
-                          `${this.elements.slice(1)
+// ---------------------------------------------------------------------------------------
+// CuttingSequence class
+// ---------------------------------------------------------------------------------------
+class CuttingSequence extends Sequence {
+  // -------------------------------------------------------------------------------------
+  constructor(leading_rule, ...expected_rules) {
+    super(leading_rule, ...expected_rules);
+  }
+  // -------------------------------------------------------------------------------------
+  __fail_or_throw_error(start_rule_result, failed_rule_result,
+                        input, index) {
+    throw new Error(`expected (${this.elements.slice(1).join(" ")}) ` +
+                    `after ${this.elements[0]} at ` +
+                    `char ${input[start_rule_result.index].start}` +
+                    `, found: ` +
+                    `[ ${input.slice(start_rule_result.index).join(", ")}` +
+                    ` ]`);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `${this.__vivify(this.elements[0]).__toString(visited, next_id)}=>` +
+      `${this.elements.slice(1)
          .map(x => this.__vivify(x).__toString(visited, next_id))}`;
-                      }
-                    }
-                    // ---------------------------------------------------------------------------------------
-                    // convenience constructor:
-                    function cutting_seq(leading_rule, ...expected_rules) {
-                      return new CuttingSequence(leading_rule, ...expected_rules);
-                    }
-                    // ---------------------------------------------------------------------------------------
+  }
+}
+// ---------------------------------------------------------------------------------------
+// convenience constructor:
+function cutting_seq(leading_rule, ...expected_rules) {
+  return new CuttingSequence(leading_rule, ...expected_rules);
+}
+// ---------------------------------------------------------------------------------------
 
-                    // ---------------------------------------------------------------------------------------
-                    // Xform class
-                    // ---------------------------------------------------------------------------------------
-                    class Xform extends Rule {
-                      // -------------------------------------------------------------------------------------
-                      constructor(rule, xform_func) {
-                        super();
-                        this.xform_func = xform_func;
-                        this.rule       = make_rule_func(rule);
-                      }
-                      // -------------------------------------------------------------------------------------
-                      __impl_finalize(indent, visited) {
-                        this.rule = this.__vivify(this.rule);
-                        this.rule.__finalize(indent + 1, visited);
-                      }
-                      // -------------------------------------------------------------------------------------
-                                 __match(indent, input, index) {
-                                   const rule_match_result = this.rule.match(
-                                     input, index, indent + 1);
+// ---------------------------------------------------------------------------------------
+// Xform class
+// ---------------------------------------------------------------------------------------
+class Xform extends Rule {
+  // -------------------------------------------------------------------------------------
+  constructor(rule, xform_func) {
+    super();
+    this.xform_func = xform_func;
+    this.rule       = make_rule_func(rule);
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    const rule_match_result = this.rule.match(
+      input, index, indent + 1);
 
-                                   if (! rule_match_result)
-                                     return null;
+    if (! rule_match_result)
+      return null;
 
-                                   rule_match_result.value = this.xform_func(rule_match_result.value);
+    rule_match_result.value = this.xform_func(rule_match_result.value);
 
-                                   return rule_match_result
-                                 }
-                                 // -------------------------------------------------------------------------------------
-                                 __impl_toString(visited, next_id) {
-                                   return `${this.__vivify(this.rule).__toString(visited, next_id)}`;
-                                 }
-                                }
+    return rule_match_result
+  }
+  // -------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id)}`;
+  }
+}
 // ---------------------------------------------------------------------------------------
 function xform(...things) { // convenience constructor with magic
   things = things.map(make_rule_func);
@@ -4587,18 +4587,19 @@ async function main() {
       input.on('end', () => resolve(data));
       input.on('error', err => reject(err));
     });
+    result = Prompt.match(prompt_input);
   } else {
-    if (args.length === 0) {
+    if (args.length === 0) 
       throw new Error("Error: No input file provided.");
-    }
 
-    prompt_input = await fs.readFile(args[0], 'utf8');
+    result = await parse_file(args[0]);
+    // prompt_input = await fs.readFile(args[0], 'utf8');
   }
 
   // ---------------------------------------------------------------------------------------
   // parse the input and expand:
   // ---------------------------------------------------------------------------------------
-   result = Prompt.match(prompt_input);
+  // result = Prompt.match(prompt_input);
 
   if (false)
   {
