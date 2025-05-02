@@ -4607,7 +4607,7 @@ async function main() {
   const SpecialFunctions = result.value[0];
   const AST              = result.value[1];
 
-  // handle any includes SpecialFunctions, updting files and bodging result back onto AST here?
+  // handle any includes in SpecialFunctions, updting files and bodging result back onto AST here?
   
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
