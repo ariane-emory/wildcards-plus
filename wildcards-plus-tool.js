@@ -4181,7 +4181,7 @@ function expand_wildcards(thing, context = make_context()) {
     // -----------------------------------------------------------------------------------
     // TLDs, not yet implemented:
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTTopLevelDirective) {
+    else if (thing instanceof ASTSpecialFunction) {
       console.log(`IGNORING ${inspect_fun(thing)}`);
     }
     // -----------------------------------------------------------------------------------
@@ -4289,7 +4289,7 @@ class ASTScalarAssignment  {
 // ---------------------------------------------------------------------------------------
 // Directives:
 // ---------------------------------------------------------------------------------------
-class ASTTopLevelDirective {
+class ASTSpecialFunction {
   constructor(directive, args) {
     this.directive = directive;
     this.args = args;
@@ -4369,16 +4369,15 @@ const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag)
 // ---------------------------------------------------------------------------------------
 const tld_fun = arr => {
   // console.log(`TLD ARR: ${inspect_fun(arr)}`);
-  return new ASTTopLevelDirective(arr[0][0][1],
-                                  arr[0][1].map(s => s.substring(1, s.length - 1)));
+  return new ASTSpecialFunction(arr[0][0][1],
+                                arr[0][1].map(s => s.substring(1, s.length - 1)));
 };
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const TopLevelDirective       = xform(tld_fun,
-                                      seq(c_funcall(seq('%', ident),
+const SpecialFunction       = xform(tld_fun,
+                                    seq(c_funcall(seq('%', ident),
                                                     choice(sq_string, dq_string)),
                                           /;|[\s\t]*\n/));
-
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
@@ -4444,10 +4443,12 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        AnonWildcard, comment, ScalarReference,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-const Prompt                  = wst_star(choice(TopLevelDirective,
-                                                NamedWildcardDefinition,
-                                                ScalarAssignment,
-                                                Content));
+const Prompt                  = xform(arr => arr.flat(1),
+                                      wst_seq(
+                                        wst_star(SpecialFunction),
+                                        wst_star(choice(NamedWildcardDefinition,
+                                                        ScalarAssignment,
+                                                        Content))));
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // ---------------------------------------------------------------------------------------
