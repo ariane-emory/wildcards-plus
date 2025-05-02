@@ -1672,6 +1672,45 @@ class WildcardPicker {
 
 
 // =======================================================================================
+// JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
+
+// Object ← "{"
+// ( String ":" JSON ( "," String ":" JSON )*
+//   / S? )
+// "}"
+
+// Array ← "["
+// ( JSON ( "," JSON )*
+//   / S? )
+// "]"
+
+// String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
+
+// Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
+
+// UnicodeEscape ← "u" [0-9A-Fa-f]{4}
+
+// True ← "true"
+
+// False ← "false"
+
+// Null ← "null"
+
+// Number ← Minus? IntegralPart FractionalPart? ExponentPart?
+
+// Minus ← "-"
+
+// IntegralPart ← "0" / [1-9] [0-9]*
+
+// FractionalPart ← "." [0-9]+
+
+// ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
+
+// S ← [ U+0009 U+000A U+000D U+0020 ]+
+// =======================================================================================
+
+
+// =======================================================================================
 // helper functions:
 // =======================================================================================
 function rand_int(x, y) {
