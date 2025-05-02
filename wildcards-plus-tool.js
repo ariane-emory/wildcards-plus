@@ -4603,8 +4603,11 @@ async function main() {
   if (! result.is_finished)
     throw new Error("error parsing prompt!");
 
-  const context_with_prelude = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
-  const AST                  = result.value;
+  const base_context     = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
+  const SpecialFunctions = result.value[0];
+  const AST              = result.value[1];
+
+  // handle any includes SpecialFunctions, updting files and bodging result back onto AST here?
   
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
@@ -4616,11 +4619,12 @@ async function main() {
     console.log('--------------------------------------------------------------------------------');
     // console.log(`posted_count = ${posted_count}`);
 
-    const context  = context_with_prelude.clone();
+    const context  = base_context.clone();
     const expanded = expand_wildcards(AST, context);
 
     // expansion may have included files, copy the files list back to the base context.
-    context_with_prelude.files = context.files;
+    // ED: might not be needed here after all...
+    // context_with_prelude.files = context.files;
     
     console.log(expanded);
 
