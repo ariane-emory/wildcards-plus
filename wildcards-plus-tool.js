@@ -4182,6 +4182,7 @@ function expand_wildcards(thing, context = make_context()) {
     // TLDs, not yet implemented:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof LabeledValue) {
+      console.log(`IGNORING ${inspect_fun(thing)}`);
     }
     // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
@@ -4374,8 +4375,12 @@ const tld_fun = arr => {
 //                                                )));
 const TopLevelDirective       = label("tld",
                                       xform(tld_fun,
-                                            c_funcall(second(seq('%', ident)),
-                                                      choice(sq_string, dq_string))));
+
+                                            first(seq(c_funcall(second(seq('%', ident)),
+                                                                choice(sq_string, dq_string)),
+                                                     /;s*|[\s\t]*\n/))
+
+                                           ));
 
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
