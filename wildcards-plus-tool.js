@@ -1735,10 +1735,7 @@ class WildcardPicker {
 const json = choice(() => json_object, () => json_array, () => json_string,
                     () => json_true,   () => json_false, () => json_null,
                     () => json_number);
-// Object ← "{"
-// ( String ":" JSON ( "," String ":" JSON )*
-//   / S? ) 
-// "}"
+// Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const json_object = xform(arr =>  Object.fromEntries(arr), 
                           wst_cutting_enc('{',
                                           wst_star(
@@ -1746,23 +1743,11 @@ const json_object = xform(arr =>  Object.fromEntries(arr),
                                                   wst_seq(() => json_string, ':', json)),
                                             ','),
                                           '}'));
-// Array ← "["
-// ( JSON ( "," JSON )*
-//   / S? )
-// "]"
+// Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
-const json_unquote = str => str.substring(1, str.length - 1);
-// const json_string = xform(json_unquote, dq_string); // placeholder, C-like double-quoted strings, might not handle all unicode.
-// const json_string_content = r(/(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*/);
-// const json_string =  r(/^"((?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*)"/);
-const json_string_fun = s => {
-  console.log(`HERE: '${s}'`);
-  return JSON.parse(s);
-};
-const json_string = xform(json_string_fun,
+const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
-
 // UnicodeEscape ← "u" [0-9A-Fa-f]{4}
 const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
 // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
