@@ -4563,9 +4563,10 @@ async function main() {
   if (! result.is_finished)
     throw new Error("error parsing prompt!");
 
-  const base_context  = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
+  const base_context = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
+  const AST          = result.value[1];
   
-  // SpecialFunctions will be in result.value[0], do stuff with them and update ast and
+  // SpecialFunctions will be in result.value[0], do stuff with them and update AST and
   // base_context here?
 
   console.log('--------------------------------------------------------------------------------');
@@ -4579,7 +4580,7 @@ async function main() {
     // console.log(`posted_count = ${posted_count}`);
 
     const context  = base_context.clone();
-    const expanded = expand_wildcards(result.value[1], context);
+    const expanded = expand_wildcards(AST, context);
     
     console.log(expanded);
 
