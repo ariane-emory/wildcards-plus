@@ -4588,18 +4588,16 @@ async function main() {
       input.on('error', err => reject(err));
     });
     result = Prompt.match(prompt_input);
-  } else {
-    if (args.length === 0) 
-      throw new Error("Error: No input file provided.");
-
+  } else if (args.length === 0) {
+    throw new Error("Error: No input file provided.");
+  }
+  else {
     result = parse_file(args[0]);
-    // prompt_input = await fs.readFile(args[0], 'utf8');
   }
 
   // ---------------------------------------------------------------------------------------
-  // parse the input and expand:
+  // check that the parsed result is complete and expand:
   // ---------------------------------------------------------------------------------------
-  // result = Prompt.match(prompt_input);
 
   if (false)
   {
