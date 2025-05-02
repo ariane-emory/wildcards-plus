@@ -1749,9 +1749,9 @@ const json_object = xform(arr =>  Object.fromEntries(arr),
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
 const json_array_with_comments = wst_cutting_enc('[',
-                                                 wst_star(choice(c_block_comment,
-                                                                 c_line_comment,
-                                                                 json_with_comments),
+                                                 wst_star(second(seq(wst_star(choice(c_block_comment, c_line_comment)),
+                                                                     json_with_comments,
+                                                                     wst_star(choice(c_block_comment, c_line_comment)))),
                                                           ','),
                                                  ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
