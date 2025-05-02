@@ -41,6 +41,20 @@ import { stdin as input, stdout as output } from 'process';
 // ---------------------------------------------------------------------------------------
 // helper functions:
 // ---------------------------------------------------------------------------------------
+function ask(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise(resolve => {
+    rl.question(question, answer => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
+}
+// ---------------------------------------------------------------------------------------
 function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const result = Prompt.match(prompt_input);
@@ -138,7 +152,7 @@ let dt_hosted   = false;
 
 if (false)
   // =====================================================================================
-  // DEV NOTE: Copy into wildcards-plus.js starting from this line!
+  // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
   // =====================================================================================
 {
   inspect_fun = JSON.stringify;
@@ -4559,21 +4573,10 @@ const Prompt                  = (dt_hosted
                                            PromptBody)));
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
-// ---------------------------------------------------------------------------------------
-function ask(question) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
+// =====================================================================================
+// DEV NOTE: Copy into wildcards-plus.js starting through this line!
+// =====================================================================================
 
-  return new Promise(resolve => {
-    rl.question(question, answer => {
-      rl.close();
-      resolve(answer.trim());
-    });
-  });
-}
-// ---------------------------------------------------------------------------------------
 
 // =======================================================================================
 // MAIN:
