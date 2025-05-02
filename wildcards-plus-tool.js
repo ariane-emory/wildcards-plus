@@ -4499,18 +4499,26 @@ const NotFlag                 = xform((arr => {
                                           ident, /(?=\s|[{|}]|$)/));
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
+// const tld_fun = arr => {
+//   // console.log(`TLD ARR: ${inspect_fun(arr)}`);
+//   return new ASTSpecialFunction(arr[0][0][1],
+//                                 arr[0][1].map(s => s.substring(1, s.length - 1)));
+// };
 const tld_fun = arr => {
   // console.log(`TLD ARR: ${inspect_fun(arr)}`);
-  return new ASTSpecialFunction(arr[0][0][1],
-                                arr[0][1].map(s => s.substring(1, s.length - 1)));
+  return new ASTSpecialFunction(arr[0][1],
+                                arr[1].map(s => s.substring(1, s.length - 1)));
 };
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const SpecialFunctionName     = l('include'); // choice('include', 'models');
+// const SpecialFunction         = xform(tld_fun,
+//                                       seq(c_funcall(seq('%', SpecialFunctionName),
+//                                                     choice(sq_string, dq_string)),
+//                                           /\s*;|[\s\t]*\n/));
 const SpecialFunction         = xform(tld_fun,
-                                      seq(c_funcall(seq('%', SpecialFunctionName),
-                                                    choice(sq_string, dq_string)),
-                                          /\s*;|[\s\t]*\n/));
+                                      c_funcall(seq('%', SpecialFunctionName),
+                                                choice(sq_string, dq_string)));
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
