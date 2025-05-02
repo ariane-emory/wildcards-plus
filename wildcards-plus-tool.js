@@ -4378,7 +4378,7 @@ const tld_fun = arr => {
 };
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const SpecialFunctionName     = choice('include', 'models');
+const SpecialFunctionName     = choice('include', /* 'models' */);
 const SpecialFunction         = xform(tld_fun,
                                       seq(c_funcall(seq('%', SpecialFunctionName),
                                                     choice(sq_string, dq_string)),
@@ -4448,7 +4448,7 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        AnonWildcard, comment, ScalarReference,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-const Prompt                  = xform(arr => arr.flat(1),
+const Prompt                  = xform(arr => arr, // .flat(1),
                                       wst_seq(
                                         wst_star(SpecialFunction),
                                         wst_star(choice(NamedWildcardDefinition,
@@ -4564,7 +4564,7 @@ async function main() {
     // console.log(`posted_count = ${posted_count}`);
 
     const context  = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
-    const expanded = expand_wildcards(result.value, context);
+    const expanded = expand_wildcards(result.value[1], context);
     
     console.log(expanded);
 
