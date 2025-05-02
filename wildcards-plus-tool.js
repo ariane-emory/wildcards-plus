@@ -4179,6 +4179,11 @@ function expand_wildcards(thing, context = make_context()) {
       // return walk(pick, context);
     }
     // -----------------------------------------------------------------------------------
+    // TLDs, not yet implemented:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof LabeledValue) {
+    }
+    // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
     // -----------------------------------------------------------------------------------
     else {
@@ -4441,7 +4446,6 @@ const Prompt                  = wst_star(choice(TopLevelDirective,
                                                 NamedWildcardDefinition,
                                                 ScalarAssignment,
                                                 Content));
-// const Prompt                  = wst_star(TopLevelDirective);
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // ---------------------------------------------------------------------------------------
