@@ -1750,9 +1750,12 @@ const json_object = xform(arr =>  Object.fromEntries(arr),
 const json_object_with_comments = xform(arr =>  Object.fromEntries(arr), 
                                         wst_cutting_enc('{',
                                                         wst_star(
-                                                          xform(arr => [arr[0], arr[2]],
-                                                                wst_seq(() => json_string, ':', json)),
-                                                          ','),
+
+                                                          xform(arr => [arr[0], arr[2]], wst_seq( () => json_string, // 0 originally
+                                                                                                  ':',               // 1 originally 
+                                                                                                  json))             // 2 originally
+
+                                                          , ','),
                                                         '}'));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
