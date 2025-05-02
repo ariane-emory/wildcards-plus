@@ -4458,7 +4458,7 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        AnonWildcard, comment, ScalarReference,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-const Prompt                  = xform(arr => arr, // .flat(1),
+const Prompt                  = xform(arr => arr.flat(1),
                                       wst_seq(
                                         wst_star(SpecialFunction),
                                         wst_star(choice(NamedWildcardDefinition,
@@ -4564,11 +4564,8 @@ async function main() {
     throw new Error("error parsing prompt!");
 
   const base_context = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
-  const AST          = result.value[1];
+  const AST          = result.value;
   
-  // SpecialFunctions will be in result.value[0], do stuff with them and update AST and
-  // base_context here?
-
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
 
