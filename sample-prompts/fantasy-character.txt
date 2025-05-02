@@ -210,7 +210,7 @@ the viewer
 
 // Companions: don't always mention the companions, because of the empty alternative at
 // the start:
-{|!alone {,|2while}
+{|!alone {,|2 while}
          {accompanied by|?maleany_minions surrounded by|?maleany_minions encircled by
          |guarded by|leading|commanding|directing|guiding|rallying|alongside}
          @pro_pos_rand
