@@ -102,6 +102,8 @@ function process_includes(thing, context = new Context()) {
     if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
       const current_file = context.files[context.files.length - 1];
       const res = [];
+
+      context = context.shallow_copy();
       
       for (let filename of thing.args) {
         filename = path.join(path.dirname(current_file), filename);
@@ -132,8 +134,6 @@ function process_includes(thing, context = new Context()) {
       return ret;
     }
     else {
-      // console.log(`thing is ${inspect_fun(thing)}`);
-      
       return thing;
     }
   }
@@ -1863,12 +1863,14 @@ class Context {
     named_wildcards = new Map(),
     noisy = false,
     files = [],
+    top_file = true,
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
     this.named_wildcards = named_wildcards;
     this.noisy = noisy;
     this.files = files;
+    this.top_file = top_file;
   }
   // -------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -1882,7 +1884,19 @@ class Context {
       scalar_variables: new Map(this.scalar_variables),
       named_wildcards: new Map(this.named_wildcards),
       noisy: this.noisy,
-      files: [...this.files]
+      files: [...this.files],
+      top_file: this.top_file,
+    });
+  }
+  // -------------------------------------------------------------------------------------
+  shallow_copy() {
+    return new Context({
+      flags: this.flags,
+      scalar_variables: this.scalar_variables,
+      named_wildcards: this.named_wildcards,
+      noisy: this.noisy,
+      files: this.files,
+      top_file: false,
     });
   }
 }

@@ -54,13 +54,13 @@ $weapon  := @weapon
 
 @look_aim := {past|towards|2 {|up|down} {at|towards}}
 
-// {|2 epic|3 dark} fantasy, masterpiece,
+{|2 epic|3 dark} fantasy, masterpiece,
 ultra high resolution, 8k, detailed background,
 wide shot,
 \n
 
 // set an 'm' or 'f' gender flag that will help guide the selection of picks later on.
-{#m|#f}                
+{!male !female !neuter {#male|#female|#neuter}}
 
 // character type flag, make 'wizards' 60% of the time:
 {3 #wizard|2 #warrior} 

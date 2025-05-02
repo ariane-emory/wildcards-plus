@@ -7,7 +7,7 @@ wide shot,
 \n
 
 // set an 'm' or 'f' gender flag that will help guide the selection of picks later on.
-{#m|#f}                
+{!male !female !neuter {#male|#female|#neuter}}
 
 // character type flag, make 'wizards' 60% of the time:
 {3 #wizard|2 #warrior} 
@@ -30,22 +30,22 @@ $weapon  := @weapon
 @character_adjectives := {?wizard  {#scary inhuman|#scary alien|#scary evil|#scary ominous
                                    |#scary sinister|#scary infernal|#alone lonesome
                                    |erudite|wise|ancient|immortal|antediluvian
-                                   |?f seductive|?f beautiful|?f alluring|?m dashing
-                                   |?f enchanting|?m !scary charming|?f beguiling
-                                   |?f captivating|powerful|godlike|!scary holy}
-                         |?warrior {!scary heroic|mighty|?m handsome|?m musclebound
+                                   |?female seductive|?female beautiful|?female alluring|?male dashing
+                                   |?female enchanting|?male !scary charming|?female beguiling
+                                   |?female captivating|powerful|godlike|!scary holy}
+                         |?warrior {!scary heroic|mighty|?male handsome|?male musclebound
                                    |#scary fearsome|resolute|2 proud|noble|tattooed
-                                   |solitary #alone|athletic|steadfast|?m humongous|strong
-                                   |?f beautiful|?m handsome|?f alluring|?m musclebound
-                                   |?m !scary charming|!scary brave|!scary daring}
+                                   |solitary #alone|athletic|steadfast|?male humongous|strong
+                                   |?female beautiful|?male handsome|?female alluring|?male musclebound
+                                   |?male !scary charming|!scary brave|!scary daring}
                          }
 
-@roles := {?wizard  {{?m wizard|?f wizardress}|2 {?m sorcerer|?f sorceress}|2 {?m enchanter
-                    |?f enchantress}|druid|alchemist|{?m priest|?f priestess}|adept|cultist
-                    |vampire|lich|2 necromancer|?m warlock|?f witch|arcanist|sage|seer}
+@roles := {?wizard  {{?male wizard|?female wizardress}|2 {?male sorcerer|?female sorceress}|2 {?male enchanter
+                    |?female enchantress}|druid|alchemist|{?male priest|?female priestess}|adept|cultist
+                    |vampire|lich|2 necromancer|?male warlock|?female witch|arcanist|sage|seer}
           |?warrior {2 warrior|!scary paladin|knight|barbarian|conqueror|rogue|2 gladiator
-                    |?m swordsman|?f swordswoman|?f amazon|dervish|blademaster|deulist
-                    |{?m hunter|?f huntress}|?f valkyrie|mercenary|#scary {brigand|bandit}
+                    |?male swordsman|?female swordswoman|?female amazon|dervish|blademaster|deulist
+                    |{?male hunter|?female huntress}|?female valkyrie|mercenary|#scary {brigand|bandit}
                     |!scary hero|#scary raider|myrmidon|cataphract|hoplite|legionnaire}
           }
 
@@ -97,8 +97,8 @@ a
            |attire
            |raiment @pluralize_clothing
            |vestment @pluralize_clothing
-           |?f ?used_pro dress
-           |?f ?used_pro gown
+           |?female ?used_pro dress
+           |?female ?used_pro gown
            },
  |?warrior {3 {|battered|blood-smeared|2 leather|spiked|chainmail|rusted|ornate|golden}
            {3 armor|{|@pro_pos_rand #used_pro} helmet|pauldrons|wargear|gauntlets}
@@ -136,7 +136,7 @@ a
 {|#outdoors}
 {|?outdoors #mounted}
 
-{?mounted {sitting on|mounted on|riding on|astride|leading}
+{?maleounted {sitting on|mounted on|riding on|astride|leading}
           @pro_pos_rand
           {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
           {3 beast|wolf|2 lizard|reptile|snake|serpent|insect|2 steed|2 destrier
@@ -188,7 +188,7 @@ the viewer
 
 {5|2 ?scary menacingly|pridefully|cunningly|drunkenly|!scary !angry jovially
 |!scary !angry fondly|!angry gleefully|blankly|despondantly|madly|?scary angrily|angrily
-|mockingly|?f seductively|?m roguishly|?m rakishly|2 ?scary threateningly
+|mockingly|?female seductively|?male roguishly|?male rakishly|2 ?scary threateningly
 |!scary victoriously
 }
 
@@ -206,15 +206,15 @@ the viewer
 // unless flagged as #alone, warriors always have #many_minions, but wizards may have a
 // single minion sometimes: 
 {?warrior #many_minions|?wizard {|3 #many_minions}}
-@pluralize_minions := { ?many_minions <s }
+@pluralize_minions := { ?maleany_minions <s }
 
 // Companions: don't always mention the companions, because of the empty alternative at
 // the start:
 {|!alone {,|2while}
-         {accompanied by|?many_minions surrounded by|?many_minions encircled by
+         {accompanied by|?maleany_minions surrounded by|?maleany_minions encircled by
          |guarded by|leading|commanding|directing|guiding|rallying|alongside}
          @pro_pos_rand
-         {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang
+         {?maleany_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang
                         |?warrior squad|army|?wizard coterie|?wizard circle|?wizard coven
                         |?wizard variety|?wizard menagerie}
                         of
