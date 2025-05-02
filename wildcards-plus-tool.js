@@ -4360,27 +4360,14 @@ const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag)
 // ---------------------------------------------------------------------------------------
 const tld_fun = arr => {
   console.log(`TLD ARR: ${inspect_fun(arr)}`);
-  return arr;
+  return new LabeledValue("TLD", arr);
 };
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-// const TopLevelDirective       = label("TLD",
-//                                       xform(tld_fun,
-//                                             seq('%',
-//                                                 ident,
-//                                                 wst_cutting_enc('(',
-//                                                                 wst_star(choice(sq_string, dq_string), ','),
-//                                                                 ')'),
-//                                                 /;s*|[\s\t]*\n/,
-//                                                )));
-const TopLevelDirective       = label("tld",
-                                      xform(tld_fun,
-
-                                            seq(c_funcall(second(seq('%', ident)),
-                                                          choice(sq_string, dq_string)),
-                                                     /;|[\s\t]*\n/)
-
-                                           ));
+const TopLevelDirective       = xform(tld_fun,
+                                      seq(c_funcall(second(seq('%', ident)),
+                                                    choice(sq_string, dq_string)),
+                                          /;|[\s\t]*\n/));
 
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
