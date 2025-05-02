@@ -919,11 +919,11 @@ class Sequence extends Rule {
       return null;
     }
 
-    if (last_match_result !== null) {
-      if (log_match_enabled)
-        log(indent + 1, `did not match sequence item #1.`);
-      return null;
-    }
+    // if (last_match_result !== null) {
+    //   if (log_match_enabled)
+    //     log(indent + 1, `did not match sequence item #1.`);
+    //   return null;
+    // }
 
     if (log_match_enabled)
       log(indent + 1, `matched sequence item #1: ` +
