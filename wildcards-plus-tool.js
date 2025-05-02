@@ -4579,8 +4579,8 @@ const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
 //                                                 ScalarAssignment,
 //                                                 Content));
-const PromptBody              = wst_star(choice(SpecialFunction,
-                                                NamedWildcardDefinition,
+const PromptBody              = wst_star(choice(NamedWildcardDefinition,
+                                                SpecialFunction,
                                                 ScalarAssignment,
                                                 Content));
 // const Prompt                  = (dt_hosted
