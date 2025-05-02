@@ -958,6 +958,7 @@ class Sequence extends Rule {
       if (log_match_enabled)
         log(indent + 1, `matched sequence item #${ix}.`);
       
+      // if (last_match_result.value !== null) {
       if (last_match_result == 0.0 || last_match_result.value === '' || last_match_result.value) {
         if (log_match_enabled)
           log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
