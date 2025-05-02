@@ -910,6 +910,15 @@ class Sequence extends Rule {
           this.elements[0].match(input, index, indent + 2);
     let last_match_result = start_rule_match_result;
 
+    if (log_match_enabled && last_match_result !== null)
+      log(indent + 1, `first last_match_result = ${inspect_fun(last_match_result)}`);
+    
+    if (last_match_result === null) {
+      if (log_match_enabled)
+        log(indent + 1, `did not match sequence item #1.`);
+      return null;
+    }
+
     if (last_match_result !== null) {
       if (log_match_enabled)
         log(indent + 1, `did not match sequence item #1.`);
