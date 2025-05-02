@@ -1772,7 +1772,7 @@ const reify_json_number = arr => {
   const integer_part    = arr[1];
   const fractional_part = arr[2];
   const exponent        = arr[3];
-  const number          =  multiplier * ((integer_part + fractional_part)**exponent);
+  const number          = multiplier * ((integer_part + fractional_part)**exponent);
 
   return number;
   return arr;
@@ -4556,358 +4556,358 @@ class ASTSpecialFunction {
     this.directive = directive;
     this.args = args;
   }
-                        }
-                        // ---------------------------------------------------------------------------------------
-                        // AnonWildcards:
-                        // ---------------------------------------------------------------------------------------
-                        class ASTAnonWildcard {
-                          constructor(options) {
-                            this.options = options;
-                          }
-                        }
-                        // ---------------------------------------------------------------------------------------
-                        class ASTAnonWildcardAlternative {
-                          constructor(weight, check_flags, not_flags, body) {
-                            this.weight = weight;
-                            this.check_flags = check_flags;
-                            this.not_flags = not_flags;
-                            this.body = body;
-                          }
-                        }
-                        // ---------------------------------------------------------------------------------------
+}
+// ---------------------------------------------------------------------------------------
+// AnonWildcards:
+// ---------------------------------------------------------------------------------------
+class ASTAnonWildcard {
+  constructor(options) {
+    this.options = options;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTAnonWildcardAlternative {
+  constructor(weight, check_flags, not_flags, body) {
+    this.weight = weight;
+    this.check_flags = check_flags;
+    this.not_flags = not_flags;
+    this.body = body;
+  }
+}
+// ---------------------------------------------------------------------------------------
 
 
-                        // =======================================================================================
-                        // SD PROMPT GRAMMAR:
-                        // =======================================================================================
-                        // helper funs used by xforms:
-                        // ---------------------------------------------------------------------------------------
-                        const make_ASTAnonWildcardAlternative = arr => {
-                          // console.log(`ARR: ${inspect_fun(arr)}`);
-                          const flags = ([ ...arr[0], ...arr[2] ]);
-                          const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
-                          const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
-                          const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
-                          const set_immediately_not_flags = not_flags
-                                .filter(f => f.set_immediately)
-                                .map(f => new ASTSetFlag(f.name)) ;
-                          
-                          return new ASTAnonWildcardAlternative(
-                            arr[1][0],
-                            check_flags,
-                            not_flags,
-                            [
-                              ...set_immediately_not_flags,
-                              ...set_flags,
-                              ...arr[3]
-                            ]);
-                        }
-                        // ---------------------------------------------------------------------------------------
-                        const make_ASTFlagCmd = (klass, ...rules) =>
-                              xform(ident => new klass(ident),
-                                    second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
-                        // ---------------------------------------------------------------------------------------
-                        // terminals:
-                        const plaintext               = /[^{|}\s]+/;
-                        const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
-                        const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-                        const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
-                        const comment                 = discard(choice(c_block_comment, c_line_comment));
-                        const assignment_operator     = xform(arr => {
-                          // console.log(`A_R RETURNING ${arr.toString()}`);
-                          return arr;
-                        }, discard(seq(wst_star(comment), ':=', wst_star(comment))));
-                        // ---------------------------------------------------------------------------------------
-                        // flag-related non-terminals:
-                        const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
-                        // const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
-                        const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
-                                                              second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
-                        const MalformedNotSetCombo    = unexpected('#!');
-                        const NotFlag                 = xform((arr => {
-                          //console.log(`ARR: ${inspect_fun(arr)}`);
-                          return new ASTNotFlag(arr[2], arr[1][0]);
-                        }),
-                                                              seq('!', optional('#'),
-                                                                  ident, /(?=\s|[{|}]|$)/));
-                        const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
-                        // ---------------------------------------------------------------------------------------
-                        const tld_fun = arr => new ASTSpecialFunction(...arr);
-                        // ---------------------------------------------------------------------------------------
-                        // other non-terminals:
-                        const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
-                        const SpecialFunction         = xform(tld_fun,
-                                                              c_funcall(second(seq('%', SpecialFunctionName)), json));
-                        const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
-                                                                   seq(wst_star(choice(comment, TestFlag, SetFlag)),
-                                                                       optional(wb_uint, 1),
-                                                                       wst_star(choice(comment, TestFlag, SetFlag)),
-                                                                       () => ContentStar));
-                        const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
-                                                                    brc_enc(wst_star(AnonWildcardAlternative, '|')));
-                        const NamedWildcardReference        = xform(seq(discard('@'),
-                                                                        optional('^'),                            // 0
-                                                                        optional(xform(parseInt, /\d+/)),         // 1
-                                                                        optional(xform(parseInt,
-                                                                                       second(seq('-', /\d+/)))), // 2
-                                                                        optional(/[,&]/),                         // 3
-                                                                        ident),                                   // 4
-                                                                    arr => {
-                                                                      // console.log(`NWR ARR: ${inspect_fun(arr)}`);
+// =======================================================================================
+// SD PROMPT GRAMMAR:
+// =======================================================================================
+// helper funs used by xforms:
+// ---------------------------------------------------------------------------------------
+const make_ASTAnonWildcardAlternative = arr => {
+  // console.log(`ARR: ${inspect_fun(arr)}`);
+  const flags = ([ ...arr[0], ...arr[2] ]);
+  const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
+  const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
+  const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
+  const set_immediately_not_flags = not_flags
+        .filter(f => f.set_immediately)
+        .map(f => new ASTSetFlag(f.name)) ;
+  
+  return new ASTAnonWildcardAlternative(
+    arr[1][0],
+    check_flags,
+    not_flags,
+    [
+      ...set_immediately_not_flags,
+      ...set_flags,
+      ...arr[3]
+    ]);
+}
+// ---------------------------------------------------------------------------------------
+const make_ASTFlagCmd = (klass, ...rules) =>
+      xform(ident => new klass(ident),
+            second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
+// ---------------------------------------------------------------------------------------
+// terminals:
+const plaintext               = /[^{|}\s]+/;
+const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
+const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
+const comment                 = discard(choice(c_block_comment, c_line_comment));
+const assignment_operator     = xform(arr => {
+  // console.log(`A_R RETURNING ${arr.toString()}`);
+  return arr;
+}, discard(seq(wst_star(comment), ':=', wst_star(comment))));
+// ---------------------------------------------------------------------------------------
+// flag-related non-terminals:
+const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
+// const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
+const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
+                                      second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
+const MalformedNotSetCombo    = unexpected('#!');
+const NotFlag                 = xform((arr => {
+  //console.log(`ARR: ${inspect_fun(arr)}`);
+  return new ASTNotFlag(arr[2], arr[1][0]);
+}),
+                                      seq('!', optional('#'),
+                                          ident, /(?=\s|[{|}]|$)/));
+const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
+// ---------------------------------------------------------------------------------------
+const tld_fun = arr => new ASTSpecialFunction(...arr);
+// ---------------------------------------------------------------------------------------
+// other non-terminals:
+const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
+const SpecialFunction         = xform(tld_fun,
+                                      c_funcall(second(seq('%', SpecialFunctionName)), json));
+const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
+                                           seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                               optional(wb_uint, 1),
+                                               wst_star(choice(comment, TestFlag, SetFlag)),
+                                               () => ContentStar));
+const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
+                                            brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const NamedWildcardReference        = xform(seq(discard('@'),
+                                                optional('^'),                            // 0
+                                                optional(xform(parseInt, /\d+/)),         // 1
+                                                optional(xform(parseInt,
+                                                               second(seq('-', /\d+/)))), // 2
+                                                optional(/[,&]/),                         // 3
+                                                ident),                                   // 4
+                                            arr => {
+                                              // console.log(`NWR ARR: ${inspect_fun(arr)}`);
 
-                                                                      const ident  = arr[4];
-                                                                      const min_ct = arr[1][0] ?? 1;
-                                                                      const max_ct = arr[2][0] ?? min_ct;
-                                                                      const join   = arr[3][0] ?? '';
-                                                                      const caret  = arr[0][0];
-                                                                      
-                                                                      // console.log(inspect_fun([ident, min_ct, (typeof join), join, caret]));
-                                                                      
-                                                                      return new ASTNamedWildcardReference(ident,
-                                                                                                           join,
-                                                                                                           caret,
-                                                                                                           min_ct,
-                                                                                                           max_ct);
-                                                                    });
-                        const NamedWildcardDesignator = second(seq('@', ident));                                      
-                        const NamedWildcardDefinition = xform(arr => {
-                          // console.log(`NWCD ARR: ${JSON.stringify(arr)}`);
-                          
-                          return new ASTNamedWildcardDefinition(...arr);
-                        },
-                                                              wst_seq(NamedWildcardDesignator,
-                                                                      assignment_operator,
-                                                                      AnonWildcard));
-                        const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
-                                                              arr => {
-                                                                const [ bang, hash, ident, objs ] =
-                                                                      [ arr[1][0], arr[2][0], arr[3], []];
-                                                                
-                                                                if (!bang && !hash)
-                                                                  return new ASTNamedWildcardReference(ident);
+                                              const ident  = arr[4];
+                                              const min_ct = arr[1][0] ?? 1;
+                                              const max_ct = arr[2][0] ?? min_ct;
+                                              const join   = arr[3][0] ?? '';
+                                              const caret  = arr[0][0];
+                                              
+                                              // console.log(inspect_fun([ident, min_ct, (typeof join), join, caret]));
+                                              
+                                              return new ASTNamedWildcardReference(ident,
+                                                                                   join,
+                                                                                   caret,
+                                                                                   min_ct,
+                                                                                   max_ct);
+                                            });
+const NamedWildcardDesignator = second(seq('@', ident));                                      
+const NamedWildcardDefinition = xform(arr => {
+  // console.log(`NWCD ARR: ${JSON.stringify(arr)}`);
+  
+  return new ASTNamedWildcardDefinition(...arr);
+},
+                                      wst_seq(NamedWildcardDesignator,
+                                              assignment_operator,
+                                              AnonWildcard));
+const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
+                                      arr => {
+                                        const [ bang, hash, ident, objs ] =
+                                              [ arr[1][0], arr[2][0], arr[3], []];
+                                        
+                                        if (!bang && !hash)
+                                          return new ASTNamedWildcardReference(ident);
 
-                                                                if (bang) // goes before hash so that "@!#" works correctly.
-                                                                  objs.push(new ASTUnlatchNamedWildcard(ident));
+                                        if (bang) // goes before hash so that "@!#" works correctly.
+                                          objs.push(new ASTUnlatchNamedWildcard(ident));
 
-                                                                if (hash)
-                                                                  objs.push(new ASTLatchNamedWildcard(ident));
+                                        if (hash)
+                                          objs.push(new ASTLatchNamedWildcard(ident));
 
-                                                                return objs;
-                                                              });
-                        const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
-                                                              arr => new ASTScalarReference(arr[1], arr[0][0]));
-                        const ScalarAssignmentSource  = choice(ScalarReference, NamedWildcardReference,
-                                                               AnonWildcard);
-                        const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
-                                                              wst_seq(ScalarReference,
-                                                                      assignment_operator,
-                                                                      ScalarAssignmentSource));
-                        const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
-                                                               AnonWildcard, comment, ScalarReference,
-                                                               low_pri_text, plaintext);
-                        const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-                        // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
-                        //                                                 ScalarAssignment,
-                        //                                                 Content));
-                        const PromptBody              = wst_star(choice(SpecialFunction,
-                                                                        NamedWildcardDefinition,
-                                                                        ScalarAssignment,
-                                                                        Content));
-                        // const Prompt                  = (dt_hosted
-                        //                                  ? PromptBody
-                        //                                  : xform(arr => arr.flat(1),
-                        //                                          wst_seq(
-                        //                                            wst_star(SpecialFunction),
-                        //                                            PromptBody)));
-                        const Prompt                  = xform(arr => arr.flat(Infinity), PromptBody);
-                        // ---------------------------------------------------------------------------------------
-                        Prompt.finalize();
-                        // =====================================================================================
-                        // DEV NOTE: Copy into wildcards-plus.js starting through this line!
-                        // =====================================================================================
+                                        return objs;
+                                      });
+const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
+                                      arr => new ASTScalarReference(arr[1], arr[0][0]));
+const ScalarAssignmentSource  = choice(ScalarReference, NamedWildcardReference,
+                                       AnonWildcard);
+const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
+                                      wst_seq(ScalarReference,
+                                              assignment_operator,
+                                              ScalarAssignmentSource));
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       AnonWildcard, comment, ScalarReference,
+                                       low_pri_text, plaintext);
+const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
+// const PromptBody              = wst_star(choice(NamedWildcardDefinition,
+//                                                 ScalarAssignment,
+//                                                 Content));
+const PromptBody              = wst_star(choice(SpecialFunction,
+                                                NamedWildcardDefinition,
+                                                ScalarAssignment,
+                                                Content));
+// const Prompt                  = (dt_hosted
+//                                  ? PromptBody
+//                                  : xform(arr => arr.flat(1),
+//                                          wst_seq(
+//                                            wst_star(SpecialFunction),
+//                                            PromptBody)));
+const Prompt                  = xform(arr => arr.flat(Infinity), PromptBody);
+// ---------------------------------------------------------------------------------------
+Prompt.finalize();
+// =====================================================================================
+// DEV NOTE: Copy into wildcards-plus.js starting through this line!
+// =====================================================================================
 
 
-                        // =======================================================================================
-                        // MAIN:
-                        // =======================================================================================
-                        async function main() {
-                          // ---------------------------------------------------------------------------------------
-                          // process the command-line arguments:
-                          // ---------------------------------------------------------------------------------------
-                          const args    = process.argv.slice(2);
-                          let   count   = 1;
-                          let   post    = false;
-                          let   confirm = false;
-                          let   from_stdin = false;
+// =======================================================================================
+// MAIN:
+// =======================================================================================
+async function main() {
+  // ---------------------------------------------------------------------------------------
+  // process the command-line arguments:
+  // ---------------------------------------------------------------------------------------
+  const args    = process.argv.slice(2);
+  let   count   = 1;
+  let   post    = false;
+  let   confirm = false;
+  let   from_stdin = false;
 
-                          if (args.length == 0) 
-                            throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
-                                            `(--stdin | <input-file>) [<count>]`);
+  if (args.length == 0) 
+    throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
+                    `(--stdin | <input-file>) [<count>]`);
 
-                          if (["-p", "--post"].includes(args[0])) {
-                            post = true;
-                            args.shift();
-                          }
-                          else if (["-c", "--confirm"].includes(args[0])) {
-                            post    = true;
-                            confirm = true;
-                            args.shift();
-                          }
+  if (["-p", "--post"].includes(args[0])) {
+    post = true;
+    args.shift();
+  }
+  else if (["-c", "--confirm"].includes(args[0])) {
+    post    = true;
+    confirm = true;
+    args.shift();
+  }
 
-                          if (args.length === 0) {
-                            throw new Error("Error: Must provide --stdin or an input file.");
-                          }
+  if (args.length === 0) {
+    throw new Error("Error: Must provide --stdin or an input file.");
+  }
 
-                          if (args[0] === '--stdin') {
-                            if (confirm)
-                              throw new Error(`the --confirm and --stdin options are incompatible.`);
-                            
-                            from_stdin = true;
-                          }
+  if (args[0] === '--stdin') {
+    if (confirm)
+      throw new Error(`the --confirm and --stdin options are incompatible.`);
+    
+    from_stdin = true;
+  }
 
-                          if (args.length > 1) {
-                            count = parseInt(args[1]);
-                          }
+  if (args.length > 1) {
+    count = parseInt(args[1]);
+  }
 
-                          // ---------------------------------------------------------------------------------------
-                          // read prompt input:
-                          // ---------------------------------------------------------------------------------------
-                          let prompt_input = '';
-                          let result = null;
-                          
-                          if (from_stdin) {
-                            // Read all stdin into a string
-                            prompt_input = await new Promise((resolve, reject) => {
-                              let data = '';
-                              input.setEncoding('utf8');
-                              input.on('data', chunk => data += chunk);
-                              input.on('end', () => resolve(data));
-                              input.on('error', err => reject(err));
-                            });
-                            result = Prompt.match(prompt_input);
-                          } else if (args.length === 0) {
-                            throw new Error("Error: No input file provided.");
-                          }
-                          else {
-                            result = parse_file(args[0]);
-                          }
+  // ---------------------------------------------------------------------------------------
+  // read prompt input:
+  // ---------------------------------------------------------------------------------------
+  let prompt_input = '';
+  let result = null;
+  
+  if (from_stdin) {
+    // Read all stdin into a string
+    prompt_input = await new Promise((resolve, reject) => {
+      let data = '';
+      input.setEncoding('utf8');
+      input.on('data', chunk => data += chunk);
+      input.on('end', () => resolve(data));
+      input.on('error', err => reject(err));
+    });
+    result = Prompt.match(prompt_input);
+  } else if (args.length === 0) {
+    throw new Error("Error: No input file provided.");
+  }
+  else {
+    result = parse_file(args[0]);
+  }
 
-                          // -------------------------------------------------------------------------------------
-                          // just for debugging, comment next line to see result:
-                          // -------------------------------------------------------------------------------------
-                          if (false)
-                          {
-                            console.log(`result: ${inspect_fun(result.value)}`);
-                            console.log(`result (JSON): ${JSON.stringify(result.value)}`);
-                          }
-                          
-                          // -------------------------------------------------------------------------------------
-                          // check that the parsed result is complete and expand:
-                          // -------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
+  // just for debugging, comment next line to see result:
+  // -------------------------------------------------------------------------------------
+  if (false)
+  {
+    console.log(`result: ${inspect_fun(result.value)}`);
+    console.log(`result (JSON): ${JSON.stringify(result.value)}`);
+  }
+  
+  // -------------------------------------------------------------------------------------
+  // check that the parsed result is complete and expand:
+  // -------------------------------------------------------------------------------------
 
-                          if (! result.is_finished)
-                            throw new Error("error parsing prompt!");
+  if (! result.is_finished)
+    throw new Error("error parsing prompt!");
 
-                          const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
-                          let   AST          = result.value;
-                          
-                          // do some new special walk over AST to handle 'include' SpecialFunctions,
-                          // updating files as we go and bodging result back onto (or replacing?) AST?
+  const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
+  let   AST          = result.value;
+  
+  // do some new special walk over AST to handle 'include' SpecialFunctions,
+  // updating files as we go and bodging result back onto (or replacing?) AST?
 
-                          if (print_before_ast_enabled) {
-                            console.log('--------------------------------------------------------------------------------');
-                            console.log(`before process_includes:`);
-                            console.log('--------------------------------------------------------------------------------');
-                            console.log(`${inspect_fun(AST)}`);
-                          }
+  if (print_before_ast_enabled) {
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`before process_includes:`);
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`${inspect_fun(AST)}`);
+  }
 
-                          AST = process_includes(AST, base_context);
+  AST = process_includes(AST, base_context);
 
-                          if (print_after_ast_enabled) { 
-                            console.log('--------------------------------------------------------------------------------');
-                            console.log(`after process_includes:`);
-                            console.log('--------------------------------------------------------------------------------');
-                            console.log(`${inspect_fun(AST)}`);
-                          }
-                          
-                          // base_context.reset_temporaries(); // might not need to do this here after all?
+  if (print_after_ast_enabled) { 
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`after process_includes:`);
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`${inspect_fun(AST)}`);
+  }
+  
+  // base_context.reset_temporaries(); // might not need to do this here after all?
 
-                          console.log('--------------------------------------------------------------------------------');
-                          console.log(`Expansion${count > 1 ? "s" : ''}:`);
+  console.log('--------------------------------------------------------------------------------');
+  console.log(`Expansion${count > 1 ? "s" : ''}:`);
 
-                          let posted_count    = 0;
-                          let prior_expansion = null;
+  let posted_count    = 0;
+  let prior_expansion = null;
 
-                          while (posted_count < count) {
-                            console.log('--------------------------------------------------------------------------------');
-                            // console.log(`posted_count = ${posted_count}`);
+  while (posted_count < count) {
+    console.log('--------------------------------------------------------------------------------');
+    // console.log(`posted_count = ${posted_count}`);
 
-                            const context  = base_context.clone();
-                            const expanded = expand_wildcards(AST, context);
+    const context  = base_context.clone();
+    const expanded = expand_wildcards(AST, context);
 
-                            // expansion may have included files, copy the files list back to the base context.
-                            // ED: might not be needed here after all...
-                            // context_with_prelude.files = context.files;
-                            
-                            console.log(expanded);
+    // expansion may have included files, copy the files list back to the base context.
+    // ED: might not be needed here after all...
+    // context_with_prelude.files = context.files;
+    
+    console.log(expanded);
 
-                            if (!post) {
-                              posted_count += 1; // a lie to make the counter correct.
-                            }
-                            else {
-                              if (!confirm) {
-                                post_prompt(expanded);
-                                posted_count += 1;
-                              }
-                              else  {
-                                console.log();
+    if (!post) {
+      posted_count += 1; // a lie to make the counter correct.
+    }
+    else {
+      if (!confirm) {
+        post_prompt(expanded);
+        posted_count += 1;
+      }
+      else  {
+        console.log();
 
-                                const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
-                                      `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
-                                      `POST the prior prompt)? `;
-                                const answer = await ask(question);
+        const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
+              `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
+              `POST the prior prompt)? `;
+        const answer = await ask(question);
 
-                                if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
-                                  continue;
+        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
+          continue;
 
-                                if (answer.match(/^p.*/i)) {
-                                  if (prior_expansion) { 
-                                    console.log(`POSTing prior prompt '${expanded}'`);
-                                    post_prompt(prior_expansion);
-                                  }
-                                  else {
-                                    console.log(`can't rewind, no prior prompt`);
-                                  }
-                                }
-                                else {          
-                                  const parsed    = parseInt(answer);
-                                  const gen_count = isNaN(parsed) ? 1 : parsed;  
-                                  
-                                  // console.log(`parsed = '${parsed}', count = '${count}'`);
-                                  
-                                  for (let iix = 0; iix < gen_count; iix++) {
-                                    post_prompt(expanded);
-                                    posted_count += 1;
-                                  }
-                                }
-                              }
-                            }
+        if (answer.match(/^p.*/i)) {
+          if (prior_expansion) { 
+            console.log(`POSTing prior prompt '${expanded}'`);
+            post_prompt(prior_expansion);
+          }
+          else {
+            console.log(`can't rewind, no prior prompt`);
+          }
+        }
+        else {          
+          const parsed    = parseInt(answer);
+          const gen_count = isNaN(parsed) ? 1 : parsed;  
+          
+          // console.log(`parsed = '${parsed}', count = '${count}'`);
+          
+          for (let iix = 0; iix < gen_count; iix++) {
+            post_prompt(expanded);
+            posted_count += 1;
+          }
+        }
+      }
+    }
 
-                            prior_expansion = expanded;
-                          }
+    prior_expansion = expanded;
+  }
 
-                          console.log('--------------------------------------------------------------------------------');
+  console.log('--------------------------------------------------------------------------------');
 
-                          let json_str = `[false, null, {"foo": 123, "bar": 456}]`;
-                          console.log(inspect_fun(json.match(json_str)));
-                          console.log(JSON.stringify(json.match(json_str).value));
-                          json_str = `"bar.txt"`;
-                          console.log(inspect_fun(json.match(json_str)));
-                          console.log(JSON.stringify(json.match(json_str).value));
-                        }
+  let json_str = `[false, null, {"foo": 123, "bar": 456}]`;
+  console.log(inspect_fun(json.match(json_str)));
+  console.log(JSON.stringify(json.match(json_str).value));
+  json_str = `"bar.txt"`;
+  console.log(inspect_fun(json.match(json_str)));
+  console.log(JSON.stringify(json.match(json_str).value));
+}
 
-                        // ---------------------------------------------------------------------------------------
-                        main().catch(err => {
-                          console.error('Unhandled error:', err);
-                          process.exit(1);
-                        });
+// ---------------------------------------------------------------------------------------
+main().catch(err => {
+  console.error('Unhandled error:', err);
+  process.exit(1);
+});
