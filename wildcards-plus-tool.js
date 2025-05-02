@@ -4427,10 +4427,11 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        AnonWildcard, comment, ScalarReference,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-const Prompt                  = wst_star(choice(TopLevelDirective,
-                                                NamedWildcardDefinition,
-                                                ScalarAssignment,
-                                                Content));
+// const Prompt                  = wst_star(choice(TopLevelDirective,
+//                                                 NamedWildcardDefinition,
+//                                                 ScalarAssignment,
+//                                                 Content));
+const Prompt                  = wst_star(TopLevelDirective);
 // const Prompt                  = label('test', wst_seq('(', 'two', ')'));
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
