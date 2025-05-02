@@ -4368,7 +4368,7 @@ const NotFlag                 = xform((arr => {
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
 const tld_fun = arr => {
-  console.log(`TLD ARR: ${inspect_fun(arr)}`);
+  // console.log(`TLD ARR: ${inspect_fun(arr)}`);
   return new ASTTopLevelDirective(arr[0][0][1],
                                   arr[0][1].map(s => s.substring(1, s.length - 1)));
 };
