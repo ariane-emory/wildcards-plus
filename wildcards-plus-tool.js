@@ -1495,7 +1495,8 @@ const __make_wst_quantified_combinator_alt = base_combinator =>
         lws(base_combinator(tws(rule),
                             sep ? seq(sep, whites_star) : null)));
 const __make_wst_seq_combinator = base_combinator =>
-      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
+      //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
+      (...rules) => base_combinator(...rules.map(x => lws(x)));
 // ---------------------------------------------------------------------------------------
 const wst_choice      = (...options) => wse(choice(...options));
 const wst_star        = __make_wst_quantified_combinator(star);
@@ -4182,6 +4183,7 @@ function expand_wildcards(thing, context = make_context()) {
                       (typeof thing === 'object'
                        ? thing.constructor.name
                        : typeof thing) +
+                      ' ' +
                       inspect_fun(thing));
     }
   }
@@ -4353,15 +4355,15 @@ const tld_fun = arr => {
 };
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const TopLevelDirective       = xform(tld_fun,
-                                      seq('%',
-                                          ident,
-                                          cutting_enc('(',
-                                                      wst_star(choice(sq_string, dq_string), ','),
-                                              ')'),
-                                          /;s*|[\s\t]*\n/,
-                                         ));
-
+const TopLevelDirective       = label("TLD",
+                                      xform(tld_fun,
+                                            seq('%',
+                                                ident,
+                                                wst_cutting_enc('(',
+                                                                wst_star(choice(sq_string, dq_string), ','),
+                                                                ')'),
+                                                /;s*|[\s\t]*\n/,
+                                               )));
 const AnonWildcardOption      = xform(make_ASTAnonWildcardOption,
                                       seq(wst_star(choice(comment, TestFlag)),
                                           optional(wb_uint, 1),
@@ -4427,12 +4429,11 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        AnonWildcard, comment, ScalarReference,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-// const Prompt                  = wst_star(choice(TopLevelDirective,
-//                                                 NamedWildcardDefinition,
-//                                                 ScalarAssignment,
-//                                                 Content));
-const Prompt                  = wst_star(TopLevelDirective);
-// const Prompt                  = label('test', wst_seq('(', 'two', ')'));
+const Prompt                  = wst_star(choice(TopLevelDirective,
+                                                NamedWildcardDefinition,
+                                                ScalarAssignment,
+                                                Content));
+// const Prompt                  = wst_star(TopLevelDirective);
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // ---------------------------------------------------------------------------------------
