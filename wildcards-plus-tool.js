@@ -4681,7 +4681,8 @@ async function main() {
 
   AST = process_includes(AST, base_context).flat(Infinity);
 
-  // console.log(`after process_includes: ${inspect_fun(AST)}`);
+  //if (false)
+    console.log(`after process_includes: ${inspect_fun(AST)}`);
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
