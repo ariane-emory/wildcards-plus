@@ -901,7 +901,7 @@ class Sequence extends Rule {
   __match(indent, input, index) {
     const start_rule = input[0];
 
-    if (log_match_enabled)
+    // if (log_match_enabled)
       log(indent + 1, `matching sequence item #1 out of ` +
           `${this.elements.length}...`);
     
@@ -930,12 +930,12 @@ class Sequence extends Rule {
     if (last_match_result.value !== null)
       values.push(last_match_result.value);
     else if (log_match_enabled)
-      log(indent + 1, `discarding ${JSON.stringify(last_match_result)}!`);
+      log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
 
-    log(indent + 1, `discarding ${JSON.stringify(last_match_result)}!`);
+    log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
 
     for (let ix = 1; ix < this.elements.length; ix++) {
-      if (log_match_enabled)
+      // if (log_match_enabled)
         log(indent + 1, `matching sequence item #${ix} out of ` +
             `${this.elements.length}...`);
       
@@ -1722,13 +1722,13 @@ const json_fractionalPart = r(/\.[0-9]+/);
 const json_exponentPart = r(/[eE][+-]?\d+/);
 // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
 const json_number = xform(arr => {
-  console.log(`json_number ARR: ${inspect_fun(arr)}`);
+  // console.log(`json_number ARR: ${inspect_fun(arr)}`);
   return arr;
 },
                           seq(optional(json_minus),
                               xform(parseInt, json_integralPart), 
                               xform(arr => {
-                                console.log(`fractional part ARR: ${inspect_fun(arr)}`);
+                                // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
                                 return parseFloat(arr[0]);
                               }, optional(json_fractionalPart, 0.0)),
                               xform(parseInt, optional(json_exponentPart, 1))));
