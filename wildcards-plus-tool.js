@@ -1701,12 +1701,21 @@ const json = choice(() => json_object, () => json_array, () => json_string,
 // ( String ":" JSON ( "," String ":" JSON )*
 //   / S? ) 
 // "}"
-const json_object = wst_cutting_enc('{',
-                                    wst_star(
+const make_json_object = arr => {
+  const obj = {};
+
+  for (const pair of arr)
+    obj[pair[0]] = pair[1];
+  
+  return obj;
+};
+const json_object = xform(make_json_object,
+                          wst_cutting_enc('{',
+                                          wst_star(
                                       xform(arr => [arr[0], arr[2]],
                                             wst_seq(() => json_string, ':', json)),
                                       ','),
-                                    '}');
+                                          '}'));
 // Array ← "["
 // ( JSON ( "," JSON )*
 //   / S? )
@@ -1720,11 +1729,11 @@ const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
 // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
 const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
 // True ← "true"
-const json_true = l('true');
+const json_true = xform(x => true, l('true'));
 // False ← "false"
-const json_false = l('false');
+const json_false = xform(x => false, l('false'));
 // Null ← "null"
-const json_null = l('null');
+const json_null = xform(x => null, l('null'));
 // Minus ← "-"
 const json_minus = l('-');
 // IntegralPart ← "0" / [1-9] [0-9]*
