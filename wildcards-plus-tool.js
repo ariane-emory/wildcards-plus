@@ -255,7 +255,8 @@ class Rule {
     const ret = this.__match(indent, input, index);
 
     if (ret && ret?.value === undefined) {
-      throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}`);
+      throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
+                      `this is likely a programmer error`);
     }
     
     if (log_match_enabled) {
