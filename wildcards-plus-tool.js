@@ -367,10 +367,10 @@ class Quantified extends Rule {
     let match_result = this.rule.match(
       input, index, indent + 1);
 
-    if (! match_result)
+    if (match_result === null)
       return new MatchResult([], input, index);
 
-    if (match_result.value === '' || match_result.value)
+    // if (match_result.value === '' || match_result.value)
       values.push(match_result.value);
     
     update_index(match_result.index);
@@ -511,15 +511,15 @@ class Choice extends Rule  {
       const match_result = option.match(
         input, index, indent + 2);
 
-      if (match_result) {
-        if (log_match_enabled)
-          log(indent + 1, `Chose option #${ix}!`);
+      if (match_result !== null) {
+        // if (log_match_enabled)
+        log(indent + 1, `Chose option #${ix}!`);
         
         return match_result;
       }
 
-      if (log_match_enabled)
-        log(indent + 1, `Rejected option #${ix}.`);
+      /// if (log_match_enabled)
+      log(indent + 1, `Rejected option #${ix}.`);
 
     }
 
@@ -907,7 +907,7 @@ class Sequence extends Rule {
 
     // if (log_match_enabled)
     log(indent + 1, `matching sequence item #1 out of ` +
-        `${this.elements.length}...`);
+        `${this.elements.length}: ${this.elements[0]}...`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2);
@@ -944,7 +944,7 @@ class Sequence extends Rule {
     for (let ix = 1; ix < this.elements.length; ix++) {
       // if (log_match_enabled)
         log(indent + 1, `matching sequence item #${ix} out of ` +
-            `${this.elements.length}...`);
+            `${this.elements.length}: ${this.elements[ix]}...`);
       
       const element = this.elements[ix];
 
@@ -1738,7 +1738,8 @@ const json_true = xform(x => true, l('true'));
 const json_false = xform(x => {
   console.log('RETURNING JSON FALSE');
   
-  return false; },
+  return false;
+},
                          l('false'));
 // Null ← "null"
 const json_null = xform(x => null, l('null'));
