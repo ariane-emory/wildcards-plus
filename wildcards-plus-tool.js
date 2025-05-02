@@ -4635,7 +4635,7 @@ const NotFlag                 = xform((arr => {
                                           ident, /(?=\s|[{|}]|$)/));
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
-const tld_fun = arr => new ASTSpecialFunction(arr[0][1], arr[1]);
+const tld_fun = arr => new ASTSpecialFunction(arr[0][1], ...arr.slice(1));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
