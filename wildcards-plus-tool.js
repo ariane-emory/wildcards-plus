@@ -844,7 +844,7 @@ class Optional extends Rule {
       index,
       indent + 1);
 
-    if (! match_result)
+    if (match_result === null)
       return new MatchResult((this.default_value || this.default_value === '')
                              ? [ this.default_value ]
                              : [],
