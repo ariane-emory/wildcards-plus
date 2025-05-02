@@ -1750,7 +1750,7 @@ const json_object = xform(arr =>  Object.fromEntries(arr),
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
 const json_array_with_comments = wst_cutting_enc('[', wst_star(choice(c_block_comment,
                                                                       c_line_comment,
-                                                                      json), ','), ']');
+                                                                      json_with_comments), ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -1795,6 +1795,7 @@ const json_number = xform(reify_json_number,
 const json_S = whites_plus;
 // ---------------------------------------------------------------------------------------
 json.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
+json_with_comments.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
 // =======================================================================================
 
 
@@ -4915,10 +4916,12 @@ async function main() {
   console.log(JSON.stringify(json.match(json_str).value));
 
   console.log("THIS ONE:");
-  json_str = `[1, 2, /* foo */ 3]`;
-  // console.log(`matched: ${inspect_fun(json_array.match(json_str))}`);
+  json_str = `
+[1, 2, /* comment */ 3]
+`;
+  log_match_enabled = true;
   console.log(`matched: ${inspect_fun(json_array_with_comments.match(json_str))}`);
-  console.log(`matched (as JSON): ${JSON.stringify(json_array.match(json_str))}`);
+  // console.log(`matched (as JSON): ${JSON.stringify(json_array.match(json_str))}`);
 
 }
 
