@@ -4213,10 +4213,10 @@ function expand_wildcards(thing, context = new Context()) {
     } 
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
-      if (context.named_wildcards.has(thing.destination.name))
+      if (context.named_wildcards.has(thing.destination))
         console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
 
-      context.named_wildcards.set(thing.destination.name, thing.wildcard);
+      context.named_wildcards.set(thing.destination, thing.wildcard);
 
       return '';
     }
@@ -4542,8 +4542,7 @@ const NamedWildcardReference        = xform(seq(discard('@'),
                                                                                    min_ct,
                                                                                    max_ct);
                                             });
-const NamedWildcardDesignator = xform(second(seq('@', ident)),
-                                      ident => new ASTNamedWildcardReference(ident));
+const NamedWildcardDesignator = second(seq('@', ident));                                      
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
                                       wst_seq(NamedWildcardDesignator,
                                               assignment_operator,
@@ -4681,7 +4680,7 @@ async function main() {
 
   AST = process_includes(AST, base_context).flat(Infinity);
 
-  //if (false)
+  if (false) // comment to see AST...
     console.log(`after process_includes: ${inspect_fun(AST)}`);
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
