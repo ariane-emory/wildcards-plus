@@ -603,8 +603,6 @@ class Element extends Rule {
       return null;
 
     if (log_match_enabled) {
-      // throw new Error("bang");
-      
       log(indent, `taking elem ${this.index} from ` +
           `${JSON.stringify(rule_match_result)}'s value.`);
     }
