@@ -849,6 +849,10 @@ class Optional extends Rule {
                                  ? [ this.default_value ]
                                  : [],
                                  input, index)
+
+      if (log_match_enabled)
+        log(indent, `returning default ${inspect_fun(mr)}`);
+
       return mr;
     }
     
