@@ -4538,7 +4538,7 @@ async function main() {
   // ---------------------------------------------------------------------------------------
   const result = Prompt.match(prompt_input);
 
-  // if (false)
+  if (false)
   {
     console.log(`result: ${inspect_fun(result.value)}`);
     console.log(`result (JSON): ${JSON.stringify(result.value)}`);
