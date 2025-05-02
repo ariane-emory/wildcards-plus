@@ -4026,7 +4026,7 @@ function process_includes(thing, context = new Context()) {
         filename = path.join(path.dirname(current_file), filename);
         
         if (context.files.includes(filename)) {
-          console(`WARNING: skipping duplicate include of '${filename}'.`);
+          console.log(`WARNING: skipping duplicate include of '${filename}'.`);
           continue;
         }
 
