@@ -1702,7 +1702,11 @@ const json = choice(() => json_object, () => json_array, () => json_string,
 //   / S? )
 // "}"
 const json_object = wst_cutting_enc('{',
-                                    wst_star(wst_seq(() => json_string, ':', json), ','),
+                                    wst_star(
+                                      xform(arr => [arr[0].substring(1, arr[0].length - 1),
+                                                    arr[2]],
+                                            wst_seq(() => json_string, ':', json)),
+                                      ','),
                                     '}');
 // Array ← "["
 // ( JSON ( "," JSON )*
