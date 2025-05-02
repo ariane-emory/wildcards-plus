@@ -848,7 +848,7 @@ class Optional extends Rule {
       const mr = new MatchResult(this.default_value !== null
                                  ? [ this.default_value ]
                                  : [],
-                                 input, index)
+                                 input, index);
 
       if (log_match_enabled)
         log(indent, `returning default ${inspect_fun(mr)}`);
