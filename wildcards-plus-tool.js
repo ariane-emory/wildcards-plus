@@ -1703,14 +1703,14 @@ const json_null = l('null');
 // Minus ← "-"
 const json_minus = l('-');
 // IntegralPart ← "0" / [1-9] [0-9]*
-const json_integnalPart = r(/0|[1-9][0-9]*/);
+const json_integralPart = r(/0|[1-9][0-9]*/);
 // FractionalPart ← "." [0-9]+
 const json_fractionalPart = r(/\.[0-9]+/);
 // ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
 const json_exponentPart = r(/[eE][+-]?\d+/);
 // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
 const json_number = seq(optional(json_minus),
-                        json_integnalPart,
+                        json_integralPart,
                         optional(json_fractionalPart),
                         optional(json_exponentPart));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
