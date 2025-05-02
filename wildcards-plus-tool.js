@@ -3001,7 +3001,8 @@ const prelude_text = `
     }
 
     // The matching list of styles:
-    @wizards_artist_styles := {
+    @wizards_artist_styles   := { @#__wizards_artist_styles @__wizards_artist_styles }
+    @__wizards_artist_styles := {
       ?artist__zacharias_martin_aagaard landscapes, Observational, painting, Romanticism, Slice-of-life |
       ?artist__slim_aarons fashion, luxury, nostalgia, pastel-colors, photography, photography-color, social-commentary |
       ?artist__elenore_abbott art-nouveau, dream-like, ethereal, femininity, mythology, pastel-colors, romanticism, watercolor |
