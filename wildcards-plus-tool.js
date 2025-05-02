@@ -4635,7 +4635,7 @@ const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag)
 const tld_fun = arr =>
       new ASTSpecialFunction(arr[0][1],
                              arr[1]
-                             .map(s => unescape(s.substring(1, s.length - 1))));
+                             .map(s => unescape(s)));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
