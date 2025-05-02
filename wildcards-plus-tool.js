@@ -4009,248 +4009,247 @@ function load_prelude(into_context = new Context()) {
 // =======================================================================================
 // the AST-walking function that I'll be using for the SD prompt grammar's output:
 // =======================================================================================
-function walk(thing, context) {
-  // -----------------------------------------------------------------------------------
-  // basic types (strings and Arrays):
-  // -----------------------------------------------------------------------------------
-  if (typeof thing === 'string')
-    return thing
-  else if (Array.isArray(thing)) {
-    // return thing.map(x => walk(x, context));
-    
-    const ret = [];
-
-    for (const t of thing) {
-      if (context.noisy)
-        console.log(`WALKING ` +
-                    typeof t === 'object'
-                    ? inspect_fun(t)
-                    : `${typeof t} '${t}'`);
+function expand_wildcards(thing, context = new Context()) {
+  function walk(thing, context) {
+    // -----------------------------------------------------------------------------------
+    // basic types (strings and Arrays):
+    // -----------------------------------------------------------------------------------
+    if (typeof thing === 'string')
+      return thing
+    else if (Array.isArray(thing)) {
+      // return thing.map(x => walk(x, context));
       
-      const val = walk(t, context);
+      const ret = [];
 
-      ret.push(val);
-    }
+      for (const t of thing) {
+        if (context.noisy)
+          console.log(`WALKING ` +
+                      typeof t === 'object'
+                      ? inspect_fun(t)
+                      : `${typeof t} '${t}'`);
+        
+        const val = walk(t, context);
 
-    return ret;
-  }
-  // -----------------------------------------------------------------------------------
-  // Flags:
-  // -----------------------------------------------------------------------------------
-  else if (thing instanceof ASTSetFlag) {
-    // console.log(`SET FLAG '${thing.name}'.`);
-    
-    context.flags.add(thing.name);
-
-    return ''; // produce nothing
-  }
-  // -----------------------------------------------------------------------------------
-  // References:
-  // -----------------------------------------------------------------------------------
-  else if (thing instanceof ASTNamedWildcardReference) {
-    const got = context.named_wildcards.get(thing.name);
-
-    if (!got)
-      return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
-
-    const res = [ walk(got, context) ];
-
-    if (thing.capitalize)
-      res[0] = capitalize(res[0]);
-
-    const count = rand_int(thing.min_count, thing.max_count);
-    
-    for (let ix = 1; ix < count; ix++) {
-      let val = walk(got, context);
-      
-      for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
-        if (! res.includes(val))
-          break;
-
-        val = walk(got, context);
+        ret.push(val);
       }
 
-      res.push(val);
+      return ret;
     }
+    // -----------------------------------------------------------------------------------
+    // Flags:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSetFlag) {
+      // console.log(`SET FLAG '${thing.name}'.`);
+      
+      context.flags.add(thing.name);
 
-    return thing.join == ','
-      ? res.join(", ")
-      : (thing.join == '&'
-         ? pretty_list(res)
-         : res.join(" "));
-  }
-  // -----------------------------------------------------------------------------------
-  else if (thing instanceof ASTScalarReference) {
-    let got = context.scalar_variables.get(thing.name) ??
-        `SCALAR '${thing.name}' NOT FOUND}`;
+      return ''; // produce nothing
+    }
+    // -----------------------------------------------------------------------------------
+    // References:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTNamedWildcardReference) {
+      const got = context.named_wildcards.get(thing.name);
 
-    if (thing.capitalize)
-      got = capitalize(got);
+      if (!got)
+        return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
-    return got;
-  }
-  // -----------------------------------------------------------------------------------
-  // NamedWildcards:
-  // -----------------------------------------------------------------------------------
-  else if (thing instanceof ASTLatchNamedWildcard) {
-    const got = context.named_wildcards.get(thing.name);
-    
-    if (!got)
-      return `ERROR: Named wildcard ${thing.name} not found!`;
+      const res = [ walk(got, context) ];
 
-    if (got instanceof ASTLatchedNamedWildcardedValue) {
+      if (thing.capitalize)
+        res[0] = capitalize(res[0]);
+
+      const count = rand_int(thing.min_count, thing.max_count);
+      
+      for (let ix = 1; ix < count; ix++) {
+        let val = walk(got, context);
+        
+        for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
+          if (! res.includes(val))
+            break;
+
+          val = walk(got, context);
+        }
+
+        res.push(val);
+      }
+
+      return thing.join == ','
+        ? res.join(", ")
+        : (thing.join == '&'
+           ? pretty_list(res)
+           : res.join(" "));
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTScalarReference) {
+      let got = context.scalar_variables.get(thing.name) ??
+          `SCALAR '${thing.name}' NOT FOUND}`;
+
+      if (thing.capitalize)
+        got = capitalize(got);
+
+      return got;
+    }
+    // -----------------------------------------------------------------------------------
+    // NamedWildcards:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTLatchNamedWildcard) {
+      const got = context.named_wildcards.get(thing.name);
+      
+      if (!got)
+        return `ERROR: Named wildcard ${thing.name} not found!`;
+
+      if (got instanceof ASTLatchedNamedWildcardedValue) {
+        if (context.noisy)
+          console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
+
+        return '';
+      }
+
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
+
       if (context.noisy)
-        console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
+        console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+      
+      context.named_wildcards.set(thing.name, latched);
 
       return '';
     }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTUnlatchNamedWildcard) {
+      let got = context.named_wildcards.get(thing.name);
 
-    const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
+      if (!got)
+        return `ERROR: Named wildcard ${thing.name} not found!`;
 
-    if (context.noisy)
-      console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
-    
-    context.named_wildcards.set(thing.name, latched);
+      if (! (got instanceof ASTLatchedNamedWildcardedValue))
+        throw new Error(`NOT LATCHED: '${thing.name}'`);
 
-    return '';
-  }
-  // -----------------------------------------------------------------------------------
-  else if (thing instanceof ASTUnlatchNamedWildcard) {
-    let got = context.named_wildcards.get(thing.name);
+      context.named_wildcards.set(thing.name, got.original_value);
 
-    if (!got)
-      return `ERROR: Named wildcard ${thing.name} not found!`;
+      if (context.noisy)
+        console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
 
-    if (! (got instanceof ASTLatchedNamedWildcardedValue))
-      throw new Error(`NOT LATCHED: '${thing.name}'`);
+      return ''; // produce no text.
+    } 
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTNamedWildcardDefinition) {
+      if (context.named_wildcards.has(thing.destination.name))
+        console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
 
-    context.named_wildcards.set(thing.name, got.original_value);
+      context.named_wildcards.set(thing.destination.name, thing.wildcard);
 
-    if (context.noisy)
-      console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
-
-    return ''; // produce no text.
-  } 
-  // -----------------------------------------------------------------------------------
-  else if (thing instanceof ASTNamedWildcardDefinition) {
-    if (context.named_wildcards.has(thing.destination.name))
-      console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
-
-    context.named_wildcards.set(thing.destination.name, thing.wildcard);
-
-    return '';
-  }
-  // -----------------------------------------------------------------------------------
-  // internal objects:
-  // -----------------------------------------------------------------------------------
-  else if (thing instanceof ASTLatchedNamedWildcardedValue) {
-    return thing.latched_value;
-  }
-  // -----------------------------------------------------------------------------------
-  // scalar assignment:
-  // -----------------------------------------------------------------------------------
-  else if (thing instanceof ASTScalarAssignment) {
-    if (context.noisy) {
-      console.log();
-      console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
-                  `TO '${thing.destination.name}'`);
+      return '';
     }
-
-    const val = walk(thing.source, context);
-
-    if (context.noisy)
-      console.log(`ASSIGNED ${inspect_fun(val)} TO "${thing.destination.name}'`);
-    
-    context.scalar_variables.set(thing.destination.name, val);
-
-    if (context.noisy)
-      console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
-    
-    return '';
-  }
-  // -----------------------------------------------------------------------------------
-  // AnonWildcards:
-  // -----------------------------------------------------------------------------------
-  else if (thing instanceof ASTAnonWildcard) {
-    const new_picker = new WildcardPicker();
-
-    for (const option of thing.options) {
-      let skip = false;
-
-      // if (option.not_flags.length > 1)
-      //   console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
-      
-      for (const not_flag of option.not_flags) {
-        // console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
-
-        if (context.flags.has(not_flag.name)) {
-          // console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
-          skip = true;
-          break;
-        }
+    // -----------------------------------------------------------------------------------
+    // internal objects:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTLatchedNamedWildcardedValue) {
+      return thing.latched_value;
+    }
+    // -----------------------------------------------------------------------------------
+    // scalar assignment:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTScalarAssignment) {
+      if (context.noisy) {
+        console.log();
+        console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
+                    `TO '${thing.destination.name}'`);
       }
 
-      if (skip)
-        continue;
-      
-      for (const check_flag of option.check_flags) {
-        // if (context.noisy)
-        //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
+      const val = walk(thing.source, context);
 
-        let found = false;
+      if (context.noisy)
+        console.log(`ASSIGNED ${inspect_fun(val)} TO "${thing.destination.name}'`);
+      
+      context.scalar_variables.set(thing.destination.name, val);
+
+      if (context.noisy)
+        console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    // AnonWildcards:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTAnonWildcard) {
+      const new_picker = new WildcardPicker();
+
+      for (const option of thing.options) {
+        let skip = false;
+
+        // if (option.not_flags.length > 1)
+        //   console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
         
-        for (const name of check_flag.names) {
-          // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
-          
-          if (context.flags.has(name)) {
-            // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
-            found = true;
+        for (const not_flag of option.not_flags) {
+          // console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
+
+          if (context.flags.has(not_flag.name)) {
+            // console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
+            skip = true;
             break;
           }
         }
 
-        if (!found) {
-          skip = true;
-          break;
+        if (skip)
+          continue;
+        
+        for (const check_flag of option.check_flags) {
+          // if (context.noisy)
+          //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
+
+          let found = false;
+          
+          for (const name of check_flag.names) {
+            // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
+            
+            if (context.flags.has(name)) {
+              // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
+              found = true;
+              break;
+            }
+          }
+
+          if (!found) {
+            skip = true;
+            break;
+          }
         }
+
+        if (skip)
+          continue;
+
+        new_picker.add(option.weight, option.body);
       }
 
-      if (skip)
-        continue;
+      if (new_picker.options.length == 0)
+        return '';
+      
+      const pick = new_picker.pick();
 
-      new_picker.add(option.weight, option.body);
+      // console.log(`PICKED ${inspect_fun(pick)}`);
+      
+      return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
+      // return walk(pick, context);
     }
-
-    if (new_picker.options.length == 0)
-      return '';
-    
-    const pick = new_picker.pick();
-
-    // console.log(`PICKED ${inspect_fun(pick)}`);
-    
-    return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
-    // return walk(pick, context);
+    // -----------------------------------------------------------------------------------
+    // TLDs, not yet implemented:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunction) {
+      console.log(`IGNORING ${inspect_fun(thing)}`);
+    }
+    // -----------------------------------------------------------------------------------
+    // error case, unrecognized objects:
+    // -----------------------------------------------------------------------------------
+    else {
+      throw new Error(`confusing thing: ` +
+                      (typeof thing === 'object'
+                       ? thing.constructor.name
+                       : typeof thing) +
+                      ' ' +
+                      inspect_fun(thing));
+    }
   }
-  // -----------------------------------------------------------------------------------
-  // TLDs, not yet implemented:
-  // -----------------------------------------------------------------------------------
-  else if (thing instanceof ASTSpecialFunction) {
-    console.log(`IGNORING ${inspect_fun(thing)}`);
-  }
-  // -----------------------------------------------------------------------------------
-  // error case, unrecognized objects:
-  // -----------------------------------------------------------------------------------
-  else {
-    throw new Error(`confusing thing: ` +
-                    (typeof thing === 'object'
-                     ? thing.constructor.name
-                     : typeof thing) +
-                    ' ' +
-                    inspect_fun(thing));
-  }
-}
-// ---------------------------------------------------------------------------------------
-function expand_wildcards(thing, context = new Context()) {
   return smart_join(walk(thing, context).flat(Infinity).filter(s => s !== ''));
 }
 // ---------------------------------------------------------------------------------------
@@ -4503,7 +4502,7 @@ const PromptBody              = wst_star(choice(NamedWildcardDefinition,
                                                 Content));
 const Prompt                  = (dt_hosted
                                  ? PromptBody
-                                 : xform(arr => arr, // .flat(1),
+                                 : xform(arr => arr.flat(1),
                                          wst_seq(
                                            wst_star(SpecialFunction),
                                            PromptBody)));
@@ -4603,20 +4602,13 @@ async function main() {
   if (! result.is_finished)
     throw new Error("error parsing prompt!");
 
-  const base_context           = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
-  const SpecialFunctions       = result.value[0];
-  const AST                    = result.value[1];
-  const specialFunctionResults = [];
+  const base_context = load_prelude(new Context({files: from_stdin ? [] : args[0]}));
+  const AST          = result.value;
   
-  for (specialFunction of SpecialFunctions) {
-    // handle includes in SpecialFunctions, updating files.
-    specialFunctionResults.push(walk(specialFunction, base_context));
-  }
-
-  // bodge result back onto AST here?
-  AST.unshift(...specialFunctionResults);
+  // do some new special walk over AST to handle includes in SpecialFunctions,
+  // updating files as we and bodging result back onto AST?
   
-  base_context.reset_temporaries();
+  base_context.reset_temporaries(); // might not need to do this after all?
 
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
