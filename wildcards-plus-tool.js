@@ -4607,8 +4607,13 @@ async function main() {
   const SpecialFunctions = result.value[0];
   const AST              = result.value[1];
 
-  // handle any includes in SpecialFunctions, updting files and bodging result back onto AST here?
-  
+  for (specialFunction of SpecialFunctions) {
+    // handle includes in SpecialFunctions, updating files and bodging result back onto AST here?
+    expand_wildcards(specialFunction, base_context);
+  }
+
+  base_context.reset_temporaries();
+
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
 
