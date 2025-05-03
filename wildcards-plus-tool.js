@@ -4710,11 +4710,14 @@ const make_special_function = rule =>
 // other non-terminals:
 const SpecialFunctionInclude       = make_special_function('include');
 const SpecialFunctionConfigure     = make_special_function('configure');
+const SpecialFunctionConfiguration = make_special_function('configuration');
 // const SpecialFunctionName     = choice('include', 'fake', 'configure'); // choice('include', 'models');
 // const SpecialFunction         = xform(tld_fun,
 //                                       c_funcall(second(seq('%', SpecialFunctionName)),
 //                                                 jsonc));
-const SpecialFunction              = choice(SpecialFunctionInclude, SpecialFunctionConfigure);
+const SpecialFunction              = choice(SpecialFunctionInclude,
+                                            SpecialFunctionConfigure,
+                                            SpecialFunctionConfiguration);
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                optional(wb_uint, 1),
@@ -4782,6 +4785,7 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionConfigure,
+                                       SpecialFunctionConfiguration,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
