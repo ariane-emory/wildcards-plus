@@ -65,7 +65,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   if (log_config)
     console.log(`post_prompt got config: ${JSON.stringify(config)}.`);
 
-  config = munge_config(config);
+  // config = munge_config(config);
   
   let data = {
     prompt: prompt,
@@ -2117,7 +2117,7 @@ function munge_config(config) {
   }
 
   if (log_config)
-    console.log(`Munged config:          ${JSON.stringify(config)}.`);
+    console.log(`Munged config:    ${JSON.stringify(config)}.`);
 
   return config;
 }
@@ -5052,7 +5052,7 @@ async function main() {
 
     const context  = base_context.clone();
     const expanded = expand_wildcards(AST, context);
-    const config   = context.config;
+    const config   = munge_config(context.config);
 
     if (log_config && ! is_empty_object(config))
       console.log(`Main loop got config: ${JSON.stringify(config)} from Context.`);
