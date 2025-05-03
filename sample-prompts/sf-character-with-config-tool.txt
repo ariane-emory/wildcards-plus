@@ -17,9 +17,7 @@
    | 3 %config({ "width": 640, "height": 640 })
    }
 
-| %config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 768, "height": 384 })
-| %config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 768, "height": 384 })
-| %config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 768, "height": 384 })
+
 | %config.model("bookIllustrationChar_v10.ckpt")
 | %config.model("challengexlv10yoursecret_v10_f16.ckpt")
 | %config.model("cyberrealisticpony_v10_clip_vit_l14_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
