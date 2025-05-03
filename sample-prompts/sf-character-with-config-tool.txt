@@ -16,7 +16,7 @@
 
 | 2 // use various SDXL models two times in three:
 
-  // 30, 40 or 45 steps, equally likely:
+  // 35, 40 or 45 steps, equally likely:
   { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
 
   // two possible resolutions, use the first more often:
