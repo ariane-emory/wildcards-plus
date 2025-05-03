@@ -6,3 +6,21 @@ Content-Type: application/json
   "seed": 1793191902,
   "model":"oldmaster_v30_f16.ckpt"
 }
+
+POST http://127.0.0.1:7860/sdapi/v1/txt2img
+Content-Type: application/json
+{
+  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
+  "steps": 10,
+  "seed": 1793191902,
+  "model":"bookIllustrationChar_v10"
+}
+
+POST http://127.0.0.1:7860/sdapi/v1/txt2img
+Content-Type: application/json
+{
+  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
+  "steps": 10,
+  "seed": 1793191902
+}
+
