@@ -1887,6 +1887,89 @@ function smart_join(arr) {
 
 
 // =======================================================================================
+// HELPER FUNCTION FOR MUNGING THE CONFIGURATION:
+// =======================================================================================
+// var values adapted from the file config.fbs in
+// https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
+const dt_samplers = [   // order is significant, do not rearrange!
+  'DPM++ 2M Karras',    // 0
+  'Euler a',            // 1
+  'DDIM',               // 2
+  'PLMS',               // 3
+  'DPM++ SDE Karras',   // 4
+  'UniPC',              // 5
+  'LCM',                // 6
+  'Euler A Substep',    // 7
+  'DPM++ SDE Substep',  // 8
+  'TCD',                // 9
+  'Euler A Trailing',   // 10
+  'DPM++ SDE Trailing', // 11
+  'DPM++ 2M AYS',       // 12
+  'Euler A AYS',        // 13
+  'DPM++ SDE AYS',      // 14
+  'DPM++ 2M Trailing',  // 15
+  'DDIM Trailing',      // 16
+];
+// ---------------------------------------------------------------------------------------
+const key_names = [
+  // [ automatic1111's name,  Draw Things' name ],
+  [ 'cfg_scale',             'guidanceScale'       ],
+  [ 'denoising_strength',    'strength'            ],
+  [ 'firstphase_height',     'higresFixHeight'     ],
+  [ 'firstphase_width',      'higresFixWidth'      ],
+  [ 'n_iter',                'batchCount'          ],
+  [ 'upscaler_scale_factor', 'upscalerScaleFactor' ],
+];
+// ---------------------------------------------------------------------------------------
+function munge_config(config) {
+  config = { ...config };
+  
+  if (dt_hosted) { // running in DT, sampler needs to be an index:
+    if (config.sampler && typeof config.sampler === 'string') {
+      console.log(`Correcting config.sampler = ${config.sampler} to ` +
+                  `${dt_samplers.indexOf(config.sampler)}.`);
+      config.sapler = dt_samplers.indexOf(config.sampler);
+    }
+
+    for (const [automatic1111_name, dt_name] of key_names) {
+      if (config[automatic1111_name] !== undefined) {
+        console.log(`Correcting config.${automatic1111_name} = ` +
+                    `${config[automatic1111_name]} to ` +
+                    `config.${dt_name} = ${config[automatic1111_name]}.`);
+        config[dt_name] = config[automatic1111_name];
+        delete config[automatic1111_name];
+      }
+    }
+  }
+  else { // running in Node.js, sampler needs to be a string:
+    if (config.sampler && typeof config.sampler ===  'number') {
+      console.log(`Correcting config.sampler = ${config.sampler} to ` +
+                  `${inspect_fun(dt_samplers[config.sampler])}.`);
+      config.sampler = dt_samplers[config.sampler];
+    }
+
+    for (const [automatic1111_name, dt_name] of key_names) {
+      if (config[dt_name] !== undefined) {
+        console.log(`Correcting config.${dt_name} = ` +
+                    `${config[dt_name]} to ` +
+                    `config.${automatic1111_name} = ${config[dt_name]}.`);
+        config[automatic1111_name] = config[dt_name];
+        delete config[dt_name];
+      }
+    }
+  }
+
+  if (log_config)
+    console.log(`Munged config:    ${JSON.stringify(config)}.`);
+
+  return config;
+}
+// =======================================================================================
+// END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
+// =======================================================================================
+
+
+// =======================================================================================
 // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
 // =======================================================================================
 class Context {
@@ -4381,7 +4464,7 @@ function expand_wildcards(thing, context = new Context()) {
       context.config = { ...context.config, ...config };
 
       if (log_config)
-        console.log(`UPDATED CONFIG TO ${JSON.stringify(context.config)}`);
+        console.log(`Updated config to ${JSON.stringify(context.config)}`);
       
       return '';
     } 
@@ -4394,13 +4477,13 @@ function expand_wildcards(thing, context = new Context()) {
       context.config = config;
 
       if (log_config)
-        console.log(`SET CONFIG TO ${JSON.stringify(config)}`);
+        console.log(`Set config to ${JSON.stringify(config)}`);
       
       return '';
     } 
     else if (thing instanceof ASTSpecialFunction) {
       // console.log(`IGNORING ${inspect_fun(thing)}`);
-      console.log(`IGNORING ${JSON.stringify(thing)}`);
+      console.log(`IGNORING UNIMPLEMENTED SpecialFunction: ${JSON.stringify(thing)}`);
     }
     // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
