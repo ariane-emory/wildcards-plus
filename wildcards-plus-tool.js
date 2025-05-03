@@ -4864,11 +4864,14 @@ const SFUpdateConfigurationUnary   = xform(wst_seq('%config',            // 0
                                                                          [arr[2]]));
 const SFSetConfiguration           = xform(wst_seq('%config',            // 0
                                                    DiscardedComments,    // -
-                                                   assignment_operator,  // 1
+                                                   assignment_operator,  // -
                                                    DiscardedComments,    // -
-                                                   jsonc_object),        // 2
-                                           arr => { return new ASTSpecialFunction('set-config',
-                                                                                  [arr[1]]); });
+                                                   jsonc_object),        // 1
+                                           arr => {
+                                             console.log(`SFSC ARR: ${inspect_fun(arr)}`);
+                                             
+                                             return new ASTSpecialFunction('set-config',
+                                                                           [arr[1]]); });
 const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
                                             SFUpdateConfigurationBinary);
 const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
