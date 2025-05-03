@@ -4824,7 +4824,7 @@ if (uiPrompt.includes('{') && uiPrompt.includes('}')) {
 // ---------------------------------------------------------------------------------------
 // UI:
 // ---------------------------------------------------------------------------------------
-const docString = `Wildcards Plus v0.6 by ariane-emory (based on wetcircuit's original wildcard.js script)
+const docString = `Wildcards Plus v0.7 by ariane-emory (based on @wetcircuit's original wildcard.js script)
 
 Generate a batch of images using inline wildcards to randomize elements within the prompt.
 
