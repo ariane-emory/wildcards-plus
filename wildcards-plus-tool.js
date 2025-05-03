@@ -2074,6 +2074,19 @@ const dt_samplers = [
 function munge_config(config) {
   config = { ...config };
   
+  if (dt_hosted) { // running in DT, sampler needs to be an index:
+    if (config.samples && typeof config.sampler === 'string') {
+      const sampler = dt_samplers.indexOf(config.sampler);
+    }
+  }
+  else { // running in Node.js, sampler needs to be a string:
+    if (config.sampler && typeof config.sampler ===  'number') {
+      console.log(`Correcting config.sampler = ${config.sampler} to ` +
+                  `${dt_samplers[config.sampler]}.`);
+      config.sampler = dt_samplers[config.sampler];
+    }
+  }
+
   return config;
 }
 // =======================================================================================
