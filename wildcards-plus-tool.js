@@ -62,7 +62,7 @@ function parse_file(filename) {
 function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   console.log("POSTing!");
 
-  if (log_config)
+  if (log_config_enabled)
     console.log(`post_prompt got config: ${JSON.stringify(config)}.`);
 
   let data = {
@@ -73,7 +73,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   data = { ...data, ...config };
   const string_data = JSON.stringify(data);
 
-  if (log_config)
+  if (log_config_enabled)
     console.log(`POST data is ${JSON.stringify(data)}.`);
 
   const options = {
@@ -231,7 +231,7 @@ if (false)
 // ---------------------------------------------------------------------------------------
 let string_input_mode_enabled = true;
 let log_enabled               = true;
-let log_config                = true;
+let log_config_enabled        = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
@@ -2115,7 +2115,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     }
   }
 
-  if (log_config)
+  if (log_config_enabled)
     console.log(`Munged config:    ${JSON.stringify(config)}.`);
 
   return config;
@@ -4621,7 +4621,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       context.config = { ...context.config, ...config };
 
-      if (log_config)
+      if (log_config_enabled)
         console.log(`Updated config to ${JSON.stringify(context.config)}`);
       
       return '';
@@ -4635,7 +4635,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       context.config = config;
 
-      if (log_config)
+      if (log_config_enabled)
         console.log(`Set config to ${JSON.stringify(config)}`);
       
       return '';
@@ -5090,7 +5090,7 @@ async function main() {
     const expanded = expand_wildcards(AST, context);
     const config   = munge_config(context.config);
 
-    if (log_config && ! is_empty_object(config))
+    if (log_config_enabled && ! is_empty_object(config))
       console.log(`Main loop got config: ${JSON.stringify(config)} from Context.`);
     
     // expansion may have included files, copy the files list back to the base context.
