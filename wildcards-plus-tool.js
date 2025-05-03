@@ -223,7 +223,7 @@ if (false)
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_finalize_enabled      = false;
-let log_match_enabled         = false;
+let log_match_enabled         = true;
 let disable_prelude           = false;
 let print_before_ast_enabled  = true;
 let print_after_ast_enabled   = false;
@@ -4948,30 +4948,29 @@ async function main() {
 
   let json_str = '';
 
-  json_str = `[false, null, {"foo": 123, "bar": 456}]`;
-  console.log(inspect_fun(json.match(json_str)));
-  console.log(JSON.stringify(json.match(json_str).value));
+  // json_str = `[false, null, {"foo": 123, "bar": 456}]`;
+  // console.log(inspect_fun(json.match(json_str)));
+  // console.log(JSON.stringify(json.match(json_str).value));
 
-  json_str = `"bar.txt"`;
-  console.log(inspect_fun(json.match(json_str)));
+  // json_str = `"bar.txt"`;
+  // console.log(inspect_fun(json.match(json_str)));
   console.log(JSON.stringify(json.match(json_str).value));
 
   console.log("\nTHIS ONE:");
   json_str = `
-[1, 2, /* comment */ 3]
+[1, null, ]
 `;
-
 
   console.log(`matched: ${inspect_fun(jsonc_array.match(json_str))}`);
-  // console.log(`matched (as JSON): ${JSON.stringify(json_array.match(json_str))}`);
+  console.log(`matched (as JSON): ${JSON.stringify(json_array.match(json_str))}`);
 
-  // log_match_enabled = true;
-  console.log("\nTHIS ONE 2:");
-  json_str = `
-/* a comment */ {"foo": 123, /* comment 2 */ "bar"//another comment
-: 456}
-`;
-  console.log(`matched: ${inspect_fun(jsonc.match(json_str))}`);  
+  //   // log_match_enabled = true;
+  //   console.log("\nTHIS ONE 2:");
+  //   json_str = `
+  // /* a comment */ {"foo": 123, /* comment 2 */ "bar"//another comment
+  // : 456}
+  // `;
+  //   console.log(`matched: ${inspect_fun(jsonc.match(json_str))}`);  
 }
 
 // ---------------------------------------------------------------------------------------
