@@ -1,0 +1,341 @@
+// maybe switch to %config.model("foo") syntax? or maybe %config.model("foo")?
+
+{ 2 %update-config({"width": 960, "height": 512}) | %update-config({ "width": 768, "height": 768}) }
+{ 3 %update-config("steps", 35)   | 2 %update-config("steps", 40)   | 1 %update-config("steps", 45)   }
+{ 3 %update-config("shift", 1.00) | 2 %update-config("shift", 1.10) | 1 %update-config("shift", 1.20) }
+{ 1 %update-config("sampler", "DPM++ 2M Karras")  | 1 %update-config("sampler", "Euler a")  }
+{   %update-config("cfg_scale", 5.0) | %update-config("cfg_scale", 6.0) | %update-config("cfg_scale", 7.0) | %update-config("cfg_scale", 8.0) }
+
+{ 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 768, "height": 384 })
+| 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 768, "height": 384 })
+| 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 768, "height": 384 })
+| 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 640, "height": 640 })
+| 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 640, "height": 640 })
+| 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 640, "height": 640 })
+| 3  %update-config(  "model", "bookIllustrationChar_v10.ckpt")
+| 3  %update-config(  "model", "challengexlv10yoursecret_v10_f16.ckpt")
+| 2  %update-config(  "model", "cyberrealisticpony_v10_clip_vit_l14_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
+| 2  %update-config(  "model", "cyberrealisticpony_v10_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
+| 2  %update-config(  "model", "cyberrealisticxl_v56_f16.ckpt")
+| 3  %update-config(  "model", "nightvisionxl_v900_f16.ckpt")
+| 3  %update-config(  "model", "oldmaster_v30_f16.ckpt")
+| 2  %update-config(  "model", "realdream_sdxlpony15_f16.ckpt")
+| 2  %update-config(  "model", "smoothmixillustrious_illustriousv3_f16.ckpt")
+| 2  %update-config(  "model", "stellaratormix_v20_f16.ckpt")
+| 2  %update-config(  "model", "zavychromaxl_v100_f16.ckpt")
+| 3  %update-config(  "model", "2dn_ponyv2_f16.ckpt")
+}
+
+// =======================================================================================
+// random sci-fi characters
+// =======================================================================================
+
+@pro_pos_rand := {2 @pro_pos_adj|a}
+
+{3 #female|2 #male|#neuter}
+{#planet|#ship|#moon|#station}
+@setting_word := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
+
+@ship_term     := {starship|spacecraft|space ship|shuttle}
+@ship_late_adj := {space|interstellar}
+@ship_term2    := {starship|spacecraft|@ship_late_adj ship|{|interplanetary} shuttle
+                  |@ship_late_adj frigate
+                  |@ship_late_adj battleship|@ship_late_adj destroyer
+                  |{|@ship_late_adj} merchant vessel
+                  |{|@ship_late_adj} vessel}
+
+// ---------------------------------------------------------------------------------------
+// L2 places:
+// ---------------------------------------------------------------------------------------
+@l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station
+                 |?planet planet|?planet world|?moon moon}}
+@l2_place_adj := 
+{
+|strange
+|exotic
+|!#crowded crowded
+|!#busy busy 
+|remote
+|secluded
+|run-down
+|!#advanced advanced
+|primitive
+|backwater
+|!#highly-detailed highly-detailed
+|!#greebled {|highly} greebled
+}
+@l2_orbit_obj_adj   := {dim|distant|huge|luminous|shining}
+@l2_orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship
+                       |!planet !moon space station|!planet !moon asteroid
+                       |!planet comet|2 {|2 yellow|2 red|green} star|black hole
+                       |!planet !moon satellite}
+@l2_orbit_phrase    := {@l2_orbit_obj_adj @l2_orbit_obj}
+@l2_place_phrase    := {@l2_place {|2 orbiting a @l2_orbit_phrase}}
+
+// ---------------------------------------------------------------------------------------
+// places:
+// ---------------------------------------------------------------------------------------
+@place_to_be_in := 
+{2 #indoors  {2 crew cabin 
+             |bar
+             |control room
+             |corridor
+             |equipment room
+             |laboratory
+             |lounge
+             |workshop
+             |factory
+             |security room
+             |?station 2 market
+             |?planet,moon #vehicle air/raft
+             |?planet,moon #vehicle aerodyne
+             |?planet,moon #vehicle {sky|hover|grav} {<car|transport|vehicle}
+             |?planet,moon #vehicle {ground|all-terrain\ |combat\ }
+                                    {<car|transport|vehicle}             
+             |?ship,station 2 cockpit
+             |?ship,station engine room
+             |?ship,station airlock
+             |?ship,station cargo bay
+             |?ship,station docking bay
+             |?ship @ship_term<'s bridge
+             |{access|maintenance} tunnel
+             }
+|4 ?planet,moon #outdoors {alley
+                        |{|2 hive city|2 megacity} street
+                        |crater
+                        |bazaar
+                        |market
+                        }
+}
+@place_to_be_at :=
+{{ware|store} #indoors <house
+|?planet,moon an alien ruin
+|the abandoned wreck of a @ship_term2
+|{2|holographic} computer
+|?planet,moon #outdoors colony
+|holographic #indoors projector
+|?planet,moon #outdoors launch pad
+|?ship,station #indoors helm
+|?ship,station 2 #indoors {|navigation|control|sensor|computer} console
+}
+@place_to_be_in_adj :=
+{3
+|!vehicle !#busy busy
+|!vehicle !#crowded crowded
+|messy
+|noisy
+|cluttered
+|neon-lit
+|?outdoors torchlit
+|?outdoors 2 smoky
+|?outdoors foggy
+}
+@place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
+                 |at {a|the} @#place_to_be_at @place_to_be_at}
+
+// ---------------------------------------------------------------------------------------
+// character adjectives:
+// ---------------------------------------------------------------------------------------
+@char_early_adj :=
+{adventurous
+|androgynous
+|?neuter 2 androgynous
+|mysterious
+|solitary #solo
+|inscrutable
+|independant #solo
+|daring
+|resolute
+|brave
+|cunning
+|inhuman
+|intimidating
+|exotic
+|otherworldly
+|athletic
+|muscular
+|youthful
+|beautiful
+}
+@char_late_adj :=
+{3
+|alien #alien
+|android
+|cyborg #cyborg
+|human #human
+}
+
+// ---------------------------------------------------------------------------------------
+// weapons:
+// ---------------------------------------------------------------------------------------
+@weapon_phrase           := {@weapon_verb @pro_pos_rand {2 !melee @ranged_weapon|@melee_weapon}}
+@weapon_verb             := {3 holding|wielding|brandishing|displaying|presenting}
+@melee_weapon            := {{vibro|phase|energy|monomolecular|pulse}
+                             {sword|blade|knife|dagger|baton}}
+@ranged_weapon_early_adj := {|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien
+                            |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
+@ranged_weapon_late_adj  := {|laser|plasma|gauss|smart|pulse|combat|high-velocity|ion}
+@ranged_weapon           := {@ranged_weapon_early_adj
+                             @ranged_weapon_late_adj
+                             {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|blaster
+                             |{grenade|rocket} launcher|stunner|cannon|disintegrator}
+                            }                
+
+// ---------------------------------------------------------------------------------------
+// tool:
+// ---------------------------------------------------------------------------------------
+@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
+                |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
+@tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
+@tool :=
+{hydrospanner
+|2 probe
+|2 scanner
+|2 toolkit
+|equipment
+|instruments
+|pair of binoculars
+|telescope
+|plasma cutter
+|3 vacuum suit's helmet under one arm
+|optical device
+|tricorder
+|cyberdeck
+|2 datapad
+|2 communicator
+|1 radio
+}
+
+// ---------------------------------------------------------------------------------------
+// inventory flags:
+// ---------------------------------------------------------------------------------------
+@maybe_no_equipment := {|2 #tool|#weapon}
+@tool_or_weapon     := {#tool|#weapon}
+@likely_weapon      := {#tool|2 #weapon}
+@likely_tool        := {2 #tool|#weapon}
+
+// ---------------------------------------------------------------------------------------
+// role:
+// ---------------------------------------------------------------------------------------
+@role :=
+{#weapon mercenary 
+|{3|hyperdrive|@ship_term} technician        @likely_tool
+|engineer                                    @likely_tool
+|communications officer                      @maybe_no_equipment
+|scientist                                   #tool
+|explorer                                    @likely_tool
+|scout                                       @tool_or_weapon
+|wanderer                                    @tool_or_weapon
+|{2|interstellar} bounty hunter              #weapon
+|soldier                                     #weapon
+|prize fighter                               #weapon #melee
+|assassin                                    @likely_weapon
+|medic                                       #tool
+|worker                                      #tool
+|{space|star|interstellar} {trader|merchant} @maybe_no_equipment
+|{space|star} marine                         #weapon
+|@ship_term captain                          @maybe_no_equipment
+|@ship_term pilot                            @maybe_no_equipment
+|{|@ship_term} {navigator|astrogator}        @maybe_no_equipment
+}
+
+// ---------------------------------------------------------------------------------------
+// clothing:
+// ---------------------------------------------------------------------------------------
+@clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
+@clothing_verb     := {2 wearing|clad in|dressed in}
+@clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|millitary
+                      |!#high-tech high-tech|#highly-detailed highly-detailed
+                      |{|starship|space ship|spacecraft} crew members'
+                      |!#greebled {|highly} greebled}
+@clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
+                      |@pro_pos_rand @clothing_adj flight suit
+                      |@pro_pos_rand @clothing_adj body suit
+                      |@pro_pos_rand @clothing_adj uniform
+                      |@pro_pos_rand @clothing_adj {|helmetless}
+                                     {space|vacuum|hazardous environment} suit
+                      |@pro_pos_rand @clothing_adj exoskeleton}
+ 
+// ---------------------------------------------------------------------------------------
+// cyborg feature:
+// ---------------------------------------------------------------------------------------
+@cyborg_features := {{a|one} {bionic|mechanical} arm
+                    |{bionic|mechanical} arms
+                    |{a|one} {bionic|cyber {|<netic}} eye
+                    |{bionic|cyber {|<netic}} eyes
+                    }
+@cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
+@early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
+
+// ---------------------------------------------------------------------------------------
+// ailen feature:
+// ---------------------------------------------------------------------------------------
+@alien_features := {an insectoid appearance
+                   |2 digitigrade legs
+                   |gills on @pro_pos_adj throat
+                   |!#alien_claws {{|razor} sharp|retractable} claws
+                   |hooved feet
+                   |!#alien_wings {|diaphanous|batlike} wings
+                   |!#alien_horns {curling|back-curved} horns
+                   |!#alien_skin chitinous armored plates on @pro_pos_adj skin
+                   |!#alien_skin scaled skin
+                   |!#alien_tail a {|2 prehensile|spined} tail
+                   |!#alien_skin skin like an amphibian
+                   |!#alien_eyes {two|three|four|six} eyes
+                   |vicious fangs
+                   |a slitted nose
+                   |!#alien_eyes slitted eyes
+                   |!#alien_eyes compound eyes
+                   |four arms
+                   |!#alien_skin {smooth|shiny} fur
+                   |!#alien_quills quill {<-like|<s instead of} hair
+                   |a reptilian appearance
+                   }                   
+@alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
+@early_alien_feature_sentence := {?alien #eafs with @1-2&alien_features }
+
+// ---------------------------------------------------------------------------------------
+// sky:
+// ---------------------------------------------------------------------------------------
+@late_sky_verb_frag       := {in the sky above|overhead}
+@early_sky_verb_frag      := {can be seen|hangs|looms}
+@early_sky_verb_frag_no_s := {can be seen|hang|loom}
+@sky_sentence := {?outdoors {
+2 {Two|Three} {3 moons|suns} @early_sky_verb_frag_no_s @late_sky_verb_frag.
+|2 A {binary|trinary} { 2 star|sun} @early_sky_verb_frag @late_sky_verb_frag.
+|3 ?moon The {planet|gas giant} that this @setting_word is orbiting @early_sky_verb_frag @late_sky_verb_frag. 
+|The planet's ring can be seen arching over @late_sky_verb_frag.
+|A descending @ship_term2 @early_sky_verb_frag @late_sky_verb_frag.
+|A {planet|gas giant} @early_sky_verb_frag @late_sky_verb_frag.
+|Falling meteors can be seen @late_sky_verb_frag.
+|An orbiting space station @early_sky_verb_frag @late_sky_verb_frag.
+|Strangely coloured lights @early_sky_verb_frag_no_s @late_sky_verb_frag.
+|Strange lights {can be seen|hang} @late_sky_verb_frag.
+|Flocks of {|2 alien} {2 birds|insects} can be seen @late_sky_verb_frag.
+|Flying vehicles can be seen @late_sky_verb_frag.
+|A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} @early_sky_verb_frag @late_sky_verb_frag.
+}}
+
+// =======================================================================================
+@colour_modifiers := {warm color pallete|warm lighting
+                     |natural lighting|?outdoors golden hour}
+
+@aris_defaults, science fiction, {|futuristic,} {|greebling,}
+hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time,
+@0-2,colour_modifiers
+.
+
+\n\n
+
+A @0-2&char_early_adj @char_late_adj @role
+{2|@early_alien_feature_sentence}
+{2|@early_cyborg_feature_sentence}
+@place_phrase {|3 @l2_place_phrase|5 ?outdoors @l2_place_phrase}
+{|6 ?weapon @weapon_phrase}
+{|6 ?tool   @tool_phrase}
+.
+
+{|6 @clothing_sentence}
+{|6 @cyborg_feature_sentence}
+{|6 @alien_feature_sentence}
+{|8 @sky_sentence}
