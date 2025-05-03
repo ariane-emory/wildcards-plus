@@ -75,7 +75,7 @@
 // ---------------------------------------------------------------------------------------
 let string_input_mode_enabled = true;
 let log_enabled               = true;
-let log_config                = true;
+let log_config_enabled        = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
@@ -1959,7 +1959,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     }
   }
 
-  if (log_config)
+  if (log_config_enabled)
     console.log(`Munged config:    ${JSON.stringify(config)}.`);
 
   return config;
@@ -4445,8 +4445,9 @@ function expand_wildcards(thing, context = new Context()) {
     // TLDs:
     // -----------------------------------------------------------------------------------
     if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
-      if (thing.args.length > 2)
-        throw new Error(`%configure takes 1 or 2 arguments, got ${inspect_fun(thing.args)}`);
+      if (thing.args.lenrth > 2)
+        throw new Error(`update-config takes 1 or 2 arguments, got ` +
+                        `${inspect_fun(thing.args)}`);
 
       let config = {};
 
@@ -4459,11 +4460,12 @@ function expand_wildcards(thing, context = new Context()) {
       }
       
       if (typeof config !== 'object')
-        throw new Error(`%configure's argument must be an object, got ${inspect_fun(config)}`);
+        throw new Error(`update-config's argument must be either: an object OR a ` +
+                        `string and an object, got ${inspect_fun(config)}`);
 
       context.config = { ...context.config, ...config };
 
-      if (log_config)
+      if (log_config_enabled)
         console.log(`Updated config to ${JSON.stringify(context.config)}`);
       
       return '';
@@ -4472,11 +4474,12 @@ function expand_wildcards(thing, context = new Context()) {
       const config = thing.args[0];
 
       if (typeof config !== 'object')
-        throw new Error(`%configuration's argument must be an object, got ${inspect_fun(config)}`);
+        throw new Error(`set-config's argument must be an object, ` +
+                        `got ${inspect_fun(config)}`);
 
       context.config = config;
 
-      if (log_config)
+      if (log_config_enabled)
         console.log(`Set config to ${JSON.stringify(config)}`);
       
       return '';
@@ -4663,8 +4666,7 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
                                       second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
-const MalformedNotSetCombo    = unexpected('#!', () => "'!#' is not a valid flag " +
-                                           "operation since it would be useless!");
+const MalformedNotSetCombo    = unexpected('#!');
 const NotFlag                 = xform((arr => {
   //console.log(`ARR: ${inspect_fun(arr)}`);
   return new ASTNotFlag(arr[2], arr[1][0]);
@@ -4714,7 +4716,12 @@ const SFSetConfiguration           = xform(wst_cutting_seq(wst_seq('%config',   
                                                                          [arr[1]]));
 const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
                                             SFUpdateConfigurationBinary);
-const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
+const UnexpectedSFInclude          = unexpected(SFInclude,
+                                                () => "%include is only supported when " +
+                                                "using wildcards-plus-tool.js, NOT when " +
+                                                "running the wildcards-plus.js script " +
+                                                "inside Draw Things!");
+const SpecialFunction              = choice(dt_hosted? UnexpectedSFInclude : SFInclude,
                                             SFUpdateConfiguration,
                                             SFSetConfiguration);
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
@@ -4725,12 +4732,12 @@ const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
 const AnonWildcard                 = xform(arr => new ASTAnonWildcard(arr),
                                            brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const NamedWildcardReference       = xform(seq(discard('@'),
-                                               optional('^'),                            // 0
-                                               optional(xform(parseInt, /\d+/)),         // 1
+                                               optional('^'),                             // [0]
+                                               optional(xform(parseInt, /\d+/)),          // [1]
                                                optional(xform(parseInt,
-                                                              second(seq('-', /\d+/)))), // 2
-                                               optional(/[,&]/),                         // 3
-                                               ident),                                   // 4
+                                                              second(seq('-', /\d+/)))),  // [2]
+                                               optional(/[,&]/),                          // [3]
+                                               ident),                                    // [4]
                                            arr => {
                                              const ident  = arr[4];
                                              const min_ct = arr[1][0] ?? 1;
@@ -4745,12 +4752,12 @@ const NamedWildcardReference       = xform(seq(discard('@'),
                                                                                   max_ct);
                                            });
 const NamedWildcardDesignator = second(seq('@', ident)); 
-const NamedWildcardDefinition = xform(arr => {
-  return new ASTNamedWildcardDefinition(...arr);
-},
-                                      wst_seq(NamedWildcardDesignator,
-                                              assignment_operator,
-                                              AnonWildcard));
+const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
+                                      wst_seq(NamedWildcardDesignator,                    // [0]
+                                              DiscardedComments,                          // -
+                                              assignment_operator,                        // -
+                                              DiscardedComments,                          // -
+                                              AnonWildcard));                             // [1]
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
