@@ -4837,7 +4837,16 @@ const make_special_function = rule =>
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const SFInclude                    = make_special_function('include');
-const SFUpdateConfiguration        = make_special_function('update-config');
+// const SFUpdateConfiguration        = make_special_function('update-config');
+const SFUpdateConfiguration        = xform(arr => {
+  console.log(`SFUC ARR: ${inspect_fun(arr)}`);
+  return new ASTSpecialFunction('update-config', arr[0][1], arr[1]);
+  // return arr;
+},
+                                           wst_seq(seq('%', ident, '(')
+                                                   jsons,
+                                                   ')'
+                                                  ));
 const SFSetConfiguration           = make_special_function('set-config');
 const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
                                             SFUpdateConfiguration,
