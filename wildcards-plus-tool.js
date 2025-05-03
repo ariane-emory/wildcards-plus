@@ -67,9 +67,6 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
 
   config = munge_config(config);
   
-  if (log_config)
-    console.log(`munged config:          ${JSON.stringify(config)}.`);
-
   let data = {
     prompt: prompt,
     seed: Math.floor(Math.random() * (2 ** 32)),
@@ -2109,8 +2106,6 @@ function munge_config(config) {
     }
 
     for (const [automatic1111_name, dt_name] of key_names) {
-      const [automatic1111_name, dt_name] = pair;
-
       if (config[dt_name] !== undefined) {
         console.log(`Correcting config.${dt_name} = ` +
                     `${config[dt_name]} to ` +
@@ -2120,7 +2115,10 @@ function munge_config(config) {
       }
     }
   }
-  
+
+  if (log_config)
+    console.log(`Munged config:          ${JSON.stringify(config)}.`);
+
   return config;
 }
 // =======================================================================================
