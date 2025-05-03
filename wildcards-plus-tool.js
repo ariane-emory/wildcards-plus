@@ -4507,8 +4507,8 @@ function expand_wildcards(thing, context = new Context()) {
 
       context.config = config;
 
-      if (log_config)
-        console.log(`SET CONFIG TO ${JSON.stringify(config)}`);
+      // if (log_config)
+      console.log(`SET CONFIG TO ${JSON.stringify(config)}`);
       
       return '';
     } 
