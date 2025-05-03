@@ -63,8 +63,13 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   console.log("POSTing!");
 
   if (log_config)
-    console.log(`post_prompt got config ${JSON.stringify(config)}.`);
+    console.log(`post_prompt got config: ${JSON.stringify(config)}.`);
+
+  config = munge_config(config);
   
+  if (log_config)
+    console.log(`munged config:          ${JSON.stringify(config)}.`);
+
   let data = {
     prompt: prompt,
     seed: Math.floor(Math.random() * (2 ** 32)),
@@ -74,7 +79,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   const string_data = JSON.stringify(data);
 
   if (log_config)
-    console.log(`POST data is ${JSON.stringify(data)}.`);
+                          console.log(`POST data is ${JSON.stringify(data)}.`);
 
   const options = {
     hostname: hostname,
@@ -2065,6 +2070,10 @@ const dt_samplers = [
   'DPMPP2MTrailing',  // 15
   'DDIMTrailing',     // 16
 ];
+// ---------------------------------------------------------------------------------------
+function munge_config(config) {
+  return config;
+}
 // =======================================================================================
 // END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
 // =======================================================================================
