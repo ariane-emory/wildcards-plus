@@ -1,4 +1,4 @@
-%update-config({ "steps":   20 })
+%update-config("steps", 20 )
 %update-config({ "shift":   1.00 })
 %update-config({ "sampler": 1 })
 
