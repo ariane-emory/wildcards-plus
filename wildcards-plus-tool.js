@@ -99,8 +99,6 @@ function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
 // ---------------------------------------------------------------------------------------
 function process_includes(thing, context = new Context()) {
   function walk(thing, context) {
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'config') {
-    } 
     if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
       const current_file = context.files[context.files.length - 1];
       const res = []
@@ -4491,6 +4489,18 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     // TLDs, not yet implemented:
     // -----------------------------------------------------------------------------------
+    if (thing instanceof ASTSpecialFunction && thing.directive == 'config') {
+      const config = thing.args[0];
+
+      if (typeof config !== 'object')
+        throw new Error(`config's argument must be an object, got ${inspect_fun(config)}`);
+
+      context.config = config;
+
+      console.log(`SET CONFIG TO ${JSON.stringify(config)}`);
+      
+      return thing;
+    } 
     else if (thing instanceof ASTSpecialFunction) {
       // console.log(`IGNORING ${inspect_fun(thing)}`);
       console.log(`IGNORING ${JSON.stringify(thing)}`);
