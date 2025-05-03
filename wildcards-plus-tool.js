@@ -2064,8 +2064,8 @@ class Context {
     this.config = config;
     this.top_file = top_file;
 
-    if (dt_hosted && !this.flags.includes("dt_hosted"))
-      this.flags.push("dt_hosted");
+    if (dt_hosted && !this.flags.has("dt_hosted"))
+      this.flags.add("dt_hosted");
   }
   // -------------------------------------------------------------------------------------
   reset_temporaries() {
