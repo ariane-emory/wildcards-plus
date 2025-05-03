@@ -4838,22 +4838,12 @@ const make_special_function = rule =>
 // other non-terminals:
 const SFInclude                    = make_special_function('include');
 // const SFUpdateConfiguration        = make_special_function('update-config');
-const SFUpdateConfigurationBinary        = xform(arr => {
-  const cons_args = [ arr[0][1], arr[1] ];
-  return new ASTSpecialFunction('update-config', cons_args);
-},
-                                                 wst_seq(seq('%config.', ident, '('),
-                                                         jsonc,
-                                                         ')'
-                                                        ));
-const SFUpdateConfigurationUnary   = xform(arr => {
-  const cons_args = [ arr[1] ];
-  return new ASTSpecialFunction('update-config', cons_args);
-},
-                                           wst_seq('%config(',
-                                                   jsonc_object,
-                                                   ')'
-                                                  ));
+const SFUpdateConfigurationBinary  = xform(wst_seq(seq('%config.', ident, '('), jsonc, ')'),
+                                           arr => new ASTSpecialFunction('update-config',
+                                                                         [arr[0][1], arr[1]]));
+const SFUpdateConfigurationUnary   = xform(wst_seq('%config(', jsonc_object, ')'),
+                                           arr => new ASTSpecialFunction('update-config',
+                                                                         [arr[1]]));
 const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
                                             SFUpdateConfigurationBinary);
 const SFSetConfiguration           = make_special_function('set-config');
