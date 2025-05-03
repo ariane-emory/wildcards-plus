@@ -36,7 +36,7 @@ import { stdin as input, stdout as output } from 'process';
 
 
 // =======================================================================================
-// Node-ONLY HELPER FUNCTIONS (these won't work inside of DT!): 
+// NODE-ONLY HELPER FUNCTIONS SECTION (these won't work inside of DT!): 
 // =======================================================================================
 function ask(question) {
   const rl = readline.createInterface({
@@ -149,7 +149,9 @@ function process_includes(thing, context = new Context()) {
 
   return walk(thing, context).flat(Infinity);
 }
-// ---------------------------------------------------------------------------------------
+// =======================================================================================
+// END of NODE-ONLY HELPER FUNCTIONS SECTION.
+// =======================================================================================
 
 
 // =======================================================================================
@@ -157,7 +159,7 @@ function process_includes(thing, context = new Context()) {
 // =======================================================================================
 let inspect_fun = util.inspect;
 let dt_hosted   = false;
-// ----------------------------------------------------------------------------------------
+// =======================================================================================
 
 
 // =======================================================================================
@@ -173,7 +175,7 @@ if (false)
 
 
 // =======================================================================================
-// GRAMMAR.JS CONTENT:
+// GRAMMAR.JS CONTENT SECTION:
 // =======================================================================================
 // Code in this section originall copy/pasted from the grammar.js file in my 'jparse'
 // project circa ac2979f but updated since.
@@ -1497,12 +1499,12 @@ function pipe_funs(...fns) {
   return rest.reduce((acc, fn) => x => fn(acc(x)), head);
 }
 // =======================================================================================
-// END OF GRAMMAR.JS CONTENT
+// END OF GRAMMAR.JS CONTENT SECTION.
 // =======================================================================================
 
 
 // =======================================================================================
-// COMMON-GRAMMAR.JS CONTENT:
+// COMMON-GRAMMAR.JS CONTENT SECTION:
 // =======================================================================================
 // Code in this section copy/pasted from the common-grammar.js file in my
 // 'jparse' project circa ac2979f but updated since
@@ -1696,7 +1698,7 @@ const push            = ((value, rule) =>
 const enclosing       = (left, enclosed, right) =>
       xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
 // =======================================================================================
-// END of COMMON-GRAMMAR.JS CONTENT
+// END of COMMON-GRAMMAR.JS CONTENT SECTION.
 // =======================================================================================
 
 
