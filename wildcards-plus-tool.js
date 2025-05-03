@@ -4742,9 +4742,9 @@ const SFSetConfiguration           = make_special_function('set-config');
 // const SpecialFunction         = xform(tld_fun,
 //                                       c_funcall(second(seq('%', SpecialFunctionName)),
 //                                                 jsonc));
-const SpecialFunction              = choice(// SFInclude,
-  SFUpdateConfiguration,
-  SFSetConfiguration);
+const SpecialFunction              = choice(SFInclude,
+                                            SFUpdateConfiguration,
+                                            SFSetConfiguration);
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                optional(wb_uint, 1),
@@ -4818,18 +4818,11 @@ const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
 //                                                 ScalarAssignment,
 //                                                 Content));
-const PromptBody              = wst_star(choice(SFUpdateConfiguration,
-                                                SFSetConfiguration,
-                                                SFInclude,
+const PromptBody              = wst_star(choice(SpecialFunction,
                                                 NamedWildcardDefinition,
                                                 ScalarAssignment,
                                                 Content));
-const Prompt                  = (dt_hosted
-                                 ? PromptBody
-                                 : xform(arr => arr.flat(Infinity),
-                                         wst_seq(
-                                           wst_star(SpecialFunction),
-                                           PromptBody)));
+const Prompt                  = xform(arr => arr.flat(Infinity), PromptBody);
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // =====================================================================================
