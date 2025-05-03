@@ -4805,6 +4805,7 @@ const make_ASTFlagCmd = (klass, ...rules) =>
             second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
 // ---------------------------------------------------------------------------------------
 // terminals:
+// ---------------------------------------------------------------------------------------
 const plaintext               = /[^{|}\s]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
@@ -4816,8 +4817,8 @@ const assignment_operator     = xform(arr => {
 }, discard(seq(wst_star(comment), ':=', wst_star(comment))));
 // ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
+// ---------------------------------------------------------------------------------------
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
-// const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
                                       second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
 const MalformedNotSetCombo    = unexpected('#!');
@@ -4836,9 +4837,9 @@ const make_special_function = rule =>
                       first(wst_seq(DiscardedComments, jsonc, DiscardedComments))));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
+// ---------------------------------------------------------------------------------------
 const DiscardedComments            = discard(wst_star(comment));
 const SFInclude                    = make_special_function('include');
-// const SFUpdateConfiguration        = make_special_function('update-config');
 const SFUpdateConfigurationBinary  = xform(wst_seq(seq('%config.', ident, '('),
                                                    DiscardedComments, jsonc,
                                                    DiscardedComments, ')'),
