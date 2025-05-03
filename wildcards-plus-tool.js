@@ -4499,7 +4499,7 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     // TLDs:
     // -----------------------------------------------------------------------------------
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'configure') {
+    if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
       const config = thing.args[0];
 
       if (typeof config !== 'object')
@@ -4512,7 +4512,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       return '';
     } 
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'configuration') {
+    if (thing instanceof ASTSpecialFunction && thing.directive == 'set-config') {
       const config = thing.args[0];
 
       if (typeof config !== 'object')
@@ -4722,15 +4722,15 @@ const make_special_function = rule =>
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const SpecialFunctionInclude       = make_special_function('include');
-const SpecialFunctionConfigure     = make_special_function('configure');
-const SpecialFunctionConfiguration = make_special_function('configuration');
-// const SpecialFunctionName     = choice('include', 'fake', 'configure'); // choice('include', 'models');
+const SFUpdateConfiguration        = make_special_function('update-config');
+const SFSetConfiguration           = make_special_function('set-config');
+// const SpecialFunctionName     = choice('include', 'fake', 'update-config'); // choice('include', 'models');
 // const SpecialFunction         = xform(tld_fun,
 //                                       c_funcall(second(seq('%', SpecialFunctionName)),
 //                                                 jsonc));
 const SpecialFunction              = choice(SpecialFunctionInclude,
-                                            SpecialFunctionConfigure,
-                                            SpecialFunctionConfiguration);
+                                            SFUpdateConfiguration,
+                                            SFSetConfiguration);
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                optional(wb_uint, 1),
@@ -4797,8 +4797,8 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               ScalarAssignmentSource));
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionConfigure,
-                                       SpecialFunctionConfiguration,
+                                       SFUpdateConfiguration,
+                                       SFSetConfiguration,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
