@@ -1,6 +1,6 @@
 // =======================================================================================
-// randomize some parts of the configuration before we get on with the actual textual
-// content of the prompt:
+// use wildcards to randomize some parts of the configuration before we get on with the
+// actual textual content of the prompt:
 // =======================================================================================
 
 { // Hidream with some basic settings that seem to work alright:
