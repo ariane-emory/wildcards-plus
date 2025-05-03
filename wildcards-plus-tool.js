@@ -1734,16 +1734,9 @@ class WildcardPicker {
 // basic JSON:
 // =======================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
-const json = choice(() => json_object, () => json_array, () => json_string,
-                    () => json_true,   () => json_false, () => json_null,
-                    () => json_number);
-const json_comments = wst_star(choice(c_block_comment, c_line_comment));
-const json_with_comments = second(wst_seq(json_comments,
-                                          choice(() => json_object_with_comments,
-                                                 () => json_array_with_comments, () => json_string,
-                                                 () => json_true,   () => json_false, () => json_null,
-                                                 () => json_number),
-                                          json_comments));
+const json = choice(() => json_object, () => json_array,
+                    () => json_string, () => json_true,   () => json_false,
+                    () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const json_object = xform(arr =>  Object.fromEntries(arr), 
                           wst_cutting_enc('{',
@@ -1752,31 +1745,8 @@ const json_object = xform(arr =>  Object.fromEntries(arr),
                                                   wst_seq(() => json_string, ':', json)),
                                             ','),
                                           '}'));
-const json_object_with_comments = xform(arr =>  Object.fromEntries(arr), 
-                                        wst_cutting_enc('{',
-                                                        wst_star(
-
-                                                          xform(arr => [arr[1], arr[5]],
-
-                                                                wst_seq(json_comments,
-                                                                        () => json_string,  // 0 originally
-                                                                        json_comments,
-                                                                        ':',                // 1 originally
-                                                                        json_comments,
-                                                                        json_with_comments, // 2 originally
-                                                                        json_comments
-                                                                       ))             
-
-                                                          , ','),
-                                                        '}'));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
 const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
-const json_array_with_comments = wst_cutting_enc('[',
-                                                 wst_star(second(seq(json_comments,
-                                                                     json_with_comments,
-                                                                     json_comments)),
-                                                          ','),
-                                                 ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -1821,7 +1791,42 @@ const json_number = xform(reify_json_number,
 const json_S = whites_plus;
 // ---------------------------------------------------------------------------------------
 json.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
-json_with_comments.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
+// =======================================================================================
+
+
+// =======================================================================================
+// JSONC:
+// =======================================================================================
+const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
+const jsonc = second(wst_seq(jsonc_comments,
+                             choice(() => jsonc_object, () => jsonc_array,
+                                    () => json_string,  () => json_true, () => json_false,
+                                    () => json_null,    () => json_number),
+                             jsonc_comments));
+const jsonc_array =
+      wst_cutting_enc('[',
+                      wst_star(second(seq(jsonc_comments,
+                                          jsonc,
+                                          jsonc_comments)),
+                               ','),
+                      ']');
+const jsonc_object =
+      xform(arr =>  Object.fromEntries(arr), 
+            wst_cutting_enc('{',
+                            wst_star(
+                              xform(arr => [arr[1], arr[5]],
+                                    wst_seq(jsonc_comments,
+                                            () => json_string,
+                                            jsonc_comments,
+                                            ':',
+                                            jsonc_comments,
+                                            jsonc, 
+                                            jsonc_comments
+                                           ))             
+                              , ','),
+                            '}'));
+// =======================================================================================
+jsonc.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
 // =======================================================================================
 
 
@@ -4947,16 +4952,16 @@ async function main() {
 `;
 
 
-  console.log(`matched: ${inspect_fun(json_array_with_comments.match(json_str))}`);
+  console.log(`matched: ${inspect_fun(jsonc_array.match(json_str))}`);
   // console.log(`matched (as JSON): ${JSON.stringify(json_array.match(json_str))}`);
 
-  log_match_enabled = true;
+  // log_match_enabled = true;
   console.log("\nTHIS ONE 2:");
   json_str = `
 /* a comment */ {"foo": 123, /* comment 2 */ "bar"//another comment
 : 456}
 `;
-  console.log(`matched: ${inspect_fun(json_with_comments.match(json_str))}`);  
+  console.log(`matched: ${inspect_fun(jsonc.match(json_str))}`);  
 }
 
 // ---------------------------------------------------------------------------------------
