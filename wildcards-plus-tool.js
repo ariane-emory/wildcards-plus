@@ -2092,7 +2092,7 @@ function munge_config(config) {
       if (config[automatic1111_name] !== undefined) {
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
-                    `${dt_name} = ${config[automatic1111_name]}.`);
+                    `config.${dt_name} = ${config[automatic1111_name]}.`);
         config[dt_name] = config[automatic1111_name];
         delete config[automatic1111_name];
       }
@@ -2101,7 +2101,7 @@ function munge_config(config) {
   else { // running in Node.js, sampler needs to be a string:
     if (config.sampler && typeof config.sampler ===  'number') {
       console.log(`Correcting config.sampler = ${config.sampler} to ` +
-                  `${dt_samplers[config.sampler]}.`);
+                  `${inspect_fun(dt_samplers[config.sampler])}.`);
       config.sampler = dt_samplers[config.sampler];
     }
 
@@ -2109,7 +2109,7 @@ function munge_config(config) {
       if (config[dt_name] !== undefined) {
         console.log(`Correcting config.${dt_name} = ` +
                     `${config[dt_name]} to ` +
-                    `${automatic1111_name} = ${config[dt_name]}.`);
+                    `config.${automatic1111_name} = ${config[dt_name]}.`);
         config[automatic1111_name] = config[dt_name];
         delete config[dt_name];
       }
