@@ -4836,24 +4836,20 @@ const make_special_function = rule =>
                       jsonc));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
+const Comments                     = discard(wst_star(comment));
 const SFInclude                    = make_special_function('include');
 // const SFUpdateConfiguration        = make_special_function('update-config');
 const SFUpdateConfigurationBinary  = xform(wst_seq(seq('%config.', ident, '('), jsonc, ')'),
                                            arr => new ASTSpecialFunction('update-config',
                                                                          [arr[0][1], arr[1]]));
-const SFUpdateConfigurationUnary   = xform(wst_seq('%config(', jsonc_object, ')'),
+const SFUpdateConfigurationUnary   = xform(wst_seq('%config(', Comments,
+                                                   jsonc_object, Comments, ')'),
                                            arr => new ASTSpecialFunction('update-config',
                                                                          [arr[1]]));
 const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
                                             SFUpdateConfigurationBinary);
-// const SFSetConfiguration           = make_special_function('set-config');
-const SFSetConfiguration           = xform(arr => new ASTSpecialFunction('set-config', [ arr[1] ]),
-                                           wst_seq(
-                                             '%config',
-                                             assignment_operator,
-                                             jsonc_object
-                                           )
-                                          );
+const SFSetConfiguration           = xform(wst_seq('%config', assignment_operator, jsonc_object),
+                                           arr => new ASTSpecialFunction('set-config', [arr[1]]));
 const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
                                             SFUpdateConfiguration,
                                             SFSetConfiguration);
@@ -5125,10 +5121,10 @@ async function main() {
 }
 
 // ---------------------------------------------------------------------------------------
-main().catch(err => {
-  console.error('Unhandled error:', err);
-  process.exit(1);
-});
-// =======================================================================================
-// END OF MAIN SECTION.
-// =======================================================================================
+  main().catch(err => {
+    console.error('Unhandled error:', err);
+    process.exit(1);
+  });
+  // =======================================================================================
+  // END OF MAIN SECTION.
+  // =======================================================================================
