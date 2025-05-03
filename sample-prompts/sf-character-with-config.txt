@@ -2,7 +2,7 @@
 %update-config("shift",   1.00)
 %update-config("sampler", 1)
 
-{ 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8, "sampler": 16, "shift": 1.50})
+{ 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8, "sampler": 16, "shift": 1.50, "guidanceScale": 1.50})
 | 2  %update-config("model", "zavychromaxl_v100_f16.ckpt")
 | 1  %update-config("model", "oldmaster_v30_f16.ckpt")
 | 2  %update-config("model", "realdream_sdxlpony15_f16.ckpt")
