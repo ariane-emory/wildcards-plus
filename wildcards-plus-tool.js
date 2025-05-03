@@ -4735,16 +4735,16 @@ const make_special_function = rule =>
                       jsonc));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const SpecialFunctionInclude       = make_special_function('include');
+const SFInclude                    = make_special_function('include');
 const SFUpdateConfiguration        = make_special_function('update-config');
 const SFSetConfiguration           = make_special_function('set-config');
 // const SpecialFunctionName     = choice('include', 'fake', 'update-config'); // choice('include', 'models');
 // const SpecialFunction         = xform(tld_fun,
 //                                       c_funcall(second(seq('%', SpecialFunctionName)),
 //                                                 jsonc));
-const SpecialFunction              = choice(SpecialFunctionInclude,
-                                            SFUpdateConfiguration,
-                                            SFSetConfiguration);
+const SpecialFunction              = choice(// SFInclude,
+  SFUpdateConfiguration,
+  SFSetConfiguration);
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                optional(wb_uint, 1),
@@ -4818,17 +4818,18 @@ const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
 //                                                 ScalarAssignment,
 //                                                 Content));
-const PromptBody              = wst_star(choice(SpecialFunction,
+const PromptBody              = wst_star(choice(SFUpdateConfiguration,
+                                                SFSetConfiguration,
+                                                SFInclude,
                                                 NamedWildcardDefinition,
                                                 ScalarAssignment,
                                                 Content));
-// const Prompt                  = (dt_hosted
-//                                  ? PromptBody
-//                                  : xform(arr => arr.flat(1),
-//                                          wst_seq(
-//                                            wst_star(SpecialFunction),
-//                                            PromptBody)));
-const Prompt                  = xform(arr => arr.flat(Infinity), PromptBody);
+const Prompt                  = (dt_hosted
+                                 ? PromptBody
+                                 : xform(arr => arr.flat(Infinity),
+                                         wst_seq(
+                                           wst_star(SpecialFunction),
+                                           PromptBody)));
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // =====================================================================================
