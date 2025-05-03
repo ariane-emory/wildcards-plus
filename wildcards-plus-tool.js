@@ -4849,15 +4849,15 @@ const SFUpdateConfigurationBinary  = xform(wst_cutting_seq(wst_seq('%config',   
                                                            ')'),                      // [4]
                                            arr => new ASTSpecialFunction('update-config',
                                                                          [arr[1], arr[3] ]));
-const SFUpdateConfigurationUnary   = xform(wst_seq('%config',            // 0
-                                                   DiscardedComments,    // -
-                                                   '(',                  // 1
-                                                   DiscardedComments,    // -
-                                                   jsonc_object,         // 2
-                                                   DiscardedComments,    // -
-                                                   ')'),                 // 3
+const SFUpdateConfigurationUnary   = xform(wst_seq(wst_seq('%config',            // [0][0]
+                                                           DiscardedComments,    // -
+                                                           '('),                 // [0][1]
+                                                   DiscardedComments,            // -
+                                                   jsonc_object,                 // [1]
+                                                   DiscardedComments,            // -
+                                                   ')'),                         // [2]
                                            arr => new ASTSpecialFunction('update-config',
-                                                                         [arr[2]]));
+                                                                         [arr[1]]));
 const SFSetConfiguration           = xform(wst_seq('%config',            // 0
                                                    DiscardedComments,    // -
                                                    assignment_operator,  // -
