@@ -12,19 +12,19 @@
 | 2  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 640, "height": 640 })
 | 2  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 640, "height": 640 })
 | 2  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0, "width": 640, "height": 640 })
-| */ 3  %update-config(  "model", "bookIllustrationChar_v10.ckpt")
-| 3  %update-config(  "model", "challengexlv10yoursecret_v10_f16.ckpt")
-| 2  %update-config(  "model", "cyberrealisticpony_v10_clip_vit_l14_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
-| 2  %update-config(  "model", "cyberrealisticpony_v10_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
-| 2  %update-config(  "model", "cyberrealisticxl_v56_f16.ckpt")
-| 3  %update-config(  "model", "nightvisionxl_v900_f16.ckpt")
-| 3  %update-config(  "model", "oldmaster_v30_f16.ckpt")
-| 2  %update-config(  "model", "realdream_sdxlpony15_f16.ckpt")
-| 2  %update-config(  "model", "smoothmixillustrious_illustriousv3_f16.ckpt")
-| 2  %update-config(  "model", "stellaratormix_v20_f16.ckpt")
-| 2  %update-config(  "model", "zavychromaxl_v100_f16.ckpt")
-| 3  %update-config(  "model", "2dn_ponyv2_f16.ckpt")
-| 4  %update-config(  "model", "sdxlYamersRealistic5_v5Rundiffusion.safetensors")
+| */ 3  %config.model("bookIllustrationChar_v10.ckpt")
+| 3  %config.model("challengexlv10yoursecret_v10_f16.ckpt")
+| 2  %config.model("cyberrealisticpony_v10_clip_vit_l14_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
+| 2  %config.model("cyberrealisticpony_v10_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
+| 2  %config.model("cyberrealisticxl_v56_f16.ckpt")
+| 3  %config.model("nightvisionxl_v900_f16.ckpt")
+| 3  %config.model("oldmaster_v30_f16.ckpt")
+| 2  %config.model("realdream_sdxlpony15_f16.ckpt")
+| 2  %config.model("smoothmixillustrious_illustriousv3_f16.ckpt")
+| 2  %config.model("stellaratormix_v20_f16.ckpt")
+| 2  %config.model("zavychromaxl_v100_f16.ckpt")
+| 3  %config.model("2dn_ponyv2_f16.ckpt")
+| 4  %config.model("sdxlYamersRealistic5_v5Rundiffusion.safetensors")
 }
 
 // =======================================================================================
