@@ -1921,13 +1921,13 @@ const key_names = [
   [ 'upscaler_scale_factor', 'upscalerScaleFactor' ],
 ];
 // ---------------------------------------------------------------------------------------
-function munge_config(config) {
+function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
   
-  if (dt_hosted) { // running in DT, sampler needs to be an index:
-    if (config.sampler && typeof config.sampler === 'string') {
+  if (is_dt_hosted) { // running in DT, sampler needs to be an index:
+    if (config.sampler !== undefined && typeof config.sampler === 'string') {
       console.log(`Correcting config.sampler = ${config.sampler} to ` +
-                  `${dt_samplers.indexOf(config.sampler)}.`);
+                  `config.${dt_samplers.indexOf(config.sampler)}.`);
       config.sapler = dt_samplers.indexOf(config.sampler);
     }
 
@@ -1935,16 +1935,16 @@ function munge_config(config) {
       if (config[automatic1111_name] !== undefined) {
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
-                    `config.${dt_name} = ${config[automatic1111_name]}.`);
+                    `config.sampler = ${config[automatic1111_name]}.`);
         config[dt_name] = config[automatic1111_name];
         delete config[automatic1111_name];
       }
     }
   }
   else { // running in Node.js, sampler needs to be a string:
-    if (config.sampler && typeof config.sampler ===  'number') {
+    if (config.sampler !== undefined && typeof config.sampler ===  'number') {
       console.log(`Correcting config.sampler = ${config.sampler} to ` +
-                  `${inspect_fun(dt_samplers[config.sampler])}.`);
+                  `config.sampler = ${inspect_fun(dt_samplers[config.sampler])}.`);
       config.sampler = dt_samplers[config.sampler];
     }
 
