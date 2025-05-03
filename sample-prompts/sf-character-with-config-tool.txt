@@ -1,37 +1,51 @@
 // We'll use these defaults with most models, but will write over 'em if we pick Hidream:
-{ 2 %config({"width": 960, "height":512}) | %config({"width": 768, "height":768})}
-{ 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
-{ 3 %config.shift(1.00) | 2 %config.shift(1.10) | 1 %config.shift(1.20) }
-{ 1 %config.sampler("DPM++ 2M Karras") | 1 %config.sampler("Euler a") }
-{   %config.cfg_scale(5.0) | %config.cfg_scale(6.0) | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) }
 
-{ 20
-   // Hidream with some basic settings that seem to work alright:
+{ 20 // Hidream with some basic settings that seem to work alright:
    %config({ "model": "hidream_i1_fast_q5p", "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0 })
 
-   // 8-10 steps:
+   // 8-10 steps, equally likely:
    { %config.steps(8) | %config.steps(9) | %config.steps(10) }
 
    // two possible resolutions, use the first more often:
    { 2 %config({ "width": 768, "height": 384 })
-   | 3 %config({ "width": 640, "height": 640 })
+   | 1 %config({ "width": 640, "height": 640 })
    }
 
+| 20 // Various SDXL models
 
-| %config.model("bookIllustrationChar_v10.ckpt")
-| %config.model("challengexlv10yoursecret_v10_f16.ckpt")
-| %config.model("cyberrealisticpony_v10_clip_vit_l14_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
-| %config.model("cyberrealisticpony_v10_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
-| %config.model("cyberrealisticxl_v56_f16.ckpt")
-| %config.model("nightvisionxl_v900_f16.ckpt")
-| %config.model("oldmaster_v30_f16.ckpt")
-| %config.model("realdream_sdxlpony15_f16.ckpt")
-| %config.model("smoothmixillustrious_illustriousv3_f16.ckpt")
-| %config.model("stellaratormix_v20_f16.ckpt")
-| %config.model("zavychromaxl_v100_f16.ckpt")
-| %config.model("2dn_ponyv2_f16.ckpt")
-| %config.model("sdxlYamersRealistic5_v5Rundiffusion.safetensors")
-}
+   // 30, 40 or 45 steps, equally likely:
+   { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
+
+   // two possible resolutions, use the first more often:
+   { 2 %config({"width": 960, "height":512}) 
+   | %config({"width": 768, "height":768})
+   }
+
+   // three possible 'shift' values:
+   { %config.shift(1.00) | %config.shift(1.10) | %config.shift(1.20) }
+
+   // two sampler possibilities:
+   { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler a") }
+
+   // four possible CFG values:
+   { %config.cfg_scale(5.0) | %config.cfg_scale(6.0) | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) }
+
+   // lots of models pick from:
+   { %config.model("bookIllustrationChar_v10.ckpt")
+   | %config.model("challengexlv10yoursecret_v10_f16.ckpt")
+   | %config.model("cyberrealisticpony_v10_clip_vit_l14_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
+   | %config.model("cyberrealisticpony_v10_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
+   | %config.model("cyberrealisticxl_v56_f16.ckpt")
+   | %config.model("nightvisionxl_v900_f16.ckpt")
+   | %config.model("oldmaster_v30_f16.ckpt")
+   | %config.model("realdream_sdxlpony15_f16.ckpt")
+   | %config.model("smoothmixillustrious_illustriousv3_f16.ckpt")
+   | %config.model("stellaratormix_v20_f16.ckpt")
+   | %config.model("zavychromaxl_v100_f16.ckpt")
+   | %config.model("2dn_ponyv2_f16.ckpt")
+   | %config.model("sdxlYamersRealistic5_v5Rundiffusion.safetensors")
+   }
+   }
 
 // =======================================================================================
 // random sci-fi characters
