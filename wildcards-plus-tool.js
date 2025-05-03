@@ -4839,13 +4839,7 @@ const make_special_function = rule =>
 const SFInclude                    = make_special_function('include');
 // const SFUpdateConfiguration        = make_special_function('update-config');
 const SFUpdateConfigurationBinary        = xform(arr => {
-  console.log();
-  console.log(`SFUCB ARR:    ${inspect_fun(arr)}`);
-
   const cons_args = [ arr[0][1], arr[1] ];
-
-  console.log(`B CONST_ARGS: ${inspect_fun(cons_args)}`);
-
   return new ASTSpecialFunction('update-config', cons_args);
 },
                                                  wst_seq(seq('%config.', ident, '('),
@@ -4853,13 +4847,7 @@ const SFUpdateConfigurationBinary        = xform(arr => {
                                                          ')'
                                                         ));
 const SFUpdateConfigurationUnary   = xform(arr => {
-  console.log();
-  console.log(`SFUCU ARR:    ${inspect_fun(arr)}`);
-
   const cons_args = [ arr[1] ];
-
-  console.log(`U CONST_ARGS: ${inspect_fun(cons_args)}`);
-
   return new ASTSpecialFunction('update-config', cons_args);
 },
                                            wst_seq('%config(',
