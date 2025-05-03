@@ -99,6 +99,8 @@ function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
 // ---------------------------------------------------------------------------------------
 function process_includes(thing, context = new Context()) {
   function walk(thing, context) {
+    if (thing instanceof ASTSpecialFunction && thing.directive == 'config') {
+    } 
     if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
       const current_file = context.files[context.files.length - 1];
       const res = []
@@ -2029,6 +2031,7 @@ class Context {
     named_wildcards = new Map(),
     noisy = false,
     files = [],
+    config = {},
     top_file = true,
   } = {}) {
     this.flags = flags;
@@ -2036,6 +2039,7 @@ class Context {
     this.named_wildcards = named_wildcards;
     this.noisy = noisy;
     this.files = files;
+    this.config = config;
     this.top_file = top_file;
   }
   // -------------------------------------------------------------------------------------
@@ -4679,7 +4683,7 @@ const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag)
 const tld_fun = arr => new ASTSpecialFunction(...arr);
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
+const SpecialFunctionName     = choice('include', 'fake', 'config'); // choice('include', 'models');
 const SpecialFunction         = xform(tld_fun,
                                       c_funcall(second(seq('%', SpecialFunctionName)),
                                                 jsonc));
