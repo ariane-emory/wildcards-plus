@@ -4499,7 +4499,7 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     // TLDs, not yet implemented:
     // -----------------------------------------------------------------------------------
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'config') {
+    if (thing instanceof ASTSpecialFunction && thing.directive == 'configure') {
       const config = thing.args[0];
 
       if (typeof config !== 'object')
@@ -4708,13 +4708,13 @@ const make_special_function = rule =>
                       jsonc));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const SpecialFunctionInclude  = make_special_function('include');
-const SpecialFunctionConfig   = make_special_function('config');
-// const SpecialFunctionName     = choice('include', 'fake', 'config'); // choice('include', 'models');
+const SpecialFunctionInclude       = make_special_function('include');
+const SpecialFunctionConfigure     = make_special_function('configure');
+// const SpecialFunctionName     = choice('include', 'fake', 'configure'); // choice('include', 'models');
 // const SpecialFunction         = xform(tld_fun,
 //                                       c_funcall(second(seq('%', SpecialFunctionName)),
 //                                                 jsonc));
-const SpecialFunction         = choice(SpecialFunctionInclude, SpecialFunctionConfig);
+const SpecialFunction              = choice(SpecialFunctionInclude, SpecialFunctionConfigure);
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                optional(wb_uint, 1),
@@ -4781,6 +4781,7 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               ScalarAssignmentSource));
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        AnonWildcard, comment, ScalarReference,
+                                       SpecialFunctionConfigure,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,

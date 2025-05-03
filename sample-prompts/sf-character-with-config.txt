@@ -1,4 +1,4 @@
-%config({ "steps": 15 }) 
+{ %configure({ "steps": 15 }) | %configure({ "steps":  20 }) | %configure({ "steps": 25 }) }
 
 // =======================================================================================
 // random sci-fi characters
