@@ -635,10 +635,14 @@ class Element extends Rule {
           `${JSON.stringify(rule_match_result)}'s value.`);
     }
 
-    if (log_match_enabled)
-      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result)}`);
+    const ret = rule_match_result.value[this.index] === undefined
+          ? DISCARD
+          : rule_match_result.value[this.index];
     
-    rule_match_result.value = rule_match_result.value[this.index] ?? DISCARD;
+    if (log_match_enabled)
+      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result)} = ${ret instanceof Symbol ? ret.toString() : ret}`);
+    
+    rule_match_result.value = ret;
     
     return rule_match_result
   }
@@ -960,7 +964,7 @@ class Sequence extends Rule {
 
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
-        log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
+        log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
 
       values.push(last_match_result.value);
 
@@ -993,7 +997,7 @@ class Sequence extends Rule {
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
-          log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
+          log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
 
         values.push(last_match_result.value);
 
@@ -4954,7 +4958,9 @@ async function main() {
 
   // json_str = `"bar.txt"`;
   // console.log(inspect_fun(json.match(json_str)));
-  json_str = "[11, null, 22]";
+  json_str = `
+[11, null, 22]
+`;
   console.log(JSON.stringify(json.match(json_str)));
   
 
