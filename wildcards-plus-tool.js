@@ -4838,7 +4838,7 @@ const make_special_function = rule =>
 // other non-terminals:
 const SFInclude                    = make_special_function('include');
 // const SFUpdateConfiguration        = make_special_function('update-config');
-const SFUpdateConfiguration        = xform(arr => {
+const SFUpdateConfigurationBinary        = xform(arr => {
   console.log();
   console.log(`SFUC ARR:   ${inspect_fun(arr)}`);
 
@@ -4853,6 +4853,7 @@ const SFUpdateConfiguration        = xform(arr => {
                                                    jsonc,
                                                    ')'
                                                   ));
+const SFUpdateConfiguration        = choice(SFUpdateConfigurationBinary);
 const SFSetConfiguration           = make_special_function('set-config');
 const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
                                             SFUpdateConfiguration,
