@@ -2048,24 +2048,24 @@ function smart_join(arr) {
 // =======================================================================================
 // var values adapted from the file config.fbs in
 // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
-const dt_samplers = [
-  'DPMPP2MKarras',    // 0
-  'EulerA',           // 1
-  'DDIM',             // 2
-  'PLMS',             // 3
-  'DPMPPSDEKarras',   // 4
-  'UniPC',            // 5
-  'LCM',              // 6
-  'EulerASubstep',    // 7
-  'DPMPPSDESubstep',  // 8
-  'TCD',              // 9
-  'EulerATrailing',   // 10
-  'DPMPPSDETrailing', // 11
-  'DPMPP2MAYS',       // 12
-  'EulerAAYS',        // 13
-  'DPMPPSDEAYS',      // 14
-  'DPMPP2MTrailing',  // 15
-  'DDIMTrailing',     // 16
+const dt_samplers = [   // order is significant, do not rearrange!
+  'DPM++ 2M Karras',    // 0
+  'Euler a',            // 1
+  'DDIM',               // 2
+  'PLMS',               // 3
+  'DPM++ SDE Karras',   // 4
+  'UniPC',              // 5
+  'LCM',                // 6
+  'Euler A Substep',    // 7
+  'DPM++ SDE Substep',  // 8
+  'TCD',                // 9
+  'Euler A Trailing',   // 10
+  'DPM++ SDE Trailing', // 11
+  'DPM++ 2M AYS',       // 12
+  'Euler A AYS',        // 13
+  'DPM++ SDE AYS',      // 14
+  'DPM++ 2M Trailing',  // 15
+  'DDIM Trailing',      // 16
 ];
 // ---------------------------------------------------------------------------------------
 const key_names = [
