@@ -4850,7 +4850,7 @@ const SFUpdateConfigurationUnary   = xform(wst_seq('%config(', DiscardedComments
                                                                          [arr[1]]));
 const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
                                             SFUpdateConfigurationBinary);
-const SFSetConfiguration           = xform(wst_seq('%config', assignment_operator, jsonc_object),
+const SFSetConfiguration           = xform(wst_seq('%config', DiscardedComments,assignment_operator, DiscardedComments,jsonc_object),
                                            arr => new ASTSpecialFunction('set-config', [arr[1]]));
 const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
                                             SFUpdateConfiguration,
