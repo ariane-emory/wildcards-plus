@@ -101,7 +101,7 @@ function process_includes(thing, context = new Context()) {
   function walk(thing, context) {
     if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
       const current_file = context.files[context.files.length - 1];
-      const res = [];
+      const res = []
 
       context = context.shallow_copy();
       
@@ -267,10 +267,10 @@ class Rule {
                       `this is likely a programmer error`);
     }
     
-    if (ret && ret?.value === null) {
-      throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
-                      `this is likely a programmer error`);
-    }
+    // if (ret && ret?.value === null) {
+    //   throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
+    //                   `this is likely a programmer error`);
+    // }
     
     if (log_match_enabled) {
       if (ret)
@@ -387,7 +387,7 @@ class Quantified extends Rule {
       throw new Error("right");
     
     if (match_result === null)
-      return new MatchResult([], input, index);
+      return new MatchResult([], input, index); // empty array happens here
 
     // if (match_result.value === '' || match_result.value)
     if (match_result.value !== DISCARD)
