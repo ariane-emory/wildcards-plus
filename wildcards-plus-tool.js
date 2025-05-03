@@ -5018,18 +5018,6 @@ async function main() {
   }
 
   console.log('--------------------------------------------------------------------------------');
-
-  //   let json_str = '';
-
-  //   json_str = `
-  // [11, null, {"foo": 123, "bar": null }]
-  // `;
-  
-
-  //   console.log("\nTHIS ONE:");
-  //   const res = jsonc.match(json_str);
-  //   console.log(`THE RESULT: ${inspect_fun(res)}`);
-  //   console.log(`THE RESULT (as JSON): ${JSON.stringify(res)}`);
 }
 
 // ---------------------------------------------------------------------------------------
