@@ -2073,7 +2073,8 @@ const dt_samplers = [
 // ---------------------------------------------------------------------------------------
 const key_names = [
   // [ automatic1111's name,  Draw Things' name ],
-  [ "cfg_scale", "guidanceScale" ],
+  [ 'cfg_scale',             'guidanceScale'       ],
+  [ 'upscaler_scale_factor', 'upscalerScaleFactor' ],
 ];
 // ---------------------------------------------------------------------------------------
 function munge_config(config) {
