@@ -1,6 +1,9 @@
-{ 2 %update-config({ "model": "bookIllustrationChar_v10.ckpt", "steps": 15 })
-| 1 %update-config({ "model": "zavychromaxl_v100_f16.ckpt", "steps": 15 })
-| 3 %update-config({ "model": "oldmaster_v30_f16.ckpt", "steps": 15 })
+{ 2 %update-config({ "model": "bookIllustrationChar_v10.ckpt", "steps": 5 })
+| 1 %update-config({ "model": "zavychromaxl_v100_f16.ckpt", "steps": 5 })
+| 3 %update-config({ "model": "oldmaster_v30_f16.ckpt", "steps": 5 })
+| 3 %update-config({ "model": "realdream_sdxlpony15_f16.ckpt", "steps": 5})
+| 3 %update-config({ "model": "cyberrealisticpony_v10_clip_vit_l14_f16.ckpt", "steps": 5})
+| 3 %update-config({ "model": "challengexlv10yoursecret_v10_f16.ckpt", "steps": 5})
 }
 
 // =======================================================================================
