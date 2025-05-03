@@ -4842,11 +4842,11 @@ const SFUpdateConfiguration        = xform(arr => {
   console.log();
   console.log(`SFUC ARR:   ${inspect_fun(arr)}`);
 
-  const cons_args = [ 'update-config', [ arr[0][1], arr[1] ] ];
+  const cons_args = [ arr[0][1], arr[1] ];
 
   console.log(`CONST_ARGS: ${inspect_fun(cons_args)}`);
 
-  return new ASTSpecialFunction(...cons_args);
+  return new ASTSpecialFunction('update-config', cons_args);
   // return arr;
 },
                                            wst_seq(seq('%config.', ident, '('),
