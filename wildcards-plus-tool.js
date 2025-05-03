@@ -267,10 +267,10 @@ class Rule {
                       `this is likely a programmer error`);
     }
     
-    // if (ret && ret?.value === null) {
-    //   throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
-    //                   `this is likely a programmer error`);
-    // }
+    if (ret && ret?.value === null) {
+      throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
+                      `this is likely a programmer error`);
+    }
     
     if (log_match_enabled) {
       if (ret)
