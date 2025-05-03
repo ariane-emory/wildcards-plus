@@ -4497,18 +4497,31 @@ function expand_wildcards(thing, context = new Context()) {
       // return walk(pick, context);
     }
     // -----------------------------------------------------------------------------------
-    // TLDs, not yet implemented:
+    // TLDs:
     // -----------------------------------------------------------------------------------
     if (thing instanceof ASTSpecialFunction && thing.directive == 'configure') {
       const config = thing.args[0];
 
       if (typeof config !== 'object')
-        throw new Error(`config's argument must be an object, got ${inspect_fun(config)}`);
+        throw new Error(`%configure's argument must be an object, got ${inspect_fun(config)}`);
+
+      context.config = { ...context.config, ...config };
+
+      if (log_config)
+        console.log(`UPDATED CONFIG TO ${JSON.stringify(config)}`);
+      
+      return '';
+    } 
+    if (thing instanceof ASTSpecialFunction && thing.directive == 'configuration') {
+      const config = thing.args[0];
+
+      if (typeof config !== 'object')
+        throw new Error(`%configuration's argument must be an object, got ${inspect_fun(config)}`);
 
       context.config = config;
 
-      // if (log_config)
-      console.log(`SET CONFIG TO ${JSON.stringify(config)}`);
+      if (log_config)
+        console.log(`SET CONFIG TO ${JSON.stringify(config)}`);
       
       return '';
     } 
