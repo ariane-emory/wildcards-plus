@@ -4842,6 +4842,7 @@ const SFUpdateConfigurationBinary  = xform(wst_cutting_seq(wst_seq('%config',   
                                                                    '.',                   // [0][1]
                                                                    DiscardedComments),    // -
                                                            ident,                         // [1]
+                                                           DiscardedComments,             // -
                                                            '(',                           // [2]
                                                            DiscardedComments,             // -
                                                            jsonc,                         // [3]
