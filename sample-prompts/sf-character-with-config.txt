@@ -1,10 +1,7 @@
-// %update-config({
-//   "override_settings": {
-//     "sd_model_checkpoint": "zavychromaxl_v100_f16"
-//   }
-// })
+%update-config({ "model": "bookIllustrationChar_v10.ckpt" })
 
-{ %update-config({ "steps": 20 }) | %update-config({ "steps":  25 }) | %update-config({ "steps": 30 }) }
+
+{ %update-config({ "steps": 20 }) | %update-config({ "steps":  25 }) | %update-config({ "steps": 1 }) }
 
 // %update-config({ "steps": { 15 | 20 | 20 } })
 

@@ -4914,6 +4914,8 @@ console.log(promptString + "\n");
 for (i = 0; i < batchCount; i++) {
   const context  = load_prelude();
   editedString = expand_wildcards(result.value, context);
+  const config = context.config;
+  Object.assign(configuration, config);
   configuration.seed = -1;
   let batchCountLog = `render ${i+1} of ${batchCount}`;
   console.log(batchCountLog);
