@@ -4842,8 +4842,8 @@ for (i = 0; i < batchCount; i++) {
   canvas.clear();
 
   console.log(`Beginning render #${i+1} of ${batchCount} at ${new Date().toString()}`);
-  editedString  = expand_wildcards(result.value, context);
 
+  editedString  = expand_wildcards(result.value, context);
   let newConfig = munge_config(context.config);
   newConfig = { ...configuration, ...newConfig };
   
