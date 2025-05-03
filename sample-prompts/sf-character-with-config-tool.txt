@@ -341,5 +341,5 @@ A @0-2&char_early_adj @char_late_adj @role
 {|6 @alien_feature_sentence}
 {|8 @sky_sentence}
 
-%config({ "width":666, "height":999 })
-%config := {"width":333, "height":444}
+// %config({ "width":666, "height":999 })
+// %config := {"width":333, "height":444}
