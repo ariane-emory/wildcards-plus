@@ -377,8 +377,7 @@ class Quantified extends Rule {
 
     indent += 1;
 
-    let match_result = this.rule.match(
-      input, index, indent + 1);
+    let match_result = this.rule.match(input, index, indent + 1);
 
     if (match_result === undefined)
       throw new Error("left");
