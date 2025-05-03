@@ -109,8 +109,6 @@ function process_includes(thing, context = new Context()) {
       const current_file = context.files[context.files.length - 1];
       const res = []
 
-      context = context.shallow_copy();
-      
       for (let filename of thing.args) {
         if (typeof filename !== 'string')
           throw new Error(`include's arguments must be strings, got ${inspect_fun(filename)}`);
@@ -129,7 +127,7 @@ function process_includes(thing, context = new Context()) {
         if (! parse_file_result.is_finished)
           throw new Error(`error parsing ${filename}! ${inspect_fun(parse_file_result)}`);
         
-        res.push(walk(parse_file_result.value, context));
+        res.push(walk(parse_file_result.value, context.shallow_copy()));
       }
 
       return res;
@@ -146,7 +144,7 @@ function process_includes(thing, context = new Context()) {
       return thing;
     }
   }
-
+  
   return walk(thing, context).flat(Infinity);
 }
 // =======================================================================================
