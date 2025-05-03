@@ -2091,7 +2091,7 @@ class Context {
       named_wildcards: this.named_wildcards,
       noisy: this.noisy,
       files: this.files,
-      top_file: false, // delinerately not copied.
+      top_file: false, // deliberately not copied!
     });
   }
 }
