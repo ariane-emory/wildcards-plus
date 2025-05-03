@@ -2071,12 +2071,31 @@ const dt_samplers = [
   'DDIMTrailing',     // 16
 ];
 // ---------------------------------------------------------------------------------------
+const key_names = [
+  // [ automatic1111's name,  Draw Things' name ],
+  [ "cfg_scale", "guidanceScale" ],
+];
+// ---------------------------------------------------------------------------------------
 function munge_config(config) {
   config = { ...config };
   
   if (dt_hosted) { // running in DT, sampler needs to be an index:
-    if (config.samples && typeof config.sampler === 'string') {
-      const sampler = dt_samplers.indexOf(config.sampler);
+    if (config.sampler && typeof config.sampler === 'string') {
+      console.log(`Correcting config.sampler = ${config.sampler} to ` +
+                  `${dt_samplers.indexOf(config.sampler)}.`);
+      config.sapler = dt_samplers.indexOf(config.sampler);
+    }
+
+    for (const pair of key_names) {
+      const [automatic11_name, dt_name] = pair;
+
+      if (config[automatic11_name] !== undefined) {
+        console.log(`Correcting config.${automatic11_name} = ` +
+                    `${config[automatic11_name]} to ` +
+                    `${dt_name} = ${config[automatic11_name]}.`);
+        config[dt_name] = config[automatic11_name];
+        delete config[automatic11_name];
+      }
     }
   }
   else { // running in Node.js, sampler needs to be a string:
@@ -2085,18 +2104,30 @@ function munge_config(config) {
                   `${dt_samplers[config.sampler]}.`);
       config.sampler = dt_samplers[config.sampler];
     }
+
+    for (const pair of key_names) {
+      const [automatic11_name, dt_name] = pair;
+
+      if (config[dt_name] !== undefined) {
+        console.log(`Correcting config.${dt_name} = ` +
+                    `${config[dt_name]} to ` +
+                    `${automatic11_name} = ${config[dt_name]}.`);
+        config[automatic11_name] = config[dt_name];
+        delete config[dt_name];
+      }
+    }
   }
-
+  
   return config;
-}
-// =======================================================================================
-// END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
-// =======================================================================================
+  }
+  // =======================================================================================
+  // END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
+  // =======================================================================================
 
 
-// =======================================================================================
-// HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
-// =======================================================================================
+  // =======================================================================================
+  // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
+  // =======================================================================================
 class Context {
   constructor({ 
     flags = new Set(),
