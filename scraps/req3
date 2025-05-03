@@ -1,0 +1,13 @@
+POST http://127.0.0.1:7860/sdapi/v1/txt2img
+Content-Type: application/json
+{
+  "prompt":"masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, futuristic, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn exotic human soldier in an alley on a primitive moon holding her pulse sword. She is clad in advanced space armor. A descending spacecraft looms in the sky above.",
+  "seed":3625984468,
+  "width":768,
+  "height":384,
+  "steps":8,
+  "shift":1.5,
+  "sampler":"16",
+  "cfg_scale":40,
+  "model":"hidream_i1_fast_q5p.ckpt"
+}

@@ -1,0 +1,13 @@
+POST http://127.0.0.1:7860/sdapi/v1/txt2img
+Content-Type: application/json
+{
+  "prompt":"masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, futuristic, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm color pallete. \n\nA resolute and otherworldly star marine in the combatcar on a primitive moon orbiting a shining planet presenting her highly-detailed smart rocket launcher. She is clad in her millitary helmetless hazardous environment suit.",
+  "seed":3841257255,
+  "steps":35,
+  "width":960,
+  "height":512,
+  "shift":1,
+  "cfg_scale":6,
+  "sampler":"Euler a",
+  "model":"cyberrealisticxl_v56_f16.ckpt"
+ }
