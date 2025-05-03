@@ -223,9 +223,9 @@ if (false)
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_finalize_enabled      = false;
-let log_match_enabled         = true;
+let log_match_enabled         = false;
 let disable_prelude           = false;
-let print_before_ast_enabled  = true;
+let print_before_ast_enabled  = false;
 let print_after_ast_enabled   = false;
 // ---------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
@@ -4959,9 +4959,9 @@ async function main() {
   // json_str = `"bar.txt"`;
   // console.log(inspect_fun(json.match(json_str)));
   json_str = `
-[11, null, 22]
+[11, null, {"foo": 123, "bar": null }]
 `;
-  console.log(JSON.stringify(json.match(json_str)));
+  // console.log(JSON.stringify(json.match(json_str)));
   
 
   console.log("\nTHIS ONE:");
