@@ -4663,7 +4663,8 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
                                       second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
-const MalformedNotSetCombo    = unexpected('#!');
+const MalformedNotSetCombo    = unexpected('#!', () => "'!#' is not a valid flag " +
+                                           "operation since it would be useless!");
 const NotFlag                 = xform((arr => {
   //console.log(`ARR: ${inspect_fun(arr)}`);
   return new ASTNotFlag(arr[2], arr[1][0]);
