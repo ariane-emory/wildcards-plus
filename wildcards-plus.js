@@ -4650,19 +4650,17 @@ const make_ASTFlagCmd = (klass, ...rules) =>
             second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
 // ---------------------------------------------------------------------------------------
 // terminals:
+// ---------------------------------------------------------------------------------------
 const plaintext               = /[^{|}\s]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
-const assignment_operator     = xform(arr => {
-  // console.log(`A_R RETURNING ${arr.toString()}`);
-  return arr;
-}, discard(seq(wst_star(comment), ':=', wst_star(comment))));
+const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
 // ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
+// ---------------------------------------------------------------------------------------
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
-// const CheckFlag               = make_ASTFlagCmd(ASTCheckFlag, '?');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
                                       second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
 const MalformedNotSetCombo    = unexpected('#!');
@@ -4678,12 +4676,42 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 const make_special_function = rule =>
       xform(tld_fun,
             c_funcall(second(seq('%', rule)),
-                      jsonc));
+                      first(wst_seq(DiscardedComments, jsonc, DiscardedComments))));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
+// ---------------------------------------------------------------------------------------
+const DiscardedComments            = discard(wst_star(comment));
 const SFInclude                    = make_special_function('include');
-const SFUpdateConfiguration        = make_special_function('update-config');
-const SFSetConfiguration           = make_special_function('set-config');
+const SFUpdateConfigurationBinary  = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                   DiscardedComments,     // -
+                                                                   '.',                   // [0][1]
+                                                                   DiscardedComments),    // -
+                                                           ident,                         // [1]
+                                                           '(',                           // [2]
+                                                           DiscardedComments,             // -
+                                                           jsonc,                         // [3]
+                                                           DiscardedComments,             // [4]
+                                                           ')'),                          // [4]
+                                           arr => new ASTSpecialFunction('update-config',
+                                                                         [arr[1], arr[3] ]));
+const SFUpdateConfigurationUnary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                   DiscardedComments,     // -
+                                                                   '(',                   // [0][1]
+                                                                   DiscardedComments),    // -
+                                                           jsonc_object,                  // [1]
+                                                           DiscardedComments,             // -
+                                                           ')'),                          // [2]
+                                           arr => new ASTSpecialFunction('update-config',
+                                                                         [arr[1]]));
+const SFSetConfiguration           = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                   DiscardedComments,     // -
+                                                                   assignment_operator,   // _
+                                                                   DiscardedComments),    // -
+                                                           jsonc_object),                 // [1]
+                                           arr => new ASTSpecialFunction('set-config',
+                                                                         [arr[1]]));
+const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
+                                            SFUpdateConfigurationBinary);
 const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
                                             SFUpdateConfiguration,
                                             SFSetConfiguration);
