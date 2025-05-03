@@ -4836,14 +4836,14 @@ const make_special_function = rule =>
                       jsonc));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const Comments                     = discard(wst_star(comment));
+const DiscardedComments            = discard(wst_star(comment));
 const SFInclude                    = make_special_function('include');
 // const SFUpdateConfiguration        = make_special_function('update-config');
 const SFUpdateConfigurationBinary  = xform(wst_seq(seq('%config.', ident, '('), jsonc, ')'),
                                            arr => new ASTSpecialFunction('update-config',
                                                                          [arr[0][1], arr[1]]));
-const SFUpdateConfigurationUnary   = xform(wst_seq('%config(', Comments,
-                                                   jsonc_object, Comments, ')'),
+const SFUpdateConfigurationUnary   = xform(wst_seq('%config(', DiscardedComments,
+                                                   jsonc_object, DiscardedComments, ')'),
                                            arr => new ASTSpecialFunction('update-config',
                                                                          [arr[1]]));
 const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
