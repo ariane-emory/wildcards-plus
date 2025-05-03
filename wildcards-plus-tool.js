@@ -4952,34 +4952,15 @@ async function main() {
 
   let json_str = '';
 
-  // json_str = `[false, null, {"foo": 123, "bar": 456}]`;
-  // console.log(inspect_fun(json.match(json_str)));
-  // console.log(JSON.stringify(json.match(json_str).value));
-
-  // json_str = `"bar.txt"`;
-  // console.log(inspect_fun(json.match(json_str)));
   json_str = `
 [11, null, {"foo": 123, "bar": null }]
 `;
-  // console.log(JSON.stringify(json.match(json_str)));
   
 
   console.log("\nTHIS ONE:");
-  //   json_str = `
-  // [1, null, ]
-  // `;
-
   const res = jsonc.match(json_str);
   console.log(`THE RESULT: ${inspect_fun(res)}`);
   console.log(`THE RESULT (as JSON): ${JSON.stringify(res)}`);
-
-  //   // log_match_enabled = true;
-  //   console.log("\nTHIS ONE 2:");
-  //   json_str = `
-  // /* a comment */ {"foo": 123, /* comment 2 */ "bar"//another comment
-  // : 456}
-  // `;
-  //   console.log(`matched: ${inspect_fun(jsonc.match(json_str))}`);  
 }
 
 // ---------------------------------------------------------------------------------------

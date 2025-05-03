@@ -1,1 +1,1 @@
-// %fake([ 11, null, 22])
+%fake([11, null, {"foo": 123, "bar": null }])
