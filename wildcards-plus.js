@@ -4911,23 +4911,29 @@ const result     = Prompt.match(promptString);
 console.log("\nwildcards prompt:\n");
 console.log(promptString + "\n");
 
+const base_context = load_prelude();
+
 for (i = 0; i < batchCount; i++) {
-  const context  = load_prelude();
-  editedString = expand_wildcards(result.value, context);
-  const config = context.config;
-  Object.assign(configuration, config);
-  configuration.seed = -1;
-  let batchCountLog = `render ${i+1} of ${batchCount}`;
-  console.log(batchCountLog);
+  configuration.seed = -1; // do we really need to set this every time?
+
+  const context = base_context.clone();
+  editedString  = expand_wildcards(result.value, context);
+  Object.assign(configuration, context.config);
+  console.log(`render ${i+1} of ${batchCount}`);
+  console.log(`The configuration is now: ${JSON.stringify(configuration)}`);
   console.log(editedString);
+  
   let startTime = new Date().getTime();
+
   pipeline.run({
     configuration: configuration,
     prompt: editedString
   });
-  var endTime = new Date().getTime();
+
+  var endTime     = new Date().getTime();
   var elapsedTime = (endTime - startTime) / 1000;
-  console.log("generated in " + elapsedTime + " seconds\n");
+
+  console.log(`generated in ${elapsedTime} seconds\n`);
 }
 
 console.log("Job complete. Open Console to see job report.");

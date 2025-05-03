@@ -1,6 +1,6 @@
-{ %update-config({ "model": "bookIllustrationChar_v10.ckpt", "steps": 15 })
-| %update-config({ "model": "zavychromaxl_v100_f16.ckpt", "steps": 15 })
-| %update-config({ "model": "oldmaster_v30_f16.ckpt", "steps": 15 })
+{ 2 %update-config({ "model": "bookIllustrationChar_v10.ckpt", "steps": 15 })
+| 1 %update-config({ "model": "zavychromaxl_v100_f16.ckpt", "steps": 15 })
+| 3 %update-config({ "model": "oldmaster_v30_f16.ckpt", "steps": 15 })
 }
 
 // =======================================================================================
