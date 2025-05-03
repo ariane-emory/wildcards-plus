@@ -4879,12 +4879,12 @@ const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
 const AnonWildcard                 = xform(arr => new ASTAnonWildcard(arr),
                                            brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const NamedWildcardReference       = xform(seq(discard('@'),
-                                               optional('^'),                            // [0]
-                                               optional(xform(parseInt, /\d+/)),         // [1]
+                                               optional('^'),                             // [0]
+                                               optional(xform(parseInt, /\d+/)),          // [1]
                                                optional(xform(parseInt,
-                                                              second(seq('-', /\d+/)))), // [2]
-                                               optional(/[,&]/),                         // [3]
-                                               ident),                                   // [4]
+                                                              second(seq('-', /\d+/)))),  // [2]
+                                               optional(/[,&]/),                          // [3]
+                                               ident),                                    // [4]
                                            arr => {
                                              const ident  = arr[4];
                                              const min_ct = arr[1][0] ?? 1;
@@ -4900,11 +4900,11 @@ const NamedWildcardReference       = xform(seq(discard('@'),
                                            });
 const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
-                                      wst_seq(NamedWildcardDesignator,                   // [0]
-                                              DiscardedComments,                         // -
-                                              assignment_operator,                       // -
-                                              DiscardedComments,                         // -
-                                              AnonWildcard));                            // [1]
+                                      wst_seq(NamedWildcardDesignator,                    // [0]
+                                              DiscardedComments,                          // -
+                                              assignment_operator,                        // -
+                                              DiscardedComments,                          // -
+                                              AnonWildcard));                             // [1]
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
