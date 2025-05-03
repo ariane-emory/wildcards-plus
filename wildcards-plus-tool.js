@@ -4954,15 +4954,18 @@ async function main() {
 
   // json_str = `"bar.txt"`;
   // console.log(inspect_fun(json.match(json_str)));
-  console.log(JSON.stringify(json.match(json_str).value));
+  json_str = "[11, null, 22]";
+  console.log(JSON.stringify(json.match(json_str)));
+  
 
   console.log("\nTHIS ONE:");
-  json_str = `
-[1, null, ]
-`;
+  //   json_str = `
+  // [1, null, ]
+  // `;
 
-  console.log(`matched: ${inspect_fun(jsonc_array.match(json_str))}`);
-  console.log(`matched (as JSON): ${JSON.stringify(json_array.match(json_str))}`);
+  const res = jsonc.match(json_str);
+  console.log(`THE RESULT: ${inspect_fun(res)}`);
+  console.log(`THE RESULT (as JSON): ${JSON.stringify(res)}`);
 
   //   // log_match_enabled = true;
   //   console.log("\nTHIS ONE 2:");
