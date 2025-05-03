@@ -4843,15 +4843,19 @@ const SFUpdateConfigurationBinary  = xform(wst_seq(seq('%config.', ident, '('),
                                                    DiscardedComments, jsonc,
                                                    DiscardedComments, ')'),
                                            arr => new ASTSpecialFunction('update-config',
-                                                                         [arr[0][1], arr[1]]));
+                                                                         [arr[0][1],
+                                                                          arr[1]]));
 const SFUpdateConfigurationUnary   = xform(wst_seq('%config(', DiscardedComments,
                                                    jsonc_object, DiscardedComments, ')'),
                                            arr => new ASTSpecialFunction('update-config',
                                                                          [arr[1]]));
 const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
                                             SFUpdateConfigurationBinary);
-const SFSetConfiguration           = xform(wst_seq('%config', DiscardedComments,assignment_operator, DiscardedComments,jsonc_object),
-                                           arr => new ASTSpecialFunction('set-config', [arr[1]]));
+const SFSetConfiguration           = xform(wst_seq('%config', DiscardedComments,
+                                                   assignment_operator,
+                                                   DiscardedComments,jsonc_object),
+                                           arr => new ASTSpecialFunction('set-config',
+                                                                         [arr[1]]));
 const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
                                             SFUpdateConfiguration,
                                             SFSetConfiguration);
