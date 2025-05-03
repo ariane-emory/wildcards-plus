@@ -4675,7 +4675,8 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 // other non-terminals:
 const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
 const SpecialFunction         = xform(tld_fun,
-                                      c_funcall(second(seq('%', SpecialFunctionName)), json));
+                                      c_funcall(second(seq('%', SpecialFunctionName)),
+                                                json));
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                optional(wb_uint, 1),
