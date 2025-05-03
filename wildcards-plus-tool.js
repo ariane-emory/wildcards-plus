@@ -4839,12 +4839,18 @@ const make_special_function = rule =>
 const SFInclude                    = make_special_function('include');
 // const SFUpdateConfiguration        = make_special_function('update-config');
 const SFUpdateConfiguration        = xform(arr => {
-  console.log(`SFUC ARR: ${inspect_fun(arr)}`);
-  return new ASTSpecialFunction('update-config', arr[0][1], arr[1]);
+  console.log();
+  console.log(`SFUC ARR:   ${inspect_fun(arr)}`);
+
+  const cons_args = [ 'update-config', [ arr[0][1], arr[1] ] ];
+
+  console.log(`CONST_ARGS: ${inspect_fun(cons_args)}`);
+
+  return new ASTSpecialFunction(...cons_args);
   // return arr;
 },
-                                           wst_seq(seq('%', ident, '(')
-                                                   jsons,
+                                           wst_seq(seq('%config.', ident, '('),
+                                                   jsonc,
                                                    ')'
                                                   ));
 const SFSetConfiguration           = make_special_function('set-config');
