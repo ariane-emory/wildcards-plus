@@ -2049,7 +2049,7 @@ function smart_join(arr) {
 // =======================================================================================
 // HELPER FUNCTION FOR MUNGING THE CONFIGURATION:
 // =======================================================================================
-// adapted from the file config.fbs in
+// var values adapted from the file config.fbs in
 // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
 const dt_samplers = [
   'DPMPP2MKarras',    // 0
@@ -2074,6 +2074,10 @@ const dt_samplers = [
 const key_names = [
   // [ automatic1111's name,  Draw Things' name ],
   [ 'cfg_scale',             'guidanceScale'       ],
+  [ 'denoising_strength',    'strength'            ],
+  [ 'firstphase_height',     'higresFixHeight'     ],
+  [ 'firstphase_width',      'higresFixWidth'      ],
+  [ 'n_iter',                'batchCount'          ],
   [ 'upscaler_scale_factor', 'upscalerScaleFactor' ],
 ];
 // ---------------------------------------------------------------------------------------
@@ -4619,7 +4623,7 @@ function expand_wildcards(thing, context = new Context()) {
       context.config = { ...context.config, ...config };
 
       if (log_config)
-        console.log(`UPDATED CONFIG TO ${JSON.stringify(context.config)}`);
+        console.log(`Updated config to ${JSON.stringify(context.config)}`);
       
       return '';
     } 
@@ -4632,13 +4636,13 @@ function expand_wildcards(thing, context = new Context()) {
       context.config = config;
 
       if (log_config)
-        console.log(`SET CONFIG TO ${JSON.stringify(config)}`);
+        console.log(`Set config to ${JSON.stringify(config)}`);
       
       return '';
     } 
     else if (thing instanceof ASTSpecialFunction) {
       // console.log(`IGNORING ${inspect_fun(thing)}`);
-      console.log(`IGNORING ${JSON.stringify(thing)}`);
+      console.log(`IGNORING UNIMPLEMENTED SpecialFunction: ${JSON.stringify(thing)}`);
     }
     // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
@@ -5053,7 +5057,7 @@ async function main() {
     const config   = context.config;
 
     if (log_config && ! is_empty_object(config))
-      console.log(`GOT CONFIG ${JSON.stringify(config)} FROM CONTEXT.`);
+      console.log(`Main loop got config: ${JSON.stringify(config)} from Context.`);
     
     // expansion may have included files, copy the files list back to the base context.
     // ED: might not be needed here after all...
