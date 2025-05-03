@@ -157,6 +157,7 @@ function process_includes(thing, context = new Context()) {
 // =======================================================================================
 let inspect_fun = util.inspect;
 let dt_hosted   = false;
+//  dt_hosted   = true; // uncomment to lie and force use of the DT-legal syntax
 // =======================================================================================
 
 
@@ -4871,7 +4872,12 @@ const SFSetConfiguration           = xform(wst_cutting_seq(wst_seq('%config',   
                                                                          [arr[1]]));
 const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
                                             SFUpdateConfigurationBinary);
-const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
+const UnexpectedSFInclude          = unexpected(SFInclude,
+                                                () => "%include is only supported when " +
+                                                "using wildcards-plus-tool.js, NOT when " +
+                                                "running the wildcards-plus.js script " +
+                                                "inside Draw Things!");
+const SpecialFunction              = choice(dt_hosted? UnexpectedSFInclude : SFInclude,
                                             SFUpdateConfiguration,
                                             SFSetConfiguration);
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
