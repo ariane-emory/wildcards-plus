@@ -1731,6 +1731,8 @@ class WildcardPicker {
 
 
 // =======================================================================================
+// basic JSON:
+// =======================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
 const json = choice(() => json_object, () => json_array, () => json_string,
                     () => json_true,   () => json_false, () => json_null,
