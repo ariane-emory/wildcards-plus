@@ -1,1 +1,5 @@
+%include("bar.txt")
 %fake([11, null, {"foo": 123, "bar": null }])
+
+@bar
+@1-3&quux
