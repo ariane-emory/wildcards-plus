@@ -61,14 +61,21 @@ function parse_file(filename) {
   return result;
 }
 // ---------------------------------------------------------------------------------------
-function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
+function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   console.log("POSTing!");
+
+  console.log(`POST_PROMPT GOT CONFIG ${JSON.stringify(config)}`);
   
-  const data = JSON.stringify({
+  let data = {
     prompt: prompt,
     // steps: 8,
     seed: Math.floor(Math.random() * (2 ** 32)),
-  });
+  };
+
+  data = { ...data, ...config };
+  const string_data = JSON.stringify(data);
+  
+  console.log(`DATA IS ${JSON.stringify(data)}`);
 
   const options = {
     hostname: hostname,
@@ -77,7 +84,7 @@ function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Content-Length': data.length
+      'Content-Length': string_data.length
     }
   };
 
@@ -85,7 +92,7 @@ function post_prompt(prompt, hostname = '127.0.0.1', port = 7860) {
 
   req.on('socket', (socket) => {
     socket.on('connect', () => {
-      req.write(data);
+      req.write(string_data);
       req.end();
       socket.destroy(); // don't wait for the response.
     });
@@ -4911,7 +4918,10 @@ async function main() {
 
     const context  = base_context.clone();
     const expanded = expand_wildcards(AST, context);
+    const config   = context.config;
 
+    console.log(`GOT CONFIG ${JSON.stringify(config)}`);
+    
     // expansion may have included files, copy the files list back to the base context.
     // ED: might not be needed here after all...
     // context_with_prelude.files = context.files;
@@ -4923,7 +4933,7 @@ async function main() {
     }
     else {
       if (!confirm) {
-        post_prompt(expanded);
+        post_prompt(expanded, config);
         posted_count += 1;
       }
       else  {
@@ -4940,7 +4950,7 @@ async function main() {
         if (answer.match(/^p.*/i)) {
           if (prior_expansion) { 
             console.log(`POSTing prior prompt '${expanded}'`);
-            post_prompt(prior_expansion);
+            post_prompt(prior_expansion, config);
           }
           else {
             console.log(`can't rewind, no prior prompt`);
@@ -4953,7 +4963,7 @@ async function main() {
           // console.log(`parsed = '${parsed}', count = '${count}'`);
           
           for (let iix = 0; iix < gen_count; iix++) {
-            post_prompt(expanded);
+            post_prompt(expanded, config);
             posted_count += 1;
           }
         }
