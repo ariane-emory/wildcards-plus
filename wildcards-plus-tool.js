@@ -231,7 +231,7 @@ if (false)
 // ---------------------------------------------------------------------------------------
 let string_input_mode_enabled = true;
 let log_enabled               = true;
-let log_config                = false;
+let log_config                = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
@@ -4702,12 +4702,19 @@ const NotFlag                 = xform((arr => {
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
 const tld_fun = arr => new ASTSpecialFunction(...arr);
+const make_special_function = rule =>
+      xform(tld_fun,
+            c_funcall(second(seq('%', rule)),
+                      jsonc));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
-const SpecialFunctionName     = choice('include', 'fake', 'config'); // choice('include', 'models');
-const SpecialFunction         = xform(tld_fun,
-                                      c_funcall(second(seq('%', SpecialFunctionName)),
-                                                jsonc));
+const SpecialFunctionInclude  = make_special_function('include');
+const SpecialFunctionConfig   = make_special_function('config');
+// const SpecialFunctionName     = choice('include', 'fake', 'config'); // choice('include', 'models');
+// const SpecialFunction         = xform(tld_fun,
+//                                       c_funcall(second(seq('%', SpecialFunctionName)),
+//                                                 jsonc));
+const SpecialFunction         = choice(SpecialFunctionInclude, SpecialFunctionConfig);
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                optional(wb_uint, 1),
@@ -4994,7 +5001,7 @@ async function main() {
 }
 
 // ---------------------------------------------------------------------------------------
-main().catch(err => {
-  console.error('Unhandled error:', err);
-  process.exit(1);
-});
+  main().catch(err => {
+    console.error('Unhandled error:', err);
+    process.exit(1);
+  });
