@@ -63,8 +63,8 @@ if (false)
 // =======================================================================================
 // GRAMMAR.JS CONTENT:
 // =======================================================================================
-// Code in this section copy/pasted from the grammar.js file in my 'jparse'
-// project circa ac2979f.
+// Code in this section originall copy/pasted from the grammar.js file in my 'jparse'
+// project circa ac2979f but updated since.
 // 
 // Not all of this section is actually used by the wildcards-plus script right 
 // now, but it's easier to just copy/paste in the whole file than it is to
@@ -1393,7 +1393,7 @@ function pipe_funs(...fns) {
 // COMMON-GRAMMAR.JS CONTENT:
 // =======================================================================================
 // Code in this section copy/pasted from the common-grammar.js file in my
-// 'jparse' project circa ac2979f.
+// 'jparse' project circa ac2979f but updated since
 // 
 // Not all of this section is actually used by the wildcards-plus script right 
 // now, but it's easier to just copy/paste in the whole file than it is to
