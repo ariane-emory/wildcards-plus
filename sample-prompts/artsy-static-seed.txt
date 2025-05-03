@@ -1,0 +1,22 @@
+// =======================================================================================
+// use wildcards to randomize some parts of the configuration before we get on with the
+// actual textual content of the prompt:
+// =======================================================================================
+
+// Hidream with some basic settings that seem to work alright:
+%config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0 })
+
+// 8-10 steps, equally likely:
+{ %config.steps(8) | %config.steps(9) | %config.steps(10) }
+
+// three possible resolutions, use the first more often:
+{ 3 %config({ "width": 768, "height": 512 })
+{ 2 %config({ "width": 768, "height": 384 })
+| 1 %config({ "width": 640, "height": 640 })
+}
+
+%config.seed(1285889769)
+
+masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, greebling, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting. 
+
+A beautiful and inscrutable cyborg spacecraft captain in the factory on an advanced space station orbiting a luminous asteroid holding its intricate equipment. It is dressed in an exoskeleton. It has bionic arms.
