@@ -2081,9 +2081,9 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
     if (config.sampler !== undefined && typeof config.sampler === 'string') {
-      console.log(`Correcting config.sampler = ${config.sampler} to ` +
-                  `config.${dt_samplers.indexOf(config.sampler)}.`);
-      config.sapler = dt_samplers.indexOf(config.sampler);
+      console.log(`Correcting config.sampler = ${inspect_fun(config.sampler)} to ` +
+                  `config.sampler = ${dt_samplers.indexOf(config.sampler)}.`);
+      config.sampler = dt_samplers.indexOf(config.sampler);
     }
 
     for (const [automatic1111_name, dt_name] of key_names) {
