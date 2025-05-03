@@ -21,6 +21,7 @@
 | 2  %update-config(  "model", "smoothmixillustrious_illustriousv3_f16.ckpt")
 | 2  %update-config(  "model", "stellaratormix_v20_f16.ckpt")
 | 2  %update-config(  "model", "zavychromaxl_v100_f16.ckpt")
+| 3  %update-config(  "model", "2dn_ponyv2_f16.ckpt")
 }
 
 // =======================================================================================
