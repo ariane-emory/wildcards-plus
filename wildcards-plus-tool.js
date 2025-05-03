@@ -4833,7 +4833,7 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 const make_special_function = rule =>
       xform(tld_fun,
             c_funcall(second(seq('%', rule)),
-                      jsonc));
+                      first(wst_seq(DiscardedComments, jsonc, DiscardedComments))));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 const DiscardedComments            = discard(wst_star(comment));
