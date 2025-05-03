@@ -1,2 +1,2 @@
-%fake({  "foo" : 123, /* a comment */ "bar" : 456}, [false,  {"foo": 789, "bar": 999}])
+%fake({  "foo" : 123, /* a comment */ "bar" : 456}, [false, {"foo": 789, "bar": null}])
 

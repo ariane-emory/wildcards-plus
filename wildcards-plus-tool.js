@@ -962,9 +962,11 @@ class Sequence extends Rule {
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
         log(indent + 1, `pushing ${inspect_fun(last_match_result.value)}`);
+
       values.push(last_match_result.value);
-      if (values.includes(null))
-        throw new Error("STOP @ PUSH 1");
+
+      // if (values.includes(null))
+      //   throw new Error("STOP @ PUSH 1");
     }
     else if (log_match_enabled)
       log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
@@ -996,15 +998,15 @@ class Sequence extends Rule {
 
         values.push(last_match_result.value);
 
-        if (values.includes(null))
-          throw new Error(`STOP @ PUSH 2 AFTER ${this.elements[ix]}`);
+        // if (values.includes(null))
+        //   throw new Error(`STOP @ PUSH 2 AFTER ${this.elements[ix]}`);
       }
 
       index = last_match_result.index;
     }
 
-    if (values.includes(null))
-      throw new Error("STOP @ RET");
+    // if (values.includes(null))
+    //   throw new Error("STOP @ RET");
     
     const mr = new MatchResult(values, input, last_match_result.index);
     // console.log(`SEQ MR = ${inspect_fun(mr)}`);
