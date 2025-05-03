@@ -4344,15 +4344,26 @@ function expand_wildcards(thing, context = new Context()) {
     // TLDs:
     // -----------------------------------------------------------------------------------
     if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
-      const config = thing.args[0];
+      if (thing.args.length > 2)
+        throw new Error(`%configure takes 1 or 2 arguments, got ${inspect_fun(thing.args)}`);
 
+      let config = {};
+
+      if (thing.args.length === 2) {
+        // TOOD: check types
+        config[thing.args[0]] = thing.args[1];
+      }
+      else {
+        config = thing.args[0];
+      }
+      
       if (typeof config !== 'object')
         throw new Error(`%configure's argument must be an object, got ${inspect_fun(config)}`);
 
       context.config = { ...context.config, ...config };
 
       if (log_config)
-        console.log(`UPDATED CONFIG TO ${JSON.stringify(config)}`);
+        console.log(`UPDATED CONFIG TO ${JSON.stringify(context.config)}`);
       
       return '';
     } 
