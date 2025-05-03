@@ -4519,7 +4519,7 @@ function expand_wildcards(thing, context = new Context()) {
       context.config = { ...context.config, ...config };
 
       if (log_config)
-        console.log(`UPDATED CONFIG TO ${JSON.stringify(config)}`);
+        console.log(`UPDATED CONFIG TO ${JSON.stringify(context.config)}`);
       
       return '';
     } 
