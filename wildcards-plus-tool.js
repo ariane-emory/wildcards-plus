@@ -4900,9 +4900,11 @@ const NamedWildcardReference       = xform(seq(discard('@'),
                                            });
 const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
-                                      wst_seq(NamedWildcardDesignator,
-                                              assignment_operator,
-                                              AnonWildcard));
+                                      wst_seq(NamedWildcardDesignator,                  // [0]
+                                              DiscardedComments,                        // -
+                                              assignment_operator,                      // -
+                                              DiscardedComments,                        // -
+                                              AnonWildcard));                           // [1]
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
