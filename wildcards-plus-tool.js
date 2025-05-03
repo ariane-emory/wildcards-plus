@@ -148,7 +148,7 @@ function process_includes(thing, context = new Context()) {
   return walk(thing, context).flat(Infinity);
 }
 // =======================================================================================
-// END of NODE-ONLY HELPER FUNCTIONS SECTION.
+// END OF NODE-ONLY HELPER FUNCTIONS SECTION.
 // =======================================================================================
 
 
@@ -2038,6 +2038,35 @@ function smart_join(arr) {
 }
 // =======================================================================================
 // END OF HELPER FUNCTIONS SECTION.
+// =======================================================================================
+
+
+// =======================================================================================
+// HELPER FUNCTION FOR MUNGING THE CONFIGURATION:
+// =======================================================================================
+// adapted from the file config.fbs in
+// https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
+const dt_samplers = [
+  'DPMPP2MKarras',    // 0
+  'EulerA',           // 1
+  'DDIM',             // 2
+  'PLMS',             // 3
+  'DPMPPSDEKarras',   // 4
+  'UniPC',            // 5
+  'LCM',              // 6
+  'EulerASubstep',    // 7
+  'DPMPPSDESubstep',  // 8
+  'TCD',              // 9
+  'EulerATrailing',   // 10
+  'DPMPPSDETrailing', // 11
+  'DPMPP2MAYS',       // 12
+  'EulerAAYS',        // 13
+  'DPMPPSDEAYS',      // 14
+  'DPMPP2MTrailing',  // 15
+  'DDIMTrailing',     // 16
+];
+// =======================================================================================
+// END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
 // =======================================================================================
 
 
