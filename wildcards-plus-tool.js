@@ -4846,8 +4846,13 @@ const SFUpdateConfigurationBinary  = xform(wst_seq(seq('%config.', ident, '('),
                                            arr => new ASTSpecialFunction('update-config',
                                                                          [arr[0][1],
                                                                           arr[1]]));
-const SFUpdateConfigurationUnary   = xform(wst_seq('%config', '(', DiscardedComments,
-                                                   jsonc_object, DiscardedComments, ')'),
+const SFUpdateConfigurationUnary   = xform(wst_seq('%config',         // 0
+                                                   '(',               // 1
+                                                   DiscardedComments, // -
+                                                   jsonc_object,      // 2
+                                                   DiscardedComments, // -
+                                                   ')'
+                                                  ),
                                            arr => new ASTSpecialFunction('update-config',
                                                                          [arr[2]]));
 const SFSetConfiguration           = xform(wst_seq('%config', DiscardedComments,
