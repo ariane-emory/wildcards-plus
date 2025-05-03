@@ -4840,20 +4840,34 @@ const SFInclude                    = make_special_function('include');
 // const SFUpdateConfiguration        = make_special_function('update-config');
 const SFUpdateConfigurationBinary        = xform(arr => {
   console.log();
-  console.log(`SFUC ARR:   ${inspect_fun(arr)}`);
+  console.log(`SFUCB ARR:    ${inspect_fun(arr)}`);
 
   const cons_args = [ arr[0][1], arr[1] ];
 
-  console.log(`CONST_ARGS: ${inspect_fun(cons_args)}`);
+  console.log(`B CONST_ARGS: ${inspect_fun(cons_args)}`);
 
   return new ASTSpecialFunction('update-config', cons_args);
-  // return arr;
 },
-                                           wst_seq(seq('%config.', ident, '('),
-                                                   jsonc,
+                                                 wst_seq(seq('%config.', ident, '('),
+                                                         jsonc,
+                                                         ')'
+                                                        ));
+const SFUpdateConfigurationUnary   = xform(arr => {
+  console.log();
+  console.log(`SFUCU ARR:    ${inspect_fun(arr)}`);
+
+  const cons_args = [ arr[1] ];
+
+  console.log(`U CONST_ARGS: ${inspect_fun(cons_args)}`);
+
+  return new ASTSpecialFunction('update-config', cons_args);
+},
+                                           wst_seq('%config(',
+                                                   jsonc_object,
                                                    ')'
                                                   ));
-const SFUpdateConfiguration        = choice(SFUpdateConfigurationBinary);
+const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
+                                            SFUpdateConfigurationBinary);
 const SFSetConfiguration           = make_special_function('set-config');
 const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
                                             SFUpdateConfiguration,
