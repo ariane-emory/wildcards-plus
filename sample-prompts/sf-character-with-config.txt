@@ -1,11 +1,7 @@
-%update-config({ "model": "bookIllustrationChar_v10.ckpt" })
-
-
-{ %update-config({ "steps": 20 }) | %update-config({ "steps":  25 }) | %update-config({ "steps": 1 }) }
-
-// %update-config({ "steps": { 15 | 20 | 20 } })
-
-// %configuration({ "foo": 123 })
+{ %update-config({ "model": "bookIllustrationChar_v10.ckpt", "steps": 15 })
+| %update-config({ "model": "zavychromaxl_v100_f16.ckpt", "steps": 15 })
+| %update-config({ "model": "oldmaster_v30_f16.ckpt", "steps": 15 })
+}
 
 // =======================================================================================
 // random sci-fi characters
