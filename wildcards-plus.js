@@ -4838,13 +4838,15 @@ for (i = 0; i < batchCount; i++) {
   configuration.seed = -1; // do we really need to set this every time?
 
   const context = base_context.clone();
-  const config  = munge_config(context.config);
   
   canvas.clear();
 
   console.log(`Beginning render #${i+1} of ${batchCount} at ${new Date().toString()}`);
   editedString  = expand_wildcards(result.value, context);
-  Object.assign(configuration, config);
+
+  let newConfig = munge_config(context.config);
+  newConfig = { ...configuration, ...newConfig };
+  
   console.log(`The configuration is now:`);
   console.log(`${JSON.stringify(configuration)}`);
   console.log(`Expanded prompt:`);
@@ -4853,7 +4855,7 @@ for (i = 0; i < batchCount; i++) {
   let startTime = new Date().getTime();
 
   pipeline.run({
-    configuration: configuration,
+    configuration: newConfig,
     prompt: editedString
   });
 
