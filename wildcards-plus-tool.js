@@ -223,7 +223,7 @@ if (false)
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_finalize_enabled      = false;
-let log_match_enabled         = false;
+let log_match_enabled         = true;
 let disable_prelude           = false;
 let print_before_ast_enabled  = true;
 let print_after_ast_enabled   = false;
