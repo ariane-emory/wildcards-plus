@@ -4840,27 +4840,26 @@ const make_special_function = rule =>
 // ---------------------------------------------------------------------------------------
 const DiscardedComments            = discard(wst_star(comment));
 const SFInclude                    = make_special_function('include');
-const SFUpdateConfigurationBinary  = xform(wst_seq('%config',         // 0
-                                                   DiscardedComments, // -
-                                                   '.',               // 1
-                                                   DiscardedComments, // -
-                                                   ident,             // 2
-                                                   '(',               // 3
-                                                   DiscardedComments, // -
-                                                   jsonc,             // 4
-                                                   DiscardedComments, // 5
-                                                   ')'                // 5
+const SFUpdateConfigurationBinary  = xform(wst_seq('%config',            // 0
+                                                   DiscardedComments,    // -
+                                                   '.',                  // 1
+                                                   DiscardedComments,    // -
+                                                   ident,                // 2
+                                                   '(',                  // 3
+                                                   DiscardedComments,    // -
+                                                   jsonc,                // 4
+                                                   DiscardedComments,    // 5
+                                                   ')'                   // 5
                                                   ),
                                            arr => new ASTSpecialFunction('update-config',
                                                                          [arr[2], arr[4] ]));
-const SFUpdateConfigurationUnary   = xform(wst_seq('%config',         // 0
-                                                   DiscardedComments, // -
-                                                   '(',               // 1
-                                                   DiscardedComments, // -
-                                                   jsonc_object,      // 2
-                                                   DiscardedComments, // -
-                                                   ')'
-                                                  ),
+const SFUpdateConfigurationUnary   = xform(wst_seq('%config',            // 0
+                                                   DiscardedComments,    // -
+                                                   '(',                  // 1
+                                                   DiscardedComments,    // -
+                                                   jsonc_object,         // 2
+                                                   DiscardedComments,    // -
+                                                   ')'),                 // 3
                                            arr => new ASTSpecialFunction('update-config',
                                                                          [arr[2]]));
 const SFSetConfiguration           = xform(wst_seq('%config', DiscardedComments,
