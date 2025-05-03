@@ -79,7 +79,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   const string_data = JSON.stringify(data);
 
   if (log_config)
-                          console.log(`POST data is ${JSON.stringify(data)}.`);
+    console.log(`POST data is ${JSON.stringify(data)}.`);
 
   const options = {
     hostname: hostname,
@@ -2117,15 +2117,15 @@ function munge_config(config) {
   }
   
   return config;
-  }
-  // =======================================================================================
-  // END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
-  // =======================================================================================
+}
+// =======================================================================================
+// END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
+// =======================================================================================
 
 
-  // =======================================================================================
-  // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
-  // =======================================================================================
+// =======================================================================================
+// HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
+// =======================================================================================
 class Context {
   constructor({ 
     flags = new Set(),
