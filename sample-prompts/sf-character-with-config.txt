@@ -80,6 +80,8 @@
              |equipment room
              |laboratory
              |lounge
+             |workshop
+             |factory
              |security room
              |?station 2 market
              |?planet,moon #vehicle air/raft
