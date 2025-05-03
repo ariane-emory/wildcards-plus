@@ -4600,8 +4600,9 @@ function expand_wildcards(thing, context = new Context()) {
     // TLDs:
     // -----------------------------------------------------------------------------------
     if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
-      if (thing.args.length > 2)
-        throw new Error(`%configure takes 1 or 2 arguments, got ${inspect_fun(thing.args)}`);
+      if (thing.args.lenrth > 2)
+        throw new Error(`update-config takes 1 or 2 arguments, got ` +
+                        `${inspect_fun(thing.args)}`);
 
       let config = {};
 
@@ -4614,7 +4615,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
       
       if (typeof config !== 'object')
-        throw new Error(`%configure's argument must be an object, got ${inspect_fun(config)}`);
+        throw new Error(`update-config's argument must be either: an object OR a ` +
+                        `string and an object, got ${inspect_fun(config)}`);
 
       context.config = { ...context.config, ...config };
 
@@ -4627,7 +4629,8 @@ function expand_wildcards(thing, context = new Context()) {
       const config = thing.args[0];
 
       if (typeof config !== 'object')
-        throw new Error(`%configuration's argument must be an object, got ${inspect_fun(config)}`);
+        throw new Error(`set-config's argument must be an object, ` +
+                        `got ${inspect_fun(config)}`);
 
       context.config = config;
 
