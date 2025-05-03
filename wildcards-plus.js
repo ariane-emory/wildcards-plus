@@ -4928,10 +4928,13 @@ for (i = 0; i < batchCount; i++) {
   configuration.seed = -1; // do we really need to set this every time?
 
   const context = base_context.clone();
+  canvas.clear();
+  console.log(`Beginning render #${i+1} of ${batchCount} at ${new Date().toString()}`);
   editedString  = expand_wildcards(result.value, context);
   Object.assign(configuration, context.config);
-  console.log(`render ${i+1} of ${batchCount}`);
-  console.log(`The configuration is now: ${JSON.stringify(configuration)}`);
+  console.log(`The configuration is now:`);
+  console.log(`${JSON.stringify(configuration)}`);
+  console.log(`Expanded prompt:`);
   console.log(editedString);
   
   let startTime = new Date().getTime();
@@ -4944,7 +4947,7 @@ for (i = 0; i < batchCount; i++) {
   var endTime     = new Date().getTime();
   var elapsedTime = (endTime - startTime) / 1000;
 
-  console.log(`generated in ${elapsedTime} seconds\n`);
+  console.log(`Generated in ${elapsedTime} seconds\n`);
 }
 
 console.log("Job complete. Open Console to see job report.");

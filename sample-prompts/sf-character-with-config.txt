@@ -1,4 +1,4 @@
-// %config.model("foo") syntax?
+// maybe switch to %config.model("foo") syntax? or maybe %config.model("foo")?
 
 { 2 %update-config({"width": 960, "height": 512}) | %update-config({ "width": 768, "height": 768}) }
 { 3 %update-config("steps", 35)   | 2 %update-config("steps", 40)   | 1 %update-config("steps", 45)   }
@@ -6,9 +6,9 @@
 { 1 %update-config("sampler", 0)  | 1 %update-config("sampler", 1)  }
 {   %update-config("guidanceScale", 5.0) | %update-config("guidanceScale", 6.0) | %update-config("guidanceScale", 7.0) | %update-config("guidanceScale", 8.0) }
 
-{ 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 768, "height": 512 })
-| 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 768, "height": 512 })
-| 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 768, "height": 512 })
+{ 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 768, "height": 384 })
+| 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 768, "height": 384 })
+| 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 768, "height": 384 })
 | 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 640, "height": 640 })
 | 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 640, "height": 640 })
 | 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 640, "height": 640 })
