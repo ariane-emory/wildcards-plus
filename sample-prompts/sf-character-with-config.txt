@@ -4,14 +4,14 @@
 { 3 %update-config("steps", 35)   | 2 %update-config("steps", 40)   | 1 %update-config("steps", 45)   }
 { 3 %update-config("shift", 1.00) | 2 %update-config("shift", 1.10) | 1 %update-config("shift", 1.20) }
 { 1 %update-config("sampler", 0)  | 1 %update-config("sampler", 1)  }
-{   %update-config("cfg_scale", 5.0) | %update-config("cfg_scale", 6.0) | %update-config("cfg_scale", 7.0) | %update-config("cfg_scale", 8.0) }
+{   %update-config("guidanceScale", 5.0) | %update-config("guidanceScale", 6.0) | %update-config("guidanceScale", 7.0) | %update-config("guidanceScale", 8.0) }
 
-{ 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": 16, "shift": 1.50, "cfg_scale": 40.0, "width": 768, "height": 384 })
-| 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": 16, "shift": 1.50, "cfg_scale": 40.0, "width": 768, "height": 384 })
-| 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": 16, "shift": 1.50, "cfg_scale": 40.0, "width": 768, "height": 384 })
-| 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": 16, "shift": 1.50, "cfg_scale": 40.0, "width": 640, "height": 640 })
-| 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": 16, "shift": 1.50, "cfg_scale": 40.0, "width": 640, "height": 640 })
-| 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": 16, "shift": 1.50, "cfg_scale": 40.0, "width": 640, "height": 640 })
+{ 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 768, "height": 384 })
+| 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 768, "height": 384 })
+| 4  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 768, "height": 384 })
+| 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 8,  "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 640, "height": 640 })
+| 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 9,  "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 640, "height": 640 })
+| 3  %update-config({ "model": "hidream_i1_fast_q5p.ckpt", "steps": 10, "sampler": 16, "shift": 1.50, "guidanceScale": 40.0, "width": 640, "height": 640 })
 | 3  %update-config(  "model", "bookIllustrationChar_v10.ckpt")
 | 3  %update-config(  "model", "challengexlv10yoursecret_v10_f16.ckpt")
 | 2  %update-config(  "model", "cyberrealisticpony_v10_clip_vit_l14_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
