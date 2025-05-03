@@ -1,3 +1,8 @@
+// =======================================================================================
+// randomize some parts of the configuration before we get on with the actual textual
+// content of the prompt:
+// =======================================================================================
+
 { // Hidream with some basic settings that seem to work alright:
   %config({ "model": "hidream_i1_fast_q5p", "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0 })
 
@@ -46,7 +51,7 @@
 }
 
 // =======================================================================================
-// random sci-fi characters
+// make random sci-fi characters:
 // =======================================================================================
 
 @pro_pos_rand := {2 @pro_pos_adj|a}
@@ -64,7 +69,7 @@
                   |{|@ship_late_adj} vessel}
 
 // ---------------------------------------------------------------------------------------
-// L2 places:
+// 'level 2' places, for phrases like 'in $place in a $largerPlace':
 // ---------------------------------------------------------------------------------------
 @l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station
                  |?planet planet|?planet world|?moon moon}}
@@ -92,7 +97,7 @@
 @l2_place_phrase    := {@l2_place {|2 orbiting a @l2_orbit_phrase}}
 
 // ---------------------------------------------------------------------------------------
-// places:
+// places to be 'in' or 'at':
 // ---------------------------------------------------------------------------------------
 @place_to_be_in := 
 {2 #indoors  {2 crew cabin 
@@ -201,7 +206,7 @@
                             }                
 
 // ---------------------------------------------------------------------------------------
-// tool:
+// tools:
 // ---------------------------------------------------------------------------------------
 @tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
                 |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
@@ -234,7 +239,7 @@
 @likely_tool        := {2 #tool|#weapon}
 
 // ---------------------------------------------------------------------------------------
-// role:
+// roles/character types:
 // ---------------------------------------------------------------------------------------
 @role :=
 {#weapon mercenary 
@@ -276,7 +281,7 @@
                       |@pro_pos_rand @clothing_adj exoskeleton}
  
 // ---------------------------------------------------------------------------------------
-// cyborg feature:
+// cyborg features:
 // ---------------------------------------------------------------------------------------
 @cyborg_features := {{a|one} {bionic|mechanical} arm
                     |{bionic|mechanical} arms
@@ -287,7 +292,7 @@
 @early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
 
 // ---------------------------------------------------------------------------------------
-// ailen feature:
+// ailen features:
 // ---------------------------------------------------------------------------------------
 @alien_features := {an insectoid appearance
                    |2 digitigrade legs
@@ -314,7 +319,7 @@
 @early_alien_feature_sentence := {?alien #eafs with @1-2&alien_features }
 
 // ---------------------------------------------------------------------------------------
-// sky:
+// things in the sky:
 // ---------------------------------------------------------------------------------------
 @late_sky_verb_frag       := {in the sky above|overhead}
 @early_sky_verb_frag      := {can be seen|hangs|looms}
@@ -335,9 +340,15 @@
 |A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} @early_sky_verb_frag @late_sky_verb_frag.
 }}
 
+// ---------------------------------------------------------------------------------------
+// colour palette/lighting stuff:
+// ---------------------------------------------------------------------------------------
+@colour_modifiers := {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
+
+
 // =======================================================================================
-@colour_modifiers := {warm color pallete|warm lighting
-                     |natural lighting|?outdoors golden hour}
+// prompt body:
+// =======================================================================================
 
 @aris_defaults, science fiction, {|futuristic,} {|greebling,}
 hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time,
