@@ -4689,7 +4689,7 @@ Prompt.finalize();
 // MAIN SECTION: All of the Draw Things-specific code goes down here.
 // ---------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
-const fallbackPrompt = String.raw`A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}`;
+const fallbackPrompt = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 const configuration = pipeline.configuration;
 const uiPrompt = pipeline.prompts.prompt;
 var uiHint = "no wildcards found in the prompt.";
