@@ -65,8 +65,6 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   if (log_config)
     console.log(`post_prompt got config: ${JSON.stringify(config)}.`);
 
-  // config = munge_config(config);
-  
   let data = {
     prompt: prompt,
     seed: Math.floor(Math.random() * (2 ** 32)),
@@ -2078,10 +2076,10 @@ const key_names = [
   [ 'upscaler_scale_factor', 'upscalerScaleFactor' ],
 ];
 // ---------------------------------------------------------------------------------------
-function munge_config(config) {
+function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
   
-  if (dt_hosted) { // running in DT, sampler needs to be an index:
+  if (is_dt_hosted) { // running in DT, sampler needs to be an index:
     if (config.sampler && typeof config.sampler === 'string') {
       console.log(`Correcting config.sampler = ${config.sampler} to ` +
                   `${dt_samplers.indexOf(config.sampler)}.`);
