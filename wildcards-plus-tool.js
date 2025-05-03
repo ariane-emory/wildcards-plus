@@ -4738,11 +4738,7 @@ const make_special_function = rule =>
 const SFInclude                    = make_special_function('include');
 const SFUpdateConfiguration        = make_special_function('update-config');
 const SFSetConfiguration           = make_special_function('set-config');
-// const SpecialFunctionName     = choice('include', 'fake', 'update-config'); // choice('include', 'models');
-// const SpecialFunction         = xform(tld_fun,
-//                                       c_funcall(second(seq('%', SpecialFunctionName)),
-//                                                 jsonc));
-const SpecialFunction              = choice(SFInclude,
+const SpecialFunction              = choice(dt_hosted? never_match : SFInclude,
                                             SFUpdateConfiguration,
                                             SFSetConfiguration);
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
@@ -4750,36 +4746,30 @@ const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
                                                optional(wb_uint, 1),
                                                wst_star(choice(comment, TestFlag, SetFlag)),
                                                () => ContentStar));
-const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
-                                            brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const NamedWildcardReference        = xform(seq(discard('@'),
-                                                optional('^'),                            // 0
-                                                optional(xform(parseInt, /\d+/)),         // 1
-                                                optional(xform(parseInt,
-                                                               second(seq('-', /\d+/)))), // 2
-                                                optional(/[,&]/),                         // 3
-                                                ident),                                   // 4
-                                            arr => {
-                                              // console.log(`NWR ARR: ${inspect_fun(arr)}`);
-
-                                              const ident  = arr[4];
-                                              const min_ct = arr[1][0] ?? 1;
-                                              const max_ct = arr[2][0] ?? min_ct;
-                                              const join   = arr[3][0] ?? '';
-                                              const caret  = arr[0][0];
-                                              
-                                              // console.log(inspect_fun([ident, min_ct, (typeof join), join, caret]));
-                                              
-                                              return new ASTNamedWildcardReference(ident,
-                                                                                   join,
-                                                                                   caret,
-                                                                                   min_ct,
-                                                                                   max_ct);
-                                            });
-const NamedWildcardDesignator = second(seq('@', ident));                                      
+const AnonWildcard                 = xform(arr => new ASTAnonWildcard(arr),
+                                           brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const NamedWildcardReference       = xform(seq(discard('@'),
+                                               optional('^'),                            // 0
+                                               optional(xform(parseInt, /\d+/)),         // 1
+                                               optional(xform(parseInt,
+                                                              second(seq('-', /\d+/)))), // 2
+                                               optional(/[,&]/),                         // 3
+                                               ident),                                   // 4
+                                           arr => {
+                                             const ident  = arr[4];
+                                             const min_ct = arr[1][0] ?? 1;
+                                             const max_ct = arr[2][0] ?? min_ct;
+                                             const join   = arr[3][0] ?? '';
+                                             const caret  = arr[0][0];
+                                             
+                                             return new ASTNamedWildcardReference(ident,
+                                                                                  join,
+                                                                                  caret,
+                                                                                  min_ct,
+                                                                                  max_ct);
+                                           });
+const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => {
-  // console.log(`NWCD ARR: ${JSON.stringify(arr)}`);
-  
   return new ASTNamedWildcardDefinition(...arr);
 },
                                       wst_seq(NamedWildcardDesignator,
