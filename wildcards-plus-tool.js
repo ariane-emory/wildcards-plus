@@ -4849,7 +4849,7 @@ const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
 // const SFSetConfiguration           = make_special_function('set-config');
 const SFSetConfiguration           = xform(arr => {
   console.log(`SFSC ARR: ${inspect_fun(arr)}`);
-  return arr;
+  return new ASTSpecialFunction('set-config', [ arr[1] ]);
 },
                                            wst_seq(
                                              '%config',
