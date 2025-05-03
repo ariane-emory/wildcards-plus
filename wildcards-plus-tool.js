@@ -25,8 +25,6 @@
 //
 // epic fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, 
 // A promotional poster for an award winning video game, which depicts a heroic, strong and athletic paladin wearing blood-smeared wargear holding his bejeweled flail while standing in an eerily lit lair, smiling towards the viewer victoriously.
-// --------------------------------------------------------------------------------
-//
 // =======================================================================================
 import * as util from 'util';
 import * as http from 'http';
@@ -37,14 +35,132 @@ import { stdin as input, stdout as output } from 'process';
 // ---------------------------------------------------------------------------------------
 
 
+// =======================================================================================
+// Node-ONLY HELPER FUNCTIONS (these won't work inside of DT!): 
+// =======================================================================================
+function ask(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise(resolve => {
+    rl.question(question, answer => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
+}
+// ---------------------------------------------------------------------------------------
+function parse_file(filename) {
+  const prompt_input = fs.readFileSync(filename, 'utf8');
+  const result = Prompt.match(prompt_input);
+
+  return result;
+}
+// ---------------------------------------------------------------------------------------
+function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
+  console.log("POSTing!");
+
+  if (log_config)
+    console.log(`post_prompt got config ${JSON.stringify(config)}.`);
+  
+  let data = {
+    prompt: prompt,
+    seed: Math.floor(Math.random() * (2 ** 32)),
+  };
+
+  data = { ...data, ...config };
+  const string_data = JSON.stringify(data);
+
+  if (log_config)
+    console.log(`POST data is ${JSON.stringify(data)}.`);
+
+  const options = {
+    hostname: hostname,
+    port: port,
+    path: '/sdapi/v1/txt2img',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': string_data.length
+    }
+  };
+
+  const req = http.request(options);
+
+  req.on('socket', (socket) => {
+    socket.on('connect', () => {
+      req.write(string_data);
+      req.end();
+      socket.destroy(); // don't wait for the response.
+    });
+  });
+
+  req.on('error', (error) => {
+    if (error.message !== 'socket hang up')
+      console.error(`ERROR: ${error}`);
+  });
+}
+// ---------------------------------------------------------------------------------------
+function process_includes(thing, context = new Context()) {
+  function walk(thing, context) {
+    if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
+      const current_file = context.files[context.files.length - 1];
+      const res = []
+
+      context = context.shallow_copy();
+      
+      for (let filename of thing.args) {
+        if (typeof filename !== 'string')
+          throw new Error(`include's arguments must be strings, got ${inspect_fun(filename)}`);
+        
+        filename = path.join(path.dirname(current_file), filename);
+        
+        if (context.files.includes(filename)) {
+          console.log(`WARNING: skipping duplicate include of '${filename}'.`);
+          continue;
+        }
+
+        context.files.push(filename);
+
+        const parse_file_result = parse_file(filename);
+
+        if (! parse_file_result.is_finished)
+          throw new Error(`error parsing ${filename}! ${inspect_fun(parse_file_result)}`);
+        
+        res.push(walk(parse_file_result.value, context));
+      }
+
+      return res;
+    }
+    else if (Array.isArray(thing)) {
+      const ret = [];
+
+      for (const t of thing)
+        ret.push(walk(t, context));
+
+      return ret;
+    }
+    else {
+      return thing;
+    }
+  }
+
+  return walk(thing, context).flat(Infinity);
+}
+// ---------------------------------------------------------------------------------------
+
 
 // =======================================================================================
-// set inspect_fun appropriately fore nod.js:
+// set inspect_fun appropriately for node.js:
 // =======================================================================================
 let inspect_fun = util.inspect;
 let dt_hosted   = false;
 // ----------------------------------------------------------------------------------------
 
+
+// =======================================================================================
 if (false)
   // =====================================================================================
   // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
@@ -1731,9 +1847,14 @@ jsonc.finalize(); // .finalize-ing resolves the thunks that were used the in jso
 // =======================================================================================
 // helper functions:
 // =======================================================================================
+function is_empty_object(obj) {
+  return obj && typeof obj === 'object' &&
+    Object.keys(obj).length === 0 &&
+    obj.constructor === Object;
+}
+// ---------------------------------------------------------------------------------------
 function rand_int(x, y) {
   y ||= x;
-  // console.log(`RAND_INT(${inspect_fun(x)}, ${inspect_fun(y)})`);
   const min = Math.min(x, y);
   const max = Math.max(x, y);
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -1908,117 +2029,6 @@ function smart_join(arr) {
   // console.log(`after  = '${unescape(str)}'`);
 
   return unescape(str);
-}
-// ---------------------------------------------------------------------------------------
-function ask(question) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  return new Promise(resolve => {
-    rl.question(question, answer => {
-      rl.close();
-      resolve(answer.trim());
-    });
-  });
-}
-// ---------------------------------------------------------------------------------------
-function parse_file(filename) {
-  const prompt_input = fs.readFileSync(filename, 'utf8');
-  const result = Prompt.match(prompt_input);
-  return result;
-}
-// ---------------------------------------------------------------------------------------
-function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
-  console.log("POSTing!");
-
-  if (log_config)
-    console.log(`post_prompt got config ${JSON.stringify(config)}.`);
-  
-  let data = {
-    prompt: prompt,
-    seed: Math.floor(Math.random() * (2 ** 32)),
-  };
-
-  data = { ...data, ...config };
-  const string_data = JSON.stringify(data);
-
-  if (log_config)
-    console.log(`POST data is ${JSON.stringify(data)}.`);
-
-  const options = {
-    hostname: hostname,
-    port: port,
-    path: '/sdapi/v1/txt2img',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': string_data.length
-    }
-  };
-
-  const req = http.request(options);
-
-  req.on('socket', (socket) => {
-    socket.on('connect', () => {
-      req.write(string_data);
-      req.end();
-      socket.destroy(); // don't wait for the response.
-    });
-  });
-
-  req.on('error', (error) => {
-    if (error.message !== 'socket hang up')
-      console.error(`ERROR: ${error}`);
-  });
-}
-// ---------------------------------------------------------------------------------------
-function process_includes(thing, context = new Context()) {
-  function walk(thing, context) {
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
-      const current_file = context.files[context.files.length - 1];
-      const res = []
-
-      context = context.shallow_copy();
-      
-      for (let filename of thing.args) {
-        if (typeof filename !== 'string')
-          throw new Error(`include's arguments must be strings, got ${inspect_fun(filename)}`);
-        
-        filename = path.join(path.dirname(current_file), filename);
-        
-        if (context.files.includes(filename)) {
-          console.log(`WARNING: skipping duplicate include of '${filename}'.`);
-          continue;
-        }
-
-        context.files.push(filename);
-
-        const parse_file_result = parse_file(filename);
-
-        if (! parse_file_result.is_finished)
-          throw new Error(`error parsing ${filename}! ${inspect_fun(parse_file_result)}`);
-        
-        res.push(walk(parse_file_result.value, context));
-      }
-
-      return res;
-    }
-    else if (Array.isArray(thing)) {
-      const ret = [];
-
-      for (const t of thing)
-        ret.push(walk(t, context));
-
-      return ret;
-    }
-    else {
-      return thing;
-    }
-  }
-
-  return walk(thing, context).flat(Infinity);
 }
 // ---------------------------------------------------------------------------------------
 
@@ -4818,9 +4828,9 @@ Prompt.finalize();
 // MAIN:
 // =======================================================================================
 async function main() {
-  // ---------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   // process the command-line arguments:
-  // ---------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   const args    = process.argv.slice(2);
   let   count   = 1;
   let   post    = false;
@@ -4856,9 +4866,9 @@ async function main() {
     count = parseInt(args[1]);
   }
 
-  // ---------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   // read prompt input:
-  // ---------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   let prompt_input = '';
   let result = null;
   
@@ -4941,8 +4951,8 @@ async function main() {
     const expanded = expand_wildcards(AST, context);
     const config   = context.config;
 
-    if (log_config)
-      console.log(`GOT CONFIG ${JSON.stringify(config)}`);
+    if (log_config && ! is_empty_object(config))
+      console.log(`GOT CONFIG ${JSON.stringify(config)} FROM CONTEXT.`);
     
     // expansion may have included files, copy the files list back to the base context.
     // ED: might not be needed here after all...
