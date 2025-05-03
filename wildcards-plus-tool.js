@@ -2086,15 +2086,13 @@ function munge_config(config) {
       config.sapler = dt_samplers.indexOf(config.sampler);
     }
 
-    for (const pair of key_names) {
-      const [automatic11_name, dt_name] = pair;
-
-      if (config[automatic11_name] !== undefined) {
-        console.log(`Correcting config.${automatic11_name} = ` +
-                    `${config[automatic11_name]} to ` +
-                    `${dt_name} = ${config[automatic11_name]}.`);
-        config[dt_name] = config[automatic11_name];
-        delete config[automatic11_name];
+    for (const [automatic1111_name, dt_name] of key_names) {
+      if (config[automatic1111_name] !== undefined) {
+        console.log(`Correcting config.${automatic1111_name} = ` +
+                    `${config[automatic1111_name]} to ` +
+                    `${dt_name} = ${config[automatic1111_name]}.`);
+        config[dt_name] = config[automatic1111_name];
+        delete config[automatic1111_name];
       }
     }
   }
@@ -2105,14 +2103,14 @@ function munge_config(config) {
       config.sampler = dt_samplers[config.sampler];
     }
 
-    for (const pair of key_names) {
-      const [automatic11_name, dt_name] = pair;
+    for (const [automatic1111_name, dt_name] of key_names) {
+      const [automatic1111_name, dt_name] = pair;
 
       if (config[dt_name] !== undefined) {
         console.log(`Correcting config.${dt_name} = ` +
                     `${config[dt_name]} to ` +
-                    `${automatic11_name} = ${config[dt_name]}.`);
-        config[automatic11_name] = config[dt_name];
+                    `${automatic1111_name} = ${config[dt_name]}.`);
+        config[automatic1111_name] = config[dt_name];
         delete config[dt_name];
       }
     }
