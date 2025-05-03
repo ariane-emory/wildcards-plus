@@ -59,7 +59,7 @@
              |?station 2 market
              |?planet,moon #vehicle air/raft
              |?planet,moon #vehicle aerodyne
-             |?planet,moon #vehicle {sky|hover|grav} {<car|transport|vehicle}
+             |?planet,moon #vehicle {sky|hover|grav|air} {<car|transport|vehicle}
              |?planet,moon #vehicle {ground|all-terrain\ |combat\ }
                                     {<car|transport|vehicle}             
              |?ship,station 2 cockpit

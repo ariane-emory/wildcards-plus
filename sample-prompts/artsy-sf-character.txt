@@ -54,20 +54,21 @@
              |equipment room
              |laboratory
              |lounge
+             |workshop
+             |factory
              |security room
-             |!ship air/raft
-             |!ship 2 market
-             |!ship aerodyne
-             |!ship {sky|hover|grav} {<car|transport|vehicle}
-             |!ship {ground|all-terrain} {<car|transport|vehicle}             
-             |!planet !moon 2 cockpit
-             |!planet !moon engine room
-             |?ship airlock
-             |?ship cargo bay
-             |?ship docking bay
+             |?station 2 market
+             |?planet,moon #vehicle air/raft
+             |?planet,moon #vehicle aerodyne
+             |?planet,moon #vehicle {sky|hover|grav|air} {<car|transport|vehicle}
+             |?planet,moon #vehicle {ground|all-terrain\ |combat\ }
+                                    {<car|transport|vehicle}             
+             |?ship,station 2 cockpit
+             |?ship,station engine room
+             |?ship,station airlock
+             |?ship,station cargo bay
+             |?ship,station docking bay
              |?ship @ship_term<'s bridge
-             |?station docking bay
-             |?station cargo bay
              |{access|maintenance} tunnel
              }
 |3 !ship !station #outdoors {alley
