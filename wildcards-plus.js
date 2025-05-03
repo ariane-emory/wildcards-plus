@@ -1541,55 +1541,6 @@ const push            = ((value, rule) =>
 const enclosing       = (left, enclosed, right) =>
       xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
 // =======================================================================================
-// END of COMMON-GRAMMAR.JS CONTENT
-// =======================================================================================
-
-
-// =======================================================================================
-// WildcardPicker class
-// ---------------------------------------------------------------------------------------
-class WildcardPicker {
-  // -------------------------------------------------------------------------------------
-  constructor(optSpecs = []) {
-    this.options = [];
-    this.range   = 0;
-
-    for (const optSpec of optSpecs) {
-      if (Array.isArray(optSpec)) {
-        this.add(...optSpec);
-      } else {
-        this.add(1, optSpec);
-      }
-    }
-  }
-  // -------------------------------------------------------------------------------------
-  add(weight, value) {
-    this.options.push([ weight, value ]);
-    this.range += weight;
-  }
-  // -------------------------------------------------------------------------------------
-  pick() {
-    if (this.options.length == 1) {
-      // console.log(`one option: ${inspect_fun(this.options[0][1])}`);
-
-      return this.options[0][1];
-    }
-    
-    let   total   = 0;
-    const random  = Math.random() * this.range;
-
-    for (const option of this.options) {
-      total += option[0];
-
-      if (random < total)
-        return option[1];      
-    }
-  }
-}
-// ---------------------------------------------------------------------------------------
-
-
-// =======================================================================================
 // basic JSON:
 // =======================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
@@ -1652,9 +1603,8 @@ const json_S = whites_plus;
 json.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
 // =======================================================================================
 
-
 // =======================================================================================
-// JSONC:
+// JSONC (JSON with C-style comments):
 // =======================================================================================
 const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const jsonc = second(wst_seq(jsonc_comments,
@@ -1687,6 +1637,52 @@ const jsonc_object =
 // =======================================================================================
 jsonc.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
 // =======================================================================================
+// END of COMMON-GRAMMAR.JS CONTENT
+// =======================================================================================
+
+
+// =======================================================================================
+// WildcardPicker class
+// ---------------------------------------------------------------------------------------
+class WildcardPicker {
+  // -------------------------------------------------------------------------------------
+  constructor(optSpecs = []) {
+    this.options = [];
+    this.range   = 0;
+
+    for (const optSpec of optSpecs) {
+      if (Array.isArray(optSpec)) {
+        this.add(...optSpec);
+      } else {
+        this.add(1, optSpec);
+      }
+    }
+  }
+  // -------------------------------------------------------------------------------------
+  add(weight, value) {
+    this.options.push([ weight, value ]);
+    this.range += weight;
+  }
+  // -------------------------------------------------------------------------------------
+  pick() {
+    if (this.options.length == 1) {
+      // console.log(`one option: ${inspect_fun(this.options[0][1])}`);
+
+      return this.options[0][1];
+    }
+    
+    let   total   = 0;
+    const random  = Math.random() * this.range;
+
+    for (const option of this.options) {
+      total += option[0];
+
+      if (random < total)
+        return option[1];      
+    }
+  }
+}
+// ---------------------------------------------------------------------------------------
 
 
 // =======================================================================================
