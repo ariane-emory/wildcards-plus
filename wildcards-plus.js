@@ -4848,7 +4848,7 @@ for (i = 0; i < batchCount; i++) {
   newConfig = { ...configuration, ...newConfig };
   
   console.log(`The configuration is now:`);
-  console.log(`${JSON.stringify(configuration)}`);
+  console.log(`${JSON.stringify(newConfig)}`);
   console.log(`Expanded prompt:`);
   console.log(editedString);
   
