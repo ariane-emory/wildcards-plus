@@ -4676,7 +4676,7 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 const SpecialFunctionName     = choice('include', 'fake'); // choice('include', 'models');
 const SpecialFunction         = xform(tld_fun,
                                       c_funcall(second(seq('%', SpecialFunctionName)),
-                                                json));
+                                                jsonc));
 const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                optional(wb_uint, 1),
@@ -4858,6 +4858,10 @@ async function main() {
     console.log(`before process_includes:`);
     console.log('--------------------------------------------------------------------------------');
     console.log(`${inspect_fun(AST)}`);
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`before process_includes (as JSON):`);
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`${JSON.stringify(AST)}`);
   }
 
   AST = process_includes(AST, base_context);
@@ -4867,6 +4871,10 @@ async function main() {
     console.log(`after process_includes:`);
     console.log('--------------------------------------------------------------------------------');
     console.log(`${inspect_fun(AST)}`);
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`after process_includes (as JSON):`);
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`${JSON.stringify(AST)}`);
   }
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
