@@ -4488,7 +4488,8 @@ function expand_wildcards(thing, context = new Context()) {
     // TLDs, not yet implemented:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunction) {
-      console.log(`IGNORING ${inspect_fun(thing)}`);
+      // console.log(`IGNORING ${inspect_fun(thing)}`);
+      console.log(`IGNORING ${JSON.stringify(thing)}`);
     }
     // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:

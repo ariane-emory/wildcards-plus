@@ -1,5 +1,6 @@
 %include("bar.txt")
-%fake([11, null, {"foo": 123, "bar": null }])
+%fake(/* a comment */ [11 /* another comment */, null // third comment
+, {"foo": 123, "bar": null }])
 
 @bar
 @1-3&quux
