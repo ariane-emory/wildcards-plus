@@ -65,11 +65,10 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   console.log("POSTing!");
 
   if (log_config)
-    console.log(`POST_PROMPT GOT CONFIG ${JSON.stringify(config)}`);
+    console.log(`post_prompt got config ${JSON.stringify(config)}.`);
   
   let data = {
     prompt: prompt,
-    // steps: 8,
     seed: Math.floor(Math.random() * (2 ** 32)),
   };
 
@@ -77,7 +76,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   const string_data = JSON.stringify(data);
 
   if (log_config)
-    console.log(`DATA IS ${JSON.stringify(data)}`);
+    console.log(`POST data is ${JSON.stringify(data)}.`);
 
   const options = {
     hostname: hostname,
