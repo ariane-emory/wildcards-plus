@@ -1,0 +1,7 @@
+{ %config.loras([{"file": "mj52_v2.0_lora_f16.ckpt", "weight": 0.6}])
+| %config.loras([{"file": "realism_lora_by_stable_yogi_pony_v1_lora_f16.ckpt", "weight": 0.6}])
+| %config.loras([{"file": "point_and_shoot_v0.1_lora_f16.ckpt", "weight": 0.6}])
+}
+
+
+<lora:foo: 1.5> bar < baz bar <baz <lora:quux: 1.5>
