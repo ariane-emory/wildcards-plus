@@ -7,7 +7,7 @@
 %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0 })
 
 // 8-10 steps, equally likely:
-{ %config.steps(8) | %config.steps(9) | %config.steps(10) }
+{ %config.steps(9) | %config.steps(10) | %config.steps(11) | %config.steps(12) }
 
 // three possible resolutions, use the first more often:
 { 4 %config({ "width": 768, "height": 512 })
