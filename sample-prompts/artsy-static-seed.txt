@@ -11,12 +11,17 @@
 
 // three possible resolutions, use the first more often:
 { 3 %config({ "width": 768, "height": 512 })
-{ 2 %config({ "width": 768, "height": 384 })
+| 2 %config({ "width": 768, "height": 384 })
 | 1 %config({ "width": 640, "height": 640 })
 }
 
 %config.seed(1285889769)
 
 masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, greebling, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting. 
+\n
 
-A beautiful and inscrutable cyborg spacecraft captain in the factory on an advanced space station orbiting a luminous asteroid holding its intricate equipment. It is dressed in an exoskeleton. It has bionic arms.
+A {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting}
+
+beautiful and inscrutable cyborg spacecraft captain in the factory on an advanced space station orbiting a luminous asteroid holding its intricate equipment. It is dressed in an exoskeleton. It has bionic arms.
+
+By @wizards_artists, @wizards_artist_styles.
