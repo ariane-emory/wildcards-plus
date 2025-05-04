@@ -4711,9 +4711,9 @@ class ASTScalarReference {
   }
 }
 // ---------------------------------------------------------------------------------------
-// for A1111-style LoRAs:
+// for A1111-style Loras:
 // ---------------------------------------------------------------------------------------
-class ASTLoRA {
+class ASTLora {
   constructor(file, weight) {
     this.file   = file;
     this.weight = weight;
@@ -4803,7 +4803,7 @@ const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
 // ---------------------------------------------------------------------------------------
-// A1111-style LoRAs subsection:
+// A1111-style Loras subsection:
 // ---------------------------------------------------------------------------------------
 // conservative regex, no unicode or weird symbols:
 const filename = /[A-Za-z0-9 ._\-()]+/;
@@ -4811,16 +4811,16 @@ const A1111StyleLoraWeight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
         xform(parseInt,   /\d+/))
-const A111StyleLora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
-                                                ? arr[3]
-                                                : `${arr[3]}.ckpt`),
-                                                  arr[5]),
+const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
+                                                 ? arr[3]
+                                                 : `${arr[3]}.ckpt`),
+                                                arr[5]),
                          wst_seq('<', 'lora', ':', 
                                  choice(filename, () => LimitedContent),
                                  ':',
                                  choice(A1111StyleLoraWeight, () => LimitedContent),
                                  '>'));
-// const A111StyleLora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
+// const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
 //                                              ? arr[3]
 //                                              : `${arr[3]}.ckpt`),
 //                                             arr[5]),
@@ -4828,7 +4828,7 @@ const A111StyleLora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
 // remmove these soon:
 const uninteresting = r(/[^<]+/);
 const phase2_prompt = star(choice(
-  A111StyleLora,
+  A1111StyleLora,
   uninteresting,
   '<',
 ));
@@ -4993,7 +4993,7 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
                                        // low_pri_text, plaintext
                                       );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
-                                       A111StyleLora,
+                                       A1111StyleLora,
                                        AnonWildcard, comment, ScalarReference,
                                        SFUpdateConfiguration,
                                        SFSetConfiguration,
