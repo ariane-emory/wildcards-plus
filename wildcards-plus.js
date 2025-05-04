@@ -4812,7 +4812,7 @@ Prompt.finalize();
 // ---------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallbackPrompt = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
-const configuration = pipeline.configuration;
+const pipelineConfiguration = pipeline.configuration;
 const uiPrompt = pipeline.prompts.prompt;
 var uiHint = "no wildcards found in the prompt.";
 
@@ -4872,34 +4872,31 @@ console.log(promptString + "\n");
 const base_context = load_prelude();
 
 for (i = 0; i < batchCount; i++) {
-  configuration.seed = -1; // do we really need to set this every time?
-
-  const context = base_context.clone();
-  
-  canvas.clear();
-
   console.log(`Beginning render #${i+1} of ${batchCount} at ${new Date().toString()}`);
 
-  editedString  = expand_wildcards(result.value, context);
-  let newConfig = munge_config(context.config);
-  newConfig = { ...configuration, ...newConfig };
+  // expand wildcards in a cloned context and generate a new configuration:
+  const context                 = base_context.clone();
+  const generated_prompt        = expand_wildcards(result.value, context);
+  const generated_configuration = { ...pipelineConfiguration,
+                                    seed: -1,
+                                    ...munge_config(context.config) };
   
-  console.log(`The configuration is now:`);
-  console.log(`${JSON.stringify(newConfig)}`);
-  console.log(`Expanded prompt:`);
-  console.log(editedString);
-  
-  let startTime = new Date().getTime();
+  console.log(`The generated configuration is: ${JSON.stringify(generated_configuration)}`);
+  console.log(`The expanded prompt is: ${generated_prompt}`);
 
+  const start_time = new Date().getTime();
+
+  // render and image:
+  canvas.clear();
   pipeline.run({
-    configuration: newConfig,
-    prompt: editedString
+    configuration: generated_configuration,
+    prompt: generated_prompt
   });
 
-  var endTime     = new Date().getTime();
-  var elapsedTime = (endTime - startTime) / 1000;
+  const end_time     = new Date().getTime();
+  const elapsed_time = (end_time - start_time) / 1000;
 
-  console.log(`Generated in ${elapsedTime} seconds\n`);
+  console.log(`Generated in ${elapsed_time} seconds\n`);
 }
 
 console.log("Job complete. Open Console to see job report.");
