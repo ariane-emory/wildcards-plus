@@ -1970,14 +1970,11 @@ function smart_join(arr) {
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       shift_left(1);
     
-
-    // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
-
-    console.log(`str = '${str}', ` +
-                `left_word = '${left_word}', ` +
-                `right_word = '${right_word}', ` +
-                `prev_char = '${prev_char}', ` +
-                `next_char = '${next_char}'`);
+    // console.log(`str = '${str}', ` +
+    //             `left_word = '${left_word}', ` +
+    //             `right_word = '${right_word}', ` +
+    //             `prev_char = '${prev_char}', ` +
+    //             `next_char = '${next_char}'`);
 
     // handle "a" → "an" if necessary:
     const articleCorrection = (originalArticle, nextWord) => {
@@ -2019,11 +2016,11 @@ function smart_join(arr) {
 
     if (right_word !== '<') {
       if (next_char === '<' && right_word !== '<') {
-        console.log(`CHOMP RIGHT!`);
+        // console.log(`CHOMP RIGHT!`);
         right_word = right_word.substring(1);
       }
       else if (prev_char === '<' && !prev_char_is_escaped) {
-        console.log(`CHOMP LEFT!`);
+        // console.log(`CHOMP LEFT!`);
         str = str.slice(0, -1);
       }
     }
@@ -4779,6 +4776,40 @@ class ASTAnonWildcardAlternative {
 
 
 // =======================================================================================
+// GRAMMAR FOR A1111-STYLE LORAs SECTION:
+// =======================================================================================
+// conservative regex, no unicode or weird symbols:
+class LoRA {
+  constructor(file, weight) {
+    this.file   = file;
+    this.weight = weight;
+  }
+}
+const filename = /[A-Za-z0-9 ._\-()]+/;
+const a1111_lora_weight =
+      choice(
+        xform(parseFloat, /\d*\.\d+/),
+        xform(parseInt,   /\d+/))
+const a1111_lora = xform(arr => new LoRA((arr[3].endsWith('.ckpt')
+                                          ? arr[3]
+                                          : `${arr[3]}.ckpt`),
+                                         arr[5]),
+                         wst_seq('<', 'lora', ':', filename, ':', a1111_lora_weight, '>'));
+// remmove these soon:
+const uninteresting = r(/[^<]+/);
+const phase2_prompt = star(choice(
+  a1111_lora,
+  uninteresting,
+  '<',
+));
+// ---------------------------------------------------------------------------------------
+a1111_lora.finalize();
+// =======================================================================================
+// END OF GRAMMAR FOR A1111-STYLE LORAs SECTION.
+// =======================================================================================
+
+
+// =======================================================================================
 // SD PROMPT GRAMMAR SECTION:
 // =======================================================================================
 // helper funs used by xforms:
@@ -4959,56 +4990,15 @@ Prompt.finalize();
 // =======================================================================================
 
 
-// =======================================================================================
-// GRAMMAR FOR A1111-STYLE LORAs SECTION:
-// =======================================================================================
-// conservative regex, no unicode or weird symbols:
-class LoRA {
-  constructor(file, weight) {
-    this.file   = file;
-    this.weight = weight;
-  }
-}
-const filename = /[A-Za-z0-9 ._\-()]+/;
-const a1111_lora_weight =
-      choice(
-        xform(parseFloat, /\d*\.\d+/),
-        xform(parseInt,   /\d+/))
-const a1111_lora = xform(arr => new LoRA((arr[3].endsWith('.ckpt')
-                                          ? arr[3]
-                                          : `${arr[3]}.ckpt`),
-                                         arr[5]),
-                         wst_seq('<', 'lora', ':', filename, ':', a1111_lora_weight, '>'));
-const uninteresting = r(/[^<]+/);
-const phase2_prompt = star(choice(
-  a1111_lora,
-  uninteresting,
-  '<',
-));
-
-
 let res;
-
-// res = phase2_prompt.match('<lora:foo: 1.5>'); 
-// console.log(`THIS RES: ${inspect_fun(res)}`);
-
 res = phase2_prompt.match('<lora:foo: 1.5> bar < <lora:baz: 1.5>'); 
 console.log(`THIS RES: ${inspect_fun(res)}`);
 
-// ---------------------------------------------------------------------------------------
-a1111_lora.finalize();
-// =======================================================================================
-// END OF GRAMMAR FOR A1111-STYLE LORAs SECTION.
-// =======================================================================================
 
 
 // =======================================================================================
 // DEV NOTE: Copy into wildcards-plus.js starting through this line!
 // =======================================================================================
-
-
-
-
 // =======================================================================================
 // MAIN SECTION:
 // =======================================================================================
