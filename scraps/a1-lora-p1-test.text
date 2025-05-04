@@ -1,1 +1,1 @@
-foo \<lora:mj52_v2.0_lora_f16.ckpt:0.6> bar
+<lora:foo: 1.5> bar < baz <lora:quux: 1.5>
