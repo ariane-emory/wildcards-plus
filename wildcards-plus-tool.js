@@ -4875,74 +4875,94 @@ const make_special_function = rule =>
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
-const DiscardedComments            = discard(wst_star(comment));
-const SFInclude                    = make_special_function('include');
-const SFUpdateConfigurationBinary  = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                   DiscardedComments,     // -
-                                                                   '.',                   // [0][1]
-                                                                   DiscardedComments),    // -
-                                                           ident,                         // [1]
-                                                           DiscardedComments,             // -
-                                                           '(',                           // [2]
-                                                           DiscardedComments,             // -
-                                                           jsonc,                         // [3]
-                                                           DiscardedComments,             // [4]
-                                                           ')'),                          // [4]
-                                           arr => new ASTSpecialFunction('update-config',
-                                                                         [arr[1], arr[3] ]));
-const SFUpdateConfigurationUnary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                   DiscardedComments,     // -
-                                                                   '(',                   // [0][1]
-                                                                   DiscardedComments),    // -
-                                                           jsonc_object,                  // [1]
-                                                           DiscardedComments,             // -
-                                                           ')'),                          // [2]
-                                           arr => new ASTSpecialFunction('update-config',
-                                                                         [arr[1]]));
-const SFSetConfiguration           = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                   DiscardedComments,     // -
-                                                                   assignment_operator,   // _
-                                                                   DiscardedComments),    // -
-                                                           jsonc_object),                 // [1]
-                                           arr => new ASTSpecialFunction('set-config',
-                                                                         [arr[1]]));
-const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
-                                            SFUpdateConfigurationBinary);
-const UnexpectedSFInclude          = unexpected(SFInclude,
-                                                () => "%include is only supported when " +
-                                                "using wildcards-plus-tool.js, NOT when " +
-                                                "running the wildcards-plus.js script " +
-                                                "inside Draw Things!");
-const SpecialFunction              = choice(dt_hosted? UnexpectedSFInclude : SFInclude,
-                                            SFUpdateConfiguration,
-                                            SFSetConfiguration);
-const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
-                                           seq(wst_star(choice(comment, TestFlag, SetFlag)),
-                                               optional(wb_uint, 1),
-                                               wst_star(choice(comment, TestFlag, SetFlag)),
-                                               () => ContentStar));
-const AnonWildcard                 = xform(arr => new ASTAnonWildcard(arr),
-                                           brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const NamedWildcardReference       = xform(seq(discard('@'),
-                                               optional('^'),                             // [0]
-                                               optional(xform(parseInt, /\d+/)),          // [1]
-                                               optional(xform(parseInt,
-                                                              second(seq('-', /\d+/)))),  // [2]
-                                               optional(/[,&]/),                          // [3]
-                                               ident),                                    // [4]
-                                           arr => {
-                                             const ident  = arr[4];
-                                             const min_ct = arr[1][0] ?? 1;
-                                             const max_ct = arr[2][0] ?? min_ct;
-                                             const join   = arr[3][0] ?? '';
-                                             const caret  = arr[0][0];
-                                             
-                                             return new ASTNamedWildcardReference(ident,
-                                                                                  join,
-                                                                                  caret,
-                                                                                  min_ct,
-                                                                                  max_ct);
-                                           });
+const DiscardedComments             = discard(wst_star(comment));
+const SFInclude                     = make_special_function('include');
+const SFUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                    DiscardedComments,     // -
+                                                                    '.',                   // [0][1]
+                                                                    DiscardedComments),    // -
+                                                            ident,                         // [1]
+                                                            DiscardedComments,             // -
+                                                            '(',                           // [2]
+                                                            DiscardedComments,             // -
+                                                            jsonc,                         // [3]
+                                                            DiscardedComments,             // [4]
+                                                            ')'),                          // [4]
+                                            arr => new ASTSpecialFunction('update-config',
+                                                                          [arr[1], arr[3] ]));
+const SFUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                    DiscardedComments,     // -
+                                                                    '(',                   // [0][1]
+                                                                    DiscardedComments),    // -
+                                                            jsonc_object,                  // [1]
+                                                            DiscardedComments,             // -
+                                                            ')'),                          // [2]
+                                            arr => new ASTSpecialFunction('update-config',
+                                                                          [arr[1]]));
+const SFSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                    DiscardedComments,     // -
+                                                                    assignment_operator,   // _
+                                                                    DiscardedComments),    // -
+                                                            jsonc_object),                 // [1]
+                                            arr => new ASTSpecialFunction('set-config',
+                                                                          [arr[1]]));
+const SFUpdateConfiguration         = choice(SFUpdateConfigurationUnary,
+                                             SFUpdateConfigurationBinary);
+const UnexpectedSFInclude           = unexpected(SFInclude,
+                                                 () => "%include is only supported when " +
+                                                 "using wildcards-plus-tool.js, NOT when " +
+                                                 "running the wildcards-plus.js script " +
+                                                 "inside Draw Things!");
+const SpecialFunction               = choice(dt_hosted? UnexpectedSFInclude : SFInclude,
+                                             SFUpdateConfiguration,
+                                             SFSetConfiguration);
+const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
+                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                                optional(wb_uint, 1),
+                                                wst_star(choice(comment, TestFlag, SetFlag)),
+                                                () => ContentStar));
+const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
+                                            brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const LimitedNamedWildcardReference = xform(seq(discard('@'),
+                                                optional('^'),                             // [0]
+                                                optional(xform(parseInt, /\d+/)),          // [1]
+                                                optional(xform(parseInt,
+                                                               second(seq('-', /\d+/)))),  // [2]
+                                                optional(/[,&]/),                          // [3]
+                                                ident),                                    // [4]
+                                            arr => {
+                                              const ident  = arr[4];
+                                              const min_ct = arr[1][0] ?? 1;
+                                              const max_ct = arr[2][0] ?? min_ct;
+                                              const join   = arr[3][0] ?? '';
+                                              const caret  = arr[0][0];
+                                              
+                                              return new ASTNamedWildcardReference(ident,
+                                                                                   join,
+                                                                                   caret,
+                                                                                   min_ct,
+                                                                                   max_ct);
+                                            });
+const NamedWildcardReference        = xform(seq(discard('@'),
+                                                optional('^'),                             // [0]
+                                                optional(xform(parseInt, /\d+/)),          // [1]
+                                                optional(xform(parseInt,
+                                                               second(seq('-', /\d+/)))),  // [2]
+                                                optional(/[,&]/),                          // [3]
+                                                ident),                                    // [4]
+                                            arr => {
+                                              const ident  = arr[4];
+                                              const min_ct = arr[1][0] ?? 1;
+                                              const max_ct = arr[2][0] ?? min_ct;
+                                              const join   = arr[3][0] ?? '';
+                                              const caret  = arr[0][0];
+                                              
+                                              return new ASTNamedWildcardReference(ident,
+                                                                                   join,
+                                                                                   caret,
+                                                                                   min_ct,
+                                                                                   max_ct);
+                                            });
 const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
                                       wst_seq(NamedWildcardDesignator,                    // [0]
