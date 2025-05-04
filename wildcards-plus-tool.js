@@ -4974,11 +4974,11 @@ let res;
 res = a1111_lora.match('<lora:foo: 1.5>'); 
 console.log(`THIS RES: ${inspect_fun(res)}`);
 
-// res = a1111_lora.match('<lora:foo: .5>');
-// console.log(`THIS RES: ${inspect_fun(res)}`);
+res = a1111_lora.match('<lora:foo: .5>');
+console.log(`THIS RES: ${inspect_fun(res)}`);
 
-// res = a1111_lora.match('<lora:foo: 2>');
-// console.log(`THIS RES: ${inspect_fun(res)}`);
+res = a1111_lora.match('<lora:foo: 2>');
+console.log(`THIS RES: ${inspect_fun(res)}`);
 
 
 
