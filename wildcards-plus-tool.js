@@ -4968,7 +4968,7 @@ const a1111_lora_weight =
       choice(
         xform(arr => {
           console.log(`ARR: ${inspect_fun(arr)}`);
-          const num = parseInt(arr[0]) + arr[1].length === 0 ? 0 : parseFloat(arr[1][0]);
+          const num = parseInt(arr[0]); // + arr[1].length === 0 ? 0 : parseFloat(arr[1][0]);
           console.log(`NUM: ${inspect_fun(num)}`);
           return num;
         },
