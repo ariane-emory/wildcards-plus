@@ -4982,7 +4982,10 @@ const a1111_lora = a1111_lora_weight;
 let res = a1111_lora.match("1.25");
 console.log(`THIS RES: ${inspect_fun(res)}`);
 
-let res = a1111_lora.match("1.25");
+res = a1111_lora.match(".25");
+console.log(`THIS RES: ${inspect_fun(res)}`);
+
+res = a1111_lora.match("5");
 console.log(`THIS RES: ${inspect_fun(res)}`);
 
 
