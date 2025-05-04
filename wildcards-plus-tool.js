@@ -4974,10 +4974,13 @@ const a1111_lora_weight =
           console.log(`NUM: ${inspect_fun([int_part, frac_part])} = ${num}`);
           return num;
         },
-              seq(/\d+/, optional(/\.\d+/))),
+              xform(parseInt, seq(/\d+/, optional(/\.\d+/)))),
         /\.\d+/)
 const a1111_lora = a1111_lora_weight;
 
+
+let res = a1111_lora.match("1.25");
+console.log(`THIS RES: ${inspect_fun(res)}`);
 
 let res = a1111_lora.match("1.25");
 console.log(`THIS RES: ${inspect_fun(res)}`);
