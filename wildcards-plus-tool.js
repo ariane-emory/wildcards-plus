@@ -5168,11 +5168,19 @@ async function main() {
     //   }
     // }
     
+    if (log_config_enabled && new_loras.lengh !== 0)
+      console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context, DO SOMETHING WITH THESE!\n`);
+
+    config.loras ||= [];
+    
+    for (const lora of new_loras) {
+      config.loras.push({ file: lora.file, weight: lora.weight });
+    }
+
     if (log_config_enabled && ! is_empty_object(config))
       console.log(`Main loop found config: ${JSON.stringify(config)} in Context.\n`);
     
-    if (log_config_enabled && new_loras.lengh !== 0)
-      console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context, DO SOMETHING WITH THESE!\n`);
+    
 
     // expansion may have included files, copy the files list back to the base context.
     // ED: might not be needed here after all...

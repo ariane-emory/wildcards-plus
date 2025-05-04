@@ -4962,7 +4962,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   generated_configuration.loras ||= [];
   
   for (const lora of new_loras) {
-    generated_configuration.loras.push({ file: lora.file, weight: file.weight });
+    generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
   }
   
   console.log(`The generated configuration is: ` +
