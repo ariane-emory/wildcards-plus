@@ -4964,8 +4964,25 @@ Prompt.finalize();
 // =======================================================================================
 // conservative regex, no unicode or weird symbols:
 const filename = /^[A-Za-z0-9 ._\-()]+$/;
+const a1111_lora_weight =
+      choice(
+        xform(arr => {
+          console.log(`ARR: ${inspect_fun(arr)}`);
+          const num = parseInt(arr[0]) + arr[1].length === 0 ? 0 : parseFloat(arr[1][0]);
+          console.log(`NUM: ${inspect_fun(num)}`);
+          return num;
+        },
+              seq(/\d+/, optional(/\.\d+/))),
+        /\.\d+/)
+const a1111_lora = a1111_lora_weight;
+
+
+let res = a1111_lora.match("1.25");
+console.log(`THIS RES: ${inspect_fun(res)}`);
+
+
 // ---------------------------------------------------------------------------------------
-// something.finalize();
+a1111_lora.finalize();
 // =======================================================================================
 // END OF PHASE 2 GRAMMAR FOR A1111-STYLE LORAs SECTION.
 // =======================================================================================
