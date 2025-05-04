@@ -4885,6 +4885,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   const generated_configuration = { ...pipeline_configuration,
                                     seed: -1,
                                     ...munge_config(context.config) };
+  const new_loras = context.new_loras;
   
   console.log(`The generated configuration is: ` +
               `${JSON.stringify(generated_configuration)}`);

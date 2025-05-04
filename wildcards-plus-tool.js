@@ -5162,12 +5162,17 @@ async function main() {
     const config    = munge_config(context.config);
     const new_loras = context.new_loras;
 
+    // if (dt_hosted) {
+    //   for (const lora of new_loras) {
+    //   }
+    // }
+    
     if (log_config_enabled && ! is_empty_object(config))
       console.log(`Main loop found config: ${JSON.stringify(config)} in Context.\n`);
     
-    if (log_config_enabled && ! is_empty_object(new_loras))
-      console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context.\n`);
-    
+    if (log_config_enabled && new_loras.lengh !== 0)
+      console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context, DO SOMETHING WITH THESE.\n`);
+
     // expansion may have included files, copy the files list back to the base context.
     // ED: might not be needed here after all...
     // context_with_prelude.files = context.files;
