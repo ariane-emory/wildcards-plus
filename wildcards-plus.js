@@ -4811,19 +4811,17 @@ Prompt.finalize();
 // MAIN SECTION: All of the Draw Things-specific code goes down here.
 // ---------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
-const fallbackPrompt = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
-const pipelineConfiguration = pipeline.configuration;
-const uiPrompt = pipeline.prompts.prompt;
-var uiHint = "no wildcards found in the prompt.";
+const fallback_prompt        = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
+const pipeline_configuration = pipeline.configuration;
+const ui_prompt              = pipeline.prompts.prompt;
+const ui_hint                = "no wildcards found in the prompt.";
 
 // look for wildcards in the UI prompt:
-if (uiPrompt.includes('{') && uiPrompt.includes('}')) {
-	uiHint = "wildcard detected in the prompt.";
-	// console.log(uiHint);
-	promptString = uiPrompt;
+if (ui_prompt.includes('{') && ui_prompt.includes('}')) {
+	ui_hint = "wildcard detected in the prompt.";
+	prompt_string = ui_prompt;
 } else {
-	// console.log(uiHint);
-	promptString = "";
+	prompt_string = "";
 }
 // ---------------------------------------------------------------------------------------
 
@@ -4831,7 +4829,7 @@ if (uiPrompt.includes('{') && uiPrompt.includes('}')) {
 // ---------------------------------------------------------------------------------------
 // UI:
 // ---------------------------------------------------------------------------------------
-const docString = `Wildcards Plus v0.7 by ariane-emory (based on @wetcircuit's original wildcard.js script)
+const doc_string = `Wildcards Plus v0.7 by ariane-emory (based on @wetcircuit's original wildcard.js script)
 
 Generate a batch of images using inline wildcards to randomize elements within the prompt.
 
@@ -4839,47 +4837,49 @@ The wildcards-plus script adds a variety of useful features above and beyond sim
 
 The full documentation would be too large to fit in this tiny box, please see the README.md file for detailed descriptions of these features!`;
 
-const userSelection = requestFromUser("Wildcards", "", function() {
+const user_selection = requestFromUser("Wildcards", "", function() {
   return [
-	  this.section("Prompt", uiHint, [
-		  this.textField(promptString, fallbackPrompt, true, 240),
+	  this.section("Prompt", ui_hint, [
+		  this.textField(prompt_string, fallback_prompt, true, 240),
 		  this.slider(10, this.slider.fractional(0), 1, 500, "batch count")
     ]),
 	  this.section("about",
-                 docString,
+                 doc_string,
                  [])
   ];
 });
 
-const batchCount = userSelection[0][1];
-promptString     = userSelection[0][0]
+const batch_count = user_selection[0][1];
+prompt_string     = user_selection[0][0]
 // ---------------------------------------------------------------------------------------
 
 
 // ---------------------------------------------------------------------------------------
-// parse the promptString here:
+// parse the prompt_string here:
 // ---------------------------------------------------------------------------------------
-const result     = Prompt.match(promptString);
+const parse_result     = Prompt.match(prompt_string);
+
+if (! parse_result.is_finished)
+  throw new Error("error parsing prompt!");
 // ---------------------------------------------------------------------------------------
 
 
 // ---------------------------------------------------------------------------------------
 // run pipeline
 // ---------------------------------------------------------------------------------------
-console.log("\nwildcards prompt:\n");
-console.log(promptString + "\n");
+console.log("\nwildcards prompt:${JSON.stringify(prompt_string)}\n");
 
 const base_context = load_prelude();
 
-for (let ix = 0; ix < batchCount; ix++) {
+for (let ix = 0; ix < batch_count; ix++) {
   const start_date = new Date();
 
-  console.log(`Beginning render #${ix+1} of ${batchCount} at ${start_date}:`);
+  console.log(`Beginning render #${ix+1} of ${batch_count} at ${start_date}:`);
 
-  // expand wildcards in a cloned context and generate a new configuration:
+  // expand the wildcards using a cloned context and generate a new configuration:
   const context                 = base_context.clone();
-  const generated_prompt        = expand_wildcards(result.value, context);
-  const generated_configuration = { ...pipelineConfiguration,
+  const generated_prompt        = expand_wildcards(parse_result.value, context);
+  const generated_configuration = { ...pipeline_configuration,
                                     seed: -1,
                                     ...munge_config(context.config) };
   
