@@ -4,7 +4,7 @@
 // =======================================================================================
 
 { // Hidream with some basic settings that seem to work alright:
-  %config({ "model": "hidream_i1_fast_q5p", "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0 })
+  %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0 })
 
   // 8-10 steps, equally likely:
   { %config.steps(8) | %config.steps(9) | %config.steps(10) }

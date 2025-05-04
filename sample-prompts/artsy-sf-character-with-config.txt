@@ -4,7 +4,11 @@
 // =======================================================================================
 
 { // Hidream with some basic settings that seem to work alright:
-  %config({ "model": "hidream_i1_fast_q5p", "sampler": "DDIM Trailing", "shift": 1.50, "cfg_scale": 40.0 })
+  %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50 })
+
+  { %config.cfg_scale(5.0 ) | %config.cfg_scale(10.0) | %config.cfg_scale(15.0) | %config.cfg_scale(20.0)
+  | %config.cfg_scale(25.0) | %config.cfg_scale(30.0) | %config.cfg_scale(35.0) | %config.cfg_scale(40.0)
+  }
 
   // 9-13 steps, equally likely:
   { %config.steps(9) | %config.steps(10) | %config.steps(11) | %config.steps(12) | %config.steps(13) }
@@ -32,8 +36,9 @@
   // two sampler possibilities:
   { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler a") }
 
-  // four possible CFG values:
-  { %config.cfg_scale(5.0) | %config.cfg_scale(6.0) | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) }
+  // eight possible CFG values:
+  { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
+  | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) | %config.cfg_scale(9.0) | %config.cfg_scale(10.0) }
 
   // lots of models pick from:
   { 2 %config.model("bookIllustrationChar_v10_f16.ckpt")
