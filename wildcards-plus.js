@@ -4871,8 +4871,10 @@ console.log(promptString + "\n");
 
 const base_context = load_prelude();
 
-for (i = 0; i < batchCount; i++) {
-  console.log(`Beginning render #${i+1} of ${batchCount} at ${new Date().toString()}`);
+for (let ix = 0; ix < batchCount; ix++) {
+  const start_date = new Date();
+
+  console.log(`Beginning render #${ix+1} of ${batchCount} at ${start_date}:`);
 
   // expand wildcards in a cloned context and generate a new configuration:
   const context                 = base_context.clone();
@@ -4881,12 +4883,12 @@ for (i = 0; i < batchCount; i++) {
                                     seed: -1,
                                     ...munge_config(context.config) };
   
-  console.log(`The generated configuration is: ${JSON.stringify(generated_configuration)}`);
-  console.log(`The expanded prompt is: ${generated_prompt}`);
+  console.log(`The generated configuration is: ` +
+              `${JSON.stringify(generated_configuration)}`);
+  console.log(`The expanded prompt is: ` +
+              `${JSON.stringify(generated_prompt)}`);
 
-  const start_time = new Date().getTime();
-
-  // render and image:
+  // render an image:
   canvas.clear();
   pipeline.run({
     configuration: generated_configuration,
@@ -4894,7 +4896,7 @@ for (i = 0; i < batchCount; i++) {
   });
 
   const end_time     = new Date().getTime();
-  const elapsed_time = (end_time - start_time) / 1000;
+  const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
   console.log(`Generated in ${elapsed_time} seconds\n`);
 }
