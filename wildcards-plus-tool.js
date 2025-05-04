@@ -4966,16 +4966,8 @@ Prompt.finalize();
 const filename = /^[A-Za-z0-9 ._\-()]+$/;
 const a1111_lora_weight =
       choice(
-        xform(arr => {
-          console.log(`ARR: ${inspect_fun(arr)}`);
-          const int_part  = parseInt(arr[0]); //
-          const frac_part = arr[1].length === 0 ? 0 : parseFloat(arr[1][0]);
-          const num = int_part + frac_part;
-          console.log(`NUM: ${inspect_fun([int_part, frac_part])} = ${num}`);
-          return num;
-        },
-              xform(parseInt, seq(/\d+/, optional(/\.\d+/)))),
-        /\.\d+/)
+        xform(parseFloat, /\d*\.\d+/),
+        xform(parseInt, /\d+/))
 const a1111_lora = a1111_lora_weight;
 
 
