@@ -541,11 +541,11 @@ class Choice extends Rule  {
         input, index, indent + 2);
       
       if (match_result) { 
-        if (match_result.value === DISCARD) {
-          index = match_result.index;
-          
-          continue;
-        }
+        // if (match_result.value === DISCARD) {
+        //   index = match_result.index;
+        
+        //   continue;
+        // }
 
         if (log_match_enabled)
           log(indent + 1, `Chose option #${ix}!`);
