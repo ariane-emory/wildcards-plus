@@ -4972,7 +4972,7 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
                                               ScalarAssignmentSource));
-const LimitedContent          = choice(xform(name => new ASTNamedWildcardDefinition(name),
+const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardReference),
                                        AnonWildcard,
                                        // comment,
