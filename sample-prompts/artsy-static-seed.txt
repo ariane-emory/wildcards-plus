@@ -10,7 +10,7 @@
 { %config.steps(8) | %config.steps(9) | %config.steps(10) }
 
 // three possible resolutions, use the first more often:
-{ 3 %config({ "width": 768, "height": 512 })
+{ 4 %config({ "width": 768, "height": 512 })
 | 2 %config({ "width": 768, "height": 384 })
 | 1 %config({ "width": 640, "height": 640 })
 }
