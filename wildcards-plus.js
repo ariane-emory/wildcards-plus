@@ -4865,7 +4865,7 @@ if (! parse_result.is_finished)
 
 
 // ---------------------------------------------------------------------------------------
-// run pipeline
+// run the pipeline:
 // ---------------------------------------------------------------------------------------
 console.log("\nwildcards-plus prompt:${JSON.stringify(prompt_string)}\n");
 
