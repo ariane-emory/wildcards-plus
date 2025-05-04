@@ -4993,13 +4993,12 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
                                        // low_pri_text, plaintext
                                       );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
-                                       
+                                       A111StyleLora,
                                        AnonWildcard, comment, ScalarReference,
                                        SFUpdateConfiguration,
                                        SFSetConfiguration,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-const LimitedContentStar      = xform(wst_star(LimitedContent), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
 //                                                 ScalarAssignment,
 //                                                 Content));
