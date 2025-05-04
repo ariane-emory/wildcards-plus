@@ -4968,17 +4968,11 @@ const a1111_lora_weight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
         xform(parseInt, /\d+/))
-const a1111_lora = a1111_lora_weight;
+const a1111_lora = wst_cutting_seq('<', filename, optional(a1111_lora_weight), '>');
 
-
-let res = a1111_lora.match("1.25");
+let res = a1111_lora.match('<lora:some_file.ckpt: 1.0>');
 console.log(`THIS RES: ${inspect_fun(res)}`);
 
-res = a1111_lora.match(".25");
-console.log(`THIS RES: ${inspect_fun(res)}`);
-
-res = a1111_lora.match("5");
-console.log(`THIS RES: ${inspect_fun(res)}`);
 
 
 // ---------------------------------------------------------------------------------------
