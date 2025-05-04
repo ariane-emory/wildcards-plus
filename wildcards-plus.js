@@ -383,8 +383,14 @@ class Choice extends Rule  {
       
       const match_result = option.match(
         input, index, indent + 2);
+      
+      if (match_result) { 
+        // if (match_result.value === DISCARD) {
+        //   index = match_result.index;
+        
+        //   continue;
+        // }
 
-      if (match_result) {
         if (log_match_enabled)
           log(indent + 1, `Chose option #${ix}!`);
         
@@ -393,7 +399,6 @@ class Choice extends Rule  {
 
       if (log_match_enabled)
         log(indent + 1, `Rejected option #${ix}.`);
-
     }
 
     return null;
@@ -895,10 +900,9 @@ class CuttingSequence extends Sequence {
                         input, index) {
     throw new Error(`expected (${this.elements.slice(1).join(" ")}) ` +
                     `after ${this.elements[0]} at ` +
-                    `char ${input[start_rule_result.index].start}` +
+                    `char ${index}` +
                     `, found: ` +
-                    `[ ${input.slice(start_rule_result.index).join(", ")}` +
-                    ` ]`);
+                    `'${input.substr(start_rule_result.index)}'`);
   }
   // -------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -1815,17 +1819,13 @@ function smart_join(arr) {
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       shift_left(1);
     
-
-    // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
-
     // console.log(`str = '${str}', ` +
     //             `left_word = '${left_word}', ` +
     //             `right_word = '${right_word}', ` +
     //             `prev_char = '${prev_char}', ` +
     //             `next_char = '${next_char}'`);
 
-    // handle "a" → "an" if necessary
-
+    // handle "a" → "an" if necessary:
     const articleCorrection = (originalArticle, nextWord) => {
       const expected = choose_indefinite_article(nextWord);
       if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
@@ -1834,7 +1834,7 @@ function smart_join(arr) {
       return originalArticle;
     };
 
-    // Normalize article if needed
+    // Normalize article if needed:
     if (left_word === "a" || left_word.endsWith(" a") ||
         left_word === "A" || left_word.endsWith(" A")) {
       const nextWord = right_word;
@@ -1849,13 +1849,13 @@ function smart_join(arr) {
         }
       }
     }
-
+    
     if (!(!str || !right_word) && 
         !whitep(prev_char) &&
         !whitep(next_char) &&
         !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
         !(linkingp(next_char) || ')]'.includes(next_char)) &&
-        ( next_char !== '<' && (! (prev_char === '<' && prev_char_is_escaped))) &&
+        ((right_word === '<' || next_char !== '<') && (! (prev_char === '<' && prev_char_is_escaped))) &&
         !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
         !punctuationp(next_char)) {
       // console.log(`SPACE!`);
@@ -1863,13 +1863,15 @@ function smart_join(arr) {
       str += ' ';
     }
 
-    if (next_char === '<' && right_word !== '<') {
-      // console.log(`CHOMP RIGHT!`);
-      right_word = right_word.substring(1);
-    }
-    else if (prev_char === '<' && !prev_char_is_escaped) {
-      // console.log(`CHOMP LEFT!`);
-      str = str.slice(0, -1);
+    if (right_word !== '<') {
+      if (next_char === '<' && right_word !== '<') {
+        // console.log(`CHOMP RIGHT!`);
+        right_word = right_word.substring(1);
+      }
+      else if (prev_char === '<' && !prev_char_is_escaped) {
+        // console.log(`CHOMP LEFT!`);
+        str = str.slice(0, -1);
+      }
     }
 
     left_word = right_word;
@@ -1980,6 +1982,7 @@ class Context {
     noisy = false,
     files = [],
     config = {},
+    new_loras = [],
     top_file = true,
   } = {}) {
     this.flags = flags;
@@ -1988,6 +1991,7 @@ class Context {
     this.noisy = noisy;
     this.files = files;
     this.config = config;
+    this.new_loras = new_loras;
     this.top_file = top_file;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
@@ -4472,6 +4476,8 @@ function expand_wildcards(thing, context = new Context()) {
     } 
     if (thing instanceof ASTSpecialFunction && thing.directive == 'set-config') {
       const config = thing.args[0];
+      
+      context.new_loras = []; // kinda ugly but seems correct for this case...
 
       if (typeof config !== 'object')
         throw new Error(`set-config's argument must be an object, ` +
@@ -4489,6 +4495,13 @@ function expand_wildcards(thing, context = new Context()) {
       console.log(`IGNORING UNIMPLEMENTED SpecialFunction: ${JSON.stringify(thing)}`);
     }
     // -----------------------------------------------------------------------------------
+    // ASTLora:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTLora) {
+      context.new_loras.push(thing);
+      
+      return '';
+    }
     // error case, unrecognized objects:
     // -----------------------------------------------------------------------------------
     else {
@@ -4536,7 +4549,7 @@ class ASTNotFlag  {
 // References:
 // ---------------------------------------------------------------------------------------
 class ASTNamedWildcardReference {
-  constructor(name, joiner, capitalize, min_count, max_count) {
+  constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
     this.name       = name;
     this.min_count  = min_count;
     this.max_count  = max_count;
@@ -4550,6 +4563,15 @@ class ASTScalarReference {
   constructor(name, capitalize) {
     this.name       = name;
     this.capitalize = capitalize;
+  }
+}
+// ---------------------------------------------------------------------------------------
+// for A1111-style Loras:
+// ---------------------------------------------------------------------------------------
+class ASTLora {
+  constructor(file, weight) {
+    this.file   = file;
+    this.weight = weight;
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4622,9 +4644,50 @@ class ASTAnonWildcardAlternative {
 // =======================================================================================
 
 
+
+
 // =======================================================================================
 // SD PROMPT GRAMMAR SECTION:
 // =======================================================================================
+// terminals:
+// ---------------------------------------------------------------------------------------
+const plaintext               = /[^{|}\s]+/;
+const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
+const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
+const comment                 = discard(choice(c_block_comment, c_line_comment));
+const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+// ---------------------------------------------------------------------------------------
+// A1111-style Loras subsection:
+// ---------------------------------------------------------------------------------------
+// conservative regex, no unicode or weird symbols:
+const filename = /[A-Za-z0-9 ._\-()]+/;
+const A1111StyleLoraWeight =
+      choice(
+        xform(parseFloat, /\d*\.\d+/),
+        xform(parseInt,   /\d+/))
+const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
+                                                 ? arr[3]
+                                                 : `${arr[3]}.ckpt`),
+                                                arr[5]),
+                             wst_seq('<', 'lora', ':', 
+                                     choice(filename, () => LimitedContent),
+                                     ':',
+                                     choice(A1111StyleLoraWeight, () => LimitedContent),
+                                     '>'));
+// const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
+//                                              ? arr[3]
+//                                              : `${arr[3]}.ckpt`),
+//                                             arr[5]),
+//                          wst_seq('<', 'lora', ':', filename, ':', A1111StyleLoraWeight, '>'));
+// remmove these soon:
+const uninteresting = r(/[^<]+/);
+const phase2_prompt = star(choice(
+  A1111StyleLora,
+  uninteresting,
+  '<',
+));
+// ---------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // ---------------------------------------------------------------------------------------
 const make_ASTAnonWildcardAlternative = arr => {
@@ -4652,15 +4715,6 @@ const make_ASTFlagCmd = (klass, ...rules) =>
       xform(ident => new klass(ident),
             second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
 // ---------------------------------------------------------------------------------------
-// terminals:
-// ---------------------------------------------------------------------------------------
-const plaintext               = /[^{|}\s]+/;
-const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
-const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
-const comment                 = discard(choice(c_block_comment, c_line_comment));
-const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
-// ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // ---------------------------------------------------------------------------------------
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
@@ -4683,74 +4737,74 @@ const make_special_function = rule =>
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
-const DiscardedComments            = discard(wst_star(comment));
-const SFInclude                    = make_special_function('include');
-const SFUpdateConfigurationBinary  = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                   DiscardedComments,     // -
-                                                                   '.',                   // [0][1]
-                                                                   DiscardedComments),    // -
-                                                           ident,                         // [1]
-                                                           DiscardedComments,             // -
-                                                           '(',                           // [2]
-                                                           DiscardedComments,             // -
-                                                           jsonc,                         // [3]
-                                                           DiscardedComments,             // [4]
-                                                           ')'),                          // [4]
-                                           arr => new ASTSpecialFunction('update-config',
-                                                                         [arr[1], arr[3] ]));
-const SFUpdateConfigurationUnary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                   DiscardedComments,     // -
-                                                                   '(',                   // [0][1]
-                                                                   DiscardedComments),    // -
-                                                           jsonc_object,                  // [1]
-                                                           DiscardedComments,             // -
-                                                           ')'),                          // [2]
-                                           arr => new ASTSpecialFunction('update-config',
-                                                                         [arr[1]]));
-const SFSetConfiguration           = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                   DiscardedComments,     // -
-                                                                   assignment_operator,   // _
-                                                                   DiscardedComments),    // -
-                                                           jsonc_object),                 // [1]
-                                           arr => new ASTSpecialFunction('set-config',
-                                                                         [arr[1]]));
-const SFUpdateConfiguration        = choice(SFUpdateConfigurationUnary,
-                                            SFUpdateConfigurationBinary);
-const UnexpectedSFInclude          = unexpected(SFInclude,
-                                                () => "%include is only supported when " +
-                                                "using wildcards-plus-tool.js, NOT when " +
-                                                "running the wildcards-plus.js script " +
-                                                "inside Draw Things!");
-const SpecialFunction              = choice(dt_hosted? UnexpectedSFInclude : SFInclude,
-                                            SFUpdateConfiguration,
-                                            SFSetConfiguration);
-const AnonWildcardAlternative      = xform(make_ASTAnonWildcardAlternative,
-                                           seq(wst_star(choice(comment, TestFlag, SetFlag)),
-                                               optional(wb_uint, 1),
-                                               wst_star(choice(comment, TestFlag, SetFlag)),
-                                               () => ContentStar));
-const AnonWildcard                 = xform(arr => new ASTAnonWildcard(arr),
-                                           brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const NamedWildcardReference       = xform(seq(discard('@'),
-                                               optional('^'),                             // [0]
-                                               optional(xform(parseInt, /\d+/)),          // [1]
-                                               optional(xform(parseInt,
-                                                              second(seq('-', /\d+/)))),  // [2]
-                                               optional(/[,&]/),                          // [3]
-                                               ident),                                    // [4]
-                                           arr => {
-                                             const ident  = arr[4];
-                                             const min_ct = arr[1][0] ?? 1;
-                                             const max_ct = arr[2][0] ?? min_ct;
-                                             const join   = arr[3][0] ?? '';
-                                             const caret  = arr[0][0];
-                                             
-                                             return new ASTNamedWildcardReference(ident,
-                                                                                  join,
-                                                                                  caret,
-                                                                                  min_ct,
-                                                                                  max_ct);
-                                           });
+const DiscardedComments             = discard(wst_star(comment));
+const SFInclude                     = make_special_function('include');
+const SFUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                    DiscardedComments,     // -
+                                                                    '.',                   // [0][1]
+                                                                    DiscardedComments),    // -
+                                                            ident,                         // [1]
+                                                            DiscardedComments,             // -
+                                                            '(',                           // [2]
+                                                            DiscardedComments,             // -
+                                                            jsonc,                         // [3]
+                                                            DiscardedComments,             // [4]
+                                                            ')'),                          // [4]
+                                            arr => new ASTSpecialFunction('update-config',
+                                                                          [arr[1], arr[3] ]));
+const SFUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                    DiscardedComments,     // -
+                                                                    '(',                   // [0][1]
+                                                                    DiscardedComments),    // -
+                                                            jsonc_object,                  // [1]
+                                                            DiscardedComments,             // -
+                                                            ')'),                          // [2]
+                                            arr => new ASTSpecialFunction('update-config',
+                                                                          [arr[1]]));
+const SFSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                    DiscardedComments,     // -
+                                                                    assignment_operator,   // _
+                                                                    DiscardedComments),    // -
+                                                            jsonc_object),                 // [1]
+                                            arr => new ASTSpecialFunction('set-config',
+                                                                          [arr[1]]));
+const SFUpdateConfiguration         = choice(SFUpdateConfigurationUnary,
+                                             SFUpdateConfigurationBinary);
+const UnexpectedSFInclude           = unexpected(SFInclude,
+                                                 () => "%include is only supported when " +
+                                                 "using wildcards-plus-tool.js, NOT when " +
+                                                 "running the wildcards-plus.js script " +
+                                                 "inside Draw Things!");
+const SpecialFunction               = choice(dt_hosted? UnexpectedSFInclude : SFInclude,
+                                             SFUpdateConfiguration,
+                                             SFSetConfiguration);
+const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
+                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                                optional(wb_uint, 1),
+                                                wst_star(choice(comment, TestFlag, SetFlag)),
+                                                () => ContentStar));
+const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
+                                            brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const NamedWildcardReference        = xform(seq(discard('@'),
+                                                optional('^'),                             // [0]
+                                                optional(xform(parseInt, /\d+/)),          // [1]
+                                                optional(xform(parseInt,
+                                                               second(seq('-', /\d+/)))),  // [2]
+                                                optional(/[,&]/),                          // [3]
+                                                ident),                                    // [4]
+                                            arr => {
+                                              const ident  = arr[4];
+                                              const min_ct = arr[1][0] ?? 1;
+                                              const max_ct = arr[2][0] ?? min_ct;
+                                              const join   = arr[3][0] ?? '';
+                                              const caret  = arr[0][0];
+                                              
+                                              return new ASTNamedWildcardReference(ident,
+                                                                                   join,
+                                                                                   caret,
+                                                                                   min_ct,
+                                                                                   max_ct);
+                                            });
 const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
                                       wst_seq(NamedWildcardDesignator,                    // [0]
@@ -4782,7 +4836,19 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
                                               ScalarAssignmentSource));
+const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
+                                             NamedWildcardReference),
+                                       
+                                       // NamedWildcardUsage, SetFlag,
+                                       AnonWildcard,
+                                       // comment,
+                                       ScalarReference,
+                                       // SFUpdateConfiguration,
+                                       // SFSetConfiguration,
+                                       // low_pri_text, plaintext
+                                      );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       A1111StyleLora,
                                        AnonWildcard, comment, ScalarReference,
                                        SFUpdateConfiguration,
                                        SFSetConfiguration,
@@ -4800,6 +4866,9 @@ const Prompt                  = xform(arr => arr.flat(Infinity), PromptBody);
 Prompt.finalize();
 // =======================================================================================
 // END OF SD PROMPT GRAMMAR SECTION.
+// =======================================================================================
+
+
 // =======================================================================================
 // DEV NOTE: Copy into wildcards-plus.js starting through this line!
 // =======================================================================================
@@ -4886,6 +4955,15 @@ for (let ix = 0; ix < batch_count; ix++) {
                                     seed: -1,
                                     ...munge_config(context.config) };
   const new_loras = context.new_loras;
+
+  if (log_config_enabled && new_loras.length !== 0)
+    console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context.\n`);
+
+  generated_configuration.loras ||= [];
+  
+  for (const lora of new_loras) {
+    generated_configuration.loras.push({ file: lora.file, weight: file.weight });
+  }
   
   console.log(`The generated configuration is: ` +
               `${JSON.stringify(generated_configuration)}`);
