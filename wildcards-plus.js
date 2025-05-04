@@ -4816,13 +4816,13 @@ const pipeline_configuration = pipeline.configuration;
 const ui_prompt              = pipeline.prompts.prompt;
 const ui_hint                = "no wildcards found in the prompt.";
 
-// look for wildcards in the UI prompt:
-if (ui_prompt.includes('{') && ui_prompt.includes('}')) {
-	ui_hint = "wildcard detected in the prompt.";
-	prompt_string = ui_prompt;
-} else {
-	prompt_string = "";
-}
+// // look for wildcards in the UI prompt:
+// if (ui_prompt.includes('{') && ui_prompt.includes('}')) {
+// 	ui_hint = "wildcard detected in the prompt.";
+prompt_string = ui_prompt;
+// } else {
+// 	prompt_string = "";
+// }
 // ---------------------------------------------------------------------------------------
 
 
@@ -4837,13 +4837,13 @@ The wildcards-plus script adds a variety of useful features above and beyond sim
 
 The full documentation would be too large to fit in this tiny box, please see the README.md file for detailed descriptions of these features!`;
 
-const user_selection = requestFromUser("Wildcards", "", function() {
+const user_selection = requestFromUser('Wildcards', '', function() {
   return [
-	  this.section("Prompt", ui_hint, [
+	  this.section('Prompt', ui_hint, [
 		  this.textField(prompt_string, fallback_prompt, true, 240),
-		  this.slider(10, this.slider.fractional(0), 1, 500, "batch count")
+		  this.slider(10, this.slider.fractional(0), 1, 500, 'batch count')
     ]),
-	  this.section("about",
+	  this.section('about',
                  doc_string,
                  [])
   ];
@@ -4860,14 +4860,17 @@ prompt_string     = user_selection[0][0]
 const parse_result     = Prompt.match(prompt_string);
 
 if (! parse_result.is_finished)
-  throw new Error("error parsing prompt!");
+  throw new Error(`error parsing prompt!`);
 // ---------------------------------------------------------------------------------------
+
+
+console.log(`\nPIPELINE: ${JSON.stringify(pipeline)}\n`);
 
 
 // ---------------------------------------------------------------------------------------
 // run the pipeline:
 // ---------------------------------------------------------------------------------------
-console.log("\nwildcards-plus prompt:${JSON.stringify(prompt_string)}\n");
+console.log(`\nThe wildcards-plus prompt is: ${prompt_string}\n`);
 
 const base_context = load_prelude();
 
@@ -4886,7 +4889,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`The generated configuration is: ` +
               `${JSON.stringify(generated_configuration)}`);
   console.log(`The expanded prompt is: ` +
-              `${JSON.stringify(generated_prompt)}`);
+              `${generated_prompt}`);
 
   // render an image:
   canvas.clear();
@@ -4901,5 +4904,5 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`Generated in ${elapsed_time} seconds\n`);
 }
 
-console.log("Job complete. Open Console to see job report.");
+console.log('Job complete. Open Console to see job report.');
 // ---------------------------------------------------------------------------------------
