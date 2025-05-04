@@ -539,8 +539,14 @@ class Choice extends Rule  {
       
       const match_result = option.match(
         input, index, indent + 2);
+      
+      if (match_result) { 
+        if (match_result.value === DISCARD) {
+          index = match_result.index;
+          
+          continue;
+        }
 
-      if (match_result) {
         if (log_match_enabled)
           log(indent + 1, `Chose option #${ix}!`);
         
@@ -549,7 +555,6 @@ class Choice extends Rule  {
 
       if (log_match_enabled)
         log(indent + 1, `Rejected option #${ix}.`);
-
     }
 
     return null;
