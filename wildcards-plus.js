@@ -4867,7 +4867,7 @@ if (! parse_result.is_finished)
 // ---------------------------------------------------------------------------------------
 // run pipeline
 // ---------------------------------------------------------------------------------------
-console.log("\nwildcards prompt:${JSON.stringify(prompt_string)}\n");
+console.log("\nwildcards-plus prompt:${JSON.stringify(prompt_string)}\n");
 
 const base_context = load_prelude();
 
