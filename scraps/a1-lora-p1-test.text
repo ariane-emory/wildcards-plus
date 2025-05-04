@@ -1,1 +1,1 @@
-<lora:foo: 1.5> bar < baz <lora:quux: 1.5>
+<lora:foo: 1.5> bar < baz bar <baz <lora:quux: 1.5>
