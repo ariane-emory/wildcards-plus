@@ -1715,11 +1715,11 @@ const json = choice(() => JsonObject,  () => JsonArray,
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const JsonObject = xform(arr =>  Object.fromEntries(arr), 
                          wst_cutting_enc('{',
-                                          wst_star(
-                                            xform(arr => [arr[0], arr[2]],
-                                                  wst_seq(() => json_string, ':', json)),
-                                            ','),
-                                          '}'));
+                                         wst_star(
+                                           xform(arr => [arr[0], arr[2]],
+                                                 wst_seq(() => json_string, ':', json)),
+                                           ','),
+                                         '}'));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
 const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
@@ -4654,6 +4654,15 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
+      let walked_file = walk(thing.file, context);
+      console.log(`walked_file is ${typeof walked_file} ` +
+                  `${walked_file.constructor.name} ` +
+                  `${inspect_fun(walked_file)} ` +
+                  `${Array.isArray(walked_file)}`);
+
+      if (Array.isArray(walked_file))
+        walked_file = walked_file.join('');
+
       let walked_weight = walk(thing.weight, context);
 
       console.log(`walked_weight is ${typeof walked_weight} ` +
@@ -4661,21 +4670,17 @@ function expand_wildcards(thing, context = new Context()) {
                   `${inspect_fun(walked_weight)} ` +
                   `${Array.isArray(walked_weight)}`);
 
-      if (Array.isArray(walked_weight)) {
-        walked_weight.join('');
-      }
+      if (Array.isArray(walked_weight))
+        walked_weight = walked_weight.join('');
+      
+      const weight_match_result = json_number.match(walked_weight);
 
-      const match = json_number.match(walked_weight);
-
-      if (!match || !match.is_finished)
+      if (!weight_match_result || !weight_match_result.is_finished)
         throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
-      
-      console.log(`THIS: ${inspect_fun(match)}`);
-      walked_weight = match.value;
-      
-      thing.weight  = walked_weight;
-      thing.file    = walk(thing.file,   context);
+
+      thing.file    = walked_file;
+      thing.weight  = weight_match_result.value;
       
       context.new_loras.push(thing);
       
