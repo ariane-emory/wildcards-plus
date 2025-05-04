@@ -1,6 +1,6 @@
 // { <lora:mj52_v2.0_lora_f16: 0.6> | <lora:realism_lora_by_stable_yogi_pony_v1_lora_f16: 0.6> }
 
-<lora:mj52_v2.0_lora_f16: { 0.6 | 2.0 }>
+<lora:{FOO|mj52_v2.0_lora_f16}: { 0.6 | 2.0 }>
 
 %config.steps(15)
 

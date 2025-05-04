@@ -4661,7 +4661,7 @@ function expand_wildcards(thing, context = new Context()) {
                   `${Array.isArray(walked_file)}`);
 
       if (Array.isArray(walked_file))
-        walked_file = walked_file.join('');
+        walked_file = smart_join(walked_file); 
 
       let walked_weight = walk(thing.weight, context);
 
@@ -4671,7 +4671,7 @@ function expand_wildcards(thing, context = new Context()) {
                   `${Array.isArray(walked_weight)}`);
 
       if (Array.isArray(walked_weight))
-        walked_weight = walked_weight.join('');
+        walked_weight = smart_join(walked_weight);
       
       const weight_match_result = json_number.match(walked_weight);
 
@@ -4679,7 +4679,7 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
-      thing.file    = walked_file;
+      thing.file    = `${walked_file}.ckpt`;
       thing.weight  = weight_match_result.value;
       
       context.new_loras.push(thing);
@@ -4850,9 +4850,7 @@ const A1111StyleLoraWeight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
         xform(parseInt,   /\d+/))
-const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
-                                                 ? arr[3]
-                                                 : `${arr[3]}.ckpt`),
+const A1111StyleLora = xform(arr => new ASTLora(arr[3] ,
                                                 arr[5]),
                              wst_seq('<', 'lora', ':', 
                                      choice(filename, () => LimitedContent),
