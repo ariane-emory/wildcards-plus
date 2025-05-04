@@ -4815,10 +4815,10 @@ const a1111_lora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
                                              ? arr[3]
                                              : `${arr[3]}.ckpt`),
                                             arr[5]),
-                         wst_seq('<', 'lora', ':',
-                                 filename,
+                         wst_seq('<', 'lora', ':', 
+                                 choice(filename, () => LimitedContent),
                                  ':',
-                                 a1111_lora_weight,
+                                 choice(a1111_lora_weight, () => LimitedContent),
                                  '>'));
 // const a1111_lora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
 //                                              ? arr[3]
@@ -4988,7 +4988,8 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
                                        ScalarReference,
                                        // SFUpdateConfiguration,
                                        // SFSetConfiguration,
-                                       low_pri_text, plaintext);
+                                       // low_pri_text, plaintext
+                                      );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        AnonWildcard, comment, ScalarReference,
                                        SFUpdateConfiguration,
