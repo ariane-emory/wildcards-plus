@@ -1973,14 +1973,13 @@ function smart_join(arr) {
 
     // console.log(`"${str}",  '${left_word}' + '${right_word}'`);
 
-    // console.log(`str = '${str}', ` +
-    //             `left_word = '${left_word}', ` +
-    //             `right_word = '${right_word}', ` +
-    //             `prev_char = '${prev_char}', ` +
-    //             `next_char = '${next_char}'`);
+    console.log(`str = '${str}', ` +
+                `left_word = '${left_word}', ` +
+                `right_word = '${right_word}', ` +
+                `prev_char = '${prev_char}', ` +
+                `next_char = '${next_char}'`);
 
-    // handle "a" → "an" if necessary
-
+    // handle "a" → "an" if necessary:
     const articleCorrection = (originalArticle, nextWord) => {
       const expected = choose_indefinite_article(nextWord);
       if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
@@ -1989,7 +1988,7 @@ function smart_join(arr) {
       return originalArticle;
     };
 
-    // Normalize article if needed
+    // Normalize article if needed:
     if (left_word === "a" || left_word.endsWith(" a") ||
         left_word === "A" || left_word.endsWith(" A")) {
       const nextWord = right_word;
@@ -2004,13 +2003,13 @@ function smart_join(arr) {
         }
       }
     }
-
+    
     if (!(!str || !right_word) && 
         !whitep(prev_char) &&
         !whitep(next_char) &&
         !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
         !(linkingp(next_char) || ')]'.includes(next_char)) &&
-        ( next_char !== '<' && (! (prev_char === '<' && prev_char_is_escaped))) &&
+        ((right_word === '<' || next_char !== '<') && (! (prev_char === '<' && prev_char_is_escaped))) &&
         !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
         !punctuationp(next_char)) {
       // console.log(`SPACE!`);
@@ -2018,13 +2017,15 @@ function smart_join(arr) {
       str += ' ';
     }
 
-    if (next_char === '<' && right_word !== '<') {
-      // console.log(`CHOMP RIGHT!`);
-      right_word = right_word.substring(1);
-    }
-    else if (prev_char === '<' && !prev_char_is_escaped) {
-      // console.log(`CHOMP LEFT!`);
-      str = str.slice(0, -1);
+    if (right_word !== '<') {
+      if (next_char === '<' && right_word !== '<') {
+        console.log(`CHOMP RIGHT!`);
+        right_word = right_word.substring(1);
+      }
+      else if (prev_char === '<' && !prev_char_is_escaped) {
+        console.log(`CHOMP LEFT!`);
+        str = str.slice(0, -1);
+      }
     }
 
     left_word = right_word;
