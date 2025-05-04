@@ -16,7 +16,6 @@
   | 1 %config({ "width": 640, "height": 640 })
   }
 
-
 | 0 // Hidream with some basic settings that seem to work alright:
   %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50 })
 
