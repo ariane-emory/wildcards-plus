@@ -4962,10 +4962,10 @@ Prompt.finalize();
 // PHASE 2 GRAMMAR FOR A1111-STYLE LORAs SECTION:
 // =======================================================================================
 // conservative regex, no unicode or weird symbols:
-class A1111LoRA {
-  constructor(filename, weight) {
-    this.filename = filename;
-    this.weight   = weight;
+class LoRA {
+  constructor(file, weight) {
+    this.file   = file;
+    this.weight = weight;
   }
 }
 const filename = /[A-Za-z0-9 ._\-()]+/;
@@ -4973,7 +4973,10 @@ const a1111_lora_weight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
         xform(parseInt,   /\d+/))
-const a1111_lora = xform(arr => new A1111LoRA(arr[3], arr[5]), //  ({ filename: arr[3], weight: arr[5] }), // , weight: arr[5] },
+const a1111_lora = xform(arr => new LoRA((arr[3].endsWith('.ckpt')
+                                          ? arr[3]
+                                          : `${arr[3]}.ckpt`),
+                                         arr[5]),
                          wst_seq('<', 'lora', ':', filename, ':', a1111_lora_weight, '>'));
 
 let res;
