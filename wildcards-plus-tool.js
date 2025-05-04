@@ -1709,19 +1709,19 @@ const enclosing       = (left, enclosed, right) =>
 // BASIC JSON GRAMMAR SECTION:
 // =======================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
-const json = choice(() => json_object, () => json_array,
+const json = choice(() => JsonObject,  () => JsonArray,
                     () => json_string, () => json_true,   () => json_false,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
-const json_object = xform(arr =>  Object.fromEntries(arr), 
-                          wst_cutting_enc('{',
+const JsonObject = xform(arr =>  Object.fromEntries(arr), 
+                         wst_cutting_enc('{',
                                           wst_star(
                                             xform(arr => [arr[0], arr[2]],
                                                   wst_seq(() => json_string, ':', json)),
                                             ','),
                                           '}'));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
+const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -1765,7 +1765,7 @@ const json_number = xform(reify_json_number,
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // ---------------------------------------------------------------------------------------
-json.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
+json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
 // =======================================================================================
 // END OF BASIC JSON GRAMMAR SECTION.
 // =======================================================================================
@@ -1803,7 +1803,7 @@ const JsoncObject =
                               , ','),
                             '}'));
 // ---------------------------------------------------------------------------------------
-Jsonc.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
+Jsonc.finalize(); 
 // =======================================================================================
 // END OF JSONC GRAMMAR SECTION.
 // =======================================================================================
@@ -4665,7 +4665,12 @@ function expand_wildcards(thing, context = new Context()) {
         walked_weight.join('');
       }
 
-      const match = Jsonc.match(walked_weight);
+      const match = json_number.match(walked_weight);
+
+      if (!match || !match.is_finished)
+        throw new Error(`Lora weight must be a number, got ` +
+                        `${inspect_fun(walked_weight)}`);
+      
       console.log(`THIS: ${inspect_fun(match)}`);
       walked_weight = match.value;
       
@@ -5187,7 +5192,7 @@ async function main() {
     // }
     
     if (log_config_enabled && new_loras.lengh !== 0)
-      console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context, DO SOMETHING WITH THESE!\n`);
+      console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context.!\n`);
 
     config.loras ||= [];
     
