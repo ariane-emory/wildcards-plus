@@ -13,7 +13,7 @@
 | ?high_steps %config.steps(13) | ?high_steps %config.steps(14) | ?high_steps%config.steps(15) }
 
 // three possible resolutions, use the first more often:
-{ 4 %config({ "width": 768, "height": 512 })
+{ 4 %config({ "width": 960, "height": 512 })
 // | 2 %config({ "width": 768, "height": 384 })
 // | 1 %config({ "width": 640, "height": 640 })
 }
@@ -25,15 +25,15 @@
 
 // =======================================================================================
 
-masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, greebling, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting. 
+masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, futuristic, greebling, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, natural lighting. 
 \n
 
 A {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting}
 
-beautiful and inscrutable cyborg spacecraft captain in the factory on an advanced space station orbiting a luminous asteroid holding its intricate equipment. It is dressed in an exoskeleton. It has bionic arms.
+an otherworldly space marine in a busy access tunnel on a remote interstellar destroyer orbiting a shining ship displaying her alien pulse submachinegun. She is clad in her futuristic hazardous environment suit.
 
 By @wizards_artists, @wizards_artist_styles.
 
-masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, futuristic, greebling, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, natural lighting. 
 
-An otherworldly space marine in a busy access tunnel on a remote interstellar destroyer orbiting a shining ship displaying her alien pulse submachinegun. She is clad in her futuristic hazardous environment suit.
+
+
