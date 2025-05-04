@@ -4647,6 +4647,11 @@ function expand_wildcards(thing, context = new Context()) {
       console.log(`IGNORING UNIMPLEMENTED SpecialFunction: ${JSON.stringify(thing)}`);
     }
     // -----------------------------------------------------------------------------------
+    // ASTLora:
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTLora) {
+      throw "bomb";
+    }
     // error case, unrecognized objects:
     // -----------------------------------------------------------------------------------
     else {
