@@ -4679,8 +4679,11 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
-      thing.file    = walked_file;
-      thing.weight  = weight_match_result.value;
+      walked_weight = weight_match_result.value;
+      
+      thing.weight  = walked_weight;
+
+      thing.file    = walk(thing.file,   context);
       
       context.new_loras.push(thing);
       
