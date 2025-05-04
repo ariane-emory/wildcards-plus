@@ -4978,8 +4978,12 @@ const a1111_lora = xform(arr => new LoRA((arr[3].endsWith('.ckpt')
                                           : `${arr[3]}.ckpt`),
                                          arr[5]),
                          wst_seq('<', 'lora', ':', filename, ':', a1111_lora_weight, '>'));
-const uninteresting = r(/ /);
-const phase2_prompt = star(choice(a1111_lora, uninteresting));
+const uninteresting = r(/[^<]+/);
+const phase2_prompt = star(choice(
+  a1111_lora,
+  uninteresting,
+  '<',
+));
 
 
 let res;
