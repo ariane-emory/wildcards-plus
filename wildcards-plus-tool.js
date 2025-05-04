@@ -4807,28 +4807,28 @@ const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(co
 // ---------------------------------------------------------------------------------------
 // conservative regex, no unicode or weird symbols:
 const filename = /[A-Za-z0-9 ._\-()]+/;
-const a1111_lora_weight =
+const A1111StyleLoraWeight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
         xform(parseInt,   /\d+/))
-const a1111_lora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
-                                             ? arr[3]
-                                             : `${arr[3]}.ckpt`),
-                                            arr[5]),
+const A111StyleLora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
+                                                ? arr[3]
+                                                : `${arr[3]}.ckpt`),
+                                                  arr[5]),
                          wst_seq('<', 'lora', ':', 
                                  choice(filename, () => LimitedContent),
                                  ':',
-                                 choice(a1111_lora_weight, () => LimitedContent),
+                                 choice(A1111StyleLoraWeight, () => LimitedContent),
                                  '>'));
-// const a1111_lora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
+// const A111StyleLora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
 //                                              ? arr[3]
 //                                              : `${arr[3]}.ckpt`),
 //                                             arr[5]),
-//                          wst_seq('<', 'lora', ':', filename, ':', a1111_lora_weight, '>'));
+//                          wst_seq('<', 'lora', ':', filename, ':', A1111StyleLoraWeight, '>'));
 // remmove these soon:
 const uninteresting = r(/[^<]+/);
 const phase2_prompt = star(choice(
-  a1111_lora,
+  A111StyleLora,
   uninteresting,
   '<',
 ));
@@ -4983,6 +4983,8 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               ScalarAssignmentSource));
 const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardReference),
+                                       
+                                       // NamedWildcardUsage, SetFlag,
                                        AnonWildcard,
                                        // comment,
                                        ScalarReference,
@@ -4991,11 +4993,13 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
                                        // low_pri_text, plaintext
                                       );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       
                                        AnonWildcard, comment, ScalarReference,
                                        SFUpdateConfiguration,
                                        SFSetConfiguration,
                                        low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
+const LimitedContentStar      = xform(wst_star(LimitedContent), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
 //                                                 ScalarAssignment,
 //                                                 Content));
