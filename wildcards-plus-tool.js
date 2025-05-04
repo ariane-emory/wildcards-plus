@@ -4814,8 +4814,17 @@ const a1111_lora_weight =
 const a1111_lora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
                                              ? arr[3]
                                              : `${arr[3]}.ckpt`),
-                                         arr[5]),
-                         wst_seq('<', 'lora', ':', filename, ':', a1111_lora_weight, '>'));
+                                            arr[5]),
+                         wst_seq('<', 'lora', ':',
+                                 filename,
+                                 ':',
+                                 a1111_lora_weight,
+                                 '>'));
+// const a1111_lora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
+//                                              ? arr[3]
+//                                              : `${arr[3]}.ckpt`),
+//                                             arr[5]),
+//                          wst_seq('<', 'lora', ':', filename, ':', a1111_lora_weight, '>'));
 // remmove these soon:
 const uninteresting = r(/[^<]+/);
 const phase2_prompt = star(choice(
