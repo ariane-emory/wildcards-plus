@@ -4711,6 +4711,15 @@ class ASTScalarReference {
   }
 }
 // ---------------------------------------------------------------------------------------
+// for A1111-style LoRAs:
+// ---------------------------------------------------------------------------------------
+class ASTLoRA {
+  constructor(file, weight) {
+    this.file   = file;
+    this.weight = weight;
+  }
+}
+// ---------------------------------------------------------------------------------------
 // NamedWildcards:
 // ---------------------------------------------------------------------------------------
 class ASTLatchNamedWildcard {
@@ -4780,24 +4789,31 @@ class ASTAnonWildcardAlternative {
 // =======================================================================================
 
 
+
+
 // =======================================================================================
-// GRAMMAR FOR A1111-STYLE LORAs SECTION:
+// SD PROMPT GRAMMAR SECTION:
 // =======================================================================================
+// terminals:
+// ---------------------------------------------------------------------------------------
+const plaintext               = /[^{|}\s]+/;
+const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
+const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
+const comment                 = discard(choice(c_block_comment, c_line_comment));
+const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+// ---------------------------------------------------------------------------------------
+// A1111-style LoRAs subsection:
+// ---------------------------------------------------------------------------------------
 // conservative regex, no unicode or weird symbols:
-class LoRA {
-  constructor(file, weight) {
-    this.file   = file;
-    this.weight = weight;
-  }
-}
 const filename = /[A-Za-z0-9 ._\-()]+/;
 const a1111_lora_weight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
         xform(parseInt,   /\d+/))
-const a1111_lora = xform(arr => new LoRA((arr[3].endsWith('.ckpt')
-                                          ? arr[3]
-                                          : `${arr[3]}.ckpt`),
+const a1111_lora = xform(arr => new ASTLoRA((arr[3].endsWith('.ckpt')
+                                             ? arr[3]
+                                             : `${arr[3]}.ckpt`),
                                          arr[5]),
                          wst_seq('<', 'lora', ':', filename, ':', a1111_lora_weight, '>'));
 // remmove these soon:
@@ -4808,15 +4824,6 @@ const phase2_prompt = star(choice(
   '<',
 ));
 // ---------------------------------------------------------------------------------------
-a1111_lora.finalize();
-// =======================================================================================
-// END OF GRAMMAR FOR A1111-STYLE LORAs SECTION.
-// =======================================================================================
-
-
-// =======================================================================================
-// SD PROMPT GRAMMAR SECTION:
-// =======================================================================================
 // helper funs used by xforms:
 // ---------------------------------------------------------------------------------------
 const make_ASTAnonWildcardAlternative = arr => {
@@ -4843,15 +4850,6 @@ const make_ASTAnonWildcardAlternative = arr => {
 const make_ASTFlagCmd = (klass, ...rules) =>
       xform(ident => new klass(ident),
             second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
-// ---------------------------------------------------------------------------------------
-// terminals:
-// ---------------------------------------------------------------------------------------
-const plaintext               = /[^{|}\s]+/;
-const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
-const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
-const comment                 = discard(choice(c_block_comment, c_line_comment));
-const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
 // ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // ---------------------------------------------------------------------------------------
