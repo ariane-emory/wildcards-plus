@@ -4694,7 +4694,7 @@ class ASTNotFlag  {
 // References:
 // ---------------------------------------------------------------------------------------
 class ASTNamedWildcardReference {
-  constructor(name, joiner, capitalize, min_count, max_count) {
+  constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
     this.name       = name;
     this.min_count  = min_count;
     this.max_count  = max_count;
@@ -4923,26 +4923,6 @@ const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
                                                 () => ContentStar));
 const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const LimitedNamedWildcardReference = xform(seq(discard('@'),                              // -
-                                                optional('^'),                             // [0][0]
-                                                optional(xform(parseInt, /\d+/)),          // [1][0)
-                                                optional(xform(parseInt,
-                                                               second(seq('-', /\d+/)))),  // [2][0]
-                                                optional(/[,&]/),                          // [3][0]
-                                                ident),                                    // [4]
-                                            arr => {
-                                              const ident  = arr[4];
-                                              const min_ct = arr[1][0] ?? 1;
-                                              const max_ct = arr[2][0] ?? min_ct;
-                                              const join   = arr[3][0] ?? '';
-                                              const caret  = arr[0][0];
-                                              
-                                              return new ASTNamedWildcardReference(ident,
-                                                                                   join,
-                                                                                   caret,
-                                                                                   min_ct,
-                                                                                   max_ct);
-                                            });
 const NamedWildcardReference        = xform(seq(discard('@'),
                                                 optional('^'),                             // [0]
                                                 optional(xform(parseInt, /\d+/)),          // [1]
@@ -4994,6 +4974,11 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
                                               ScalarAssignmentSource));
+const LimitedContent          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       AnonWildcard, comment, ScalarReference,
+                                       SFUpdateConfiguration,
+                                       SFSetConfiguration,
+                                       low_pri_text, plaintext);
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        AnonWildcard, comment, ScalarReference,
                                        SFUpdateConfiguration,
