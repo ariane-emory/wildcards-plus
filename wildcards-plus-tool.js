@@ -1051,10 +1051,9 @@ class CuttingSequence extends Sequence {
                         input, index) {
     throw new Error(`expected (${this.elements.slice(1).join(" ")}) ` +
                     `after ${this.elements[0]} at ` +
-                    `char ${input[start_rule_result.index].start}` +
+                    `char ${index}` +
                     `, found: ` +
-                    `[ ${input.slice(start_rule_result.index).join(", ")}` +
-                    ` ]`);
+                    `'${input.substr(start_rule_result.index)}'`);
   }
   // -------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -4963,14 +4962,22 @@ Prompt.finalize();
 // PHASE 2 GRAMMAR FOR A1111-STYLE LORAs SECTION:
 // =======================================================================================
 // conservative regex, no unicode or weird symbols:
-const filename = /^[A-Za-z0-9 ._\-()]+$/;
+const filename = /[A-Za-z0-9 ._\-()]+$/;
 const a1111_lora_weight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
-        xform(parseInt, /\d+/))
-const a1111_lora = wst_cutting_seq('<', filename, optional(a1111_lora_weight), '>');
+        xform(parseInt,   /\d+/))
+const a1111_lora = wst_seq('<', 'lora', ':', filename, ':', a1111_lora_weight, '>');
 
-let res = a1111_lora.match('<lora:some_file.ckpt: 1.0>');
+let res;
+
+res = a1111_lora.match('<lora:foo: 1.5>');
+console.log(`THIS RES: ${inspect_fun(res)}`);
+
+res = a1111_lora.match('<lora:foo: .5>');
+console.log(`THIS RES: ${inspect_fun(res)}`);
+
+res = a1111_lora.match('<lora:foo: 2>');
 console.log(`THIS RES: ${inspect_fun(res)}`);
 
 
