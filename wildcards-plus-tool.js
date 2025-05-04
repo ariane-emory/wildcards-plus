@@ -74,7 +74,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   const string_data = JSON.stringify(data);
 
   if (log_config_enabled)
-    console.log(`POST data is ${JSON.stringify(data)}.`);
+    console.log(`POST data is: ${JSON.stringify(data)}`);
 
   const options = {
     hostname: hostname,
