@@ -4654,6 +4654,23 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
+      let walked_weight = walk(thing.weight, context);
+
+      console.log(`walked_weight is ${typeof walked_weight} ` +
+                  `${walked_weight.constructor.name} ` +
+                  `${inspect_fun(walked_weight)} ` +
+                  `${Array.isArray(walked_weight)}`);
+
+      if (Array.isArray(walked_weight)) {
+        walked_weight.join('');
+      }
+
+      walked_weight = JSON.parse(walked_weight);
+      
+      
+      thing.weight  = walked_weight;
+      thing.file    = walk(thing.file,   context);
+      
       context.new_loras.push(thing);
       
       return '';
