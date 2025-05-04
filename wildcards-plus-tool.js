@@ -4815,11 +4815,11 @@ const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
                                                  ? arr[3]
                                                  : `${arr[3]}.ckpt`),
                                                 arr[5]),
-                         wst_seq('<', 'lora', ':', 
-                                 choice(filename, () => LimitedContent),
-                                 ':',
-                                 choice(A1111StyleLoraWeight, () => LimitedContent),
-                                 '>'));
+                             wst_seq('<', 'lora', ':', 
+                                     choice(filename, () => LimitedContent),
+                                     ':',
+                                     choice(A1111StyleLoraWeight, () => LimitedContent),
+                                     '>'));
 // const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
 //                                              ? arr[3]
 //                                              : `${arr[3]}.ckpt`),
@@ -5091,7 +5091,7 @@ async function main() {
   // -------------------------------------------------------------------------------------
   // just for debugging, comment to see result:
   // -------------------------------------------------------------------------------------
-  if (false)
+  // (false)
   {
     console.log(`result: ${inspect_fun(result.value)}`);
     console.log(`result (JSON): ${JSON.stringify(result.value)}`);
