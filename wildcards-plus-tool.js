@@ -5025,9 +5025,9 @@ Prompt.finalize();
 // =======================================================================================
 
 
-let res;
-res = phase2_prompt.match('<lora:foo: 1.5> bar < <lora:baz: 1.5>'); 
-console.log(`THIS RES: ${inspect_fun(res)}`);
+// let res;
+// res = phase2_prompt.match('<lora:foo: 1.5> bar < <lora:baz: 1.5>'); 
+// console.log(`THIS RES: ${inspect_fun(res)}`);
 
 
 
@@ -5166,7 +5166,7 @@ async function main() {
       console.log(`Main loop found config: ${JSON.stringify(config)} in Context.\n`);
     
     if (log_config_enabled && ! is_empty_object(new_loras))
-      console.log(`Main loop found new_loras: ${JSON.stringify(new_loras)} in Context.\n`);
+      console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context.\n`);
     
     // expansion may have included files, copy the files list back to the base context.
     // ED: might not be needed here after all...
