@@ -1774,36 +1774,36 @@ json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =======================================================================================
 // JSONC GRAMMAR SECTION:
 // =======================================================================================
-const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
-const jsonc = second(wst_seq(jsonc_comments,
-                             choice(() => jsonc_object, () => jsonc_array,
+const JsoncComments = wst_star(choice(c_block_comment, c_line_comment));
+const Jsonc = second(wst_seq(JsoncComments,
+                             choice(() => JsoncObject, () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
                                     () => json_null,    () => json_number),
-                             jsonc_comments));
-const jsonc_array =
+                             JsoncComments));
+const JsoncArray =
       wst_cutting_enc('[',
-                      wst_star(second(seq(jsonc_comments,
-                                          jsonc,
-                                          jsonc_comments)),
+                      wst_star(second(seq(JsoncComments,
+                                          Jsonc,
+                                          JsoncComments)),
                                ','),
                       ']');
-const jsonc_object =
+const JsoncObject =
       xform(arr =>  Object.fromEntries(arr), 
             wst_cutting_enc('{',
                             wst_star(
                               xform(arr => [arr[1], arr[5]],
-                                    wst_seq(jsonc_comments,
+                                    wst_seq(JsoncComments,
                                             () => json_string,
-                                            jsonc_comments,
+                                            JsoncComments,
                                             ':',
-                                            jsonc_comments,
-                                            jsonc, 
-                                            jsonc_comments
+                                            JsoncComments,
+                                            Jsonc, 
+                                            JsoncComments
                                            ))             
                               , ','),
                             '}'));
 // ---------------------------------------------------------------------------------------
-jsonc.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
+Jsonc.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
 // =======================================================================================
 // END OF JSONC GRAMMAR SECTION.
 // =======================================================================================
@@ -4665,8 +4665,9 @@ function expand_wildcards(thing, context = new Context()) {
         walked_weight.join('');
       }
 
-      walked_weight = JSON.parse(walked_weight);
-      
+      const match = Jsonc.match(walked_weight);
+      console.log(`THIS: ${inspect_fun(match)}`);
+      walked_weight = match.value;
       
       thing.weight  = walked_weight;
       thing.file    = walk(thing.file,   context);
@@ -4906,7 +4907,7 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 const make_special_function = rule =>
       xform(tld_fun,
             c_funcall(second(seq('%', rule)),
-                      first(wst_seq(DiscardedComments, jsonc, DiscardedComments))));
+                      first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
@@ -4920,7 +4921,7 @@ const SFUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',  
                                                             DiscardedComments,             // -
                                                             '(',                           // [2]
                                                             DiscardedComments,             // -
-                                                            jsonc,                         // [3]
+                                                            Jsonc,                         // [3]
                                                             DiscardedComments,             // [4]
                                                             ')'),                          // [4]
                                             arr => new ASTSpecialFunction('update-config',
@@ -4929,7 +4930,7 @@ const SFUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',  
                                                                     DiscardedComments,     // -
                                                                     '(',                   // [0][1]
                                                                     DiscardedComments),    // -
-                                                            jsonc_object,                  // [1]
+                                                            JsoncObject,                  // [1]
                                                             DiscardedComments,             // -
                                                             ')'),                          // [2]
                                             arr => new ASTSpecialFunction('update-config',
@@ -4938,7 +4939,7 @@ const SFSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',  
                                                                     DiscardedComments,     // -
                                                                     assignment_operator,   // _
                                                                     DiscardedComments),    // -
-                                                            jsonc_object),                 // [1]
+                                                            JsoncObject),                 // [1]
                                             arr => new ASTSpecialFunction('set-config',
                                                                           [arr[1]]));
 const SFUpdateConfiguration         = choice(SFUpdateConfigurationUnary,
