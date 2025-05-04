@@ -4960,7 +4960,7 @@ Prompt.finalize();
 
 
 // =======================================================================================
-// PHASE 2 GRAMMAR FOR A1111-STYLE LORAs SECTION:
+// GRAMMAR FOR A1111-STYLE LORAs SECTION:
 // =======================================================================================
 // conservative regex, no unicode or weird symbols:
 class LoRA {
@@ -4995,11 +4995,10 @@ let res;
 res = phase2_prompt.match('<lora:foo: 1.5> bar < <lora:baz: 1.5>'); 
 console.log(`THIS RES: ${inspect_fun(res)}`);
 
-
 // ---------------------------------------------------------------------------------------
 a1111_lora.finalize();
 // =======================================================================================
-// END OF PHASE 2 GRAMMAR FOR A1111-STYLE LORAs SECTION.
+// END OF GRAMMAR FOR A1111-STYLE LORAs SECTION.
 // =======================================================================================
 
 
