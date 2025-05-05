@@ -1984,7 +1984,6 @@ function smart_join(arr) {
     arr.shift();
   }
 
-
   let left_word = arr[0]?.toString() ?? "";
   let str       = left_word;
   
