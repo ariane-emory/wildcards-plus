@@ -3,7 +3,7 @@
 // actual textual content of the prompt:
 // =======================================================================================
 
-{
+{ 0
   // devMODE
   %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
   %config.steps(8)
@@ -23,8 +23,11 @@
   | 4 %config.cfg_scale(25.0) | 3 %config.cfg_scale(30.0) | 2 %config.cfg_scale(35.0) | 1 %config.cfg_scale(40.0)
   }
 
-  // 9-13 steps, equally likely:
-  { %config.steps(9) | %config.steps(10) | %config.steps(11) | %config.steps(12) | %config.steps(13) }
+  // crappy low step count for a moment:
+  %config.steps(4)
+
+  // // 9-13 steps, equally likely:
+  // { %config.steps(9) | %config.steps(10) | %config.steps(11) | %config.steps(12) | %config.steps(13) }
 
   // three possible resolutions:
   { 3 %config({ "width": 768, "height": 512 })
@@ -34,8 +37,11 @@
 
 | // various SDXL models:
 
-  // 35, 40 or 45 steps, equally likely:
-  { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
+  // crappy low step count for a moment:
+  %config.steps(15)
+
+  // // 35, 40 or 45 steps, equally likely:
+  // { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
 
   // three possible resolutions:
   { 2 %config({"width": 960, "height":512})
