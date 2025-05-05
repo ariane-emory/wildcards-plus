@@ -5233,9 +5233,18 @@ async function main() {
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
+  let expanded = null;
+  let config   = null;
+  
+  const stash_prior = () => {
+    prior_expansion = expanded;
+    prior_config = structuredClone(config);
+  };
+
   let posted_count    = 0;
   let prior_expansion = null;
-
+  let prior_config    = null;
+  
   while (posted_count < count) {
     console.log('--------------------------------------------------------------------------------');
     console.log(`Expanding #${posted_count + 1} of ${count}:`);
@@ -5243,8 +5252,8 @@ async function main() {
     // console.log(`posted_count = ${posted_count}`);
 
     const context   = base_context.clone();
-    const expanded  = expand_wildcards(AST, context);
-    const config    = munge_config(context.config);
+    expanded        = expand_wildcards(AST, context);
+    config          = munge_config(context.config);
     const add_loras = context.add_loras;
 
     console.log('--------------------------------------------------------------------------------');
@@ -5266,7 +5275,7 @@ async function main() {
     // context_with_prelude.files = context.files;
     
     console.log(`--------------------------------------------------------------------------------`);
-    console.log(`Expanded prompt is:`);
+    console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
     console.log(`--------------------------------------------------------------------------------`);
     console.log(expanded);
 
@@ -5292,7 +5301,7 @@ async function main() {
         if (answer.match(/^p.*/i)) {
           if (prior_expansion) { 
             console.log(`POSTing prior prompt '${expanded}'`);
-            post_prompt(prior_expansion, config);
+            post_prompt(prior_expansion, prior_config);
           }
           else {
             console.log(`can't rewind, no prior prompt`);
@@ -5311,8 +5320,8 @@ async function main() {
         }
       }
     }
-
-    prior_expansion = expanded;
+    
+    stash_prior();
   }
 
   console.log('--------------------------------------------------------------------------------');
