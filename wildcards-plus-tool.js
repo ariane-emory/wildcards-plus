@@ -5233,13 +5233,12 @@ async function main() {
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
-  console.log('--------------------------------------------------------------------------------');
-  console.log(`Expansion${count > 1 ? "s" : ''}:`);
-
   let posted_count    = 0;
   let prior_expansion = null;
 
   while (posted_count < count) {
+    console.log('--------------------------------------------------------------------------------');
+    console.log(`Expanding #${posted_count + 1} of ${count}:`);
     console.log('--------------------------------------------------------------------------------');
     // console.log(`posted_count = ${posted_count}`);
 
