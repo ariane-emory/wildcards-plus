@@ -2031,6 +2031,20 @@ class Context {
     this.add_loras = this.add_loras.filter(l => l.file !== lora.file);
     this.add_loras.push(lora);
   }
+  // -----------------------------------------------------------------------------------------------
+  add_loras_to(config) {
+    if (this.add_loras) {
+      if (log_config_enabled && this.add_loras && this.add_loras.length !== 0)
+        console.log(`Adding these LoRAs to config: ` +
+                    `${inspect_fun(this.add_loras
+                                 .map(l => ({file: l.file, weight: l.weight })))}.`);
+
+      config.loras ||= [];
+      
+      for (const lora of this.add_loras)
+        config.loras.push({ file: lora.file, weight: lora.weight });
+    }
+  }
 }
 // -------------------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `

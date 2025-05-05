@@ -2187,6 +2187,20 @@ class Context {
     this.add_loras = this.add_loras.filter(l => l.file !== lora.file);
     this.add_loras.push(lora);
   }
+  // -----------------------------------------------------------------------------------------------
+  add_loras_to(config) {
+    if (this.add_loras) {
+      if (log_config_enabled && this.add_loras && this.add_loras.length !== 0)
+        console.log(`Adding these LoRAs to config: ` +
+                    `${inspect_fun(this.add_loras
+                                 .map(l => ({file: l.file, weight: l.weight })))}.`);
+
+      config.loras ||= [];
+      
+      for (const lora of this.add_loras)
+        config.loras.push({ file: lora.file, weight: lora.weight });
+    }
+  }
 }
 // -------------------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
@@ -5219,30 +5233,13 @@ async function main() {
     const context   = base_context.clone();
     const expanded  = expand_wildcards(AST, context);
     const config    = munge_config(context.config);
-    const add_loras = context.add_loras;
 
-    // if (dt_hosted) {
-    //   for (const lora of add_loras) {
-    //   }
-    // }
-
-    if (add_loras) {
-      if (log_config_enabled && add_loras && add_loras.length !== 0)
-        console.log(`Main loop found LoRAs to add: ` +
-                    `${inspect_fun(add_loras
-                                 .map(l => ({file: l.file, weight: l.weight })))} ` +
-                    `in Context.`);
-
-      config.loras ||= [];
-      
-      for (const lora of add_loras)
-        config.loras.push({ file: lora.file, weight: lora.weight });
-    }
+    context.add_loras_to(config);
 
     if (log_config_enabled && ! is_empty_object(config))
       console.log(`Main loop found config: ${JSON.stringify(config)} in Context.`);
     
-    // expansion may have included files, copy the files list back to the base context.
+    // expansion may have %included files, copy the files list back to the base context.
     // ED: might not be needed here after all...
     // context_with_prelude.files = context.files;
     
