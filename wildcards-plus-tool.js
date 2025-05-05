@@ -4691,6 +4691,13 @@ function expand_wildcards(thing, context = new Context()) {
       
       return '';
     }
+    // -----------------------------------------------------------------------------------
+    // numbers become strings:
+    else if (typeof thing === 'number') {
+      return thing.toString();
+    }
+    // -----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
     // -----------------------------------------------------------------------------------
     else {
@@ -4857,7 +4864,7 @@ const A1111StyleLoraWeight =
         xform(parseInt,   /\d+/))
 const A1111StyleLora = xform(arr => {
   console.log(`ARR: ${inspect_fun(arr)}`);
-  return new ASTLora(arr[3].trim() ,
+  return new ASTLora(arr[3], // .trim(),
                      arr[5]);
 },
                              wst_seq('<', 'lora', ':', 
@@ -5150,7 +5157,7 @@ async function main() {
   // -------------------------------------------------------------------------------------
   // just for debugging, comment to see result:
   // -------------------------------------------------------------------------------------
-  // (false)
+  if (false)
   {
     console.log(`result: ${inspect_fun(result.value)}`);
     console.log(`result (JSON): ${JSON.stringify(result.value)}`);
