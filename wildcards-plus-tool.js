@@ -4966,8 +4966,16 @@ const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
                                                 optional(wb_uint, 1),
                                                 wst_star(choice(comment, TestFlag, SetFlag)),
                                                 () => ContentStar));
+const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
+                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                                optional(wb_uint, 1),
+                                                wst_star(choice(comment, TestFlag, SetFlag)),
+                                                () => ContentStar));
 const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const AnonWildcardNoLoras           = xform(arr => new ASTAnonWildcard(arr),
+                                            brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+
 const NamedWildcardReference        = xform(seq(discard('@'),
                                                 optional('^'),                             // [0]
                                                 optional(xform(parseInt, /\d+/)),          // [1]
@@ -5023,7 +5031,7 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
                                              NamedWildcardReference),
                                        
                                        // NamedWildcardUsage, SetFlag,
-                                       AnonWildcard,
+                                       AnonWildcardNoLoras,
                                        // comment,
                                        ScalarReference,
                                        // SFUpdateConfiguration,
