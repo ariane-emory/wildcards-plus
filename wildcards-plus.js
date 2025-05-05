@@ -1702,6 +1702,17 @@ class WildcardPicker {
 // =======================================================================================
 // HELPER FUNCTIONS SECTION:
 // =======================================================================================
+function add_lora_to_array(lora, array) {
+  for (const existing_lora of array) {
+    if (lora.file === existing_lora.file) {
+      existing_lora.weight = lora.weight;
+      return;
+    }
+  }
+
+  array.push(lora);      
+}
+// -------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
     Object.keys(obj).length === 0 &&
@@ -2047,17 +2058,6 @@ class Context {
       files: this.files,
       top_file: false, // deliberately not copied!
     });
-  }
-  // -------------------------------------------------------------------------------------
-  add_lora(lora) {
-    for (const existing_lora of this.add_loras) {
-      if (lora.file === existing_lora.file) {
-        existing_lora.weight = lora.weight;
-        return;
-      }
-    }
-
-    this.add_loras.push(lora);      
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4580,7 +4580,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       const weight = weight_match_result.value;
 
-      context.add_lora({ file: file, weight: weight });
+      add_lora_to_array({ file: file, weight: weight }, context.add_loras);
       
       return '';
     }
@@ -5063,16 +5063,16 @@ for (let ix = 0; ix < batch_count; ix++) {
       console.log(`Found add_loras in Context: ${inspect_fun(add_loras)} in Context.`);
     }
 
+    console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
+                `${JSON.stringify(generated_configuration)}`);
+    
     if (generated_configuration.loras && generated_configuration.length > 0)
       generated_configuration.loras = [ ...generated_configuration.loras ];
     else 
       generated_configuration.loras ||= [];
 
-    console.log(`GENERATED CONFIGURATION BEFORE LORAS:\n` +
-                `${JSON.stringify(generated_configuration)}`);
-    
     for (const lora of add_loras) {
-      generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
+      add_lora_to_array(lora, generated_configuration.loras);
 
       console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
                   `${JSON.stringify(generated_configuration)}`);
