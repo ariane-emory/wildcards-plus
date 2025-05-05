@@ -5048,10 +5048,11 @@ for (let ix = 0; ix < batch_count; ix++) {
   if (log_config_enabled && add_loras.length !== 0)
     console.log(`Main loop found add_loras: ${inspect_fun(add_loras)} in Context.\n`);
 
-  if (! generated_configuration.loras)
-    generated_configuration.loras ||= [];
-  else
+  if (generated_configuration.loras && generated_configuration.length > 0)
     generated_configuration.loras = [ ...generated_configuration.loras ];
+  else 
+    generated_configuration.loras ||= [];
+
 
   console.log(`GENERATED CONFIGURATION BEFORE LORAS:\n` +
               `${JSON.stringify(generated_configuration)}`);

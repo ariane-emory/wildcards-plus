@@ -4680,7 +4680,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
       let walked_file = walk(thing.file, context);
 
@@ -5254,7 +5254,7 @@ async function main() {
     // }
     
     if (log_config_enabled && add_loras.lengh !== 0)
-      console.log(`Main loop found add_loras: ${inspect_fun(add_loras)} in Context.!\n`);
+      console.log(`Found add_loras in Context: ${inspect_fun(add_loras)}`);
 
     config.loras ||= [];
     
@@ -5263,7 +5263,7 @@ async function main() {
     }
 
     if (log_config_enabled && ! is_empty_object(config))
-      console.log(`Main loop found config: ${JSON.stringify(config)} in Context.\n`);
+      console.log(`Found config in Context: ${JSON.stringify(config)}`);
     
     // expansion may have included files, copy the files list back to the base context.
     // ED: might not be needed here after all...
