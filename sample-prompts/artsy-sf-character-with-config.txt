@@ -7,6 +7,7 @@
   // devMODE
   %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
   %config.steps(8)
+  // don't worry, capitalization will be automatically fixed to "Euler a":
   { %config.sampler("DDIM Trailing") | %config.sampler("Euler A") | %config.sampler("Euler A Trailing") }
   { %config.cfg_scale(1.0) | %config.cfg_scale(1.5) | %config.cfg_scale(2.0) | %config.cfg_scale(2.5) }
 
@@ -49,7 +50,7 @@
   { %config.shift(1.00) | %config.shift(1.10) | %config.shift(1.20) }
 
   // two sampler possibilities:
-  { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler a") }
+  { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") }
 
   // eight possible CFG values:
   { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
@@ -395,3 +396,6 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 \n
 
 {?artsy By @wizards_artists, @wizards_artist_styles. }
+
+
+ 
