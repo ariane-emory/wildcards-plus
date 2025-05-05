@@ -4971,14 +4971,7 @@ const fallback_prompt        = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} p
 const pipeline_configuration = pipeline.configuration;
 const ui_prompt              = pipeline.prompts.prompt;
 const ui_hint                = "no wildcards found in the prompt.";
-
-// // look for wildcards in the UI prompt:
-// if (ui_prompt.includes('{') && ui_prompt.includes('}')) {
-// 	ui_hint = "wildcard detected in the prompt.";
-prompt_string = ui_prompt;
-// } else {
-// 	prompt_string = "";
-// }
+let prompt_string            = ui_prompt;
 // ---------------------------------------------------------------------------------------
 
 
