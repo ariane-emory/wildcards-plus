@@ -1925,7 +1925,16 @@ const key_names = [
 // ---------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
-  
+
+  if (config.model.endsWith('_f16.ckpt')) {
+    // do nothing
+  }
+  else if (config.model.endsWith('_f16')) {
+    config.model = `${config.model}.ckpt`;}
+  else {
+    config.model= `${config.model}_f16.ckpt`;
+  }
+
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
     if (config.sampler !== undefined && typeof config.sampler === 'string') {
       console.log(`Correcting config.sampler = ${inspect_fun(config.sampler)} to ` +
@@ -4528,11 +4537,25 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
-      let file    = `${walked_file}.ckpt`;
-      let weight  = weight_match_result.value;
+      let file    = walked_file.toLowerCase();
+
+      if (file.endsWith('_lora_f16.ckpt')) {
+        // do nothing 
+      }
+      else if (file.endsWith('_lora_f16')) {
+        file = `${file}.ckpt`;
+      }
+      else if (file.endsWith('_lora')) {
+        file = `${file}_f16.ckpt`;
+      }
+      else {
+        file = `${file}_lora_f16.ckpt`;
+      }
+
+      const weight = weight_match_result.value;
       
       context.new_loras.push({ file: file, weight: weight });
-
+      
       return '';
     }
     // -----------------------------------------------------------------------------------

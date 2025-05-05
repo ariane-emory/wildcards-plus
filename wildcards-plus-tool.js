@@ -4708,7 +4708,7 @@ function expand_wildcards(thing, context = new Context()) {
         file = `${file}_lora_f16.ckpt`;
       }
 
-      let weight  = weight_match_result.value;
+      const weight = weight_match_result.value;
       
       context.new_loras.push({ file: file, weight: weight });
       
