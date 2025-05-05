@@ -1934,6 +1934,9 @@ function unescape(str) {
 // -------------------------------------------------------------------------------------------------
 class FalseText {
   constructor(text) {
+    console.log(`ARGS: ${inspect_fun(arguments)}`);
+    if (typeof text !== 'string')
+                  text = text.toString();
     this.text = text;
   }
   // -----------------------------------------------------------------------------------------------
@@ -4773,7 +4776,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       context.add_lora(thing);
       
-      return '';
+      return new FalseText(thing);
     }
     // ---------------------------------------------------------------------------------------------
     // numbers become string
@@ -4856,6 +4859,10 @@ class ASTLora {
   // -----------------------------------------------------------------------------------------------
   clone() {
     return new ASTLora(this.file, this.weight);
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `<lora:${this.file}: ${this.weight}>`;
   }
 }
 // -------------------------------------------------------------------------------------------------
