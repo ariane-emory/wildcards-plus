@@ -1925,7 +1925,10 @@ const key_names = [
 // ---------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
-  
+
+  if (! config.model.endsWith('.ckpt'))
+    config.model = `${config.model}.ckpt`;
+
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
     if (config.sampler !== undefined && typeof config.sampler === 'string') {
       console.log(`Correcting config.sampler = ${inspect_fun(config.sampler)} to ` +
@@ -5038,12 +5041,11 @@ for (let ix = 0; ix < batch_count; ix++) {
   };
   
   post_data = { ...post_data, ...context.config };
-  post_string_data = JSON.stringify(post_data);
   
   console.log(`The generated configuration is: ` +
               `${JSON.stringify(generated_configuration)}`);
   console.log(`POST equivalent payload would have been: ` +
-              `${JSON.stringify(post_string_data)}`);
+              `${JSON.stringify(post_data)}`);
   console.log(`The expanded prompt is: ` +
               `${generated_prompt}`);
 

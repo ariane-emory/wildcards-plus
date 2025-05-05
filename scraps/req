@@ -1,26 +1,3 @@
 POST http://127.0.0.1:7860/sdapi/v1/txt2img
 Content-Type: application/json
-{
-  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
-  "steps": 10,
-  "seed": 1793191902,
-  "model":"oldmaster_v30_f16.ckpt"
-}
-
-POST http://127.0.0.1:7860/sdapi/v1/txt2img
-Content-Type: application/json
-{
-  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
-  "steps": 10,
-  "seed": 1793191902,
-  "model":"bookIllustrationChar_v10"
-}
-
-POST http://127.0.0.1:7860/sdapi/v1/txt2img
-Content-Type: application/json
-{
-  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
-  "steps": 10,
-  "seed": 1793191902
-}
-
+{"prompt":"masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, Traveller RPG, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nA piece of art by Alex Andreev which depicts a independant cyborg space ship pilot with a cyber eye in the crew cabin on a remote space station orbiting a dim ship. She is clad in a space ship crew members' uniform. \nBy Alex Andreev, contemporary, Death, Displacement, illustration, surreal.  ","seed":4077582212,"steps":45,"width":768,"height":512,"shift":1,"sampler":"DPM++ 2M Karras","cfg_scale":5,"model":"bookillustrationchar_v10_f16"}

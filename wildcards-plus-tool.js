@@ -2081,6 +2081,9 @@ const key_names = [
 // ---------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
+
+  if (! config.model.endsWith('.ckpt'))
+    config.model = `${config.model}.ckpt`;
   
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
     if (config.sampler !== undefined && typeof config.sampler === 'string') {
@@ -5222,7 +5225,7 @@ async function main() {
     const expanded  = expand_wildcards(AST, context);
     const config    = munge_config(context.config);
     const add_loras = context.add_loras;
-
+    
     // if (dt_hosted) {
     //   for (const lora of add_loras) {
     //   }
