@@ -1946,7 +1946,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       if (config[automatic1111_name] !== undefined) {
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
-                    `config.sampler = ${config[automatic1111_name]}.`);
+                    `config.${dt_name} = ${config[automatic1111_name]}.`);
         config[dt_name] = config[automatic1111_name];
         delete config[automatic1111_name];
       }
@@ -5034,9 +5034,15 @@ for (let ix = 0; ix < batch_count; ix++) {
     console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context.\n`);
 
   generated_configuration.loras ||= [];
+
+  console.log(`GENERATED CONFIGURATION BEFORE LORAS:\n` +
+              `${JSON.stringify(generated_configuration)}`);
   
   for (const lora of new_loras) {
     generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
+
+    console.log(`GENERATED CONFIGURATION AFTER A LORA:\n` +
+                `${JSON.stringify(generated_configuration)}`);
   }
   
   console.log(`GENERATED CONFIGURATION:\n` +
