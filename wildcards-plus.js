@@ -4971,7 +4971,7 @@ const fallback_prompt        = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} p
 const pipeline_configuration = pipeline.configuration;
 const ui_prompt              = pipeline.prompts.prompt;
 const ui_hint                = "no wildcards found in the prompt.";
-let prompt_string            = ui_prompt;
+let   prompt_string          = ui_prompt;
 // ---------------------------------------------------------------------------------------
 
 
@@ -5019,7 +5019,10 @@ console.log(`PIPELINE.CONFIGURATION:\n${JSON.stringify(pipeline.configuration)}\
 // ---------------------------------------------------------------------------------------
 // run the pipeline:
 // ---------------------------------------------------------------------------------------
-console.log(`The wildcards-plus prompt is:\n${prompt_string}\n`);
+console.log(`==============================================================================================================`);
+console.log(`The wildcards-plus prompt is:`);
+console.log(`==============================================================================================================`);
+console.log(`${prompt_string}\n`);
 
 const base_context = load_prelude();
 
