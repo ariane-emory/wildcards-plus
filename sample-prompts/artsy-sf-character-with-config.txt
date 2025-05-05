@@ -5,12 +5,18 @@
 
 @lora_names :=
 { mj52_v2.0_lora
+| ethereon_lora_f16
+| trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl_lora
 | add_detail_xl_lora
 | detailed_notrigger_lora
 | xl_more_art_full_v1_lora
 }
 
-@lora := { <lora:@lora_names: @random_weight> }
+// named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
+@lora := { <lora:@lora_names: @random_weight> } 
+
+// add 1-3 loras to our image:
+@1-3lora
 
 { 0
   // devMODE
