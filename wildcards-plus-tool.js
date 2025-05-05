@@ -4851,7 +4851,7 @@ const A1111StyleLoraWeight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
         xform(parseInt,   /\d+/))
-const A1111StyleLora = xform(arr => new ASTLora(arr[3] ,
+const A1111StyleLora = xform(arr => new ASTLora(arr[3].trim() ,
                                                 arr[5]),
                              wst_seq('<', 'lora', ':', 
                                      choice(filename, () => LimitedContent),
