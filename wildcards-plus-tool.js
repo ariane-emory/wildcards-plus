@@ -1601,7 +1601,7 @@ const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
 const bslash             = l('\\');
-const backslash          = bslsh;
+const backslash          = bslash;
 const caret              = l('^');
 const colon              = l(':');
 const comma              = l(',');
@@ -5249,18 +5249,22 @@ async function main() {
   console.log('--------------------------------------------------------------------------------');
   console.log(`Expansion${count > 1 ? "s" : ''}:`);
 
-  let posted_count      = 0;
-  let prior_expansion   = null;
-  let prior_config_json = null;
+  let posted_count    = 0;
+  let prior_expansion = null;
+  let prior_config    = null;
 
   while (posted_count < count) {
     console.log('--------------------------------------------------------------------------------');
     // console.log(`posted_count = ${posted_count}`);
 
-    const context   = base_context.clone();
-    const expanded  = expand_wildcards(AST, context);
-    const config    = munge_config(context.config);
-
+    const context     = base_context.clone();
+    const expanded    = expand_wildcards(AST, context);
+    const config      = munge_config(context.config);
+    const stash_prior = () => {
+      prior_expansion = expanded;
+      prior_config    = structuredClone(config);
+    };
+    
     context.add_loras_to(config);
 
     if (log_config_enabled && ! is_empty_object(config))
@@ -5288,13 +5292,16 @@ async function main() {
               `POST the prior prompt)? `;
         const answer = await ask(question);
 
-        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) 
+        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
+          stash_prior();
+          
           continue;
+        }
 
         if (answer.match(/^p.*/i)) {
           if (prior_expansion) { 
             console.log(`POSTing prior prompt '${expanded}'`);
-            post_prompt(prior_expansion, JSON.parse(prior_config_json));
+            post_prompt(prior_expansion, prior_config);
           }
           else {
             console.log(`can't rewind, no prior prompt`);
@@ -5314,8 +5321,7 @@ async function main() {
       }
     }
 
-    prior_expansion   = expanded;
-    prior_config_json = JSON.stringify(config);
+    stash_prior();
   }
 
   console.log('--------------------------------------------------------------------------------');
