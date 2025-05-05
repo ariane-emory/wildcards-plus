@@ -61,7 +61,6 @@
   | 2 %config.model("nightvisionxl_v900_f16.ckpt")
   | 2 %config.model("oldmaster_v30_f16.ckpt")
   | 2 %config.model("zavychromaxl_v100_f16.ckpt")
-  |   %config.model("2dn_ponyv2_f16.ckpt")
   }
 }
 
