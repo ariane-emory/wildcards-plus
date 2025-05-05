@@ -2083,6 +2083,10 @@ const key_names = [
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
+
+  // fix missing .ckpt on model names
+  if (config.model && ! config.model.endsWith('.ckpt'))
+    config.model = `${config.model}.ckpt`;  
   
   // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
   if (typeof config.sampler === 'string') {
