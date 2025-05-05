@@ -4656,7 +4656,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
       let walked_file = walk(thing.file, context);
 
@@ -4666,22 +4666,22 @@ function expand_wildcards(thing, context = new Context()) {
       //             `${Array.isArray(walked_file)}`);
 
       if (Array.isArray(walked_file))
-                    walked_file = smart_join(walked_file); 
+        walked_file = smart_join(walked_file).trim(); 
 
-                  let walked_weight = walk(thing.weight, context);
+      let walked_weight = walk(thing.weight, context);
 
-                  // console.log(`walked_weight is ${typeof walked_weight} ` +
-                  //             `${walked_weight.constructor.name} ` +
-                  //             `${inspect_fun(walked_weight)} ` +
-                  //             `${Array.isArray(walked_weight)}`);
+      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      //             `${walked_weight.constructor.name} ` +
+      //             `${inspect_fun(walked_weight)} ` +
+      //             `${Array.isArray(walked_weight)}`);
 
-                  if (Array.isArray(walked_weight))
-                    walked_weight = smart_join(walked_weight);
-                  
-                  const weight_match_result = json_number.match(walked_weight);
+      if (Array.isArray(walked_weight))
+        walked_weight = smart_join(walked_weight);
+      
+      const weight_match_result = json_number.match(walked_weight.trim());
 
-                  if (!weight_match_result || !weight_match_result.is_finished)
-                    throw new Error(`Lora weight must be a number, got ` +
+      if (!weight_match_result || !weight_match_result.is_finished)
+        throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
       thing.file    = walked_file.endsWith('.ckpt') ? walked_file : `${walked_file}.ckpt`;
@@ -5154,7 +5154,7 @@ async function main() {
   // -------------------------------------------------------------------------------------
   // just for debugging, comment to see result:
   // -------------------------------------------------------------------------------------
-  // (false)
+  if (false)
   {
     console.log(`result: ${inspect_fun(result.value)}`);
     console.log(`result (JSON): ${JSON.stringify(result.value)}`);

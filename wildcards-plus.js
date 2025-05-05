@@ -4500,7 +4500,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
       let walked_file = walk(thing.file, context);
 
@@ -4510,7 +4510,7 @@ function expand_wildcards(thing, context = new Context()) {
       //             `${Array.isArray(walked_file)}`);
 
       if (Array.isArray(walked_file))
-        walked_file = smart_join(walked_file); 
+        walked_file = smart_join(walked_file).trim(); 
 
       let walked_weight = walk(thing.weight, context);
 
@@ -4522,7 +4522,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (Array.isArray(walked_weight))
         walked_weight = smart_join(walked_weight);
       
-      const weight_match_result = json_number.match(walked_weight);
+      const weight_match_result = json_number.match(walked_weight.trim());
 
       if (!weight_match_result || !weight_match_result.is_finished)
         throw new Error(`Lora weight must be a number, got ` +
