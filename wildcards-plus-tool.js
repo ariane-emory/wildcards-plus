@@ -4467,34 +4467,41 @@ function expand_wildcards(thing, context = new Context()) {
       if (!got)
         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
+      const count = rand_int(thing.min_count, thing.max_count);
+
+      if (count === 0)
+        return '';
+
+      if (count > 1)
+        console.log(`getting ${count} from @${thing.name}...`);
+      
       const res = [ walk(got, context) ];
 
       if (thing.capitalize)
         res[0] = capitalize(res[0]);
-
-      const count = rand_int(thing.min_count, thing.max_count);
+      
+      if (count > 1)
+        console.log(`have ${inspect_fun(res[0])}`);
 
       if (thing.max_count > 1)
-        console.log(`getting ${count} from @${thing.name}...`);
-      
-      for (let ix = 1; ix < count; ix++) {
-        let val = walk(got, context);
         
-        for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
-          if (! res.includes(val))
-            break;
+        for (let ix = 1; ix < count; ix++) {
+          let val = walk(got, context);
+          
+          for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
+            if (! res.includes(val))
+              break;
 
-          val = walk(got, context);
+            val = walk(got, context);
+          }
+
+          console.log(`pushing ${inspect_fun(val)}`);
+          
+          res.push(val);
         }
 
-        console.log(`pushing ${inspect_fun(val)}`);
-        
-        res.push(val);
-      }
-
-      if (thing.max_count > 1)
+      if (count > 1)
         console.log(`returning ${res.length} from @${thing.name}: ${inspect_fun(res)}`);
-
       
       return thing.joiner == ','
         ? res.join(", ")
