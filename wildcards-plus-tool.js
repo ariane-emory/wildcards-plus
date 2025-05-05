@@ -4698,6 +4698,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
       // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      thing = thing.clone();
       
       let walked_file = walk(thing.file, context);
 
@@ -4707,27 +4708,27 @@ function expand_wildcards(thing, context = new Context()) {
       //             `${Array.isArray(walked_file)}`);
 
       if (Array.isArray(walked_file))
-        walked_file = smart_join(walked_file).trim(); 
+                            walked_file = smart_join(walked_file).trim(); 
 
-      let walked_weight = walk(thing.weight, context);
+                          let walked_weight = walk(thing.weight, context);
 
-      // console.log(`walked_weight is ${typeof walked_weight} ` +
-      //             `${walked_weight.constructor.name} ` +
-      //             `${inspect_fun(walked_weight)} ` +
-      //             `${Array.isArray(walked_weight)}`);
+                          // console.log(`walked_weight is ${typeof walked_weight} ` +
+                          //             `${walked_weight.constructor.name} ` +
+                          //             `${inspect_fun(walked_weight)} ` +
+                          //             `${Array.isArray(walked_weight)}`);
 
-      if (Array.isArray(walked_weight))
-        walked_weight = smart_join(walked_weight);
-      
-      const weight_match_result = json_number.match(walked_weight.trim());
+                          if (Array.isArray(walked_weight))
+                            walked_weight = smart_join(walked_weight);
+                          
+                          const weight_match_result = json_number.match(walked_weight.trim());
 
-      if (!weight_match_result || !weight_match_result.is_finished)
-        throw new Error(`Lora weight must be a number, got ` +
-                        `${inspect_fun(walked_weight)}`);
+                          if (!weight_match_result || !weight_match_result.is_finished)
+                            throw new Error(`Lora weight must be a number, got ` +
+                                            `${inspect_fun(walked_weight)}`);
 
-      if (walked_file.endsWith('_f16.ckpt')) {
-        // do nothing.
-      }
+                          if (walked_file.endsWith('_f16.ckpt')) {
+                            // do nothing.
+                          }
       else if (walked_file.endsWith('_f16')) {
         walked_file = `${walked_file}.ckpt`;
       }
@@ -4819,6 +4820,10 @@ class ASTLora {
   constructor(file, weight) {
     this.file   = file;
     this.weight = weight;
+  }
+  // -----------------------------------------------------------------------------------------------
+  clone() {
+    return new ASTLora(this.file, this.weight);
   }
 }
 // -------------------------------------------------------------------------------------------------

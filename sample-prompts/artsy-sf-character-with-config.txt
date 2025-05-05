@@ -3,6 +3,15 @@
 // actual textual content of the prompt:
 // =======================================================================================
 
+@lora_name :=
+{ mj52_v2.0_lora
+| add_detail_xl_lora
+| detailed_notrigger_lora
+| xl_more_art_full_v1_lora
+}
+
+@lora := { <lora:@lora_name: @random_weight> }
+
 { 0
   // devMODE
   %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
@@ -34,8 +43,7 @@
   }
 
 | 3 // various SDXL models:
-  <lora:add_detail_xl_lora:      @random_weight>
-  <lora:detailed_notrigger_lora: @random_weight>
+  @1-3lora
 
   // 35, 40 or 45 steps, equally likely:
   { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }

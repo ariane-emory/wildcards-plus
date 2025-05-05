@@ -4542,6 +4542,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
       // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      thing = thing.clone();
       
       let walked_file = walk(thing.file, context);
 
@@ -4663,6 +4664,10 @@ class ASTLora {
   constructor(file, weight) {
     this.file   = file;
     this.weight = weight;
+  }
+  // -----------------------------------------------------------------------------------------------
+  clone() {
+    return new ASTLora(this.file, this.weight);
   }
 }
 // -------------------------------------------------------------------------------------------------
