@@ -5012,7 +5012,7 @@ if (! parse_result.is_finished)
 // ---------------------------------------------------------------------------------------
 
 
-console.log(`\nPIPELINE: ${JSON.stringify(pipeline)}\n`);
+console.log(`\nPIPELINE.CONFIGURATION: ${JSON.stringify(pipeline.configuration)}\n`);
 
 
 // ---------------------------------------------------------------------------------------
