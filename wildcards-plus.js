@@ -4967,7 +4967,7 @@ const user_selection = requestFromUser('Wildcards', '', function() {
   return [
 	  this.section('Prompt', ui_hint, [
 		  this.textField(prompt_string, fallback_prompt, true, 240),
-		  this.slider(10, this.slider.fractional(0), 1, 500, 'batch count')
+		  this.slider(1, this.slider.fractional(0), 1, 500, 'batch count')
     ]),
 	  this.section('about',
                  doc_string,
@@ -5011,19 +5011,24 @@ for (let ix = 0; ix < batch_count; ix++) {
   const generated_configuration = { ...pipeline_configuration,
                                     seed: -1,
                                     ...munge_config(context.config) };
-  const add_loras = context.add_loras;
+  const hypothetical_post_data  = munge_config(context.config, false);
+  const add_loras               = context.add_loras;
 
   if (log_config_enabled && add_loras.length !== 0)
     console.log(`Main loop found add_loras: ${inspect_fun(add_loras)} in Context.\n`);
 
   generated_configuration.loras ||= [];
+  hypothetical_post_data.loras  ||= [];
   
   for (const lora of add_loras) {
     generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
+    hypothetical_post_data.push({ file: lora.file, weight: lora.weight });
   }
   
   console.log(`The generated configuration is: ` +
               `${JSON.stringify(generated_configuration)}`);
+  console.log(`POST equivalent payload is: ` +
+              `${JSON.stringify(hypothetical_post_data)}`);
   console.log(`The expanded prompt is: ` +
               `${generated_prompt}`);
 
