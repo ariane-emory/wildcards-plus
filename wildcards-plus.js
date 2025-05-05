@@ -5071,7 +5071,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   for (const lora of add_loras) {
     generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
 
-    console.log(`GENERATED CONFIGURATION AFTER A LORA:\n` +
+    console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
                 `${JSON.stringify(generated_configuration)}`);
   }
   
