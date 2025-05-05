@@ -4993,7 +4993,7 @@ if (! parse_result.is_finished)
 // ---------------------------------------------------------------------------------------
 // run the pipeline:
 // ---------------------------------------------------------------------------------------
-console.log(`\nThe wildcards-plus prompt is:\n${prompt_string}\n`);
+// console.log(`\nThe wildcards-plus prompt is:\n${prompt_string}\n`);
 
 const base_context = load_prelude();
 
@@ -5001,7 +5001,8 @@ for (let ix = 0; ix < batch_count; ix++) {
   const start_date = new Date();
 
   console.log('============================================================================================');
-  console.log(`Beginning render #${ix+1} of ${batch_count} at ${start_date}:`);
+  console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
+  console.log('============================================================================================');
 
   // expand the wildcards using a cloned context and generate a new configuration:
   const context                 = base_context.clone();
