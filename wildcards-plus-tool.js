@@ -2153,6 +2153,7 @@ class Context {
     if (dt_hosted && !this.flags.has("dt_hosted"))
       this.flags.add("dt_hosted");
   }
+  
   // -------------------------------------------------------------------------------------
   reset_temporaries() {
     this.flags = new Set();
@@ -2179,6 +2180,11 @@ class Context {
       files: this.files,
       top_file: false, // deliberately not copied!
     });
+  }
+  // -------------------------------------------------------------------------------------
+  add_new_lora(lora) {
+    this.new_loras = this.new_loras.filter(l => l.file !== lora.file);
+    this.new_loras.push(lora);
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4686,8 +4692,8 @@ function expand_wildcards(thing, context = new Context()) {
 
       thing.file    = walked_file.endsWith('.ckpt') ? walked_file : `${walked_file}.ckpt`;
       thing.weight  = weight_match_result.value;
-      
-      context.new_loras.push(thing);
+
+      context.add_new_lora(thing);
       
       return '';
     }
