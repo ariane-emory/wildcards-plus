@@ -2138,7 +2138,7 @@ class Context {
     noisy = false,
     files = [],
     config = {},
-    new_loras = [],
+    add_loras = [],
     top_file = true,
   } = {}) {
     this.flags = flags;
@@ -2147,7 +2147,7 @@ class Context {
     this.noisy = noisy;
     this.files = files;
     this.config = config;
-    this.new_loras = new_loras;
+    this.add_loras = add_loras;
     this.top_file = top_file;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
@@ -4635,7 +4635,7 @@ function expand_wildcards(thing, context = new Context()) {
     if (thing instanceof ASTSpecialFunction && thing.directive == 'set-config') {
       const config = thing.args[0];
       
-      context.new_loras = []; // kinda ugly but seems correct for this case...
+      context.add_loras = []; // kinda ugly but seems correct for this case...
 
       if (typeof config !== 'object')
         throw new Error(`set-config's argument must be an object, ` +
@@ -4684,10 +4684,23 @@ function expand_wildcards(thing, context = new Context()) {
                     throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
-      thing.file    = `${walked_file}.ckpt`;
+      if (walked_file.endsWith('_lora_f16.ckpt')) {
+        // do nothing 
+      }
+      else if (walked_file.endsWith('_lora_f16')) {
+        walked_file = `${walked_file}.ckpt`;        
+      }
+      else if (walked_file.endsWith('_lora')) {
+        walked_file = `${walked_file}_f16.ckpt`;        
+      }
+      else {
+        walked_file = `${walked_file}_lora_f16.ckpt`;
+      }
+      
+      thing.file    = walked_file;
       thing.weight  = weight_match_result.value;
       
-      context.new_loras.push(thing);
+      context.add_loras.push(thing);
       
       return '';
     }
@@ -5070,7 +5083,7 @@ Prompt.finalize();
 
 
 // =======================================================================================
-// DEV NOTE: Copy into wildcards-plus.js starting through this line!
+// DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
 
 
@@ -5143,7 +5156,7 @@ async function main() {
   // -------------------------------------------------------------------------------------
   // just for debugging, comment to see result:
   // -------------------------------------------------------------------------------------
-  // (false)
+  if (false)
   {
     console.log(`result: ${inspect_fun(result.value)}`);
     console.log(`result (JSON): ${JSON.stringify(result.value)}`);
@@ -5201,19 +5214,19 @@ async function main() {
     const context   = base_context.clone();
     const expanded  = expand_wildcards(AST, context);
     const config    = munge_config(context.config);
-    const new_loras = context.new_loras;
+    const add_loras = context.add_loras;
 
     // if (dt_hosted) {
-    //   for (const lora of new_loras) {
+    //   for (const lora of add_loras) {
     //   }
     // }
     
-    if (log_config_enabled && new_loras.lengh !== 0)
-      console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context.!\n`);
+    if (log_config_enabled && add_loras.lengh !== 0)
+      console.log(`Main loop found add_loras: ${inspect_fun(add_loras)} in Context.!\n`);
 
     config.loras ||= [];
     
-    for (const lora of new_loras) {
+    for (const lora of add_loras) {
       config.loras.push({ file: lora.file, weight: lora.weight });
     }
 
