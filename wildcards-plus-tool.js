@@ -1856,15 +1856,22 @@ class WildcardPicker {
 // HELPER FUNCTIONS SECTION:
 // =======================================================================================
 function add_lora_to_array(lora, array) {
-  for (const existing_lora of array) {
-    if (lora.file === existing_lora.file) {
-      existing_lora.weight = lora.weight;
-      return;
-    }
+  const index = array.findIndex(existing => existing.file === lora.file);
+  if (index !== -1) {
+    array.splice(index, 1); // Remove the existing entry
   }
-
-  array.push(lora);      
+  array.push(lora); // Add the new entry at the end
 }
+// function add_lora_to_array(lora, array) {
+//   for (const existing_lora of array) {
+//     if (lora.file === existing_lora.file) {
+//       existing_lora.weight = lora.weight;
+//       return;
+//     }
+//   }
+
+//   array.push(lora);      
+// }
 // -------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
@@ -2162,6 +2169,14 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 // =======================================================================================
 // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
 // =======================================================================================
+class DelayedAction {
+  // -------------------------------------------------------------------------------------
+  constructor(identifier_string, thunk) {
+    this.identifier_string = identifier_string;
+    this.thunk = thunk;
+  }
+}
+// ---------------------------------------------------------------------------------------
 class Context {
   constructor({ 
     flags = new Set(),
