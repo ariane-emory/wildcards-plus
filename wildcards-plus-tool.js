@@ -2208,9 +2208,9 @@ class Context {
         existing_lora.weight = lora.weight;
         return;
       }
-
-      this.add_loras.push(lora);      
     }
+
+    this.add_loras.push(lora);      
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4732,8 +4732,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
 
       const weight = weight_match_result.value;
-      
-      context.add_loras.push({ file: file, weight: weight });
+
+      context.add_lora({ file: file, weight: weight });
       
       return '';
     }
