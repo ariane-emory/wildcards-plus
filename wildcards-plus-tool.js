@@ -1974,7 +1974,7 @@ function smart_join(arr) {
       next_char            = right_word[0] ?? '';
     };
 
-    if (right_word === '')
+    if (right_word instanceof FalseText)
       continue;
     
     const shift_left = (n) => {
