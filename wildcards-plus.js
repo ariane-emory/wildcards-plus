@@ -4967,7 +4967,8 @@ Prompt.finalize();
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt        = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 // v DT's env doesn't seem to have structuredClone :(
-const pipeline_configuration = JSON.parse(JSON.stringify(pipeline.configuration));
+// const pipeline_configuration = JSON.parse(JSON.stringify(pipeline.configuration));
+const pipeline_configuration = pipeline.configuration;
 const ui_prompt              = pipeline.prompts.prompt;
 const ui_hint                = "no wildcards found in the prompt.";
 
@@ -4996,7 +4997,7 @@ const user_selection = requestFromUser('Wildcards', '', function() {
   return [
 	  this.section('Prompt', ui_hint, [
 		  this.textField(prompt_string, fallback_prompt, true, 240),
-		  this.slider(10, this.slider.fractional(0), 1, 500, 'batch count')
+		  this.slider(1, this.slider.fractional(0), 1, 500, 'batch count')
     ]),
 	  this.section('about',
                  doc_string,
