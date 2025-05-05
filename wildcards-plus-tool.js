@@ -5030,8 +5030,7 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               assignment_operator,
                                               ScalarAssignmentSource));
 const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
-                                             NamedWildcardReference),
-                                       
+                                             NamedWildcardDesignator),
                                        // NamedWildcardUsage, SetFlag,
                                        AnonWildcardNoLoras,
                                        // comment,
