@@ -5243,9 +5243,9 @@ async function main() {
   let prior_config    = null;
   
   while (posted_count < count) {
-    console.log('--------------------------------------------------------------------------------');
+    console.log('================================================================================');
     console.log(`Expanding #${posted_count + 1} of ${count}:`);
-    console.log('--------------------------------------------------------------------------------');
+    console.log('================================================================================');
     // console.log(`posted_count = ${posted_count}`);
 
     const context   = base_context.clone();
@@ -5265,7 +5265,7 @@ async function main() {
         config.loras.push({ file: lora.file, weight: lora.weight });
 
       if (log_config_enabled && ! is_empty_object(config))
-        console.log(`Added LoRAs to config: ${inspect_fun(config)}`);
+        console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
     }
     
     console.log(`--------------------------------------------------------------------------------`);
@@ -5280,7 +5280,6 @@ async function main() {
       if (!confirm) {
         console.log(`--------------------------------------------------------------------------------`);
         post_prompt(expanded, config);
-        console.log(`--------------------------------------------------------------------------------`);
 
         posted_count += 1;
       }
@@ -5322,7 +5321,7 @@ async function main() {
     stash_prior();
   }
 
-    // console.log('--------------------------------------------------------------------------------');
+  console.log('================================================================================');
 }
 
 // ---------------------------------------------------------------------------------------
