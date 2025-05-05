@@ -3,7 +3,7 @@
 // actual textual content of the prompt:
 // =======================================================================================
 
-{
+{ 0
   // devMODE
   %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
   %config.steps(8)
@@ -16,7 +16,7 @@
   | 1 %config({ "width": 640, "height": 640 })
   }
 
-| 1 // Hidream with some basic settings that seem to work alright:
+| 0 // Hidream with some basic settings that seem to work alright:
   %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50 })
 
   { 8 %config.cfg_scale(5.0 ) | 7 %config.cfg_scale(10.0) | 6 %config.cfg_scale(15.0) | 5 %config.cfg_scale(20.0)
@@ -56,15 +56,15 @@
   | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) | %config.cfg_scale(9.0) | %config.cfg_scale(10.0) }
 
   // lots of models pick from:
-  { 2 %config.model("bookIllustrationChar_v10_f16.ckpt")
-  | 2 %config.model("challengexlv10yoursecret_v10_f16.ckpt")
-  |   %config.model("cyberrealisticpony_v10_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
-  |   %config.model("cyberrealisticpony_v90alt1_f16.ckpt")
-  |   %config.model("cyberrealisticxl_v56_f16.ckpt")
-  | 2 %config.model("nightvisionxl_v900_f16.ckpt")
-  | 6 %config.model("oldmaster_v30_f16.ckpt")
-  | 2 %config.model("zavychromaxl_v100_f16.ckpt")
-  |   %config.model("2dn_ponyv2_f16.ckpt")
+  { 4 %config.model("bookIllustrationChar_v10_f16.ckpt")
+  | 4 %config.model("challengexlv10yoursecret_v10_f16.ckpt")
+  | 0 %config.model("cyberrealisticpony_v10_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}
+  | 0 %config.model("cyberrealisticpony_v90alt1_f16.ckpt")
+  | 2 %config.model("cyberrealisticxl_v56_f16.ckpt")
+  | 4 %config.model("nightvisionxl_v900_f16.ckpt")
+  | 8 %config.model("oldmaster_v30_f16.ckpt")
+  | 6 %config.model("zavychromaxl_v100_f16.ckpt")
+  | 0 %config.model("2dn_ponyv2_f16.ckpt")
   }
 }
 
