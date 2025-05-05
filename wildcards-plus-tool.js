@@ -1945,7 +1945,7 @@ class FalseText {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return '';
+    return `False(${this.text})`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -4500,7 +4500,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (count > 1)
         console.log(`have ${inspect_fun(res[0])}`);
 
-      if (thing.max_count > 1)
+      if (count > 1)
         for (let ix = 1; ix < count; ix++) {
           let val = walk(got, context);
           
