@@ -5040,6 +5040,8 @@ for (let ix = 0; ix < batch_count; ix++) {
   // render an image:
   canvas.clear();
 
+  console.log('--------------------------------------------------------------------------------------------');
+  console.log(`Generating image...`);
   pipeline.run({
     configuration: generated_configuration,
     prompt: generated_prompt
@@ -5048,8 +5050,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   const end_time     = new Date().getTime();
   const elapsed_time = (end_time - start_date.getTime()) / 1000;
   
-  console.log('--------------------------------------------------------------------------------------------');
-  console.log(`Generated in ${elapsed_time} seconds.`);
+  console.log(`Image generated in ${elapsed_time} seconds.`);
 }
 
 console.log('Job complete. Open Console to see job report.');
