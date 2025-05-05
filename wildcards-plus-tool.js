@@ -74,7 +74,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   const string_data = JSON.stringify(data);
 
   if (log_config_enabled)
-    console.log(`POST data is ${JSON.stringify(data)}.`);
+    console.log(`POST data is:\n${JSON.stringify(data)}`);
 
   const options = {
     hostname: hostname,
@@ -2081,7 +2081,16 @@ const key_names = [
 // ---------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
-  
+
+  if (config.model.endsWith('_f16.ckpt')) {
+    // do nothing
+  }
+  else if (config.model.endsWith('_f16')) {
+    config.model = `${config.model}.ckpt`;}
+  else {
+    config.model= `${config.model}_f16.ckpt`;
+  }
+
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
     if (config.sampler !== undefined && typeof config.sampler === 'string') {
       console.log(`Correcting config.sampler = ${inspect_fun(config.sampler)} to ` +
@@ -4684,7 +4693,21 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
-      let file    = `${walked_file}.ckpt`;
+      let file    = walked_file.toLowerCase();
+
+      if (file.endsWith('_lora_f16.ckpt')) {
+        // do nothing 
+      }
+      else if (file.endsWith('_lora_f16')) {
+        file = `${file}.ckpt`;
+      }
+      else if (file.endsWith('_lora')) {
+        file = `${file}_f16.ckpt`;
+      }
+      else {
+        file = `${file}_lora_f16.ckpt`;
+      }
+
       let weight  = weight_match_result.value;
       
       context.new_loras.push({ file: file, weight: weight });
