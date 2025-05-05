@@ -5056,23 +5056,27 @@ for (let ix = 0; ix < batch_count; ix++) {
                                     ...munge_config(context.config) };
   const add_loras = context.add_loras;
 
-  if (log_config_enabled && add_loras.length !== 0)
-    console.log(`Main loop found add_loras: ${inspect_fun(add_loras)} in Context.\n`);
 
-  if (generated_configuration.loras && generated_configuration.length > 0)
-    generated_configuration.loras = [ ...generated_configuration.loras ];
-  else 
-    generated_configuration.loras ||= [];
+  if (add_loras.length > 0) {
+    if (log_config_enabled && add_loras.length !== 0) {
+      console.log(`-----------------------------------------------------------------------------------------------------------------`);
+      console.log(`Found add_loras in Context: ${inspect_fun(add_loras)} in Context.`);
+    }
 
+    if (generated_configuration.loras && generated_configuration.length > 0)
+      generated_configuration.loras = [ ...generated_configuration.loras ];
+    else 
+      generated_configuration.loras ||= [];
 
-  console.log(`GENERATED CONFIGURATION BEFORE LORAS:\n` +
-              `${JSON.stringify(generated_configuration)}`);
-  
-  for (const lora of add_loras) {
-    generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
-
-    console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
+    console.log(`GENERATED CONFIGURATION BEFORE LORAS:\n` +
                 `${JSON.stringify(generated_configuration)}`);
+    
+    for (const lora of add_loras) {
+      generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
+
+      console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
+                  `${JSON.stringify(generated_configuration)}`);
+    }
   }
   
   console.log(`GENERATED CONFIGURATION:\n` +
