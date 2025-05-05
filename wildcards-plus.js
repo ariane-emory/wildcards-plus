@@ -5027,7 +5027,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   
   console.log(`The generated configuration is: ` +
               `${JSON.stringify(generated_configuration)}`);
-  console.log(`POST equivalent payload is: ` +
+  console.log(`POST equivalent payload would have been: ` +
               `${JSON.stringify(hypothetical_post_data)}`);
   console.log(`The expanded prompt is: ` +
               `${generated_prompt}`);
