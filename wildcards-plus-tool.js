@@ -5273,7 +5273,7 @@ async function main() {
       config.loras ||= [];
 
       for (const lora of add_loras)
-        config.loras.push({ file: lora.file, weight: lora.weight });
+        add_lora_to_array(lora, config.loras);
 
       if (log_config_enabled && ! is_empty_object(config))
         console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
