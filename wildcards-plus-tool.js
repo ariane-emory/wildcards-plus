@@ -1986,14 +1986,21 @@ function smart_join(arr) {
 
 
   let left_word = arr[0]?.toString() ?? "";
-
   let str       = left_word;
   
   for (let ix = 1; ix < arr.length; ix++)  {
-    let right_word = null;
-    let prev_char = null;
-    let prev_char_is_escaped = null
-    let next_char = null;
+    const shift_left = (n) => {
+      const shifted_str = right_word.substring(0, n);
+      str = str.substring(0, str.length -1) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - 1) + shifted_str;
+      arr[ix] = right_word.substring(n);
+      update_pos_vars();
+    };
+
+    let right_word           = null;
+    let prev_char            = null;
+    let prev_char_is_escaped = null;
+    let next_char            = null;
 
     const update_pos_vars = () => {
       right_word           = arr[ix]?.toString() ?? "";
@@ -2005,14 +2012,6 @@ function smart_join(arr) {
     if (right_word instanceof FalseText)
       continue;
     
-    const shift_left = (n) => {
-      const shifted_str = right_word.substring(0, n);
-      str = str.substring(0, str.length -1) + shifted_str;
-      left_word = left_word.substring(0, left_word.length - 1) + shifted_str;
-      arr[ix] = right_word.substring(n);
-      update_pos_vars();
-    };
-
     update_pos_vars();
     
     if (prev_char === ',' && right_word === ',')
