@@ -2068,7 +2068,7 @@ const dt_samplers = [   // order is significant, do not rearrange!
   'DPM++ 2M Trailing',  // 15
   'DDIM Trailing',      // 16
 ];
-const dt_samplers_caps_correction = new Map(dt_samplers.map(string => [ string.toLowerCase(), string ]));
+const dt_samplers_caps_correction = new Map(dt_samplers.map(string => [ s.toLowerCase(), s ]));
 // -------------------------------------------------------------------------------------------------
 const key_names = [
   // [ automatic1111's name,  Draw Things' name ],
