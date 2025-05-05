@@ -5033,11 +5033,11 @@ for (let ix = 0; ix < batch_count; ix++) {
   if (log_config_enabled && new_loras.length !== 0)
     console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context.\n`);
 
-  // generated_configuration.loras ||= [];
+  generated_configuration.loras ||= [];
   
-  // for (const lora of new_loras) {
-  //   generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
-  // }
+  for (const lora of new_loras) {
+    generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
+  }
   
   console.log(`GENERATED CONFIGURATION:\n` +
               `${JSON.stringify(generated_configuration)}`);

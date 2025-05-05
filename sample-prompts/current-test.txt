@@ -412,4 +412,4 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 
 {?artsy By @wizards_artists, @wizards_artist_styles. }
 
-{?sdxl @1-3lora}
+{?sdxl @lora}
