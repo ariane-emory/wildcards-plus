@@ -4654,6 +4654,8 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
+      console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      
       let walked_file = walk(thing.file, context);
 
       // console.log(`walked_file is ${typeof walked_file} ` +
@@ -4662,22 +4664,22 @@ function expand_wildcards(thing, context = new Context()) {
       //             `${Array.isArray(walked_file)}`);
 
       if (Array.isArray(walked_file))
-        walked_file = smart_join(walked_file); 
+                    walked_file = smart_join(walked_file); 
 
-      let walked_weight = walk(thing.weight, context);
+                  let walked_weight = walk(thing.weight, context);
 
-      // console.log(`walked_weight is ${typeof walked_weight} ` +
-      //             `${walked_weight.constructor.name} ` +
-      //             `${inspect_fun(walked_weight)} ` +
-      //             `${Array.isArray(walked_weight)}`);
+                  // console.log(`walked_weight is ${typeof walked_weight} ` +
+                  //             `${walked_weight.constructor.name} ` +
+                  //             `${inspect_fun(walked_weight)} ` +
+                  //             `${Array.isArray(walked_weight)}`);
 
-      if (Array.isArray(walked_weight))
-        walked_weight = smart_join(walked_weight);
-      
-      const weight_match_result = json_number.match(walked_weight);
+                  if (Array.isArray(walked_weight))
+                    walked_weight = smart_join(walked_weight);
+                  
+                  const weight_match_result = json_number.match(walked_weight);
 
-      if (!weight_match_result || !weight_match_result.is_finished)
-        throw new Error(`Lora weight must be a number, got ` +
+                  if (!weight_match_result || !weight_match_result.is_finished)
+                    throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
       thing.file    = `${walked_file}.ckpt`;
@@ -4968,9 +4970,9 @@ const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
                                                 () => ContentStar));
 const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag, SetFlag)),
-                                                optional(wb_uint, 1),
-                                                wst_star(choice(comment, TestFlag, SetFlag)),
-                                                () => ContentStar));
+                                                 optional(wb_uint, 1),
+                                                 wst_star(choice(comment, TestFlag, SetFlag)),
+                                                 () => ContentStarNoLoras));
 const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const AnonWildcardNoLoras           = xform(arr => new ASTAnonWildcard(arr),
@@ -5044,7 +5046,13 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        SFUpdateConfiguration,
                                        SFSetConfiguration,
                                        low_pri_text, plaintext);
+const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       AnonWildcard, comment, ScalarReference,
+                                       SFUpdateConfiguration,
+                                       SFSetConfiguration,
+                                       low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
+const ContentStarNoLoras      = xform(wst_star(ContentNoLoras), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
 //                                                 ScalarAssignment,
 //                                                 Content));
