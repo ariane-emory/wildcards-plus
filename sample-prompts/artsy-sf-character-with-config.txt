@@ -34,8 +34,8 @@
   }
 
 | 3 // various SDXL models:
-  <lora:add_detail_xl_lora: 1.0>
-  <lora:detailed_notrigger_lora: 1.0>
+  <lora:add_detail_xl_lora: @random_weight>
+  <lora:detailed_notrigger_lora: @random_weight>
 
   // 35, 40 or 45 steps, equally likely:
   { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
@@ -367,9 +367,8 @@
 // ---------------------------------------------------------------------------------------
 @colour_modifiers := {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
 
-
 // =======================================================================================
-// prompt body:
+// generate the prompt body:
 // =======================================================================================
 
 @aris_defaults, science fiction, {|futuristic,} {|greebling,}
@@ -378,7 +377,6 @@ hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour ren
 .
 
 \n\n
-
 
 A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
@@ -396,6 +394,3 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 \n
 
 {?artsy By @wizards_artists, @wizards_artist_styles. }
-
-
- 

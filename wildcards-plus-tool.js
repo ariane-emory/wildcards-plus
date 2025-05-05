@@ -2224,8 +2224,12 @@ const prelude_text = disable_prelude ? '' : `
 @pro_pos                := {@set_gender_if_unset {?female hers  |?male his |?neuter its}}
 @__digit                := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
 @__high_digit           := {<5|<6|<7|<8|<9}
+@__low_digit            := {<1|<2|<3|<4|<5} // yeah, high and low do overlap at 5.
 @random_weight          := {1. @__digit}
 @high_random_weight     := {1. @__high_digit}
+@highish_random_weight  := {1. @__low_digit}
+@low_random_weight      := {0. @__low_digit}
+@lowish_random_weight   := {0. @__high_digit}
 // @random_weight_old      := {:1. @__digit}
 // @high_random_weight_old := {:1. @__high_digit}
 
