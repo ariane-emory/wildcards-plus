@@ -2177,6 +2177,17 @@ class DelayedAction {
   }
 }
 // ---------------------------------------------------------------------------------------
+function loose_includes(needle, arr) {
+  for (const elem of arr) {
+    if (elem instanceof DelayedAction &&
+        needle instanceof DelayedAction &&
+        elem.identifier_string === needle.identifier_string)
+      return true;
+  }
+  
+  return false;
+}
+// ---------------------------------------------------------------------------------------
 class Context {
   constructor({ 
     flags = new Set(),
