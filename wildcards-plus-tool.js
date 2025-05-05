@@ -2138,7 +2138,7 @@ class Context {
     noisy = false,
     files = [],
     config = {},
-    new_loras = [],
+    add_loras = [],
     top_file = true,
   } = {}) {
     this.flags = flags;
@@ -2147,7 +2147,7 @@ class Context {
     this.noisy = noisy;
     this.files = files;
     this.config = config;
-    this.new_loras = new_loras;
+    this.add_loras = add_loras;
     this.top_file = top_file;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
@@ -2182,9 +2182,9 @@ class Context {
     });
   }
   // -------------------------------------------------------------------------------------
-  add_new_lora(lora) {
-    this.new_loras = this.new_loras.filter(l => l.file !== lora.file);
-    this.new_loras.push(lora);
+  add_lora(lora) {
+    this.add_loras = this.add_loras.filter(l => l.file !== lora.file);
+    this.add_loras.push(lora);
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4641,7 +4641,7 @@ function expand_wildcards(thing, context = new Context()) {
     if (thing instanceof ASTSpecialFunction && thing.directive == 'set-config') {
       const config = thing.args[0];
       
-      context.new_loras = []; // kinda ugly but seems correct for this case...
+      context.add_loras = []; // kinda ugly but seems correct for this case...
 
       if (typeof config !== 'object')
         throw new Error(`set-config's argument must be an object, ` +
@@ -4693,7 +4693,7 @@ function expand_wildcards(thing, context = new Context()) {
       thing.file    = walked_file.endsWith('.ckpt') ? walked_file : `${walked_file}.ckpt`;
       thing.weight  = weight_match_result.value;
 
-      context.add_new_lora(thing);
+      context.add_lora(thing);
       
       return '';
     }
@@ -5218,24 +5218,27 @@ async function main() {
     const context   = base_context.clone();
     const expanded  = expand_wildcards(AST, context);
     const config    = munge_config(context.config);
-    const new_loras = context.new_loras;
+    const add_loras = context.add_loras;
 
     // if (dt_hosted) {
-    //   for (const lora of new_loras) {
+    //   for (const lora of add_loras) {
     //   }
     // }
     
-    if (log_config_enabled && new_loras.lengh !== 0)
-      console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context.!\n`);
+    if (log_config_enabled && add_loras.lengh !== 0)
+      console.log(`Main loop found LoRAs to add: ` +
+                  `${inspect_fun(add_loras
+                                 .map(l => ({file: l.file, weight: l.weight })))} ` +
+                  `in Context.`);
 
     config.loras ||= [];
     
-    for (const lora of new_loras) {
+    for (const lora of add_loras) {
       config.loras.push({ file: lora.file, weight: lora.weight });
     }
 
     if (log_config_enabled && ! is_empty_object(config))
-      console.log(`Main loop found config: ${JSON.stringify(config)} in Context.\n`);
+      console.log(`Main loop found config: ${JSON.stringify(config)} in Context.`);
     
     // expansion may have included files, copy the files list back to the base context.
     // ED: might not be needed here after all...
