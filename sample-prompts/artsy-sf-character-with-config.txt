@@ -203,11 +203,14 @@
 |beautiful
 }
 @char_late_adj :=
-{3
+{4
 |alien #alien
 |android
 |cyborg #cyborg
 |human #human
+|?traveller Vargr
+|?traveller Vilani
+|?traveller Zhodani
 }
 
 // ---------------------------------------------------------------------------------------
@@ -277,6 +280,7 @@
 |assassin                                    @likely_weapon
 |medic                                       #tool
 |worker                                      #tool
+|{?traveller psion}                          @maybe_no_equipment
 |{space|star|interstellar} {trader|merchant} @maybe_no_equipment
 |{space|star} marine                         #weapon
 |@ship_term captain                          @maybe_no_equipment
@@ -371,6 +375,7 @@
 // =======================================================================================
 
 @aris_defaults, science fiction, {|futuristic,} {|greebling,}
+{|#traveller Traveller RPG,} {|#traveller GDW,} {|#traveller Third Imperium,}
 hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time,
 @0-2,colour_modifiers
 .
