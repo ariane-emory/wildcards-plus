@@ -5089,7 +5089,7 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
                                        ScalarReference,
                                        // SFUpdateConfiguration,
                                        // SFSetConfiguration,
-                                       // low_pri_text, plaintext
+                                       low_pri_text, plaintext
                                       );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        A1111StyleLora,
