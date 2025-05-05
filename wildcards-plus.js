@@ -2072,7 +2072,7 @@ const prelude_text = disable_prelude ? '' : `
 @random_weight          := {1. @__digit}
 @high_random_weight     := {1. @__high_digit}
 @highish_random_weight  := {1. @__low_digit}
-@subzero_random_weight  := {0. @__digit}
+@subone_random_weight   := {0. @__digit}
 @low_random_weight      := {0. @__low_digit}
 @lowish_random_weight   := {0. @__high_digit}
 
