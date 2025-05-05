@@ -4704,6 +4704,13 @@ function expand_wildcards(thing, context = new Context()) {
       
       return '';
     }
+    // -----------------------------------------------------------------------------------
+    // numbers get strung:
+    // -----------------------------------------------------------------------------------
+    else if (typeof thing === 'string') {
+      return thing.string();
+    }
+    // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
     // -----------------------------------------------------------------------------------
     else {
@@ -4868,7 +4875,7 @@ const A1111StyleLoraWeight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
         xform(parseInt,   /\d+/))
-const A1111StyleLora = xform(arr => new ASTLora(arr[3].trim() ,
+const A1111StyleLora = xform(arr => new ASTLora(arr[3],
                                                 arr[5]),
                              wst_seq('<', 'lora', ':', 
                                      choice(filename, () => LimitedContent),
