@@ -74,7 +74,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   const string_data = JSON.stringify(data);
 
   if (log_config_enabled)
-    console.log(`POST data is ${JSON.stringify(data)}.`);
+    console.log(`POST data is ${JSON.stringify(data)}`);
 
   const options = {
     hostname: hostname,
@@ -4705,6 +4705,16 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
+      if (walked_file.endsWith('_f16.ckpt')) {
+        // do nothing.
+      }
+      else if (walked_file.endsWith('_f16')) {
+        walked_file = `${walked_file}.ckpt`;
+      }
+      else {
+        walked_file = `${walked_file}_f16.ckpt`;
+      }
+      
       thing.file    = walked_file.endsWith('.ckpt') ? walked_file : `${walked_file}.ckpt`;
       thing.weight  = weight_match_result.value;
 

@@ -33,8 +33,8 @@
   }
 
 | 3 // various SDXL models:
-  <lora:add-detail-xl: 1.0>
-  <lora:detailed_notrigger_lora_f16: 1.0>
+  <lora:add_detail_xl_lora: 1.0>
+  <lora:detailed_notrigger_lora: 1.0>
 
   // 35, 40 or 45 steps, equally likely:
   { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }

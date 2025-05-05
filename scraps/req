@@ -1,26 +1,3 @@
 POST http://127.0.0.1:7860/sdapi/v1/txt2img
 Content-Type: application/json
-{
-  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
-  "steps": 10,
-  "seed": 1793191902,
-  "model":"oldmaster_v30_f16.ckpt"
-}
-
-POST http://127.0.0.1:7860/sdapi/v1/txt2img
-Content-Type: application/json
-{
-  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
-  "steps": 10,
-  "seed": 1793191902,
-  "model":"bookIllustrationChar_v10"
-}
-
-POST http://127.0.0.1:7860/sdapi/v1/txt2img
-Content-Type: application/json
-{
-  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
-  "steps": 10,
-  "seed": 1793191902
-}
-
+{"prompt":"masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, greebling, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, natural lighting, warm color pallete. \n\nAn inscrutable cyborg assassin in a crowded alley on a run-down moon holding a greebled grenade launcher. It is dressed in a uniform. It has bionic eyes. A binary star hangs overhead. \n","seed":2399026698,"steps":45,"width":768,"height":512,"shift":1.1,"sampler":"DPM++ 2M Karras","cfg_scale":4,"model":"zavychromaxl_v100_f16.ckpt","loras":[{"file":"add_detail_xl_lora_f16","weight":1},{"file":"detailed_notrigger_lora_f16.ckpt","weight":1}]} 
