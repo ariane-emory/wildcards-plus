@@ -2099,6 +2099,8 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
 
   if (config.model) {
+    config.model = config.model.toLowerCase();
+    
     if (config.model.endsWith('_f16.ckpt')) {
       // do nothing
     }
@@ -2183,8 +2185,11 @@ function loose_includes(needle, arr) {
         needle instanceof DelayedAction &&
         elem.identifier_string === needle.identifier_string)
       return true;
+    else if (elem === needle) {
+      return true;
+    }
   }
-  
+    
   return false;
 }
 // ---------------------------------------------------------------------------------------
