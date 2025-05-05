@@ -1991,7 +1991,7 @@ class Context {
     this.noisy = noisy;
     this.files = files;
     this.config = config;
-    this.add_loras = add_loras;
+    this.add_loras = null;
     this.top_file = top_file;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
@@ -2027,6 +2027,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   add_lora(lora) {
+    this.add_loras ||= [];
     this.add_loras = this.add_loras.filter(l => l.file !== lora.file);
     this.add_loras.push(lora);
   }
@@ -5012,17 +5013,18 @@ for (let ix = 0; ix < batch_count; ix++) {
                                     ...munge_config(context.config) };
   const add_loras               = context.add_loras;
 
-  if (log_config_enabled && add_loras.length !== 0)
-    console.log(`Found LoRAs to add: ` +
-                `${inspect_fun(add_loras
+  if (add_loras) {
+    if (log_config_enabled && add_loras.length !== 0)
+        console.log(`Found LoRAs to add: ` +
+                    `${inspect_fun(add_loras
                                  .map(l => ({file: l.file, weight: l.weight })))} ` +
-                `in Context.`);
-  
+                    `in Context.`);
+      
 
-  generated_configuration.loras ||= [];
-  
-  for (const lora of add_loras) {
-    generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
+      generated_configuration.loras ||= [];
+      
+      for (const lora of add_loras)
+        generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
   }
   
   console.log('--------------------------------------------------------------------------------------------');

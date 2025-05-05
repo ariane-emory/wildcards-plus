@@ -2147,7 +2147,7 @@ class Context {
     this.noisy = noisy;
     this.files = files;
     this.config = config;
-    this.add_loras = add_loras;
+    this.add_loras = null;
     this.top_file = top_file;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
@@ -2183,6 +2183,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   add_lora(lora) {
+    this.add_loras ||= [];
     this.add_loras = this.add_loras.filter(l => l.file !== lora.file);
     this.add_loras.push(lora);
   }
@@ -5224,17 +5225,18 @@ async function main() {
     //   for (const lora of add_loras) {
     //   }
     // }
-    
-    if (log_config_enabled && add_loras.length !== 0)
-      console.log(`Main loop found LoRAs to add: ` +
-                  `${inspect_fun(add_loras
-                                 .map(l => ({file: l.file, weight: l.weight })))} ` +
-                  `in Context.`);
 
-    config.loras ||= [];
-    
-    for (const lora of add_loras) {
-      config.loras.push({ file: lora.file, weight: lora.weight });
+    if (add_loras) {
+      if (log_config_enabled && add_loras && add_loras.length !== 0)
+        console.log(`Main loop found LoRAs to add: ` +
+                    `${inspect_fun(add_loras
+                                 .map(l => ({file: l.file, weight: l.weight })))} ` +
+                    `in Context.`);
+
+      config.loras ||= [];
+      
+      for (const lora of add_loras)
+        config.loras.push({ file: lora.file, weight: lora.weight });
     }
 
     if (log_config_enabled && ! is_empty_object(config))
