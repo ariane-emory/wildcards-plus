@@ -5209,18 +5209,12 @@ async function main() {
 
   while (posted_count < count) {
     console.log('--------------------------------------------------------------------------------');
-    // console.log(`posted_count = ${posted_count}`);
 
     const context   = base_context.clone();
     const expanded  = expand_wildcards(AST, context);
     const config    = munge_config(context.config);
     const add_loras = context.add_loras;
 
-    // if (dt_hosted) {
-    //   for (const lora of add_loras) {
-    //   }
-    // }
-    
     if (log_config_enabled && add_loras.lengh !== 0)
       console.log(`Main loop found add_loras: ${inspect_fun(add_loras)} in Context.!\n`);
 
