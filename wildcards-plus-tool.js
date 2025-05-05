@@ -2068,6 +2068,7 @@ const dt_samplers = [   // order is significant, do not rearrange!
   'DPM++ 2M Trailing',  // 15
   'DDIM Trailing',      // 16
 ];
+const dt_samplers_caps_correction = new Map(dt_samplers.map(string => [ string.toLowerCase(), string ]));
 // -------------------------------------------------------------------------------------------------
 const key_names = [
   // [ automatic1111's name,  Draw Things' name ],
@@ -2081,6 +2082,13 @@ const key_names = [
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
+
+  // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
+  if (typeof config.campler === 'string') {
+    const got = dt_samplers_caps_correction.get(config.sampler);
+    if (got)
+      config.sampler = got;
+  }
   
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
     if (config.sampler !== undefined && typeof config.sampler === 'string') {
@@ -2100,12 +2108,13 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     }
   }
   else { // running in Node.js, sampler needs to be a string:
-    if (config.sampler !== undefined && typeof config.sampler ===  'number') {
+    if (config.sampler !== undefined && typeof config.sampler === 'number') {
       console.log(`Correcting config.sampler = ${config.sampler} to ` +
                   `config.sampler = ${inspect_fun(dt_samplers[config.sampler])}.`);
       config.sampler = dt_samplers[config.sampler];
     }
 
+    
     for (const [automatic1111_name, dt_name] of key_names) {
       if (config[dt_name] !== undefined) {
         console.log(`Correcting config.${dt_name} = ` +
