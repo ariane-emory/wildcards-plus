@@ -1912,6 +1912,7 @@ const dt_samplers = [   // order is significant, do not rearrange!
   'DPM++ 2M Trailing',  // 15
   'DDIM Trailing',      // 16
 ];
+const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
 // ---------------------------------------------------------------------------------------
 const key_names = [
   // [ automatic1111's name,  Draw Things' name ],
@@ -1926,8 +1927,19 @@ const key_names = [
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
 
-  if (! config.model.endsWith('.ckpt'))
-    config.model = `${config.model}.ckpt`;
+  // fix missing .ckpt on model names
+  if (config.model && ! config.model.endsWith('.ckpt'))
+    config.model = `${config.model}.ckpt`;  
+  
+  // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
+  if (typeof config.sampler === 'string') {
+    const lc = config.sampler.toLowerCase();
+    // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
+    const got = dt_samplers_caps_correction.get(lc);
+
+    if (got)
+      config.sampler = got;
+  }
 
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
     if (config.sampler !== undefined && typeof config.sampler === 'string') {
@@ -5016,6 +5028,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`Beginning render #${ix+1} of ${batch_count} at ${start_date}:`);
 
   // expand the wildcards using a cloned context and generate a new configuration:
+  
   const context                 = base_context.clone();
   const generated_prompt        = expand_wildcards(parse_result.value, context);
   const generated_configuration = { ...pipeline_configuration,
@@ -5040,12 +5053,12 @@ for (let ix = 0; ix < batch_count; ix++) {
     seed: Math.floor(Math.random() * (2 ** 32)),
   };
   
-  post_data = { ...post_data, ...context.config };
+  post_data = { ...post_data, ...hypothetical_post_data };
   
   console.log(`The generated configuration is: ` +
               `${JSON.stringify(generated_configuration)}`);
-  console.log(`POST equivalent payload would have been: ` +
-              `${JSON.stringify(post_data)}`);
+  console.log(`POST EQUIVALENT PAYLOAD WOULD HAVE BEEN: ` +
+              `\n${JSON.stringify(post_data)}`);
   console.log(`The expanded prompt is: ` +
               `${generated_prompt}`);
 
