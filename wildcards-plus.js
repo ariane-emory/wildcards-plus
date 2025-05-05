@@ -4528,11 +4528,11 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
-      thing.file    = `${walked_file}.ckpt`;
-      thing.weight  = weight_match_result.value;
+      let file    = `${walked_file}.ckpt`;
+      let weight  = weight_match_result.value;
       
-      context.new_loras.push(thing);
-      
+      context.new_loras.push({ file: file, weight: weight });
+
       return '';
     }
     // -----------------------------------------------------------------------------------
