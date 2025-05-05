@@ -2048,6 +2048,17 @@ class Context {
       top_file: false, // deliberately not copied!
     });
   }
+  // -------------------------------------------------------------------------------------
+  add_lora(lora) {
+    for (const existing_lora of this.add_loras) {
+      if (lora.file === existing_lora.file) {
+        existing_lora.weight = lora.weight;
+        return;
+      }
+    }
+
+    this.add_loras.push(lora);      
+  }
 }
 // ---------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
@@ -4524,7 +4535,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
       let walked_file = walk(thing.file, context);
 
@@ -4568,8 +4579,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
 
       const weight = weight_match_result.value;
-      
-      context.add_loras.push({ file: file, weight: weight });
+
+      context.add_lora({ file: file, weight: weight });
       
       return '';
     }
