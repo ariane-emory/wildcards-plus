@@ -2102,7 +2102,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       if (config[automatic1111_name] !== undefined) {
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
-                    `config.sampler = ${config[automatic1111_name]}.`);
+                    `config.${dt_name} = ${config[automatic1111_name]}.`);
         config[dt_name] = config[automatic1111_name];
         delete config[automatic1111_name];
       }
