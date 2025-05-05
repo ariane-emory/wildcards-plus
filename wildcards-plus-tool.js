@@ -1855,6 +1855,17 @@ class WildcardPicker {
 // =======================================================================================
 // HELPER FUNCTIONS SECTION:
 // =======================================================================================
+function add_lora_to_array(lora, array) {
+  for (const existing_lora of array) {
+    if (lora.file === existing_lora.file) {
+      existing_lora.weight = lora.weight;
+      return;
+    }
+  }
+
+  array.push(lora);      
+}
+// -------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
     Object.keys(obj).length === 0 &&
@@ -2200,17 +2211,6 @@ class Context {
       files: this.files,
       top_file: false, // deliberately not copied!
     });
-  }
-  // -------------------------------------------------------------------------------------
-  add_lora(lora) {
-    for (const existing_lora of this.add_loras) {
-      if (lora.file === existing_lora.file) {
-        existing_lora.weight = lora.weight;
-        return;
-      }
-    }
-
-    this.add_loras.push(lora);      
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4733,7 +4733,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       const weight = weight_match_result.value;
 
-      context.add_lora({ file: file, weight: weight });
+      add_lora_to_array({ file: file, weight: weight }, context.add_loras);
       
       return '';
     }
