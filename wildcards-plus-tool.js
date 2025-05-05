@@ -4655,20 +4655,21 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
       let walked_file = walk(thing.file, context);
-      console.log(`walked_file is ${typeof walked_file} ` +
-                  `${walked_file.constructor.name} ` +
-                  `${inspect_fun(walked_file)} ` +
-                  `${Array.isArray(walked_file)}`);
+
+      // console.log(`walked_file is ${typeof walked_file} ` +
+      //             `${walked_file.constructor.name} ` +
+      //             `${inspect_fun(walked_file)} ` +
+      //             `${Array.isArray(walked_file)}`);
 
       if (Array.isArray(walked_file))
         walked_file = smart_join(walked_file); 
 
       let walked_weight = walk(thing.weight, context);
 
-      console.log(`walked_weight is ${typeof walked_weight} ` +
-                  `${walked_weight.constructor.name} ` +
-                  `${inspect_fun(walked_weight)} ` +
-                  `${Array.isArray(walked_weight)}`);
+      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      //             `${walked_weight.constructor.name} ` +
+      //             `${inspect_fun(walked_weight)} ` +
+      //             `${Array.isArray(walked_weight)}`);
 
       if (Array.isArray(walked_weight))
         walked_weight = smart_join(walked_weight);
