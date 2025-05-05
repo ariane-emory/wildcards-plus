@@ -5256,23 +5256,21 @@ async function main() {
     config          = munge_config(context.config);
     const add_loras = context.add_loras;
 
-    console.log('--------------------------------------------------------------------------------');
+    if (add_loras && add_loras.length > 0) {
+      console.log('--------------------------------------------------------------------------------');
 
-    if (log_config_enabled && add_loras.lengh !== 0)
-      console.log(`Found add_loras in Context: ${inspect_fun(add_loras)}`);
+      if (log_config_enabled && add_loras.lengh !== 0)
+        console.log(`Found add_loras in Context: ${inspect_fun(add_loras)}`);
 
-    config.loras ||= [];
-    
-    for (const lora of add_loras) {
-      config.loras.push({ file: lora.file, weight: lora.weight });
+      config.loras ||= [];
+      
+      for (const lora of add_loras) {
+        config.loras.push({ file: lora.file, weight: lora.weight });
+      }
+
+      if (log_config_enabled && ! is_empty_object(config))
+        console.log(`Added LoRAs to config: ${inspect_fun(config)}`);
     }
-
-    if (log_config_enabled && ! is_empty_object(config))
-      console.log(`Added LoRAs to config: ${inspect_fun(config)}`);
-    
-    // expansion may have included files, copy the files list back to the base context.
-    // ED: might not be needed here after all...
-    // context_with_prelude.files = context.files;
     
     console.log(`--------------------------------------------------------------------------------`);
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
