@@ -60,10 +60,7 @@ function parse_file(filename) {
 }
 // ---------------------------------------------------------------------------------------
 function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
-  console.log("POSTing!");
-
-  if (log_config_enabled)
-    console.log(`post_prompt got config: ${JSON.stringify(config)}.`);
+  console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
   let data = {
     prompt: prompt,
@@ -74,7 +71,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   const string_data = JSON.stringify(data);
 
   if (log_config_enabled)
-    console.log(`POST data is:\n${JSON.stringify(data)}`);
+    console.log(`POST data is: ${JSON.stringify(data)}`);
 
   const options = {
     hostname: hostname,
@@ -5281,7 +5278,10 @@ async function main() {
     }
     else {
       if (!confirm) {
+        console.log(`--------------------------------------------------------------------------------`);
         post_prompt(expanded, config);
+        console.log(`--------------------------------------------------------------------------------`);
+
         posted_count += 1;
       }
       else  {
@@ -5297,6 +5297,7 @@ async function main() {
 
         if (answer.match(/^p.*/i)) {
           if (prior_expansion) { 
+            console.log(`--------------------------------------------------------------------------------`);
             console.log(`POSTing prior prompt '${expanded}'`);
             post_prompt(prior_expansion, prior_config);
           }
@@ -5321,7 +5322,7 @@ async function main() {
     stash_prior();
   }
 
-  console.log('--------------------------------------------------------------------------------');
+    // console.log('--------------------------------------------------------------------------------');
 }
 
 // ---------------------------------------------------------------------------------------
