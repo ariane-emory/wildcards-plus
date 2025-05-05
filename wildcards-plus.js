@@ -4993,7 +4993,7 @@ if (! parse_result.is_finished)
 // ---------------------------------------------------------------------------------------
 // run the pipeline:
 // ---------------------------------------------------------------------------------------
-console.log(`\nThe wildcards-plus prompt is: ${prompt_string}\n`);
+console.log(`\nThe wildcards-plus prompt is:\n${prompt_string}\n`);
 
 const base_context = load_prelude();
 
