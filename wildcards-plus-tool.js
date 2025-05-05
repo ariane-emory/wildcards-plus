@@ -5288,7 +5288,7 @@ async function main() {
     // ED: might not be needed here after all...
     // context_with_prelude.files = context.files;
     
-    console.log(expanded);
+    console.log(`'${expanded}'`);
 
     if (!post) {
       posted_count += 1; // a lie to make the counter correct.
