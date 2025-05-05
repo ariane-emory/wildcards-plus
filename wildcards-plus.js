@@ -1997,6 +1997,7 @@ class Context {
     if (dt_hosted && !this.flags.has("dt_hosted"))
       this.flags.add("dt_hosted");
   }
+  
   // -------------------------------------------------------------------------------------
   reset_temporaries() {
     this.flags = new Set();
@@ -2023,6 +2024,11 @@ class Context {
       files: this.files,
       top_file: false, // deliberately not copied!
     });
+  }
+  // -------------------------------------------------------------------------------------
+  add_lora(lora) {
+    this.add_loras = this.add_loras.filter(l => l.file !== lora.file);
+    this.add_loras.push(lora);
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4530,8 +4536,8 @@ function expand_wildcards(thing, context = new Context()) {
 
       thing.file    = walked_file.endsWith('.ckpt') ? walked_file : `${walked_file}.ckpt`;
       thing.weight  = weight_match_result.value;
-      
-      context.add_loras.push(thing);
+
+      context.add_lora(thing);
       
       return '';
     }
@@ -5005,10 +5011,14 @@ for (let ix = 0; ix < batch_count; ix++) {
   const generated_configuration = { ...pipeline_configuration,
                                     seed: -1,
                                     ...munge_config(context.config) };
-  const add_loras = context.add_loras;
+  const add_loras               = context.add_loras;
 
-  if (log_config_enabled && add_loras.length !== 0)
-    console.log(`Main loop found add_loras: ${inspect_fun(add_loras)} in Context.\n`);
+  if (log_config_enabled && add_loras.lengh !== 0)
+    console.log(`Main loop found LoRAs to add: ` +
+                `${inspect_fun(add_loras
+                                 .map(l => ({file: l.file, weight: l.weight })))} ` +
+                `in Context.`);
+  
 
   generated_configuration.loras ||= [];
   
