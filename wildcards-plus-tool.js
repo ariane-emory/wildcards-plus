@@ -5258,14 +5258,14 @@ async function main() {
 
     if (add_loras && add_loras.length > 0) {
       console.log('--------------------------------------------------------------------------------');
+
       if (log_config_enabled)
         console.log(`Found add_loras in Context: ${inspect_fun(add_loras)}`);
       
       config.loras ||= [];
 
-      for (const lora of add_loras) {
+      for (const lora of add_loras)
         config.loras.push({ file: lora.file, weight: lora.weight });
-      }
 
       if (log_config_enabled && ! is_empty_object(config))
         console.log(`Added LoRAs to config: ${inspect_fun(config)}`);
