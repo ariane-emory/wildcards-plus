@@ -5025,11 +5025,12 @@ for (let ix = 0; ix < batch_count; ix++) {
     generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
   }
   
-  console.log(`The generated configuration is: ` +
-              `${JSON.stringify(generated_configuration)}`);
   console.log('--------------------------------------------------------------------------------------------');
-  console.log(`The expanded prompt is: ` +
-              `${generated_prompt}`);
+  console.log(`The generated configuration is: `);
+  console.log(`${JSON.stringify(generated_configuration)}`);
+  console.log('--------------------------------------------------------------------------------------------');
+  console.log(`The expanded prompt is:`);
+  console.log(`${generated_prompt}`);
 
   // render an image:
   canvas.clear();
