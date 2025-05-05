@@ -2231,8 +2231,6 @@ const prelude_text = disable_prelude ? '' : `
 @subzero_random_weight  := {0. @__digit}
 @low_random_weight      := {0. @__low_digit}
 @lowish_random_weight   := {0. @__high_digit}
-// @random_weight_old      := {:1. @__digit}
-// @high_random_weight_old := {:1. @__high_digit}
 
 @pony_score_9          := {score_9,}
 @pony_score_8_up       := {score_9, score_8_up,}
