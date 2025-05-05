@@ -1912,6 +1912,7 @@ const dt_samplers = [   // order is significant, do not rearrange!
   'DPM++ 2M Trailing',  // 15
   'DDIM Trailing',      // 16
 ];
+const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
 // ---------------------------------------------------------------------------------------
 const key_names = [
   // [ automatic1111's name,  Draw Things' name ],
@@ -1935,6 +1936,16 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     config.model= `${config.model}_f16.ckpt`;
   }
 
+  // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
+  if (typeof config.sampler === 'string') {
+    const lc = config.sampler.toLowerCase();
+    // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
+    const got = dt_samplers_caps_correction.get(lc);
+
+    if (got)
+      config.sampler = got;
+  }
+  
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
     if (config.sampler !== undefined && typeof config.sampler === 'string') {
       console.log(`Correcting config.sampler = ${inspect_fun(config.sampler)} to ` +
