@@ -5225,7 +5225,7 @@ async function main() {
     //   }
     // }
     
-    if (log_config_enabled && add_loras.lengh !== 0)
+    if (log_config_enabled && add_loras.length !== 0)
       console.log(`Main loop found LoRAs to add: ` +
                   `${inspect_fun(add_loras
                                  .map(l => ({file: l.file, weight: l.weight })))} ` +

@@ -5000,7 +5000,7 @@ const base_context = load_prelude();
 for (let ix = 0; ix < batch_count; ix++) {
   const start_date = new Date();
 
-  console.log('========================================================================');
+  console.log('============================================================================================');
   console.log(`Beginning render #${ix+1} of ${batch_count} at ${start_date}:`);
 
   // expand the wildcards using a cloned context and generate a new configuration:
@@ -5011,7 +5011,7 @@ for (let ix = 0; ix < batch_count; ix++) {
                                     ...munge_config(context.config) };
   const add_loras               = context.add_loras;
 
-  if (log_config_enabled && add_loras.lengh !== 0)
+  if (log_config_enabled && add_loras.length !== 0)
     console.log(`Found LoRAs to add: ` +
                 `${inspect_fun(add_loras
                                  .map(l => ({file: l.file, weight: l.weight })))} ` +
@@ -5026,7 +5026,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   
   console.log(`The generated configuration is: ` +
               `${JSON.stringify(generated_configuration)}`);
-  console.log('------------------------------------------------------------------------');
+  console.log('--------------------------------------------------------------------------------------------');
   console.log(`The expanded prompt is: ` +
               `${generated_prompt}`);
 
