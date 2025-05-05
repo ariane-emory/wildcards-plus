@@ -2162,7 +2162,7 @@ class Context {
     noisy = false,
     files = [],
     config = {},
-    new_loras = [],
+    add_loras = [],
     top_file = true,
   } = {}) {
     this.flags = flags;
@@ -2171,7 +2171,7 @@ class Context {
     this.noisy = noisy;
     this.files = files;
     this.config = config;
-    this.new_loras = new_loras;
+    this.add_loras = add_loras;
     this.top_file = top_file;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
@@ -4659,7 +4659,7 @@ function expand_wildcards(thing, context = new Context()) {
     if (thing instanceof ASTSpecialFunction && thing.directive == 'set-config') {
       const config = thing.args[0];
       
-      context.new_loras = []; // kinda ugly but seems correct for this case...
+      context.add_loras = []; // kinda ugly but seems correct for this case...
 
       if (typeof config !== 'object')
         throw new Error(`set-config's argument must be an object, ` +
@@ -4725,7 +4725,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       const weight = weight_match_result.value;
       
-      context.new_loras.push({ file: file, weight: weight });
+      context.add_loras.push({ file: file, weight: weight });
       
       return '';
     }
@@ -5246,19 +5246,19 @@ async function main() {
     const context   = base_context.clone();
     const expanded  = expand_wildcards(AST, context);
     const config    = munge_config(context.config);
-    const new_loras = context.new_loras;
+    const add_loras = context.add_loras;
 
     // if (dt_hosted) {
-    //   for (const lora of new_loras) {
+    //   for (const lora of add_loras) {
     //   }
     // }
     
-    if (log_config_enabled && new_loras.lengh !== 0)
-      console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context.!\n`);
+    if (log_config_enabled && add_loras.lengh !== 0)
+      console.log(`Main loop found add_loras: ${inspect_fun(add_loras)} in Context.!\n`);
 
     config.loras ||= [];
     
-    for (const lora of new_loras) {
+    for (const lora of add_loras) {
       config.loras.push({ file: lora.file, weight: lora.weight });
     }
 
