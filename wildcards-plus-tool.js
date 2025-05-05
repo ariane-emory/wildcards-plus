@@ -2201,6 +2201,17 @@ class Context {
       top_file: false, // deliberately not copied!
     });
   }
+  // -------------------------------------------------------------------------------------
+  add_lora(lora) {
+    for (const existing_lora of this.add_loras) {
+      if (lora.file === existing_lora.file) {
+        existing_lora.weight = lora.weight;
+        return;
+      }
+
+      this.add_loras.push(lora);      
+    }
+  }
 }
 // ---------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
