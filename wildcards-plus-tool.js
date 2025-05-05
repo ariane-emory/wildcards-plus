@@ -4666,22 +4666,22 @@ function expand_wildcards(thing, context = new Context()) {
       //             `${Array.isArray(walked_file)}`);
 
       if (Array.isArray(walked_file))
-                    walked_file = smart_join(walked_file); 
+        walked_file = smart_join(walked_file); 
 
-                  let walked_weight = walk(thing.weight, context);
+      let walked_weight = walk(thing.weight, context);
 
-                  // console.log(`walked_weight is ${typeof walked_weight} ` +
-                  //             `${walked_weight.constructor.name} ` +
-                  //             `${inspect_fun(walked_weight)} ` +
-                  //             `${Array.isArray(walked_weight)}`);
+      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      //             `${walked_weight.constructor.name} ` +
+      //             `${inspect_fun(walked_weight)} ` +
+      //             `${Array.isArray(walked_weight)}`);
 
-                  if (Array.isArray(walked_weight))
-                    walked_weight = smart_join(walked_weight);
-                  
-                  const weight_match_result = json_number.match(walked_weight);
+      if (Array.isArray(walked_weight))
+        walked_weight = smart_join(walked_weight);
+      
+      const weight_match_result = json_number.match(walked_weight);
 
-                  if (!weight_match_result || !weight_match_result.is_finished)
-                    throw new Error(`Lora weight must be a number, got ` +
+      if (!weight_match_result || !weight_match_result.is_finished)
+        throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
       thing.file    = `${walked_file}.ckpt`;
@@ -4691,6 +4691,13 @@ function expand_wildcards(thing, context = new Context()) {
       
       return '';
     }
+    // -----------------------------------------------------------------------------------
+    // numbers get strung:
+    // -----------------------------------------------------------------------------------
+    else if (typeof thing === 'number') {
+      return thing.toString();
+    }
+    // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
     // -----------------------------------------------------------------------------------
     else {
@@ -4702,6 +4709,7 @@ function expand_wildcards(thing, context = new Context()) {
                       inspect_fun(thing));
     }
   }
+  
   return smart_join(walk(thing, context).flat(Infinity).filter(s => s !== ''));
 }
 // =======================================================================================
@@ -4855,7 +4863,7 @@ const A1111StyleLoraWeight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
         xform(parseInt,   /\d+/))
-const A1111StyleLora = xform(arr => new ASTLora(arr[3].trim() ,
+const A1111StyleLora = xform(arr => new ASTLora(arr[3],
                                                 arr[5]),
                              wst_seq('<', 'lora', ':', 
                                      choice(filename, () => LimitedContent),
@@ -5143,7 +5151,7 @@ async function main() {
   // -------------------------------------------------------------------------------------
   // just for debugging, comment to see result:
   // -------------------------------------------------------------------------------------
-  // (false)
+  if (false)
   {
     console.log(`result: ${inspect_fun(result.value)}`);
     console.log(`result (JSON): ${JSON.stringify(result.value)}`);
