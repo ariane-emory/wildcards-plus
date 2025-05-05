@@ -5030,9 +5030,11 @@ for (let ix = 0; ix < batch_count; ix++) {
   
   console.log('--------------------------------------------------------------------------------------------');
   console.log(`The generated configuration is: `);
+  console.log('--------------------------------------------------------------------------------------------');
   console.log(`${JSON.stringify(generated_configuration)}`);
   console.log('--------------------------------------------------------------------------------------------');
   console.log(`The expanded prompt is:`);
+  console.log('--------------------------------------------------------------------------------------------');
   console.log(`${generated_prompt}`);
 
   // render an image:
