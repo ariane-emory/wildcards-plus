@@ -5019,9 +5019,9 @@ console.log(`PIPELINE.CONFIGURATION:\n${JSON.stringify(pipeline.configuration)}\
 // ---------------------------------------------------------------------------------------
 // run the pipeline:
 // ---------------------------------------------------------------------------------------
-console.log(`==============================================================================================================`);
+console.log(`-------------------------------------------------------------------------------------------------------------------`);
 console.log(`The wildcards-plus prompt is:`);
-console.log(`==============================================================================================================`);
+console.log(`-------------------------------------------------------------------------------------------------------------------`);
 console.log(`${prompt_string}\n`);
 
 const base_context = load_prelude();
@@ -5029,7 +5029,9 @@ const base_context = load_prelude();
 for (let ix = 0; ix < batch_count; ix++) {
   const start_date = new Date();
 
+  console.log(`-------------------------------------------------------------------------------------------------------------------`);
   console.log(`Beginning render #${ix+1} of ${batch_count} at ${start_date}:`);
+  console.log(`-------------------------------------------------------------------------------------------------------------------`);
 
   // expand the wildcards using a cloned context and generate a new configuration:
   const context                 = base_context.clone();
@@ -5059,9 +5061,12 @@ for (let ix = 0; ix < batch_count; ix++) {
   
   console.log(`GENERATED CONFIGURATION:\n` +
               `${JSON.stringify(generated_configuration)}`);
-  console.log(`The expanded prompt is: ` +
-              `${generated_prompt}`);
-
+  console.log(`-------------------------------------------------------------------------------------------------------------------`);
+  console.log(`The expanded prompt is:`);
+  console.log(`${generated_prompt}`);
+  console.log(`-------------------------------------------------------------------------------------------------------------------`);
+  console.log(`Generating...`);
+  
   // render an image:
   canvas.clear();
   pipeline.run({
@@ -5073,6 +5078,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
   console.log(`Generated in ${elapsed_time} seconds\n`);
+  console.log(`-------------------------------------------------------------------------------------------------------------------`);
 }
 
 console.log('Job complete. Open Console to see job report.');
