@@ -1934,9 +1934,13 @@ function unescape(str) {
 // -------------------------------------------------------------------------------------------------
 class FalseText {
   constructor(text) {
-    console.log(`ARGS: ${inspect_fun(arguments)}`);
+    // console.log(`ARGS:  ${inspect_fun(arguments)}`);
+
     if (typeof text !== 'string')
-                  text = text.toString();
+      text = text.toString();
+    
+    // console.log(`TEXT: ${typeof text} ${inspect_fun(text)}`);
+
     this.text = text;
   }
   // -----------------------------------------------------------------------------------------------
@@ -2224,7 +2228,7 @@ class Context {
   add_loras_to(config) {
     if (this.add_loras) {
       if (this.add_loras && this.add_loras.length !== 0)
-        console.log(`Adding these LoRAs to config: ` +
+        console.log(`Adding these ${this.add_loras.length} LoRAs to config: ` +
                     `${inspect_fun(this.add_loras
                                  .map(l => ({file: l.file, weight: l.weight })))}.`);
 
@@ -4497,7 +4501,6 @@ function expand_wildcards(thing, context = new Context()) {
         console.log(`have ${inspect_fun(res[0])}`);
 
       if (thing.max_count > 1)
-        
         for (let ix = 1; ix < count; ix++) {
           let val = walk(got, context);
           
