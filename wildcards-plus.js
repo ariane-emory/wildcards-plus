@@ -4570,14 +4570,17 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`Lora weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
-      if (walked_file.endsWith('_f16.ckpt')) {
-        // do nothing.
+      if (walked_file.endsWith('_lora_f16.ckpt')) {
+        // do nothing 
       }
-      else if (walked_file.endsWith('_f16')) {
-        walked_file = `${walked_file}.ckpt`;
+      else if (walked_file.endsWith('_lora_f16')) {
+        walked_file = `${walked_file}.ckpt`;        
+      }
+      else if (walked_file.endsWith('_lora')) {
+        walked_file = `${walked_file}_f16.ckpt`;        
       }
       else {
-        walked_file = `${walked_file}_f16.ckpt`;
+        walked_file = `${walked_file}_lora_f16.ckpt`;
       }
       
       thing.file    = walked_file.endsWith('.ckpt') ? walked_file : `${walked_file}.ckpt`;

@@ -4708,32 +4708,35 @@ function expand_wildcards(thing, context = new Context()) {
       //             `${Array.isArray(walked_file)}`);
 
       if (Array.isArray(walked_file))
-                            walked_file = smart_join(walked_file).trim(); 
+        walked_file = smart_join(walked_file).trim(); 
 
-                          let walked_weight = walk(thing.weight, context);
+      let walked_weight = walk(thing.weight, context);
 
-                          // console.log(`walked_weight is ${typeof walked_weight} ` +
-                          //             `${walked_weight.constructor.name} ` +
-                          //             `${inspect_fun(walked_weight)} ` +
-                          //             `${Array.isArray(walked_weight)}`);
+      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      //             `${walked_weight.constructor.name} ` +
+      //             `${inspect_fun(walked_weight)} ` +
+      //             `${Array.isArray(walked_weight)}`);
 
-                          if (Array.isArray(walked_weight))
-                            walked_weight = smart_join(walked_weight);
-                          
-                          const weight_match_result = json_number.match(walked_weight.trim());
+      if (Array.isArray(walked_weight))
+        walked_weight = smart_join(walked_weight);
+      
+      const weight_match_result = json_number.match(walked_weight.trim());
 
-                          if (!weight_match_result || !weight_match_result.is_finished)
-                            throw new Error(`Lora weight must be a number, got ` +
-                                            `${inspect_fun(walked_weight)}`);
+      if (!weight_match_result || !weight_match_result.is_finished)
+        throw new Error(`Lora weight must be a number, got ` +
+                        `${inspect_fun(walked_weight)}`);
 
-                          if (walked_file.endsWith('_f16.ckpt')) {
-                            // do nothing.
-                          }
-      else if (walked_file.endsWith('_f16')) {
-        walked_file = `${walked_file}.ckpt`;
+      if (walked_file.endsWith('_lora_f16.ckpt')) {
+        // do nothing 
+      }
+      else if (walked_file.endsWith('_lora_f16')) {
+        walked_file = `${walked_file}.ckpt`;        
+      }
+      else if (walked_file.endsWith('_lora')) {
+        walked_file = `${walked_file}_f16.ckpt`;        
       }
       else {
-        walked_file = `${walked_file}_f16.ckpt`;
+        walked_file = `${walked_file}_lora_f16.ckpt`;
       }
       
       thing.file    = walked_file.endsWith('.ckpt') ? walked_file : `${walked_file}.ckpt`;
@@ -5335,7 +5338,7 @@ async function main() {
     stash_prior();
   }
 
-    console.log('--------------------------------------------------------------------------------');
+  console.log('--------------------------------------------------------------------------------');
 }
 
 // ------------------------------------------------------------------------------------------------
