@@ -1972,7 +1972,7 @@ function loose_includes(needle, arr) {
 }
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr) {
-  arr = [...arr];
+  arr = [...arr.filter(e => ! e instanceof FalseText)];
   
   // console.log(`JOINING ${inspect_fun(arr)}`);
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
@@ -1982,7 +1982,7 @@ function smart_join(arr) {
   
   let left_word = arr[0]?.toString() ?? "";
   let str       = left_word;
-
+  
   for (let ix = 1; ix < arr.length; ix++)  {
     let right_word = null;
     let prev_char = null;
@@ -1996,8 +1996,10 @@ function smart_join(arr) {
       next_char            = right_word[0] ?? '';
     };
 
-    if (right_word instanceof FalseText)
-      continue;
+    // if (left_word instanceof FalseText)
+    //   left_word = '';
+    // if (right_word instanceof FalseText)
+    //   continue;
     
     const shift_left = (n) => {
       const shifted_str = right_word.substring(0, n);
@@ -4431,11 +4433,11 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__sean_yoro activism, identity, portraits, public-art, social-commentary, street-art, urban-life |
 ?artist__chie_yoshii characters, childhood, colorful, illustration, manga-anime, pop-culture, portraits, whimsical |
 ?artist__skottie_young cartoon, comics, contemporary, illustration, playful, whimsical |
-?artist__masaaki_yuasa animation, colorful, eerie, fantasy, Japanese, surreal |
-?artist__konstantin_yuon color-field, impressionism, landscapes |
-?artist__yuumei characters, digital, dream-like, environmentalism, fantasy, femininity, manga-anime, whimsical |
-?artist__william_zorach cubism, expressionism, folk-art, modern, sculpture |
-?artist__ander_zorn etching, nudes, painting, portraits, Swedish
+  ?artist__masaaki_yuasa animation, colorful, eerie, fantasy, Japanese, surreal |
+  ?artist__konstantin_yuon color-field, impressionism, landscapes |
+  ?artist__yuumei characters, digital, dream-like, environmentalism, fantasy, femininity, manga-anime, whimsical |
+  ?artist__william_zorach cubism, expressionism, folk-art, modern, sculpture |
+  ?artist__ander_zorn etching, nudes, painting, portraits, Swedish
 }
 `;
 // -------------------------------------------------------------------------------------------------
