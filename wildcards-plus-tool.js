@@ -2084,7 +2084,7 @@ function smart_join(arr) {
   // console.log(`before = '${str}'`);
   // console.log(`after  = '${unescape(str)}'`);
 
-  return unescape(str).trim();
+  return unescape(str);
 }
 // =================================================================================================
 // END OF HELPER FUNCTIONS SECTION.
