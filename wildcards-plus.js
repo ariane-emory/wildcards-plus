@@ -75,7 +75,7 @@
 // -------------------------------------------------------------------------------------------------
 let string_input_mode_enabled = true;
 let log_enabled               = true;
-let log_config_enabled        = true;
+let log_config_enabled        = false;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;

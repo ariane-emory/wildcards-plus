@@ -62,8 +62,8 @@ function parse_file(filename) {
 function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   console.log("POSTing!");
 
-  if (log_config_enabled)
-    console.log(`post_prompt got config: ${JSON.stringify(config)}.`);
+  // if (log_config_enabled)
+  console.log(`post_prompt got config: ${JSON.stringify(config)}.`);
 
   let data = {
     prompt: prompt,
@@ -231,7 +231,7 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 let string_input_mode_enabled = true;
 let log_enabled               = true;
-let log_config_enabled        = true;
+let log_config_enabled        = false;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
@@ -2207,7 +2207,7 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   add_loras_to(config) {
     if (this.add_loras) {
-      if (log_config_enabled && this.add_loras && this.add_loras.length !== 0)
+      if (this.add_loras && this.add_loras.length !== 0)
         console.log(`Adding these LoRAs to config: ` +
                     `${inspect_fun(this.add_loras
                                  .map(l => ({file: l.file, weight: l.weight })))}.`);
@@ -5271,8 +5271,10 @@ async function main() {
     
     context.add_loras_to(config);
 
-    if (log_config_enabled && ! is_empty_object(config))
-      console.log(`Main loop found config: ${JSON.stringify(config)} in Context.`);
+    if (/* log_config_enabled && */ ! is_empty_object(config))
+      console.log(`Main loop found config in Context: ${JSON.stringify(config)}`);
+
+    console.log('--------------------------------------------------------------------------------');
     
     // expansion may have %included files, copy the files list back to the base context.
     // ED: might not be needed here after all...
@@ -5328,7 +5330,7 @@ async function main() {
     stash_prior();
   }
 
-  console.log('--------------------------------------------------------------------------------');
+    console.log('--------------------------------------------------------------------------------');
 }
 
 // ------------------------------------------------------------------------------------------------
