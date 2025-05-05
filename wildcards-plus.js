@@ -4551,8 +4551,8 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     // numbers get strung:
     // -----------------------------------------------------------------------------------
-    else if (typeof thing === 'string') {
-      return thing.string();
+    else if (typeof thing === 'number') {
+      return thing.toString();
     }
     // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
@@ -5029,13 +5029,21 @@ for (let ix = 0; ix < batch_count; ix++) {
   
   for (const lora of add_loras) {
     generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
-    hypothetical_post_data.push({ file: lora.file, weight: lora.weight });
+    hypothetical_post_data.loras.push({ file: lora.file, weight: lora.weight });
   }
+
+  let post_data = {
+    prompt: generated_prompt,
+    seed: Math.floor(Math.random() * (2 ** 32)),
+  };
+  
+  post_data = { ...post_data, ...context.config };
+  post_string_data = JSON.stringify(post_data);
   
   console.log(`The generated configuration is: ` +
               `${JSON.stringify(generated_configuration)}`);
   console.log(`POST equivalent payload would have been: ` +
-              `${JSON.stringify(hypothetical_post_data)}`);
+              `${JSON.stringify(post_string_data)}`);
   console.log(`The expanded prompt is: ` +
               `${generated_prompt}`);
 
