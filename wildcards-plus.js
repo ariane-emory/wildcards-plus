@@ -1932,7 +1932,6 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   if (config.model && ! config.model.endsWith('.ckpt'))
     config.model = `${config.model}.ckpt`;  
   
-
   // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
   if (typeof config.sampler === 'string') {
     const lc = config.sampler.toLowerCase();
@@ -2052,7 +2051,7 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   add_loras_to(config) {
     if (this.add_loras) {
-      if (log_config_enabled && this.add_loras && this.add_loras.length !== 0)
+      if (this.add_loras && this.add_loras.length !== 0)
         console.log(`Adding these LoRAs to config: ` +
                     `${inspect_fun(this.add_loras
                                  .map(l => ({file: l.file, weight: l.weight })))}.`);
