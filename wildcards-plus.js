@@ -5025,7 +5025,7 @@ console.log(`PIPELINE.CONFIGURATION:\n${JSON.stringify(pipeline.configuration)}\
 // ---------------------------------------------------------------------------------------
 // run the pipeline:
 // ---------------------------------------------------------------------------------------
-console.log(`\nThe wildcards-plus prompt is: ${prompt_string}\n`);
+console.log(`The wildcards-plus prompt is:\n${prompt_string}\n`);
 
 const base_context = load_prelude();
 
