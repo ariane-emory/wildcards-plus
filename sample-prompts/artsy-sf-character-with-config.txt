@@ -34,7 +34,7 @@
   }
 
 | 3 // various SDXL models:
-  <lora:add_detail_xl_lora: @random_weight>
+  <lora:add_detail_xl_lora:      @random_weight>
   <lora:detailed_notrigger_lora: @random_weight>
 
   // 35, 40 or 45 steps, equally likely:
