@@ -1979,10 +1979,16 @@ function smart_join(arr) {
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => ch === "_" || ch === "-";
   const whitep       = (ch)  => ch === ' ' || ch === '\n';
-  
-  let left_word = arr[0]?.toString() ?? "";
-  let str       = left_word;
 
+  while (arr.length > 0 && arr[0] instanceof FalseText) {
+    arr.shift();
+  }
+
+
+  let left_word = arr[0]?.toString() ?? "";
+
+  let str       = left_word;
+  
   for (let ix = 1; ix < arr.length; ix++)  {
     let right_word = null;
     let prev_char = null;
