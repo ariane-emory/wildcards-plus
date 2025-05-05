@@ -1956,6 +1956,9 @@ function smart_join(arr) {
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
     };
+
+    if (right_word === '')
+      continue;
     
     const shift_left = (n) => {
       const shifted_str = right_word.substring(0, n);
@@ -1968,45 +1971,45 @@ function smart_join(arr) {
     update_pos_vars();
     
     if (prev_char === ',' && right_word === ',')
-      continue;
+          continue;
 
-    while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
-      shift_left(3);
-    
-    while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
-      shift_left(1);
-    
-    // console.log(`str = '${str}', ` +
-    //             `left_word = '${left_word}', ` +
-    //             `right_word = '${right_word}', ` +
-    //             `prev_char = '${prev_char}', ` +
-    //             `next_char = '${next_char}'`);
+        while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
+          shift_left(3);
+        
+        while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
+          shift_left(1);
+        
+        // console.log(`str = '${str}', ` +
+        //             `left_word = '${left_word}', ` +
+        //             `right_word = '${right_word}', ` +
+        //             `prev_char = '${prev_char}', ` +
+        //             `next_char = '${next_char}'`);
 
-    // handle "a" → "an" if necessary:
-    const articleCorrection = (originalArticle, nextWord) => {
-      const expected = choose_indefinite_article(nextWord);
-      if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-        return originalArticle === 'A' ? 'An' : 'an';
-      }
-      return originalArticle;
-    };
+        // handle "a" → "an" if necessary:
+        const articleCorrection = (originalArticle, nextWord) => {
+          const expected = choose_indefinite_article(nextWord);
+          if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
+            return originalArticle === 'A' ? 'An' : 'an';
+          }
+          return originalArticle;
+        };
 
-    // Normalize article if needed:
-    if (left_word === "a" || left_word.endsWith(" a") ||
-        left_word === "A" || left_word.endsWith(" A")) {
-      const nextWord = right_word;
-      const updatedArticle = articleCorrection(left_word.trim(), nextWord);
-      if (updatedArticle !== left_word.trim()) {
-        if (left_word === "a" || left_word === "A") {
-          str = str.slice(0, -1) + updatedArticle;
-          left_word = updatedArticle;
-        } else {
-          str = str.slice(0, -2) + " " + updatedArticle;
-          left_word = updatedArticle;
+        // Normalize article if needed:
+        if (left_word === "a" || left_word.endsWith(" a") ||
+            left_word === "A" || left_word.endsWith(" A")) {
+          const nextWord = right_word;
+          const updatedArticle = articleCorrection(left_word.trim(), nextWord);
+          if (updatedArticle !== left_word.trim()) {
+            if (left_word === "a" || left_word === "A") {
+              str = str.slice(0, -1) + updatedArticle;
+              left_word = updatedArticle;
+            } else {
+              str = str.slice(0, -2) + " " + updatedArticle;
+              left_word = updatedArticle;
+            }
+          }
         }
-      }
-    }
-    
+        
     if (!(!str || !right_word) && 
         !whitep(prev_char) &&
         !whitep(next_char) &&
