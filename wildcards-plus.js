@@ -1776,6 +1776,45 @@ function unescape(str) {
     .replace(/\\(.)/g, '$1')
 };
 // -------------------------------------------------------------------------------------------------
+class FalseText {
+  constructor(text) {
+    // console.log(`ARGS:  ${inspect_fun(arguments)}`);
+
+    if (typeof text !== 'string')
+      text = text.toString();
+    
+    // console.log(`TEXT: ${typeof text} ${inspect_fun(text)}`);
+
+    this.text = text;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `False(${this.text})`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function loose_includes(needle, arr) {
+  console.log(`LOOKING FOR ${inspect_fun(needle)} IN ${inspect_fun(arr)}`);
+  
+
+  if (needle instanceof FalseText)
+    needle = needle.text;
+  
+  let found = false;
+  
+  for (const elem of arr) {
+    if (needle === (elem instanceof FalseText ? elem.text : elem)) {
+      console.log(`FOUND ${needle}`);
+      
+      found = true;
+
+      break;
+    }
+  }
+  
+  return found;
+}
+// -------------------------------------------------------------------------------------------------
 function smart_join(arr) {
   arr = [...arr];
   
@@ -1800,6 +1839,9 @@ function smart_join(arr) {
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
     };
+
+    if (right_word instanceof FalseText)
+      continue;
     
     const shift_left = (n) => {
       const shifted_str = right_word.substring(0, n);
@@ -2052,7 +2094,7 @@ class Context {
   add_loras_to(config) {
     if (this.add_loras) {
       if (this.add_loras && this.add_loras.length !== 0)
-        console.log(`Adding these LoRAs to config: ` +
+        console.log(`Adding these ${this.add_loras.length} LoRAs to config: ` +
                     `${inspect_fun(this.add_loras
                                  .map(l => ({file: l.file, weight: l.weight })))}.`);
 
@@ -4308,26 +4350,46 @@ function expand_wildcards(thing, context = new Context()) {
       if (!got)
         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
+      const count = rand_int(thing.min_count, thing.max_count);
+
+      if (count === 0)
+        return '';
+
+      if (count > 1)
+        console.log(`getting ${count} from @${thing.name}...`);
+      
       const res = [ walk(got, context) ];
 
       if (thing.capitalize)
         res[0] = capitalize(res[0]);
-
-      const count = rand_int(thing.min_count, thing.max_count);
       
-      for (let ix = 1; ix < count; ix++) {
-        let val = walk(got, context);
-        
-        for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
-          if (! res.includes(val))
-            break;
+      if (count > 1)
+        console.log(`have ${inspect_fun(res[0])}`);
 
-          val = walk(got, context);
+      if (count > 1)
+        for (let ix = 1; ix < count; ix++) {
+          let val = walk(got, context);
+          
+          for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
+            if (! loose_includes(val, res)) {
+              console.log(`NEW VALUE, STOP`);
+              break;
+            }
+            else {
+              console.log(`REPEAT VALUE`);
+            }
+
+            val = walk(got, context);
+          }
+
+          console.log(`pushing ${inspect_fun(val)}`);
+          
+          res.push(val);
         }
 
-        res.push(val);
-      }
-
+      if (count > 1)
+        console.log(`returning ${res.length} from @${thing.name}: ${inspect_fun(res)}`);
+      
       return thing.joiner == ','
         ? res.join(", ")
         : (thing.joiner == '&'
@@ -4588,7 +4650,8 @@ function expand_wildcards(thing, context = new Context()) {
 
       context.add_lora(thing);
       
-      return '';
+      // return new FalseText(thing);
+      return new FalseText(thing.file);
     }
     // ---------------------------------------------------------------------------------------------
     // numbers become string
@@ -4671,6 +4734,10 @@ class ASTLora {
   // -----------------------------------------------------------------------------------------------
   clone() {
     return new ASTLora(this.file, this.weight);
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `<lora:${this.file}: ${this.weight}>`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -4982,65 +5049,6 @@ Prompt.finalize();
 // =================================================================================================
 // DEV NOTE: Copy into wildcards-plus.js starting through this line!
 // =================================================================================================
-
-
-
-
-// =================================================================================================
-// MAIN SECTION: All of the Draw Things-specific code goes down here.
-// -------------------------------------------------------------------------------------------------
-// fallback prompt to be used if no wildcards are found in the UI prompt:
-const fallback_prompt        = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
-const pipeline_configuration = pipeline.configuration;
-const ui_prompt              = pipeline.prompts.prompt;
-const ui_hint                = "no wildcards found in the prompt.";
-
-// // look for wildcards in the UI prompt:
-// if (ui_prompt.includes('{') && ui_prompt.includes('}')) {
-// 	ui_hint = "wildcard detected in the prompt.";
-prompt_string = ui_prompt;
-// } else {
-// 	prompt_string = "";
-// }
-// -------------------------------------------------------------------------------------------------
-
-
-// -------------------------------------------------------------------------------------------------
-// UI:
-// -------------------------------------------------------------------------------------------------
-const doc_string = `Wildcards Plus v0.8 by ariane-emory (based on @wetcircuit's original wildcard.js script)
-
-Generate a batch of images using inline wildcards to randomize elements within the prompt.
-
-The wildcards-plus script adds a variety of useful features above and beyond simple wildcards, including: weighted alternatives in wildcards, nested wildcards, 'smart' text joining logic, comments, named wildcards (with 'latching' and the ability to retrieve multiple items at once), recursive wildcards, escaped characters, settable 'boolean' flags and guards.
-
-The full documentation would be too large to fit in this tiny box, please see the README.md file for detailed descriptions of these features!`;
-
-const user_selection = requestFromUser('Wildcards', '', function() {
-  return [
-	  this.section('Prompt', ui_hint, [
-		  this.textField(prompt_string, fallback_prompt, true, 240),
-		  this.slider(10, this.slider.fractional(0), 1, 500, 'batch count')
-    ]),
-	  this.section('about',
-                 doc_string,
-                 [])
-  ];
-});
-
-const batch_count = user_selection[0][1];
-prompt_string     = user_selection[0][0]
-// -------------------------------------------------------------------------------------------------
-
-
-// -------------------------------------------------------------------------------------------------
-// parse the prompt_string here:
-// -------------------------------------------------------------------------------------------------
-const parse_result     = Prompt.match(prompt_string);
-
-if (! parse_result.is_finished)
-  throw new Error(`error parsing prompt!`);
-// -------------------------------------------------------------------------------------------------
 
 
 // -------------------------------------------------------------------------------------------------
