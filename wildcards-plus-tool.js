@@ -5247,11 +5247,8 @@ async function main() {
     const config    = munge_config(context.config);
     const add_loras = context.add_loras;
 
-    // if (dt_hosted) {
-    //   for (const lora of add_loras) {
-    //   }
-    // }
-    
+    console.log('--------------------------------------------------------------------------------');
+
     if (log_config_enabled && add_loras.lengh !== 0)
       console.log(`Found add_loras in Context: ${inspect_fun(add_loras)}`);
 
@@ -5262,12 +5259,15 @@ async function main() {
     }
 
     if (log_config_enabled && ! is_empty_object(config))
-      console.log(`Found config in Context: ${JSON.stringify(config)}`);
+      console.log(`Added LoRAs to config: ${inspect_fun(config)}`);
     
     // expansion may have included files, copy the files list back to the base context.
     // ED: might not be needed here after all...
     // context_with_prelude.files = context.files;
     
+    console.log(`--------------------------------------------------------------------------------`);
+    console.log(`Expanded prompt is:`);
+    console.log(`--------------------------------------------------------------------------------`);
     console.log(expanded);
 
     if (!post) {
