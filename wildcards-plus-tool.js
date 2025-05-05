@@ -4422,6 +4422,12 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
+class FalseText {
+  constructor(text) {
+    this.text = text;
+  }
+}
+// -------------------------------------------------------------------------------------------------
 function expand_wildcards(thing, context = new Context()) {
   function walk(thing, context) {
     // ---------------------------------------------------------------------------------------------
