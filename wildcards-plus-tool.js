@@ -2083,23 +2083,27 @@ const key_names = [
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
 
-  if (config.model.endsWith('_f16.ckpt')) {
-    // do nothing
+  if (config.model) {
+    if (config.model.endsWith('_f16.ckpt')) {
+      // do nothing
+    }
+    else if (config.model.endsWith('_f16')) {
+      config.model = `${config.model}.ckpt`;}
+    else {
+      config.model= `${config.model}_f16.ckpt`;
+    }
   }
-  else if (config.model.endsWith('_f16')) {
-    config.model = `${config.model}.ckpt`;}
-  else {
-    config.model= `${config.model}_f16.ckpt`;
-  }
-
+  
   // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-  if (typeof config.sampler === 'string') {
-    const lc = config.sampler.toLowerCase();
-    // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
-    const got = dt_samplers_caps_correction.get(lc);
+  if (config.sampler) {
+    if (typeof config.sampler === 'string') {
+      const lc = config.sampler.toLowerCase();
+      // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
+      const got = dt_samplers_caps_correction.get(lc);
 
-    if (got)
-      config.sampler = got;
+      if (got)
+        config.sampler = got;
+    }
   }
   
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
