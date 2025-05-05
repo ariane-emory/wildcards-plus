@@ -4955,7 +4955,8 @@ Prompt.finalize();
 // ---------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt        = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
-const pipeline_configuration = pipeline.configuration;
+// v DT's env doesn't seem to have structuredClone :(
+const pipeline_configuration = JSON.parse(JSON.stringify(pipeline.configuration));
 const ui_prompt              = pipeline.prompts.prompt;
 const ui_hint                = "no wildcards found in the prompt.";
 
