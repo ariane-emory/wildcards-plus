@@ -5025,21 +5025,8 @@ for (let ix = 0; ix < batch_count; ix++) {
   const generated_configuration = { ...pipeline_configuration,
                                     seed: -1,
                                     ...munge_config(context.config) };
-  const add_loras               = context.add_loras;
 
-  if (add_loras) {
-    if (log_config_enabled && add_loras.length !== 0)
-        console.log(`Found LoRAs to add: ` +
-                    `${inspect_fun(add_loras
-                                 .map(l => ({file: l.file, weight: l.weight })))} ` +
-                    `in Context.`);
-      
-
-      generated_configuration.loras ||= [];
-      
-      for (const lora of add_loras)
-        generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
-  }
+  context.add_loras_to(generated_configuration);
   
   console.log('--------------------------------------------------------------------------------------------');
   console.log(`The generated configuration is: `);
