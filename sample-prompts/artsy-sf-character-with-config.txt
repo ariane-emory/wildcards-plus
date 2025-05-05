@@ -76,11 +76,10 @@
 // make random sci-fi characters:
 // =======================================================================================
 
-@pro_pos_rand := {2 @pro_pos_adj|a}
+{#planet|#ship|#moon|#station} // where are we?
 
-{3 #female|2 #male|#neuter}
-{#planet|#ship|#moon|#station}
-@setting_word := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
+@pro_pos_rand  := {2 @pro_pos_adj|a}
+@setting_word  := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
 
 @ship_term     := {starship|spacecraft|space ship|shuttle}
 @ship_late_adj := {space|interstellar}
