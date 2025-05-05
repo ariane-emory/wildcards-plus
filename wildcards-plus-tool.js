@@ -4470,6 +4470,9 @@ function expand_wildcards(thing, context = new Context()) {
         res[0] = capitalize(res[0]);
 
       const count = rand_int(thing.min_count, thing.max_count);
+
+      if (thing.max_count > 1)
+        console.log(`getting ${count} from @${thing.name}...`);
       
       for (let ix = 1; ix < count; ix++) {
         let val = walk(got, context);
@@ -4481,9 +4484,15 @@ function expand_wildcards(thing, context = new Context()) {
           val = walk(got, context);
         }
 
+        console.log(`pushing ${inspect_fun(val)}`);
+        
         res.push(val);
       }
 
+      if (thing.max_count > 1)
+        console.log(`returning ${res.length} from @${thing.name}: ${inspect_fun(res)}`);
+
+      
       return thing.joiner == ','
         ? res.join(", ")
         : (thing.joiner == '&'

@@ -49,7 +49,7 @@
   }
 
 | 3 // various SDXL models:
-  @1-3lora
+  @1-2lora
 
   // 35, 40 or 45 steps, equally likely:
   { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
