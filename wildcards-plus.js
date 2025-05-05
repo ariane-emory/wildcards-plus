@@ -1553,19 +1553,19 @@ const enclosing       = (left, enclosed, right) =>
 // BASIC JSON GRAMMAR SECTION:
 // =======================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
-const json = choice(() => json_object, () => json_array,
+const json = choice(() => JsonObject,  () => JsonArray,
                     () => json_string, () => json_true,   () => json_false,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
-const json_object = xform(arr =>  Object.fromEntries(arr), 
-                          wst_cutting_enc('{',
-                                          wst_star(
-                                            xform(arr => [arr[0], arr[2]],
-                                                  wst_seq(() => json_string, ':', json)),
-                                            ','),
-                                          '}'));
+const JsonObject = xform(arr =>  Object.fromEntries(arr), 
+                         wst_cutting_enc('{',
+                                         wst_star(
+                                           xform(arr => [arr[0], arr[2]],
+                                                 wst_seq(() => json_string, ':', json)),
+                                           ','),
+                                         '}'));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
+const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -1609,7 +1609,7 @@ const json_number = xform(reify_json_number,
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // ---------------------------------------------------------------------------------------
-json.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
+json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
 // =======================================================================================
 // END OF BASIC JSON GRAMMAR SECTION.
 // =======================================================================================
@@ -1618,36 +1618,36 @@ json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =======================================================================================
 // JSONC GRAMMAR SECTION:
 // =======================================================================================
-const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
-const jsonc = second(wst_seq(jsonc_comments,
-                             choice(() => jsonc_object, () => jsonc_array,
+const JsoncComments = wst_star(choice(c_block_comment, c_line_comment));
+const Jsonc = second(wst_seq(JsoncComments,
+                             choice(() => JsoncObject, () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
                                     () => json_null,    () => json_number),
-                             jsonc_comments));
-const jsonc_array =
+                             JsoncComments));
+const JsoncArray =
       wst_cutting_enc('[',
-                      wst_star(second(seq(jsonc_comments,
-                                          jsonc,
-                                          jsonc_comments)),
+                      wst_star(second(seq(JsoncComments,
+                                          Jsonc,
+                                          JsoncComments)),
                                ','),
                       ']');
-const jsonc_object =
+const JsoncObject =
       xform(arr =>  Object.fromEntries(arr), 
             wst_cutting_enc('{',
                             wst_star(
                               xform(arr => [arr[1], arr[5]],
-                                    wst_seq(jsonc_comments,
+                                    wst_seq(JsoncComments,
                                             () => json_string,
-                                            jsonc_comments,
+                                            JsoncComments,
                                             ':',
-                                            jsonc_comments,
-                                            jsonc, 
-                                            jsonc_comments
+                                            JsoncComments,
+                                            Jsonc, 
+                                            JsoncComments
                                            ))             
                               , ','),
                             '}'));
 // ---------------------------------------------------------------------------------------
-jsonc.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
+Jsonc.finalize(); 
 // =======================================================================================
 // END OF JSONC GRAMMAR SECTION.
 // =======================================================================================
@@ -2027,26 +2027,28 @@ class Context {
 }
 // ---------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
-@set_gender_if_unset := {!female !male !neuter {3 #female|2 #male|#neuter}}
-@gender              := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
-@pro_3rd_subj        := {@set_gender_if_unset {?female she   |?male he  |?neuter it }}
-@pro_3rd_obj         := {@set_gender_if_unset {?female her   |?male him |?neuter it }}
-@pro_pos_adj         := {@set_gender_if_unset {?female her   |?male his |?neuter its}}
-@pro_pos             := {@set_gender_if_unset {?female hers  |?male his |?neuter its}}
-@__digit             := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
-@__high_digit        := {<5|<6|<7|<8|<9}
-@random_weight       := {:1. @__digit}
-@high_random_weight  := {:1. @__high_digit}
+@set_gender_if_unset    := {!female !male !neuter {3 #female|2 #male|#neuter}}
+@gender                 := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
+@pro_3rd_subj           := {@set_gender_if_unset {?female she   |?male he  |?neuter it }}
+@pro_3rd_obj            := {@set_gender_if_unset {?female her   |?male him |?neuter it }}
+@pro_pos_adj            := {@set_gender_if_unset {?female her   |?male his |?neuter its}}
+@pro_pos                := {@set_gender_if_unset {?female hers  |?male his |?neuter its}}
+@__digit                := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
+@__high_digit           := {<5|<6|<7|<8|<9}
+@random_weight          := {1. @__digit}
+@high_random_weight     := {1. @__high_digit}
+// @random_weight_old      := {:1. @__digit}
+// @high_random_weight_old := {:1. @__high_digit}
 
-@pony_score_9        := {score_9,}
-@pony_score_8_up     := {score_9, score_8_up,}
-@pony_score_7_up     := {score_9, score_8_up, score_7_up,}
-@pony_score_6_up     := {score_9, score_8_up, score_7_up, score_6_up,}
-@pony_score_5_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
-@pony_score_4_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
-@aris_defaults       := {masterpiece, best quality, absurdres, aesthetic, 8k,
-                         high depth of field, ultra high resolution, detailed background,
-                         wide shot,}
+@pony_score_9          := {score_9,}
+@pony_score_8_up       := {score_9, score_8_up,}
+@pony_score_7_up       := {score_9, score_8_up, score_7_up,}
+@pony_score_6_up       := {score_9, score_8_up, score_7_up, score_6_up,}
+@pony_score_5_up       := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
+@pony_score_4_up       := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
+@aris_defaults         := {masterpiece, best quality, absurdres, aesthetic, 8k,
+                           high depth of field, ultra high resolution, detailed background,
+                           wide shot,}
 
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
@@ -4498,6 +4500,37 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
+      console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      
+      let walked_file = walk(thing.file, context);
+
+      // console.log(`walked_file is ${typeof walked_file} ` +
+      //             `${walked_file.constructor.name} ` +
+      //             `${inspect_fun(walked_file)} ` +
+      //             `${Array.isArray(walked_file)}`);
+
+      if (Array.isArray(walked_file))
+        walked_file = smart_join(walked_file); 
+
+      let walked_weight = walk(thing.weight, context);
+
+      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      //             `${walked_weight.constructor.name} ` +
+      //             `${inspect_fun(walked_weight)} ` +
+      //             `${Array.isArray(walked_weight)}`);
+
+      if (Array.isArray(walked_weight))
+        walked_weight = smart_join(walked_weight);
+      
+      const weight_match_result = json_number.match(walked_weight);
+
+      if (!weight_match_result || !weight_match_result.is_finished)
+        throw new Error(`Lora weight must be a number, got ` +
+                        `${inspect_fun(walked_weight)}`);
+
+      thing.file    = `${walked_file}.ckpt`;
+      thing.weight  = weight_match_result.value;
+      
       context.new_loras.push(thing);
       
       return '';
@@ -4666,9 +4699,7 @@ const A1111StyleLoraWeight =
       choice(
         xform(parseFloat, /\d*\.\d+/),
         xform(parseInt,   /\d+/))
-const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
-                                                 ? arr[3]
-                                                 : `${arr[3]}.ckpt`),
+const A1111StyleLora = xform(arr => new ASTLora(arr[3].trim() ,
                                                 arr[5]),
                              wst_seq('<', 'lora', ':', 
                                      choice(filename, () => LimitedContent),
@@ -4733,7 +4764,7 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 const make_special_function = rule =>
       xform(tld_fun,
             c_funcall(second(seq('%', rule)),
-                      first(wst_seq(DiscardedComments, jsonc, DiscardedComments))));
+                      first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
@@ -4747,7 +4778,7 @@ const SFUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',  
                                                             DiscardedComments,             // -
                                                             '(',                           // [2]
                                                             DiscardedComments,             // -
-                                                            jsonc,                         // [3]
+                                                            Jsonc,                         // [3]
                                                             DiscardedComments,             // [4]
                                                             ')'),                          // [4]
                                             arr => new ASTSpecialFunction('update-config',
@@ -4756,7 +4787,7 @@ const SFUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',  
                                                                     DiscardedComments,     // -
                                                                     '(',                   // [0][1]
                                                                     DiscardedComments),    // -
-                                                            jsonc_object,                  // [1]
+                                                            JsoncObject,                  // [1]
                                                             DiscardedComments,             // -
                                                             ')'),                          // [2]
                                             arr => new ASTSpecialFunction('update-config',
@@ -4765,7 +4796,7 @@ const SFSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',  
                                                                     DiscardedComments,     // -
                                                                     assignment_operator,   // _
                                                                     DiscardedComments),    // -
-                                                            jsonc_object),                 // [1]
+                                                            JsoncObject),                 // [1]
                                             arr => new ASTSpecialFunction('set-config',
                                                                           [arr[1]]));
 const SFUpdateConfiguration         = choice(SFUpdateConfigurationUnary,
@@ -4783,8 +4814,16 @@ const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
                                                 optional(wb_uint, 1),
                                                 wst_star(choice(comment, TestFlag, SetFlag)),
                                                 () => ContentStar));
+const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
+                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                                 optional(wb_uint, 1),
+                                                 wst_star(choice(comment, TestFlag, SetFlag)),
+                                                 () => ContentStarNoLoras));
 const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const AnonWildcardNoLoras           = xform(arr => new ASTAnonWildcard(arr),
+                                            brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+
 const NamedWildcardReference        = xform(seq(discard('@'),
                                                 optional('^'),                             // [0]
                                                 optional(xform(parseInt, /\d+/)),          // [1]
@@ -4837,10 +4876,9 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               assignment_operator,
                                               ScalarAssignmentSource));
 const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
-                                             NamedWildcardReference),
-                                       
+                                             NamedWildcardDesignator),
                                        // NamedWildcardUsage, SetFlag,
-                                       AnonWildcard,
+                                       AnonWildcardNoLoras,
                                        // comment,
                                        ScalarReference,
                                        // SFUpdateConfiguration,
@@ -4853,7 +4891,13 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
                                        SFUpdateConfiguration,
                                        SFSetConfiguration,
                                        low_pri_text, plaintext);
+const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       AnonWildcard, comment, ScalarReference,
+                                       SFUpdateConfiguration,
+                                       SFSetConfiguration,
+                                       low_pri_text, plaintext);
 const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
+const ContentStarNoLoras      = xform(wst_star(ContentNoLoras), arr => arr.flat(1));
 // const PromptBody              = wst_star(choice(NamedWildcardDefinition,
 //                                                 ScalarAssignment,
 //                                                 Content));
