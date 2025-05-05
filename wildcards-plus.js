@@ -1445,6 +1445,7 @@ const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
 const bslash             = l('\\');
+const backslash          = bslash;
 const caret              = l('^');
 const colon              = l(':');
 const comma              = l(',');
