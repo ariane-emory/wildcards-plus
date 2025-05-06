@@ -235,7 +235,6 @@ let log_enabled               = true;
 let log_config_enabled        = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
-let log_misc_enabled          = true;
 let disable_prelude           = false;
 let print_before_ast_enabled  = false;
 let print_after_ast_enabled   = false;
@@ -1832,7 +1831,7 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
-    console.log(`PICK ${min_count}-${max_count}`);
+    // console.log(`PICK ${min_count}-${max_count}`);
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
@@ -1865,25 +1864,25 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
-    console.log(`PICK_ONE!`);
+    // console.log(`PICK_ONE!`);
     
     // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
-      console.log(`PICK_ONE: NO OPTIONS 1!`);
+      // console.log(`PICK_ONE: NO OPTIONS 1!`);
       return null;
     }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
         
     if (this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
-      console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       this.used_indices.clear();
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
-      console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+      // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
       return null;
     }
 
@@ -1905,10 +1904,9 @@ class WeightedPicker {
     if (legal_options_total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, should not happen?`);
 
-      console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
-      return null;
+      // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
+      // return null;
     }
-
     
     let random = Math.random() * legal_options_total_weight;
 
@@ -1990,16 +1988,6 @@ function add_lora_to_array(lora, array) {
   }
   array.push(lora); // Add the new entry at the end
 }
-// function add_lora_to_array(lora, array) {
-//   for (const existing_lora of array) {
-//     if (lora.file === existing_lora.file) {
-//       existing_lora.weight = lora.weight;
-//       return;
-//     }
-//   }
-
-//   array.push(lora);      
-// }
 // -------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
@@ -4624,7 +4612,7 @@ function expand_wildcards(thing, context = new Context()) {
     // Flags:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSetFlag) {
-      console.log(`SET FLAG '${thing.name}'.`);
+      // console.log(`SET FLAG '${thing.name}'.`);
       
       context.flags.add(thing.name);
 
@@ -5377,7 +5365,7 @@ async function main() {
     // console.log(`posted_count = ${posted_count}`);
 
     const context   = base_context.clone();
-    console.log(`Cloned: ${inspect_fun(context.add_loras)}`);
+    // console.log(`Cloned: ${inspect_fun(context.add_loras)}`);
     // console.log(`AST:    ${inspect_fun(AST)}`);
     expanded        = expand_wildcards(AST, context);
     config          = munge_config(context.config);
@@ -5385,10 +5373,8 @@ async function main() {
 
     if (add_loras && add_loras.length > 0) {
       console.log('--------------------------------------------------------------------------------');
-      console.log(`Adding ${add_loras.length} LoRAs.`);
-      
       if (log_config_enabled)
-        console.log(`Found add_loras in Context: ${inspect_fun(add_loras)}`);
+        console.log(`Found ${add_loras.length} LoRAs in Context: ${inspect_fun(add_loras)}`);
       
       config.loras ||= [];
 
@@ -5397,7 +5383,7 @@ async function main() {
 
       if (log_config_enabled && ! is_empty_object(config))
         console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
-      console.log(`Config has ${config?.loras.length ?? -1} LoRAs`);
+      console.log(`Config now has ${config?.loras.length ?? -1} LoRAs.`);
     }
     else {
       console.log(`No LoRAs to add!`);
