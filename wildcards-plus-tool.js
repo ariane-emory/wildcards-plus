@@ -4991,7 +4991,7 @@ class ASTNotFlag  {
   }
 }
 // ---------------------------------------------------------------------------------------
-// References:
+// NamedWildcard references:
 // ---------------------------------------------------------------------------------------
 class ASTNamedWildcardReference {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
@@ -5004,6 +5004,8 @@ class ASTNamedWildcardReference {
   }
 }
 // ---------------------------------------------------------------------------------------
+// Scalar references:
+// ---------------------------------------------------------------------------------------
 class ASTScalarReference {
   constructor(name, capitalize) {
     this.name       = name;
@@ -5011,16 +5013,7 @@ class ASTScalarReference {
   }
 }
 // ---------------------------------------------------------------------------------------
-// for A1111-style Loras:
-// ---------------------------------------------------------------------------------------
-class ASTLora {
-  constructor(file, weight) {
-    this.file   = file;
-    this.weight = weight;
-  }
-}
-// ---------------------------------------------------------------------------------------
-// NamedWildcards:
+// Latch a NamedWildcard:
 // ---------------------------------------------------------------------------------------
 class ASTLatchNamedWildcard {
   constructor(name) {
@@ -5028,11 +5021,15 @@ class ASTLatchNamedWildcard {
   }
 }
 // ---------------------------------------------------------------------------------------
+// Unlatch a NamedWildcard:
+// ---------------------------------------------------------------------------------------
 class ASTUnlatchNamedWildcard {
   constructor(name) {
     this.name = name;
   }
 }
+// ---------------------------------------------------------------------------------------
+// Named wildcard definitions:
 // ---------------------------------------------------------------------------------------
 class ASTNamedWildcardDefinition {
   constructor(destination, wildcard) {
@@ -5041,7 +5038,7 @@ class ASTNamedWildcardDefinition {
   }
 }
 // ---------------------------------------------------------------------------------------
-// internal usage.. might not /really/ be part of the AST per se?
+// Internal usage.. might not /really/ be part of the AST per se?
 // ---------------------------------------------------------------------------------------
 class ASTLatchedNamedWildcardedValue {
   constructor(latched_value, original_value) {
@@ -5050,12 +5047,12 @@ class ASTLatchedNamedWildcardedValue {
   }
 }
 // ---------------------------------------------------------------------------------------
-// scalar assignment:
+// Scalar assignment:
 // ---------------------------------------------------------------------------------------
 class ASTScalarAssignment  {
   constructor(destination, source) {
     this.destination = destination;
-    this.source = source;
+    this.source      = source;
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -5064,7 +5061,7 @@ class ASTScalarAssignment  {
 class ASTSpecialFunction {
   constructor(directive, args) {
     this.directive = directive;
-    this.args = args;
+    this.args      = args;
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -5078,10 +5075,10 @@ class ASTAnonWildcard extends WeightedPicker {
 // ---------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative {
   constructor(weight, check_flags, not_flags, body) {
-    this.weight = weight;
+    this.weight      = weight;
     this.check_flags = check_flags;
-    this.not_flags = not_flags;
-    this.body = body;
+    this.not_flags   = not_flags;
+    this.body        = body;
   }
 }
 // =======================================================================================
