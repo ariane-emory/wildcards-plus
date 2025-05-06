@@ -4858,7 +4858,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       // // console.log(`PICKED ${inspect_fun(pick)}`);
       
-      return smart_join(walk(pick, context).flat(Infinity).filter(s => s));
+      return smart_join(walk(pick, context));
       // return walk(pick, context);
     }
     // -----------------------------------------------------------------------------------
@@ -5361,225 +5361,225 @@ Prompt.finalize();
 
 
 // =======================================================================================
-// DEV NOTE: Copy into wildcards-plus.js through this line!
-// =======================================================================================
+  // DEV NOTE: Copy into wildcards-plus.js through this line!
+  // =======================================================================================
 
 
 
-// =======================================================================================
-// MAIN SECTION:
-// =======================================================================================
-async function main() {
-  // -------------------------------------------------------------------------------------
-  // process the command-line arguments:
-  // -------------------------------------------------------------------------------------
-  const args    = process.argv.slice(2);
-  let   count   = 1;
-  let   post    = false;
-  let   confirm = false;
-  let   from_stdin = false;
+  // =======================================================================================
+  // MAIN SECTION:
+  // =======================================================================================
+  async function main() {
+    // -------------------------------------------------------------------------------------
+    // process the command-line arguments:
+    // -------------------------------------------------------------------------------------
+    const args    = process.argv.slice(2);
+    let   count   = 1;
+    let   post    = false;
+    let   confirm = false;
+    let   from_stdin = false;
 
-  if (args.length == 0) 
-    throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
-                    `(--stdin | <input-file>) [<count>]`);
+    if (args.length == 0) 
+      throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
+                      `(--stdin | <input-file>) [<count>]`);
 
-  if (["-p", "--post"].includes(args[0])) {
-    post = true;
-    args.shift();
-  }
-  else if (["-c", "--confirm"].includes(args[0])) {
-    post    = true;
-    confirm = true;
-    args.shift();
-  }
-
-  if (args.length === 0) {
-    throw new Error("Error: Must provide --stdin or an input file.");
-  }
-
-  if (args[0] === '--stdin') {
-    if (confirm)
-      throw new Error(`the --confirm and --stdin options are incompatible.`);
-    
-    from_stdin = true;
-  }
-
-  if (args.length > 1) {
-    count = parseInt(args[1]);
-  }
-
-  // -------------------------------------------------------------------------------------
-  // read prompt input:
-  // -------------------------------------------------------------------------------------
-  let prompt_input = '';
-  let result = null;
-  
-  if (from_stdin) {
-    // Read all stdin into a string
-    prompt_input = await new Promise((resolve, reject) => {
-      let data = '';
-      input.setEncoding('utf8');
-      input.on('data', chunk => data += chunk);
-      input.on('end', () => resolve(data));
-      input.on('error', err => reject(err));
-    });
-    result = Prompt.match(prompt_input);
-  } else if (args.length === 0) {
-    throw new Error("Error: No input file provided.");
-  }
-  else {
-    result = parse_file(args[0]);
-  }
-
-  // -------------------------------------------------------------------------------------
-  // just for debugging, comment to see result:
-  // -------------------------------------------------------------------------------------
-  if (false)
-  {
-    console.log(`result: ${inspect_fun(result.value)}`);
-    console.log(`result (JSON): ${JSON.stringify(result.value)}`);
-  }
-  
-  // -------------------------------------------------------------------------------------
-  // check that the parsed result is complete and expand:
-  // -------------------------------------------------------------------------------------
-
-  if (! result.is_finished)
-    throw new Error("error parsing prompt!");
-
-  const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
-  let   AST          = result.value;
-  
-  // do some new special walk over AST to handle 'include' SpecialFunctions,
-  // updating files as we go and bodging result back onto (or replacing?) AST?
-
-  if (print_before_ast_enabled) {
-    console.log('--------------------------------------------------------------------------------');
-    console.log(`before process_includes:`);
-    console.log('--------------------------------------------------------------------------------');
-    console.log(`${inspect_fun(AST)}`);
-    console.log('--------------------------------------------------------------------------------');
-    console.log(`before process_includes (as JSON):`);
-    console.log('--------------------------------------------------------------------------------');
-    console.log(`${JSON.stringify(AST)}`);
-  }
-
-  AST = process_includes(AST, base_context);
-
-  if (print_after_ast_enabled) { 
-    console.log('--------------------------------------------------------------------------------');
-    console.log(`after process_includes:`);
-    console.log('--------------------------------------------------------------------------------');
-    console.log(`${inspect_fun(AST)}`);
-    console.log('--------------------------------------------------------------------------------');
-    console.log(`after process_includes (as JSON):`);
-    console.log('--------------------------------------------------------------------------------');
-    console.log(`${JSON.stringify(AST)}`);
-  }
-  
-  // base_context.reset_temporaries(); // might not need to do this here after all?
-
-  let expanded = null;
-  let config   = null;
-  
-  const stash_prior = () => {
-    prior_expansion = expanded;
-    prior_config = structuredClone(config);
-  };
-
-  let posted_count    = 0;
-  let prior_expansion = null;
-  let prior_config    = null;
-  
-  while (posted_count < count) {
-    console.log('================================================================================');
-    console.log(`Expanding #${posted_count + 1} of ${count}:`);
-    console.log('================================================================================');
-    // console.log(`posted_count = ${posted_count}`);
-
-    const context   = base_context.clone();
-    expanded        = expand_wildcards(AST, context);
-    config          = munge_config(context.config);
-    const add_loras = context.add_loras;
-
-    if (add_loras && add_loras.length > 0) {
-      console.log('--------------------------------------------------------------------------------');
-
-      if (log_config_enabled)
-        console.log(`Found add_loras in Context: ${inspect_fun(add_loras)}`);
-      
-      config.loras ||= [];
-
-      for (const lora of add_loras)
-        add_lora_to_array(lora, config.loras);
-
-      if (log_config_enabled && ! is_empty_object(config))
-        console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
+    if (["-p", "--post"].includes(args[0])) {
+      post = true;
+      args.shift();
     }
-    
-    console.log(`--------------------------------------------------------------------------------`);
-    console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
-    console.log(`--------------------------------------------------------------------------------`);
-    console.log(expanded);
+    else if (["-c", "--confirm"].includes(args[0])) {
+      post    = true;
+      confirm = true;
+      args.shift();
+    }
 
-    if (!post) {
-      posted_count += 1; // a lie to make the counter correct.
+    if (args.length === 0) {
+      throw new Error("Error: Must provide --stdin or an input file.");
+    }
+
+    if (args[0] === '--stdin') {
+      if (confirm)
+        throw new Error(`the --confirm and --stdin options are incompatible.`);
+      
+      from_stdin = true;
+    }
+
+    if (args.length > 1) {
+      count = parseInt(args[1]);
+    }
+
+    // -------------------------------------------------------------------------------------
+    // read prompt input:
+    // -------------------------------------------------------------------------------------
+    let prompt_input = '';
+    let result = null;
+    
+    if (from_stdin) {
+      // Read all stdin into a string
+      prompt_input = await new Promise((resolve, reject) => {
+        let data = '';
+        input.setEncoding('utf8');
+        input.on('data', chunk => data += chunk);
+        input.on('end', () => resolve(data));
+        input.on('error', err => reject(err));
+      });
+      result = Prompt.match(prompt_input);
+    } else if (args.length === 0) {
+      throw new Error("Error: No input file provided.");
     }
     else {
-      if (!confirm) {
-        console.log(`--------------------------------------------------------------------------------`);
-        post_prompt(expanded, config);
+      result = parse_file(args[0]);
+    }
 
-        posted_count += 1;
-      }
-      else  {
-        console.log();
-
-        const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
-              `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
-              `POST the prior prompt)? `;
-        const answer = await ask(question);
-
-        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
-          stash_prior();
-          continue;
-        }
-
-        if (answer.match(/^p.*/i)) {
-          if (prior_expansion) { 
-            console.log(`--------------------------------------------------------------------------------`);
-            console.log(`POSTing prior prompt '${expanded}'`);
-            post_prompt(prior_expansion, prior_config);
-          }
-          else {
-            console.log(`can't rewind, no prior prompt`);
-          }
-        }
-        else {          
-          const parsed    = parseInt(answer);
-          const gen_count = isNaN(parsed) ? 1 : parsed;  
-          
-          // console.log(`parsed = '${parsed}', count = '${count}'`);
-          
-          for (let iix = 0; iix < gen_count; iix++) {
-            post_prompt(expanded, config);
-            posted_count += 1;
-          }
-        }
-      }
+    // -------------------------------------------------------------------------------------
+    // just for debugging, comment to see result:
+    // -------------------------------------------------------------------------------------
+    if (false)
+    {
+      console.log(`result: ${inspect_fun(result.value)}`);
+      console.log(`result (JSON): ${JSON.stringify(result.value)}`);
     }
     
-    stash_prior();
+    // -------------------------------------------------------------------------------------
+    // check that the parsed result is complete and expand:
+    // -------------------------------------------------------------------------------------
+
+    if (! result.is_finished)
+      throw new Error("error parsing prompt!");
+
+    const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
+    let   AST          = result.value;
+    
+    // do some new special walk over AST to handle 'include' SpecialFunctions,
+    // updating files as we go and bodging result back onto (or replacing?) AST?
+
+    if (print_before_ast_enabled) {
+      console.log('--------------------------------------------------------------------------------');
+      console.log(`before process_includes:`);
+      console.log('--------------------------------------------------------------------------------');
+      console.log(`${inspect_fun(AST)}`);
+      console.log('--------------------------------------------------------------------------------');
+      console.log(`before process_includes (as JSON):`);
+      console.log('--------------------------------------------------------------------------------');
+      console.log(`${JSON.stringify(AST)}`);
+    }
+
+    AST = process_includes(AST, base_context);
+
+    if (print_after_ast_enabled) { 
+      console.log('--------------------------------------------------------------------------------');
+      console.log(`after process_includes:`);
+      console.log('--------------------------------------------------------------------------------');
+      console.log(`${inspect_fun(AST)}`);
+      console.log('--------------------------------------------------------------------------------');
+      console.log(`after process_includes (as JSON):`);
+      console.log('--------------------------------------------------------------------------------');
+      console.log(`${JSON.stringify(AST)}`);
+    }
+    
+    // base_context.reset_temporaries(); // might not need to do this here after all?
+
+    let expanded = null;
+    let config   = null;
+    
+    const stash_prior = () => {
+      prior_expansion = expanded;
+      prior_config = structuredClone(config);
+    };
+
+    let posted_count    = 0;
+    let prior_expansion = null;
+    let prior_config    = null;
+    
+    while (posted_count < count) {
+      console.log('================================================================================');
+      console.log(`Expanding #${posted_count + 1} of ${count}:`);
+      console.log('================================================================================');
+      // console.log(`posted_count = ${posted_count}`);
+
+      const context   = base_context.clone();
+      expanded        = expand_wildcards(AST, context);
+      config          = munge_config(context.config);
+      const add_loras = context.add_loras;
+
+      if (add_loras && add_loras.length > 0) {
+        console.log('--------------------------------------------------------------------------------');
+
+        if (log_config_enabled)
+          console.log(`Found add_loras in Context: ${inspect_fun(add_loras)}`);
+        
+        config.loras ||= [];
+
+        for (const lora of add_loras)
+          add_lora_to_array(lora, config.loras);
+
+        if (log_config_enabled && ! is_empty_object(config))
+          console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
+      }
+      
+      console.log(`--------------------------------------------------------------------------------`);
+      console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
+      console.log(`--------------------------------------------------------------------------------`);
+      console.log(expanded);
+
+      if (!post) {
+        posted_count += 1; // a lie to make the counter correct.
+      }
+      else {
+        if (!confirm) {
+          console.log(`--------------------------------------------------------------------------------`);
+          post_prompt(expanded, config);
+
+          posted_count += 1;
+        }
+        else  {
+          console.log();
+
+          const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
+                `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
+                `POST the prior prompt)? `;
+          const answer = await ask(question);
+
+          if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
+            stash_prior();
+            continue;
+          }
+
+          if (answer.match(/^p.*/i)) {
+            if (prior_expansion) { 
+              console.log(`--------------------------------------------------------------------------------`);
+              console.log(`POSTing prior prompt '${expanded}'`);
+              post_prompt(prior_expansion, prior_config);
+            }
+            else {
+              console.log(`can't rewind, no prior prompt`);
+            }
+          }
+          else {          
+            const parsed    = parseInt(answer);
+            const gen_count = isNaN(parsed) ? 1 : parsed;  
+            
+            // console.log(`parsed = '${parsed}', count = '${count}'`);
+            
+            for (let iix = 0; iix < gen_count; iix++) {
+              post_prompt(expanded, config);
+              posted_count += 1;
+            }
+          }
+        }
+      }
+      
+      stash_prior();
+    }
+
+    console.log('================================================================================');
   }
 
-  console.log('================================================================================');
-}
-
-// ---------------------------------------------------------------------------------------
-main().catch(err => {
-  console.error('Unhandled error:', err);
-  process.exit(1);
-});
-// =======================================================================================
-// END OF MAIN SECTION.
-// =======================================================================================
+  // ---------------------------------------------------------------------------------------
+  main().catch(err => {
+    console.error('Unhandled error:', err);
+    process.exit(1);
+  });
+  // =======================================================================================
+  // END OF MAIN SECTION.
+  // =======================================================================================
