@@ -1824,19 +1824,26 @@ class WeightedPicker {
     this.options.push([weight, value]);
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
+  pick(min_count = 1, max_count = min_count, allow_if = never, forbid_if = never) {
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
     
-    for (let ix = 0; ix < count; ix++) 
-      res.push(this.pick_one(allow_if, forbid_if));
+    for (let ix = 0; ix < count; ix++) {
+      const pick = this.pick_one(allow_if, forbid_if);
 
+      // if (pick)
+      res.push(pick);
+    }
+
+    console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+    
     return res;
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
     console.log(`pick from ${JSON.stringify(this)}`);
+
     if (this.options.length === 0) {
       console.log(`no options!`);
       return null;
@@ -1852,9 +1859,17 @@ class WeightedPicker {
         legal_option_indices.push(ix);
     }
     
+    if (legal_option_indices.length === 0) {
+      console.log(`no legal options!`);
+      return null;
+    }
+
     if (legal_option_indices.length === 1) {
-      console.log(`only one option!`);
+      console.log(`only one legal option!`);
       return this.options[legal_option_indices[0]][1];
+    }
+    else {
+      console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
     }
 
     if (this.used_indices.isSupersetOf(new Set(legal_option_indices)))
@@ -4794,7 +4809,9 @@ function expand_wildcards(thing, context = new Context()) {
         return '';
       
       const pick = new_picker.pick();
-
+      
+      console.log(`PICKED ${typeof pick} ${Array.isArray(pick)} ${inspect_fun(pick)}`);
+      
       if (! pick)
         return '';
       
@@ -4910,6 +4927,12 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     else if (typeof thing === 'number') {
       return thing.toString();
+    }
+    // -----------------------------------------------------------------------------------
+    // null gets strung:
+    // -----------------------------------------------------------------------------------
+    else if (thing === null) {
+      return '';
     }
     // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
