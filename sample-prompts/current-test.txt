@@ -5,57 +5,14 @@
 // ---------------------------------------------------------------------------------------
 // places to be 'in' or 'at':
 // ---------------------------------------------------------------------------------------
-@place_to_be_in := 
-{2 #indoors  {2 crew cabin 
-             |bar
-             |control room
-             |corridor
-             |equipment room
-             |laboratory
-             |lounge
-             |workshop
-             |factory
-             |security room
-             |?station 2 market
-             |?planet,moon #vehicle air/raft
-             |?planet,moon #vehicle aerodyne
-             |?planet,moon #vehicle {sky|hover|grav|air} {<car|transport|vehicle}
-             |?planet,moon #vehicle {ground|all-terrain\ |combat\ }
-                                    {<car|transport|vehicle}             
-             |?ship,station 2 cockpit
-             |?ship,station engine room
-             |?ship,station airlock
-             |?ship,station cargo bay
-             |?ship,station docking bay
-             |?ship @ship_term<'s bridge
-             |{access|maintenance} tunnel
-             }
-|4 ?planet,moon #outdoors {alley
-                        |{|2 hive city|2 megacity} street
-                        |crater
-                        |bazaar
-                        |market
-                        }
-}
-@place_to_be_at :=
-{{ware|store} #indoors <house
-|?planet,moon an alien ruin
-|abandoned wreck of a @ship_term2
-|{2|holographic} computer
-|?planet,moon #outdoors colony
-|holographic #indoors projector
-|?planet,moon #outdoors launch pad
-|?ship,station #indoors helm
-|?ship,station 2 #indoors {|navigation|control|sensor|computer} console
-}
-
-@place_phrase := {2 in {a|the} @#place_to_be_in {noisy} @place_to_be_in }
+@place_to_be_in := {workshop}
+@place_phrase := { {a|the} @#place_to_be_in {noisy} @place_to_be_in }
  
 
 
 // =======================================================================================
 // generate the prompt body:
 // =======================================================================================
-A wanderer @place_phrase 
+In @place_phrase 
 .
 
