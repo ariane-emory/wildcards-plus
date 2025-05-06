@@ -2437,6 +2437,7 @@ const prelude_text = disable_prelude ? '' : `
 @__high_digit           := {<5|<6|<7|<8|<9}
 @random_weight          := {1. @__digit}
 @high_random_weight     := {1. @__high_digit}
+@lowish_random_weight   := {0. @__high_digit}
 // @random_weight_old      := {:1. @__digit}
 // @high_random_weight_old := {:1. @__high_digit}
 
@@ -5537,10 +5538,10 @@ async function main() {
 }
 
 // ---------------------------------------------------------------------------------------
-  main().catch(err => {
-    console.error('Unhandled error:', err);
-    process.exit(1);
-  });
-  // =======================================================================================
-  // END OF MAIN SECTION.
-  // =======================================================================================
+main().catch(err => {
+  console.error('Unhandled error:', err);
+  process.exit(1);
+});
+// =======================================================================================
+// END OF MAIN SECTION.
+// =======================================================================================
