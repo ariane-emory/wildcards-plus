@@ -2147,11 +2147,11 @@ function smart_join(arr) {
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       shift_left(1);
     
-    // console.log(`str = '${str}', ` +
-    //             `left_word = '${left_word}', ` +
-    //             `right_word = '${right_word}', ` +
-    //             `prev_char = '${prev_char}', ` +
-    //             `next_char = '${next_char}'`);
+    console.log(`str = '${str}', ` +
+                `left_word = '${left_word}', ` +
+                `right_word = '${right_word}', ` +
+                `prev_char = '${prev_char}', ` +
+                `next_char = '${next_char}'`);
 
     // handle "a" → "an" if necessary:
     const articleCorrection = (originalArticle, nextWord) => {
