@@ -1854,7 +1854,9 @@ class WeightedPicker {
     for (let ix = 0; ix < this.options.length; ix++) {
       const [option_weight, option_value] = this.options[ix];
       
-      if (allow_if(option_value) && !forbid_if(option_value)) //  && !this.used_indices.has(ix))
+      if (option_weight !== 0 &&
+          allow_if(option_value) &&
+          !forbid_if(option_value))
         legal_option_indices.push(ix);
     }
 
