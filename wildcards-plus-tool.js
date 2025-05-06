@@ -2206,9 +2206,6 @@ function smart_join(arr) {
     str += left_word;
   }
 
-  // console.log(`before = '${str}'`);
-  // console.log(`after  = '${unescape(str)}'`);
-
   return unescape(str);
 }
 // =======================================================================================
