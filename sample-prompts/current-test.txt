@@ -3,84 +3,84 @@
 // actual textual content of the prompt:
 // =======================================================================================
 
-@lora_names :=
-{ mj52_v2.0
-| ethereon
-| trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
-| add_detail_xl
-| detailed_notrigger
-| xl_more_art_full_v1
-}
+// @lora_names :=
+// { mj52_v2.0
+// | ethereon
+// | trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
+// | add_detail_xl
+// | detailed_notrigger
+// | xl_more_art_full_v1
+// }
 
-// named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
-@lora := { <lora:@lora_names: @random_weight> }
+// // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
+// @lora := { <lora:@lora_names: @random_weight> }
 
-{ 0
-  // devMODE
-  %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
-  %config.steps(8)
-  // don't worry, capitalization will be automatically fixed to "Euler A":
-  { %config.sampler("DDIM Trailing") | %config.sampler("Euler A") | %config.sampler("Euler A Trailing") }
-  { %config.cfg_scale(1.0) | %config.cfg_scale(1.5) | %config.cfg_scale(2.0) | %config.cfg_scale(2.5) }
+// { 0
+//   // devMODE
+//   %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
+//   %config.steps(8)
+//   // don't worry, capitalization will be automatically fixed to "Euler A":
+//   { %config.sampler("DDIM Trailing") | %config.sampler("Euler A") | %config.sampler("Euler A Trailing") }
+//   { %config.cfg_scale(1.0) | %config.cfg_scale(1.5) | %config.cfg_scale(2.0) | %config.cfg_scale(2.5) }
 
-  // three possible resolutions:
-  { 3 %config({ "width": 768, "height": 512 })
-  | 2 %config({ "width": 768, "height": 384 })
-  | 1 %config({ "width": 640, "height": 640 })
-  }
+//   // three possible resolutions:
+//   { 3 %config({ "width": 768, "height": 512 })
+//   | 2 %config({ "width": 768, "height": 384 })
+//   | 1 %config({ "width": 640, "height": 640 })
+//   }
 
-| 3 // Hidream with some basic settings that seem to work alright:
-  %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50 })
+// | 3 // Hidream with some basic settings that seem to work alright:
+//   %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50 })
 
-  { 8 %config.cfg_scale(5.0 ) | 7 %config.cfg_scale(10.0) | 6 %config.cfg_scale(15.0) | 5 %config.cfg_scale(20.0)
-  | 4 %config.cfg_scale(25.0) | 3 %config.cfg_scale(30.0) | 2 %config.cfg_scale(35.0) | 1 %config.cfg_scale(40.0)
-  }
+//   { 8 %config.cfg_scale(5.0 ) | 7 %config.cfg_scale(10.0) | 6 %config.cfg_scale(15.0) | 5 %config.cfg_scale(20.0)
+//   | 4 %config.cfg_scale(25.0) | 3 %config.cfg_scale(30.0) | 2 %config.cfg_scale(35.0) | 1 %config.cfg_scale(40.0)
+//   }
 
-  // 9-13 steps, equally likely:
-  { %config.steps(9) | %config.steps(10) | %config.steps(11) | %config.steps(12) | %config.steps(13) }
+//   // 9-13 steps, equally likely:
+//   { %config.steps(9) | %config.steps(10) | %config.steps(11) | %config.steps(12) | %config.steps(13) }
 
-  // three possible resolutions:
-  { 3 %config({ "width": 768, "height": 512 })
-  | 2 %config({ "width": 768, "height": 384 })
-  | 1 %config({ "width": 640, "height": 640 })
-  }
+//   // three possible resolutions:
+//   { 3 %config({ "width": 768, "height": 512 })
+//   | 2 %config({ "width": 768, "height": 384 })
+//   | 1 %config({ "width": 640, "height": 640 })
+//   }
 
-| 3 // various SDXL models:
-  #sdxl
+// | 3 // various SDXL models:
+//   #sdxl
 
-  // 35, 40 or 45 steps, equally likely:
-  { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
+//   // 35, 40 or 45 steps, equally likely:
+//   { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
 
-  // three possible resolutions:
-  { 2 %config({"width": 960, "height":512})
-  | 2 %config({"width": 768, "height":512}) 
-  | %config({"width": 768, "height":768})
-  }
+//   // three possible resolutions:
+//   { 2 %config({"width": 960, "height":512})
+//   | 2 %config({"width": 768, "height":512}) 
+//   | %config({"width": 768, "height":768})
+//   }
 
-  // three possible 'shift' values:
-  { %config.shift(1.00) | %config.shift(1.10) | %config.shift(1.20) }
+//   // three possible 'shift' values:
+//   { %config.shift(1.00) | %config.shift(1.10) | %config.shift(1.20) }
 
-  // two sampler possibilities:
-  { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") }
+//   // two sampler possibilities:
+//   { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") }
 
-  // eight possible CFG values:
-  { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
-  | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) | %config.cfg_scale(9.0) | %config.cfg_scale(10.0) }
+//   // eight possible CFG values:
+//   { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
+//   | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) | %config.cfg_scale(9.0) | %config.cfg_scale(10.0) }
 
-  // lots of models pick from:
-  { 4 %config.model("bookIllustrationChar_v10_f16")
-  | 4 %config.model("challengexlv10yoursecret_v10_f16")
-  | 0 %config.model("cyberrealisticpony_v10_f16") {@pony_score_7_up|@pony_score_8_up}
-  | 0 %config.model("cyberrealisticpony_v90alt1_f16")
-  | 2 %config.model("cyberrealisticxl_v56_f16")
-  | 4 %config.model("nightvisionxl_v900_f16")
-  | 8 %config.model("oldmaster_v30_f16")
-  | 6 %config.model("zavychromaxl_v100_f16")
-  }
-}
+//   // lots of models pick from:
+//   { 4 %config.model("bookIllustrationChar_v10_f16")
+//   | 4 %config.model("challengexlv10yoursecret_v10_f16")
+//   | 0 %config.model("cyberrealisticpony_v10_f16") {@pony_score_7_up|@pony_score_8_up}
+//   | 0 %config.model("cyberrealisticpony_v90alt1_f16")
+//   | 2 %config.model("cyberrealisticxl_v56_f16")
+//   | 4 %config.model("nightvisionxl_v900_f16")
+//   | 8 %config.model("oldmaster_v30_f16")
+//   | 6 %config.model("zavychromaxl_v100_f16")
+//   }
+// }
 
-// Chance of 'artsy' mode:
-{#artsy}
+// // Chance of 'artsy' mode:
+// {#artsy}
 
 // =======================================================================================
 // make random sci-fi characters:
@@ -192,8 +192,6 @@
 // =======================================================================================
 // generate the prompt body:
 // =======================================================================================
-A piece {which depicts|depicting} a 
-wanderr
-@place_phrase 
+A piece depicting a wanderer \n @place_phrase 
 .
 
