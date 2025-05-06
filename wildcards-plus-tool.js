@@ -5389,9 +5389,9 @@ async function main() {
         // console.log(`Config now has ${config?.loras.length ?? -1} LoRAs.`);
       }
     }
-    else {
-      console.log(`No LoRAs to add!`);
-    }
+    // else {
+    //   console.log(`No LoRAs to add!`);
+    // }
     
     console.log(`--------------------------------------------------------------------------------`);
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
