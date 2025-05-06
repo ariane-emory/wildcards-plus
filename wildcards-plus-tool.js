@@ -1873,7 +1873,7 @@ class WeightedPicker {
       return null;
     }
 
-    const legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+    let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
     for (let ix = 0; ix < this.options.length; ix++) {
       const [option_weight, option_value] = this.options[ix];
@@ -1885,7 +1885,7 @@ class WeightedPicker {
     if (this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
       console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       this.used_indices.clear();
-      // return this.pick_one(allow_if, forbid_if);
+      legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
