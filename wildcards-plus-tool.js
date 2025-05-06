@@ -4709,7 +4709,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
       else {
         // console.log(`GOT: ${JSON.stringify(got)}`);
-        const raw_picks = got.picker.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
+        const raw_picks = got.pick(thing.min_count, thing.max_count,
+                                   allow_fun, forbid_fun);
         // console.log(`RAW: ${JSON.stringify(raw_picks)}`);
         res.push(...raw_picks.map(p => smart_join(walk(p?.body ?? '', context))));
       }
@@ -4820,7 +4821,7 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const pick = thing.picker.pick_one(allow_fun, forbid_fun)?.body;
+      const pick = thing.pick_one(allow_fun, forbid_fun)?.body;
 
       if (! pick)
         return ''; // investigate why this is necessary!
@@ -5069,10 +5070,9 @@ class ASTSpecialFunction {
 // ---------------------------------------------------------------------------------------
 // AnonWildcards:
 // ---------------------------------------------------------------------------------------
-class ASTAnonWildcard {
+class ASTAnonWildcard extends WeightedPicker {
   constructor(options) {
-    // this.options = options;
-    this.picker = new WeightedPicker(options.map(o => [o.weight, o]));
+    super(options.map(o => [o.weight, o]));
   }
 }
 // ---------------------------------------------------------------------------------------
