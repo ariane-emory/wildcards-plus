@@ -1824,7 +1824,7 @@ class WeightedPicker {
     this.options.push([weight, value]);
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count, allow_if = never, forbid_if = never) {
+  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
@@ -1878,7 +1878,7 @@ class WeightedPicker {
         return option_value;
       }
 
-      random -= weight;
+      random -= option_weight;
     }
 
     throw new Error("random selection failed");
