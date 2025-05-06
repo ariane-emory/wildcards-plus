@@ -1836,8 +1836,8 @@ class WeightedPicker {
     if (this.options.length === 0)
       return null;
 
-    if (this.options.length === 1)
-      return this.options[0][1];
+    // if (this.options.length === 1)
+    //   return this.options[0][1];
 
     if (this.used_indices.size === this.options.length)
       this.used_indices.clear();
