@@ -50,7 +50,7 @@
 
   <lora:sdxl_lightning_8step_lora:1.0>
 
-  { 3 %config.steps(8) | 2 %config.steps(10) | 1 %config.steps(12) }
+  %config.steps(10)
 
   // three possible resolutions:
   { 2 %config({"width": 960, "height":512})
@@ -62,7 +62,8 @@
   { %config.shift(1.00) | %config.shift(1.10) | %config.shift(1.20) }
 
   // two sampler possibilities:
-  { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") }
+  %config.sampler("LCM")
+  // { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") }
 
   // eight possible CFG values:
   { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
