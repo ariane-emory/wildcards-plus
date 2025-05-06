@@ -54,5 +54,5 @@
   }
 }
 
-\n {?SDXL_FLAG SDXL_ENABLED} \n
-{?SDXL_FLAG SDXL mode @3lora}
+{?SDXL_FLAG SDXL_ENABLED} \n
+{?SDXL_FLAG SDXL mode @3lora} \n
