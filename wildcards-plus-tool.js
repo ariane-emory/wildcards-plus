@@ -1831,6 +1831,7 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
+    console.log(`PICK ${min_count}-${max_count}`);
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
@@ -1848,6 +1849,8 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
+    console.log(`PICK_ONE!`);
+    
     // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
