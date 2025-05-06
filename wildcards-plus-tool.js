@@ -1849,7 +1849,13 @@ class WeightedPicker {
     return legal_option_indices;
   }
   // -------------------------------------------------------------------------------------
+  __needs_clear_to_pick_from(legal_option_indices) {
+    return this.used_indices.size > 0
+      && new Set(this.used_indices.keys()).isSupersetOf(new Set(legal_option_indices));
+  }
+  // -------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
+    
     // console.log(`PICK ${min_count}-${max_count}`);
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
@@ -1867,11 +1873,6 @@ class WeightedPicker {
     return res;
   }
   // -------------------------------------------------------------------------------------
-  needs_clear_to_pick_from(legal_option_indices) {
-    return this.used_indices.size > 0
-      && new Set(this.used_indices.keys()).isSupersetOf(new Set(legal_option_indices));
-  }
-  // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
     // console.log(`PICK_ONE!`);
     
@@ -1884,7 +1885,7 @@ class WeightedPicker {
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
-    if (this.needs_clear_to_pick_from(legal_option_indices)) {
+    if (this.__needs_clear_to_pick_from(legal_option_indices)) {
       // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       this.used_indices.clear();
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);

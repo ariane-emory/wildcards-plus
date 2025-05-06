@@ -57,7 +57,7 @@
   {
   2 %config({"width": 1280, "height":640 }) |
   2 %config({"width": 640,  "height":1280}) |
-  6 %config({"width": 1920, "height":1080}) 
+  6 %config({"width": 1920, "height":1088}) 
   }
 
   // three possible 'shift' values:
