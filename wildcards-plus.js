@@ -2282,20 +2282,22 @@ const prelude_text = disable_prelude ? '' : `
 @pro_pos                := {@set_gender_if_unset {?female hers  |?male his |?neuter its}}
 @__digit                := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
 @__high_digit           := {<5|<6|<7|<8|<9}
-@random_weight          := {1. @__digit}
-@high_random_weight     := {1. @__high_digit}
-// @random_weight_old      := {:1. @__digit}
-// @high_random_weight_old := {:1. @__high_digit}
-
-@pony_score_9          := {score_9,}
-@pony_score_8_up       := {score_9, score_8_up,}
-@pony_score_7_up       := {score_9, score_8_up, score_7_up,}
-@pony_score_6_up       := {score_9, score_8_up, score_7_up, score_6_up,}
-@pony_score_5_up       := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
-@pony_score_4_up       := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
-@aris_defaults         := {masterpiece, best quality, absurdres, aesthetic, 8k,
-                           high depth of field, ultra high resolution, detailed background,
-                           wide shot,}
+@low_random_weight      := { 0. @__low_digit }
+@lt1_random_weight      := { 0. @__digit     } 
+@lowish_random_weight   := { 0. @__high_digit}
+@random_weight          := {{1. @__high_digit}|{1. @__low_digit}}
+@highish_random_weight  := { 1. @__low_digit }
+@gt1_random_weight      := { 1. @__digit     }
+@high_random_weight     := { 1. @__high_digit}
+@pony_score_9           := {score_9,}
+@pony_score_8_up        := {score_9, score_8_up,}
+@pony_score_7_up        := {score_9, score_8_up, score_7_up,}
+@pony_score_6_up        := {score_9, score_8_up, score_7_up, score_6_up,}
+@pony_score_5_up        := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
+@pony_score_4_up        := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
+@aris_defaults          := {masterpiece, best quality, absurdres, aesthetic, 8k,
+                            high depth of field, ultra high resolution, detailed background,
+                            wide shot,}
 
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
@@ -5219,8 +5221,8 @@ Prompt.finalize();
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt        = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 // v DT's env doesn't seem to have structuredClone :(
-// const pipeline_configuration = JSON.parse(JSON.stringify(pipeline.configuration));
-const pipeline_configuration = pipeline.configuration;
+const pipeline_configuration = JSON.parse(JSON.stringify(pipeline.configuration));
+//const pipeline_configuration = pipeline.configuration;
 const ui_prompt              = pipeline.prompts.prompt;
 const ui_hint                = "no wildcards found in the prompt.";
 let   prompt_string          = ui_prompt;
