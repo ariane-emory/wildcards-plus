@@ -1861,9 +1861,11 @@ class WeightedPicker {
         legal_option_indices.push(ix);
     }
     
-    if (this.used_indices.isSupersetOf(new Set(legal_option_indices)))
+    if (this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
       this.used_indices.clear();
-
+      return this.pick_one(allow_if, forbid_if);
+    }
+    
     if (legal_option_indices.length === 0) {
       console.log(`no legal options!`);
       return null;
@@ -1881,7 +1883,7 @@ class WeightedPicker {
     let  total_weight = 0;
 
     for (const legal_option_ix of legal_option_indices)
-      if (!this.used_indices.has(legal_option_ix))
+                           if (!this.used_indices.has(legal_option_ix))
         total_weight += this.options[legal_option_ix][0];
 
     if (total_weight === 0)
