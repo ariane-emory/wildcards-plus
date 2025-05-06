@@ -2116,10 +2116,10 @@ function smart_join(arr) {
   let str       = left_word;
 
   for (let ix = 1; ix < arr.length; ix++)  {
-    let right_word = null;
-    let prev_char = null;
-    let prev_char_is_escaped = null
-    let next_char = null;
+    let right_word           = null;
+    let prev_char            = null;
+    let prev_char_is_escaped = null;
+    let next_char            = null;
 
     const update_pos_vars = () => {
       right_word           = arr[ix]?.toString() ?? "";
