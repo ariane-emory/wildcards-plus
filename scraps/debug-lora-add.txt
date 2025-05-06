@@ -13,5 +13,5 @@
 @lora := { <lora:@lora_names: @lowish_random_weight> }
 
 foo bar baz \n
-{@3lora}
+@2lora
 corge quux grault \n
