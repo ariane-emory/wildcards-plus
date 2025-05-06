@@ -1,7 +1,4 @@
-// =======================================================================================
-// use wildcards to randomize some parts of the configuration before we get on with the
-// actual textual content of the prompt:
-// =======================================================================================
+// ./wildcards-plus-tool.js scraps/debug-lora-add.txt 2 | grep -i -e "expanding" -e "adding lora"
 
 @lora_names :=
 { mj52_v2.0
