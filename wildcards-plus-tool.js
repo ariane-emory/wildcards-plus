@@ -4982,6 +4982,7 @@ class ASTLora {
   constructor(file, weight) {
     this.file   = file;
     this.weight = weight;
+    console.log(`Constructed LoRa ${this}!`);
   }
 }
 // ---------------------------------------------------------------------------------------

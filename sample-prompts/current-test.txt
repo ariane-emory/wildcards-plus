@@ -47,7 +47,7 @@
 
 | 3 // various SDXL models:
   #sdxl
-
+  
   // 35, 40 or 45 steps, equally likely:
   { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
 
@@ -408,4 +408,4 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 
 {?artsy By @wizards_artists, @wizards_artist_styles. }
 
-{?sdxl @3lora}
+{?sdxl SDXL mode @3lora}
