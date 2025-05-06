@@ -1824,7 +1824,7 @@ class WeightedPicker {
     // console.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
     
     this.options = []; // array of [weight, value]
-    this.used_indices = new Set();
+    this.used_indices = new Map();
 
     for (const [weight, value] of initialOptions)
       this.add(weight, value);
@@ -1868,7 +1868,8 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   needs_clear_to_pick_from(legal_option_indices) {
-    return this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices));
+    return this.used_indices.size > 0
+      && new Set(this.used_indices.keys()).isSupersetOf(new Set(legal_option_indices));
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
@@ -1896,7 +1897,7 @@ class WeightedPicker {
 
     if (legal_option_indices.length === 1) {
       // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
-      this.used_indices.add(legal_option_indices[0]);
+      this.used_indices.set(legal_option_indices[0], 1);
       return this.options[legal_option_indices[0]][1];
     }
 
@@ -1926,7 +1927,7 @@ class WeightedPicker {
       const [option_weight, option_value] = this.options[legal_option_ix];
       
       if (random < option_weight) {
-        this.used_indices.add(legal_option_ix);
+        this.used_indices.set(legal_option_ix, 1);
         return option_value;
       }
 
