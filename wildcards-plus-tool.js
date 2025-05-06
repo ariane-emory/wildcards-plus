@@ -1844,10 +1844,10 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
-    // console.log(`pick from ${JSON.stringify(this)}`);
+    console.log(`PICK FROM ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
-      // console.log(`no options!`);
+      console.log(`NO OPTIONS 1!`);
       return null;
     }
 
@@ -1868,7 +1868,7 @@ class WeightedPicker {
     }
     
     if (legal_option_indices.length === 0) {
-      // console.log(`no legal options!`);
+      console.log(`NO LEGAL OPTIONS 2!`);
       return null;
     }
 
@@ -1886,8 +1886,10 @@ class WeightedPicker {
       if (!this.used_indices.has(legal_option_ix))
         total_weight += this.options[legal_option_ix][0];
 
-    if (total_weight === 0)
+    if (total_weight === 0) {
+      console.log(`TOTAL WEIGHT 3!`);
       return null;
+    }
 
     let random = Math.random() * total_weight;
 
@@ -2054,7 +2056,7 @@ function pretty_list(arr) {
 }
 // ---------------------------------------------------------------------------------------
 function capitalize(string) {
-  // console.log(`CAPITALIZING '${string}'`);
+  console.log(`Capitalizing ${typeof string} '${inspect_fun(string)}'`);
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 // ---------------------------------------------------------------------------------------
@@ -4698,13 +4700,16 @@ function expand_wildcards(thing, context = new Context()) {
         console.log(`GOT: ${JSON.stringify(got)}`);
         const raw_picks = got.picker.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
         console.log(`RAW: ${JSON.stringify(raw_picks)}`);
-        res = raw_picks.map(p => walk(p.body, context));
+        res = raw_picks.map(p => walk(p?.body ?? null, context));
       }
       
       // const res = [ walk(got, context) ];
 
-      if (thing.capitalize)
+      if (thing.capitalize) {
+        console.log(`CAPITALIZING ${inspect_fun(res[0])}`);
+        
         res[0] = capitalize(res[0]);
+      }
       
       // const count = rand_int(thing.min_count, thing.max_count);
       
