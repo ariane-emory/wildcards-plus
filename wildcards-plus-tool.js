@@ -1819,7 +1819,7 @@ class WeightedPicker {
     this.used_indices = new Set();
 
     for (const [weight, value] of initialOptions)
-                  this.add(weight, value);
+      this.add(weight, value);
   }
   // -------------------------------------------------------------------------------------
   add(weight, value) {
@@ -4773,56 +4773,56 @@ function expand_wildcards(thing, context = new Context()) {
       const allow_fun  = always;
       const forbid_fun = never;
       
-      thing.picker.pick_one(allow_fun, forbid_fun);
+      const pick = thing.picker.pick_one(allow_fun, forbid_fun).body;
       
-      const new_picker = new WeightedPicker();
+      // const new_picker = new WeightedPicker();
 
-      for (const option of thing.options) {
-        let skip = false;
+      // for (const option of thing.options) {
+      //   let skip = false;
 
-        for (const not_flag of option.not_flags) {
-          if (context.flags.has(not_flag.name)) {
-            skip = true;
-            break;
-          }
-        }
+      //   for (const not_flag of option.not_flags) {
+      //     if (context.flags.has(not_flag.name)) {
+      //       skip = true;
+      //       break;
+      //     }
+      //   }
 
-        if (skip)
-          continue;
-        
-        for (const check_flag of option.check_flags) {
-          let found = false;
-          
-          for (const name of check_flag.names) {
-            if (context.flags.has(name)) {
-              found = true;
-              break;
-            }
-          }
-
-          if (!found) {
-            skip = true;
-            break;
-          }
-        }
-
-        if (skip)
-          continue;
-
-        new_picker.add(option.weight, option.body);
-      }
-
-      if (new_picker.options.length == 0)
-                          return '';
-                        
-                        const pick = new_picker.pick();
-                        
-                        console.log(`PICKED ${typeof pick} ${Array.isArray(pick)} ${inspect_fun(pick)}`);
-                        
-                        if (! pick)
-                          return '';
+      //   if (skip)
+      //     continue;
       
-      // console.log(`PICKED ${inspect_fun(pick)}`);
+      //   for (const check_flag of option.check_flags) {
+      //     let found = false;
+      
+      //     for (const name of check_flag.names) {
+      //       if (context.flags.has(name)) {
+      //         found = true;
+      //         break;
+      //       }
+      //     }
+
+      //     if (!found) {
+      //       skip = true;
+      //       break;
+      //     }
+      //   }
+
+      //   if (skip)
+      //     continue;
+
+      //   new_picker.add(option.weight, option.body);
+      // }
+
+      // if (new_picker.options.length == 0)
+      //   return '';
+      
+      // const pick = new_picker.pick();
+      
+      // console.log(`PICKED ${typeof pick} ${Array.isArray(pick)} ${inspect_fun(pick)}`);
+      
+      if (! pick)
+        return '';
+      
+      // // console.log(`PICKED ${inspect_fun(pick)}`);
       
       return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
       // return walk(pick, context);
