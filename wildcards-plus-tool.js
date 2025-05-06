@@ -1818,6 +1818,7 @@ const picker_strategy = Object.freeze({
   used:      'used',
 });
 // ---------------------------------------------------------------------------------------
+
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
@@ -1850,10 +1851,13 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   __record_index_usage(index) {
-    this.used_indices.set(this.used_indices.get(index)??0 + 1);
+    this.used_indices.set(index, this.used_indices.get(index)??0 + 1);
   }
   // -------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, strategy) {
+    // console.log(`this.options      = ${inspect_fun(this.options)}`);
+    // console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+    
     if (! strategy)
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
@@ -1866,7 +1870,18 @@ class WeightedPicker {
       exhausted_indices = new Set(this.used_indices.keys());
     }
     else if (strategy == picker_strategy.total) {
-      exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
+      exhausted_indices = new Set();
+
+      for (const [used_index, usage_count] of this.used_indices) {
+        const option = this.options[used_index];
+
+        // console.log(`option ${used_index} of ${inspect_fun(this.options)}: ${inspect_fun(option)}`);
+
+        if (usage_count >= option.weight)
+          exhausted_indices.add(used_index);
+      }
+      
+      // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
     else {
       throw new Error(`bad strategy: ${inspect_fun(strange)}`);
