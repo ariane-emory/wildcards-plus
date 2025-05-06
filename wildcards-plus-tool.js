@@ -4701,7 +4701,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (!got)
         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
-      let res = [];
+      const res = [];
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
@@ -4711,7 +4711,7 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`GOT: ${JSON.stringify(got)}`);
         const raw_picks = got.picker.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
         // console.log(`RAW: ${JSON.stringify(raw_picks)}`);
-        res = raw_picks.map(p => smart_join(walk(p?.body ?? '', context)));
+        res.push(...raw_picks.map(p => smart_join(walk(p?.body ?? '', context))));
       }
       
       if (thing.capitalize) {
