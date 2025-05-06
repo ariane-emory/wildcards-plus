@@ -2,47 +2,6 @@
 // make random sci-fi characters:
 // =======================================================================================
 
-// {#planet|#ship|#moon|#station} // where are we?
-
-// @pro_pos_rand  := {2 @pro_pos_adj|a}
-// @setting_word  := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
-
-// @ship_term     := {starship|spacecraft|space ship|shuttle}
-// @ship_late_adj := {space|interstellar}
-// @ship_term2    := {starship|spacecraft|@ship_late_adj ship|{|interplanetary} shuttle
-//                   |@ship_late_adj frigate
-//                   |@ship_late_adj battleship|@ship_late_adj destroyer
-//                   |{|@ship_late_adj} merchant vessel
-//                   |{|@ship_late_adj} vessel}
-
-// // ---------------------------------------------------------------------------------------
-// // 'level 2' places, for phrases like 'in $place in a $largerPlace':
-// // ---------------------------------------------------------------------------------------
-// @l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station
-//                  |?planet planet|?planet world|?moon moon}}
-// @l2_place_adj := 
-// {
-// |strange
-// |exotic
-// |!#crowded crowded
-// |!#busy busy 
-// |remote
-// |secluded
-// |run-down
-// |!#advanced advanced
-// |primitive
-// |backwater
-// |!#highly-detailed highly-detailed
-// |!#greebled {|highly} greebled
-// }
-// @l2_orbit_obj_adj   := {dim|distant|huge|luminous|shining}
-// @l2_orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship
-//                        |!planet !moon space station|!planet !moon asteroid
-//                        |!planet comet|2 {|2 yellow|2 red|green} star|black hole
-//                        |!planet !moon satellite}
-// @l2_orbit_phrase    := {@l2_orbit_obj_adj @l2_orbit_obj}
-// @l2_place_phrase    := {@l2_place {|2 orbiting a @l2_orbit_phrase}}
-
 // ---------------------------------------------------------------------------------------
 // places to be 'in' or 'at':
 // ---------------------------------------------------------------------------------------
@@ -90,17 +49,7 @@
 |?ship,station 2 #indoors {|navigation|control|sensor|computer} console
 }
 @place_to_be_in_adj :=
-{3
-|!vehicle !#busy busy
-|!vehicle !#crowded crowded
-|messy
-|noisy
-|cluttered
-|neon-lit
-|?outdoors torchlit
-|?outdoors 2 smoky
-|?outdoors foggy
-}
+{noisy}
 @place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in }
  
 
