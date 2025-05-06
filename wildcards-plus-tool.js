@@ -2104,10 +2104,13 @@ function unescape(str) {
 };
 // ---------------------------------------------------------------------------------------
 function smart_join(arr) {
+  if (! arr)
+    return arr;
+  
   if (typeof arr === 'string')
     return arr;
   
-  arr = [...arr];
+  arr = [...arr.filter(x=> x)];
   
   // console.log(`JOINING ${inspect_fun(arr)}`);
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
@@ -4704,7 +4707,7 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`GOT: ${JSON.stringify(got)}`);
         const raw_picks = got.picker.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
         // console.log(`RAW: ${JSON.stringify(raw_picks)}`);
-        res = raw_picks.map(p => smart_join(walk(p?.body ?? null, context)));
+        res = raw_picks.map(p => smart_join(walk(p?.body ?? '', context)));
       }
       
       if (thing.capitalize) {
@@ -4849,57 +4852,13 @@ function expand_wildcards(thing, context = new Context()) {
       };
       
       const pick = thing.picker.pick_one(allow_fun, forbid_fun)?.body;
-      
-      // const new_picker = new WeightedPicker();
 
-      // for (const option of thing.options) {
-      //   let skip = false;
-
-      //   for (const not_flag of option.not_flags) {
-      //     if (context.flags.has(not_flag.name)) {
-      //       skip = true;
-      //       break;
-      //     }
-      //   }
-
-      //   if (skip)
-      //     continue;
-      
-      //   for (const check_flag of option.check_flags) {
-      //     let found = false;
-      
-      //     for (const name of check_flag.names) {
-      //       if (context.flags.has(name)) {
-      //         found = true;
-      //         break;
-      //       }
-      //     }
-
-      //     if (!found) {
-      //       skip = true;
-      //       break;
-      //     }
-      //   }
-
-      //   if (skip)
-      //     continue;
-
-      //   new_picker.add(option.weight, option.body);
-      // }
-
-      // if (new_picker.options.length == 0)
-      //   return '';
-      
-      // const pick = new_picker.pick();
-      
-      // console.log(`PICKED ${typeof pick} ${Array.isArray(pick)} ${inspect_fun(pick)}`);
-      
       if (! pick)
         return '';
       
       // // console.log(`PICKED ${inspect_fun(pick)}`);
       
-      return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
+      return smart_join(walk(pick, context).flat(Infinity).filter(s => s));
       // return walk(pick, context);
     }
     // -----------------------------------------------------------------------------------
@@ -5011,7 +4970,7 @@ function expand_wildcards(thing, context = new Context()) {
       return thing.toString();
     }
     // -----------------------------------------------------------------------------------
-    // null gets strung:
+    // null gets passed through:
     // -----------------------------------------------------------------------------------
     else if (thing === null) {
       return '';
@@ -5028,7 +4987,12 @@ function expand_wildcards(thing, context = new Context()) {
                       inspect_fun(thing));
     }
   }
-  return smart_join(walk(thing, context).flat(Infinity).filter(s => s !== ''));
+  
+  let walked = walk(thing, context);
+  console.log(`WALK GAVE: ${typeof walked} ${inspect_fun(walked)}`);
+  walked = walked.flat(Infinity).filter(s => s);
+  console.log(`FITERING GAVE: ${typeof walked} ${inspect_fun(walked)}`);
+  return smart_join(walked);
 }
 // =======================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
