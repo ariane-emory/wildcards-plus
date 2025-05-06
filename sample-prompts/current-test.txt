@@ -47,9 +47,10 @@
 
 | 3 // various SDXL models:
   #sdxl
-  
-  // 35, 40 or 45 steps, equally likely:
-  { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
+
+  <lora:sdxl_lightning_8step_lora:1.0>
+
+  { 3 %config.steps(8) | 2 %config.steps(10) | 1 %config.steps(12) }
 
   // three possible resolutions:
   { 2 %config({"width": 960, "height":512})
