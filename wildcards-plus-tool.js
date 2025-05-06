@@ -1838,7 +1838,7 @@ class WeightedPicker {
       res.push(pick);
     }
 
-    console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
     
     return res;
   }
@@ -1868,7 +1868,7 @@ class WeightedPicker {
     }
     
     if (legal_option_indices.length === 0) {
-      console.log(`NO LEGAL OPTIONS 2!`);
+      // console.log(`NO LEGAL OPTIONS 2!`);
       return null;
     }
 
@@ -2056,7 +2056,7 @@ function pretty_list(arr) {
 }
 // ---------------------------------------------------------------------------------------
 function capitalize(string) {
-  console.log(`Capitalizing ${typeof string} '${inspect_fun(string)}'`);
+  // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 // ---------------------------------------------------------------------------------------
@@ -4665,10 +4665,6 @@ function expand_wildcards(thing, context = new Context()) {
         for (const check_flag of option.check_flags) {
           let found = false;
           
-          // console.log(`Look for ${inspect_fun(check_flag)} in ` +
-          //             `${inspect_fun(context.flags)} = ` +
-          //             `${context.flags.has(check_flag.name)}`);
-
           for (const name of check_flag.names) {
             if (context.flags.has(name)) {
               found = true;
@@ -4699,32 +4695,14 @@ function expand_wildcards(thing, context = new Context()) {
       else {
         // console.log(`GOT: ${JSON.stringify(got)}`);
         const raw_picks = got.picker.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
-        console.log(`RAW: ${JSON.stringify(raw_picks)}`);
+        // console.log(`RAW: ${JSON.stringify(raw_picks)}`);
         res = raw_picks.map(p => smart_join(walk(p?.body ?? null, context)));
       }
       
-      // const res = [ walk(got, context) ];
-
       if (thing.capitalize) {
-        console.log(`CAPITALIZING ${inspect_fun(res[0])}`);
-        
+        // console.log(`CAPITALIZING ${inspect_fun(res[0])}`);
         res[0] = capitalize(res[0]);
       }
-      
-      // const count = rand_int(thing.min_count, thing.max_count);
-      
-      // for (let ix = 1; ix < count; ix++) {
-      //   let val = walk(got, context);
-      
-      //   for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
-      //     if (! res.includes(val))
-      //       break;
-
-      //     val = walk(got, context);
-      //   }
-
-      //   res.push(val);
-      // }
 
       res = res.filter(o => o);
       
