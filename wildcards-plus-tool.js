@@ -4770,6 +4770,11 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
+      const allow_fun  = always;
+      const forbid_fun = never;
+      
+      thing.picker.pick_one(allow_fun, forbid_fun);
+      
       const new_picker = new WeightedPicker();
 
       for (const option of thing.options) {
@@ -4808,14 +4813,14 @@ function expand_wildcards(thing, context = new Context()) {
       }
 
       if (new_picker.options.length == 0)
-        return '';
-      
-      const pick = new_picker.pick();
-      
-      console.log(`PICKED ${typeof pick} ${Array.isArray(pick)} ${inspect_fun(pick)}`);
-      
-      if (! pick)
-        return '';
+                          return '';
+                        
+                        const pick = new_picker.pick();
+                        
+                        console.log(`PICKED ${typeof pick} ${Array.isArray(pick)} ${inspect_fun(pick)}`);
+                        
+                        if (! pick)
+                          return '';
       
       // console.log(`PICKED ${inspect_fun(pick)}`);
       
