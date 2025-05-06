@@ -2434,22 +2434,24 @@ const prelude_text = disable_prelude ? '' : `
 @pro_pos_adj            := {@set_gender_if_unset {?female her   |?male his |?neuter its}}
 @pro_pos                := {@set_gender_if_unset {?female hers  |?male his |?neuter its}}
 @__digit                := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
+@__low_digit            := {<1|<2|<3|<4|<5}
 @__high_digit           := {<5|<6|<7|<8|<9}
-@random_weight          := {1. @__digit}
-@high_random_weight     := {1. @__high_digit}
-@lowish_random_weight   := {0. @__high_digit}
-// @random_weight_old      := {:1. @__digit}
-// @high_random_weight_old := {:1. @__high_digit}
-
-@pony_score_9          := {score_9,}
-@pony_score_8_up       := {score_9, score_8_up,}
-@pony_score_7_up       := {score_9, score_8_up, score_7_up,}
-@pony_score_6_up       := {score_9, score_8_up, score_7_up, score_6_up,}
-@pony_score_5_up       := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
-@pony_score_4_up       := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
-@aris_defaults         := {masterpiece, best quality, absurdres, aesthetic, 8k,
-                           high depth of field, ultra high resolution, detailed background,
-                           wide shot,}
+@low_random_weight      := { 0. @__low_digit }
+@lt1_random_weight      := { 0. @__digit     } 
+@lowish_random_weight   := { 0. @__high_digit}
+@random_weight          := {{1. @__high_digit}|{1. @__low_digit}}
+@highish_random_weight  := { 1. @__low_digit }
+@gt1_random_weight      := { 1. @__digit     }
+@high_random_weight     := { 1. @__high_digit}
+@pony_score_9           := {score_9,}
+@pony_score_8_up        := {score_9, score_8_up,}
+@pony_score_7_up        := {score_9, score_8_up, score_7_up,}
+@pony_score_6_up        := {score_9, score_8_up, score_7_up, score_6_up,}
+@pony_score_5_up        := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
+@pony_score_4_up        := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
+@aris_defaults          := {masterpiece, best quality, absurdres, aesthetic, 8k,
+                            high depth of field, ultra high resolution, detailed background,
+                            wide shot,}
 
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
@@ -4717,8 +4719,6 @@ function expand_wildcards(thing, context = new Context()) {
         res[0] = capitalize(res[0]);
       }
 
-      res = res.filter(o => o);
-      
       return thing.joiner == ','
         ? res.join(", ")
         : (thing.joiner == '&'
