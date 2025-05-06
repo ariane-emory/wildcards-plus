@@ -84,7 +84,7 @@
 }
 
 // Chance of 'artsy' mode:
-{#artsy}
+{#artsy} {?artsy \n ARTSY MODE \n}
 
 // =======================================================================================
 // make random sci-fi characters:
@@ -409,15 +409,7 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {|6 @cyborg_feature_sentence}
 {|6 @alien_feature_sentence}
 {|8 @sky_sentence}
-\n
 
 {?artsy By @wizards_artists, @wizards_artist_styles. }
 
 {?sdxl @lora @lora}
-
-
-@fruit := { apple | orange | banana | pear | strawberry }
-\n
-@6&fruit
-\n
-// @fruit @fruit @fruit @fruit @fruit 

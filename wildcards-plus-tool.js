@@ -1813,7 +1813,7 @@ const never  = () => false;
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
-    console.log(`CONSTRUCT WITH ${inspect_fun(initialOptions)}`);
+    // console.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Set();
@@ -1844,10 +1844,10 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
-    console.log(`pick from ${JSON.stringify(this)}`);
+    // console.log(`pick from ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
-      console.log(`no options!`);
+      // console.log(`no options!`);
       return null;
     }
 
@@ -1862,29 +1862,28 @@ class WeightedPicker {
     }
     
     if (this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
-      console.log(`CLEARING ${inspect_fun(this.used_indices)}!`);
+      // console.log(`CLEARING ${inspect_fun(this.used_indices)}!`);
       this.used_indices.clear();
       // return this.pick_one(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
-      console.log(`no legal options!`);
+      // console.log(`no legal options!`);
       return null;
     }
 
     if (legal_option_indices.length === 1) {
-      console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
       this.used_indices.add(legal_option_indices[0]);
       return this.options[legal_option_indices[0]][1];
     }
-    else {
-      console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
-    }
+
+    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let  total_weight = 0;
 
     for (const legal_option_ix of legal_option_indices)
-                           if (!this.used_indices.has(legal_option_ix))
+      if (!this.used_indices.has(legal_option_ix))
         total_weight += this.options[legal_option_ix][0];
 
     if (total_weight === 0)
@@ -2253,6 +2252,9 @@ const key_names = [
 // ---------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
+
+  if (is_empty_object(config))
+    return config;
 
   if (config.model) {
     config.model = config.model.toLowerCase();
@@ -4774,9 +4776,19 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const forbid_fun = o => {
+      const forbid_fun = option => {
+        for (const not_flag of option.not_flags)
+          if (context.flags.has(not_flag.name))
+            return true;
+        return false;
       };
-      const allow_fun  = always;
+      
+      const allow_fun = option => {
+        for (const check_flag of option.check_flags)
+          if (! context.flags.has(check_flag.name))
+            return false;
+        return true;
+      };
       
       const pick = thing.picker.pick_one(allow_fun, forbid_fun)?.body;
       
