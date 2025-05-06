@@ -1863,6 +1863,10 @@ class WeightedPicker {
     return res;
   }
   // -------------------------------------------------------------------------------------
+  needs_clear_to_pick_from(legal_option_indices) {
+    return this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices));
+  }
+  // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
     // console.log(`PICK_ONE!`);
     
@@ -1874,8 +1878,8 @@ class WeightedPicker {
     }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
-        
-    if (this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
+    
+    if (this.needs_clear_to_pick_from(legal_option_indices)) {
       // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       this.used_indices.clear();
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
@@ -1929,6 +1933,11 @@ class WeightedPicker {
   }
 }
 // =======================================================================================
+
+const picker_strategy = Object.freeze({
+  total:     'total',
+  used:      'used',
+});
 
 // =======================================================================================
 // WildcardPicker CLASS SECTION:
