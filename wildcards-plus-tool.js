@@ -1897,7 +1897,7 @@ class WeightedPicker {
         legal_options_total_weight += this.options[legal_option_ix][0];
 
     if (legal_options_total_weight === 0) {
-      // console.log(`TOTAL WEIGHT 3!`);
+      console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
       return null;
     }
 
