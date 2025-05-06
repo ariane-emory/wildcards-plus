@@ -4753,7 +4753,7 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const pick = thing.pick_one(allow_fun, forbid_fun, picker_strategy.used)?.body;
+      const pick = thing.pick_one(allow_fun, forbid_fun, picker_strategy.total)?.body;
 
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
