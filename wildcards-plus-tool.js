@@ -4622,7 +4622,8 @@ function expand_wildcards(thing, context = new Context()) {
     // basic types (strings and Arrays):
     // -----------------------------------------------------------------------------------
     if (typeof thing === 'string')
-      return thing
+      return thing;
+    // -----------------------------------------------------------------------------------
     else if (Array.isArray(thing)) {
       // return thing.map(x => walk(x, context));
       
