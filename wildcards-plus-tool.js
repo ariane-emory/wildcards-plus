@@ -1891,7 +1891,7 @@ class WeightedPicker {
         total_weight += this.options[legal_option_ix][0];
 
     if (total_weight === 0) {
-      console.log(`TOTAL WEIGHT 3!`);
+      // console.log(`TOTAL WEIGHT 3!`);
       return null;
     }
 
@@ -2017,6 +2017,8 @@ class WildcardPicker {
 // HELPER FUNCTIONS SECTION:
 // =======================================================================================
 function add_lora_to_array(lora, array) {
+  console.log(`Adding LoRa ${inspect_fun(lora)}!`);
+  
   const index = array.findIndex(existing => existing.file === lora.file);
   if (index !== -1) {
     array.splice(index, 1); // Remove the existing entry
@@ -5406,6 +5408,7 @@ async function main() {
     // console.log(`posted_count = ${posted_count}`);
 
     const context   = base_context.clone();
+    console.log(`Cloned: ${inspect_fun(context.add_loras)}`);
     expanded        = expand_wildcards(AST, context);
     config          = munge_config(context.config);
     const add_loras = context.add_loras;
