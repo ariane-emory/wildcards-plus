@@ -2104,6 +2104,9 @@ function unescape(str) {
 };
 // ---------------------------------------------------------------------------------------
 function smart_join(arr) {
+  if (typeof arr === 'string')
+    return arr;
+  
   arr = [...arr];
   
   // console.log(`JOINING ${inspect_fun(arr)}`);
