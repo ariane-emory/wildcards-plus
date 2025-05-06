@@ -1,4 +1,4 @@
-// ./wildcards-plus-tool.js sample-prompts/current-test.txt 2 | grep -i -e "expanding"  -e "no loras" -e "sdxl_enabled" -e "sdxl_flag"
+// ./wildcards-plus-tool.js sample-prompts/current-test.txt 2 | grep -i -e "expanding" -e "sdxl_enabled" -e "sdxl_flag" -e "HIDREAM_ALTERNATIVE"
 
 {
   0 HIDREAM_ALTERNATIVE |
