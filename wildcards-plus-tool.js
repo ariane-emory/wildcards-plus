@@ -1857,13 +1857,14 @@ class WeightedPicker {
     for (let ix = 0; ix < this.options.length; ix++) {
       const [option_weight, option_value] = this.options[ix];
       
-      if (allow_if(option_value) && !forbid_if(option_value) && !this.used_indices.has(ix))
+      if (allow_if(option_value) && !forbid_if(option_value)) //  && !this.used_indices.has(ix))
         legal_option_indices.push(ix);
     }
     
-    if (this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
+    if (this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
+      console.log(`CLEARING ${inspect_fun(this.used_indices)}!`);
       this.used_indices.clear();
-      return this.pick_one(allow_if, forbid_if);
+      // return this.pick_one(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
