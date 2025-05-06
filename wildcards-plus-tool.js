@@ -1823,7 +1823,7 @@ class WeightedPicker {
   // -------------------------------------------------------------------------------------
   pick() {
     if (this.options.length === 0)
-      throw new Error("empty");
+      return null;
 
     if (this.options.length === 1)
       return this.options[0][1];
@@ -1837,10 +1837,10 @@ class WeightedPicker {
       if (!this.used_indices.has(ix))
         total_weight += this.options[ix][0];
 
-    if ( total_weight === 0)
-      throw new Error("all weights are zero");
+    if (total_weight === 0)
+      return null;
 
-    let random = Math.floor(Math.random() * total_weight);
+    let random = Math.random() * total_weight;
 
     for (let ix = 0; ix < this.options.length; ix++) {
       if (this.used_indices.has(ix))
@@ -1888,9 +1888,6 @@ class WeightedPicker {
       if (!this.used_indices.has(ix))
         total_weight += this.options[ix][0];
     }
-
-    if (total_weight === 0)
-      throw new Error("all weights are zero");
 
     let random = Math.floor(Math.random() * total_weight);
 
