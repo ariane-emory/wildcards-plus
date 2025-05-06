@@ -414,3 +414,8 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {?artsy By @wizards_artists, @wizards_artist_styles. }
 
 {?sdxl @lora}
+
+
+@fruit := { apple orange banana pear strawberry }
+\n
+@3&fruit

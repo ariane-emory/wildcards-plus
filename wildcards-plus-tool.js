@@ -1858,8 +1858,61 @@ class WeightedPicker {
 
     throw new Error("random selection failed");
   }
+  // -------------------------------------------------------------------------------------
+  pick2(min_count = 1, max_count = 1) {
+    const available = this.options.length - this.used_indices.size;
+
+    if (available === 0)
+      throw new Error("no options left to pick");
+
+    if (min_count > available)
+      throw new Error(`Cannot pick ${min_count} items; only ${available} remaining`);
+
+    const count = Math.min(
+      Math.floor(Math.random() * (max_count - min_count + 1)) + min_count,
+      available
+    );
+
+    const results = [];
+
+    for (let i = 0; i < count; i++) 
+      results.push(this._pick_one());
+    
+    return results;
+  }
+  // ---------------------------------------------------------------------------------------
+  _pick_one() {
+    let total_weight = 0;
+
+    for (let ix = 0; ix < this.options.length; ix++) {
+      if (!this.used_indices.has(ix))
+        total_weight += this.options[ix][0];
+    }
+
+    if (total_weight === 0)
+      throw new Error("all weights are zero");
+
+    let random = Math.floor(Math.random() * total_weight);
+
+    for (let ix = 0; ix < this.options.length; ix++) {
+      if (this.used_indices.has(ix))
+        continue;
+
+      const weight = this.options[ix][0];
+
+      if (random < weight) {
+        this.used_indices.add(ix);
+        return this.options[ix][1];
+      }
+
+      random -= weight;
+    }
+
+    throw new Error("random selection failed");
+  }
+  // =====================================================================================
 }
-// =======================================================================================
+
 
 // =======================================================================================
 // WildcardPicker CLASS SECTION:
