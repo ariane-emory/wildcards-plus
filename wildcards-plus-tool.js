@@ -5009,7 +5009,9 @@ class ASTSpecialFunction {
 // ---------------------------------------------------------------------------------------
 class ASTAnonWildcard extends WeightedPicker {
   constructor(options) {
-    super(options.map(o => [o.weight, o]));
+    super(options
+          .map(o => [o.weight, o])
+          .filter(o => o.weight !== 0));
   }
 }
 // ---------------------------------------------------------------------------------------
