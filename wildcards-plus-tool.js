@@ -4650,30 +4650,76 @@ function expand_wildcards(thing, context = new Context()) {
     // References:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardReference) {
+      const forbid_fun = option => {
+        for (const not_flag of option.not_flags)
+          if (context.flags.has(not_flag.name))
+            return true;
+        return false;
+      };
+      
+      const allow_fun = option => {
+        let allowed = true;
+        
+        for (const check_flag of option.check_flags) {
+          let found = false;
+          
+          // console.log(`Look for ${inspect_fun(check_flag)} in ` +
+          //             `${inspect_fun(context.flags)} = ` +
+          //             `${context.flags.has(check_flag.name)}`);
+
+          for (const name of check_flag.names) {
+            if (context.flags.has(name)) {
+              found = true;
+              break;
+            }
+          }
+          
+          if (!found) {
+            allowed = false;
+            break;
+          }
+        }
+        
+        return allowed;
+      };
+
       const got = context.named_wildcards.get(thing.name);
 
       if (!got)
         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
-      const res = [ walk(got, context) ];
+      let res = [];
+      
+      if (got instanceof ASTLatchedNamedWildcardedValue) {
+        for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
+          res.push(walk(got, context));        
+      }
+      else {
+        console.log(`GOT: ${JSON.stringify(got)}`);
+        const raw_picks = got.picker.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
+        console.log(`RAW: ${JSON.stringify(raw_picks)}`);
+        res = raw_picks.map(p => walk(p.body, context));
+      }
+      
+      // const res = [ walk(got, context) ];
 
       if (thing.capitalize)
         res[0] = capitalize(res[0]);
       
-      const count = rand_int(thing.min_count, thing.max_count);
+      // const count = rand_int(thing.min_count, thing.max_count);
       
-      for (let ix = 1; ix < count; ix++) {
-        let val = walk(got, context);
-        
-        for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
-          if (! res.includes(val))
-            break;
+      // for (let ix = 1; ix < count; ix++) {
+      //   let val = walk(got, context);
+      
+      //   for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
+      //     if (! res.includes(val))
+      //       break;
 
-          val = walk(got, context);
-        }
+      //     val = walk(got, context);
+      //   }
 
-        res.push(val);
-      }
+      //   res.push(val);
+      // }
 
       return thing.joiner == ','
         ? res.join(", ")
@@ -5103,8 +5149,8 @@ class ASTSpecialFunction {
 // ---------------------------------------------------------------------------------------
 class ASTAnonWildcard {
   constructor(options) {
-    this.options = options;
-    this.picker = new WeightedPicker(this.options.map(o => [o.weight, o]));
+    // this.options = options;
+    this.picker = new WeightedPicker(options.map(o => [o.weight, o]));
   }
 }
 // ---------------------------------------------------------------------------------------
