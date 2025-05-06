@@ -188,70 +188,12 @@
 @place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
                  |at {a|the} @#place_to_be_at @place_to_be_at}
 
-// ---------------------------------------------------------------------------------------
-// character adjectives:
-// ---------------------------------------------------------------------------------------
-@char_early_adj :=
-{adventurous
-|androgynous
-|?neuter 2 androgynous
-|mysterious
-|solitary #solo
-|inscrutable
-|independant #solo
-|daring
-|resolute
-|brave
-|cunning
-|inhuman
-|intimidating
-|exotic
-|otherworldly
-|athletic
-|muscular
-|youthful
-|beautiful
-}
-
-// ---------------------------------------------------------------------------------------
-// roles/character types:
-// ---------------------------------------------------------------------------------------
-@role :=
-{#weapon mercenary
-|{3|hyperdrive|@ship_term} technician
-|engineer
-|communications officer
-|scientist
-|explorer
-|scout
-|wanderer
-|{2|interstellar} bounty hunter
-|soldier
-|prize fighter
-|assassin
-|medic
-|worker
-|{?traveller psion}
-|{space|star|interstellar} {trader|merchant}
-|{space|star} marine
-|@ship_term captain
-|@ship_term pilot
-|{|@ship_term} {navigator|astrogator}
-}
 
 // =======================================================================================
 // generate the prompt body:
 // =======================================================================================
-
-@aris_defaults, science fiction, {|futuristic,} {2|greebles,|greeblies,}
-{|#traveller Traveller RPG,} {|#traveller GDW,} {|#traveller Third Imperium,}
-hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time,
-.
-
-\n\n
-
 A piece {which depicts|depicting} a 
-@role
+wanderr
 @place_phrase 
 .
 
