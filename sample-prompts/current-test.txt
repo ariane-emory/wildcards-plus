@@ -33,7 +33,7 @@
   | 1 %config({ "width": 640, "height": 640 })
   }
 
-| 0 // Hidream with some basic settings that seem to work alright:
+| 3 // Hidream with some basic settings that seem to work alright:
   %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50 })
 
   { 8 %config.cfg_scale(5.0 ) | 7 %config.cfg_scale(10.0) | 6 %config.cfg_scale(15.0) | 5 %config.cfg_scale(20.0)
@@ -413,7 +413,7 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 
 {?artsy By @wizards_artists, @wizards_artist_styles. }
 
-{?sdxl @lora}
+{?sdxl @lora @lora}
 
 
 @fruit := { apple | orange | banana | pear | strawberry }

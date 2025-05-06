@@ -1809,7 +1809,7 @@ Jsonc.finalize();
 // =======================================================================================
 const always = () => true;
 const never  = () => false;
-// -------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
@@ -1839,40 +1839,44 @@ class WeightedPicker {
     if (this.options.length === 0)
       return null;
 
-    const legal_options = [];
+    const legal_option_indices       = [];
     const legal_options_total_weight = 0;
     
-    for (const option of this.options) {
-      if (allow_if(option[1]) && !forbid_if(option[1]))
-        legal_options.push(option);
+    for (let ix = 0; ix < this.options.length; ix++) {
+      const [option_weight, option_value] = this.options[ix];
+      
+      if (allow_if(option_value) && !forbid_if(option_value) && !this.used_indices.has(ix))
+        legal_option_indices.push(ix);
     }
+    
+    if (legal_option_indices.length === 1)
+      return this.options[legal_option_indices[0]][1];
 
-    if (legal_options.length === 1)
-      return this.options[0][1];
-
-    if (this.used_indices.isSupersetOf(new Set(legal_options)))
+    if (this.used_indices.isSupersetOf(new Set(legal_option_indices)))
       this.used_indices.clear();
 
     let  total_weight = 0;
 
-    for (let ix = 0; ix < legal_options.length; ix++)
-      if (!this.used_indices.has(ix))
-        total_weight += legal_options[ix][0];
+    // for (let ix = 0; ix < legal_options.length; ix++)
+    for (const legal_option_ix of legal_option_indices)
+      if (!this.used_indices.has(legal_option_ix))
+        total_weight += this.options[legal_option_ix][0];
 
     if (total_weight === 0)
       return null;
 
     let random = Math.random() * total_weight;
 
-    for (let ix = 0; ix < legal_options.length; ix++) {
-      if (this.used_indices.has(ix))
+    // for (let ix = 0; ix < legal_options_indexes.length; ix++) {
+    for (const legal_option_ix of legal_option_indices) {
+      if (this.used_indices.has(legal_option_ix))
         continue;
 
-      const weight = legal_options[ix][0];
+      const weight = this.options[legal_option_ix][0];
       
       if (random < weight) {
-        this.used_indices.add(ix);
-        return legal_options[ix][1];
+        this.used_indices.add(legal_option_ix);
+        return this.options[legal_option_ix][1];
       }
 
       random -= weight;
