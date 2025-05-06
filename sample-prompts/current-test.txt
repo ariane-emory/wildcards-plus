@@ -48,7 +48,7 @@
 |?ship,station #indoors helm
 |?ship,station 2 #indoors {|navigation|control|sensor|computer} console
 }
-@place_to_be_in_adj := 
+
 @place_phrase := {2 in {a|the} @#place_to_be_in {noisy} @place_to_be_in }
  
 
