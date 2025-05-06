@@ -4623,40 +4623,39 @@ function load_prelude(into_context = new Context()) {
 // THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =======================================================================================
 function expand_wildcards(thing, context = new Context()) {
-  function walk(thing, context) {
-    const forbid_fun = option => {
-      for (const not_flag of option.not_flags)
-        if (context.flags.has(not_flag.name))
-          return true;
-      return false;
-    };
+  function forbid_fun(option) {
+    for (const not_flag of option.not_flags)
+      if (context.flags.has(not_flag.name))
+        return true;
+    return false;
+  };
+  
+  function allow_fun(option) {
+    let allowed = true;
     
-    const allow_fun = option => {
-      let allowed = true;
+    for (const check_flag of option.check_flags) {
+      let found = false;
       
-      for (const check_flag of option.check_flags) {
-        let found = false;
-        
-        // console.log(`Look for ${inspect_fun(check_flag)} in ` +
-        //             `${inspect_fun(context.flags)} = ` +
-        //             `${context.flags.has(check_flag.name)}`);
+      // console.log(`Look for ${inspect_fun(check_flag)} in ` +
+      //             `${inspect_fun(context.flags)} = ` +
+      //             `${context.flags.has(check_flag.name)}`);
 
-        for (const name of check_flag.names) {
-          if (context.flags.has(name)) {
-            found = true;
-            break;
-          }
-        }
-        
-        if (!found) {
-          allowed = false;
+      for (const name of check_flag.names) {
+        if (context.flags.has(name)) {
+          found = true;
           break;
         }
       }
       
-      return allowed;
-    };
+      if (!found) {
+        allowed = false;
+        break;
+      }
+    }
     
+    return allowed;
+  };
+  function walk(thing, context) {
     // -----------------------------------------------------------------------------------
     // basic types (strings and Arrays):
     // -----------------------------------------------------------------------------------
@@ -4722,8 +4721,8 @@ function expand_wildcards(thing, context = new Context()) {
       res = res.filter(o => o);
       
       return thing.joiner == ','
-          ? res.join(", ")
-          : (thing.joiner == '&'
+        ? res.join(", ")
+        : (thing.joiner == '&'
            ? pretty_list(res)
            : res.join(" "));
     }
