@@ -68,14 +68,15 @@
   | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) | %config.cfg_scale(9.0) | %config.cfg_scale(10.0) }
 
   // lots of models pick from:
-  { 4 %config.model("bookIllustrationChar_v10_f16")
-  | 4 %config.model("challengexlv10yoursecret_v10_f16")
-  | 0 %config.model("cyberrealisticpony_v10_f16") {@pony_score_7_up|@pony_score_8_up}
-  | 0 %config.model("cyberrealisticpony_v90alt1_f16")
-  | 2 %config.model("cyberrealisticxl_v56_f16")
-  | 4 %config.model("nightvisionxl_v900_f16")
-  | 8 %config.model("oldmaster_v30_f16")
-  | 6 %config.model("zavychromaxl_v100_f16")
+  { 4 %config.model("bookIllustrationChar_v10")
+  | 4 %config.model("challengexlv10yoursecret_v10")
+  | 0 %config.model("cyberrealisticpony_v10") {@pony_score_7_up|@pony_score_8_up}
+  | 0 %config.model("cyberrealisticpony_v90alt1")
+  | 2 %config.model("cyberrealisticxl_v56")
+  | 4 %config.model("nightvisionxl_v900")
+  | 8 %config.model("oldmaster_v30")
+  | 4 %config.model("zavychromaxl_v100")
+  | 24 %config.model("comicbookxl_v10")
   }
 }
 

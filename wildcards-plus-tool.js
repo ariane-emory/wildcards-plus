@@ -5410,6 +5410,7 @@ async function main() {
 
     const context   = base_context.clone();
     console.log(`Cloned: ${inspect_fun(context.add_loras)}`);
+    console.log(`AST:    ${inspect_fun(AST)}`);
     expanded        = expand_wildcards(AST, context);
     config          = munge_config(context.config);
     const add_loras = context.add_loras;
