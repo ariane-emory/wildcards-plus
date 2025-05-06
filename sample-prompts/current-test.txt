@@ -1,22 +1,5 @@
 // ./wildcards-plus-tool.js sample-prompts/current-test.txt 2 | grep -i -e "expanding"  -e "no loras" -e "sdxl_enabled" -e "sdxl_flag"
 
-// =======================================================================================
-// use wildcards to randomize some parts of the configuration before we get on with the
-// actual textual content of the prompt:
-// =======================================================================================
-
-// @lora_names :=
-// { mj52_v2.0
-// | ethereon
-// | trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
-// | add_detail_xl
-// | detailed_notrigger
-// | xl_more_art_full_v1
-// }
-
-// // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
-// @lora := { <lora:@lora_names: @lowish_random_weight> }
-
 {
   0 HIDREAM_ALTERNATIVE |
   3 // various SDXL models:
@@ -25,4 +8,4 @@
 }
 
 {?SDXL_FLAG SDXL_ENABLED} \n
-{?SDXL_FLAG SDXL mode @3lora} \n
+
