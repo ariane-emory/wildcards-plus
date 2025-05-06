@@ -1839,41 +1839,40 @@ class WeightedPicker {
     if (this.options.length === 0)
       return null;
 
-    // if (this.options.length === 1)
-    //   return this.options[0][1];
-
-    const legal_options = new Set();
+    const legal_options = [];
     const legal_options_total_weight = 0;
     
     for (const option of this.options) {
       if (allow_if(option[1]) && !forbid_if(option[1]))
-        legal_options.add(option);
+        legal_options.push(option);
     }
 
-    
-    if (this.used_indices.size === this.options.length)
+    if (legal_options.length === 1)
+      return this.options[0][1];
+
+    if (this.used_indices.isSupersetOf(new Set(legal_options)))
       this.used_indices.clear();
 
     let  total_weight = 0;
 
-    for (let ix = 0; ix < this.options.length; ix++)
+    for (let ix = 0; ix < legal_options.length; ix++)
       if (!this.used_indices.has(ix))
-        total_weight += this.options[ix][0];
+        total_weight += legal_options[ix][0];
 
     if (total_weight === 0)
       return null;
 
     let random = Math.random() * total_weight;
 
-    for (let ix = 0; ix < this.options.length; ix++) {
+    for (let ix = 0; ix < legal_options.length; ix++) {
       if (this.used_indices.has(ix))
         continue;
 
-      const weight = this.options[ix][0];
+      const weight = legal_options[ix][0];
       
       if (random < weight) {
         this.used_indices.add(ix);
-        return this.options[ix][1];
+        return legal_options[ix][1];
       }
 
       random -= weight;
