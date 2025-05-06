@@ -4784,9 +4784,12 @@ function expand_wildcards(thing, context = new Context()) {
       };
       
       const allow_fun = option => {
-        for (const check_flag of option.check_flags)
+        for (const check_flag of option.check_flags) {
+          console.log(`Look for ${check_flag.name} in ${inspect_fun(context.flags)} = ` +
+                      `${context.flags.has(check_flag.name)}`);
           if (! context.flags.has(check_flag.name))
             return false;
+        }
         return true;
       };
       
