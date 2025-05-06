@@ -5366,15 +5366,16 @@ async function main() {
     console.log('================================================================================');
     // console.log(`posted_count = ${posted_count}`);
 
-    const context   = base_context.clone();
+    const context    = base_context.clone();
     // console.log(`Cloned: ${inspect_fun(context.add_loras)}`);
     // console.log(`AST:    ${inspect_fun(AST)}`);
-    expanded        = expand_wildcards(AST, context);
-    config          = munge_config(context.config);
-    const add_loras = context.add_loras;
-
-    if (add_loras && add_loras.length > 0) {
-      console.log('--------------------------------------------------------------------------------');
+    expanded         = expand_wildcards(AST, context);
+    config           = munge_config(context.config);
+    const add_loras  = context.add_loras;
+    const have_loras = add_loras && add_loras.length > 0;
+    
+    if (have_loras) {
+      console.log('-------------------------------------------------------------------------------');
       if (log_config_enabled)
         // console.log(`Found ${add_loras.length} LoRAs in context.add_loras: ${inspect_fun(add_loras)}`);
         console.log(`Found ${add_loras.length} LoRAs in context.add_loras:`);
