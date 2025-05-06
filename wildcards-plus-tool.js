@@ -5428,6 +5428,7 @@ async function main() {
 
       if (log_config_enabled && ! is_empty_object(config))
         console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
+      console.log(`Config has ${config?.loras.length ?? -1} LoRAs`);
     }
     
     console.log(`--------------------------------------------------------------------------------`);
