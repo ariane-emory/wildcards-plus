@@ -1848,18 +1848,21 @@ class WeightedPicker {
     return res;
   }
   // -------------------------------------------------------------------------------------
+  __gather_legal_option_indices(allow_if, forbid_if) {
+  }
+  // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
     console.log(`PICK_ONE!`);
     
     // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
-      console.log(`NO OPTIONS 1!`);
+      console.log(`PICK_ONE: NO OPTIONS 1!`);
       return null;
     }
 
     const legal_option_indices       = [];
-    const legal_options_total_weight = 0;
+    // const legal_options_total_weight = 0;
     
     for (let ix = 0; ix < this.options.length; ix++) {
       const [option_weight, option_value] = this.options[ix];
@@ -1869,13 +1872,13 @@ class WeightedPicker {
     }
     
     if (this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
-      // console.log(`CLEARING ${inspect_fun(this.used_indices)}!`);
+      console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       this.used_indices.clear();
       // return this.pick_one(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
-      // console.log(`NO LEGAL OPTIONS 2!`);
+      console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
       return null;
     }
 
@@ -1887,18 +1890,18 @@ class WeightedPicker {
 
     // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
-    let  total_weight = 0;
+    let legal_options_total_weight = 0;
 
     for (const legal_option_ix of legal_option_indices)
       if (!this.used_indices.has(legal_option_ix))
-        total_weight += this.options[legal_option_ix][0];
+        legal_options_total_weight += this.options[legal_option_ix][0];
 
-    if (total_weight === 0) {
+    if (legal_options_total_weight === 0) {
       // console.log(`TOTAL WEIGHT 3!`);
       return null;
     }
 
-    let random = Math.random() * total_weight;
+    let random = Math.random() * legal_options_total_weight;
 
     // for (let ix = 0; ix < legal_options_indexes.length; ix++) {
     for (const legal_option_ix of legal_option_indices) {
