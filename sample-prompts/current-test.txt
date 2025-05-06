@@ -51,12 +51,13 @@
   <lora:sdxl_lightning_8step_lora:1.0>
 
   %config.steps(10)
-
+  %config.n_iter(2)
+  
   // three possible resolutions:
   {
-  2 %config({"width": 1280, "height":960 }) |
-  2 %config({"width": 960,  "height":1280}) |
-  2 %config({"width": 1920, "height":1080}) 
+  2 %config({"width": 1280, "height":640 }) |
+  2 %config({"width": 640,  "height":1280}) |
+  6 %config({"width": 1920, "height":1080}) 
   }
 
   // three possible 'shift' values:
