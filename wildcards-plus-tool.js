@@ -5414,9 +5414,6 @@ async function main() {
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   let   AST          = result.value;
   
-  // do some new special walk over AST to handle 'include' SpecialFunctions,
-  // updating files as we go and bodging result back onto (or replacing?) AST?
-
   if (print_before_ast_enabled) {
     console.log('--------------------------------------------------------------------------------');
     console.log(`before process_includes:`);

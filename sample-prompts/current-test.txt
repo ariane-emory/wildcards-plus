@@ -13,7 +13,7 @@
 }
 
 // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
-@lora := { <lora:@lora_names: @random_weight> }
+@lora := { <lora:@lora_names: @lowish_random_weight> }
 
 { 0
   // devMODE
