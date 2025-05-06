@@ -1654,6 +1654,163 @@ Jsonc.finalize();
 
 
 // =======================================================================================
+const always = () => true;
+const never  = () => false;
+// ---------------------------------------------------------------------------------------
+class WeightedPicker {
+  // -------------------------------------------------------------------------------------
+  constructor(initialOptions = []) {
+    // console.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
+    
+    this.options = []; // array of [weight, value]
+    this.used_indices = new Set();
+
+    for (const [weight, value] of initialOptions)
+      this.add(weight, value);
+  }
+  // -------------------------------------------------------------------------------------
+  add(weight, value) {
+    this.options.push([weight, value]);
+  }
+  // -------------------------------------------------------------------------------------
+  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+
+    const res = [];
+    
+    for (let ix = 0; ix < count; ix++) {
+      const pick = this.pick_one(allow_if, forbid_if);
+
+      // if (pick)
+      res.push(pick);
+    }
+
+    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+    
+    return res;
+  }
+  // -------------------------------------------------------------------------------------
+  pick_one(allow_if, forbid_if) {
+    // console.log(`PICK FROM ${JSON.stringify(this)}`);
+
+    if (this.options.length === 0) {
+      console.log(`NO OPTIONS 1!`);
+      return null;
+    }
+
+    const legal_option_indices       = [];
+    const legal_options_total_weight = 0;
+    
+    for (let ix = 0; ix < this.options.length; ix++) {
+      const [option_weight, option_value] = this.options[ix];
+      
+      if (allow_if(option_value) && !forbid_if(option_value)) //  && !this.used_indices.has(ix))
+        legal_option_indices.push(ix);
+    }
+    
+    if (this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
+      // console.log(`CLEARING ${inspect_fun(this.used_indices)}!`);
+      this.used_indices.clear();
+      // return this.pick_one(allow_if, forbid_if);
+    }
+    
+    if (legal_option_indices.length === 0) {
+      // console.log(`NO LEGAL OPTIONS 2!`);
+      return null;
+    }
+
+    if (legal_option_indices.length === 1) {
+      // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      this.used_indices.add(legal_option_indices[0]);
+      return this.options[legal_option_indices[0]][1];
+    }
+
+    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+
+    let  total_weight = 0;
+
+    for (const legal_option_ix of legal_option_indices)
+      if (!this.used_indices.has(legal_option_ix))
+        total_weight += this.options[legal_option_ix][0];
+
+    if (total_weight === 0) {
+      console.log(`TOTAL WEIGHT 3!`);
+      return null;
+    }
+
+    let random = Math.random() * total_weight;
+
+    // for (let ix = 0; ix < legal_options_indexes.length; ix++) {
+    for (const legal_option_ix of legal_option_indices) {
+      if (this.used_indices.has(legal_option_ix))
+        continue;
+
+      const [option_weight, option_value] = this.options[legal_option_ix];
+      
+      if (random < option_weight) {
+        this.used_indices.add(legal_option_ix);
+        return option_value;
+      }
+
+      random -= option_weight;
+    }
+
+    throw new Error("random selection failed");
+  }
+  // // -------------------------------------------------------------------------------------
+  // pick2(min_count = 1, max_count = 1) {
+  //   const available = this.options.length - this.used_indices.size;
+
+  //   if (available === 0)
+  //     throw new Error("no options left to pick");
+
+  //   if (min_count > available)
+  //     throw new Error(`Cannot pick ${min_count} items; only ${available} remaining`);
+
+  //   const count = Math.min(
+  //     Math.floor(Math.random() * (max_count - min_count + 1)) + min_count,
+  //     available
+  //   );
+
+  //   const results = [];
+
+  //   for (let i = 0; i < count; i++) 
+  //     results.push(this._pick_one());
+  
+  //   return results;
+  // }
+  // // ---------------------------------------------------------------------------------------
+  // _pick_one() {
+  //   let total_weight = 0;
+
+  //   for (let ix = 0; ix < this.options.length; ix++) {
+  //     if (!this.used_indices.has(ix))
+  //       total_weight += this.options[ix][0];
+  //   }
+
+  //   let random = Math.floor(Math.random() * total_weight);
+
+  //   for (let ix = 0; ix < this.options.length; ix++) {
+  //     if (this.used_indices.has(ix))
+  //       continue;
+
+  //     const weight = this.options[ix][0];
+
+  //     if (random < weight) {
+  //       this.used_indices.add(ix);
+  //       return this.options[ix][1];
+  //     }
+
+  //     random -= weight;
+  //   }
+
+  //   throw new Error("random selection failed");
+  // }
+  // // =====================================================================================
+}
+
+
+// =======================================================================================
 // WildcardPicker CLASS SECTION:
 // =======================================================================================
 class WildcardPicker {
@@ -1677,11 +1834,11 @@ class WildcardPicker {
   }
   // -------------------------------------------------------------------------------------
   pick() {
-    if (this.options.length == 1) {
-      // console.log(`one option: ${inspect_fun(this.options[0][1])}`);
-
+    if (this.options.length == 0)
+      throw new Error("empty");
+    
+    if (this.options.length == 1) 
       return this.options[0][1];
-    }
     
     let   total   = 0;
     const random  = Math.random() * this.range;
@@ -1703,15 +1860,22 @@ class WildcardPicker {
 // HELPER FUNCTIONS SECTION:
 // =======================================================================================
 function add_lora_to_array(lora, array) {
-  for (const existing_lora of array) {
-    if (lora.file === existing_lora.file) {
-      existing_lora.weight = lora.weight;
-      return;
-    }
+  const index = array.findIndex(existing => existing.file === lora.file);
+  if (index !== -1) {
+    array.splice(index, 1); // Remove the existing entry
   }
-
-  array.push(lora);      
+  array.push(lora); // Add the new entry at the end
 }
+// function add_lora_to_array(lora, array) {
+//   for (const existing_lora of array) {
+//     if (lora.file === existing_lora.file) {
+//       existing_lora.weight = lora.weight;
+//       return;
+//     }
+//   }
+
+//   array.push(lora);      
+// }
 // -------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
@@ -1739,7 +1903,7 @@ function pretty_list(arr) {
 }
 // ---------------------------------------------------------------------------------------
 function capitalize(string) {
-  // console.log(`CAPITALIZING '${string}'`);
+  // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 // ---------------------------------------------------------------------------------------
@@ -1787,7 +1951,13 @@ function unescape(str) {
 };
 // ---------------------------------------------------------------------------------------
 function smart_join(arr) {
-  arr = [...arr];
+  if (! arr)
+    return arr;
+  
+  if (typeof arr === 'string')
+    return arr;
+  
+  arr = [...arr.filter(x=> x)];
   
   // console.log(`JOINING ${inspect_fun(arr)}`);
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
@@ -1799,10 +1969,10 @@ function smart_join(arr) {
   let str       = left_word;
 
   for (let ix = 1; ix < arr.length; ix++)  {
-    let right_word = null;
-    let prev_char = null;
-    let prev_char_is_escaped = null
-    let next_char = null;
+    let right_word           = null;
+    let prev_char            = null;
+    let prev_char_is_escaped = null;
+    let next_char            = null;
 
     const update_pos_vars = () => {
       right_word           = arr[ix]?.toString() ?? "";
@@ -1821,8 +1991,15 @@ function smart_join(arr) {
 
     update_pos_vars();
     
-    if (prev_char === ',' && right_word === ',')
+    if (right_word === '') {
+      // console.log(`JUMP EMPTY!`);
       continue;
+    }
+
+    if (prev_char === ',' && right_word === ',') {
+      // console.log(`JUMP COMMA!`);
+      continue;
+    }
 
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
       shift_left(3);
@@ -1889,9 +2066,6 @@ function smart_join(arr) {
     str += left_word;
   }
 
-  // console.log(`before = '${str}'`);
-  // console.log(`after  = '${unescape(str)}'`);
-
   return unescape(str);
 }
 // =======================================================================================
@@ -1938,7 +2112,12 @@ const key_names = [
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = { ...config };
 
+  if (is_empty_object(config))
+    return config;
+
   if (config.model) {
+    config.model = config.model.toLowerCase();
+    
     if (config.model.endsWith('_f16.ckpt')) {
       // do nothing
     }
@@ -2009,6 +2188,35 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 // =======================================================================================
 // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
 // =======================================================================================
+class DelayedAction {
+  // -------------------------------------------------------------------------------------
+  constructor(identifier_string, thunk) {
+    this.identifier_string = identifier_string;
+    this.thunk = thunk;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class FalseText {
+  // -------------------------------------------------------------------------------------
+  constructor(text) {
+    this.text = text;
+  }
+}
+// ---------------------------------------------------------------------------------------
+function loose_includes(needle, arr) {
+  for (const elem of arr) {
+    if (elem instanceof DelayedAction &&
+        needle instanceof DelayedAction &&
+        elem.identifier_string === needle.identifier_string)
+      return true;
+    else if (elem === needle) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+// ---------------------------------------------------------------------------------------
 class Context {
   constructor({ 
     flags = new Set(),
@@ -2045,6 +2253,8 @@ class Context {
       named_wildcards: new Map(this.named_wildcards),
       noisy: this.noisy,
       files: [...this.files],
+      config: { ...this.config }, /// ???
+      add_loras: [...this.add_loras.map(o => ({ file: o.file, weigh: o.weight })) ], 
       top_file: this.top_file,
     });
   }
@@ -2056,6 +2266,8 @@ class Context {
       named_wildcards: this.named_wildcards,
       noisy: this.noisy,
       files: this.files,
+      config: this.config,
+      add_loras: this.add_loras,
       top_file: false, // deliberately not copied!
     });
   }
@@ -4263,7 +4475,8 @@ function expand_wildcards(thing, context = new Context()) {
     // basic types (strings and Arrays):
     // -----------------------------------------------------------------------------------
     if (typeof thing === 'string')
-      return thing
+      return thing;
+    // -----------------------------------------------------------------------------------
     else if (Array.isArray(thing)) {
       // return thing.map(x => walk(x, context));
       
@@ -4297,31 +4510,60 @@ function expand_wildcards(thing, context = new Context()) {
     // References:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardReference) {
+      const forbid_fun = option => {
+        for (const not_flag of option.not_flags)
+          if (context.flags.has(not_flag.name))
+            return true;
+        return false;
+      };
+      
+      const allow_fun = option => {
+        let allowed = true;
+        
+        for (const check_flag of option.check_flags) {
+          let found = false;
+          
+          for (const name of check_flag.names) {
+            if (context.flags.has(name)) {
+              found = true;
+              break;
+            }
+          }
+          
+          if (!found) {
+            allowed = false;
+            break;
+          }
+        }
+        
+        return allowed;
+      };
+
       const got = context.named_wildcards.get(thing.name);
 
       if (!got)
         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
-      const res = [ walk(got, context) ];
-
-      if (thing.capitalize)
-        res[0] = capitalize(res[0]);
-
-      const count = rand_int(thing.min_count, thing.max_count);
+      let res = [];
       
-      for (let ix = 1; ix < count; ix++) {
-        let val = walk(got, context);
-        
-        for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
-          if (! res.includes(val))
-            break;
-
-          val = walk(got, context);
-        }
-
-        res.push(val);
+      if (got instanceof ASTLatchedNamedWildcardedValue) {
+        for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
+          res.push(walk(got, context));        
+      }
+      else {
+        // console.log(`GOT: ${JSON.stringify(got)}`);
+        const raw_picks = got.picker.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
+        // console.log(`RAW: ${JSON.stringify(raw_picks)}`);
+        res = raw_picks.map(p => smart_join(walk(p?.body ?? '', context)));
+      }
+      
+      if (thing.capitalize) {
+        // console.log(`CAPITALIZING ${inspect_fun(res[0])}`);
+        res[0] = capitalize(res[0]);
       }
 
+      res = res.filter(o => o);
+      
       return thing.joiner == ','
         ? res.join(", ")
         : (thing.joiner == '&'
@@ -4423,63 +4665,47 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const new_picker = new WildcardPicker();
-
-      for (const option of thing.options) {
-        let skip = false;
-
-        // if (option.not_flags.length > 1)
-        //   console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
-        
-        for (const not_flag of option.not_flags) {
-          // console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
-
-          if (context.flags.has(not_flag.name)) {
-            // console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
-            skip = true;
-            break;
-          }
-        }
-
-        if (skip)
-          continue;
+      const forbid_fun = option => {
+        for (const not_flag of option.not_flags)
+          if (context.flags.has(not_flag.name))
+            return true;
+        return false;
+      };
+      
+      const allow_fun = option => {
+        let allowed = true;
         
         for (const check_flag of option.check_flags) {
-          // if (context.noisy)
-          //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
-
           let found = false;
           
+          // console.log(`Look for ${inspect_fun(check_flag)} in ` +
+          //             `${inspect_fun(context.flags)} = ` +
+          //             `${context.flags.has(check_flag.name)}`);
+
           for (const name of check_flag.names) {
-            // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
-            
             if (context.flags.has(name)) {
-              // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
               found = true;
               break;
             }
           }
-
+          
           if (!found) {
-            skip = true;
+            allowed = false;
             break;
           }
         }
+        
+        return allowed;
+      };
+      
+      const pick = thing.picker.pick_one(allow_fun, forbid_fun)?.body;
 
-        if (skip)
-          continue;
-
-        new_picker.add(option.weight, option.body);
-      }
-
-      if (new_picker.options.length == 0)
+      if (! pick)
         return '';
       
-      const pick = new_picker.pick();
-
-      // console.log(`PICKED ${inspect_fun(pick)}`);
+      // // console.log(`PICKED ${inspect_fun(pick)}`);
       
-      return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
+      return smart_join(walk(pick, context).flat(Infinity).filter(s => s));
       // return walk(pick, context);
     }
     // -----------------------------------------------------------------------------------
@@ -4591,18 +4817,29 @@ function expand_wildcards(thing, context = new Context()) {
       return thing.toString();
     }
     // -----------------------------------------------------------------------------------
+    // null gets passed through:
+    // -----------------------------------------------------------------------------------
+    else if (thing === null) {
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
     // -----------------------------------------------------------------------------------
     else {
       throw new Error(`confusing thing: ` +
                       (typeof thing === 'object'
-                       ? thing.constructor.name
+                       ? thing?.constructor.name
                        : typeof thing) +
                       ' ' +
                       inspect_fun(thing));
     }
   }
-  return smart_join(walk(thing, context).flat(Infinity).filter(s => s !== ''));
+  
+  let walked = walk(thing, context);
+  console.log(`WALK GAVE: ${typeof walked} ${inspect_fun(walked)}`);
+  walked = walked.flat(Infinity).filter(s => s);
+  console.log(`FITERING GAVE: ${typeof walked} ${inspect_fun(walked)}`);
+  return smart_join(walked);
 }
 // =======================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -4716,7 +4953,8 @@ class ASTSpecialFunction {
 // ---------------------------------------------------------------------------------------
 class ASTAnonWildcard {
   constructor(options) {
-    this.options = options;
+    // this.options = options;
+    this.picker = new WeightedPicker(options.map(o => [o.weight, o]));
   }
 }
 // ---------------------------------------------------------------------------------------
