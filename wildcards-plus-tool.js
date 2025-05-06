@@ -10,7 +10,10 @@
 // The script takes a file name as its first argument, and an optional second argument
 // specifying how many expansions you'd like to see.
 //
-// Usage: ./wildcards-plus-tool.js <input-file> [<count>]
+// Usage: ./wildcards-plus-tool.js [-p|-c] <input-file> [<count>]
+// 
+// -p: POST the image generation requests to a local instance of Draw Things.
+// -c: as -p, but prompting for confirmation before POSTing each prompt.
 //
 // Example of usage:
 // $ ./wildcards-plus-tester.js ./sample-prompts/fantasy-character.txt 3
