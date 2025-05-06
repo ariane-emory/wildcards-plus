@@ -84,7 +84,7 @@
 }
 
 // Chance of 'artsy' mode:
-{#artsy} {?artsy \n ARTSY MODE \n}
+{#artsy}
 
 // =======================================================================================
 // make random sci-fi characters:

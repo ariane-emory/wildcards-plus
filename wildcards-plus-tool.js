@@ -4784,13 +4784,29 @@ function expand_wildcards(thing, context = new Context()) {
       };
       
       const allow_fun = option => {
+        let allowed = true;
+        
         for (const check_flag of option.check_flags) {
-          console.log(`Look for ${check_flag.name} in ${inspect_fun(context.flags)} = ` +
+          let found = false;
+          
+          console.log(`Look for ${inspect_fun(check_flag)} in ` +
+                      `${inspect_fun(context.flags)} = ` +
                       `${context.flags.has(check_flag.name)}`);
-          if (! context.flags.has(check_flag.name))
-            return false;
+
+          for (const name of check_flag.names) {
+            if (context.flags.has(name)) {
+              found = true;
+              break;
+            }
+          }
+          
+          if (!found) {
+            allowed = false;
+            break;
+          }
         }
-        return true;
+        
+        return allowed;
       };
       
       const pick = thing.picker.pick_one(allow_fun, forbid_fun)?.body;
