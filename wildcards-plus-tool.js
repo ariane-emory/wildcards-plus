@@ -4623,13 +4623,14 @@ function load_prelude(into_context = new Context()) {
 // THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =======================================================================================
 function expand_wildcards(thing, context = new Context()) {
+  // -----------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
       if (context.flags.has(not_flag.name))
         return true;
     return false;
   };
-  
+  // -------------------------------------------------------------------------------------
   function allow_fun(option) {
     let allowed = true;
     
@@ -4655,7 +4656,8 @@ function expand_wildcards(thing, context = new Context()) {
     
     return allowed;
   };
-  function walk(thing, context) {
+  // -------------------------------------------------------------------------------------
+  function walk(thing) {
     // -----------------------------------------------------------------------------------
     // basic types (strings and Arrays):
     // -----------------------------------------------------------------------------------
@@ -4663,8 +4665,6 @@ function expand_wildcards(thing, context = new Context()) {
       return thing;
     // -----------------------------------------------------------------------------------
     else if (Array.isArray(thing)) {
-      // return thing.map(x => walk(x, context));
-      
       const ret = [];
 
       for (const t of thing) {
@@ -4674,9 +4674,7 @@ function expand_wildcards(thing, context = new Context()) {
                       ? inspect_fun(t)
                       : `${typeof t} '${t}'`);
         
-        const val = walk(t, context);
-
-        ret.push(val);
+        ret.push(walk(t));
       }
 
       return ret;
