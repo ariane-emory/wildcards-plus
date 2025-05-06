@@ -236,7 +236,7 @@ let log_config_enabled        = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let log_misc_enabled          = true;
-let disable_prelude           = true;
+let disable_prelude           = false;
 let print_before_ast_enabled  = false;
 let print_after_ast_enabled   = false;
 // ---------------------------------------------------------------------------------------
