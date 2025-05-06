@@ -1831,18 +1831,18 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   add(weight, value) {
-    this.options.push([weight, value]);
+    this.options.push({weight: weight, value: value });
   }
   // -------------------------------------------------------------------------------------
   __gather_legal_option_indices(allow_if, forbid_if) {
     const legal_option_indices = [];
     
     for (let ix = 0; ix < this.options.length; ix++) {
-      const [option_weight, option_value] = this.options[ix];
+      const option = this.options[ix];
       
-      if (option_weight !== 0 &&
-          allow_if(option_value) &&
-          !forbid_if(option_value))
+      if (option.weight !== 0 &&
+          allow_if(option.value) &&
+          !forbid_if(option.value))
         legal_option_indices.push(ix);
     }
 
@@ -1921,7 +1921,7 @@ class WeightedPicker {
     if (legal_option_indices.length === 1) {
       // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
       this.__record_index_usage(legal_option_indices[0]);
-      return this.options[legal_option_indices[0]][1];
+      return this.options[legal_option_indices[0]].value;
     }
 
     // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
@@ -1930,7 +1930,7 @@ class WeightedPicker {
 
     for (const legal_option_ix of legal_option_indices)
       if (!this.used_indices.has(legal_option_ix))
-        legal_options_total_weight += this.options[legal_option_ix][0];
+        legal_options_total_weight += this.options[legal_option_ix].weight;
 
     // Since we now avoid adding options with a weight of 0, this shouldnever be true:
     if (legal_options_total_weight === 0) {
@@ -1947,14 +1947,14 @@ class WeightedPicker {
       if (this.used_indices.has(legal_option_ix))
         continue;
 
-      const [option_weight, option_value] = this.options[legal_option_ix];
+      const option = this.options[legal_option_ix];
       
-      if (random < option_weight) {
+      if (random < option.weight) {
         this.__record_index_usage(legal_option_ix);
-        return option_value;
+        return option.value;
       }
 
-      random -= option_weight;
+      random -= option.weight;
     }
 
     throw new Error("random selection failed");
