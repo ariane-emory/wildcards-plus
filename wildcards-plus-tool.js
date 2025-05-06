@@ -5095,18 +5095,6 @@ const A1111StyleLora = xform(arr => new ASTLora(arr[3],
                                      ':',
                                      choice(A1111StyleLoraWeight, () => LimitedContent),
                                      '>'));
-// const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
-//                                              ? arr[3]
-//                                              : `${arr[3]}.ckpt`),
-//                                             arr[5]),
-//                          wst_seq('<', 'lora', ':', filename, ':', A1111StyleLoraWeight, '>'));
-// remmove these soon:
-const uninteresting = r(/[^<]+/);
-const phase2_prompt = star(choice(
-  A1111StyleLora,
-  uninteresting,
-  '<',
-));
 // ---------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // ---------------------------------------------------------------------------------------
