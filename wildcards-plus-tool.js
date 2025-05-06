@@ -1949,7 +1949,8 @@ class WeightedPicker {
 
     // Since we now avoid adding options with a weight of 0, this shouldnever be true:
     if (legal_options_total_weight === 0) {
-      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, should not happen?`);
+      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
+                      `legal_option_indices = ${inspect_fun(legal_option_indices)}`);
 
       // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
       // return null;
