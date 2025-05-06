@@ -1844,7 +1844,7 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
-    console.log(`PICK FROM ${JSON.stringify(this)}`);
+    // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
       console.log(`NO OPTIONS 1!`);
@@ -4697,7 +4697,7 @@ function expand_wildcards(thing, context = new Context()) {
           res.push(walk(got, context));        
       }
       else {
-        console.log(`GOT: ${JSON.stringify(got)}`);
+        // console.log(`GOT: ${JSON.stringify(got)}`);
         const raw_picks = got.picker.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
         console.log(`RAW: ${JSON.stringify(raw_picks)}`);
         res = raw_picks.map(p => smart_join(walk(p?.body ?? null, context)));
@@ -4726,9 +4726,11 @@ function expand_wildcards(thing, context = new Context()) {
       //   res.push(val);
       // }
 
+      res = res.filter(o => o);
+      
       return thing.joiner == ','
-        ? res.join(", ")
-        : (thing.joiner == '&'
+          ? res.join(", ")
+          : (thing.joiner == '&'
            ? pretty_list(res)
            : res.join(" "));
     }
