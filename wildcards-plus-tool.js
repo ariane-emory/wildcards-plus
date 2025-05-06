@@ -5,7 +5,8 @@
 //
 // This script is a tool that you can use at the command line (you'll need to have Node.js
 // installed) to test out wildcards-plus prompts that you're working on to see how they'll
-// be expanded by wildcards-plus.
+// be expanded by wildcards-plus. It can also POST image requests for the expanded prompts
+// to Draw Things.
 //
 // The script takes a file name as its first argument, and an optional second argument
 // specifying how many expansions you'd like to see.
@@ -57,7 +58,7 @@ function ask(question) {
 // ---------------------------------------------------------------------------------------
 function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
-  const result = Prompt.match(prompt_input);
+  const result       = Prompt.match(prompt_input);
 
   return result;
 }
