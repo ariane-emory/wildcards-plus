@@ -4813,7 +4813,7 @@ function expand_wildcards(thing, context = new Context()) {
       let config = {};
 
       if (thing.args.length === 2) {
-        // TOOD: check types
+        // TOOD: maybe check types? unsure.
         config[thing.args[0]] = thing.args[1];
       }
       else {
