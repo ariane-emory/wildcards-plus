@@ -298,82 +298,82 @@
 |{|@ship_term} {navigator|astrogator}        @maybe_no_equipment
 }
 
-// ---------------------------------------------------------------------------------------
-// clothing:
-// ---------------------------------------------------------------------------------------
-@clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
-@clothing_verb     := {2 wearing|clad in|dressed in}
-@clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|millitary
-                      |!#high-tech high-tech|#highly-detailed highly-detailed
-                      |{|starship|space ship|spacecraft} crew members'
-                      |!#greebled {|highly} greebled}
-@clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
-                      |@pro_pos_rand @clothing_adj flight suit
-                      |@pro_pos_rand @clothing_adj body suit
-                      |@pro_pos_rand @clothing_adj uniform
-                      |@pro_pos_rand @clothing_adj {|helmetless}
-                                     {space|vacuum|hazardous environment} suit
-                      |@pro_pos_rand @clothing_adj exoskeleton}
+// // ---------------------------------------------------------------------------------------
+// // clothing:
+// // ---------------------------------------------------------------------------------------
+// @clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
+// @clothing_verb     := {2 wearing|clad in|dressed in}
+// @clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|millitary
+//                       |!#high-tech high-tech|#highly-detailed highly-detailed
+//                       |{|starship|space ship|spacecraft} crew members'
+//                       |!#greebled {|highly} greebled}
+// @clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
+//                       |@pro_pos_rand @clothing_adj flight suit
+//                       |@pro_pos_rand @clothing_adj body suit
+//                       |@pro_pos_rand @clothing_adj uniform
+//                       |@pro_pos_rand @clothing_adj {|helmetless}
+//                                      {space|vacuum|hazardous environment} suit
+//                       |@pro_pos_rand @clothing_adj exoskeleton}
  
-// ---------------------------------------------------------------------------------------
-// cyborg features:
-// ---------------------------------------------------------------------------------------
-@cyborg_features := {{a|one} {bionic|mechanical} arm
-                    |{bionic|mechanical} arms
-                    |{a|one} {bionic|cyber {|<netic}} eye
-                    |{bionic|cyber {|<netic}} eyes
-                    }
-@cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
-@early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
+// // ---------------------------------------------------------------------------------------
+// // cyborg features:
+// // ---------------------------------------------------------------------------------------
+// @cyborg_features := {{a|one} {bionic|mechanical} arm
+//                     |{bionic|mechanical} arms
+//                     |{a|one} {bionic|cyber {|<netic}} eye
+//                     |{bionic|cyber {|<netic}} eyes
+//                     }
+// @cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
+// @early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
 
-// ---------------------------------------------------------------------------------------
-// ailen features:
-// ---------------------------------------------------------------------------------------
-@alien_features := {an insectoid appearance
-                   |2 digitigrade legs
-                   |gills on @pro_pos_adj throat
-                   |!#alien_claws {{|razor} sharp|retractable} claws
-                   |hooved feet
-                   |!#alien_wings {|diaphanous|batlike} wings
-                   |!#alien_horns {curling|back-curved} horns
-                   |!#alien_skin chitinous armored plates on @pro_pos_adj skin
-                   |!#alien_skin scaled skin
-                   |!#alien_tail a {|2 prehensile|spined} tail
-                   |!#alien_skin skin like an amphibian
-                   |!#alien_eyes {two|three|four|six} eyes
-                   |vicious fangs
-                   |a slitted nose
-                   |!#alien_eyes slitted eyes
-                   |!#alien_eyes compound eyes
-                   |four arms
-                   |!#alien_skin {smooth|shiny} fur
-                   |!#alien_quills quill {<-like|<s instead of} hair
-                   |a reptilian appearance
-                   }                   
-@alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
-@early_alien_feature_sentence := {?alien #eafs with @1-2&alien_features }
+// // ---------------------------------------------------------------------------------------
+// // ailen features:
+// // ---------------------------------------------------------------------------------------
+// @alien_features := {an insectoid appearance
+//                    |2 digitigrade legs
+//                    |gills on @pro_pos_adj throat
+//                    |!#alien_claws {{|razor} sharp|retractable} claws
+//                    |hooved feet
+//                    |!#alien_wings {|diaphanous|batlike} wings
+//                    |!#alien_horns {curling|back-curved} horns
+//                    |!#alien_skin chitinous armored plates on @pro_pos_adj skin
+//                    |!#alien_skin scaled skin
+//                    |!#alien_tail a {|2 prehensile|spined} tail
+//                    |!#alien_skin skin like an amphibian
+//                    |!#alien_eyes {two|three|four|six} eyes
+//                    |vicious fangs
+//                    |a slitted nose
+//                    |!#alien_eyes slitted eyes
+//                    |!#alien_eyes compound eyes
+//                    |four arms
+//                    |!#alien_skin {smooth|shiny} fur
+//                    |!#alien_quills quill {<-like|<s instead of} hair
+//                    |a reptilian appearance
+//                    }                   
+// @alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
+// @early_alien_feature_sentence := {?alien #eafs with @1-2&alien_features }
 
-// ---------------------------------------------------------------------------------------
-// things in the sky:
-// ---------------------------------------------------------------------------------------
-@late_sky_verb_frag       := {in the sky above|overhead}
-@early_sky_verb_frag      := {can be seen|hangs|looms}
-@early_sky_verb_frag_no_s := {can be seen|hang|loom}
-@sky_sentence := {?outdoors {
-2 {Two|Three} {3 moons|suns} @early_sky_verb_frag_no_s @late_sky_verb_frag.
-|2 A {binary|trinary} { 2 star|sun} @early_sky_verb_frag @late_sky_verb_frag.
-|3 ?moon The {planet|gas giant} that this @setting_word is orbiting @early_sky_verb_frag @late_sky_verb_frag. 
-|The planet's ring can be seen arching over @late_sky_verb_frag.
-|A descending @ship_term2 @early_sky_verb_frag @late_sky_verb_frag.
-|A {planet|gas giant} @early_sky_verb_frag @late_sky_verb_frag.
-|Falling meteors can be seen @late_sky_verb_frag.
-|An orbiting space station @early_sky_verb_frag @late_sky_verb_frag.
-|Strangely coloured lights @early_sky_verb_frag_no_s @late_sky_verb_frag.
-|Strange lights {can be seen|hang} @late_sky_verb_frag.
-|Flocks of {|2 alien} {2 birds|insects} can be seen @late_sky_verb_frag.
-|Flying vehicles can be seen @late_sky_verb_frag.
-|A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} @early_sky_verb_frag @late_sky_verb_frag.
-}}
+// // ---------------------------------------------------------------------------------------
+// // things in the sky:
+// // ---------------------------------------------------------------------------------------
+// @late_sky_verb_frag       := {in the sky above|overhead}
+// @early_sky_verb_frag      := {can be seen|hangs|looms}
+// @early_sky_verb_frag_no_s := {can be seen|hang|loom}
+// @sky_sentence := {?outdoors {
+// 2 {Two|Three} {3 moons|suns} @early_sky_verb_frag_no_s @late_sky_verb_frag.
+// |2 A {binary|trinary} { 2 star|sun} @early_sky_verb_frag @late_sky_verb_frag.
+// |3 ?moon The {planet|gas giant} that this @setting_word is orbiting @early_sky_verb_frag @late_sky_verb_frag. 
+// |The planet's ring can be seen arching over @late_sky_verb_frag.
+// |A descending @ship_term2 @early_sky_verb_frag @late_sky_verb_frag.
+// |A {planet|gas giant} @early_sky_verb_frag @late_sky_verb_frag.
+// |Falling meteors can be seen @late_sky_verb_frag.
+// |An orbiting space station @early_sky_verb_frag @late_sky_verb_frag.
+// |Strangely coloured lights @early_sky_verb_frag_no_s @late_sky_verb_frag.
+// |Strange lights {can be seen|hang} @late_sky_verb_frag.
+// |Flocks of {|2 alien} {2 birds|insects} can be seen @late_sky_verb_frag.
+// |Flying vehicles can be seen @late_sky_verb_frag.
+// |A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} @early_sky_verb_frag @late_sky_verb_frag.
+// }}
 
 // ---------------------------------------------------------------------------------------
 // colour palette/lighting stuff:
@@ -392,10 +392,10 @@ hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour ren
 
 \n\n
 
-A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
+A piece {which depicts|depicting} a 
 @0-2&char_early_adj @char_late_adj @role
-{2|@early_alien_feature_sentence}
-{2|@early_cyborg_feature_sentence}
+// {2|@early_alien_feature_sentence}
+// {2|@early_cyborg_feature_sentence}
 @place_phrase {|3 @l2_place_phrase|5 ?outdoors @l2_place_phrase}
 {|6 ?weapon @weapon_phrase}
 {|6 ?tool   @tool_phrase}
