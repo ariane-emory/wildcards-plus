@@ -1849,6 +1849,16 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   __gather_legal_option_indices(allow_if, forbid_if) {
+    const legal_option_indices = [];
+    
+    for (let ix = 0; ix < this.options.length; ix++) {
+      const [option_weight, option_value] = this.options[ix];
+      
+      if (allow_if(option_value) && !forbid_if(option_value)) //  && !this.used_indices.has(ix))
+        legal_option_indices.push(ix);
+    }
+
+    return legal_option_indices;
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
@@ -1861,8 +1871,7 @@ class WeightedPicker {
       return null;
     }
 
-    const legal_option_indices       = [];
-    // const legal_options_total_weight = 0;
+    const legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
     for (let ix = 0; ix < this.options.length; ix++) {
       const [option_weight, option_value] = this.options[ix];
