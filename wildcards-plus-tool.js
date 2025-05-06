@@ -5156,7 +5156,7 @@ const SFUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',  
                                                             DiscardedComments,             // [4]
                                                             ')'),                          // [4]
                                             arr => new ASTSpecialFunction('update-config',
-                                                                          [arr[1], arr[3] ]));
+                                                                          [arr[1], arr[3]]));
 const SFUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     '(',                   // [0][1]
@@ -5197,7 +5197,6 @@ const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const AnonWildcardNoLoras           = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-
 const NamedWildcardReference        = xform(seq(discard('@'),
                                                 optional('^'),                             // [0]
                                                 optional(xform(parseInt, /\d+/)),          // [1]
@@ -5233,7 +5232,8 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                         if (!bang && !hash)
                                           return new ASTNamedWildcardReference(ident);
 
-                                        if (bang) // goes before hash so that "@!#" works correctly.
+                                        // goes before hash so that "@!#" works correctly:
+                                        if (bang) 
                                           objs.push(new ASTUnlatchNamedWildcard(ident));
 
                                         if (hash)
@@ -5249,33 +5249,27 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
                                               ScalarAssignmentSource));
-const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
+const LimitedContent          = choice(AnonWildcardNoLoras, ScalarReference,
+                                       xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardDesignator),
-                                       AnonWildcardNoLoras,
-                                       ScalarReference,
-                                       // not permitted in the 'limited' context:
+                                       // not permitted in the 'limited' content:
                                        // NamedWildcardUsage, SetFlag,
                                        // comment,
                                        // SFUpdateConfiguration,
                                        // SFSetConfiguration,
                                        // low_pri_text, plaintext
                                       );
-const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
-                                       A1111StyleLora,
-                                       AnonWildcard, comment, ScalarReference,
-                                       SFUpdateConfiguration,
-                                       SFSetConfiguration,
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage,
+                                       SetFlag, A1111StyleLora, AnonWildcard, comment,
+                                       ScalarReference,
+                                       SFUpdateConfiguration, SFSetConfiguration,
                                        low_pri_text, plaintext);
-const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
-                                       AnonWildcard, comment, ScalarReference,
-                                       SFUpdateConfiguration,
-                                       SFSetConfiguration,
+const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage,
+                                       SetFlag, AnonWildcard, comment, ScalarReference,
+                                       SFUpdateConfiguration, SFSetConfiguration,
                                        low_pri_text, plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
-// const PromptBody              = wst_star(choice(NamedWildcardDefinition,
-//                                                 ScalarAssignment,
-//                                                 Content));
 const PromptBody              = wst_star(choice(SpecialFunction,
                                                 NamedWildcardDefinition,
                                                 ScalarAssignment,
