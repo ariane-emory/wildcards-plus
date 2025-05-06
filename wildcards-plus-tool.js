@@ -1875,8 +1875,7 @@ class WeightedPicker {
     return exhausted_indices.isSupersetOf(new Set(option_indices));
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
-    
+  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {   
     // console.log(`PICK ${min_count}-${max_count}`);
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
