@@ -185,13 +185,13 @@
 |?outdoors 2 smoky
 |?outdoors foggy
 }
-@place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
-                 |at {a|the} @#place_to_be_at @place_to_be_at}
+@place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in }
+ 
 
 
 // =======================================================================================
 // generate the prompt body:
 // =======================================================================================
-A wanderer \n @place_phrase 
+A wanderer @place_phrase 
 .
 
