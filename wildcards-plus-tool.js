@@ -4774,8 +4774,9 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
+      const forbid_fun = o => {
+      };
       const allow_fun  = always;
-      const forbid_fun = never;
       
       const pick = thing.picker.pick_one(allow_fun, forbid_fun)?.body;
       
