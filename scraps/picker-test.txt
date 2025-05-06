@@ -1,0 +1,3 @@
+@fruit := { 1000 apple | 2 orange | banana | pear | strawberry }
+\n
+@12&fruit

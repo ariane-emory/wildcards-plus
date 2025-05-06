@@ -1821,18 +1821,18 @@ class WeightedPicker {
     this.options.push([weight, value]);
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count) {
+  pick(min_count = 1, max_count = min_count, allowed_if = null, disallow_if = null) {
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
     
     for (let i = 0; i < count; i++) 
-      res.push(this.pick_one());
+      res.push(this.pick_one(allowed_if, disallow_if));
 
     return res;
   }
   // -------------------------------------------------------------------------------------
-  pick_one() {
+  pick_one(allowed_if = null, disallow_if = null) {
     if (this.options.length === 0)
       return null;
 
