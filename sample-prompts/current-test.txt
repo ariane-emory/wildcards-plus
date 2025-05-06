@@ -401,11 +401,11 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {|6 ?tool   @tool_phrase}
 .
 
-{|6 @clothing_sentence}
-{|6 @cyborg_feature_sentence}
-{|6 @alien_feature_sentence}
-{|8 @sky_sentence}
+// {|6 @clothing_sentence}
+// {|6 @cyborg_feature_sentence}
+// {|6 @alien_feature_sentence}
+// {|8 @sky_sentence}
 
-{?artsy By @wizards_artists, @wizards_artist_styles. }
+// {?artsy By @wizards_artists, @wizards_artist_styles. }
 
-{?sdxl @3lora}
+// {?sdxl @3lora}
