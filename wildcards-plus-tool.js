@@ -1807,6 +1807,9 @@ Jsonc.finalize();
 
 
 // =======================================================================================
+const always = () => true;
+const never  = () => false;
+// -------------------------------------------------------------------------------------
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
@@ -1821,7 +1824,7 @@ class WeightedPicker {
     this.options.push([weight, value]);
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count, allow_if = null, forbid_if = null) {
+  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
@@ -1832,13 +1835,22 @@ class WeightedPicker {
     return res;
   }
   // -------------------------------------------------------------------------------------
-  pick_one(allow_if = null, forbid_if = null) {
+  pick_one(allow_if, forbid_if) {
     if (this.options.length === 0)
       return null;
 
     // if (this.options.length === 1)
     //   return this.options[0][1];
 
+    const legal_options = new Set();
+    const legal_options_total_weight = 0;
+    
+    for (const option of this.options) {
+      if (allow_if(option[1]) && !forbid_if(option[1]))
+        legal_options.add(option);
+    }
+
+    
     if (this.used_indices.size === this.options.length)
       this.used_indices.clear();
 
