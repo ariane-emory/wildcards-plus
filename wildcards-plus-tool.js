@@ -1901,11 +1901,15 @@ class WeightedPicker {
       if (!this.used_indices.has(legal_option_ix))
         legal_options_total_weight += this.options[legal_option_ix][0];
 
+    // Since we now avoid adding options with a weight of 0, this shouldnever be true:
     if (legal_options_total_weight === 0) {
+      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, should not happen?`);
+
       console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
       return null;
     }
 
+    
     let random = Math.random() * legal_options_total_weight;
 
     // for (let ix = 0; ix < legal_options_indexes.length; ix++) {
