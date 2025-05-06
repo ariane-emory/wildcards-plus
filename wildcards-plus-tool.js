@@ -5361,7 +5361,7 @@ Prompt.finalize();
 
 
 // =======================================================================================
-// DEV NOTE: Copy into wildcards-plus.js starting through this line!
+// DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
 
 
