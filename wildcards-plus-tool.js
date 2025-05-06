@@ -2138,8 +2138,15 @@ function smart_join(arr) {
 
     update_pos_vars();
     
-    if (prev_char === ',' && right_word === ',')
+    if (right_word === '') {
+      console.log(`JUMP EMPTY!`);
       continue;
+    }
+
+    if (prev_char === ',' && right_word === ',') {
+      console.log(`JUMP COMMA!`);
+      continue;
+    }
 
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
       shift_left(3);
