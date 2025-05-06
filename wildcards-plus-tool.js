@@ -2341,35 +2341,6 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 // =======================================================================================
 // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
 // =======================================================================================
-class DelayedAction {
-  // -------------------------------------------------------------------------------------
-  constructor(identifier_string, thunk) {
-    this.identifier_string = identifier_string;
-    this.thunk = thunk;
-  }
-}
-// ---------------------------------------------------------------------------------------
-class FalseText {
-  // -------------------------------------------------------------------------------------
-  constructor(text) {
-    this.text = text;
-  }
-}
-// ---------------------------------------------------------------------------------------
-function loose_includes(needle, arr) {
-  for (const elem of arr) {
-    if (elem instanceof DelayedAction &&
-        needle instanceof DelayedAction &&
-        elem.identifier_string === needle.identifier_string)
-      return true;
-    else if (elem === needle) {
-      return true;
-    }
-  }
-  
-  return false;
-}
-// ---------------------------------------------------------------------------------------
 class Context {
   constructor({ 
     flags = new Set(),
@@ -4909,7 +4880,7 @@ function expand_wildcards(thing, context = new Context()) {
       const weight_match_result = json_number.match(walked_weight);
 
       if (!weight_match_result || !weight_match_result.is_finished)
-        throw new Error(`Lora weight must be a number, got ` +
+        throw new Error(`LoRA weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
       let file    = walked_file.toLowerCase();
@@ -5010,6 +4981,15 @@ class ASTScalarReference {
   constructor(name, capitalize) {
     this.name       = name;
     this.capitalize = capitalize;
+  }
+}
+// ---------------------------------------------------------------------------------------
+// A1111-style Loras:
+// ---------------------------------------------------------------------------------------
+class ASTLora {
+  constructor(file, weight) {
+    this.file   = file;
+    this.weight = weight;
   }
 }
 // ---------------------------------------------------------------------------------------
