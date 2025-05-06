@@ -1862,7 +1862,7 @@ class WeightedPicker {
     const res = [];
     
     for (let ix = 0; ix < count; ix++) {
-      const pick = this.pick_one(allow_if, forbid_if);
+      const pick = this.pick_one(allow_if, forbid_if, picker_strategy.used);
 
       // if (pick)
       res.push(pick);
@@ -1873,9 +1873,11 @@ class WeightedPicker {
     return res;
   }
   // -------------------------------------------------------------------------------------
-  pick_one(allow_if, forbid_if) {
-    // console.log(`PICK_ONE!`);
+  pick_one(allow_if, forbid_if, strategy) {
+    if (! (strategy && allow_if && forbid_if))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
+    // console.log(`PICK_ONE!`);    
     // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
@@ -4751,7 +4753,7 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const pick = thing.pick_one(allow_fun, forbid_fun)?.body;
+      const pick = thing.pick_one(allow_fun, forbid_fun, picker_strategy.used)?.body;
 
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
