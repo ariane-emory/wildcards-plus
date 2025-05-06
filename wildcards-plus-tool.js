@@ -5348,7 +5348,7 @@ const PromptBody              = wst_star(choice(SpecialFunction,
                                                 NamedWildcardDefinition,
                                                 ScalarAssignment,
                                                 Content));
-const Prompt                  = xform(arr => arr.flat(Infinity), PromptBody);
+const Prompt                  = PromptBody;
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // =======================================================================================
