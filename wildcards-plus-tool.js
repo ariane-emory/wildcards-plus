@@ -2104,7 +2104,7 @@ function unescape(str) {
 };
 // ---------------------------------------------------------------------------------------
 function smart_join(arr) {
-  arr = [...arr];
+  arr = [...arr.flat(Infinity).filter(s => s !== '')];
   
   // console.log(`JOINING ${inspect_fun(arr)}`);
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
@@ -5024,7 +5024,7 @@ function expand_wildcards(thing, context = new Context()) {
                       inspect_fun(thing));
     }
   }
-  return smart_join(walk(thing, context).flat(Infinity).filter(s => s !== ''));
+  return smart_join(walk(thing, context));
 }
 // =======================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
