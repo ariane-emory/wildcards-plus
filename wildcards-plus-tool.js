@@ -1859,16 +1859,20 @@ class WeightedPicker {
 
     if (this.used_indices.size == 0)
       return false;
+
+    let exhausted_indices = null;
     
     if (strategy == picker_strategy.used) {
+      exhausted_indices = new Set(this.used_indices.keys());
     }
     else if (strategy == picker_strategy.total) {
+      exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
     else {
       throw new Error(`bad strategy: ${inspect_fun(strange)}`);
     }
     
-    return new Set(this.used_indices.keys()).isSupersetOf(new Set(option_indices));
+    return exhausted_indices.isSupersetOf(new Set(option_indices));
   }
   // -------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
