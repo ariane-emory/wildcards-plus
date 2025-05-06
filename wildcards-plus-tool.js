@@ -2179,6 +2179,13 @@ class DelayedAction {
   }
 }
 // ---------------------------------------------------------------------------------------
+class FalseText {
+  // -------------------------------------------------------------------------------------
+  constructor(text) {
+    this.text = text;
+  }
+}
+// ---------------------------------------------------------------------------------------
 function loose_includes(needle, arr) {
   for (const elem of arr) {
     if (elem instanceof DelayedAction &&
@@ -2229,6 +2236,7 @@ class Context {
       named_wildcards: new Map(this.named_wildcards),
       noisy: this.noisy,
       files: [...this.files],
+      config: { ...this.config }, /// ???
       add_loras: [...this.add_loras.map(o => ({ file: o.file, weigh: o.weight })) ], 
       top_file: this.top_file,
     });
@@ -2241,6 +2249,8 @@ class Context {
       named_wildcards: this.named_wildcards,
       noisy: this.noisy,
       files: this.files,
+      config: this.config,
+      add_loras: this.add_loras,
       top_file: false, // deliberately not copied!
     });
   }
@@ -4491,7 +4501,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       if (thing.capitalize)
         res[0] = capitalize(res[0]);
-
+      
       const count = rand_int(thing.min_count, thing.max_count);
       
       for (let ix = 1; ix < count; ix++) {
