@@ -4624,6 +4624,39 @@ function load_prelude(into_context = new Context()) {
 // =======================================================================================
 function expand_wildcards(thing, context = new Context()) {
   function walk(thing, context) {
+    const forbid_fun = option => {
+      for (const not_flag of option.not_flags)
+        if (context.flags.has(not_flag.name))
+          return true;
+      return false;
+    };
+    
+    const allow_fun = option => {
+      let allowed = true;
+      
+      for (const check_flag of option.check_flags) {
+        let found = false;
+        
+        // console.log(`Look for ${inspect_fun(check_flag)} in ` +
+        //             `${inspect_fun(context.flags)} = ` +
+        //             `${context.flags.has(check_flag.name)}`);
+
+        for (const name of check_flag.names) {
+          if (context.flags.has(name)) {
+            found = true;
+            break;
+          }
+        }
+        
+        if (!found) {
+          allowed = false;
+          break;
+        }
+      }
+      
+      return allowed;
+    };
+    
     // -----------------------------------------------------------------------------------
     // basic types (strings and Arrays):
     // -----------------------------------------------------------------------------------
@@ -4663,35 +4696,6 @@ function expand_wildcards(thing, context = new Context()) {
     // References:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardReference) {
-      const forbid_fun = option => {
-        for (const not_flag of option.not_flags)
-          if (context.flags.has(not_flag.name))
-            return true;
-        return false;
-      };
-      
-      const allow_fun = option => {
-        let allowed = true;
-        
-        for (const check_flag of option.check_flags) {
-          let found = false;
-          
-          for (const name of check_flag.names) {
-            if (context.flags.has(name)) {
-              found = true;
-              break;
-            }
-          }
-          
-          if (!found) {
-            allowed = false;
-            break;
-          }
-        }
-        
-        return allowed;
-      };
-
       const got = context.named_wildcards.get(thing.name);
 
       if (!got)
@@ -4818,39 +4822,6 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const forbid_fun = option => {
-        for (const not_flag of option.not_flags)
-          if (context.flags.has(not_flag.name))
-            return true;
-        return false;
-      };
-      
-      const allow_fun = option => {
-        let allowed = true;
-        
-        for (const check_flag of option.check_flags) {
-          let found = false;
-          
-          // console.log(`Look for ${inspect_fun(check_flag)} in ` +
-          //             `${inspect_fun(context.flags)} = ` +
-          //             `${context.flags.has(check_flag.name)}`);
-
-          for (const name of check_flag.names) {
-            if (context.flags.has(name)) {
-              found = true;
-              break;
-            }
-          }
-          
-          if (!found) {
-            allowed = false;
-            break;
-          }
-        }
-        
-        return allowed;
-      };
-      
       const pick = thing.picker.pick_one(allow_fun, forbid_fun)?.body;
 
       if (! pick)
