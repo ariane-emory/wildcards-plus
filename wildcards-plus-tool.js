@@ -5073,6 +5073,7 @@ class ASTAnonWildcardAlternative {
 // =======================================================================================
 // terminals:
 // ---------------------------------------------------------------------------------------
+const word_break              = /(?=\s|[{|}]|$)/;
 const plaintext               = /[^{|}\s]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
@@ -5121,17 +5122,18 @@ const make_ASTAnonWildcardAlternative = arr => {
 // ---------------------------------------------------------------------------------------
 const make_ASTFlagCmd = (klass, ...rules) =>
       xform(ident => new klass(ident),
-            second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
+            second(seq(...rules, ident, word_break)));
 // ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // ---------------------------------------------------------------------------------------
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
-                                      second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
+                                      second(seq('?', plus(ident, ','),
+                                                 word_break)))
 const MalformedNotSetCombo    = unexpected('#!');
 const NotFlag                 = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
                                       seq('!', optional('#'),
-                                          ident, /(?=\s|[{|}]|$)/));
+                                          ident, word_break));
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
 const tld_fun = arr => new ASTSpecialFunction(...arr);
@@ -5295,10 +5297,10 @@ async function main() {
   // -------------------------------------------------------------------------------------
   // process the command-line arguments:
   // -------------------------------------------------------------------------------------
-  const args    = process.argv.slice(2);
-  let   count   = 1;
-  let   post    = false;
-  let   confirm = false;
+  const args       = process.argv.slice(2);
+  let   count      = 1;
+  let   post       = false;
+  let   confirm    = false;
   let   from_stdin = false;
 
   if (args.length == 0) 
@@ -5315,9 +5317,8 @@ async function main() {
     args.shift();
   }
 
-  if (args.length === 0) {
+  if (args.length === 0)
     throw new Error("Error: Must provide --stdin or an input file.");
-  }
 
   if (args[0] === '--stdin') {
     if (confirm)
@@ -5326,9 +5327,8 @@ async function main() {
     from_stdin = true;
   }
 
-  if (args.length > 1) {
+  if (args.length > 1) 
     count = parseInt(args[1]);
-  }
 
   // -------------------------------------------------------------------------------------
   // read prompt input:
@@ -5365,7 +5365,6 @@ async function main() {
   // -------------------------------------------------------------------------------------
   // check that the parsed result is complete and expand:
   // -------------------------------------------------------------------------------------
-
   if (! result.is_finished)
     throw new Error("error parsing prompt!");
 
@@ -5400,7 +5399,7 @@ async function main() {
 
   let expanded = null;
   let config   = null;
-  
+
   const stash_prior = () => {
     prior_expansion = expanded;
     prior_config = structuredClone(config);
@@ -5409,7 +5408,7 @@ async function main() {
   let posted_count    = 0;
   let prior_expansion = null;
   let prior_config    = null;
-  
+
   while (posted_count < count) {
     console.log('================================================================================');
     console.log(`Expanding #${posted_count + 1} of ${count}:`);
