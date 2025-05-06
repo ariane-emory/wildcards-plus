@@ -416,6 +416,8 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {?sdxl @lora}
 
 
-@fruit := { apple orange banana pear strawberry }
+@fruit := { apple | orange | banana | pear | strawberry }
 \n
-@3&fruit
+@6&fruit
+\n
+// @fruit @fruit @fruit @fruit @fruit 

@@ -1821,7 +1821,18 @@ class WeightedPicker {
     this.options.push([weight, value]);
   }
   // -------------------------------------------------------------------------------------
-  pick() {
+  pick(min_count = 1, max_count = min_count) {
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+
+    const res = [];
+    
+    for (let i = 0; i < count; i++) 
+      res.push(this.pick_one());
+
+    return res;
+  }
+  // -------------------------------------------------------------------------------------
+  pick_one() {
     if (this.options.length === 0)
       return null;
 
@@ -1858,56 +1869,56 @@ class WeightedPicker {
 
     throw new Error("random selection failed");
   }
-  // -------------------------------------------------------------------------------------
-  pick2(min_count = 1, max_count = 1) {
-    const available = this.options.length - this.used_indices.size;
+  // // -------------------------------------------------------------------------------------
+  // pick2(min_count = 1, max_count = 1) {
+  //   const available = this.options.length - this.used_indices.size;
 
-    if (available === 0)
-      throw new Error("no options left to pick");
+  //   if (available === 0)
+  //     throw new Error("no options left to pick");
 
-    if (min_count > available)
-      throw new Error(`Cannot pick ${min_count} items; only ${available} remaining`);
+  //   if (min_count > available)
+  //     throw new Error(`Cannot pick ${min_count} items; only ${available} remaining`);
 
-    const count = Math.min(
-      Math.floor(Math.random() * (max_count - min_count + 1)) + min_count,
-      available
-    );
+  //   const count = Math.min(
+  //     Math.floor(Math.random() * (max_count - min_count + 1)) + min_count,
+  //     available
+  //   );
 
-    const results = [];
+  //   const results = [];
 
-    for (let i = 0; i < count; i++) 
-      results.push(this._pick_one());
-    
-    return results;
-  }
-  // ---------------------------------------------------------------------------------------
-  _pick_one() {
-    let total_weight = 0;
+  //   for (let i = 0; i < count; i++) 
+  //     results.push(this._pick_one());
+  
+  //   return results;
+  // }
+  // // ---------------------------------------------------------------------------------------
+  // _pick_one() {
+  //   let total_weight = 0;
 
-    for (let ix = 0; ix < this.options.length; ix++) {
-      if (!this.used_indices.has(ix))
-        total_weight += this.options[ix][0];
-    }
+  //   for (let ix = 0; ix < this.options.length; ix++) {
+  //     if (!this.used_indices.has(ix))
+  //       total_weight += this.options[ix][0];
+  //   }
 
-    let random = Math.floor(Math.random() * total_weight);
+  //   let random = Math.floor(Math.random() * total_weight);
 
-    for (let ix = 0; ix < this.options.length; ix++) {
-      if (this.used_indices.has(ix))
-        continue;
+  //   for (let ix = 0; ix < this.options.length; ix++) {
+  //     if (this.used_indices.has(ix))
+  //       continue;
 
-      const weight = this.options[ix][0];
+  //     const weight = this.options[ix][0];
 
-      if (random < weight) {
-        this.used_indices.add(ix);
-        return this.options[ix][1];
-      }
+  //     if (random < weight) {
+  //       this.used_indices.add(ix);
+  //       return this.options[ix][1];
+  //     }
 
-      random -= weight;
-    }
+  //     random -= weight;
+  //   }
 
-    throw new Error("random selection failed");
-  }
-  // =====================================================================================
+  //   throw new Error("random selection failed");
+  // }
+  // // =====================================================================================
 }
 
 
@@ -4728,14 +4739,8 @@ function expand_wildcards(thing, context = new Context()) {
       for (const option of thing.options) {
         let skip = false;
 
-        // if (option.not_flags.length > 1)
-        //   console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
-        
         for (const not_flag of option.not_flags) {
-          // console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
-
           if (context.flags.has(not_flag.name)) {
-            // console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
             skip = true;
             break;
           }
@@ -4745,16 +4750,10 @@ function expand_wildcards(thing, context = new Context()) {
           continue;
         
         for (const check_flag of option.check_flags) {
-          // if (context.noisy)
-          //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
-
           let found = false;
           
           for (const name of check_flag.names) {
-            // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
-            
             if (context.flags.has(name)) {
-              // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
               found = true;
               break;
             }
