@@ -5417,7 +5417,8 @@ async function main() {
 
     if (add_loras && add_loras.length > 0) {
       console.log('--------------------------------------------------------------------------------');
-
+      console.log(`Adding ${add_loras.length} LoRAs.`);
+      
       if (log_config_enabled)
         console.log(`Found add_loras in Context: ${inspect_fun(add_loras)}`);
       
@@ -5429,6 +5430,9 @@ async function main() {
       if (log_config_enabled && ! is_empty_object(config))
         console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
       console.log(`Config has ${config?.loras.length ?? -1} LoRAs`);
+    }
+    else {
+      console.log(`No LoRAs to add!`);
     }
     
     console.log(`--------------------------------------------------------------------------------`);
