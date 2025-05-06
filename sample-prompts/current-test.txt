@@ -17,36 +17,12 @@
 // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
 @lora := { <lora:@lora_names: @lowish_random_weight> }
 
-{ 0
-  // devMODE
-  %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
-  %config.steps(8)
-  // don't worry, capitalization will be automatically fixed to "Euler A":
-  { %config.sampler("DDIM Trailing") | %config.sampler("Euler A") | %config.sampler("Euler A Trailing") }
-  { %config.cfg_scale(1.0) | %config.cfg_scale(1.5) | %config.cfg_scale(2.0) | %config.cfg_scale(2.5) }
-
-  // three possible resolutions:
-  { 3 %config({ "width": 768, "height": 512 })
-  | 2 %config({ "width": 768, "height": 384 })
-  | 1 %config({ "width": 640, "height": 640 })
-  }
-
-| 0 // Hidream with some basic settings that seem to work alright:
+{ 0 // Hidream with some basic settings that seem to work alright:
   %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50 })
 
-  { 8 %config.cfg_scale(5.0 ) | 7 %config.cfg_scale(10.0) | 6 %config.cfg_scale(15.0) | 5 %config.cfg_scale(20.0)
-  | 4 %config.cfg_scale(25.0) | 3 %config.cfg_scale(30.0) | 2 %config.cfg_scale(35.0) | 1 %config.cfg_scale(40.0)
-  }
+  HIDREAM_ALTERNATIVE
 
-  // 9-13 steps, equally likely:
-  { %config.steps(9) | %config.steps(10) | %config.steps(11) | %config.steps(12) | %config.steps(13) }
-
-  // three possible resolutions:
-  { 3 %config({ "width": 768, "height": 512 })
-  | 2 %config({ "width": 768, "height": 384 })
-  | 1 %config({ "width": 640, "height": 640 })
-  }
-
+  
 | 3 // various SDXL models:
   #SDXL_FLAG
   
