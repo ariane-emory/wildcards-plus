@@ -1830,6 +1830,21 @@ class WeightedPicker {
     this.options.push([weight, value]);
   }
   // -------------------------------------------------------------------------------------
+  __gather_legal_option_indices(allow_if, forbid_if) {
+    const legal_option_indices = [];
+    
+    for (let ix = 0; ix < this.options.length; ix++) {
+      const [option_weight, option_value] = this.options[ix];
+      
+      if (option_weight !== 0 &&
+          allow_if(option_value) &&
+          !forbid_if(option_value))
+        legal_option_indices.push(ix);
+    }
+
+    return legal_option_indices;
+  }
+  // -------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
     // console.log(`PICK ${min_count}-${max_count}`);
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
@@ -1846,21 +1861,6 @@ class WeightedPicker {
     // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
     
     return res;
-  }
-  // -------------------------------------------------------------------------------------
-  __gather_legal_option_indices(allow_if, forbid_if) {
-    const legal_option_indices = [];
-    
-    for (let ix = 0; ix < this.options.length; ix++) {
-      const [option_weight, option_value] = this.options[ix];
-      
-      if (option_weight !== 0 &&
-          allow_if(option_value) &&
-          !forbid_if(option_value))
-        legal_option_indices.push(ix);
-    }
-
-    return legal_option_indices;
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
