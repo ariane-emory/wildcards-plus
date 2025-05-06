@@ -4700,7 +4700,7 @@ function expand_wildcards(thing, context = new Context()) {
         console.log(`GOT: ${JSON.stringify(got)}`);
         const raw_picks = got.picker.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
         console.log(`RAW: ${JSON.stringify(raw_picks)}`);
-        res = raw_picks.map(p => walk(p?.body ?? null, context));
+        res = raw_picks.map(p => smart_join(walk(p?.body ?? null, context)));
       }
       
       // const res = [ walk(got, context) ];
