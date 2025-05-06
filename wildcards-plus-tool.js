@@ -4611,10 +4611,6 @@ function expand_wildcards(thing, context = new Context()) {
     for (const check_flag of option.check_flags) {
       let found = false;
       
-      // console.log(`Look for ${inspect_fun(check_flag)} in ` +
-      //             `${inspect_fun(context.flags)} = ` +
-      //             `${context.flags.has(check_flag.name)}`);
-
       for (const name of check_flag.names) {
         if (context.flags.has(name)) {
           found = true;
@@ -4676,18 +4672,14 @@ function expand_wildcards(thing, context = new Context()) {
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(walk(got, context));        
+          res.push(walk(got));        
       }
       else {
-        // console.log(`GOT: ${JSON.stringify(got)}`);
-        const raw_picks = got.pick(thing.min_count, thing.max_count,
-                                   allow_fun, forbid_fun);
-        // console.log(`RAW: ${JSON.stringify(raw_picks)}`);
-        res.push(...raw_picks.map(p => smart_join(walk(p?.body ?? '', context))));
+        const picks = got.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
       }
       
       if (thing.capitalize) {
-        // console.log(`CAPITALIZING ${inspect_fun(res[0])}`);
         res[0] = capitalize(res[0]);
       }
 
@@ -4723,7 +4715,7 @@ function expand_wildcards(thing, context = new Context()) {
         return '';
       }
 
-      const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
 
       if (context.noisy)
         console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
@@ -4753,8 +4745,6 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination))
         console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
-      // else
-      //   console.log(`SETTING ${inspect_fun(thing)} IN ${inspect_fun(context.named_wildcards)}` );
 
       context.named_wildcards.set(thing.destination, thing.wildcard);
 
@@ -4776,15 +4766,14 @@ function expand_wildcards(thing, context = new Context()) {
                     `TO '${thing.destination.name}'`);
       }
 
-      const val = walk(thing.source, context);
+      const val = expand_wildcards(thing.source, context);
 
-      if (context.noisy)
-        console.log(`ASSIGNED ${inspect_fun(val)} TO "${thing.destination.name}'`);
-      
       context.scalar_variables.set(thing.destination.name, val);
 
-      if (context.noisy)
+      if (context.noisy) {
+        console.log(`ASSIGN ${inspect_fun(val)} TO "${thing.destination.name}'`);
         console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+      }
       
       return '';
     }
@@ -4795,15 +4784,12 @@ function expand_wildcards(thing, context = new Context()) {
       const pick = thing.pick_one(allow_fun, forbid_fun)?.body;
 
       if (! pick)
-        return ''; // investigate why this is necessary!
+        return ''; // inelegant... investigate why this is necessary?
       
-      // // console.log(`PICKED ${inspect_fun(pick)}`);
-      
-      return smart_join(walk(pick, context));
-      // return walk(pick, context);
+      return smart_join(walk(pick));
     }
     // -----------------------------------------------------------------------------------
-    // TLDs:
+    // SpecialFunctions:
     // -----------------------------------------------------------------------------------
     if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
       if (thing.args.lenrth > 2)
