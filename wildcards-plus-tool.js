@@ -1979,8 +1979,8 @@ class WildcardPicker {
 // =======================================================================================
 // HELPER FUNCTIONS SECTION:
 // =======================================================================================
-function add_lora_to_array(lora, array) {
-  console.log(`Adding LoRa ${inspect_fun(lora)}!`);
+function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
+  console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
   
   const index = array.findIndex(existing => existing.file === lora.file);
   if (index !== -1) {
@@ -4845,7 +4845,9 @@ function expand_wildcards(thing, context = new Context()) {
 
       const weight = weight_match_result.value;
 
-      add_lora_to_array({ file: file, weight: weight }, context.add_loras);
+      add_lora_to_array({ file: file, weight: weight },
+                        context.add_loras,
+                        "context.add_loras");
       
       return '';
     }
@@ -5374,16 +5376,18 @@ async function main() {
     if (add_loras && add_loras.length > 0) {
       console.log('--------------------------------------------------------------------------------');
       if (log_config_enabled)
-        console.log(`Found ${add_loras.length} LoRAs in Context: ${inspect_fun(add_loras)}`);
+        // console.log(`Found ${add_loras.length} LoRAs in context.add_loras: ${inspect_fun(add_loras)}`);
+        console.log(`Found ${add_loras.length} LoRAs in context.add_loras:`);
       
       config.loras ||= [];
 
       for (const lora of add_loras)
-        add_lora_to_array(lora, config.loras);
+        add_lora_to_array(lora, config.loras, "config.loras");
 
-      if (log_config_enabled && ! is_empty_object(config))
+      if (log_config_enabled && ! is_empty_object(config)) {
         console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
-      console.log(`Config now has ${config?.loras.length ?? -1} LoRAs.`);
+        // console.log(`Config now has ${config?.loras.length ?? -1} LoRAs.`);
+      }
     }
     else {
       console.log(`No LoRAs to add!`);
