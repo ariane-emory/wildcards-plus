@@ -22,36 +22,6 @@
   3 // various SDXL models:
   #SDXL_FLAG
   
-  // 35, 40 or 45 steps, equally likely:
-  { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
-
-  // three possible resolutions:
-  { 2 %config({"width": 960, "height":512})
-  | 2 %config({"width": 768, "height":512}) 
-  | %config({"width": 768, "height":768})
-  }
-
-  // three possible 'shift' values:
-  { %config.shift(1.00) | %config.shift(1.10) | %config.shift(1.20) }
-
-  // two sampler possibilities:
-  { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") }
-
-  // eight possible CFG values:
-  { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
-  | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) | %config.cfg_scale(9.0) | %config.cfg_scale(10.0) }
-
-  // lots of models pick from:
-  { 4 %config.model("bookIllustrationChar_v10")
-  | 4 %config.model("challengexlv10yoursecret_v10")
-  | 0 %config.model("cyberrealisticpony_v10") {@pony_score_7_up|@pony_score_8_up}
-  | 0 %config.model("cyberrealisticpony_v90alt1")
-  | 2 %config.model("cyberrealisticxl_v56")
-  | 4 %config.model("nightvisionxl_v900")
-  | 8 %config.model("oldmaster_v30")
-  | 4 %config.model("zavychromaxl_v100")
-  | 24 %config.model("comicbookxl_v10")
-  }
 }
 
 {?SDXL_FLAG SDXL_ENABLED} \n
