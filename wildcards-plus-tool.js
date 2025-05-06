@@ -1806,6 +1806,56 @@ Jsonc.finalize();
 // =======================================================================================
 
 
+// ---------------------------------------------------------------------------------------
+class WeightedPicker {
+  // -------------------------------------------------------------------------------------
+  constructor(options) {
+    this.options = options; // array of [weight, value]
+    this.usedIndices = new Set();
+    this.range = 0;
+
+    for (const weightedOption of this.options) {
+      this.add(...weightedOption);
+    }
+  }
+  // -------------------------------------------------------------------------------------
+  add(weight, value) {
+    this.options.push([weight, value]);
+    this.range += weight;f
+  }
+  // -------------------------------------------------------------------------------------  
+  pick() {
+    if (this.options.length == 0)
+      throw new Error("empty");
+
+    if (this.options.length == 1)
+      return this.options[0][1];
+
+    if (this.usedIndices.size == this.options.length)
+      this.usedIndices.clear();
+    
+    let random = Math.floor(Math.random() * totalWeight);
+    
+    for (let ix = 0; ix < this.options.length; ix++) {
+      if (this.usedIndices.has(ix))
+        continue;
+
+      const weight = this.options[ix][0];
+
+      if (random < weight) {
+        this.usedIndices.add(ix);
+
+        return this.options[ix][1];
+      }
+      
+      random -= weight;
+    }
+
+    throw new Error("something went awry");
+  }
+}
+// =======================================================================================
+
 // =======================================================================================
 // WildcardPicker CLASS SECTION:
 // =======================================================================================
@@ -1830,11 +1880,11 @@ class WildcardPicker {
   }
   // -------------------------------------------------------------------------------------
   pick() {
-    if (this.options.length == 1) {
-      // console.log(`one option: ${inspect_fun(this.options[0][1])}`);
-
+    if (this.options.length == 0)
+      throw new Error("empty");
+    
+    if (this.options.length == 1) 
       return this.options[0][1];
-    }
     
     let   total   = 0;
     const random  = Math.random() * this.range;
@@ -2196,7 +2246,7 @@ function loose_includes(needle, arr) {
       return true;
     }
   }
-    
+  
   return false;
 }
 // ---------------------------------------------------------------------------------------
