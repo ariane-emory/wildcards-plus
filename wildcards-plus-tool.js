@@ -5251,10 +5251,11 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               ScalarAssignmentSource));
 const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardDesignator),
-                                       // NamedWildcardUsage, SetFlag,
                                        AnonWildcardNoLoras,
-                                       // comment,
                                        ScalarReference,
+                                       // not permitted in the 'limited' context:
+                                       // NamedWildcardUsage, SetFlag,
+                                       // comment,
                                        // SFUpdateConfiguration,
                                        // SFSetConfiguration,
                                        // low_pri_text, plaintext
