@@ -165,7 +165,7 @@
 @place_to_be_at :=
 {{ware|store} #indoors <house
 |?planet,moon an alien ruin
-|the abandoned wreck of a @ship_term2
+|abandoned wreck of a @ship_term2
 |{2|holographic} computer
 |?planet,moon #outdoors colony
 |holographic #indoors projector
