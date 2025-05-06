@@ -15,7 +15,7 @@
 // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
 @lora := { <lora:@lora_names: @lowish_random_weight> }
 
-{ 0
+{ 3
   // devMODE
   %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
   %config.steps(8)
@@ -386,7 +386,7 @@
 
 @aris_defaults, science fiction, {|futuristic,} {2|greebles,|greeblies,}
 {|#traveller Traveller RPG,} {|#traveller GDW,} {|#traveller Third Imperium,}
-hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time,
+hyperrealistic, {|photorealistic,} {|infinite focus,} extremely detailed, {|100-hour render time,}
 @0-2,colour_modifiers
 .
 
@@ -408,4 +408,7 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 
 {?artsy By @wizards_artists, @wizards_artist_styles. }
 
-{?sdxl @3lora}
+{?sdxl @3lora
+       <lora:foo_lora>
+       <lora:bar_lora: 1.666>
+}

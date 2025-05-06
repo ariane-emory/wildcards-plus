@@ -5077,14 +5077,18 @@ const filename                = /[A-Za-z0-9 ._\-()]+/;
 // ---------------------------------------------------------------------------------------
 const A1111StyleLoraWeight =
       choice(
-        xform(parseFloat, /\d*\.\d+/),
-        xform(parseInt,   /\d+/))
+        /\d*\.\d+/,
+        /\d+/);
 const A1111StyleLora = xform(arr => new ASTLora(arr[3],
-                                                arr[5]),
-                             wst_seq('<', 'lora', ':', 
-                                     choice(filename, () => LimitedContent),
-                                     ':',
-                                     choice(A1111StyleLoraWeight, () => LimitedContent),
+                                                arr[4][0]),
+                             wst_seq('<',                                    // [0]
+                                     'lora',                                 // [1]
+                                     ':',                                    // [2]
+                                     choice(filename, () => LimitedContent), // [3]
+                                     optional(second(wst_seq(':',
+                                                             choice(A1111StyleLoraWeight,
+                                                                    () => LimitedContent))),
+                                              "1.0"), // [4][0]
                                      '>'));
 // ---------------------------------------------------------------------------------------
 // helper funs used by xforms:
