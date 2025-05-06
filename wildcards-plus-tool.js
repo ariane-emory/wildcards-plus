@@ -1867,7 +1867,8 @@ class WeightedPicker {
     }
 
     if (legal_option_indices.length === 1) {
-      console.log(`only one legal option!`);
+      console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      this.used_indices.add(legal_option_indices[0]);
       return this.options[legal_option_indices[0]][1];
     }
     else {
@@ -4773,7 +4774,7 @@ function expand_wildcards(thing, context = new Context()) {
       const allow_fun  = always;
       const forbid_fun = never;
       
-      const pick = thing.picker.pick_one(allow_fun, forbid_fun).body;
+      const pick = thing.picker.pick_one(allow_fun, forbid_fun)?.body;
       
       // const new_picker = new WeightedPicker();
 

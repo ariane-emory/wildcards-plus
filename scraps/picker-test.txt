@@ -1,4 +1,3 @@
-{}
 @fruit := { 100 apple | 2 orange | banana | pear | strawberry }
 \n
 @12&fruit
