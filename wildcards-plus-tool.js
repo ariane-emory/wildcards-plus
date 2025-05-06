@@ -1836,8 +1836,11 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if) {
-    if (this.options.length === 0)
+    console.log(`pick from ${JSON.stringify(this)}`);
+    if (this.options.length === 0) {
+      console.log(`no options!`);
       return null;
+    }
 
     const legal_option_indices       = [];
     const legal_options_total_weight = 0;
@@ -1849,8 +1852,10 @@ class WeightedPicker {
         legal_option_indices.push(ix);
     }
     
-    if (legal_option_indices.length === 1)
+    if (legal_option_indices.length === 1) {
+      console.log(`only one option!`);
       return this.options[legal_option_indices[0]][1];
+    }
 
     if (this.used_indices.isSupersetOf(new Set(legal_option_indices)))
       this.used_indices.clear();
