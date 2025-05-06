@@ -1806,52 +1806,57 @@ Jsonc.finalize();
 // =======================================================================================
 
 
-// ---------------------------------------------------------------------------------------
+// =======================================================================================
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
-  constructor(options) {
-    this.options = options; // array of [weight, value]
-    this.usedIndices = new Set();
-    this.range = 0;
+  constructor(initialOptions = []) {
+    this.options = []; // array of [weight, value]
+    this.used_indices = new Set();
 
-    for (const weightedOption of this.options) {
-      this.add(...weightedOption);
-    }
+    for (const [weight, value] of initialOptions)
+      this.add(weight, value);
   }
   // -------------------------------------------------------------------------------------
   add(weight, value) {
     this.options.push([weight, value]);
-    this.range += weight;f
   }
-  // -------------------------------------------------------------------------------------  
+  // -------------------------------------------------------------------------------------
   pick() {
-    if (this.options.length == 0)
+    if (this.options.length === 0)
       throw new Error("empty");
 
-    if (this.options.length == 1)
+    if (this.options.length === 1)
       return this.options[0][1];
 
-    if (this.usedIndices.size == this.options.length)
-      this.usedIndices.clear();
-    
-    let random = Math.floor(Math.random() * totalWeight);
-    
+    if (this.used_indices.size === this.options.length)
+      this.used_indices.clear();
+
+    let  total_weight = 0;
+
+    for (let ix = 0; ix < this.options.length; ix++)
+      if (!this.used_indices.has(ix))
+        total_weight += this.options[ix][0];
+
+    if ( total_weight === 0)
+      throw new Error("all weights are zero");
+
+    let random = Math.floor(Math.random() * total_weight);
+
     for (let ix = 0; ix < this.options.length; ix++) {
-      if (this.usedIndices.has(ix))
+      if (this.used_indices.has(ix))
         continue;
 
       const weight = this.options[ix][0];
-
+      
       if (random < weight) {
-        this.usedIndices.add(ix);
-
+        this.used_indices.add(ix);
         return this.options[ix][1];
       }
-      
+
       random -= weight;
     }
 
-    throw new Error("something went awry");
+    throw new Error("random selection failed");
   }
 }
 // =======================================================================================
@@ -4668,7 +4673,7 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const new_picker = new WildcardPicker();
+      const new_picker = new WeightedPicker();
 
       for (const option of thing.options) {
         let skip = false;
