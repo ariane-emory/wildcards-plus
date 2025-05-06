@@ -1813,11 +1813,13 @@ const never  = () => false;
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
+    console.log(`CONSTRUCT WITH ${inspect_fun(initialOptions)}`);
+    
     this.options = []; // array of [weight, value]
     this.used_indices = new Set();
 
     for (const [weight, value] of initialOptions)
-      this.add(weight, value);
+                  this.add(weight, value);
   }
   // -------------------------------------------------------------------------------------
   add(weight, value) {
@@ -5061,6 +5063,7 @@ class ASTSpecialFunction {
 class ASTAnonWildcard {
   constructor(options) {
     this.options = options;
+    this.picker = new WeightedPicker(this.options.map(o => [o.weight, o]));
   }
 }
 // ---------------------------------------------------------------------------------------
