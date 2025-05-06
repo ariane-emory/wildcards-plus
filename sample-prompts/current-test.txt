@@ -53,9 +53,8 @@
   %config.steps(10)
 
   // three possible resolutions:
-  { 2 %config({"width": 960, "height":512})
-  | 2 %config({"width": 768, "height":512}) 
-  | %config({"width": 768, "height":768})
+  { 2 %config({"width": 1280, "height":960})
+  | 2 %config({"width": 960, "height":1280}) 
   }
 
   // three possible 'shift' values:
