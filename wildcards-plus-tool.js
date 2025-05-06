@@ -4854,7 +4854,7 @@ function expand_wildcards(thing, context = new Context()) {
       const pick = thing.picker.pick_one(allow_fun, forbid_fun)?.body;
 
       if (! pick)
-        return '';
+        return ''; // investigate why this is necessary!
       
       // // console.log(`PICKED ${inspect_fun(pick)}`);
       
@@ -4988,11 +4988,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
   }
   
-  let walked = walk(thing, context);
-  console.log(`WALK GAVE: ${typeof walked} ${inspect_fun(walked)}`);
-  walked = walked.flat(Infinity).filter(s => s);
-  console.log(`FITERING GAVE: ${typeof walked} ${inspect_fun(walked)}`);
-  return smart_join(walked);
+  return smart_join(walk(thing, context));
 }
 // =======================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
