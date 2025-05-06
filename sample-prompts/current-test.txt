@@ -375,10 +375,10 @@
 // |A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} @early_sky_verb_frag @late_sky_verb_frag.
 // }}
 
-// ---------------------------------------------------------------------------------------
-// colour palette/lighting stuff:
-// ---------------------------------------------------------------------------------------
-@colour_modifiers := {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
+// // ---------------------------------------------------------------------------------------
+// // colour palette/lighting stuff:
+// // ---------------------------------------------------------------------------------------
+// @colour_modifiers := {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
 
 // =======================================================================================
 // generate the prompt body:
@@ -387,25 +387,12 @@
 @aris_defaults, science fiction, {|futuristic,} {2|greebles,|greeblies,}
 {|#traveller Traveller RPG,} {|#traveller GDW,} {|#traveller Third Imperium,}
 hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time,
-@0-2,colour_modifiers
 .
 
 \n\n
 
 A piece {which depicts|depicting} a 
 @0-2&char_early_adj @char_late_adj @role
-// {2|@early_alien_feature_sentence}
-// {2|@early_cyborg_feature_sentence}
 @place_phrase {|3 @l2_place_phrase|5 ?outdoors @l2_place_phrase}
-{|6 ?weapon @weapon_phrase}
-{|6 ?tool   @tool_phrase}
 .
 
-// {|6 @clothing_sentence}
-// {|6 @cyborg_feature_sentence}
-// {|6 @alien_feature_sentence}
-// {|8 @sky_sentence}
-
-// {?artsy By @wizards_artists, @wizards_artist_styles. }
-
-// {?sdxl @3lora}
