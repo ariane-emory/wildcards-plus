@@ -4924,7 +4924,7 @@ function expand_wildcards(thing, context = new Context()) {
       //             `${Array.isArray(walked_file)}`);
 
       if (Array.isArray(walked_file))
-        walked_file = smart_join(walked_file); 
+        walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
       let walked_weight = walk(thing.weight, context);
 
