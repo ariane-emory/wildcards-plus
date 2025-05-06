@@ -1857,8 +1857,16 @@ class WeightedPicker {
     if (! strategy)
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
+    if (strategy == picker_strategy.used) {
+    }
+    else if (strategy == picker_strategy.total) {
+    }
+    else {
+      throw new Error(`bad strategy: ${inspect_fun(strange)}`);
+    }
+    
     return this.used_indices.size > 0
-      && new Set(this.used_indices.keys()).isSupersetOf(new Set(option_indices));
+        && new Set(this.used_indices.keys()).isSupersetOf(new Set(option_indices));
   }
   // -------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
