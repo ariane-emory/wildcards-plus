@@ -1849,9 +1849,16 @@ class WeightedPicker {
     return legal_option_indices;
   }
   // -------------------------------------------------------------------------------------
-  __needs_clear_to_pick_from(legal_option_indices) {
+  __record_index_usage(index) {
+    this.used_indices.set(this.used_indices.get(index)??0 + 1);
+  }
+  // -------------------------------------------------------------------------------------  
+  __indices_are_exhausted(option_indices, strategy) {
+    if (! strategy)
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+
     return this.used_indices.size > 0
-      && new Set(this.used_indices.keys()).isSupersetOf(new Set(legal_option_indices));
+      && new Set(this.used_indices.keys()).isSupersetOf(new Set(option_indices));
   }
   // -------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
@@ -1887,7 +1894,7 @@ class WeightedPicker {
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
-    if (this.__needs_clear_to_pick_from(legal_option_indices)) {
+    if (this.__indices_are_exhausted(legal_option_indices, strategy)) {
       // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       this.used_indices.clear();
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
@@ -1900,7 +1907,7 @@ class WeightedPicker {
 
     if (legal_option_indices.length === 1) {
       // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
-      this.used_indices.set(legal_option_indices[0], 1);
+      this.__record_index_usage(legal_option_indices[0]);
       return this.options[legal_option_indices[0]][1];
     }
 
@@ -1930,7 +1937,7 @@ class WeightedPicker {
       const [option_weight, option_value] = this.options[legal_option_ix];
       
       if (random < option_weight) {
-        this.used_indices.set(legal_option_ix, 1);
+        this.__record_index_usage(legal_option_ix);
         return option_value;
       }
 
