@@ -236,7 +236,7 @@ let log_config_enabled        = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let log_misc_enabled          = true;
-let disable_prelude           = false;
+let disable_prelude           = true;
 let print_before_ast_enabled  = false;
 let print_after_ast_enabled   = false;
 // ---------------------------------------------------------------------------------------
@@ -1875,14 +1875,7 @@ class WeightedPicker {
     }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
-    
-    for (let ix = 0; ix < this.options.length; ix++) {
-      const [option_weight, option_value] = this.options[ix];
-      
-      if (allow_if(option_value) && !forbid_if(option_value)) //  && !this.used_indices.has(ix))
-        legal_option_indices.push(ix);
-    }
-    
+        
     if (this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
       console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       this.used_indices.clear();
@@ -5011,9 +5004,9 @@ class ASTSpecialFunction {
 class ASTAnonWildcard extends WeightedPicker {
   constructor(options) {
     super(options
-          .map(o => [o.weight, o])
-          .filter(o => o.weight !== 0));
-    console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+          .filter(o => o.weight !== 0)
+          .map(o => [o.weight, o]));
+    // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   }
 // ---------------------------------------------------------------------------------------
