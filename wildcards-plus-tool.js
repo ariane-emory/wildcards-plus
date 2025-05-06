@@ -235,6 +235,7 @@ let log_enabled               = true;
 let log_config_enabled        = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
+let log_misc_enabled          = true;
 let disable_prelude           = false;
 let print_before_ast_enabled  = false;
 let print_after_ast_enabled   = false;
@@ -4949,7 +4950,7 @@ class ASTLora {
   constructor(file, weight) {
     this.file   = file;
     this.weight = weight;
-    console.log(`Constructed LoRa ${this}!`);
+    // console.log(`Constructed LoRa ${this}!`);
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -5012,8 +5013,9 @@ class ASTAnonWildcard extends WeightedPicker {
     super(options
           .map(o => [o.weight, o])
           .filter(o => o.weight !== 0));
+    console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
-}
+  }
 // ---------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative {
   constructor(weight, check_flags, not_flags, body) {
