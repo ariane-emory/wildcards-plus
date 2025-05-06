@@ -1824,7 +1824,7 @@ class WeightedPicker {
     this.options.push([weight, value]);
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
+  pick(min_count = 1, max_count = min_count, allow_if = never, forbid_if = never) {
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
@@ -1857,7 +1857,6 @@ class WeightedPicker {
 
     let  total_weight = 0;
 
-    // for (let ix = 0; ix < legal_options.length; ix++)
     for (const legal_option_ix of legal_option_indices)
       if (!this.used_indices.has(legal_option_ix))
         total_weight += this.options[legal_option_ix][0];
@@ -1872,11 +1871,11 @@ class WeightedPicker {
       if (this.used_indices.has(legal_option_ix))
         continue;
 
-      const weight = this.options[legal_option_ix][0];
+      const [option_weight, option_value] = this.options[legal_option_ix];
       
-      if (random < weight) {
+      if (random < option_weight) {
         this.used_indices.add(legal_option_ix);
-        return this.options[legal_option_ix][1];
+        return option_value;
       }
 
       random -= weight;
@@ -4791,6 +4790,9 @@ function expand_wildcards(thing, context = new Context()) {
       
       const pick = new_picker.pick();
 
+      if (! pick)
+        return '';
+      
       // console.log(`PICKED ${inspect_fun(pick)}`);
       
       return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
@@ -4910,7 +4912,7 @@ function expand_wildcards(thing, context = new Context()) {
     else {
       throw new Error(`confusing thing: ` +
                       (typeof thing === 'object'
-                       ? thing.constructor.name
+                       ? thing?.constructor.name
                        : typeof thing) +
                       ' ' +
                       inspect_fun(thing));
