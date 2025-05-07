@@ -4786,11 +4786,12 @@ function expand_wildcards(thing, context = new Context()) {
         res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
       }
       
-      if (thing.capitalize) {
+      res = res.filter(s => s !== '');
+
+      if (thing.capitalize && res.length > 0) {
         res[0] = capitalize(res[0]);
       }
 
-      res = res.filter(s => s !== '');
       
       return thing.joiner == ','
         ? res.join(", ")
