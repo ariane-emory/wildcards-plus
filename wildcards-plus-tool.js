@@ -4792,7 +4792,6 @@ function expand_wildcards(thing, context = new Context()) {
         res[0] = capitalize(res[0]);
       }
 
-      
       return thing.joiner == ','
         ? res.join(", ")
         : (thing.joiner == '&'

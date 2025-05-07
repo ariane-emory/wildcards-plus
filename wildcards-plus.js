@@ -45,7 +45,7 @@
       return copy;
     }
   }
-// ---------------------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------------------
   inspect_fun = JSON.stringify;
   clone_fun   = structured_clone;
   dt_hosted   = true;
@@ -4610,7 +4610,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (!got)
         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
-      const res = [];
+      let res = [];
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
@@ -4628,10 +4628,12 @@ function expand_wildcards(thing, context = new Context()) {
         res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
       }
       
-      if (thing.capitalize) {
+      res = res.filter(s => s !== '');
+
+      if (thing.capitalize && res.length > 0) {
         res[0] = capitalize(res[0]);
       }
-
+      
       return thing.joiner == ','
         ? res.join(", ")
         : (thing.joiner == '&'
