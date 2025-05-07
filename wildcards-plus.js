@@ -2133,7 +2133,7 @@ function clone(thing) {
   }
   else {
     const copy = {};
-
+    
     for (const key in thing) {
       if (thing.hasOwnProperty(key)) {
         copy[key] = clone(thing[key]);
