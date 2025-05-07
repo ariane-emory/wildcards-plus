@@ -5270,7 +5270,8 @@ for (let ix = 0; ix < batch_count; ix++) {
   
   const context                 = base_context.clone();
 
-  console.log(`CLONED: ${inspect_fun(context)}`);
+  // console.log(`CLONED: ${inspect_fun(context)}`);
+  
   // console.log(`PL_C.L: ${inspect_fun(pipeline_configuration.loras)}`);
   // console.log(`PL.C.L: ${inspect_fun(pipeline.configuration.loras)}`);
 
@@ -5279,7 +5280,7 @@ for (let ix = 0; ix < batch_count; ix++) {
                                     seed: -1,
                                     ...munge_config(context.config) };
   const add_loras               = context.add_loras;
-  const added_loras_files       = [];
+  // const added_loras_files       = [];
 
   if (add_loras.length > 0) {
     if (log_config_enabled && add_loras.length !== 0) {
@@ -5302,8 +5303,8 @@ for (let ix = 0; ix < batch_count; ix++) {
       // console.log(`THIS: ${already_have_this_lora}`);
       
       if (! already_have_this_lora) {
-        added_loras_files.push(lora.file);
-        console.log(`RECORDED ${inspect_fun(added_loras_files)}.`);
+        // added_loras_files.push(lora.file);
+        // console.log(`RECORDED ${inspect_fun(added_loras_files)}.`);
         add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
       }
 
@@ -5337,29 +5338,29 @@ for (let ix = 0; ix < batch_count; ix++) {
 
   console.log(`... image generated in ${elapsed_time} seconds.`);
 
-  if (added_loras_files.files === 0)
-                console.log(`DID NOT ADD ANYTHING!`);
-              else
-                console.log(`To remove: ${inspect_fun(added_loras_files)}`);
-              
-              for (let ix = 0; ix < added_loras_files.length; ix++) {
-                const lora_file = added_loras_files[ix];
-                
-                console.log(`Look for '${lora_file}' in ${JSON.stringify(pipeline.configuration.loras, null, 2)}...`);
-                
-                const other_loras = pipeline.configuration.loras.filter(l => l.file != lora_file);
-                console.log(`other_loras = ${inspect_fun(other_loras)}, p.c.l = ${inspect_fun(pipeline.configuration.loras)}`);
-                console.log(`other_loras.length = ${other_loras.length}, p.c.l.l = ${pipeline.configuration.loras.length}`);
-                
-                if (other_loras.length !== pipeline.configuration.loras.length) {
-                  console.log(`Removing lora "${lora_file}".`);
+  // if (added_loras_files.files === 0)
+  //   console.log(`DID NOT ADD ANYTHING!`);
+  // else
+  //   console.log(`To remove: ${inspect_fun(added_loras_files)}`);
+  
+  // for (let ix = 0; ix < added_loras_files.length; ix++) {
+  //   const lora_file = added_loras_files[ix];
+  
+  //   console.log(`Look for '${lora_file}' in ${JSON.stringify(pipeline.configuration.loras, null, 2)}...`);
+  
+  //   const other_loras = pipeline.configuration.loras.filter(l => l.file != lora_file);
+  //   console.log(`other_loras = ${inspect_fun(other_loras)}, p.c.l = ${inspect_fun(pipeline.configuration.loras)}`);
+  //   console.log(`other_loras.length = ${other_loras.length}, p.c.l.l = ${pipeline.configuration.loras.length}`);
+  
+  //   if (other_loras.length !== pipeline.configuration.loras.length) {
+  //     console.log(`Removing lora "${lora_file}".`);
 
-                  pipeline.configuration.loras = other_loras;
-                  console.log(`PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
-                }
-              }
-              
-  console.log(`END PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
+  //     pipeline.configuration.loras = other_loras;
+  //     console.log(`PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
+  //   }
+  // }
+  
+  // console.log(`END PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
 }
 
