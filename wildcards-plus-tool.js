@@ -1890,14 +1890,17 @@ class WeightedPicker {
     return exhausted_indices.isSupersetOf(new Set(option_indices));
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {   
+  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never, stategy = null) {
+    if (strategy)
+      throw new Error("no strategy");
+    
     // console.log(`PICK ${min_count}-${max_count}`);
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
     
     for (let ix = 0; ix < count; ix++) {
-      const pick = this.pick_one(allow_if, forbid_if, picker_strategy.used);
+      const pick = this.pick_one(allow_if, forbid_if, strategy);
 
       // if (pick)
       res.push(pick);
