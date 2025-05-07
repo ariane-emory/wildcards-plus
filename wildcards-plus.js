@@ -11,8 +11,44 @@
 // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
 // =====================================================================================
 {
+  // -------------------------------------------------------------------------------------
+  // DT's env doesn't seem to have structuredClone, so we define this early:
+  // -------------------------------------------------------------------------------------
+  function structured_clone(thing) {
+    if (thing === null || typeof thing !== "object") {
+      return thing;
+    }
+    else if (Array.isArray(thing)) {
+      return thing.map(structured_clone);
+    }
+    else if (thing instanceof Set) {
+      const result = new Set();
+      for (const value of thing.values()) {
+        result.add(structured_clone(value));
+      }
+      return result;
+    }
+    else if (thing instanceof Map) {
+      const result = new Map();
+      for (const [key, value] of thing.entries()) {
+        result.set(structured_clone(key), structured_clone(value));
+      }
+      return result;
+    }
+    else {
+      const copy = {};
+      for (const key in thing) {
+        if (Object.prototype.hasOwnProperty.call(thing, key)) {
+          copy[key] = structured_clone(thing[key]);
+        }
+      }
+      return copy;
+    }
+  }
+
   inspect_fun = JSON.stringify;
-  dt_hosted = true;
+  clone_fun   = structured_clone;
+  dt_hosted   = true;
 }
 // ---------------------------------------------------------------------------------------
 
@@ -2123,38 +2159,6 @@ function smart_join(arr) {
 
   return unescape(str);
 }
-// --------------------------------------------------------------------------------------
-function deep_copy(thing) {
-  if (thing === null || typeof thing !== "object") {
-    return thing;
-  }
-  else if (Array.isArray(thing)) {
-    return thing.map(deep_copy);
-  }
-  else if (thing instanceof Set) {
-    const result = new Set();
-    for (const value of thing.values()) {
-      result.add(deep_copy(value));
-    }
-    return result;
-  }
-  else if (thing instanceof Map) {
-    const result = new Map();
-    for (const [key, value] of thing.entries()) {
-      result.set(deep_copy(key), deep_copy(value));
-    }
-    return result;
-  }
-  else {
-    const copy = {};
-    for (const key in thing) {
-      if (Object.prototype.hasOwnProperty.call(thing, key)) {
-        copy[key] = deep_copy(thing[key]);
-      }
-    }
-    return copy;
-  }
-}
 // =======================================================================================
 // END OF HELPER FUNCTIONS SECTION.
 // =======================================================================================
@@ -2197,7 +2201,7 @@ const key_names = [
 ];
 // ---------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
-  config = deep_copy(config);
+  config = clone_fun(config);
 
   if (is_empty_object(config))
     return config;
@@ -5233,7 +5237,7 @@ Prompt.finalize();
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 // v DT's env doesn't seem to have structuredClone :(
-const pipeline_configuration      = deep_copy(pipeline.configuration);
+const pipeline_configuration      = clone_fun(pipeline.configuration);
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "no wildcards found in the prompt.";
 let   prompt_string               = ui_prompt;
@@ -5311,7 +5315,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   // console.log(`PL.C.L: ${inspect_fun(pipeline.configuration.loras)}`);
 
   const generated_prompt        = expand_wildcards(AST, context);
-  const generated_configuration = { ...deep_copy(pipeline_configuration),
+  const generated_configuration = { ...clone_fun(pipeline_configuration),
                                     seed: -1,
                                     ...munge_config(context.config) };
   const add_loras               = context.add_loras;

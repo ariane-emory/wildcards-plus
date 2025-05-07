@@ -154,9 +154,10 @@ function process_includes(thing, context = new Context()) {
 
 
 // =======================================================================================
-// set inspect_fun appropriately for node.js:
+// set inspect_fun and clone_fun appropriately for node.js:
 // =======================================================================================
 let inspect_fun = util.inspect;
+let clone_fun   = structuredClone;
 let dt_hosted   = false;
 //  dt_hosted   = true; // uncomment to lie and force use of the DT-legal syntax
 // =======================================================================================
@@ -168,8 +169,44 @@ if (false)
   // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
   // =====================================================================================
 {
+  // -------------------------------------------------------------------------------------
+  // DT's env doesn't seem to have structuredClone, so we'll define this early:
+  // -------------------------------------------------------------------------------------
+  function structured_clone(thing) {
+    if (thing === null || typeof thing !== "object") {
+      return thing;
+    }
+    else if (Array.isArray(thing)) {
+      return thing.map(structured_clone);
+    }
+    else if (thing instanceof Set) {
+      const result = new Set();
+      for (const value of thing.values()) {
+        result.add(structured_clone(value));
+      }
+      return result;
+    }
+    else if (thing instanceof Map) {
+      const result = new Map();
+      for (const [key, value] of thing.entries()) {
+        result.set(structured_clone(key), structured_clone(value));
+      }
+      return result;
+    }
+    else {
+      const copy = {};
+      for (const key in thing) {
+        if (Object.prototype.hasOwnProperty.call(thing, key)) {
+          copy[key] = structured_clone(thing[key]);
+        }
+      }
+      return copy;
+    }
+  }
+
   inspect_fun = JSON.stringify;
-  dt_hosted = true;
+  clone_fun   = structured_clone;
+  dt_hosted   = true;
 }
 // ---------------------------------------------------------------------------------------
 
@@ -2280,38 +2317,6 @@ function smart_join(arr) {
 
   return unescape(str);
 }
-// --------------------------------------------------------------------------------------
-function deep_copy(thing) {
-  if (thing === null || typeof thing !== "object") {
-    return thing;
-  }
-  else if (Array.isArray(thing)) {
-    return thing.map(deep_copy);
-  }
-  else if (thing instanceof Set) {
-    const result = new Set();
-    for (const value of thing.values()) {
-      result.add(deep_copy(value));
-    }
-    return result;
-  }
-  else if (thing instanceof Map) {
-    const result = new Map();
-    for (const [key, value] of thing.entries()) {
-      result.set(deep_copy(key), deep_copy(value));
-    }
-    return result;
-  }
-  else {
-    const copy = {};
-    for (const key in thing) {
-      if (Object.prototype.hasOwnProperty.call(thing, key)) {
-        copy[key] = deep_copy(thing[key]);
-      }
-    }
-    return copy;
-  }
-}
 // =======================================================================================
 // END OF HELPER FUNCTIONS SECTION.
 // =======================================================================================
@@ -2354,7 +2359,7 @@ const key_names = [
 ];
 // ---------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
-  config = deep_copy(config);
+  config = clone_fun(config);
 
   if (is_empty_object(config))
     return config;
@@ -5496,7 +5501,7 @@ async function main() {
 
   const stash_prior = () => {
     prior_expansion = expanded;
-    prior_config = structuredClone(config);
+    prior_config = clone_fun(config);
   };
 
   let posted_count    = 0;
