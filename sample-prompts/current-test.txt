@@ -8,8 +8,8 @@
 // #flux
 // #hidream
 
-#lightning // enable lightning 4-step in SDXL models.
-
+#lightning  // enable lightning 4-step in SDXL models.
+#square     // enable square aspect ratios
 // #sdxl_hires // enable higher resulutions
 
 
@@ -65,7 +65,7 @@
   @3lora
 
   { !lightning %config.steps(35) }
-  { ?lightning %config.steps(6) %config.n_iter(2) }
+  { ?lightning %config.steps(6) %config.n_iter(1) }
     
   
   // possible resolutions:
@@ -74,6 +74,9 @@
   | 3 ?sdxl_hires %config({ "width": 1024, "height": 512 })
   | 3 %config({ "width": 768,  "height": 384 })
   | 3 %config({ "width": 640,  "height": 320 })
+  | 3 ?square %config({ "width": 768,  "height": 768 })
+  | 3 ?square %config({ "width": 640,  "height": 640 })
+  | 3 ?square %config({ "width": 512,  "height": 512 })
   }
 
   // three possible 'shift' values:
