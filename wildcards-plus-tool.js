@@ -1918,10 +1918,12 @@ class WeightedPicker {
     const effective_weight = option_index => {
       let ret = null;
       
-      if (strategy == picker_strategy.used)
+      if (strategy === picker_strategy.used)
         ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-      else 
+      else if (strategy === picker_strategy.total)
         ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+      else
+        throw Error("unexpected strategy");
 
       // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
       
