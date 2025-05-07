@@ -10,9 +10,12 @@
 // #flux_on
 // #hidream_on
 
-{|#lightning_on}  // enable lightning 4-step in SDXL models.
-#square_on        // enable square aspect ratios
-#sdxl_hires       // enable higher resulutions
+#always_lightning_on
+
+{ !always_lightning_on
+| !always_lightning_off #lightning_on }  // enable lightning 4-step in SDXL models.
+#square_on                               // enable square aspect ratios
+#sdxl_hires                              // enable higher resulutions
 // ---------------------------------------------------------------------------------------
 
 @lora_names :=
