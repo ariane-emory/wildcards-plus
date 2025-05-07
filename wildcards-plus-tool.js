@@ -4677,7 +4677,7 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
 ?artist__john_zeleznik science-fiction, Rifts, palladium-books, painting |
 ?artist__keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
-?artist__kevin_fales atmospheric, dark, fantasy, oil-painting, Rifts, palladium-books
+?artist__kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books
 }
 `;
 // ---------------------------------------------------------------------------------------
