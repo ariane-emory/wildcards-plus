@@ -10,6 +10,9 @@
 
 #lightning // enable lightning 4-step in SDXL models.
 
+// #sdxl_hires // enable higher resulutions
+
+
 @lora_names :=
 { mj52_v2.0
 | ethereon
@@ -66,19 +69,19 @@
     
   
   // possible resolutions:
-  { 3 %config({ "width": 1280, "height": 640 })
-  | 3 %config({ "width": 1152, "height": 576 })
-  | 3 %config({ "width": 1024, "height": 512 })
-  // | 3 %config({ "width": 768,  "height": 384 })
-  // | 3 %config({ "width": 640,  "height": 320 })
+  { 3 ?sdxl_hires %config({ "width": 1280, "height": 640 })
+  | 3 ?sdxl_hires %config({ "width": 1152, "height": 576 })
+  | 3 ?sdxl_hires %config({ "width": 1024, "height": 512 })
+  | 3 %config({ "width": 768,  "height": 384 })
+  | 3 %config({ "width": 640,  "height": 320 })
   }
 
   // three possible 'shift' values:
   { %config.shift(1.00) | %config.shift(1.10) | %config.shift(1.20) }
 
   // two sampler possibilities:
-  // %config.sampler("LCM")
-  { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") }
+  { ?lightning %config.sampler("LCM") }
+  { !lightning { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") } }
 
   // eight possible CFG values:
   { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
