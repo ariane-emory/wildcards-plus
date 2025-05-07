@@ -2123,6 +2123,25 @@ function smart_join(arr) {
 
   return unescape(str);
 }
+// --------------------------------------------------------------------------------------
+function clone(thing) {
+  if (thing === null || typeof thing !== "object") {
+    return thing;
+  }
+  else if (Array.isArray(thing)) {
+    return thing.map(clone);
+  }
+  else {
+    const copy = {};
+
+    for (const key in thing) {
+      if (thing.hasOwnProperty(key)) {
+        copy[key] = clone(thing[key]);
+      }
+    }
+    return copy;
+  }
+} 
 // =======================================================================================
 // END OF HELPER FUNCTIONS SECTION.
 // =======================================================================================
