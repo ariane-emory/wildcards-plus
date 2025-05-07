@@ -5260,7 +5260,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   const start_date = new Date();
 
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  console.log(`Beginning render #${ix+1} of ${batch_count} at ${start_date}:`);
+  console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
 
   // expand the wildcards using a cloned context and generate a new configuration:
@@ -5301,7 +5301,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`${generated_prompt}`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  console.log(`Generating image...`);
+  console.log(`Generating image #${ix+1} out of ${batch_count}...`);
   
   // render an image:
   canvas.clear();
