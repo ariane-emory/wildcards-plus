@@ -1909,6 +1909,13 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, strategy) {
+    const adjusted_weight = option_index => {
+      if (strategy == picker_strategy.used)
+        this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+      else 
+        this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+    };
+    
     if (! (strategy && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
@@ -1950,7 +1957,7 @@ class WeightedPicker {
     // Since we now avoid adding options with a weight of 0, this shouldnever be true:
     if (legal_options_total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_option_indices = ${inspect_fun(legal_option_indices)}`);
+                      `legal_options = ${inspect_fun(legal_option_indices.map(ix => this.options[ix]))}`);
 
       // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
       // return null;
