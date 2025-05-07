@@ -203,7 +203,7 @@ if (false)
       return copy;
     }
   }
-
+// ---------------------------------------------------------------------------------------
   inspect_fun = JSON.stringify;
   clone_fun   = structured_clone;
   dt_hosted   = true;

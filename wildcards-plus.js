@@ -12,7 +12,7 @@
 // =====================================================================================
 {
   // -------------------------------------------------------------------------------------
-  // DT's env doesn't seem to have structuredClone, so we define this early:
+  // DT's env doesn't seem to have structuredClone, so we'll define this early:
   // -------------------------------------------------------------------------------------
   function structured_clone(thing) {
     if (thing === null || typeof thing !== "object") {
@@ -45,7 +45,7 @@
       return copy;
     }
   }
-
+// ---------------------------------------------------------------------------------------
   inspect_fun = JSON.stringify;
   clone_fun   = structured_clone;
   dt_hosted   = true;
