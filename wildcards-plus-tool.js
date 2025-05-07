@@ -1884,6 +1884,9 @@ class WeightedPicker {
       
       // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
+    else if (strategy === picker_strategy.random) {
+      return false;
+    }
     else {
       throw new Error(`bad strategy: ${inspect_fun(strange)}`);
     }
@@ -1916,6 +1919,7 @@ class WeightedPicker {
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, strategy) {
     const noisy = false;
+    
     const effective_weight = option_index => {
       let ret = null;
       
@@ -1923,7 +1927,9 @@ class WeightedPicker {
         ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
       else if (strategy === picker_strategy.total)
         ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-      else
+      else if (strategy === picker_strategy.random)
+        ret = this.options[option_index].weight;
+      else 
         throw Error("unexpected strategy");
 
       // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
@@ -4725,7 +4731,7 @@ function expand_wildcards(thing, context = new Context()) {
       }
       else {
         const strategy = thing.min_count === 1 && thing.max_count === 1
-              ? picker_strategy.total
+              ? picker_strategy.random // total
               : picker_strategy.used;
         
         const picks = got.pick(thing.min_count, thing.max_count,
