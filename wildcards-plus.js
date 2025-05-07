@@ -5246,13 +5246,10 @@ if (! parse_result.is_finished)
   throw new Error(`error parsing prompt!`);
 // ---------------------------------------------------------------------------------------
 
-
-console.log(`PIPELINE.CONFIGURATION:\n${JSON.stringify(pipeline.configuration)}\n`);
-
-
-// ---------------------------------------------------------------------------------------
-// run the pipeline:
-// ---------------------------------------------------------------------------------------
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
+console.log(`pipeline.configuration is:`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
+console.log(`${JSON.stringify(pipeline.configuration, null, 2)}\n`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`The wildcards-plus prompt is:`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
@@ -5260,6 +5257,9 @@ console.log(`${prompt_string}\n`);
 
 const base_context = load_prelude();
 
+// ---------------------------------------------------------------------------------------
+// main loop:
+// ---------------------------------------------------------------------------------------
 for (let ix = 0; ix < batch_count; ix++) {
   const start_date = new Date();
 
@@ -5293,19 +5293,24 @@ for (let ix = 0; ix < batch_count; ix++) {
     for (const lora of add_loras) {
       const already_have_this_lora = pipeline.configuration.loras
             .filter(l => l.file === lora.file).length > 0;
-      
-      if (! already_have_this_lora)
-        added_loras_files.add(lora.file);
 
-      add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
-    
+      // console.log(`THIS: ${already_have_this_lora}`);
+      
+      if (! already_have_this_lora) {
+        // console.log(`RECORDING ${lora.file}!`);
+        added_loras_files.add(lora.file);
+        add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
+      }
+
+      
       // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
       //             `${JSON.stringify(generated_configuration)}`);
     }
   }
 
-  console.log(`GENERATED CONFIGURATION:\n` +
-              `${JSON.stringify(generated_configuration), null, 2}`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  console.log(`GENERATED CONFIGURATION:\n`);
+  console.log(`${JSON.stringify(generated_configuration, null, 2)}`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`The expanded prompt is:`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
@@ -5325,7 +5330,9 @@ for (let ix = 0; ix < batch_count; ix++) {
     }
   }
 
-  // render an image:
+  // -------------------------------------------------------------------------------------
+  // run the pipeline:
+  // -------------------------------------------------------------------------------------
   canvas.clear();
   pipeline.run({
     configuration: generated_configuration,
@@ -5336,7 +5343,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
   console.log(`... image generated in ${elapsed_time} seconds\n`);
-  console.log(`---------------------------------------------------------------------------------------------------------------`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
 }
 
 console.log('Job complete. Open Console to see job report.');
