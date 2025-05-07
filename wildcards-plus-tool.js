@@ -4673,7 +4673,7 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__ander_zorn etching, nudes, painting, portraits, Swedish |
 ?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
 ?artist__john_zeleznik science-fiction, Rifts, Palladium Books, painting |
-?artist__keith_parkinson detailed, epic, heroic, fantasy, realism, TSR, magic-the-gathering, painting
+?artist__keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting
 }
 `;
 // ---------------------------------------------------------------------------------------
