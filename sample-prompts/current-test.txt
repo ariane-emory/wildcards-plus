@@ -8,6 +8,8 @@
 // #flux
 // #hidream
 
+#lightning // enable lightning 4-step in SDXL models.
+
 @lora_names :=
 { mj52_v2.0
 | ethereon
@@ -54,12 +56,14 @@
 
 | 6 ?sdxl
   // various SDXL models:
-  // <lora:sdxl_lightning_8step_lora:1.0>
+  
+  { ?lightning <lora:sdxl_lightning_4step_lora:1.0> }
 
   @3lora
 
-  %config.steps(35)
-  %config.n_iter(2)
+  { !lightning %config.steps(35) }
+  { ?lightning %config.steps(6) %config.n_iter(2) }
+    
   
   // possible resolutions:
   { 3 %config({ "width": 1280, "height": 640 })
