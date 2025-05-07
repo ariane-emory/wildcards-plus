@@ -1,2 +1,19 @@
-@fruit := { 100 apple | 2 orange | banana | pear | strawberry }
-@12&fruit
+@fruit := { 3 apple | orange }
+// @12&fruit \n
+
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
+@fruit \n
