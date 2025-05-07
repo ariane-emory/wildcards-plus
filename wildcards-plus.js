@@ -2124,19 +2124,19 @@ function smart_join(arr) {
   return unescape(str);
 }
 // --------------------------------------------------------------------------------------
-function clone(thing) {
+function deep_copy(thing) {
   if (thing === null || typeof thing !== "object") {
     return thing;
   }
   else if (Array.isArray(thing)) {
-    return thing.map(clone);
+    return thing.map(deep_copy);
   }
   else {
     const copy = {};
     
     for (const key in thing) {
       if (thing.hasOwnProperty(key)) {
-        copy[key] = clone(thing[key]);
+        copy[key] = deep_copy(thing[key]);
       }
     }
     return copy;
@@ -5220,10 +5220,11 @@ Prompt.finalize();
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 // v DT's env doesn't seem to have structuredClone :(
-const pipeline_configuration      = clone(pipeline.configuration);
+const pipeline_configuration      = deep_copy(pipeline.configuration);
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "no wildcards found in the prompt.";
 let   prompt_string               = ui_prompt;
+const default_batch_count         = 8;
 // ---------------------------------------------------------------------------------------
 
 
@@ -5242,7 +5243,7 @@ const user_selection = requestFromUser('Wildcards', '', function() {
   return [
 	  this.section('Prompt', ui_hint, [
 		  this.textField(prompt_string, fallback_prompt, true, 240),
-		  this.slider(3, this.slider.fractional(0), 1, 500, 'batch count')
+		  this.slider(default_batch_count, this.slider.fractional(0), 1, 500, 'batch count')
     ]),
 	  this.section('about',
                  doc_string,
@@ -5295,7 +5296,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   // console.log(`PL.C.L: ${inspect_fun(pipeline.configuration.loras)}`);
 
   const generated_prompt        = expand_wildcards(parse_result.value, context);
-  const generated_configuration = { ...clone(pipeline_configuration),
+  const generated_configuration = { ...deep_copy(pipeline_configuration),
                                     seed: -1,
                                     ...munge_config(context.config) };
   const add_loras               = context.add_loras;
