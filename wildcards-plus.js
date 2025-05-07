@@ -2124,6 +2124,24 @@ function smart_join(arr) {
   return unescape(str);
 }
 // --------------------------------------------------------------------------------------
+// function deep_copy(thing) {
+//   if (thing === null || typeof thing !== "object") {
+//     return thing;
+//   }
+//   else if (Array.isArray(thing)) {
+//     return thing.map(deep_copy);
+//   }
+//   else {
+//     const copy = {};
+//     for (const key in thing) {
+//       if (thing.hasOwnProperty(key)) {
+//         copy[key] = deep_copy(thing[key]);
+//       }
+//     }
+//     return copy;
+//   }
+// }
+// --------------------------------------------------------------------------------------
 function deep_copy(thing) {
   if (thing === null || typeof thing !== "object") {
     return thing;
@@ -2131,17 +2149,30 @@ function deep_copy(thing) {
   else if (Array.isArray(thing)) {
     return thing.map(deep_copy);
   }
+  else if (thing instanceof Set) {
+    const result = new Set();
+    for (const value of thing.values()) {
+      result.add(deep_copy(value));
+    }
+    return result;
+  }
+  else if (thing instanceof Map) {
+    const result = new Map();
+    for (const [key, value] of thing.entries()) {
+      result.set(deep_copy(key), deep_copy(value));
+    }
+    return result;
+  }
   else {
     const copy = {};
-    
     for (const key in thing) {
-      if (thing.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(thing, key)) {
         copy[key] = deep_copy(thing[key]);
       }
     }
     return copy;
   }
-} 
+}
 // =======================================================================================
 // END OF HELPER FUNCTIONS SECTION.
 // =======================================================================================
@@ -2184,7 +2215,7 @@ const key_names = [
 ];
 // ---------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
-  config = { ...config };
+  config = deep_copy(config);
 
   if (is_empty_object(config))
     return config;
