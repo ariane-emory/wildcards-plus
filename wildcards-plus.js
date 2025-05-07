@@ -3398,7 +3398,9 @@ const prelude_text = disable_prelude ? '' : `
 #artist__konstantin_yuon Konstantin Yuon |
 #artist__yuumei Yuumei |
 #artist__william_zorach William Zorach |
-#artist__ander_zorn Ander Zorn
+#artist__ander_zorn Ander Zorn |
+#artist__ian_miller Ian Miller |
+#artist__john_zeleznik John Zeleznik
 }
 
 // The matching list of styles:
@@ -4472,7 +4474,9 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__konstantin_yuon color-field, impressionism, landscapes |
 ?artist__yuumei characters, digital, dream-like, environmentalism, fantasy, femininity, manga-anime, whimsical |
 ?artist__william_zorach cubism, expressionism, folk-art, modern, sculpture |
-?artist__ander_zorn etching, nudes, painting, portraits, Swedish
+?artist__ander_zorn etching, nudes, painting, portraits, Swedish |
+?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
+?artist__john_zeleznik science-fiction, Rifts, Palladium books
 }
 `;
 // ---------------------------------------------------------------------------------------
@@ -5270,7 +5274,7 @@ for (let ix = 0; ix < batch_count; ix++) {
                                     seed: -1,
                                     ...munge_config(context.config) };
   const add_loras = context.add_loras;
-
+  const added_loras_files = new Set();
 
   if (add_loras.length > 0) {
     if (log_config_enabled && add_loras.length !== 0) {
@@ -5278,8 +5282,8 @@ for (let ix = 0; ix < batch_count; ix++) {
       console.log(`Found add_loras in Context: ${inspect_fun(add_loras)} in Context.`);
     }
 
-    console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
-                `${JSON.stringify(generated_configuration)}`);
+    // console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
+    //             `${JSON.stringify(generated_configuration)}`);
     
     if (generated_configuration.loras && generated_configuration.length > 0)
       generated_configuration.loras = [ ...generated_configuration.loras ];
@@ -5287,22 +5291,39 @@ for (let ix = 0; ix < batch_count; ix++) {
       generated_configuration.loras ||= [];
 
     for (const lora of add_loras) {
-      add_lora_to_array(lora, generated_configuration.loras);
+      const already_have_this_lora = pipeline.configuration.loras
+            .filter(l => l.file === lora.file).length > 0;
+      
+      if (! already_have_this_lora)
+        added_loras_files.add(lora.file);
 
-      console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
-                  `${JSON.stringify(generated_configuration)}`);
+      add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
+    
+      // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
+      //             `${JSON.stringify(generated_configuration)}`);
     }
   }
-  
+
   console.log(`GENERATED CONFIGURATION:\n` +
-              `${JSON.stringify(generated_configuration)}`);
+              `${JSON.stringify(generated_configuration), null, 2}`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`The expanded prompt is:`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`${generated_prompt}`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`Generating image #${ix+1} out of ${batch_count}...`);
-  
+
+  for (const lora_file in added_loras_files) {
+    const other_loras = pipeline.configuration.loras.filter(l => l.file != lora_file);
+
+    if (other_loras.length !== pipeline.configuration.loras.length) {
+      console.log(`Removing lora "${lora_file}".`);
+
+      pipeline.configuration.loras = other_loras;
+    }
+  }
+
+
   // render an image:
   canvas.clear();
   pipeline.run({
@@ -5313,7 +5334,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   const end_time     = new Date().getTime();
   const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
-  console.log(`.. Image generated in ${elapsed_time} seconds\n`);
+  console.log(`... image generated in ${elapsed_time} seconds\n`);
   console.log(`---------------------------------------------------------------------------------------------------------------`);
 }
 
