@@ -1910,10 +1910,16 @@ class WeightedPicker {
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, strategy) {
     const adjusted_weight = option_index => {
+      let ret = null;
+      
       if (strategy == picker_strategy.used)
-        this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+        ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
       else 
-        this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+        ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+
+      // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+      
+      return ret;
     };
     
     if (! (strategy && allow_if && forbid_if))
@@ -1948,36 +1954,48 @@ class WeightedPicker {
 
     // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
-    let legal_options_total_weight = 0;
+    let total_weight = 0;
 
-    for (const legal_option_ix of legal_option_indices)
-      if (!this.used_indices.has(legal_option_ix))
-        legal_options_total_weight += this.options[legal_option_ix].weight;
+    for (const legal_option_ix of legal_option_indices) {
+      const effective_weight = adjusted_weight(legal_option_ix);
+      // console.log(`adjusted weight of option #${legal_option_ix} = ${effective_weight}`);
+      total_weight += effective_weight;
+    }
 
     // Since we now avoid adding options with a weight of 0, this shouldnever be true:
-    if (legal_options_total_weight === 0) {
+    if (total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
                       `legal_options = ${inspect_fun(legal_option_indices.map(ix => this.options[ix]))}`);
 
-      // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
+      console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
       // return null;
     }
     
-    let random = Math.random() * legal_options_total_weight;
+    console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
+    
+    let random = Math.random() * total_weight;
 
-    // for (let ix = 0; ix < legal_options_indexes.length; ix++) {
+    console.log(`------------------------------------------------------------------------`);
+    console.log(`RANDOM IS ${random}`);
+    console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+    console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+    
     for (const legal_option_ix of legal_option_indices) {
-      if (this.used_indices.has(legal_option_ix))
+      const option           = this.options[legal_option_ix];
+      const effective_weight = adjusted_weight(legal_option_ix);
+
+      if (effective_weight === 0)
         continue;
 
-      const option = this.options[legal_option_ix];
+      console.log(`EFFECTIVE_WEIGHT OF ${JSON.stringify(option)} IS ${effective_weight}`);
       
-      if (random < option.weight) {
+      if (random < effective_weight) {
         this.__record_index_usage(legal_option_ix);
         return option.value;
       }
 
-      random -= option.weight;
+      random -= effective_weight;
+      console.log(`RANDOM IS NOW ${random}`);
     }
 
     throw new Error("random selection failed");
