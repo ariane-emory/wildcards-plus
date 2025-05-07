@@ -5201,7 +5201,7 @@ Prompt.finalize();
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt        = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 // v DT's env doesn't seem to have structuredClone :(
-const pipeline_configuration = JSON.parse(JSON.stringify(pipeline.configuration));
+// const pipeline_configuration = JSON.parse(JSON.stringify(pipeline.configuration));
 //const pipeline_configuration = pipeline.configuration;
 const ui_prompt              = pipeline.prompts.prompt;
 const ui_hint                = "no wildcards found in the prompt.";
@@ -5224,7 +5224,7 @@ const user_selection = requestFromUser('Wildcards', '', function() {
   return [
 	  this.section('Prompt', ui_hint, [
 		  this.textField(prompt_string, fallback_prompt, true, 240),
-		  this.slider(1, this.slider.fractional(0), 1, 500, 'batch count')
+		  this.slider(3, this.slider.fractional(0), 1, 500, 'batch count')
     ]),
 	  this.section('about',
                  doc_string,
@@ -5249,11 +5249,11 @@ if (! parse_result.is_finished)
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`pipeline.configuration is:`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
-console.log(`${JSON.stringify(pipeline.configuration, null, 2)}\n`);
+console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`The wildcards-plus prompt is:`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
-console.log(`${prompt_string}\n`);
+console.log(`${prompt_string}`);
 
 const base_context = load_prelude();
 
@@ -5270,11 +5270,11 @@ for (let ix = 0; ix < batch_count; ix++) {
   // expand the wildcards using a cloned context and generate a new configuration:
   const context                 = base_context.clone();
   const generated_prompt        = expand_wildcards(parse_result.value, context);
-  const generated_configuration = { ...pipeline_configuration,
+  const generated_configuration = { ...pipeline.configuration,
                                     seed: -1,
                                     ...munge_config(context.config) };
   const add_loras = context.add_loras;
-  const added_loras_files = new Set();
+  const added_loras_files       = [];
 
   if (add_loras.length > 0) {
     if (log_config_enabled && add_loras.length !== 0) {
@@ -5298,11 +5298,10 @@ for (let ix = 0; ix < batch_count; ix++) {
       
       if (! already_have_this_lora) {
         // console.log(`RECORDING ${lora.file}!`);
-        added_loras_files.add(lora.file);
+        added_loras_files.push(lora.file);
         add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
       }
 
-      
       // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
       //             `${JSON.stringify(generated_configuration)}`);
     }
@@ -5318,18 +5317,6 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`Generating image #${ix+1} out of ${batch_count}...`);
 
-  for (const lora_file in added_loras_files) {
-    console.log(`Look for '${lora.file}' in ${JSON.stringify(pipeline.configuration.loras)}...`);
-    
-    const other_loras = pipeline.configuration.loras.filter(l => l.file != lora_file);
-
-    if (other_loras.length !== pipeline.configuration.loras.length) {
-      console.log(`Removing lora "${lora_file}".`);
-
-      pipeline.configuration.loras = other_loras;
-    }
-  }
-
   // -------------------------------------------------------------------------------------
   // run the pipeline:
   // -------------------------------------------------------------------------------------
@@ -5342,7 +5329,25 @@ for (let ix = 0; ix < batch_count; ix++) {
   const end_time     = new Date().getTime();
   const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
-  console.log(`... image generated in ${elapsed_time} seconds\n`);
+  console.log(`... image generated in ${elapsed_time} seconds.`);
+
+  if (added_loras_files.length === 0)
+    console.log(`DID NOT ADD ANYTHING!`);
+  else
+    console.log(`To remove: ${added_loras_files.size}`);
+  
+  for (const lora_file in added_loras_files) {
+    console.log(`Look for '${lora_file}' in ${JSON.stringify(pipeline.configuration.loras, null, 2)}...`);
+    
+    const other_loras = pipeline.configuration.loras.filter(l => l.file != lora_file);
+
+    if (other_loras.length !== pipeline.configuration.loras.length) {
+      console.log(`Removing lora "${lora_file}".`);
+
+      pipeline.configuration.loras = other_loras;
+    }
+  }
+
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
 }
 
