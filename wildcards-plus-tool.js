@@ -1851,7 +1851,7 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   __record_index_usage(index) {
-    this.used_indices.set(index, this.used_indices.get(index)??0 + 1);
+    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
   }
   // -------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, strategy) {
@@ -1931,15 +1931,15 @@ class WeightedPicker {
     };
     
     if (! (strategy && allow_if && forbid_if))
-          throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-        
-        // console.log(`PICK_ONE!`);    
-        // console.log(`PICK FROM ${JSON.stringify(this)}`);
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    // console.log(`PICK_ONE!`);    
+    // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
-        if (this.options.length === 0) {
-          // console.log(`PICK_ONE: NO OPTIONS 1!`);
-          return null;
-        }
+    if (this.options.length === 0) {
+      // console.log(`PICK_ONE: NO OPTIONS 1!`);
+      return null;
+    }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
