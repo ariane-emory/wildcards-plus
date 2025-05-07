@@ -194,7 +194,7 @@
              |{access|maintenance} tunnel
              }
 |4 ?planet,moon #outdoors {alley
-                        |{|2 hive city|2 megacity} street
+                        |{|2 hive city|2 megacity|2 arcology} street
                         |crater
                         |bazaar
                         |market
