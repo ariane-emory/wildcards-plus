@@ -3597,7 +3597,8 @@ const prelude_text = disable_prelude ? '' : `
 // artists added by me (ariane-emory):
 #artist__ian_miller Ian Miller |
 #artist__john_zeleznik John Zeleznik |
-#artist__keith_parkinson Keith Parkinson 
+#artist__keith_parkinson Keith Parkinson |
+#artist__kevin_fales Kevin Fales
 }
 
 // The matching list of styles:
@@ -4674,8 +4675,9 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__ander_zorn etching, nudes, painting, portraits, Swedish |
 // artists added by me (ariane-emory):
 ?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
-?artist__john_zeleznik science-fiction, Rifts, Palladium Books, painting |
-?artist__keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting
+?artist__john_zeleznik science-fiction, Rifts, palladium-books, painting |
+?artist__keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
+?artist__kevin_fales atmospheric, dark, fantasy, oil-painting, rifts, palladium-books
 }
 `;
 // ---------------------------------------------------------------------------------------
