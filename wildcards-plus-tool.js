@@ -5492,7 +5492,7 @@ async function main() {
       for (const lora of add_loras)
         add_lora_to_array(lora, config.loras, "config.loras");
 
-      if (log_config_enabled && ! is_empty_object(config)) {
+      if (log_config_enabled) {
         console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
         // console.log(`Config now has ${config?.loras.length ?? -1} LoRAs.`);
       }
