@@ -15,7 +15,7 @@
 // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
 @lora := { <lora:@lora_names: @lowish_random_weight> }
 
-{ 0
+{ 2
   // devMODE
   %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
   %config.steps(8)
@@ -24,11 +24,12 @@
   { %config.cfg_scale(1.0) | %config.cfg_scale(1.5) | %config.cfg_scale(2.0) | %config.cfg_scale(2.5) }
 
   // possible resolutions:
-  { 3 %config({ "width": 768,  "height": 384 })
+  { 3 %config({ "width": 1024, "height": 512 })
+  | 3 %config({ "width": 768,  "height": 384 })
   | 3 %config({ "width": 640,  "height": 320 })
   }
 
-| 0 // Hidream with some basic settings that seem to work alright:
+| 2 // Hidream with some basic settings that seem to work alright:
   %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50 })
 
   { 8 %config.cfg_scale(5.0 ) | 7 %config.cfg_scale(10.0) | 6 %config.cfg_scale(15.0) | 5 %config.cfg_scale(20.0)
@@ -45,27 +46,27 @@
   }
 
 | 6 // various SDXL models:
-  <lora:sdxl_lightning_8step_lora:1.0>
+  // <lora:sdxl_lightning_8step_lora:1.0>
 
   @3lora
 
-  %config.steps(10)
+  %config.steps(35)
   %config.n_iter(2)
   
   // possible resolutions:
   { 3 %config({ "width": 1280, "height": 640 })
   | 3 %config({ "width": 1152, "height": 576 })
   | 3 %config({ "width": 1024, "height": 512 })
-  | 3 %config({ "width": 768,  "height": 384 })
-  | 3 %config({ "width": 640,  "height": 320 })
+  // | 3 %config({ "width": 768,  "height": 384 })
+  // | 3 %config({ "width": 640,  "height": 320 })
   }
 
   // three possible 'shift' values:
   { %config.shift(1.00) | %config.shift(1.10) | %config.shift(1.20) }
 
   // two sampler possibilities:
-  %config.sampler("LCM")
-  // { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") }
+  // %config.sampler("LCM")
+  { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") }
 
   // eight possible CFG values:
   { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
