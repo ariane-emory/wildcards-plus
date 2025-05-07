@@ -48,9 +48,9 @@
 | 3 // various SDXL models:
   #sdxl
 
-  <lora:sdxl_lightning_8step_lora:1.0>
+  <lora:sdxl_lightning_8step_lora:0.8>
 
-  %config.steps(8)
+  %config.steps(10)
   %config.n_iter(2)
   
   // three possible resolutions:
@@ -102,6 +102,8 @@
                   |@ship_late_adj frigate
                   |@ship_late_adj battleship|@ship_late_adj destroyer
                   |{|@ship_late_adj} merchant vessel
+                  |{|@ship_late_adj} freighter
+                  |{|@ship_late_adj} liner
                   |{|@ship_late_adj} vessel}
 
 // ---------------------------------------------------------------------------------------
@@ -282,25 +284,27 @@
 // ---------------------------------------------------------------------------------------
 @role :=
 {#weapon mercenary 
-|{3|hyperdrive|@ship_term} technician        @likely_tool
-|engineer                                    @likely_tool
-|communications officer                      @maybe_no_equipment
-|scientist                                   #tool
-|explorer                                    @likely_tool
-|scout                                       @tool_or_weapon
-|wanderer                                    @tool_or_weapon
-|{2|interstellar} bounty hunter              #weapon
-|soldier                                     #weapon
-|prize fighter                               #weapon #melee
-|assassin                                    @likely_weapon
-|medic                                       #tool
-|worker                                      #tool
-|{?traveller psion}                          @maybe_no_equipment
-|{space|star|interstellar} {trader|merchant} @maybe_no_equipment
-|{space|star} marine                         #weapon
-|@ship_term captain                          @maybe_no_equipment
-|@ship_term pilot                            @maybe_no_equipment
-|{|@ship_term} {navigator|astrogator}        @maybe_no_equipment
+|{3|hyperdrive|@ship_term} technician          @likely_tool
+|engineer                                      @likely_tool
+|communications officer                        @maybe_no_equipment
+|scientist                                     #tool
+|explorer                                      @likely_tool
+|scout                                         @tool_or_weapon
+|wanderer                                      @tool_or_weapon
+|{2|interstellar} bounty hunter                #weapon
+|soldier                                       #weapon
+|trooper                                       #weapon
+|prize fighter                                 #weapon #melee
+|assassin                                      @likely_weapon
+|medic                                         #tool
+|cyberdoc                                      #tool
+|worker                                        #tool
+|{?traveller psion}                            @maybe_no_equipment
+|2 {space|star|interstellar} {trader|merchant} @maybe_no_equipment #merchant
+|{space|star} marine                           #weapon
+|@ship_term captain                            @maybe_no_equipment
+|@ship_term pilot                              @maybe_no_equipment
+|{|@ship_term} {navigator|astrogator}          @maybe_no_equipment
 }
 
 // ---------------------------------------------------------------------------------------
@@ -308,14 +312,15 @@
 // ---------------------------------------------------------------------------------------
 @clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_verb     := {2 wearing|clad in|dressed in}
-@clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|millitary
+@clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|!merchant millitary
                       |!#high-tech high-tech|#highly-detailed highly-detailed
                       |{|starship|space ship|spacecraft} crew members'
-                      |!#greebled {|highly} greebled}
+                      |!merchant !#greebled {|highly} greebled}
 @clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
                       |@pro_pos_rand @clothing_adj flight suit
                       |@pro_pos_rand @clothing_adj body suit
                       |@pro_pos_rand @clothing_adj uniform
+                      |3 ?merchant @pro_pos_rand @clothing_adj rich attire
                       |@pro_pos_rand @clothing_adj {|helmetless}
                                      {space|vacuum|hazardous environment} suit
                       |@pro_pos_rand @clothing_adj exoskeleton}
@@ -415,3 +420,5 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {?artsy By @wizards_artists, @wizards_artist_styles. }
 
 {?sdxl @3lora}
+{ 0 impossible }
+{| 0 IMPOSSIBLE }
