@@ -3598,7 +3598,8 @@ const prelude_text = disable_prelude ? '' : `
 3 #artist__ian_miller Ian Miller |
 3 #artist__john_zeleznik John Zeleznik |
 3 #artist__keith_parkinson Keith Parkinson |
-3 #artist__kevin_fales Kevin Fales
+3 #artist__kevin_fales Kevin Fales |
+3 #artist__boris_vallelo
 }
 
 // The matching list of styles:
@@ -4677,7 +4678,8 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
 ?artist__john_zeleznik science-fiction, Rifts, palladium-books, painting |
 ?artist__keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
-?artist__kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books
+?artist__kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books |
+?artist__boris_vallelo fantasy, science fiction, magic, nature, muscles
 }
 `;
 // ---------------------------------------------------------------------------------------
