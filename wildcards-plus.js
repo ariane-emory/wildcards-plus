@@ -2,7 +2,7 @@
 //@api-1.0
 // wildcards-plus
 // author ariane-emory (includes some code from wetcircuit's original wildcards.js)
-// v0.2
+// v0.8
 // Draw Things 1.20240502.2
 // =======================================================================================
 
@@ -1656,30 +1656,100 @@ Jsonc.finalize();
 // =======================================================================================
 const always = () => true;
 const never  = () => false;
+const picker_strategy = Object.freeze({
+  total:     'total',
+  used:      'used',
+  random:    'random',
+});
 // ---------------------------------------------------------------------------------------
+
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
     // console.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
     
     this.options = []; // array of [weight, value]
-    this.used_indices = new Set();
+    this.used_indices = new Map();
 
     for (const [weight, value] of initialOptions)
       this.add(weight, value);
   }
   // -------------------------------------------------------------------------------------
   add(weight, value) {
-    this.options.push([weight, value]);
+    this.options.push({weight: weight, value: value });
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never) {
+  __gather_legal_option_indices(allow_if, forbid_if) {
+    const legal_option_indices = [];
+    
+    for (let ix = 0; ix < this.options.length; ix++) {
+      const option = this.options[ix];
+      
+      if (option.weight !== 0 &&
+          allow_if(option.value) &&
+          !forbid_if(option.value))
+        legal_option_indices.push(ix);
+    }
+
+    return legal_option_indices;
+  }
+  // -------------------------------------------------------------------------------------
+  __record_index_usage(index) {
+    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+  }
+  // -------------------------------------------------------------------------------------  
+  __indices_are_exhausted(option_indices, strategy) {
+    // console.log(`this.options      = ${inspect_fun(this.options)}`);
+    // console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+    
+    if (! strategy)
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+
+    if (this.used_indices.size == 0)
+      return false;
+
+    let exhausted_indices = null;
+    
+    if (strategy == picker_strategy.used) {
+      exhausted_indices = new Set(this.used_indices.keys());
+    }
+    else if (strategy == picker_strategy.total) {
+      exhausted_indices = new Set();
+
+      for (const [used_index, usage_count] of this.used_indices) {
+        const option = this.options[used_index];
+
+        // console.log(`option ${used_index} of ${inspect_fun(this.options)}: ${inspect_fun(option)}`);
+
+        if (usage_count >= option.weight)
+          exhausted_indices.add(used_index);
+      }
+      
+      // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
+    }
+    else if (strategy === picker_strategy.random) {
+      return false;
+    }
+    else {
+      throw new Error(`bad strategy: ${inspect_fun(strange)}`);
+    }
+    
+    return exhausted_indices.isSupersetOf(new Set(option_indices));
+  }
+  // -------------------------------------------------------------------------------------
+  pick(min_count = 1, max_count = min_count,
+       allow_if = always, forbid_if = never,
+       strategy = null) {
+    if (! strategy)
+      throw new Error("no strategy");
+
+    // console.log(`PICK ${min_count}-${max_count}`);
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
     
     for (let ix = 0; ix < count; ix++) {
-      const pick = this.pick_one(allow_if, forbid_if);
+      const pick = this.pick_one(allow_if, forbid_if, strategy);
 
       // if (pick)
       res.push(pick);
@@ -1690,124 +1760,117 @@ class WeightedPicker {
     return res;
   }
   // -------------------------------------------------------------------------------------
-  pick_one(allow_if, forbid_if) {
+  __effective_weight(option_index, strategy) {
+    if (! ((option_index || option_index === 0) && strategy))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    let ret = null;
+    
+    if (strategy === picker_strategy.used)
+      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+    else if (strategy === picker_strategy.total)
+      ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+    else if (strategy === picker_strategy.random)
+      ret = this.options[option_index].weight;
+    else 
+      throw Error("unexpected strategy");
+
+    // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+    
+    return ret;
+  };
+  // -------------------------------------------------------------------------------------
+  pick_one(allow_if, forbid_if, strategy) {
+    if (! (strategy && allow_if && forbid_if))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    const noisy = false;
+    
+    
+    // console.log(`PICK_ONE!`);    
     // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
-      console.log(`NO OPTIONS 1!`);
+      // console.log(`PICK_ONE: NO OPTIONS 1!`);
       return null;
     }
 
-    const legal_option_indices       = [];
-    const legal_options_total_weight = 0;
+    let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
-    for (let ix = 0; ix < this.options.length; ix++) {
-      const [option_weight, option_value] = this.options[ix];
-      
-      if (allow_if(option_value) && !forbid_if(option_value)) //  && !this.used_indices.has(ix))
-        legal_option_indices.push(ix);
-    }
-    
-    if (this.used_indices.size > 0 && this.used_indices.isSupersetOf(new Set(legal_option_indices))) {
-      // console.log(`CLEARING ${inspect_fun(this.used_indices)}!`);
+    if (this.__indices_are_exhausted(legal_option_indices, strategy)) {
+      // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       this.used_indices.clear();
-      // return this.pick_one(allow_if, forbid_if);
+      legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
-      // console.log(`NO LEGAL OPTIONS 2!`);
+      // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
       return null;
     }
 
     if (legal_option_indices.length === 1) {
       // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
-      this.used_indices.add(legal_option_indices[0]);
-      return this.options[legal_option_indices[0]][1];
+      this.__record_index_usage(legal_option_indices[0]);
+      return this.options[legal_option_indices[0]].value;
     }
 
     // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
-    let  total_weight = 0;
+    let total_weight = 0;
 
-    for (const legal_option_ix of legal_option_indices)
-      if (!this.used_indices.has(legal_option_ix))
-        total_weight += this.options[legal_option_ix][0];
-
-    if (total_weight === 0) {
-      console.log(`TOTAL WEIGHT 3!`);
-      return null;
+    for (const legal_option_ix of legal_option_indices) {
+      const adjusted_weight = this.__effective_weight(legal_option_ix, strategy);
+      // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+      total_weight += adjusted_weight;
     }
 
+    // Since we now avoid adding options with a weight of 0, this shouldnever be true:
+    if (total_weight === 0) {
+      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
+                      `legal_options = ${inspect_fun(legal_option_indices.map(ix => this.options[ix]))}`);
+
+      if (noisy)
+        console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
+      // return null;
+    }
+    
+    if (noisy)
+      console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
+    
     let random = Math.random() * total_weight;
 
-    // for (let ix = 0; ix < legal_options_indexes.length; ix++) {
+    if (noisy) {
+      console.log(`------------------------------------------------------------------------`);
+      console.log(`RANDOM IS ${random}`);
+      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+    }
+    
     for (const legal_option_ix of legal_option_indices) {
-      if (this.used_indices.has(legal_option_ix))
+      const option          = this.options[legal_option_ix];
+      const adjusted_weight = this.__effective_weight(legal_option_ix, strategy);
+
+      if (adjusted_weight === 0)
         continue;
 
-      const [option_weight, option_value] = this.options[legal_option_ix];
+      if (noisy)
+        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
       
-      if (random < option_weight) {
-        this.used_indices.add(legal_option_ix);
-        return option_value;
+      if (random < adjusted_weight) {
+        this.__record_index_usage(legal_option_ix);
+        return option.value;
       }
 
-      random -= option_weight;
+      random -= adjusted_weight;
+
+      if (noisy)
+        console.log(`RANDOM IS NOW ${random}`);
     }
 
     throw new Error("random selection failed");
   }
-  // // -------------------------------------------------------------------------------------
-  // pick2(min_count = 1, max_count = 1) {
-  //   const available = this.options.length - this.used_indices.size;
-
-  //   if (available === 0)
-  //     throw new Error("no options left to pick");
-
-  //   if (min_count > available)
-  //     throw new Error(`Cannot pick ${min_count} items; only ${available} remaining`);
-
-  //   const count = Math.min(
-  //     Math.floor(Math.random() * (max_count - min_count + 1)) + min_count,
-  //     available
-  //   );
-
-  //   const results = [];
-
-  //   for (let i = 0; i < count; i++) 
-  //     results.push(this._pick_one());
-  
-  //   return results;
-  // }
-  // // ---------------------------------------------------------------------------------------
-  // _pick_one() {
-  //   let total_weight = 0;
-
-  //   for (let ix = 0; ix < this.options.length; ix++) {
-  //     if (!this.used_indices.has(ix))
-  //       total_weight += this.options[ix][0];
-  //   }
-
-  //   let random = Math.floor(Math.random() * total_weight);
-
-  //   for (let ix = 0; ix < this.options.length; ix++) {
-  //     if (this.used_indices.has(ix))
-  //       continue;
-
-  //     const weight = this.options[ix][0];
-
-  //     if (random < weight) {
-  //       this.used_indices.add(ix);
-  //       return this.options[ix][1];
-  //     }
-
-  //     random -= weight;
-  //   }
-
-  //   throw new Error("random selection failed");
-  // }
-  // // =====================================================================================
 }
+// =======================================================================================
 
 
 // =======================================================================================
@@ -1859,23 +1922,15 @@ class WildcardPicker {
 // =======================================================================================
 // HELPER FUNCTIONS SECTION:
 // =======================================================================================
-function add_lora_to_array(lora, array) {
+function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
+  console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
+  
   const index = array.findIndex(existing => existing.file === lora.file);
   if (index !== -1) {
     array.splice(index, 1); // Remove the existing entry
   }
   array.push(lora); // Add the new entry at the end
 }
-// function add_lora_to_array(lora, array) {
-//   for (const existing_lora of array) {
-//     if (lora.file === existing_lora.file) {
-//       existing_lora.weight = lora.weight;
-//       return;
-//     }
-//   }
-
-//   array.push(lora);      
-// }
 // -------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
@@ -2188,35 +2243,6 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 // =======================================================================================
 // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
 // =======================================================================================
-class DelayedAction {
-  // -------------------------------------------------------------------------------------
-  constructor(identifier_string, thunk) {
-    this.identifier_string = identifier_string;
-    this.thunk = thunk;
-  }
-}
-// ---------------------------------------------------------------------------------------
-class FalseText {
-  // -------------------------------------------------------------------------------------
-  constructor(text) {
-    this.text = text;
-  }
-}
-// ---------------------------------------------------------------------------------------
-function loose_includes(needle, arr) {
-  for (const elem of arr) {
-    if (elem instanceof DelayedAction &&
-        needle instanceof DelayedAction &&
-        elem.identifier_string === needle.identifier_string)
-      return true;
-    else if (elem === needle) {
-      return true;
-    }
-  }
-  
-  return false;
-}
-// ---------------------------------------------------------------------------------------
 class Context {
   constructor({ 
     flags = new Set(),
@@ -2281,6 +2307,7 @@ const prelude_text = disable_prelude ? '' : `
 @pro_pos_adj            := {@set_gender_if_unset {?female her   |?male his |?neuter its}}
 @pro_pos                := {@set_gender_if_unset {?female hers  |?male his |?neuter its}}
 @__digit                := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
+@__low_digit            := {<1|<2|<3|<4|<5}
 @__high_digit           := {<5|<6|<7|<8|<9}
 @low_random_weight      := { 0. @__low_digit }
 @lt1_random_weight      := { 0. @__digit     } 
@@ -4472,7 +4499,37 @@ function load_prelude(into_context = new Context()) {
 // THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =======================================================================================
 function expand_wildcards(thing, context = new Context()) {
-  function walk(thing, context) {
+  // -----------------------------------------------------------------------------------
+  function forbid_fun(option) {
+    for (const not_flag of option.not_flags)
+      if (context.flags.has(not_flag.name))
+        return true;
+    return false;
+  };
+  // -------------------------------------------------------------------------------------
+  function allow_fun(option) {
+    let allowed = true;
+    
+    for (const check_flag of option.check_flags) {
+      let found = false;
+      
+      for (const name of check_flag.names) {
+        if (context.flags.has(name)) {
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        allowed = false;
+        break;
+      }
+    }
+    
+    return allowed;
+  };
+  // -------------------------------------------------------------------------------------
+  function walk(thing) {
     // -----------------------------------------------------------------------------------
     // basic types (strings and Arrays):
     // -----------------------------------------------------------------------------------
@@ -4480,8 +4537,6 @@ function expand_wildcards(thing, context = new Context()) {
       return thing;
     // -----------------------------------------------------------------------------------
     else if (Array.isArray(thing)) {
-      // return thing.map(x => walk(x, context));
-      
       const ret = [];
 
       for (const t of thing) {
@@ -4491,9 +4546,7 @@ function expand_wildcards(thing, context = new Context()) {
                       ? inspect_fun(t)
                       : `${typeof t} '${t}'`);
         
-        const val = walk(t, context);
-
-        ret.push(val);
+        ret.push(walk(t));
       }
 
       return ret;
@@ -4512,60 +4565,33 @@ function expand_wildcards(thing, context = new Context()) {
     // References:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardReference) {
-      const forbid_fun = option => {
-        for (const not_flag of option.not_flags)
-          if (context.flags.has(not_flag.name))
-            return true;
-        return false;
-      };
-      
-      const allow_fun = option => {
-        let allowed = true;
-        
-        for (const check_flag of option.check_flags) {
-          let found = false;
-          
-          for (const name of check_flag.names) {
-            if (context.flags.has(name)) {
-              found = true;
-              break;
-            }
-          }
-          
-          if (!found) {
-            allowed = false;
-            break;
-          }
-        }
-        
-        return allowed;
-      };
-
       const got = context.named_wildcards.get(thing.name);
 
       if (!got)
         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
-      let res = [];
+      const res = [];
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(walk(got, context));        
+          res.push(walk(got));        
       }
       else {
-        // console.log(`GOT: ${JSON.stringify(got)}`);
-        const raw_picks = got.picker.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
-        // console.log(`RAW: ${JSON.stringify(raw_picks)}`);
-        res = raw_picks.map(p => smart_join(walk(p?.body ?? '', context)));
+        const strategy = thing.min_count === 1 && thing.max_count === 1
+              ? picker_strategy.total
+              : picker_strategy.used;
+        
+        const picks = got.pick(thing.min_count, thing.max_count,
+                               allow_fun, forbid_fun,
+                               strategy);
+        
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
       }
       
       if (thing.capitalize) {
-        // console.log(`CAPITALIZING ${inspect_fun(res[0])}`);
         res[0] = capitalize(res[0]);
       }
 
-      res = res.filter(o => o);
-      
       return thing.joiner == ','
         ? res.join(", ")
         : (thing.joiner == '&'
@@ -4598,7 +4624,7 @@ function expand_wildcards(thing, context = new Context()) {
         return '';
       }
 
-      const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
 
       if (context.noisy)
         console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
@@ -4628,8 +4654,6 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination))
         console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
-      // else
-      //   console.log(`SETTING ${inspect_fun(thing)} IN ${inspect_fun(context.named_wildcards)}` );
 
       context.named_wildcards.set(thing.destination, thing.wildcard);
 
@@ -4651,15 +4675,14 @@ function expand_wildcards(thing, context = new Context()) {
                     `TO '${thing.destination.name}'`);
       }
 
-      const val = walk(thing.source, context);
+      const val = expand_wildcards(thing.source, context);
 
-      if (context.noisy)
-        console.log(`ASSIGNED ${inspect_fun(val)} TO "${thing.destination.name}'`);
-      
       context.scalar_variables.set(thing.destination.name, val);
 
-      if (context.noisy)
+      if (context.noisy) {
+        console.log(`ASSIGN ${inspect_fun(val)} TO "${thing.destination.name}'`);
         console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+      }
       
       return '';
     }
@@ -4667,51 +4690,15 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const forbid_fun = option => {
-        for (const not_flag of option.not_flags)
-          if (context.flags.has(not_flag.name))
-            return true;
-        return false;
-      };
-      
-      const allow_fun = option => {
-        let allowed = true;
-        
-        for (const check_flag of option.check_flags) {
-          let found = false;
-          
-          // console.log(`Look for ${inspect_fun(check_flag)} in ` +
-          //             `${inspect_fun(context.flags)} = ` +
-          //             `${context.flags.has(check_flag.name)}`);
-
-          for (const name of check_flag.names) {
-            if (context.flags.has(name)) {
-              found = true;
-              break;
-            }
-          }
-          
-          if (!found) {
-            allowed = false;
-            break;
-          }
-        }
-        
-        return allowed;
-      };
-      
-      const pick = thing.picker.pick_one(allow_fun, forbid_fun)?.body;
+      const pick = thing.pick_one(allow_fun, forbid_fun, picker_strategy.total)?.body;
 
       if (! pick)
-        return '';
+        return ''; // inelegant... investigate why this is necessary?
       
-      // // console.log(`PICKED ${inspect_fun(pick)}`);
-      
-      return smart_join(walk(pick, context).flat(Infinity).filter(s => s));
-      // return walk(pick, context);
+      return smart_join(walk(pick));
     }
     // -----------------------------------------------------------------------------------
-    // TLDs:
+    // SpecialFunctions:
     // -----------------------------------------------------------------------------------
     if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
       if (thing.args.lenrth > 2)
@@ -4721,7 +4708,7 @@ function expand_wildcards(thing, context = new Context()) {
       let config = {};
 
       if (thing.args.length === 2) {
-        // TOOD: check types
+        // TOOD: maybe check types? unsure.
         config[thing.args[0]] = thing.args[1];
       }
       else {
@@ -4773,7 +4760,7 @@ function expand_wildcards(thing, context = new Context()) {
       //             `${Array.isArray(walked_file)}`);
 
       if (Array.isArray(walked_file))
-        walked_file = smart_join(walked_file); 
+        walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
       let walked_weight = walk(thing.weight, context);
 
@@ -4788,7 +4775,7 @@ function expand_wildcards(thing, context = new Context()) {
       const weight_match_result = json_number.match(walked_weight);
 
       if (!weight_match_result || !weight_match_result.is_finished)
-        throw new Error(`Lora weight must be a number, got ` +
+        throw new Error(`LoRA weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
       let file    = walked_file.toLowerCase();
@@ -4808,22 +4795,24 @@ function expand_wildcards(thing, context = new Context()) {
 
       const weight = weight_match_result.value;
 
-      add_lora_to_array({ file: file, weight: weight }, context.add_loras);
+      add_lora_to_array({ file: file, weight: weight },
+                        context.add_loras,
+                        "context.add_loras");
       
       return '';
     }
     // -----------------------------------------------------------------------------------
     // numbers get strung:
     // -----------------------------------------------------------------------------------
-    else if (typeof thing === 'number') {
-      return thing.toString();
-    }
+    // else if (typeof thing === 'number') {
+    //   return thing.toString();
+    // }
     // -----------------------------------------------------------------------------------
     // null gets passed through:
     // -----------------------------------------------------------------------------------
-    else if (thing === null) {
-      return '';
-    }
+    // else if (thing === null) {
+    //   return '';
+    // }
     // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
     // -----------------------------------------------------------------------------------
@@ -4837,11 +4826,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
   }
   
-  let walked = walk(thing, context);
-  console.log(`WALK GAVE: ${typeof walked} ${inspect_fun(walked)}`);
-  walked = walked.flat(Infinity).filter(s => s);
-  console.log(`FITERING GAVE: ${typeof walked} ${inspect_fun(walked)}`);
-  return smart_join(walked);
+  return smart_join(walk(thing, context));
 }
 // =======================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -4874,7 +4859,7 @@ class ASTNotFlag  {
   }
 }
 // ---------------------------------------------------------------------------------------
-// References:
+// NamedWildcard references:
 // ---------------------------------------------------------------------------------------
 class ASTNamedWildcardReference {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
@@ -4887,6 +4872,8 @@ class ASTNamedWildcardReference {
   }
 }
 // ---------------------------------------------------------------------------------------
+// Scalar references:
+// ---------------------------------------------------------------------------------------
 class ASTScalarReference {
   constructor(name, capitalize) {
     this.name       = name;
@@ -4894,16 +4881,17 @@ class ASTScalarReference {
   }
 }
 // ---------------------------------------------------------------------------------------
-// for A1111-style Loras:
+// A1111-style Loras:
 // ---------------------------------------------------------------------------------------
 class ASTLora {
   constructor(file, weight) {
     this.file   = file;
     this.weight = weight;
+    // console.log(`Constructed LoRa ${this}!`);
   }
 }
 // ---------------------------------------------------------------------------------------
-// NamedWildcards:
+// Latch a NamedWildcard:
 // ---------------------------------------------------------------------------------------
 class ASTLatchNamedWildcard {
   constructor(name) {
@@ -4911,11 +4899,15 @@ class ASTLatchNamedWildcard {
   }
 }
 // ---------------------------------------------------------------------------------------
+// Unlatch a NamedWildcard:
+// ---------------------------------------------------------------------------------------
 class ASTUnlatchNamedWildcard {
   constructor(name) {
     this.name = name;
   }
 }
+// ---------------------------------------------------------------------------------------
+// Named wildcard definitions:
 // ---------------------------------------------------------------------------------------
 class ASTNamedWildcardDefinition {
   constructor(destination, wildcard) {
@@ -4924,7 +4916,7 @@ class ASTNamedWildcardDefinition {
   }
 }
 // ---------------------------------------------------------------------------------------
-// internal usage.. might not /really/ be part of the AST per se?
+// Internal usage.. might not /really/ be part of the AST per se?
 // ---------------------------------------------------------------------------------------
 class ASTLatchedNamedWildcardedValue {
   constructor(latched_value, original_value) {
@@ -4933,12 +4925,12 @@ class ASTLatchedNamedWildcardedValue {
   }
 }
 // ---------------------------------------------------------------------------------------
-// scalar assignment:
+// Scalar assignment:
 // ---------------------------------------------------------------------------------------
 class ASTScalarAssignment  {
   constructor(destination, source) {
     this.destination = destination;
-    this.source = source;
+    this.source      = source;
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4947,25 +4939,27 @@ class ASTScalarAssignment  {
 class ASTSpecialFunction {
   constructor(directive, args) {
     this.directive = directive;
-    this.args = args;
+    this.args      = args;
   }
 }
 // ---------------------------------------------------------------------------------------
 // AnonWildcards:
 // ---------------------------------------------------------------------------------------
-class ASTAnonWildcard {
+class ASTAnonWildcard extends WeightedPicker {
   constructor(options) {
-    // this.options = options;
-    this.picker = new WeightedPicker(options.map(o => [o.weight, o]));
+    super(options
+          .filter(o => o.weight !== 0)
+          .map(o => [o.weight, o]));
+    // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
 }
 // ---------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative {
   constructor(weight, check_flags, not_flags, body) {
-    this.weight = weight;
+    this.weight      = weight;
     this.check_flags = check_flags;
-    this.not_flags = not_flags;
-    this.body = body;
+    this.not_flags   = not_flags;
+    this.body        = body;
   }
 }
 // =======================================================================================
@@ -4980,40 +4974,29 @@ class ASTAnonWildcardAlternative {
 // =======================================================================================
 // terminals:
 // ---------------------------------------------------------------------------------------
+const word_break              = /(?=\s|[{|}]|$)/;
 const plaintext               = /[^{|}\s]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+const filename                = /[A-Za-z0-9 ._\-()]+/;
+// ^ conservative regex, no unicode or weird symbols
 // ---------------------------------------------------------------------------------------
-// A1111-style Loras subsection:
+// A1111-style LoRAs:
 // ---------------------------------------------------------------------------------------
-// conservative regex, no unicode or weird symbols:
-const filename = /[A-Za-z0-9 ._\-()]+/;
-const A1111StyleLoraWeight =
-      choice(
-        xform(parseFloat, /\d*\.\d+/),
-        xform(parseInt,   /\d+/))
-const A1111StyleLora = xform(arr => new ASTLora(arr[3],
-                                                arr[5]),
-                             wst_seq('<', 'lora', ':', 
-                                     choice(filename, () => LimitedContent),
-                                     ':',
-                                     choice(A1111StyleLoraWeight, () => LimitedContent),
-                                     '>'));
-// const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
-//                                              ? arr[3]
-//                                              : `${arr[3]}.ckpt`),
-//                                             arr[5]),
-//                          wst_seq('<', 'lora', ':', filename, ':', A1111StyleLoraWeight, '>'));
-// remmove these soon:
-const uninteresting = r(/[^<]+/);
-const phase2_prompt = star(choice(
-  A1111StyleLora,
-  uninteresting,
-  '<',
-));
+const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
+const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
+                                   wst_seq('<',                                    // [0]
+                                           'lora',                                 // [1]
+                                           ':',                                    // [2]
+                                           choice(filename, () => LimitedContent), // [3]
+                                           optional(second(wst_seq(':',
+                                                                   choice(A1111StyleLoraWeight,
+                                                                          () => LimitedContent))),
+                                                    "1.0"), // [4][0]
+                                           '>'));
 // ---------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // ---------------------------------------------------------------------------------------
@@ -5040,20 +5023,18 @@ const make_ASTAnonWildcardAlternative = arr => {
 // ---------------------------------------------------------------------------------------
 const make_ASTFlagCmd = (klass, ...rules) =>
       xform(ident => new klass(ident),
-            second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
+            second(seq(...rules, ident, word_break)));
 // ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // ---------------------------------------------------------------------------------------
 const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
-                                      second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
+                                      second(seq('?', plus(ident, ','),
+                                                 word_break)))
 const MalformedNotSetCombo    = unexpected('#!');
-const NotFlag                 = xform((arr => {
-  //console.log(`ARR: ${inspect_fun(arr)}`);
-  return new ASTNotFlag(arr[2], arr[1][0]);
-}),
+const NotFlag                 = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
                                       seq('!', optional('#'),
-                                          ident, /(?=\s|[{|}]|$)/));
+                                          ident, word_break));
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
 const tld_fun = arr => new ASTSpecialFunction(...arr);
@@ -5078,7 +5059,7 @@ const SFUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',  
                                                             DiscardedComments,             // [4]
                                                             ')'),                          // [4]
                                             arr => new ASTSpecialFunction('update-config',
-                                                                          [arr[1], arr[3] ]));
+                                                                          [arr[1], arr[3]]));
 const SFUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     '(',                   // [0][1]
@@ -5119,7 +5100,6 @@ const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const AnonWildcardNoLoras           = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-
 const NamedWildcardReference        = xform(seq(discard('@'),
                                                 optional('^'),                             // [0]
                                                 optional(xform(parseInt, /\d+/)),          // [1]
@@ -5155,7 +5135,8 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                         if (!bang && !hash)
                                           return new ASTNamedWildcardReference(ident);
 
-                                        if (bang) // goes before hash so that "@!#" works correctly.
+                                        // goes before hash so that "@!#" works correctly:
+                                        if (bang) 
                                           objs.push(new ASTUnlatchNamedWildcard(ident));
 
                                         if (hash)
@@ -5171,37 +5152,32 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
                                               ScalarAssignmentSource));
-const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
+const LimitedContent          = choice(AnonWildcardNoLoras, ScalarReference,
+                                       xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardDesignator),
+                                       // not permitted in the 'limited' content:
                                        // NamedWildcardUsage, SetFlag,
-                                       AnonWildcardNoLoras,
                                        // comment,
-                                       ScalarReference,
                                        // SFUpdateConfiguration,
                                        // SFSetConfiguration,
                                        // low_pri_text, plaintext
                                       );
-const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
-                                       A1111StyleLora,
-                                       AnonWildcard, comment, ScalarReference,
-                                       SFUpdateConfiguration,
-                                       SFSetConfiguration,
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage,
+                                       SetFlag, A1111StyleLora, AnonWildcard, comment,
+                                       ScalarReference,
+                                       SFUpdateConfiguration, SFSetConfiguration,
                                        low_pri_text, plaintext);
-const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
-                                       AnonWildcard, comment, ScalarReference,
-                                       SFUpdateConfiguration,
-                                       SFSetConfiguration,
+const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage,
+                                       SetFlag, AnonWildcard, comment, ScalarReference,
+                                       SFUpdateConfiguration, SFSetConfiguration,
                                        low_pri_text, plaintext);
-const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-const ContentStarNoLoras      = xform(wst_star(ContentNoLoras), arr => arr.flat(1));
-// const PromptBody              = wst_star(choice(NamedWildcardDefinition,
-//                                                 ScalarAssignment,
-//                                                 Content));
+const ContentStar             = wst_star(Content);
+const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(SpecialFunction,
                                                 NamedWildcardDefinition,
                                                 ScalarAssignment,
                                                 Content));
-const Prompt                  = xform(arr => arr.flat(Infinity), PromptBody);
+const Prompt                  = PromptBody;
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // =======================================================================================
@@ -5232,7 +5208,7 @@ let   prompt_string          = ui_prompt;
 // ---------------------------------------------------------------------------------------
 // UI:
 // ---------------------------------------------------------------------------------------
-const doc_string = `Wildcards Plus v0.7 by ariane-emory (based on @wetcircuit's original wildcard.js script)
+const doc_string = `Wildcards Plus v0.8 by ariane-emory (based on @wetcircuit's original wildcard.js script)
 
 Generate a batch of images using inline wildcards to randomize elements within the prompt.
 
