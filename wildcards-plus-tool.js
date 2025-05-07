@@ -1924,13 +1924,13 @@ class WeightedPicker {
     let ret = null;
     
     if (strategy === picker_strategy.used)
-          ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-        else if (strategy === picker_strategy.total)
-          ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-        else if (strategy === picker_strategy.random)
-          ret = this.options[option_index].weight;
-        else 
-          throw Error("unexpected strategy");
+      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+    else if (strategy === picker_strategy.total)
+      ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+    else if (strategy === picker_strategy.random)
+      ret = this.options[option_index].weight;
+    else 
+      throw Error("unexpected strategy");
 
     // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
@@ -2280,6 +2280,38 @@ function smart_join(arr) {
 
   return unescape(str);
 }
+// --------------------------------------------------------------------------------------
+function deep_copy(thing) {
+  if (thing === null || typeof thing !== "object") {
+    return thing;
+  }
+  else if (Array.isArray(thing)) {
+    return thing.map(deep_copy);
+  }
+  else if (thing instanceof Set) {
+    const result = new Set();
+    for (const value of thing.values()) {
+      result.add(deep_copy(value));
+    }
+    return result;
+  }
+  else if (thing instanceof Map) {
+    const result = new Map();
+    for (const [key, value] of thing.entries()) {
+      result.set(deep_copy(key), deep_copy(value));
+    }
+    return result;
+  }
+  else {
+    const copy = {};
+    for (const key in thing) {
+      if (Object.prototype.hasOwnProperty.call(thing, key)) {
+        copy[key] = deep_copy(thing[key]);
+      }
+    }
+    return copy;
+  }
+}
 // =======================================================================================
 // END OF HELPER FUNCTIONS SECTION.
 // =======================================================================================
@@ -2322,7 +2354,7 @@ const key_names = [
 ];
 // ---------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
-  config = { ...config };
+  config = deep_copy(config);
 
   if (is_empty_object(config))
     return config;
@@ -4632,7 +4664,7 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__yuumei characters, digital, dream-like, environmentalism, fantasy, femininity, manga-anime, whimsical |
 ?artist__william_zorach cubism, expressionism, folk-art, modern, sculpture |
 ?artist__ander_zorn etching, nudes, painting, portraits, Swedish |
-?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen |
+?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
 ?artist__john_zeleznik science-fiction, Rifts, Palladium books
 }
 `;

@@ -2124,24 +2124,6 @@ function smart_join(arr) {
   return unescape(str);
 }
 // --------------------------------------------------------------------------------------
-// function deep_copy(thing) {
-//   if (thing === null || typeof thing !== "object") {
-//     return thing;
-//   }
-//   else if (Array.isArray(thing)) {
-//     return thing.map(deep_copy);
-//   }
-//   else {
-//     const copy = {};
-//     for (const key in thing) {
-//       if (thing.hasOwnProperty(key)) {
-//         copy[key] = deep_copy(thing[key]);
-//       }
-//     }
-//     return copy;
-//   }
-// }
-// --------------------------------------------------------------------------------------
 function deep_copy(thing) {
   if (thing === null || typeof thing !== "object") {
     return thing;
@@ -5294,6 +5276,8 @@ const parse_result     = Prompt.match(prompt_string);
 
 if (! parse_result.is_finished)
   throw new Error(`error parsing prompt!`);
+
+const AST              = parse_result.value;
 // ---------------------------------------------------------------------------------------
 
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
@@ -5326,7 +5310,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   // console.log(`PL_C.L: ${inspect_fun(pipeline_configuration.loras)}`);
   // console.log(`PL.C.L: ${inspect_fun(pipeline.configuration.loras)}`);
 
-  const generated_prompt        = expand_wildcards(parse_result.value, context);
+  const generated_prompt        = expand_wildcards(AST, context);
   const generated_configuration = { ...deep_copy(pipeline_configuration),
                                     seed: -1,
                                     ...munge_config(context.config) };
@@ -5358,7 +5342,6 @@ for (let ix = 0; ix < batch_count; ix++) {
         // console.log(`RECORDED ${inspect_fun(added_loras_files)}.`);
         add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
       }
-
       
       // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
       //             `${JSON.stringify(generated_configuration)}`);
