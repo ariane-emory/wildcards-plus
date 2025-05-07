@@ -1890,8 +1890,10 @@ class WeightedPicker {
     return exhausted_indices.isSupersetOf(new Set(option_indices));
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count, allow_if = always, forbid_if = never, stategy = null) {
-    if (strategy)
+  pick(min_count = 1, max_count = min_count,
+       allow_if = always, forbid_if = never,
+       strategy = null) {
+    if (! strategy)
       throw new Error("no strategy");
     
     // console.log(`PICK ${min_count}-${max_count}`);
@@ -1912,9 +1914,6 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, strategy) {
-    if (strategy === picker_strategy.total)
-      throw "bomb";
-    
     const noisy = false;
     const effective_weight = option_index => {
       let ret = null;
@@ -4722,7 +4721,14 @@ function expand_wildcards(thing, context = new Context()) {
           res.push(walk(got));        
       }
       else {
-        const picks = got.pick(thing.min_count, thing.max_count, allow_fun, forbid_fun);
+        const strategy = thing.min_count === 1 && thing.max_count === 1
+              ? picker_strategy.total
+              : picker_strategy.used;
+        
+        const picks = got.pick(thing.min_count, thing.max_count,
+                               allow_fun, forbid_fun,
+                               strategy);
+        
         res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
       }
       

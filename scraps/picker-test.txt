@@ -1,5 +1,5 @@
 @fruit := { 3 apple | orange }
-// @12&fruit \n
+@12&fruit \n
 
 @fruit \n
 @fruit \n
