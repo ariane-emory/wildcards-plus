@@ -5314,6 +5314,8 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`Generating image #${ix+1} out of ${batch_count}...`);
 
   for (const lora_file in added_loras_files) {
+    console.log(`Look for '${lora.file}' in ${JSON.stringify(pipeline.configuration.loras)}...`);
+    
     const other_loras = pipeline.configuration.loras.filter(l => l.file != lora_file);
 
     if (other_loras.length !== pipeline.configuration.loras.length) {
@@ -5322,7 +5324,6 @@ for (let ix = 0; ix < batch_count; ix++) {
       pipeline.configuration.loras = other_loras;
     }
   }
-
 
   // render an image:
   canvas.clear();
