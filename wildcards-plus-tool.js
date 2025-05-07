@@ -2468,14 +2468,15 @@ class Context {
   // -------------------------------------------------------------------------------------
   clone() {
     return new Context({
-      flags: new Set(this.flags),
+      flags:            new Set(this.flags),
       scalar_variables: new Map(this.scalar_variables),
-      named_wildcards: new Map(this.named_wildcards),
-      noisy: this.noisy,
-      files:     [ ...this.files ],
-      config:    { ...this.config }, /// ???
-      add_loras: [ ...this.add_loras.map(o => ({ file: o.file, weigh: o.weight })) ],
-      top_file: this.top_file,
+      named_wildcards:  new Map(this.named_wildcards),
+      noisy:            this.noisy,
+      files:            [ ...this.files ],
+      config:           { ...this.config }, /// ???
+      add_loras:        [ ...this.add_loras
+                          .map(o => ({ file: o.file, weigh: o.weight })) ],
+      top_file:         this.top_file,
     });
   }
   // -------------------------------------------------------------------------------------
