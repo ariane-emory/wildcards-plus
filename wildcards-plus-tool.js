@@ -1816,6 +1816,7 @@ const never  = () => false;
 const picker_strategy = Object.freeze({
   total:     'total',
   used:      'used',
+  random:    'random',
 });
 // ---------------------------------------------------------------------------------------
 
