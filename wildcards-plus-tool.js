@@ -1909,6 +1909,9 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, strategy) {
+    if (strategy === picker_strategy.total)
+      throw "bomb";
+    
     const noisy = false;
     const effective_weight = option_index => {
       let ret = null;
@@ -1924,15 +1927,15 @@ class WeightedPicker {
     };
     
     if (! (strategy && allow_if && forbid_if))
-      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-    
-    // console.log(`PICK_ONE!`);    
-    // console.log(`PICK FROM ${JSON.stringify(this)}`);
+          throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+        
+        // console.log(`PICK_ONE!`);    
+        // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
-    if (this.options.length === 0) {
-      // console.log(`PICK_ONE: NO OPTIONS 1!`);
-      return null;
-    }
+        if (this.options.length === 0) {
+          // console.log(`PICK_ONE: NO OPTIONS 1!`);
+          return null;
+        }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
