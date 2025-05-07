@@ -3436,7 +3436,8 @@ const prelude_text = disable_prelude ? '' : `
 #artist__william_zorach William Zorach |
 #artist__ander_zorn Ander Zorn |
 #artist__ian_miller Ian Miller |
-#artist__john_zeleznik John Zeleznik
+#artist__john_zeleznik John Zeleznik |
+#artist__keith_parkinson Keith Parkinson
 }
 
 // The matching list of styles:
@@ -4512,7 +4513,8 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__william_zorach cubism, expressionism, folk-art, modern, sculpture |
 ?artist__ander_zorn etching, nudes, painting, portraits, Swedish |
 ?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
-?artist__john_zeleznik science-fiction, Rifts, Palladium books
+?artist__john_zeleznik science-fiction, Rifts, Palladium Books, painting |
+?artist__keith_parkinson detailed, epic, heroic, fantasy, realism, TSR, magic-the-gathering, painting
 }
 `;
 // ---------------------------------------------------------------------------------------
