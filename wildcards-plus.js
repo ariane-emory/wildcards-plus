@@ -3436,10 +3436,10 @@ const prelude_text = disable_prelude ? '' : `
 #artist__william_zorach William Zorach |
 #artist__ander_zorn Ander Zorn |
 // artists added by me (ariane-emory):
-#artist__ian_miller Ian Miller |
-#artist__john_zeleznik John Zeleznik |
-#artist__keith_parkinson Keith Parkinson |
-#artist__kevin_fales Kevin Fales
+3 #artist__ian_miller Ian Miller |
+3 #artist__john_zeleznik John Zeleznik |
+3 #artist__keith_parkinson Keith Parkinson |
+3 #artist__kevin_fales Kevin Fales
 }
 
 // The matching list of styles:
