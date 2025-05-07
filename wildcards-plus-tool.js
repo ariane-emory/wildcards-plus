@@ -3594,6 +3594,7 @@ const prelude_text = disable_prelude ? '' : `
 #artist__yuumei Yuumei |
 #artist__william_zorach William Zorach |
 #artist__ander_zorn Ander Zorn |
+// artists added by me (ariane-emory):
 #artist__ian_miller Ian Miller |
 #artist__john_zeleznik John Zeleznik |
 #artist__keith_parkinson Keith Parkinson 
@@ -4671,6 +4672,7 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__yuumei characters, digital, dream-like, environmentalism, fantasy, femininity, manga-anime, whimsical |
 ?artist__william_zorach cubism, expressionism, folk-art, modern, sculpture |
 ?artist__ander_zorn etching, nudes, painting, portraits, Swedish |
+// artists added by me (ariane-emory):
 ?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
 ?artist__john_zeleznik science-fiction, Rifts, Palladium Books, painting |
 ?artist__keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting
