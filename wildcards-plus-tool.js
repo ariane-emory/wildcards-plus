@@ -1917,28 +1917,32 @@ class WeightedPicker {
     return res;
   }
   // -------------------------------------------------------------------------------------
-  pick_one(allow_if, forbid_if, strategy) {
-    const noisy = false;
+  __effective_weight(option_index, strategy) {
+    if (! ((option_index || option_index === 0) && strategy))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
-    const effective_weight = option_index => {
-      let ret = null;
-      
-      if (strategy === picker_strategy.used)
-        ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-      else if (strategy === picker_strategy.total)
-        ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-      else if (strategy === picker_strategy.random)
-        ret = this.options[option_index].weight;
-      else 
-        throw Error("unexpected strategy");
+    let ret = null;
+    
+    if (strategy === picker_strategy.used)
+          ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+        else if (strategy === picker_strategy.total)
+          ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+        else if (strategy === picker_strategy.random)
+          ret = this.options[option_index].weight;
+        else 
+          throw Error("unexpected strategy");
 
-      // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
-      
-      return ret;
-    };
+    // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
+    return ret;
+  };
+  // -------------------------------------------------------------------------------------
+  pick_one(allow_if, forbid_if, strategy) {
     if (! (strategy && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    const noisy = false;
+    
     
     // console.log(`PICK_ONE!`);    
     // console.log(`PICK FROM ${JSON.stringify(this)}`);
@@ -1972,7 +1976,7 @@ class WeightedPicker {
     let total_weight = 0;
 
     for (const legal_option_ix of legal_option_indices) {
-      const adjusted_weight = effective_weight(legal_option_ix);
+      const adjusted_weight = this.__effective_weight(legal_option_ix, strategy);
       // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
       total_weight += adjusted_weight;
     }
@@ -2000,8 +2004,8 @@ class WeightedPicker {
     }
     
     for (const legal_option_ix of legal_option_indices) {
-      const option           = this.options[legal_option_ix];
-      const adjusted_weight = effective_weight(legal_option_ix);
+      const option          = this.options[legal_option_ix];
+      const adjusted_weight = this.__effective_weight(legal_option_ix, strategy);
 
       if (adjusted_weight === 0)
         continue;
@@ -4731,7 +4735,7 @@ function expand_wildcards(thing, context = new Context()) {
       }
       else {
         const strategy = thing.min_count === 1 && thing.max_count === 1
-              ? picker_strategy.random // total
+              ? picker_strategy.total
               : picker_strategy.used;
         
         const picks = got.pick(thing.min_count, thing.max_count,
@@ -5105,7 +5109,7 @@ class ASTAnonWildcard extends WeightedPicker {
           .map(o => [o.weight, o]));
     // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
-  }
+}
 // ---------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative {
   constructor(weight, check_flags, not_flags, body) {
