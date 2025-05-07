@@ -4679,7 +4679,7 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__john_zeleznik science-fiction, Rifts, palladium-books, painting |
 ?artist__keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
 ?artist__kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books |
-?artist__boris_vallelo fantasy, science fiction, magic, nature, muscles
+?artist__boris_vallelo fantasy, science fiction, magic, nature, muscles, femininity
 }
 `;
 // ---------------------------------------------------------------------------------------
