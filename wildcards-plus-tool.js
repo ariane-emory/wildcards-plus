@@ -1895,7 +1895,7 @@ class WeightedPicker {
        strategy = null) {
     if (! strategy)
       throw new Error("no strategy");
-    
+
     // console.log(`PICK ${min_count}-${max_count}`);
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
