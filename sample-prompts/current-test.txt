@@ -55,7 +55,7 @@
   
   // three possible resolutions:
   {
-  2 %config({"width": 512, "height":480 }) |
+  2 %config({"width": 512, "height": 384}) |
   // 2 %config({"width": 640,  "height":1280}) |
   // 6 %config({"width": 1920, "height":1088}) 
   }

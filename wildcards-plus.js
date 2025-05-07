@@ -5199,13 +5199,12 @@ Prompt.finalize();
 // MAIN SECTION: All of the Draw Things-specific code goes down here.
 // ---------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
-const fallback_prompt        = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
+const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 // v DT's env doesn't seem to have structuredClone :(
-const pipeline_configuration = JSON.parse(JSON.stringify(pipeline.configuration));
-//const pipeline_configuration = pipeline.configuration;
-const ui_prompt              = pipeline.prompts.prompt;
-const ui_hint                = "no wildcards found in the prompt.";
-let   prompt_string          = ui_prompt;
+const pipeline_configuration_json = JSON.stringify(pipeline.configuration);
+const ui_prompt                   = pipeline.prompts.prompt;
+const ui_hint                     = "no wildcards found in the prompt.";
+let   prompt_string               = ui_prompt;
 // ---------------------------------------------------------------------------------------
 
 
@@ -5271,10 +5270,12 @@ for (let ix = 0; ix < batch_count; ix++) {
   
   const context                 = base_context.clone();
 
-  console.log(`CLONED: ${context}`);
+  console.log(`CLONED: ${inspect_fun(context)}`);
+  // console.log(`PL_C.L: ${inspect_fun(pipeline_configuration.loras)}`);
+  // console.log(`PL.C.L: ${inspect_fun(pipeline.configuration.loras)}`);
 
   const generated_prompt        = expand_wildcards(parse_result.value, context);
-  const generated_configuration = { ...pipeline_configuration,
+  const generated_configuration = { ...JSON.parse(pipeline_configuration_json),
                                     seed: -1,
                                     ...munge_config(context.config) };
   const add_loras               = context.add_loras;
@@ -5313,7 +5314,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   }
 
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  console.log(`GENERATED CONFIGURATION:\n`);
+  console.log(`GENERATED CONFIGURATION:`);
   console.log(`${JSON.stringify(generated_configuration, null, 2)}`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`The expanded prompt is:`);
