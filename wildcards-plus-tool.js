@@ -1944,13 +1944,15 @@ class WeightedPicker {
     let legal_options_total_weight = 0;
 
     for (const legal_option_ix of legal_option_indices)
-      if (!this.used_indices.has(legal_option_ix))
-        legal_options_total_weight += this.options[legal_option_ix].weight;
+      legal_options_total_weight += this.options[legal_option_ix].weight - (this.used_indices.get(legal_option_ix)??0);
+    
+      // if (!this.used_indices.has(legal_option_ix))
+      //   legal_options_total_weight += this.options[legal_option_ix].weight;
 
     // Since we now avoid adding options with a weight of 0, this shouldnever be true:
     if (legal_options_total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_option_indices = ${inspect_fun(legal_option_indices)}`);
+                      `legal options = ${inspect_fun(legal_option_indices.map(ix => this.options[ix]))}`);
 
       // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
       // return null;
@@ -1970,7 +1972,7 @@ class WeightedPicker {
         return option.value;
       }
 
-      random -= option.weight;
+      random -= option.weight - (this.used_indices.get(legal_option_ix)??0);
     }
 
     throw new Error("random selection failed");
