@@ -1698,7 +1698,7 @@ const picker_priority = Object.freeze({
   true_random:                   'Just plain old randomness',
 });
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
-const picker_priority_reverse = new Map(
+const picker_priority_descriptions_to_names = new Map(
   Object.entries(picker_priority).map(([k, v]) => [v, k])
 );
 const picker_configuration = {
@@ -5291,12 +5291,12 @@ prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
 
 picker_configuration.pick_one_priority =
-  picker_priority_reverse.get(picker_priority_descriptions[user_selection[2][0]]);
+  picker_priority_descriptions_to_names.get(picker_priority_descriptions[user_selection[2][0]]);
 // console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
 picker_configuration.pick_multiple_priority =
-  picker_priority_reverse.get(picker_priority_descriptions[user_selection[3][0]]);
+  picker_priority_descriptions_to_names.get(picker_priority_descriptions[user_selection[3][0]]);
 // console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 

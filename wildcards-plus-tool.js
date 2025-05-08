@@ -1857,7 +1857,7 @@ const picker_priority = Object.freeze({
 });
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
-const picker_priority_reverse = new Map(
+const picker_priority_descriptions_to_names = new Map(
   Object.entries(picker_priority).map(([k, v]) => [v, k])
 );
 const picker_configuration = {
