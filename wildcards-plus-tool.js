@@ -1852,7 +1852,7 @@ const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
-  avoid_consecutive_repetitions: 'Avoiding consecutive repetitions',
+  avoide_repitition:             'Avoiding repetition',
   true_random:                   'Just plain old randomness',
 });
 const picker_priority_names = Object.entries(picker_priority).map(([k, v]) => v);
@@ -1861,7 +1861,7 @@ const picker_priority_reverse = new Map(
 );
 const picker_configuration = {
   pick_one_priority:      picker_priority.ensure_weighted_distribution,
-  pick_multiple_priority: picker_priority.avoid_consecutive_repetitions,
+  pick_multiple_priority: picker_priority.avoide_repitition,
 };
 // ---------------------------------------------------------------------------------------
 class WeightedPicker {
@@ -1901,7 +1901,7 @@ class WeightedPicker {
 
     let exhausted_indices = null;
     
-    if (priority == picker_priority.avoid_consecutive_repetitions) {
+    if (priority == picker_priority.avoide_repitition) {
       exhausted_indices = new Set(this.used_indices.keys());
     }
     else if (priority == picker_priority.ensure_weighted_distribution) {
@@ -1956,7 +1956,7 @@ class WeightedPicker {
     
     if (priority === picker_priority.true_random)
       ret = this.options[option_index].weight;
-    else if (priority === picker_priority.avoid_consecutive_repetitions)
+    else if (priority === picker_priority.avoide_repitition)
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
     else if (priority === picker_priority.ensure_weighted_distribution)
       ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
@@ -2013,7 +2013,7 @@ class WeightedPicker {
     
     if (this.__indices_are_exhausted(legal_option_indices, priority)) {
       // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-      if (priority === picker_priority.avoid_consecutive_repetitions) {
+      if (priority === picker_priority.avoide_repitition) {
         if (this.last_pick_index !== null) {
           const last_pick_index = this.last_pick_index;
           this.__clear_used_indices();
@@ -5399,7 +5399,7 @@ Prompt.finalize();
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
 
-picker_configuration.pick_one_priority = picker_priority.avoid_consecutive_repetitions;
+picker_configuration.pick_one_priority = picker_priority.avoide_repitition;
 picker_configuration.pick_multiple_priority = picker_priority.ensure_weighted_distribution;
 
 // =======================================================================================
