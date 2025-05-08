@@ -1695,7 +1695,7 @@ const never  = () => false;
 const picker_strategy = Object.freeze({
   total_usages:  'Ensure weighted distribution',
   avoid_used:    'Avoid repitions',
-  true_random:   'True random',
+  true_random:   'Just random',
 });
 const picker_strategy_reverse = new Map(
   Object.entries(picker_strategy).map(([k, v]) => [v, k])
