@@ -1853,7 +1853,7 @@ const never  = () => false;
 const picker_priority = Object.freeze({
   avoiding_repitition:           'Avoiding repetition',
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
-  true_random:                   'Just plain old randomness',
+  true_randomness:                   'Just plain old randomness',
 });
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
@@ -1960,7 +1960,7 @@ class WeightedPicker {
       
       // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
-    else if (priority === picker_priority.true_random) {
+    else if (priority === picker_priority.true_randomness) {
       return false;
     }
     else {
@@ -1982,7 +1982,7 @@ class WeightedPicker {
     else if (priority === picker_priority.ensure_weighted_distribution) {
       ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
     }
-    else if (priority === picker_priority.true_random) {
+    else if (priority === picker_priority.true_randomness) {
       ret = this.options[option_index].weight;
     }
     else {
@@ -2024,7 +2024,7 @@ class WeightedPicker {
           this.__clear_used_indices();
           this.__record_index_usage(last_pick_index);
         }
-        else /* ensure_weighted_distribution, true_random */ {
+        else /* ensure_weighted_distribution, true_randomness */ {
           this.__clear_used_indices();
         }
       }
@@ -5289,8 +5289,8 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
                                                             ')'),                          // [4]
                                             arr => new ASTSpecialFunction('update-config',
                                                                           [arr[1], arr[3]]));
-const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', 'update_config', JsoncObject);
-const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('pick-single-priority', 'set-picker-configuration-single-pick', () => LimitedContent);
+const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', 'update-config', JsoncObject);
+const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', 'set-picker-configuration-single-pick', () => LimitedContent);
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     assignment_operator,   // _
