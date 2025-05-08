@@ -1961,12 +1961,12 @@ class WeightedPicker {
     
     let ret = null;
     
-    if (strategy === picker_strategy.avoid_used)
+    if (strategy === picker_strategy.true_random)
+      ret = this.options[option_index].weight;
+    else if (strategy === picker_strategy.avoid_used)
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
     else if (strategy === picker_strategy.total_usages)
-      ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-    else if (strategy === picker_strategy.true_random)
-      ret = this.options[option_index].weight;
+      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
     else 
       throw Error("unexpected strategy");
 
