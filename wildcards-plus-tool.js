@@ -2099,8 +2099,9 @@ class WeightedPicker {
 
       random -= adjusted_weight;
 
-      if (noisy)
+      if (noisy) {
         console.log(`RANDOM IS NOW ${random}`);
+      }
     }
 
     throw new Error("random selection failed");
