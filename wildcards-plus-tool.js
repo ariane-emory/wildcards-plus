@@ -5298,9 +5298,10 @@ const UnexpectedSpecialFunctionInclude           = unexpected(SpecialFunctionInc
                                                  "using wildcards-plus-tool.js, NOT when " +
                                                  "running the wildcards-plus.js script " +
                                                  "inside Draw Things!");
-const SpecialFunction               = choice(dt_hosted? UnexpectedSpecialFunctionInclude : SpecialFunctionInclude,
-                                             SpecialFunctionUpdateConfiguration,
+const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetConfiguration);
+const SpecialFunction               = choice(dt_hosted? UnexpectedSpecialFunctionInclude : SpecialFunctionInclude,
+                                             SpecialFunctionNotInclude);
 const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                 optional(wb_uint, 1),
