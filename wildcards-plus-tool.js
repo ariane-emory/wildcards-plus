@@ -5407,6 +5407,7 @@ Prompt.finalize();
 // =======================================================================================
 
 picker_configuration.pick_one_strategy = picker_strategy.avoid_consecutive_repetitions;
+picker_configuration.pick_multiple_strategy = picker_strategy.ensure_weighted_distribution;
 
 // =======================================================================================
 // MAIN SECTION:
