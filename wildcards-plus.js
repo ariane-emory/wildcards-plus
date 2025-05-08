@@ -1697,7 +1697,7 @@ const picker_priority = Object.freeze({
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_random:                   'Just plain old randomness',
 });
-const picker_priority_names = Object.entries(picker_priority).map(([k, v]) => v);
+const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
 const picker_priority_reverse = new Map(
   Object.entries(picker_priority).map(([k, v]) => [v, k])
 );
@@ -5275,11 +5275,11 @@ const user_selection = requestFromUser('Wildcards', '', function() {
     this.section("Batch count", "",
                  [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
     this.section("When picking a single item, prioritize:", "",
-                 [ this.menu(picker_priority_names.indexOf(picker_configuration.pick_one_priority),
-                             picker_priority_names) ]),
+                 [ this.menu(picker_priority_descriptions.indexOf(picker_configuration.pick_one_priority),
+                             picker_priority_descriptions) ]),
     this.section("When picking multiple items, prioritize:", "",
-                 [ this.menu(picker_priority_names.indexOf(picker_configuration.pick_multiple_priority),
-                             picker_priority_names) ]),
+                 [ this.menu(picker_priority_descriptions.indexOf(picker_configuration.pick_multiple_priority),
+                             picker_priority_descriptions) ]),
 	  this.section('about', doc_string, [])
   ];
 });
@@ -5291,13 +5291,13 @@ prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
 
 picker_configuration.pick_one_priority =
-  picker_priority_reverse.get(picker_priority_names[user_selection[2][0]]);
-// console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_names)}} ` +
+  picker_priority_reverse.get(picker_priority_descriptions[user_selection[2][0]]);
+// console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
 picker_configuration.pick_multiple_priority =
-  picker_priority_reverse.get(picker_priority_names[user_selection[3][0]]);
-// console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_names)}} ` +
+  picker_priority_reverse.get(picker_priority_descriptions[user_selection[3][0]]);
+// console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
 console.log(`Single pick priority:   ${picker_configuration.pick_one_priority}`);
