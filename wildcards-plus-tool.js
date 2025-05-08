@@ -1937,9 +1937,6 @@ class WeightedPicker {
     if (! priority)
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
-    if (priority === picker_priority.true_random)
-      return false;
-
     if (this.used_indices.size == 0)
       return false;
 
@@ -1962,6 +1959,9 @@ class WeightedPicker {
       
       // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
+    else if (priority === picker_priority.true_random) {
+      return false;
+    }
     else {
       throw new Error(`bad priority: ${inspect_fun(priority)}`);
     }
@@ -1975,14 +1975,18 @@ class WeightedPicker {
     
     let ret = null;
     
-    if (priority === picker_priority.true_random)
-      ret = this.options[option_index].weight;
-    else if (priority === picker_priority.avoiding_repitition)
+    if (priority === picker_priority.avoiding_repitition) {
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    else if (priority === picker_priority.ensure_weighted_distribution)
+    }
+    else if (priority === picker_priority.ensure_weighted_distribution) {
       ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-    else 
+    }
+    else if (priority === picker_priority.true_random) {
+      ret = this.options[option_index].weight;
+    }
+    else {
       throw Error("unexpected priority");
+    }
 
     // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
