@@ -5261,8 +5261,8 @@ const make_special_function = rule =>
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
 const DiscardedComments             = discard(wst_star(comment));
-const SFInclude                     = make_special_function('include');
-const SFUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+const SpecialFunctionInclude                     = make_special_function('include');
+const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     '.',                   // [0][1]
                                                                     DiscardedComments),    // -
@@ -5275,7 +5275,7 @@ const SFUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',  
                                                             ')'),                          // [4]
                                             arr => new ASTSpecialFunction('update-config',
                                                                           [arr[1], arr[3]]));
-const SFUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+const SpecialFunctionUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     '(',                   // [0][1]
                                                                     DiscardedComments),    // -
@@ -5284,23 +5284,23 @@ const SFUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',  
                                                             ')'),                          // [2]
                                             arr => new ASTSpecialFunction('update-config',
                                                                           [arr[1]]));
-const SFSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     assignment_operator,   // _
                                                                     DiscardedComments),    // -
                                                             JsoncObject),                 // [1]
                                             arr => new ASTSpecialFunction('set-config',
                                                                           [arr[1]]));
-const SFUpdateConfiguration         = choice(SFUpdateConfigurationUnary,
-                                             SFUpdateConfigurationBinary);
-const UnexpectedSFInclude           = unexpected(SFInclude,
-                                                 () => "%include is only supported when " +
+const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateConfigurationUnary,
+                                             SpecialFunctionUpdateConfigurationBinary);
+const UnexpectedSpecialFunctionInclude           = unexpected(SpecialFunctionInclude,
+                                                              () => "%include is only supported when " +
                                                  "using wildcards-plus-tool.js, NOT when " +
                                                  "running the wildcards-plus.js script " +
                                                  "inside Draw Things!");
-const SpecialFunction               = choice(dt_hosted? UnexpectedSFInclude : SFInclude,
-                                             SFUpdateConfiguration,
-                                             SFSetConfiguration);
+const SpecialFunction               = choice(dt_hosted? UnexpectedSpecialFunctionInclude : SpecialFunctionInclude,
+                                             SpecialFunctionUpdateConfiguration,
+                                             SpecialFunctionSetConfiguration);
 const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                 optional(wb_uint, 1),
@@ -5373,18 +5373,18 @@ const LimitedContent          = choice(AnonWildcardNoLoras, ScalarReference,
                                        // not permitted in the 'limited' content:
                                        // NamedWildcardUsage, SetFlag,
                                        // comment,
-                                       // SFUpdateConfiguration,
-                                       // SFSetConfiguration,
+                                       // SpecialFunctionUpdateConfiguration,
+                                       // SpecialFunctionSetConfiguration,
                                        // low_pri_text, plaintext
                                       );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage,
                                        SetFlag, A1111StyleLora, AnonWildcard, comment,
                                        ScalarReference,
-                                       SFUpdateConfiguration, SFSetConfiguration,
+                                       SpecialFunctionUpdateConfiguration, SpecialFunctionSetConfiguration,
                                        low_pri_text, plaintext);
 const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage,
                                        SetFlag, AnonWildcard, comment, ScalarReference,
-                                       SFUpdateConfiguration, SFSetConfiguration,
+                                       SpecialFunctionUpdateConfiguration, SpecialFunctionSetConfiguration,
                                        low_pri_text, plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
