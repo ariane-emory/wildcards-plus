@@ -6,14 +6,16 @@
 // ---------------------------------------------------------------------------------------
 // template config flags to enable model families or other features:
 // ---------------------------------------------------------------------------------------
-#sdxl_on
-// #flux_on
-// #hidream_on
 
-#always_lightning_on
+#sdxl_on
+#flux_on
+#hidream_on
+
+// #always_lightning_on
 
 { !always_lightning_on
 | !always_lightning_off #lightning_on }  // enable lightning 4-step in SDXL models.
+
 #square_on                               // enable square aspect ratios
 #sdxl_hires                              // enable higher resulutions
 // ---------------------------------------------------------------------------------------
@@ -55,7 +57,7 @@
   | 4 %config.cfg_scale(25.0) | 3 %config.cfg_scale(30.0) | 2 %config.cfg_scale(35.0) | 1 %config.cfg_scale(40.0)
   }
 
-  // 9-13 steps, equally likely:
+  // 9-18 steps, equally likely:
   { %config.steps(9)  | %config.steps(10) | %config.steps(11) | %config.steps(12) | %config.steps(13)
   | %config.steps(14) | %config.steps(15) | %config.steps(16) | %config.steps(17) | %config.steps(18) }
 
@@ -71,12 +73,13 @@
 | 6 ?sdxl_on
   // various SDXL models:
   
-  { ?lightning_on <lora:sdxl_lightning_4step_lora:1.0> }
+  { ?lightning_on { <lora:sdxl_lightning_4step_lora:1.0> %config.steps(4)
+                  | <lora:sdxl_lightning_8step_lora:1.0> %config.steps(8) } }
 
   @3lora
 
   { !lightning_on %config.steps(35) }
-  { ?lightning_on %config.steps(6) %config.n_iter(1) }
+  
     
   
   // possible resolutions:
