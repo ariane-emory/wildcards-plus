@@ -5275,24 +5275,18 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
                                                             ')'),                          // [4]
                                             arr => new ASTSpecialFunction('update-config',
                                                                           [arr[1], arr[3]]));
-const SpecialFunctionUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                                 DiscardedComments,     // -
-                                                                                 '(',                   // [0][1]
-                                                                                 DiscardedComments),    // -
-                                                                         JsoncObject,                  // [1]
-                                                                         DiscardedComments,             // -
-                                                                         ')'),                          // [2]
-                                                         arr => new ASTSpecialFunction('update-config',
-                                                                                       [arr[1]]));
-const SpecialFunctionSetPickSingle    = xform(wst_cutting_seq(wst_seq('%pick-single',             // [0][0]
-                                                                      DiscardedComments,     // -
-                                                                      '(',                   // [0][1]
-                                                                      DiscardedComments),    // -
-                                                              LimitedContent,                   // [1]
-                                                              DiscardedComments,             // -
-                                                              ')'),                          // [2]
-                                              arr => new ASTSpecialFunction('set-picker-configuration-single-pick',
-                                                                            [arr[1]]));
+const make_unary_SpecialFunction = (prefix, sf_name, rule,) =>
+      xform(wst_cutting_seq(wst_seq(`%${prefix}`,                                                    // [0][0]
+                                    DiscardedComments,     // -
+                                    '(',                   // [0][1]
+                                    DiscardedComments),    // -
+                            rule,                          // [1]
+                            DiscardedComments,             // -
+                            ')'),                          // [2]
+            arr => new ASTSpecialFunction(sf_name,
+                                          [arr[1]]));
+const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction('config', 'update_config', JsoncObject);
+const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction('pick-single', 'set-picker-configuration-single-pick', () => LimitedContent);
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     assignment_operator,   // _
