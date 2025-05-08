@@ -5215,16 +5215,16 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // ---------------------------------------------------------------------------------------
 // helper funs used to make grammar rules::
 // ---------------------------------------------------------------------------------------
-const make_ASTFlagCmd = (klass, ...rules) =>
+const make_ASTFlagCmd_Rule = (klass, ...rules) =>
       xform(ident => new klass(ident),
             second(seq(...rules, ident, word_break)));
 // ---------------------------------------------------------------------------------------
-const make_special_function = rule =>
+const make_special_function_Rule = rule =>
       xform(tld_fun,
             c_funcall(second(seq('%', rule)),
                       first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
 // ---------------------------------------------------------------------------------------
-const make_unary_SpecialFunction = (prefix, sf_name, rule,) =>
+const make_unary_SpecialFunction_Rule = (prefix, sf_name, rule,) =>
       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
                                     DiscardedComments,     // -
                                     '(',                   // [0][1]
@@ -5260,7 +5260,7 @@ const make_ASTAnonWildcardAlternative = arr => {
 // ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // ---------------------------------------------------------------------------------------
-const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
+const SetFlag                 = make_ASTFlagCmd_Rule(ASTSetFlag,   '#');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
                                       second(seq('?', plus(ident, ','),
                                                  word_break)))
@@ -5275,7 +5275,7 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
 const DiscardedComments             = discard(wst_star(comment));
-const SpecialFunctionInclude                     = make_special_function('include');
+const SpecialFunctionInclude                     = make_special_function_Rule('include');
 const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     '.',                   // [0][1]
@@ -5289,8 +5289,8 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
                                                             ')'),                          // [4]
                                             arr => new ASTSpecialFunction('update-config',
                                                                           [arr[1], arr[3]]));
-const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction('config', 'update_config', JsoncObject);
-const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction('pick-single', 'set-picker-configuration-single-pick', () => LimitedContent);
+const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', 'update_config', JsoncObject);
+const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('pick-single', 'set-picker-configuration-single-pick', () => LimitedContent);
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     assignment_operator,   // _
