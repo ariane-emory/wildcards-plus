@@ -5406,7 +5406,7 @@ Prompt.finalize();
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
 
-// picker_configuration.pick_one_strategy = picker_strategy.true_random;
+picker_configuration.pick_one_strategy = picker_strategy.avoid_consecutive_repetitions;
 
 // =======================================================================================
 // MAIN SECTION:
