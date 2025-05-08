@@ -1871,6 +1871,7 @@ class WeightedPicker {
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
+    this.last_pick_ix = null;
 
     for (const [weight, value] of initialOptions)
       this.add(weight, value);
