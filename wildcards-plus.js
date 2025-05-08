@@ -5281,7 +5281,7 @@ const user_selection = requestFromUser('Wildcards', '', function() {
                  [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
     this.section("Batch count", "",
                  [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
-    this.section("When picking single items, prioritize:", "",
+    this.section("When picking a single item, prioritize:", "",
                  [ this.menu(picker_strategy_names.indexOf(picker_configuration.pick_one_strategy),
                              picker_strategy_names) ]),
     this.section("When picking multiple items, prioritize:", "",
