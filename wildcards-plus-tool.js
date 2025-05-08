@@ -2023,7 +2023,7 @@ class WeightedPicker {
           this.__clear_used_indices();
           this.__record_index_usage(last_pick_index);
         }
-        else /* total, true_random */ {
+        else /* ensure_weighted_distribution, true_random */ {
           this.__clear_used_indices();
         }
       }
