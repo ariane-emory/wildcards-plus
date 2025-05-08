@@ -1983,13 +1983,17 @@ class WeightedPicker {
     return ret;
   };
   // -------------------------------------------------------------------------------------
+  __clear_used_indices() {
+    this.used_indices.clear();
+    this.last_pick_index = null;
+  }
+  // -----------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, strategy) {
     if (! (strategy && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
     const noisy = false;
-    
-    
+
     // console.log(`PICK_ONE!`);    
     // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
@@ -2003,13 +2007,14 @@ class WeightedPicker {
     if (this.__indices_are_exhausted(legal_option_indices, strategy)) {
       // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       if (strategy !== picker_strategy.avoid_consecutive_repetitions) {
-        this.used_indices.clear();
+        this.__clear_used_indices();
       }
-      else {
+      else if (this.last_pick_index) {
         const last_pick_index = this.last_pick_index;
-        this.used_indices.clear();
+        this.__clear_used_indices();
         this.__record_index_usage(last_pick_index);
       }
+      
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
