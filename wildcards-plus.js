@@ -1702,8 +1702,8 @@ const picker_priority_descriptions_to_names = new Map(
   Object.entries(picker_priority).map(([k, v]) => [v, k])
 );
 const picker_configuration = {
-  pick_one_priority:      picker_priority.ensure_weighted_distribution,
-  pick_multiple_priority: picker_priority.avoiding_repitition,
+  single:      picker_priority.ensure_weighted_distribution,
+  multiple: picker_priority.avoiding_repitition,
 };
 // ---------------------------------------------------------------------------------------
 class WeightedPicker {
@@ -4627,8 +4627,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
-              ? picker_configuration.pick_one_priority
-              : picker_configuration.pick_multiple_priority;
+              ? picker_configuration.single
+              : picker_configuration.multiple;
         
         const picks = got.pick(thing.min_count, thing.max_count,
                                allow_fun, forbid_fun,
@@ -4742,7 +4742,7 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
       const pick = thing.pick_one(allow_fun, forbid_fun,
-                                  picker_configuration.pick_one_priority)?.body;
+                                  picker_configuration.single)?.body;
 
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
@@ -5275,10 +5275,10 @@ const user_selection = requestFromUser('Wildcards', '', function() {
     this.section("Batch count", "",
                  [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
     this.section("When picking a single item, prioritize:", "",
-                 [ this.menu(picker_priority_descriptions.indexOf(picker_configuration.pick_one_priority),
+                 [ this.menu(picker_priority_descriptions.indexOf(picker_configuration.single),
                              picker_priority_descriptions) ]),
     this.section("When picking multiple items, prioritize:", "",
-                 [ this.menu(picker_priority_descriptions.indexOf(picker_configuration.pick_multiple_priority),
+                 [ this.menu(picker_priority_descriptions.indexOf(picker_configuration.multiple),
                              picker_priority_descriptions) ]),
 	  this.section('about', doc_string, [])
   ];
@@ -5290,18 +5290,18 @@ const user_selection = requestFromUser('Wildcards', '', function() {
 prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
 
-picker_configuration.pick_one_priority =
+picker_configuration.single =
   picker_priority_descriptions_to_names.get(picker_priority_descriptions[user_selection[2][0]]);
 // console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
-//             `= ${picker_configuration.pick_one_priority}`);
+//             `= ${picker_configuration.single}`);
 
-picker_configuration.pick_multiple_priority =
+picker_configuration.multiple =
   picker_priority_descriptions_to_names.get(picker_priority_descriptions[user_selection[3][0]]);
 // console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
-//             `= ${picker_configuration.pick_one_priority}`);
+//             `= ${picker_configuration.single}`);
 
-console.log(`Single pick priority:   ${picker_configuration.pick_one_priority}`);
-console.log(`Multiple pick priority: ${picker_configuration.pick_multiple_priority}`);
+console.log(`Single pick priority:   ${picker_configuration.single}`);
+console.log(`Multiple pick priority: ${picker_configuration.multiple}`);
 
 // ---------------------------------------------------------------------------------------
 // parse the prompt_string here:

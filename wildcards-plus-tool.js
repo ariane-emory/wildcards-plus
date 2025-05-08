@@ -1861,8 +1861,8 @@ const picker_priority_descriptions_to_names = new Map(
   Object.entries(picker_priority).map(([k, v]) => [v, k])
 );
 const picker_configuration = {
-  pick_one_priority:      picker_priority.ensure_weighted_distribution,
-  pick_multiple_priority: picker_priority.avoiding_repitition,
+  single:      picker_priority.ensure_weighted_distribution,
+  multiple: picker_priority.avoiding_repitition,
 };
 // ---------------------------------------------------------------------------------------
 class WeightedPicker {
@@ -4790,8 +4790,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
-              ? picker_configuration.pick_one_priority
-              : picker_configuration.pick_multiple_priority;
+              ? picker_configuration.single
+              : picker_configuration.multiple;
         
         const picks = got.pick(thing.min_count, thing.max_count,
                                allow_fun, forbid_fun,
@@ -4905,7 +4905,7 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
       const pick = thing.pick_one(allow_fun, forbid_fun,
-                                  picker_configuration.pick_one_priority)?.body;
+                                  picker_configuration.single)?.body;
 
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
@@ -5404,8 +5404,8 @@ Prompt.finalize();
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
 
-// picker_configuration.pick_one_priority = picker_priority.avoiding_repitition;
-// picker_configuration.pick_multiple_priority = picker_priority.ensure_weighted_distribution;
+// picker_configuration.single = picker_priority.avoiding_repitition;
+// picker_configuration.multiple = picker_priority.ensure_weighted_distribution;
 
 // =======================================================================================
 // MAIN SECTION:
