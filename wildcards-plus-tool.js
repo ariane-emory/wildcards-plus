@@ -1885,6 +1885,50 @@ class WeightedPicker {
     this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
     this.last_pick_index = index;
   }
+  // -------------------------------------------------------------------------------------
+  pick(min_count = 1, max_count = min_count,
+       allow_if = always, forbid_if = never,
+       priority = null) {
+    if (! priority)
+      throw new Error("no priority");
+
+    // console.log(`PICK ${min_count}-${max_count}`);
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+
+    const res = [];
+    
+    for (let ix = 0; ix < count; ix++) {
+      const pick = this.pick_one(allow_if, forbid_if, priority);
+
+      // if (pick)
+      res.push(pick);
+    }
+
+    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+    
+    return res;
+  }
+  // -------------------------------------------------------------------------------------
+  __gather_legal_option_indices(allow_if, forbid_if) {
+    const legal_option_indices = [];
+    
+    for (let ix = 0; ix < this.options.length; ix++) {
+      const option = this.options[ix];
+      
+      if (option.weight !== 0 &&
+          allow_if(option.value) &&
+          !forbid_if(option.value))
+        legal_option_indices.push(ix);
+    }
+
+    return legal_option_indices;
+  }
+  // -------------------------------------------------------------------------------------
+  __clear_used_indices() {
+    this.used_indices.clear();
+    this.last_pick_index = null;
+    // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+  }
   // -------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
     // console.log(`this.options      = ${inspect_fun(this.options)}`);
@@ -1925,29 +1969,6 @@ class WeightedPicker {
     return exhausted_indices.isSupersetOf(new Set(option_indices));
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count,
-       allow_if = always, forbid_if = never,
-       priority = null) {
-    if (! priority)
-      throw new Error("no priority");
-
-    // console.log(`PICK ${min_count}-${max_count}`);
-    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
-
-    const res = [];
-    
-    for (let ix = 0; ix < count; ix++) {
-      const pick = this.pick_one(allow_if, forbid_if, priority);
-
-      // if (pick)
-      res.push(pick);
-    }
-
-    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
-    
-    return res;
-  }
-  // -------------------------------------------------------------------------------------
   __effective_weight(option_index, priority) {
     if (! ((option_index || option_index === 0) && priority))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
@@ -1967,27 +1988,6 @@ class WeightedPicker {
     
     return ret;
   };
-  // -------------------------------------------------------------------------------------
-  __gather_legal_option_indices(allow_if, forbid_if) {
-    const legal_option_indices = [];
-    
-    for (let ix = 0; ix < this.options.length; ix++) {
-      const option = this.options[ix];
-      
-      if (option.weight !== 0 &&
-          allow_if(option.value) &&
-          !forbid_if(option.value))
-        legal_option_indices.push(ix);
-    }
-
-    return legal_option_indices;
-  }
-  // -------------------------------------------------------------------------------------
-  __clear_used_indices() {
-    this.used_indices.clear();
-    this.last_pick_index = null;
-    // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
-  }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, priority) {
     // console.log(`PICK ONE =======================================================================`);
