@@ -1700,6 +1700,7 @@ const picker_strategy = Object.freeze({
 const picker_strategy_reverse = new Map(
   Object.entries(picker_strategy).map(([k, v]) => [v, k])
 );
+const picker_strategy_names = Object.entries(picker_strategy).map(([k, v]) => v);
 const picker_configuration = {
   pick_one_strategy:      picker_strategy.total_usages,
   pick_multiple_strategy: picker_strategy.avoid_used,
