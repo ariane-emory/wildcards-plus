@@ -1692,18 +1692,18 @@ Jsonc.finalize();
 // =======================================================================================
 const always = () => true;
 const never  = () => false;
-const picker_strategy = Object.freeze({
+const picker_priority = Object.freeze({
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   avoid_consecutive_repetitions: 'Avoiding consecutive repetitions',
   true_random:                   'Just plain old randomness',
 });
-const picker_strategy_names = Object.entries(picker_strategy).map(([k, v]) => v);
-const picker_strategy_reverse = new Map(
-  Object.entries(picker_strategy).map(([k, v]) => [v, k])
+const picker_priority_names = Object.entries(picker_priority).map(([k, v]) => v);
+const picker_priority_reverse = new Map(
+  Object.entries(picker_priority).map(([k, v]) => [v, k])
 );
 const picker_configuration = {
-  pick_one_strategy:      picker_strategy.ensure_weighted_distribution,
-  pick_multiple_strategy: picker_strategy.avoid_consecutive_repetitions,
+  pick_one_priority:      picker_priority.ensure_weighted_distribution,
+  pick_multiple_priority: picker_priority.avoid_consecutive_repetitions,
 };
 // ---------------------------------------------------------------------------------------
 class WeightedPicker {
@@ -1728,14 +1728,14 @@ class WeightedPicker {
     this.last_pick_index = index;
   }
   // -------------------------------------------------------------------------------------  
-  __indices_are_exhausted(option_indices, strategy) {
+  __indices_are_exhausted(option_indices, priority) {
     // console.log(`this.options      = ${inspect_fun(this.options)}`);
     // console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
     
-    if (! strategy)
+    if (! priority)
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
-    if (strategy === picker_strategy.true_random)
+    if (priority === picker_priority.true_random)
       return false;
 
     if (this.used_indices.size == 0)
@@ -1743,10 +1743,10 @@ class WeightedPicker {
 
     let exhausted_indices = null;
     
-    if (strategy == picker_strategy.avoid_consecutive_repetitions) {
+    if (priority == picker_priority.avoid_consecutive_repetitions) {
       exhausted_indices = new Set(this.used_indices.keys());
     }
-    else if (strategy == picker_strategy.ensure_weighted_distribution) {
+    else if (priority == picker_priority.ensure_weighted_distribution) {
       exhausted_indices = new Set();
 
       for (const [used_index, usage_count] of this.used_indices) {
@@ -1761,7 +1761,7 @@ class WeightedPicker {
       // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
     else {
-      throw new Error(`bad strategy: ${inspect_fun(strategy)}`);
+      throw new Error(`bad priority: ${inspect_fun(priority)}`);
     }
     
     return exhausted_indices.isSupersetOf(new Set(option_indices));
@@ -1769,9 +1769,9 @@ class WeightedPicker {
   // -------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count,
        allow_if = always, forbid_if = never,
-       strategy = null) {
-    if (! strategy)
-      throw new Error("no strategy");
+       priority = null) {
+    if (! priority)
+      throw new Error("no priority");
 
     // console.log(`PICK ${min_count}-${max_count}`);
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
@@ -1779,7 +1779,7 @@ class WeightedPicker {
     const res = [];
     
     for (let ix = 0; ix < count; ix++) {
-      const pick = this.pick_one(allow_if, forbid_if, strategy);
+      const pick = this.pick_one(allow_if, forbid_if, priority);
 
       // if (pick)
       res.push(pick);
@@ -1790,20 +1790,20 @@ class WeightedPicker {
     return res;
   }
   // -------------------------------------------------------------------------------------
-  __effective_weight(option_index, strategy) {
-    if (! ((option_index || option_index === 0) && strategy))
+  __effective_weight(option_index, priority) {
+    if (! ((option_index || option_index === 0) && priority))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
     let ret = null;
     
-    if (strategy === picker_strategy.true_random)
+    if (priority === picker_priority.true_random)
       ret = this.options[option_index].weight;
-    else if (strategy === picker_strategy.avoid_consecutive_repetitions)
+    else if (priority === picker_priority.avoid_consecutive_repetitions)
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    else if (strategy === picker_strategy.ensure_weighted_distribution)
+    else if (priority === picker_priority.ensure_weighted_distribution)
       ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
     else 
-      throw Error("unexpected strategy");
+      throw Error("unexpected priority");
 
     // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
@@ -1831,13 +1831,13 @@ class WeightedPicker {
     console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -------------------------------------------------------------------------------------
-  pick_one(allow_if, forbid_if, strategy) {
+  pick_one(allow_if, forbid_if, priority) {
     // console.log(`PICK ONE =======================================================================`);
-    // console.log(`STRATEGY        = ${inspect_fun(strategy)}`);
+    // console.log(`PRIORITY        = ${inspect_fun(priority)}`);
     // console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
     // console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
 
-    if (! (strategy && allow_if && forbid_if))
+    if (! (priority && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
     const noisy = false;
@@ -1853,9 +1853,9 @@ class WeightedPicker {
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
-    if (this.__indices_are_exhausted(legal_option_indices, strategy)) {
+    if (this.__indices_are_exhausted(legal_option_indices, priority)) {
       // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-      if (strategy !== picker_strategy.avoid_consecutive_repetitions) {
+      if (priority !== picker_priority.avoid_consecutive_repetitions) {
         this.__clear_used_indices();
       }
       else if (this.last_pick_index !== null) {
@@ -1892,7 +1892,7 @@ class WeightedPicker {
     // console.log(`BEFORE TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
-      const adjusted_weight = this.__effective_weight(legal_option_ix, strategy);
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
       // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
       // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
       total_weight += adjusted_weight;
@@ -1926,7 +1926,7 @@ class WeightedPicker {
     
     for (const legal_option_ix of legal_option_indices) {
       const option          = this.options[legal_option_ix];
-      const adjusted_weight = this.__effective_weight(legal_option_ix, strategy);
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
 
       if (adjusted_weight === 0)
         continue;
@@ -4624,13 +4624,13 @@ function expand_wildcards(thing, context = new Context()) {
           res.push(walk(got));        
       }
       else {
-        const strategy = thing.min_count === 1 && thing.max_count === 1
-              ? picker_configuration.pick_one_strategy
-              : picker_configuration.pick_multiple_strategy;
+        const priority = thing.min_count === 1 && thing.max_count === 1
+              ? picker_configuration.pick_one_priority
+              : picker_configuration.pick_multiple_priority;
         
         const picks = got.pick(thing.min_count, thing.max_count,
                                allow_fun, forbid_fun,
-                               strategy);
+                               priority);
         
         res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
       }
@@ -4740,7 +4740,7 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
       const pick = thing.pick_one(allow_fun, forbid_fun,
-                                  picker_configuration.pick_one_strategy)?.body;
+                                  picker_configuration.pick_one_priority)?.body;
 
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
@@ -5272,11 +5272,11 @@ const user_selection = requestFromUser('Wildcards', '', function() {
     this.section("Batch count", "",
                  [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
     this.section("When picking a single item, prioritize:", "",
-                 [ this.menu(picker_strategy_names.indexOf(picker_configuration.pick_one_strategy),
-                             picker_strategy_names) ]),
+                 [ this.menu(picker_priority_names.indexOf(picker_configuration.pick_one_priority),
+                             picker_priority_names) ]),
     this.section("When picking multiple items, prioritize:", "",
-                 [ this.menu(picker_strategy_names.indexOf(picker_configuration.pick_multiple_strategy),
-                             picker_strategy_names) ]),
+                 [ this.menu(picker_priority_names.indexOf(picker_configuration.pick_multiple_priority),
+                             picker_priority_names) ]),
 	  this.section('about', doc_string, [])
   ];
 });
@@ -5287,18 +5287,18 @@ const user_selection = requestFromUser('Wildcards', '', function() {
 prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
 
-picker_configuration.pick_one_strategy =
-  picker_strategy_reverse.get(picker_strategy_names[user_selection[2][0]]);
-// console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_strategy_names)}} ` +
-//             `= ${picker_configuration.pick_one_strategy}`);
+picker_configuration.pick_one_priority =
+  picker_priority_reverse.get(picker_priority_names[user_selection[2][0]]);
+// console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_names)}} ` +
+//             `= ${picker_configuration.pick_one_priority}`);
 
-picker_configuration.pick_multiple_strategy =
-  picker_strategy_reverse.get(picker_strategy_names[user_selection[3][0]]);
-// console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_strategy_names)}} ` +
-//             `= ${picker_configuration.pick_one_strategy}`);
+picker_configuration.pick_multiple_priority =
+  picker_priority_reverse.get(picker_priority_names[user_selection[3][0]]);
+// console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_names)}} ` +
+//             `= ${picker_configuration.pick_one_priority}`);
 
-console.log(`Single pick strategy:   ${picker_configuration.pick_one_strategy}`);
-console.log(`Multiple pick strategy: ${picker_configuration.pick_multiple_strategy}`);
+console.log(`Single pick priority:   ${picker_configuration.pick_one_priority}`);
+console.log(`Multiple pick priority: ${picker_configuration.pick_multiple_priority}`);
 
 // ---------------------------------------------------------------------------------------
 // parse the prompt_string here:
