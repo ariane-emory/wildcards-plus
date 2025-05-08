@@ -1693,7 +1693,7 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_strategy = Object.freeze({
-  ensure_weighted_distribution:  'Ensuring weighted distribution',
+  ensure_weighted_distribution:  'Ensuring a weighted distribution',
   avoid_consecutive_repetitions: 'Avoiding consecutive repetitions',
   true_random:                   'Just plain old randomness',
 });
