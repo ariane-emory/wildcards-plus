@@ -1693,9 +1693,9 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_strategy = Object.freeze({
-  ensure_weighted_distribution:  'Ensure weighted distribution',
-  avoid_consecutive_repetitions: 'Avoid consecutive repetitions',
-  true_random:                   'Just plain random',
+  ensure_weighted_distribution:  'Ensuring weighted distribution',
+  avoid_consecutive_repetitions: 'Avoiding consecutive repetitions',
+  true_random:                   'Just plain old randomness',
 });
 const picker_strategy_names = Object.entries(picker_strategy).map(([k, v]) => v);
 const picker_strategy_reverse = new Map(
@@ -5281,10 +5281,10 @@ const user_selection = requestFromUser('Wildcards', '', function() {
                  [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
     this.section("Batch count", "",
                  [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
-    this.section("Picker priority (when picking single items):", "",
+    this.section("When picking single items, prioritize:", "",
                  [ this.menu(picker_strategy_names.indexOf(picker_configuration.pick_one_strategy),
                              picker_strategy_names) ]),
-    this.section("Picker priority (when picking multiple items):", "",
+    this.section("When picking multiple items, prioritize:", "",
                  [ this.menu(picker_strategy_names.indexOf(picker_configuration.pick_multiple_strategy),
                              picker_strategy_names) ]),
 	  this.section('about', doc_string, [])
