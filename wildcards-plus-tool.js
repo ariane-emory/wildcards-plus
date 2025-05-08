@@ -5218,10 +5218,12 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 const make_ASTFlagCmd = (klass, ...rules) =>
       xform(ident => new klass(ident),
             second(seq(...rules, ident, word_break)));
+// ---------------------------------------------------------------------------------------
 const make_special_function = rule =>
       xform(tld_fun,
             c_funcall(second(seq('%', rule)),
                       first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
+// ---------------------------------------------------------------------------------------
 const make_unary_SpecialFunction = (prefix, sf_name, rule,) =>
       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
                                     DiscardedComments,     // -
@@ -5232,8 +5234,6 @@ const make_unary_SpecialFunction = (prefix, sf_name, rule,) =>
                             ')'),                          // [2]
             arr => new ASTSpecialFunction(sf_name,
                                           [arr[1]]));
-// ---------------------------------------------------------------------------------------
-
 // ---------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // ---------------------------------------------------------------------------------------
