@@ -1994,6 +1994,7 @@ class WeightedPicker {
     console.log(`STRATEGY        = ${inspect_fun(strategy)}`);
     console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
     console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+
     if (! (strategy && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
@@ -2062,13 +2063,14 @@ class WeightedPicker {
                       `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
-      if (noisy)
+      if (noisy) {
         console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
-      // return null;
+      }
     }
     
-    if (noisy)
+    if (noisy) {
       console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
+    }
     
     let random = Math.random() * total_weight;
 
@@ -2086,8 +2088,9 @@ class WeightedPicker {
       if (adjusted_weight === 0)
         continue;
 
-      if (noisy)
+      if (noisy) {
         console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+      }
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
