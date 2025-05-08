@@ -1991,19 +1991,21 @@ class WeightedPicker {
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, strategy) {
     console.log(`PICK ONE =======================================================================`);
-    console.log(`USED_INDICES = ${inspect_fun(this.used_indices)}`);
+    console.log(`STRATEGY        = ${inspect_fun(strategy)}`);
+    console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+    console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
     if (! (strategy && allow_if && forbid_if))
-                  throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-                
-                const noisy = false;
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    const noisy = false;
 
-                // console.log(`PICK_ONE!`);    
-                // console.log(`PICK FROM ${JSON.stringify(this)}`);
+    // console.log(`PICK_ONE!`);    
+    // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
-                if (this.options.length === 0) {
-                  // console.log(`PICK_ONE: NO OPTIONS 1!`);
-                  return null;
-                }
+    if (this.options.length === 0) {
+      // console.log(`PICK_ONE: NO OPTIONS 1!`);
+      return null;
+    }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
