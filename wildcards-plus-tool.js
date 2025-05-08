@@ -1851,18 +1851,17 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_strategy = Object.freeze({
-  total_usages:  'Ensure weighted distribution',
-  avoid_used:    'Avoid consecutive repitions',
-  true_random:   'Just random',
+  ensure_weighted_distribution:  'Ensuring a weighted distribution',
+  avoid_consecutive_repetitions: 'Avoiding consecutive repetitions',
+  true_random:                   'Just plain old randomness',
 });
-
+const picker_strategy_names = Object.entries(picker_strategy).map(([k, v]) => v);
 const picker_strategy_reverse = new Map(
   Object.entries(picker_strategy).map(([k, v]) => [v, k])
 );
-const picker_strategy_names = Object.entries(picker_strategy).map(([k, v]) => v);
 const picker_configuration = {
-  pick_one_strategy:      picker_strategy.total_usages,
-  pick_multiple_strategy: picker_strategy.avoid_used,
+  pick_one_strategy:      picker_strategy.ensure_weighted_distribution,
+  pick_multiple_strategy: picker_strategy.avoid_consecutive_repetitions,
 };
 // ---------------------------------------------------------------------------------------
 class WeightedPicker {
@@ -1915,10 +1914,10 @@ class WeightedPicker {
 
     let exhausted_indices = null;
     
-    if (strategy == picker_strategy.avoid_used) {
+    if (strategy == picker_strategy.avoid_consecutive_repetitions) {
       exhausted_indices = new Set(this.used_indices.keys());
     }
-    else if (strategy == picker_strategy.total_usages) {
+    else if (strategy == picker_strategy.ensure_weighted_distribution) {
       exhausted_indices = new Set();
 
       for (const [used_index, usage_count] of this.used_indices) {
@@ -1970,9 +1969,9 @@ class WeightedPicker {
     
     if (strategy === picker_strategy.true_random)
       ret = this.options[option_index].weight;
-    else if (strategy === picker_strategy.avoid_used)
+    else if (strategy === picker_strategy.avoid_consecutive_repetitions)
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    else if (strategy === picker_strategy.total_usages)
+    else if (strategy === picker_strategy.ensure_weighted_distribution)
       ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
     else 
       throw Error("unexpected strategy");
@@ -5406,7 +5405,6 @@ Prompt.finalize();
 // =======================================================================================
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
-
 
 
 // =======================================================================================
