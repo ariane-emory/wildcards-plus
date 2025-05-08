@@ -1693,7 +1693,7 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
-  avoiding_repitition:             'Avoiding repetition',
+  avoiding_repitition:           'Avoiding repetition',
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_random:                   'Just plain old randomness',
 });
