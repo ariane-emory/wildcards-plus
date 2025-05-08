@@ -1851,10 +1851,13 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_strategy = Object.freeze({
-  total_usages:  'total_usages',
-  avoid_used:    'avoid_used',
-  true_random:   'true_random',
-});
+  total_usages:  'Total usages',
+  avoid_used:    'Avoid used',
+  true_random:   'True random',
+}) ;
+const picker_strategy_reverse = new Map(
+  Object.entries(picker_strategy).map(([k, v]) => [v, k])
+);
 const picker_configuration = {
   pick_one_strategy:      picker_strategy.total_usages,
   pick_multiple_strategy: picker_strategy.avoid_used,
