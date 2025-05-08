@@ -1898,6 +1898,7 @@ class WeightedPicker {
   // -------------------------------------------------------------------------------------
   __record_index_usage(index) {
     this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+    this.last_pick_index = index;
   }
   // -------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, strategy) {
