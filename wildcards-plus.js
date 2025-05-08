@@ -1694,7 +1694,7 @@ const always = () => true;
 const never  = () => false;
 const picker_strategy = Object.freeze({
   total_usages:  'Ensure weighted distribution',
-  avoid_used:    'Avoid repitions',
+  avoid_used:    'Avoid consecutive repitions',
   true_random:   'Just random',
 });
 const picker_strategy_reverse = new Map(
@@ -5260,7 +5260,7 @@ const pipeline_configuration      = clone_fun(pipeline.configuration);
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "no wildcards found in the prompt.";
 let   prompt_string               = ui_prompt;
-const default_batch_count         = 8;
+const default_batch_count         = 1;
 // ---------------------------------------------------------------------------------------
 
 
@@ -5277,15 +5277,23 @@ The full documentation would be too large to fit in this tiny box, please see th
 
 const user_selection = requestFromUser('Wildcards', '', function() {
   return [
-	  this.section('Prompt', ui_hint, [
-		  this.textField(prompt_string, fallback_prompt, true, 240),
-		  this.slider(default_batch_count, this.slider.fractional(0), 1, 250, 'batch count')
-    ]),
+	  this.section('Prompt', ui_hint,
+                 [ this.textField(prompt_string, fallback_prompt, true, 240),
+		               this.slider(default_batch_count, this.slider.fractional(0), 1, 250, 'batch count') ]),
+    this.section("Picker priority (when picking single items):", "",
+                 [ this.menu(picker_strategy_names.indexOf(picker_configuration.pick_one_strategy),
+                             picker_strategy_names) ]),
+    this.section("Picker priority (when picking multiple items):", "",
+                 [ this.menu(picker_strategy_names.indexOf(picker_configuration.pick_multiple_strategy),
+                             picker_strategy_names) ]),
 	  this.section('about',
                  doc_string,
                  [])
   ];
 });
+
+console.log(`USER SELECTION:`);
+console.log(JSON.stringify(user_selection, null, 2));
 
 const batch_count = user_selection[0][1];
 prompt_string     = user_selection[0][0]
@@ -5298,128 +5306,128 @@ prompt_string     = user_selection[0][0]
 const parse_result     = Prompt.match(prompt_string);
 
 if (! parse_result.is_finished)
-  throw new Error(`error parsing prompt!`);
+              throw new Error(`error parsing prompt!`);
 
-const AST              = parse_result.value;
-// ---------------------------------------------------------------------------------------
+            const AST              = parse_result.value;
+            // ---------------------------------------------------------------------------------------
 
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
-console.log(`pipeline.configuration is:`);
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
-console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
-console.log(`The wildcards-plus prompt is:`);
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
-console.log(`${prompt_string}`);
+            console.log(`-----------------------------------------------------------------------------------------------------------------`);
+            console.log(`pipeline.configuration is:`);
+            console.log(`-----------------------------------------------------------------------------------------------------------------`);
+            console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
+            console.log(`-----------------------------------------------------------------------------------------------------------------`);
+            console.log(`The wildcards-plus prompt is:`);
+            console.log(`-----------------------------------------------------------------------------------------------------------------`);
+            console.log(`${prompt_string}`);
 
-const base_context = load_prelude();
+            const base_context = load_prelude();
 
-// ---------------------------------------------------------------------------------------
-// main loop:
-// ---------------------------------------------------------------------------------------
-for (let ix = 0; ix < batch_count; ix++) {
-  const start_date = new Date();
+            // ---------------------------------------------------------------------------------------
+            // main loop:
+            // ---------------------------------------------------------------------------------------
+            for (let ix = 0; ix < batch_count; ix++) {
+              const start_date = new Date();
 
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+              console.log(`-----------------------------------------------------------------------------------------------------------------`);
+              console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
+              console.log(`-----------------------------------------------------------------------------------------------------------------`);
 
-  // expand the wildcards using a cloned context and generate a new configuration:
-  
-  const context                 = base_context.clone();
+              // expand the wildcards using a cloned context and generate a new configuration:
+              
+              const context                 = base_context.clone();
 
-  // console.log(`CLONED: ${inspect_fun(context)}`);
-  
-  // console.log(`PL_C.L: ${inspect_fun(pipeline_configuration.loras)}`);
-  // console.log(`PL.C.L: ${inspect_fun(pipeline.configuration.loras)}`);
+              // console.log(`CLONED: ${inspect_fun(context)}`);
+              
+              // console.log(`PL_C.L: ${inspect_fun(pipeline_configuration.loras)}`);
+              // console.log(`PL.C.L: ${inspect_fun(pipeline.configuration.loras)}`);
 
-  const generated_prompt        = expand_wildcards(AST, context);
-  const generated_configuration = { ...clone_fun(pipeline_configuration),
-                                    seed: -1,
-                                    ...munge_config(context.config) };
-  const add_loras               = context.add_loras;
-  // const added_loras_files       = [];
+              const generated_prompt        = expand_wildcards(AST, context);
+              const generated_configuration = { ...clone_fun(pipeline_configuration),
+                                                seed: -1,
+                                                ...munge_config(context.config) };
+              const add_loras               = context.add_loras;
+              // const added_loras_files       = [];
 
-  if (add_loras.length > 0) {
-    if (log_config_enabled && add_loras.length !== 0) {
-      console.log(`-----------------------------------------------------------------------------------------------------------------`);
-      console.log(`Found add_loras in Context: ${inspect_fun(add_loras)} in Context.`);
-    }
+              if (add_loras.length > 0) {
+                if (log_config_enabled && add_loras.length !== 0) {
+                  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+                  console.log(`Found add_loras in Context: ${inspect_fun(add_loras)} in Context.`);
+                }
 
-    // console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
-    //             `${JSON.stringify(generated_configuration)}`);
-    
-    if (generated_configuration.loras && generated_configuration.length > 0)
-      generated_configuration.loras = [ ...generated_configuration.loras ];
-    else 
-      generated_configuration.loras ||= [];
+                // console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
+                //             `${JSON.stringify(generated_configuration)}`);
+                
+                if (generated_configuration.loras && generated_configuration.length > 0)
+                  generated_configuration.loras = [ ...generated_configuration.loras ];
+                else 
+                  generated_configuration.loras ||= [];
 
-    for (const lora of add_loras) {
-      const already_have_this_lora = pipeline.configuration.loras
-            .filter(l => l.file === lora.file).length > 0;
+                for (const lora of add_loras) {
+                  const already_have_this_lora = pipeline.configuration.loras
+                        .filter(l => l.file === lora.file).length > 0;
 
-      // console.log(`THIS: ${already_have_this_lora}`);
-      
-      if (! already_have_this_lora) {
-        // added_loras_files.push(lora.file);
-        // console.log(`RECORDED ${inspect_fun(added_loras_files)}.`);
-        add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
-      }
-      
-      // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
-      //             `${JSON.stringify(generated_configuration)}`);
-    }
-  }
+                  // console.log(`THIS: ${already_have_this_lora}`);
+                  
+                  if (! already_have_this_lora) {
+                    // added_loras_files.push(lora.file);
+                    // console.log(`RECORDED ${inspect_fun(added_loras_files)}.`);
+                    add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
+                  }
+                  
+                  // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
+                  //             `${JSON.stringify(generated_configuration)}`);
+                }
+              }
 
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  console.log(`GENERATED CONFIGURATION:`);
-  console.log(`${JSON.stringify(generated_configuration, null, 2)}`);
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  console.log(`The expanded prompt is:`);
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  console.log(`${generated_prompt}`);
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  console.log(`Generating image #${ix+1} out of ${batch_count}...`);
+              console.log(`-----------------------------------------------------------------------------------------------------------------`);
+              console.log(`GENERATED CONFIGURATION:`);
+              console.log(`${JSON.stringify(generated_configuration, null, 2)}`);
+              console.log(`-----------------------------------------------------------------------------------------------------------------`);
+              console.log(`The expanded prompt is:`);
+              console.log(`-----------------------------------------------------------------------------------------------------------------`);
+              console.log(`${generated_prompt}`);
+              console.log(`-----------------------------------------------------------------------------------------------------------------`);
+              console.log(`Generating image #${ix+1} out of ${batch_count}...`);
 
-  // -------------------------------------------------------------------------------------
-  // run the pipeline:
-  // -------------------------------------------------------------------------------------
-  canvas.clear();
-  pipeline.run({
-    configuration: generated_configuration,
-    prompt: generated_prompt
-  });
+              // -------------------------------------------------------------------------------------
+              // run the pipeline:
+              // -------------------------------------------------------------------------------------
+              canvas.clear();
+              pipeline.run({
+                configuration: generated_configuration,
+                prompt: generated_prompt
+              });
 
-  const end_time     = new Date().getTime();
-  const elapsed_time = (end_time - start_date.getTime()) / 1000;
+              const end_time     = new Date().getTime();
+              const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
-  console.log(`... image generated in ${elapsed_time} seconds.`);
+              console.log(`... image generated in ${elapsed_time} seconds.`);
 
-  // if (added_loras_files.files === 0)
-  //   console.log(`DID NOT ADD ANYTHING!`);
-  // else
-  //   console.log(`To remove: ${inspect_fun(added_loras_files)}`);
-  
-  // for (let ix = 0; ix < added_loras_files.length; ix++) {
-  //   const lora_file = added_loras_files[ix];
-  
-  //   console.log(`Look for '${lora_file}' in ${JSON.stringify(pipeline.configuration.loras, null, 2)}...`);
-  
-  //   const other_loras = pipeline.configuration.loras.filter(l => l.file != lora_file);
-  //   console.log(`other_loras = ${inspect_fun(other_loras)}, p.c.l = ${inspect_fun(pipeline.configuration.loras)}`);
-  //   console.log(`other_loras.length = ${other_loras.length}, p.c.l.l = ${pipeline.configuration.loras.length}`);
-  
-  //   if (other_loras.length !== pipeline.configuration.loras.length) {
-  //     console.log(`Removing lora "${lora_file}".`);
+              // if (added_loras_files.files === 0)
+              //   console.log(`DID NOT ADD ANYTHING!`);
+              // else
+              //   console.log(`To remove: ${inspect_fun(added_loras_files)}`);
+              
+              // for (let ix = 0; ix < added_loras_files.length; ix++) {
+              //   const lora_file = added_loras_files[ix];
+              
+              //   console.log(`Look for '${lora_file}' in ${JSON.stringify(pipeline.configuration.loras, null, 2)}...`);
+              
+              //   const other_loras = pipeline.configuration.loras.filter(l => l.file != lora_file);
+              //   console.log(`other_loras = ${inspect_fun(other_loras)}, p.c.l = ${inspect_fun(pipeline.configuration.loras)}`);
+              //   console.log(`other_loras.length = ${other_loras.length}, p.c.l.l = ${pipeline.configuration.loras.length}`);
+              
+              //   if (other_loras.length !== pipeline.configuration.loras.length) {
+              //     console.log(`Removing lora "${lora_file}".`);
 
-  //     pipeline.configuration.loras = other_loras;
-  //     console.log(`PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
-  //   }
-  // }
-  
-  // console.log(`END PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
-}
+              //     pipeline.configuration.loras = other_loras;
+              //     console.log(`PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
+              //   }
+              // }
+              
+              // console.log(`END PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
+              console.log(`-----------------------------------------------------------------------------------------------------------------`);
+            }
 
 console.log('Job complete. Open Console to see job report.');
 // ---------------------------------------------------------------------------------------

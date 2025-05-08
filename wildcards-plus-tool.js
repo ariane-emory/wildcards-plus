@@ -1852,7 +1852,7 @@ const always = () => true;
 const never  = () => false;
 const picker_strategy = Object.freeze({
   total_usages:  'Ensure weighted distribution',
-  avoid_used:    'Avoid repitions',
+  avoid_used:    'Avoid consecutive repitions',
   true_random:   'Just random',
 });
 
