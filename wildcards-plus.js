@@ -1713,6 +1713,7 @@ class WeightedPicker {
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
+    this.last_pick_index = null;
 
     for (const [weight, value] of initialOptions)
       this.add(weight, value);
@@ -1722,23 +1723,9 @@ class WeightedPicker {
     this.options.push({weight: weight, value: value });
   }
   // -------------------------------------------------------------------------------------
-  __gather_legal_option_indices(allow_if, forbid_if) {
-    const legal_option_indices = [];
-    
-    for (let ix = 0; ix < this.options.length; ix++) {
-      const option = this.options[ix];
-      
-      if (option.weight !== 0 &&
-          allow_if(option.value) &&
-          !forbid_if(option.value))
-        legal_option_indices.push(ix);
-    }
-
-    return legal_option_indices;
-  }
-  // -------------------------------------------------------------------------------------
   __record_index_usage(index) {
     this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+    this.last_pick_index = index;
   }
   // -------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, strategy) {
@@ -1823,70 +1810,118 @@ class WeightedPicker {
     return ret;
   };
   // -------------------------------------------------------------------------------------
+  __gather_legal_option_indices(allow_if, forbid_if) {
+    const legal_option_indices = [];
+    
+    for (let ix = 0; ix < this.options.length; ix++) {
+      const option = this.options[ix];
+      
+      if (option.weight !== 0 &&
+          allow_if(option.value) &&
+          !forbid_if(option.value))
+        legal_option_indices.push(ix);
+    }
+
+    return legal_option_indices;
+  }
+  // -------------------------------------------------------------------------------------
+  __clear_used_indices() {
+    this.used_indices.clear();
+    this.last_pick_index = null;
+    console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+  }
+  // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, strategy) {
+    // console.log(`PICK ONE =======================================================================`);
+    // console.log(`STRATEGY        = ${inspect_fun(strategy)}`);
+    // console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+    // console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+
     if (! (strategy && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
     const noisy = false;
+
+    // // console.log(`PICK_ONE!`);
     
-    
-    // console.log(`PICK_ONE!`);    
-    // console.log(`PICK FROM ${JSON.stringify(this)}`);
+    // // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
-      // console.log(`PICK_ONE: NO OPTIONS 1!`);
+      // // console.log(`PICK_ONE: NO OPTIONS 1!`);
       return null;
     }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
     if (this.__indices_are_exhausted(legal_option_indices, strategy)) {
-      // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-      this.used_indices.clear();
+      // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      if (strategy !== picker_strategy.avoid_consecutive_repetitions) {
+        this.__clear_used_indices();
+      }
+      else if (this.last_pick_index !== null) {
+        const last_pick_index = this.last_pick_index;
+        this.__clear_used_indices();
+        this.__record_index_usage(last_pick_index);
+      }
+      else /* total, true_random */ {
+        this.__clear_used_indices();
+      }
+      
+      // console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+      
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
-      // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+      // // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+      // console.log(`BEFORE BAIL 1: ${inspect_fun(this.used_indices)}`);
       return null;
     }
 
     if (legal_option_indices.length === 1) {
-      // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      // // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
       this.__record_index_usage(legal_option_indices[0]);
+      // console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
       return this.options[legal_option_indices[0]].value;
     }
 
-    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    // // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
+    // console.log(`BEFORE TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, strategy);
-      // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+      // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+      // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
       total_weight += adjusted_weight;
     }
-
+    // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
+    // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    
     // Since we now avoid adding options with a weight of 0, this shouldnever be true:
     if (total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${inspect_fun(legal_option_indices.map(ix => this.options[ix]))}`);
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
+                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
-      if (noisy)
-        console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
-      // return null;
+      if (noisy) {
+        // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
+      }
     }
     
-    if (noisy)
-      console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
+    if (noisy) {
+      // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
+    }
     
     let random = Math.random() * total_weight;
 
     if (noisy) {
-      console.log(`------------------------------------------------------------------------`);
-      console.log(`RANDOM IS ${random}`);
-      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+      // console.log(`------------------------------------------------------------------------`);
+      // console.log(`RANDOM IS ${random}`);
+      // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
     }
     
     for (const legal_option_ix of legal_option_indices) {
@@ -1896,8 +1931,9 @@ class WeightedPicker {
       if (adjusted_weight === 0)
         continue;
 
-      if (noisy)
-        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+      if (noisy) {
+        // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+      }
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -1906,59 +1942,14 @@ class WeightedPicker {
 
       random -= adjusted_weight;
 
-      if (noisy)
-        console.log(`RANDOM IS NOW ${random}`);
+      if (noisy) {
+        // console.log(`RANDOM IS NOW ${random}`);
+      }
     }
 
     throw new Error("random selection failed");
   }
 }
-// =======================================================================================
-
-
-// =======================================================================================
-// WildcardPicker CLASS SECTION:
-// =======================================================================================
-class WildcardPicker {
-  // -------------------------------------------------------------------------------------
-  constructor(optSpecs = []) {
-    this.options = [];
-    this.range   = 0;
-
-    for (const optSpec of optSpecs) {
-      if (Array.isArray(optSpec)) {
-        this.add(...optSpec);
-      } else {
-        this.add(1, optSpec);
-      }
-    }
-  }
-  // -------------------------------------------------------------------------------------
-  add(weight, value) {
-    this.options.push([ weight, value ]);
-    this.range += weight;
-  }
-  // -------------------------------------------------------------------------------------
-  pick() {
-    if (this.options.length == 0)
-      throw new Error("empty");
-    
-    if (this.options.length == 1) 
-      return this.options[0][1];
-    
-    let   total   = 0;
-    const random  = Math.random() * this.range;
-
-    for (const option of this.options) {
-      total += option[0];
-
-      if (random < total)
-        return option[1];      
-    }
-  }
-}
-// =======================================================================================
-// END OF WildcardPicker CLASS SECTION.
 // =======================================================================================
 
 
@@ -5247,7 +5238,6 @@ Prompt.finalize();
 // =======================================================================================
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
-
 
 
 // =======================================================================================
