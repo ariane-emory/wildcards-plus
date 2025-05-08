@@ -5278,27 +5278,32 @@ The full documentation would be too large to fit in this tiny box, please see th
 const user_selection = requestFromUser('Wildcards', '', function() {
   return [
 	  this.section('Prompt', ui_hint,
-                 [ this.textField(prompt_string, fallback_prompt, true, 240),
-		               this.slider(default_batch_count, this.slider.fractional(0), 1, 250, 'batch count') ]),
+                 [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
+    this.section("Batch count", "",
+                 [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
     this.section("Picker priority (when picking single items):", "",
                  [ this.menu(picker_strategy_names.indexOf(picker_configuration.pick_one_strategy),
                              picker_strategy_names) ]),
     this.section("Picker priority (when picking multiple items):", "",
                  [ this.menu(picker_strategy_names.indexOf(picker_configuration.pick_multiple_strategy),
                              picker_strategy_names) ]),
-	  this.section('about',
-                 doc_string,
-                 [])
+	  this.section('about', doc_string, [])
   ];
 });
 
 console.log(`USER SELECTION:`);
 console.log(JSON.stringify(user_selection, null, 2));
 
-const batch_count = user_selection[0][1];
 prompt_string     = user_selection[0][0]
+const batch_count = user_selection[1][0];
+picker_configuration.pick_one_strategy =
+  picker_strategy_reverse.get(user_selection[2][0]);
+picker_configuration.pick_multiple_strategy =
+  picker_strategy_reverse.get(user_selection[3][0]);
 // ---------------------------------------------------------------------------------------
 
+console.log(`SINGLE PICK STRATEGY:   ${picker_configuration.pick_one_strategy}`);
+console.log(`MULTIPLE PICK STRATEGY: ${picker_configuration.pick_multiple_strategy}`);
 
 // ---------------------------------------------------------------------------------------
 // parse the prompt_string here:
