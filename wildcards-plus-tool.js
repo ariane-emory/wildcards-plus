@@ -2021,7 +2021,7 @@ class WeightedPicker {
         this.__clear_used_indices();
         this.__record_index_usage(last_pick_index);
       }
-      else {
+      else /* total, true_random */ {
         this.__clear_used_indices();
       }
       
@@ -2108,52 +2108,6 @@ class WeightedPicker {
     throw new Error("random selection failed");
   }
 }
-// =======================================================================================
-
-
-// =======================================================================================
-// WildcardPicker CLASS SECTION:
-// =======================================================================================
-class WildcardPicker {
-  // -------------------------------------------------------------------------------------
-  constructor(optSpecs = []) {
-    this.options = [];
-    this.range   = 0;
-
-    for (const optSpec of optSpecs) {
-      if (Array.isArray(optSpec)) {
-        this.add(...optSpec);
-      } else {
-        this.add(1, optSpec);
-      }
-    }
-  }
-  // -------------------------------------------------------------------------------------
-  add(weight, value) {
-    this.options.push([ weight, value ]);
-    this.range += weight;
-  }
-  // -------------------------------------------------------------------------------------
-  pick() {
-    if (this.options.length == 0)
-      throw new Error("empty");
-    
-    if (this.options.length == 1) 
-      return this.options[0][1];
-    
-    let   total   = 0;
-    const random  = Math.random() * this.range;
-
-    for (const option of this.options) {
-      total += option[0];
-
-      if (random < total)
-        return option[1];      
-    }
-  }
-}
-// =======================================================================================
-// END OF WildcardPicker CLASS SECTION.
 // =======================================================================================
 
 
