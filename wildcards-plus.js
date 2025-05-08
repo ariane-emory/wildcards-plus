@@ -1693,12 +1693,18 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_strategy = Object.freeze({
-  total:     'total',
-  used:      'used',
-  random:    'random',
-});
+  total_usages:  'Total usages',
+  avoid_used:    'Avoid used',
+  true_random:   'True random',
+}) ;
+const picker_strategy_reverse = new Map(
+  Object.entries(picker_strategy).map(([k, v]) => [v, k])
+);
+const picker_configuration = {
+  pick_one_strategy:      picker_strategy.total_usages,
+  pick_multiple_strategy: picker_strategy.avoid_used,
+};
 // ---------------------------------------------------------------------------------------
-
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
@@ -1741,15 +1747,18 @@ class WeightedPicker {
     if (! strategy)
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
+    if (strategy === picker_strategy.true_random)
+      return false;
+
     if (this.used_indices.size == 0)
       return false;
 
     let exhausted_indices = null;
     
-    if (strategy == picker_strategy.used) {
+    if (strategy == picker_strategy.avoid_used) {
       exhausted_indices = new Set(this.used_indices.keys());
     }
-    else if (strategy == picker_strategy.total) {
+    else if (strategy == picker_strategy.total_usages) {
       exhausted_indices = new Set();
 
       for (const [used_index, usage_count] of this.used_indices) {
@@ -1763,11 +1772,8 @@ class WeightedPicker {
       
       // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
-    else if (strategy === picker_strategy.random) {
-      return false;
-    }
     else {
-      throw new Error(`bad strategy: ${inspect_fun(strange)}`);
+      throw new Error(`bad strategy: ${inspect_fun(strategy)}`);
     }
     
     return exhausted_indices.isSupersetOf(new Set(option_indices));
@@ -1802,12 +1808,12 @@ class WeightedPicker {
     
     let ret = null;
     
-    if (strategy === picker_strategy.used)
-      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    else if (strategy === picker_strategy.total)
-      ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-    else if (strategy === picker_strategy.random)
+    if (strategy === picker_strategy.true_random)
       ret = this.options[option_index].weight;
+    else if (strategy === picker_strategy.avoid_used)
+      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+    else if (strategy === picker_strategy.total_usages)
+      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
     else 
       throw Error("unexpected strategy");
 
@@ -2310,14 +2316,15 @@ class Context {
   // -------------------------------------------------------------------------------------
   clone() {
     return new Context({
-      flags: new Set(this.flags),
+      flags:            new Set(this.flags),
       scalar_variables: new Map(this.scalar_variables),
-      named_wildcards: new Map(this.named_wildcards),
-      noisy: this.noisy,
-      files: [...this.files],
-      config: { ...this.config }, /// ???
-      add_loras: [...this.add_loras.map(o => ({ file: o.file, weigh: o.weight })) ], 
-      top_file: this.top_file,
+      named_wildcards:  new Map(this.named_wildcards),
+      noisy:            this.noisy,
+      files:            [ ...this.files ],
+      config:           { ...this.config }, /// ???
+      add_loras:        [ ...this.add_loras
+                          .map(o => ({ file: o.file, weigh: o.weight })) ],
+      top_file:         this.top_file,
     });
   }
   // -------------------------------------------------------------------------------------
@@ -4520,7 +4527,6 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__john_zeleznik science-fiction, Rifts, palladium-books, painting |
 ?artist__keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
 ?artist__kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books |
-?artist__kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books |
 ?artist__boris_vallejo fantasy, science fiction, magic, nature, muscles, femininity
 }
 `;
@@ -4627,8 +4633,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
       else {
         const strategy = thing.min_count === 1 && thing.max_count === 1
-              ? picker_strategy.total
-              : picker_strategy.used;
+              ? picker_configuration.pick_one_strategy
+              : picker_configuration.pick_multiple_strategy;
         
         const picks = got.pick(thing.min_count, thing.max_count,
                                allow_fun, forbid_fun,
@@ -4642,7 +4648,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (thing.capitalize && res.length > 0) {
         res[0] = capitalize(res[0]);
       }
-      
+
       return thing.joiner == ','
         ? res.join(", ")
         : (thing.joiner == '&'
@@ -4741,7 +4747,8 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const pick = thing.pick_one(allow_fun, forbid_fun, picker_strategy.total)?.body;
+      const pick = thing.pick_one(allow_fun, forbid_fun,
+                                  picker_configuration.pick_one_strategy)?.body;
 
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
