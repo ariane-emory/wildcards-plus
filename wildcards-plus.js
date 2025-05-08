@@ -5278,7 +5278,7 @@ const user_selection = requestFromUser('Wildcards', '', function() {
   return [
 	  this.section('Prompt', ui_hint, [
 		  this.textField(prompt_string, fallback_prompt, true, 240),
-		  this.slider(default_batch_count, this.slider.fractional(0), 1, 500, 'batch count')
+		  this.slider(default_batch_count, this.slider.fractional(0), 1, 250, 'batch count')
     ]),
 	  this.section('about',
                  doc_string,
