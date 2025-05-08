@@ -2002,7 +2002,14 @@ class WeightedPicker {
     
     if (this.__indices_are_exhausted(legal_option_indices, strategy)) {
       // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-      this.used_indices.clear();
+      if (strategy !== picker_strategy.avoid_consecutive_repetitions) {
+        this.used_indices.clear();
+      }
+      else {
+        const last_pick_index = this.last_pick_index;
+        this.used_indices.clear();
+        this.__record_index_usage(last_pick_index);
+      }
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
