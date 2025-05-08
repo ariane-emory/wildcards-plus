@@ -5381,12 +5381,10 @@ const LimitedContent          = choice(AnonWildcardNoLoras, ScalarReference,
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage,
                                        SetFlag, A1111StyleLora, AnonWildcard, comment,
                                        ScalarReference,
-                                       SpecialFunctionUpdateConfiguration, SpecialFunctionSetConfiguration,
-                                       low_pri_text, plaintext);
+                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
 const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage,
                                        SetFlag, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionUpdateConfiguration, SpecialFunctionSetConfiguration,
-                                       low_pri_text, plaintext);
+                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(SpecialFunction,
