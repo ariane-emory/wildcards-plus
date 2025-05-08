@@ -4916,7 +4916,7 @@ function expand_wildcards(thing, context = new Context()) {
     // SpecialFunctions:
     // -----------------------------------------------------------------------------------
     if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
-      if (thing.args.lenrth > 2)
+      if (thing.args.length > 2)
         throw new Error(`update-config takes 1 or 2 arguments, got ` +
                         `${inspect_fun(thing.args)}`);
 
