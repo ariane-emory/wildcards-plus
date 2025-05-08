@@ -1693,17 +1693,17 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_strategy = Object.freeze({
-  total_usages:  'Ensure weighted distribution',
-  avoid_used:    'Avoid consecutive repitions',
-  true_random:   'Just random',
+  ensure_weighted_distribution:  'Ensure weighted distribution',
+  avoid_consecutive_repetitions: 'Avoid consecutive repetitions',
+  true_random:                   'Just plain random',
 });
+const picker_strategy_names = Object.entries(picker_strategy).map(([k, v]) => v);
 const picker_strategy_reverse = new Map(
   Object.entries(picker_strategy).map(([k, v]) => [v, k])
 );
-const picker_strategy_names = Object.entries(picker_strategy).map(([k, v]) => v);
 const picker_configuration = {
-  pick_one_strategy:      picker_strategy.total_usages,
-  pick_multiple_strategy: picker_strategy.avoid_used,
+  pick_one_strategy:      picker_strategy.ensure_weighted_distribution,
+  pick_multiple_strategy: picker_strategy.avoid_consecutive_repetitions,
 };
 // ---------------------------------------------------------------------------------------
 class WeightedPicker {
@@ -1756,10 +1756,10 @@ class WeightedPicker {
 
     let exhausted_indices = null;
     
-    if (strategy == picker_strategy.avoid_used) {
+    if (strategy == picker_strategy.avoid_consecutive_repetitions) {
       exhausted_indices = new Set(this.used_indices.keys());
     }
-    else if (strategy == picker_strategy.total_usages) {
+    else if (strategy == picker_strategy.ensure_weighted_distribution) {
       exhausted_indices = new Set();
 
       for (const [used_index, usage_count] of this.used_indices) {
@@ -1811,9 +1811,9 @@ class WeightedPicker {
     
     if (strategy === picker_strategy.true_random)
       ret = this.options[option_index].weight;
-    else if (strategy === picker_strategy.avoid_used)
+    else if (strategy === picker_strategy.avoid_consecutive_repetitions)
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    else if (strategy === picker_strategy.total_usages)
+    else if (strategy === picker_strategy.ensure_weighted_distribution)
       ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
     else 
       throw Error("unexpected strategy");
@@ -5291,26 +5291,24 @@ const user_selection = requestFromUser('Wildcards', '', function() {
   ];
 });
 
-console.log(`USER SELECTION:`);
-console.log(JSON.stringify(user_selection, null, 2));
+// console.log(`USER SELECTION:`);
+// console.log(JSON.stringify(user_selection, null, 2));
 
 prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
 
 picker_configuration.pick_one_strategy =
   picker_strategy_reverse.get(picker_strategy_names[user_selection[2][0]]);
-console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_strategy_names)}} ` +
-            `= ${picker_configuration.pick_one_strategy}`);
+// console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_strategy_names)}} ` +
+//             `= ${picker_configuration.pick_one_strategy}`);
 
 picker_configuration.pick_multiple_strategy =
   picker_strategy_reverse.get(picker_strategy_names[user_selection[3][0]]);
-console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_strategy_names)}} ` +
-            `= ${picker_configuration.pick_one_strategy}`);
+// console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_strategy_names)}} ` +
+//             `= ${picker_configuration.pick_one_strategy}`);
 
-console.log(`SINGLE PICK STRATEGY:   ${picker_configuration.pick_one_strategy}`);
-console.log(`MULTIPLE PICK STRATEGY: ${picker_configuration.pick_multiple_strategy}`);
-
-batch_count = 0; // temp!
+console.log(`Single pick strategy:   ${picker_configuration.pick_one_strategy}`);
+console.log(`Multiple pick strategy: ${picker_configuration.pick_multiple_strategy}`);
 
 // ---------------------------------------------------------------------------------------
 // parse the prompt_string here:
