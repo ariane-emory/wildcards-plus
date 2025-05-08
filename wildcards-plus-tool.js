@@ -1851,9 +1851,9 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_strategy = Object.freeze({
-  total:     'total',
-  used:      'used',
-  random:    'random',
+  total_usages:  'total_usages',
+  avoid_used:    'avoid_used',
+  true_random:   'true_random',
 });
 // ---------------------------------------------------------------------------------------
 
@@ -1904,10 +1904,10 @@ class WeightedPicker {
 
     let exhausted_indices = null;
     
-    if (strategy == picker_strategy.used) {
+    if (strategy == picker_strategy.avoid_used) {
       exhausted_indices = new Set(this.used_indices.keys());
     }
-    else if (strategy == picker_strategy.total) {
+    else if (strategy == picker_strategy.total_usages) {
       exhausted_indices = new Set();
 
       for (const [used_index, usage_count] of this.used_indices) {
@@ -1921,7 +1921,7 @@ class WeightedPicker {
       
       // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
-    else if (strategy === picker_strategy.random) {
+    else if (strategy === picker_strategy.true_random) {
       return false;
     }
     else {
@@ -1960,11 +1960,11 @@ class WeightedPicker {
     
     let ret = null;
     
-    if (strategy === picker_strategy.used)
+    if (strategy === picker_strategy.avoid_used)
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    else if (strategy === picker_strategy.total)
+    else if (strategy === picker_strategy.total_usages)
       ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-    else if (strategy === picker_strategy.random)
+    else if (strategy === picker_strategy.true_random)
       ret = this.options[option_index].weight;
     else 
       throw Error("unexpected strategy");
@@ -4785,8 +4785,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
       else {
         const strategy = thing.min_count === 1 && thing.max_count === 1
-              ? picker_strategy.total
-              : picker_strategy.used;
+              ? picker_strategy.total_usages
+              : picker_strategy.avoid_used;
         
         const picks = got.pick(thing.min_count, thing.max_count,
                                allow_fun, forbid_fun,
@@ -4899,7 +4899,8 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const pick = thing.pick_one(allow_fun, forbid_fun, picker_strategy.total)?.body;
+      const pick = thing.pick_one(allow_fun, forbid_fun,
+                                  picker_strategy.total_usages)?.body;
 
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
