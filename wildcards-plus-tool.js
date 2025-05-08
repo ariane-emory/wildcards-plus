@@ -1900,6 +1900,9 @@ class WeightedPicker {
     if (! strategy)
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
+    if (strategy === picker_strategy.true_random)
+      return false;
+
     if (this.used_indices.size == 0)
       return false;
 
@@ -1922,11 +1925,8 @@ class WeightedPicker {
       
       // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
-    else if (strategy === picker_strategy.true_random) {
-      return false;
-    }
     else {
-      throw new Error(`bad strategy: ${inspect_fun(strange)}`);
+      throw new Error(`bad strategy: ${inspect_fun(strategy)}`);
     }
     
     return exhausted_indices.isSupersetOf(new Set(option_indices));
