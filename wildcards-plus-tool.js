@@ -2014,7 +2014,7 @@ class WeightedPicker {
       if (strategy !== picker_strategy.avoid_consecutive_repetitions) {
         this.__clear_used_indices();
       }
-      else if (this.last_pick_index) {
+      else if (this.last_pick_index !== null) {
         const last_pick_index = this.last_pick_index;
         this.__clear_used_indices();
         this.__record_index_usage(last_pick_index);
