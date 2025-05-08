@@ -5403,8 +5403,8 @@ Prompt.finalize();
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
 
-picker_configuration.pick_one_priority = picker_priority.avoiding_repitition;
-picker_configuration.pick_multiple_priority = picker_priority.ensure_weighted_distribution;
+// picker_configuration.pick_one_priority = picker_priority.avoiding_repitition;
+// picker_configuration.pick_multiple_priority = picker_priority.ensure_weighted_distribution;
 
 // =======================================================================================
 // MAIN SECTION:
