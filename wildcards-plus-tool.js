@@ -1855,8 +1855,9 @@ const picker_strategy = Object.freeze({
   avoid_used:    'avoid_used',
   true_random:   'true_random',
 });
+const pick_one_strategy      = picker_strategy.total_usages;
+const pick_multiple_strategy = picker_strategy.avoid_used;
 // ---------------------------------------------------------------------------------------
-
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
@@ -4785,8 +4786,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
       else {
         const strategy = thing.min_count === 1 && thing.max_count === 1
-              ? picker_strategy.total_usages
-              : picker_strategy.avoid_used;
+              ? pick_one_strategy
+              : pick_multiple_strategy;
         
         const picks = got.pick(thing.min_count, thing.max_count,
                                allow_fun, forbid_fun,
@@ -4900,7 +4901,7 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
       const pick = thing.pick_one(allow_fun, forbid_fun,
-                                  picker_strategy.total_usages)?.body;
+                                  pick_one_strategy)?.body;
 
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
