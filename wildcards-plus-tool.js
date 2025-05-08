@@ -1990,28 +1990,29 @@ class WeightedPicker {
   }
   // -------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, strategy) {
-    console.log(`PICK ONE =======================================================================`);
-    console.log(`STRATEGY        = ${inspect_fun(strategy)}`);
-    console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
-    console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+    // console.log(`PICK ONE =======================================================================`);
+    // console.log(`STRATEGY        = ${inspect_fun(strategy)}`);
+    // console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+    // console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
 
     if (! (strategy && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
     const noisy = false;
 
-    // console.log(`PICK_ONE!`);    
-    // console.log(`PICK FROM ${JSON.stringify(this)}`);
+    // // console.log(`PICK_ONE!`);
+    
+    // // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
-      // console.log(`PICK_ONE: NO OPTIONS 1!`);
+      // // console.log(`PICK_ONE: NO OPTIONS 1!`);
       return null;
     }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
     if (this.__indices_are_exhausted(legal_option_indices, strategy)) {
-      // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       if (strategy !== picker_strategy.avoid_consecutive_repetitions) {
         this.__clear_used_indices();
       }
@@ -2024,38 +2025,38 @@ class WeightedPicker {
         this.__clear_used_indices();
       }
       
-      console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+      // console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
       
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
-      // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
-      console.log(`BEFORE BAIL 1: ${inspect_fun(this.used_indices)}`);
+      // // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+      // console.log(`BEFORE BAIL 1: ${inspect_fun(this.used_indices)}`);
       return null;
     }
 
     if (legal_option_indices.length === 1) {
-      // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      // // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
       this.__record_index_usage(legal_option_indices[0]);
-      console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+      // console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
       return this.options[legal_option_indices[0]].value;
     }
 
-    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    // // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
-    console.log(`BEFORE TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    // console.log(`BEFORE TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, strategy);
-      // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-      console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+      // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+      // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
       total_weight += adjusted_weight;
     }
-    console.log(`TOTAL_WEIGHT =  ${total_weight}`);
-    console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
+    // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
     
     // Since we now avoid adding options with a weight of 0, this shouldnever be true:
     if (total_weight === 0) {
@@ -2064,21 +2065,21 @@ class WeightedPicker {
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
       if (noisy) {
-        console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
+        // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
       }
     }
     
     if (noisy) {
-      console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
+      // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
     }
     
     let random = Math.random() * total_weight;
 
     if (noisy) {
-      console.log(`------------------------------------------------------------------------`);
-      console.log(`RANDOM IS ${random}`);
-      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+      // console.log(`------------------------------------------------------------------------`);
+      // console.log(`RANDOM IS ${random}`);
+      // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
     }
     
     for (const legal_option_ix of legal_option_indices) {
@@ -2089,7 +2090,7 @@ class WeightedPicker {
         continue;
 
       if (noisy) {
-        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+        // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
       }
       
       if (random < adjusted_weight) {
@@ -2100,7 +2101,7 @@ class WeightedPicker {
       random -= adjusted_weight;
 
       if (noisy) {
-        console.log(`RANDOM IS NOW ${random}`);
+        // console.log(`RANDOM IS NOW ${random}`);
       }
     }
 
