@@ -5290,7 +5290,7 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
                                             arr => new ASTSpecialFunction('update-config',
                                                                           [arr[1], arr[3]]));
 const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', 'update_config', JsoncObject);
-const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('pick-single', 'set-picker-configuration-single-pick', () => LimitedContent);
+const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('pick-single-priority', 'set-picker-configuration-single-pick', () => LimitedContent);
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     assignment_operator,   // _
@@ -5306,7 +5306,8 @@ const UnexpectedSpecialFunctionInclude           = unexpected(SpecialFunctionInc
                                                  "running the wildcards-plus.js script " +
                                                  "inside Draw Things!");
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
-                                             SpecialFunctionSetConfiguration);
+                                             SpecialFunctionSetConfiguration,
+                                             SpecialFunctionSetPickSingle);
 const SpecialFunction               = choice(dt_hosted? UnexpectedSpecialFunctionInclude : SpecialFunctionInclude,
                                              SpecialFunctionNotInclude);
 const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
