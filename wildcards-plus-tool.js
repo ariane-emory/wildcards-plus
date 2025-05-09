@@ -5401,11 +5401,11 @@ const SetFlag              = xform(ident => new ASTSetFlag(ident),
 const CheckFlag            = xform(ident => new ASTCheckFlag(ident),
                                    second(seq('?', plus(ident, ','),
                                               word_break)))
-const MalformedNotSetCombo = unexpected('#!');
+const UnsetFlag = unexpected('#!');
 const NotFlag              = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
                                    seq('!', optional('#'),
                                        ident, word_break));
-const TestFlag             = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
+const TestFlag             = choice(CheckFlag, NotFlag);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
@@ -5470,14 +5470,14 @@ const AnySpecialFunction            = choice((dt_hosted
                                               : SpecialFunctionInclude),
                                              SpecialFunctionNotInclude);
 const AnonWildcardAlternative       = xform(make__ASTAnonWildcardAlternative,
-                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                 optional(wb_uint, 1),
-                                                wst_star(choice(comment, TestFlag, SetFlag)),
+                                                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                 () => ContentStar));
 const AnonWildcardAlternativeNoLoras = xform(make__ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag, SetFlag)),
+                                                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  () => ContentStarNoLoras));
 const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
@@ -5538,11 +5538,11 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
 const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardDesignator),
                                        /* escaped_brc, */ AnonWildcardNoLoras, ScalarReference);
-const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
                                        A1111StyleLora,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
-const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
 const ContentStar             = wst_star(Content);
