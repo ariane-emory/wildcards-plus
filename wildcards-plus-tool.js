@@ -4936,7 +4936,7 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTSinglePickPrioritizes) {
+    else if (thing instanceof ASTSetPickSingle) {
       const walked = walk(thing.limited_content, context);
 
       if (! picker_priority_names.includes(walked))
@@ -4950,7 +4950,7 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTMultiplePickPrioritizes) {
+    else if (thing instanceof ASTSetPickMultiple) {
       const walked = walk(thing.limited_content, context);
 
       if (! picker_priority_names.includes(walked))
@@ -5200,13 +5200,13 @@ class ASTSpecialFunctionUpdateConfigBinary {
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSinglePickPrioritizes {
+class ASTSetPickSingle {
   constructor(limited_content) {
     this.limited_content = limited_content;
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTMultiplePickPrioritizes {
+class ASTSetPickMultiple {
   constructor(limited_content) {
     this.limited_content = limited_content;
   }
@@ -5328,9 +5328,9 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
 const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
                                                                                 arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
-                                                                                arg => new ASTSinglePickPrioritizes(arg));
+                                                                                arg => new ASTSetPickSingle(arg));
 const SpecialFunctionSetPickMultiple          = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
-                                                                                arg => new ASTMultiplePickPrioritizes(arg));
+                                                                                arg => new ASTSetPickMultiple(arg));
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                                  DiscardedComments,     // -
                                                                                  assignment_operator,   // _
