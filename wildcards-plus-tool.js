@@ -2570,10 +2570,10 @@ const prelude_text = disable_prelude ? '' : `
 // @wizards_artists   := { @#__wizards_artists @__wizards_artists }
 
 @wizards_artists := {
- @set_wizards_artists_artist @wizards_artists_artist_name
+ @__set_wizards_artists_artist_if_unset @wizards_artists_artist_name
 }
 
-@set_wizards_artists_artist := {
+@__set_wizards_artists_artist_if_unset := {
 !#artist_is_set !#artist__zacharias_martin_aagaard |
 !#artist_is_set !#artist__slim_aarons |
 !#artist_is_set !#artist__elenore_abbott |
@@ -4730,7 +4730,9 @@ const prelude_text = disable_prelude ? '' : `
 }
 
 // The matching list of styles:
-@wizards_artist_styles   := { @#__wizards_artist_styles @__wizards_artist_styles }
+@wizards_artist_styles   := {
+   @__set_wizards_artists_artist_if_unset @__wizards_artist_styles
+}
 
 @__wizards_artist_styles := {
 ?artist__zacharias_martin_aagaard landscapes, Observational, painting, Romanticism, Slice-of-life |
