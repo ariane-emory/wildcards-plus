@@ -2486,8 +2486,8 @@ class Context {
     this.add_loras = add_loras;
     this.top_file = top_file;
     this.pick_one_priority = pick_one_priority;
-    this.pick_multiple_priority = pick_multiple_priority;
     this.prior_pick_one_priority = prior_pick_one_priority;
+    this.pick_multiple_priority = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
@@ -2511,8 +2511,8 @@ class Context {
                                       .map(o => ({ file: o.file, weigh: o.weight })) ],
       top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
-      pick_multiple_priority:       this.pick_multiple_priority,      
       prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,      
       prior_pick_multiple_priority: this.pick_multiple_priority,      
     });
   }
@@ -2528,8 +2528,8 @@ class Context {
       add_loras:                    this.add_loras,
       top_file:                     false, // deliberately not copied!
       pick_one_priority:            this.pick_one_priority,
-      pick_multiple_priority:       this.pick_multiple_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,
       prior_pick_multiple_priority: this.pick_multiple_priority,      
     });
   }
@@ -5000,8 +5000,9 @@ function expand_wildcards(thing, context = new Context()) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
-      console.log(inspect_fun([walked, cur_key, prior_key, cur_val, prior_val,
-                               picker_priority[walked]]));
+      console.log(inspect_fun({cur_key: cur_key, prior_key: prior_key,
+                               cur_val: cur_val, prior_val: prior_val,
+                               walked: walked}));
       
       if (! picker_priority_descriptions.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
@@ -5019,7 +5020,6 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionRevertPickSingle || 
              thing instanceof ASTSpecialFunctionRevertPickMultiple) {
-      const walked = walk(thing.limited_content, context);
       const cur_key = thing instanceof ASTSpecialFunctionRevertPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -5028,9 +5028,9 @@ function expand_wildcards(thing, context = new Context()) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
-      console.log(inspect_fun([walked, cur_key, prior_key, cur_val, prior_val,
-                               picker_priority[walked]]));
-      
+      console.log(inspect_fun({cur_key: cur_key, prior_key: prior_key,
+                               cur_val: cur_val, prior_val: prior_val }));
+            
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
 

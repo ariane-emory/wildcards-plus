@@ -5,8 +5,8 @@
 
 %single-pick-prioritizes({ true_randomness })
 %revert-single-pick-prioritizes
-// %multi-pick-prioritizes({ avoid_repetition | true_randomness })
-// %config({ "foo": 123 })
+%multi-pick-prioritizes({ true_randomness })
+%revert-multi-pick-prioritizes
 
 // // ---------------------------------------------------------------------------------------
 // // template config flags to enable model families or other features:
