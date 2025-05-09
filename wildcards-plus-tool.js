@@ -692,8 +692,9 @@ class Element extends Rule {
           ? DISCARD
           : rule_match_result.value[this.index];
     
-    if (log_match_enabled)
-      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result)} = ${ret instanceof Symbol ? ret.toString() : ret}`);
+    if (log_match_enabled) {
+      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result)} = ${typeof ret === 'symbol' ? ret.toString() : ret}`);
+    }
     
     rule_match_result.value = ret;
     
@@ -5703,4 +5704,8 @@ const SpecialFunctionUpdateConfigurationBinary2 =
 SpecialFunctionUpdateConfigurationBinary2.finalize();
 
 var s = "%config.model(\"devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt\"";
+
+log_match_enabled = true;
+
 console.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary2.match(s)));
+// console.log(inspect_fun(r(plaintext).match(s)));
