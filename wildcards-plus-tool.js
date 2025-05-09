@@ -215,7 +215,7 @@ if (false)
 // =================================================================================================
 // GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
-// Code in this section originall copy/pasted from the grammar.js file in my 'jparse'
+// Code in this section originally copy/pasted from the grammar.js file in my 'jparse'
 // project circa ac2979f but updated since.
 // 
 // Not all of this section is actually used by the wildcards-plus script right 
@@ -1555,7 +1555,7 @@ function pipe_funs(...fns) {
 // =================================================================================================
 // COMMON-GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
-// Code in this section copy/pasted from the common-grammar.js file in my
+// Code in this section originally copy/pasted from the common-grammar.js file in my
 // 'jparse' project circa ac2979f but updated since
 // 
 // Not all of this section is actually used by the wildcards-plus script right 
