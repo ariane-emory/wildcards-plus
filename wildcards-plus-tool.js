@@ -1831,7 +1831,7 @@ const JsoncArray =
                                ','),
                       ']');
 const JsoncObject =
-      xform(arr =>  Object.fromEntries(arr), 
+      xform(arr => Object.fromEntries(arr), 
             wst_cutting_enc('{',
                             wst_star(
                               xform(arr => [arr[1], arr[5]],

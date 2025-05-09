@@ -1,4 +1,5 @@
+// %config.steps(@foo)
 %config.steps({ \20 | \25 })
-// %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
+// %config.model({ "devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt" | "foo_f16.ckpt" })
 
 FOOBAR
