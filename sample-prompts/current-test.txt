@@ -34,7 +34,10 @@
 
 { 2 ?flux_on
   // devMODE
-  %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
+  { %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
+  | %config.model("devmode8stepsflux1dev_v03fp8_f16.ckpt")
+  }
+  
   %config.steps(8)
   // don't worry, capitalization will be automatically fixed to "Euler A":
   { %config.sampler("DDIM Trailing") | %config.sampler("Euler A") | %config.sampler("Euler A Trailing") }
@@ -456,3 +459,5 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 { 0 impossible }
 {| 0 IMPOSSIBLE }
 
+%single-pick-prioritizes({ avoiding_repetition | true_randomness })
+%config({ "foo": 123 })
