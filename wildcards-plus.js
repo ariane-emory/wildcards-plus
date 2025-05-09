@@ -109,6 +109,8 @@
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
+let print_ast_enabled         = false;
+let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_config_enabled        = true;
@@ -2054,6 +2056,9 @@ function choose_indefinite_article(word) {
 }
 // -------------------------------------------------------------------------------------------------
 function unescape(str) {
+  if (typeof str !== 'string')
+    return str;
+  
   return str
     .replace(/\\n/g,   '\n')
     .replace(/\\ /g,   ' ')
@@ -2176,7 +2181,7 @@ function smart_join(arr) {
     str += left_word;
   }
 
-  return unescape(str);
+  return str;
 }
 // =================================================================================================
 // END OF HELPER FUNCTIONS SECTION.
@@ -2313,6 +2318,8 @@ class Context {
     top_file = true,
     pick_one_priority = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority = picker_priority.avoid_repetition,
+    prior_pick_one_priority = pick_one_priority,
+    prior_pick_multiple_priority = pick_multiple_priority,
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
@@ -2323,7 +2330,9 @@ class Context {
     this.add_loras = add_loras;
     this.top_file = top_file;
     this.pick_one_priority = pick_one_priority;
+    this.prior_pick_one_priority = prior_pick_one_priority;
     this.pick_multiple_priority = pick_multiple_priority;
+    this.prior_pick_multiple_priority = prior_pick_multiple_priority;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
       this.flags.add("dt_hosted");
@@ -2336,32 +2345,36 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   clone() {
     return new Context({
-      flags:                  new Set(this.flags),
-      scalar_variables:       new Map(this.scalar_variables),
-      named_wildcards:        new Map(this.named_wildcards),
-      noisy:                  this.noisy,
-      files:                  [ ...this.files ],
-      config:                 { ...this.config }, /// ???
-      add_loras:              [ ...this.add_loras
-                                .map(o => ({ file: o.file, weigh: o.weight })) ],
-      top_file:               this.top_file,
-      pick_one_priority:      this.pick_one_priority,
-      pick_multiple_priority: this.pick_multiple_priority,      
+      flags:                        new Set(this.flags),
+      scalar_variables:             new Map(this.scalar_variables),
+      named_wildcards:              new Map(this.named_wildcards),
+      noisy:                        this.noisy,
+      files:                        [ ...this.files ],
+      config:                       { ...this.config }, /// ???
+      add_loras:                    [ ...this.add_loras
+                                      .map(o => ({ file: o.file, weigh: o.weight })) ],
+      top_file:                     this.top_file,
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.pick_multiple_priority,      
     });
   }
   // -----------------------------------------------------------------------------------------------
   shallow_copy() {
     return new Context({
       flags: this.flags,
-      scalar_variables:       this.scalar_variables,
-      named_wildcards:        this.named_wildcards,
-      noisy:                  this.noisy,
-      files:                  this.files,
-      config:                 this.config,
-      add_loras:              this.add_loras,
-      top_file:               false, // deliberately not copied!
-      pick_one_priority:      this.pick_one_priority,
-      pick_multiple_priority: this.pick_multiple_priority,
+      scalar_variables:             this.scalar_variables,
+      named_wildcards:              this.named_wildcards,
+      noisy:                        this.noisy,
+      files:                        this.files,
+      config:                       this.config,
+      add_loras:                    this.add_loras,
+      top_file:                     false, // deliberately not copied!
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,
+      prior_pick_multiple_priority: this.pick_multiple_priority,      
     });
   }
 }
@@ -4696,7 +4709,7 @@ function expand_wildcards(thing, context = new Context()) {
       const got = context.named_wildcards.get(thing.name);
       
       if (!got)
-        return `ERROR: Named wildcard ${thing.name} not found!`;
+        return `<ERROR: Named wildcard ${thing.name} not found!>`;
 
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         if (context.noisy)
@@ -4777,7 +4790,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
       
-      return smart_join(walk(pick));
+      return expand_wildcards(pick, context);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
@@ -4787,21 +4800,20 @@ function expand_wildcards(thing, context = new Context()) {
       if (thing.value instanceof ASTNode) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
-        const walked_value = walk(thing.value, context);
-        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+        const expanded_value = expand_wildcards(thing.value, context);
         
-        const jsconc_parsed_walked_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
-                                            ? JsoncObject
-                                            : Jsonc).match(walked_value);
-        // console.log(`JSCONC_PARSED_WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+        const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
+                                              ? JsoncObject
+                                              : Jsonc).match(expanded_value);
+        // console.log(`JSCONC_PARSED_EXPANDED_VALUE: ${inspect_fun(jsconc_parsed_expanded_value)}`);
         
-        if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
+        if (! jsconc_parsed_expanded_value || ! jsconc_parsed_expanded_value.is_finished)
           throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
                           (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
                           `, Jsonc.match(...) result was ` +
-                          inspect_fun(jsconc_parsed_walked_value));
+                          inspect_fun(jsconc_parsed_expanded_value));
         
-        value = jsconc_parsed_walked_value.value;
+        value = jsconc_parsed_expanded_value.value;
       }
 
       if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
@@ -4820,22 +4832,63 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSSpecialFunctionSetPickSingle || 
+    else if (thing instanceof ASTSpecialFunctionSetPickSingle || 
              thing instanceof ASTSpecialFunctionSetPickMultiple) {
-      const walked = walk(thing.limited_content, context);
+      const walked = picker_priority[walk(thing.limited_content)];
+      const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
+            ? 'pick_one_priority'
+            : 'pick_multiple_priority';
+      const prior_key = thing instanceof ASTSpecialFunctionSetPickSingle
+            ? 'prior_pick_one_priority'
+            : 'prior_pick_multiple_priority';
+      const cur_val   = context[cur_key];
+      const prior_val = context[prior_key];
 
-      if (! picker_priority_names.includes(walked))
+      // if (log_config_enabled)
+      //   console.log(`SET PICK DATA: ` +
+      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+      //                               cur_val: cur_val, prior_val: prior_val,
+      //                               walked: walked})}`);
+      
+      if (! picker_priority_descriptions.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
-      context[thing instanceof ASTSSpecialFunctionSetPickSingle
-              ? 'pick_one_priority'
-              : 'pick_multiple_priority'] = picker_priority[walked];
+      context[prior_key] = context[cur_key];
+      context[cur_key]   = walked;
 
-      console.log(
-        `Updated ` +
-          (thing instanceof ASTSSpecialFunctionSetPickSingle ? 'single' : 'multiple') +
-          `pick priority to ${inspect_fun(context.pick_one_priority)}`);
+      if (log_config_enabled)
+        console.log(
+          `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+            `${inspect_fun(walked)}: ` /*+
+                                         `${inspect_fun(context)}` */);
       
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunctionRevertPickSingle || 
+             thing instanceof ASTSpecialFunctionRevertPickMultiple) {
+      const cur_key = thing instanceof ASTSpecialFunctionRevertPickSingle
+            ? 'pick_one_priority'
+            : 'pick_multiple_priority';
+      const prior_key = thing instanceof ASTSpecialFunctionRevertPickSingle
+            ? 'prior_pick_one_priority'
+            : 'prior_pick_multiple_priority';
+      const cur_val   = context[cur_key];
+      const prior_val = context[prior_key];
+
+      // if (log_config_enabled)
+      //   console.log(`REVERT PICK DATA: ` +
+      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+      //                               cur_val: cur_val, prior_val: prior_val })}`);
+      
+      context[cur_key]   = prior_val;
+      context[prior_key] = cur_val;
+
+      if (log_config_enabled)
+        console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                    `${inspect_fun(prior_val)}` /* +
+                                                   `${inspect_fun(context)}` */);
+
       return '';
     }
     // ---------------------------------------------------------------------------------------------
@@ -4844,25 +4897,25 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTLora) {
       // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
-      let walked_file = walk(thing.file, context);
+      let walked_file = expand_wildcards(thing.file, context);
 
       // console.log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
       //             `${inspect_fun(walked_file)} ` +
       //             `${Array.isArray(walked_file)}`);
 
-      if (Array.isArray(walked_file))
-        walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
+      // if (Array.isArray(walked_file))
+      //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = walk(thing.weight, context);
+      let walked_weight = expand_wildcards(thing.weight, context);
 
       // console.log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
       //             `${inspect_fun(walked_weight)} ` +
       //             `${Array.isArray(walked_weight)}`);
 
-      if (Array.isArray(walked_weight))
-        walked_weight = smart_join(walked_weight);
+      // if (Array.isArray(walked_weight))
+      //   walked_weight = smart_join(walked_weight);
       
       const weight_match_result = json_number.match(walked_weight);
 
@@ -4904,7 +4957,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
   }
   
-  return smart_join(walk(thing, context));
+  return unescape(smart_join(walk(thing)))
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -5081,17 +5134,29 @@ class ASTSpecialFunctionUpdateConfigBinary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSSpecialFunctionSetPickSingle extends ASTNode {
+class ASTSpecialFunctionSetPickMultiple extends ASTNode {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionSetPickMultiple extends ASTNode {
+class ASTSpecialFunctionSetPickSingle extends ASTNode {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTSpecialFunctionRevertPickMultiple extends ASTNode {
+  constructor() {
+    super();
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTSpecialFunctionRevertPickSingle extends ASTNode {
+  constructor() {
+    super();
   }
 }
 // =================================================================================================
@@ -5197,11 +5262,17 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      unarySpecialFunction('single-pick-prioritizes', () => LimitedContent,
-                           arg => new ASTSSpecialFunctionSetPickSingle(arg));
+      unarySpecialFunction('single-pick-prioritizes', choice(() => LimitedContent, /[a-z_]+/),
+                           arg => new ASTSpecialFunctionSetPickSingle(arg));
 const SpecialFunctionSetPickMultiple =
-      unarySpecialFunction('multi-pick-prioritizes', () => LimitedContent,
+      unarySpecialFunction('multi-pick-prioritizes', () => choice(() => LimitedContent, /[a-z_]+/),
                            arg => new ASTSpecialFunctionSetPickMultiple(arg));
+const SpecialFunctionRevertPickSingle =
+      xform('%revert-single-pick-prioritizes', 
+            () => new ASTSpecialFunctionRevertPickSingle());
+const SpecialFunctionRevertPickMultiple =
+      xform('%revert-multi-pick-prioritizes', 
+            () => new ASTSpecialFunctionRevertPickMultiple());
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                   DiscardedComments,     // -
@@ -5232,7 +5303,9 @@ const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateC
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetConfiguration,
                                              SpecialFunctionSetPickSingle,
-                                             SpecialFunctionSetPickMultiple);
+                                             SpecialFunctionSetPickMultiple,
+                                             SpecialFunctionRevertPickSingle,
+                                             SpecialFunctionRevertPickMultiple);
 const AnySpecialFunction            = choice((dt_hosted
                                               ? UnexpectedSpecialFunctionInclude
                                               : SpecialFunctionInclude),
