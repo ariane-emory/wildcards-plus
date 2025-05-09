@@ -4959,7 +4959,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
         context.config = thing.assign
-        ? value
+          ? value
           : { ...context.config, ...value };
       } else { // ASTSpecialFunctionUpdateConfigUnary
         context.config[thing.key] = value;
@@ -4972,33 +4972,37 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTSSpecialFunctionetPickSingle) {
+    else if (thing instanceof ASTSSpecialFunctionSetPickSingle || 
+             thing instanceof ASTSpecialFunctionSetPickMultiple) {
       const walked = walk(thing.limited_content, context);
 
       if (! picker_priority_names.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
-      context.pick_one_priority = picker_priority[walked];
+      context[thing instanceof ASTSSpecialFunctionSetPickSingle
+              ? 'pick_one_priority'
+              : 'pick_multiple_priority'] = picker_priority[walked];
 
-      console.log(`Updated single pick priority to ` +
-                  `${inspect_fun(context.pick_one_priority)}`);
+      console.log(`Updated ` +
+                  (thing instanceof ASTSSpecialFunctionSetPickSingle ? 'single' : 'multiple') +
+                  `pick priority to  ${inspect_fun(context.pick_one_priority)}`);
       
       return '';
     }
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionSetPickMultiple) {
-      const walked = walk(thing.limited_content, context);
+    // else if  {
+    //   const walked = walk(thing.limited_content, context);
 
-      if (! picker_priority_names.includes(walked))
-        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+    //   if (! picker_priority_names.includes(walked))
+    //     throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
-      context.pick_multiple_priority = picker_priority[walked];
+    //   context.pick_multiple_priority = picker_priority[walked];
 
-      console.log(`Updated multiple pick priority to ` +
-                  `${inspect_fun(context.pick_multiple_priority)}`);
-      
-      return '';
-    }
+    //   console.log(`Updated multiple pick priority to ` +
+    //               `${inspect_fun(context.pick_multiple_priority)}`);
+    
+    //   return '';
+    // }
     // -----------------------------------------------------------------------------------
     // get rid of these soon:
     else if (thing instanceof ASTSpecialFunction) {
@@ -5262,7 +5266,7 @@ class ASTSpecialFunctionUpdateConfigBinary extends AST {
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSSpecialFunctionetPickSingle extends AST {
+class ASTSSpecialFunctionSetPickSingle extends AST {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
@@ -5390,7 +5394,7 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle   = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
-                                                                       arg => new ASTSSpecialFunctionetPickSingle(arg));
+                                                                       arg => new ASTSSpecialFunctionSetPickSingle(arg));
 const SpecialFunctionSetPickMultiple = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
                                                                        arg => new ASTSpecialFunctionSetPickMultiple(arg));
 let   SpecialFunctionUpdateConfigurationBinary =
