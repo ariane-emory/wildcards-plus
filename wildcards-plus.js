@@ -4654,6 +4654,15 @@ function expand_wildcards(thing, context = new Context()) {
       return ''; // produce nothing
     }
     // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUnsetFlag) {
+      console.log(`UNSET FLAG '${thing.name}'.`);
+      console.log(`FLAGS BEFORE '${inspect_fun(context.flags)}'.`);
+      context.flags = context.flags.filter(f => f !== thing.name);
+      console.log(`FLAGS AFTER '${inspect_fun(context.flags)}'.`);
+      
+      return ''; // produce nothing
+    }
+    // ---------------------------------------------------------------------------------------------
     // references:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardReference) {
