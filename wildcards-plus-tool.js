@@ -5149,15 +5149,6 @@ class ASTScalarAssignment  {
   }
 }
 // ---------------------------------------------------------------------------------------
-// Directives:
-// ---------------------------------------------------------------------------------------
-class ASTSpecialFunction {
-  constructor(directive, args) {
-    this.directive = directive;
-    this.args      = args;
-  }
-}
-// ---------------------------------------------------------------------------------------
 // AnonWildcards:
 // ---------------------------------------------------------------------------------------
 class ASTAnonWildcard extends WeightedPicker {
@@ -5175,6 +5166,21 @@ class ASTAnonWildcardAlternative {
     this.check_flags = check_flags;
     this.not_flags   = not_flags;
     this.body        = body;
+  }
+}
+// ---------------------------------------------------------------------------------------
+// Directives:
+// ---------------------------------------------------------------------------------------
+class ASTSpecialFunction {
+  constructor(directive, args) {
+    this.directive = directive;
+    this.args      = args;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTUpdateConfigUnary {
+  constructor(value) {
+    this.value = value;
   }
 }
 // =======================================================================================
