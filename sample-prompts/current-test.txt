@@ -82,9 +82,8 @@
 
   @1-3lora
 
-  { !lightning_on %config.steps(35) }
-  
-    
+  { !lightning_on %config.steps({ \25 | \30 | \35 }) }
+  // { !lightning_on %config.steps(30) }   
   
   // possible resolutions:
   { 3 ?sdxl_hires %config({ "width": 1280, "height": 640 })

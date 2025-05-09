@@ -4944,11 +4944,16 @@ function expand_wildcards(thing, context = new Context()) {
       let value = thing.value;
 
       if (thing.value instanceof ASTNode) {
+        console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
+        
         const walked_value = walk(thing.value, context);
-        const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
-
+        console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+        
+        const jsconc_parsed_walked_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? JsoncObject : Jsonc).match(walked_value);
+        console.log(`JSCONC_PARSED_WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+        
         if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-          throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
+                      throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
                           (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
                           `, Jsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_walked_value));
