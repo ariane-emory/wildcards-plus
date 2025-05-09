@@ -8,13 +8,13 @@
 // ---------------------------------------------------------------------------------------
 
 #sdxl_on
-#flux_on
+// #flux_on
 #hidream_on
 
 // #always_lightning_on
 
 {2 !always_lightning_on
-| !always_lightning_off #lightning_on }  // enable lightning 4-step in SDXL models.
+|  !always_lightning_off #lightning_on }  // enable lightning 4-step in SDXL models.
 
 #square_on                               // enable square aspect ratios
 #sdxl_hires                              // enable higher resulutions
