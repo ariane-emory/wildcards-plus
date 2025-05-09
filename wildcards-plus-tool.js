@@ -2340,7 +2340,6 @@ function smart_join(arr) {
     str += left_word;
   }
 
-  // return unescape(str);
   return str;
 }
 // =================================================================================================
@@ -4960,21 +4959,20 @@ function expand_wildcards(thing, context = new Context()) {
       if (thing.value instanceof ASTNode) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
-        const walked_value = expand_wildcards(thing.value, context);
-        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+        const expanded_value = expand_wildcards(thing.value, context);
         
-        const jsconc_parsed_walked_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
-                                            ? JsoncObject
-                                            : Jsonc).match(walked_value);
-        // console.log(`JSCONC_PARSED_WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+        const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
+                                              ? JsoncObject
+                                              : Jsonc).match(expanded_value);
+        // console.log(`JSCONC_PARSED_EXPANDED_VALUE: ${inspect_fun(jsconc_parsed_expanded_value)}`);
         
-        if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
+        if (! jsconc_parsed_expanded_value || ! jsconc_parsed_expanded_value.is_finished)
           throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
                           (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
                           `, Jsonc.match(...) result was ` +
-                          inspect_fun(jsconc_parsed_walked_value));
+                          inspect_fun(jsconc_parsed_expanded_value));
         
-        value = jsconc_parsed_walked_value.value;
+        value = jsconc_parsed_expanded_value.value;
       }
 
       if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
