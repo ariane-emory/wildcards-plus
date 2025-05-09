@@ -5002,8 +5002,10 @@ function expand_wildcards(thing, context = new Context()) {
         
         value_object = jsconc_parsed_walked_value.value;
       }
-      
-      context.config = { ...context.config, ...value_object };
+
+      context.config = thing.assign
+        ? value_object
+        : { ...context.config, ...value_object };
       
       if (log_config_enabled)
         console.log(`Updated config to ${JSON.stringify(context.config)}`);
