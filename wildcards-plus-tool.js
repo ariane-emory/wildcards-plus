@@ -4915,9 +4915,9 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     // SpecialFunctions:
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTUpdateConfigUnary) {
+    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
       if (typeof thing.value_object !== 'object')
-        throw new Error(`ASTUpdateConfigUnary's argument must be an object!`);
+        throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
 
       context.config = { ...context.config, ...thing.value_object };
       
@@ -5190,9 +5190,10 @@ class ASTSpecialFunction {
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTUpdateConfigUnary {
+class ASTSpecialFunctionUpdateConfigUnary {
   constructor(value_object) {
     this.value_object = value_object;
+    console.log(`CONSTRUCTED ASTSFUCU: ${inspect_fun(this)}`);
   }
 }
 // =======================================================================================
@@ -5250,7 +5251,11 @@ const make_unary_SpecialFunction_Rule = (prefix, rule, xform_func) =>
                             rule,                          // [1]
                             DiscardedComments,             // -
                             ')'),                          // [2]
-            arr => xform_func(arr[1]));
+            arr => {
+              console.log(`THIS ARR: ${inspect_fun(arr)}`);
+              console.log(`THIS ARR[1]: ${inspect_fun(arr[1])}`);
+              return xform_func(arr[1]);
+            });
 // ---------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // ---------------------------------------------------------------------------------------
@@ -5307,7 +5312,7 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
                                                          arr => new ASTSpecialFunction('update-config',
                                                                                        [arr[1], arr[3]]));
 const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
-                                                                                arg => new ASTSpecialFunction('update-config', [arg]));
+                                                                                arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
                                                                                 arg => new ASTSpecialFunction('set-picker-configuration-single-pick', [arg]));
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
