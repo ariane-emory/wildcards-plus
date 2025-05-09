@@ -1830,7 +1830,7 @@ const JsoncArray =
                                           JsoncComments)),
                                ','),
                       ']');
-const JsoncObject =
+const JsoncObject2 =
       xform(arr => Object.fromEntries(arr), 
             wst_cutting_enc('{',
                             wst_star(
@@ -1845,11 +1845,11 @@ const JsoncObject =
                                            ))             
                               , ','),
                             '}'));
-const JsoncObject2 =
+const JsoncObject =
       choice(
         xform(arr => ({}), wst_seq('{', '}')),
         xform(arr => {
-          console.log(`ARR: ${JSON.stringify(arr, null, 2)}`);
+          // console.log(`ARR: ${JSON.stringify(arr, null, 2)}`);
           return Object.fromEntries([ [arr[0], arr[1]], ...(arr[2][0]??[]) ]);
         },
               wst_cutting_seq(
