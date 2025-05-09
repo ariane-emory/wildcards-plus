@@ -3,8 +3,8 @@
 // actual textual content of the prompt:
 // =======================================================================================
 
-// %single-pick-prioritizes({ true_randomness })
-// %revert-single-pick-prioritizes
+%single-pick-prioritizes({ true_randomness })
+%revert-single-pick-prioritizes
 %multi-pick-prioritizes(true_randomness)
 %revert-multi-pick-prioritizes
 

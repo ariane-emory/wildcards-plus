@@ -268,7 +268,7 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
-let print_ast_enabled         = true;
+let print_ast_enabled         = false;
 let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
@@ -5000,21 +5000,24 @@ function expand_wildcards(thing, context = new Context()) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
-      console.log(`SET PICK DATA: ` +
-                  `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-                                  cur_val: cur_val, prior_val: prior_val,
-                                  walked: walked})}`);
+
+      // if (log_config_enabled)
+      //   console.log(`SET PICK DATA: ` +
+      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+      //                               cur_val: cur_val, prior_val: prior_val,
+      //                               walked: walked})}`);
       
       if (! picker_priority_descriptions.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
       context[prior_key] = context[cur_key];
       context[cur_key]   = walked;
-      
-      console.log(
+
+      if (log_config_enabled)
+        console.log(
         `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-          `${inspect_fun(walked)}: ` +
-          `${inspect_fun(context)}`);
+            `${inspect_fun(walked)}: ` /*+
+                                         `${inspect_fun(context)}` */);
       
       return '';
     }
@@ -5029,15 +5032,19 @@ function expand_wildcards(thing, context = new Context()) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
-      console.log(`REVERT PICK DATA: ` +
-                  `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-                                  cur_val: cur_val, prior_val: prior_val })}`);
-            
+
+      // if (log_config_enabled)
+      //   console.log(`REVERT PICK DATA: ` +
+      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+      //                               cur_val: cur_val, prior_val: prior_val })}`);
+      
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
 
-      console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ${inspect_fun(prior_val)}` +
-                  `${inspect_fun(context)}`);
+      if (log_config_enabled)
+        console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                    `${inspect_fun(prior_val)}` /* +
+                                                   `${inspect_fun(context)}` */);
 
       return '';
     }
