@@ -43,7 +43,9 @@
   | %config.model("devmode8stepsflux1dev_v03fp8_f16.ckpt")
   }
   
-  %config.steps({ \8 | \9 | \10 | ?flux_high_steps \11 | ?flux_high_steps \12 | ?flux_high_steps \13 })
+  %config.steps({ { \8 | \9 | \10 }
+                | ?flux_high_steps { \11 | \12 | \13 } })
+  
   // don't worry, capitalization will be automatically fixed to "Euler A":
   %config.sampler({ "DDIM Trailing" | "Euler A" | "Euler A Trailing" })
   %config.cfg_scale({ \1.0 | \1.5 | \2.0 | \2.5 })
