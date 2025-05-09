@@ -4971,7 +4971,8 @@ function expand_wildcards(thing, context = new Context()) {
         : { ...context.config, ...value_object };
       
       if (log_config_enabled)
-        console.log(`Updated config to ${JSON.stringify(context.config)}`);
+        console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
+                    `${JSON.stringify(context.config)}`);
       
       return '';
     }
@@ -5419,8 +5420,13 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
-const DiscardedComments              = discard(wst_star(comment));
-const SpecialFunctionInclude         = make_special_function_Rule('include');
+const DiscardedComments                = discard(wst_star(comment));
+const SpecialFunctionInclude           = make_special_function_Rule('include');
+const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
+                                                    () => "%include is only supported when " +
+                                                    "using wildcards-plus-tool.js, NOT when " +
+                                                    "running the wildcards-plus.js script " +
+                                                    "inside Draw Things!");
 const SpecialFunctionSetPickSingle   = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
                                                                        arg => new ASTSSpecialFunctionetPickSingle(arg));
 const SpecialFunctionSetPickMultiple = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
@@ -5448,11 +5454,6 @@ const SpecialFunctionSetConfiguration         = xform(wst_cutting_seq(wst_seq('%
                                                       arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true));
 const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateConfigurationUnary,
                                                           SpecialFunctionUpdateConfigurationBinary);
-const UnexpectedSpecialFunctionInclude           = unexpected(SpecialFunctionInclude,
-                                                              () => "%include is only supported when " +
-                                                              "using wildcards-plus-tool.js, NOT when " +
-                                                              "running the wildcards-plus.js script " +
-                                                              "inside Draw Things!");
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetConfiguration,
                                              SpecialFunctionSetPickSingle,
