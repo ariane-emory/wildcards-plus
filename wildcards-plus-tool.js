@@ -5819,11 +5819,13 @@ const JsoncObject2 =
 
 JsoncObject2.finalize()
 
-let s = `{"foo": 123, "bar": 234 }`;
-console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
+let s;
+
+// s = `{"foo": 123, "bar": 234 }`;
+// console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
 
 s = `{"foo": 123 }`;
 console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
 
-s = `{ }`;
-console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
+// s = `{ }`;
+// console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
