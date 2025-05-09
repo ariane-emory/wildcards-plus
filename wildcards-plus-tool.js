@@ -4990,26 +4990,6 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // -----------------------------------------------------------------------------------
-    // else if  {
-    //   const walked = walk(thing.limited_content, context);
-
-    //   if (! picker_priority_names.includes(walked))
-    //     throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
-
-    //   context.pick_multiple_priority = picker_priority[walked];
-
-    //   console.log(`Updated multiple pick priority to ` +
-    //               `${inspect_fun(context.pick_multiple_priority)}`);
-    
-    //   return '';
-    // }
-    // -----------------------------------------------------------------------------------
-    // get rid of these soon:
-    else if (thing instanceof ASTSpecialFunction) {
-      // console.log(`IGNORING ${inspect_fun(thing)}`);
-      console.log(`IGNORING UNIMPLEMENTED SpecialFunction: ${JSON.stringify(thing)}`);
-    }
-    // -----------------------------------------------------------------------------------
     // ASTLora:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
@@ -5064,20 +5044,6 @@ function expand_wildcards(thing, context = new Context()) {
       
       return '';
     }
-    // -----------------------------------------------------------------------------------
-    // numbers get strung:
-    // -----------------------------------------------------------------------------------
-    // else if (typeof thing === 'number') {
-    //   return thing.toString();
-    // }
-    // -----------------------------------------------------------------------------------
-    // null gets passed through:
-    // -----------------------------------------------------------------------------------
-    // else if (thing === null) {
-    //   return '';
-    // }
-    // -----------------------------------------------------------------------------------
-    // error case, unrecognized objects:
     // -----------------------------------------------------------------------------------
     else {
       throw new Error(`confusing thing: ` +
