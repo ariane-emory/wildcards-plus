@@ -5237,6 +5237,7 @@ class ASTSpecialFunctionSetPickMultiple {
 // ---------------------------------------------------------------------------------------
 const word_break              = /(?=\s|[{|}]|$)/;
 const plaintext               = /[^{|}\s]+/;
+const plaintext_no_rpar       = /[^{|}\s\)]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
@@ -5335,7 +5336,7 @@ const SpecialFunctionUpdateConfigurationBinary   =
                             DiscardedComments,             // -
                             '(',                           // [2]
                             DiscardedComments,             // -
-                            Jsonc,                         // [3]
+                            () => LimitedContent, // Jsonc,                         // [3]
                             DiscardedComments,             // [4]
                             ')'),                          // [4]
             arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
@@ -5439,7 +5440,7 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
                                        // comment,
                                        // SpecialFunctionUpdateConfiguration,
                                        // SpecialFunctionSetConfiguration,
-                                       // low_pri_text, plaintext
+                                       /*low_pri_text,*/ plaintext_no_rpar
                                       );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        A1111StyleLora,
