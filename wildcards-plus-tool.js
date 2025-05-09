@@ -4948,8 +4948,7 @@ function expand_wildcards(thing, context = new Context()) {
         const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
 
         if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-          throw new Error(`walking ${thing.constructor.name}.value ` +
-                          `must produce a valid JSONC ` +
+          throw new Error(`walking ${thing.constructor.name}.value must produce a valid JSONC ` +
                           (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
                           `, Jsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_walked_value));
@@ -4983,9 +4982,10 @@ function expand_wildcards(thing, context = new Context()) {
               ? 'pick_one_priority'
               : 'pick_multiple_priority'] = picker_priority[walked];
 
-      console.log(`Updated ` +
-                  (thing instanceof ASTSSpecialFunctionSetPickSingle ? 'single' : 'multiple') +
-                  `pick priority to  ${inspect_fun(context.pick_one_priority)}`);
+      console.log(
+        `Updated ` +
+          (thing instanceof ASTSSpecialFunctionSetPickSingle ? 'single' : 'multiple') +
+          `pick priority to  ${inspect_fun(context.pick_one_priority)}`);
       
       return '';
     }
