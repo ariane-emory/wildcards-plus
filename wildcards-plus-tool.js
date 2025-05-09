@@ -1860,10 +1860,10 @@ const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]
 const picker_priority_descriptions_to_names = new Map(
   Object.entries(picker_priority).map(([k, v]) => [v, k])
 );
-const picker_configuration = {
-  pick_one_priority:      picker_priority.ensure_weighted_distribution,
-  pick_multiple_priority: picker_priority.avoid_repetition,
-};
+// const picker_configuration = {
+//   pick_one_priority:      picker_priority.ensure_weighted_distribution,
+//   pick_multiple_priority: picker_priority.avoid_repetition,
+// };
 // ---------------------------------------------------------------------------------------
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
@@ -2452,6 +2452,8 @@ class Context {
     config = {},
     add_loras = [],
     top_file = true,
+    pick_one_priority = picker_priority.ensure_weighted_distribution,
+    pick_multiple_priority = picker_priority.avoid_repetition,
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
@@ -2461,6 +2463,8 @@ class Context {
     this.config = config;
     this.add_loras = add_loras;
     this.top_file = top_file;
+    this.pick_one_priority = pick_one_priority;
+    this.pick_multiple_priority = pick_multiple_priority;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
       this.flags.add("dt_hosted");
@@ -2473,28 +2477,32 @@ class Context {
   // -------------------------------------------------------------------------------------
   clone() {
     return new Context({
-      flags:            new Set(this.flags),
-      scalar_variables: new Map(this.scalar_variables),
-      named_wildcards:  new Map(this.named_wildcards),
-      noisy:            this.noisy,
-      files:            [ ...this.files ],
-      config:           { ...this.config }, /// ???
-      add_loras:        [ ...this.add_loras
-                          .map(o => ({ file: o.file, weigh: o.weight })) ],
-      top_file:         this.top_file,
+      flags:                  new Set(this.flags),
+      scalar_variables:       new Map(this.scalar_variables),
+      named_wildcards:        new Map(this.named_wildcards),
+      noisy:                  this.noisy,
+      files:                  [ ...this.files ],
+      config:                 { ...this.config }, /// ???
+      add_loras:              [ ...this.add_loras
+                                .map(o => ({ file: o.file, weigh: o.weight })) ],
+      top_file:               this.top_file,
+      pick_one_priority:      this.pick_one_priority,
+      pick_multiple_priority: this.pick_multiple_priority,      
     });
   }
   // -------------------------------------------------------------------------------------
   shallow_copy() {
     return new Context({
       flags: this.flags,
-      scalar_variables: this.scalar_variables,
-      named_wildcards: this.named_wildcards,
-      noisy: this.noisy,
-      files: this.files,
-      config: this.config,
-      add_loras: this.add_loras,
-      top_file: false, // deliberately not copied!
+      scalar_variables:       this.scalar_variables,
+      named_wildcards:        this.named_wildcards,
+      noisy:                  this.noisy,
+      files:                  this.files,
+      config:                 this.config,
+      add_loras:              this.add_loras,
+      top_file:               false, // deliberately not copied!
+      pick_one_priority:      this.pick_one_priority,
+      pick_multiple_priority: this.pick_multiple_priority,
     });
   }
 }
@@ -4790,8 +4798,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
-              ? picker_configuration.pick_one_priority
-              : picker_configuration.pick_multiple_priority;
+              ? context.pick_one_priority
+              : context.pick_multiple_priority;
         
         const picks = got.pick(thing.min_count, thing.max_count,
                                allow_fun, forbid_fun,
@@ -4905,7 +4913,7 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
       const pick = thing.pick_one(allow_fun, forbid_fun,
-                                  picker_configuration.pick_one_priority)?.body;
+                                  context.pick_one_priority)?.body;
 
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
@@ -4942,10 +4950,10 @@ function expand_wildcards(thing, context = new Context()) {
       if (! picker_priority_names.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
-      picker_configuration.pick_one_priority = picker_priority[walked];
+      context.pick_one_priority = picker_priority[walked];
 
       console.log(`Updated single pick priority to ` +
-                  `${inspect_fun(picker_configuration.pick_one_priority)}`);
+                  `${inspect_fun(context.pick_one_priority)}`);
       
       return '';
     }
@@ -4956,10 +4964,10 @@ function expand_wildcards(thing, context = new Context()) {
       if (! picker_priority_names.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
-      picker_configuration.pick_multiple_priority = picker_priority[walked];
+      context.pick_multiple_priority = picker_priority[walked];
 
       console.log(`Updated multiple pick priority to ` +
-                  `${inspect_fun(picker_configuration.pick_multiple_priority)}`);
+                  `${inspect_fun(context.pick_multiple_priority)}`);
       
       return '';
     }
