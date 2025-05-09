@@ -268,6 +268,8 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
+let print_ast_enabled         = true;
+let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_config_enabled        = true;
@@ -4995,6 +4997,13 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
       context[thing instanceof ASTSSpecialFunctionSetPickSingle
+              ? 'prior_pick_one_priority'
+              : 'prior_pick_multiple_priority'] =
+        context[thing instanceof ASTSSpecialFunctionSetPickSingle
+                ? 'pick_one_priority'
+                : 'pick_multiple_priority'];
+
+      context[thing instanceof ASTSSpecialFunctionSetPickSingle
               ? 'pick_one_priority'
               : 'pick_multiple_priority'] = picker_priority[walked];
 
@@ -5248,6 +5257,13 @@ class ASTSpecialFunctionUpdateConfigBinary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
+class ASTSpecialFunctionSetPickMultiple extends ASTNode {
+  constructor(limited_content) {
+    super();
+    this.limited_content = limited_content;
+  }
+}
+// -------------------------------------------------------------------------------------------------
 class ASTSSpecialFunctionSetPickSingle extends ASTNode {
   constructor(limited_content) {
     super();
@@ -5255,10 +5271,15 @@ class ASTSSpecialFunctionSetPickSingle extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionSetPickMultiple extends ASTNode {
-  constructor(limited_content) {
+class ASTSpecialFunctionRevertPickMultiple extends ASTNode {
+  constructor() {
     super();
-    this.limited_content = limited_content;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTSpecialFunctionRevertPickSingle extends ASTNode {
+  constructor() {
+    super();
   }
 }
 // =================================================================================================
@@ -5370,11 +5391,11 @@ const SpecialFunctionSetPickMultiple =
       unarySpecialFunction('multi-pick-prioritizes', () => LimitedContent,
                            arg => new ASTSpecialFunctionSetPickMultiple(arg));
 const SpecialFunctionRevertPickSingle =
-      unarySpecialFunction('revert-single-pick-prioritizes', () => LimitedContent,
-                           () => new ASTSSpecialFunctionRevertPickSingle());
+      xform('%revert-single-pick-prioritizes', 
+            () => new ASTSpecialFunctionRevertPickSingle());
 const SpecialFunctionRevertPickMultiple =
-      unarySpecialFunction('revert-multi-pick-prioritizes', () => LimitedContent,
-                           () => new ASTSpecialFunctionRevertPickMultiple());
+      xform('%revert-multi-pick-prioritizes', 
+            () => new ASTSpecialFunctionRevertPickMultiple());
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                   DiscardedComments,     // -
@@ -5405,7 +5426,9 @@ const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateC
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetConfiguration,
                                              SpecialFunctionSetPickSingle,
-                                             SpecialFunctionSetPickMultiple);
+                                             SpecialFunctionSetPickMultiple,
+                                             SpecialFunctionRevertPickSingle,
+                                             SpecialFunctionRevertPickMultiple);
 const AnySpecialFunction            = choice((dt_hosted
                                               ? UnexpectedSpecialFunctionInclude
                                               : SpecialFunctionInclude),
@@ -5572,13 +5595,13 @@ async function main() {
   }
 
   // -----------------------------------------------------------------------------------------------
-  // just for debugging, comment to see result:
+  // just for debugging:
   // -----------------------------------------------------------------------------------------------
-  if (false)
-  {
+  if (print_ast_enabled)
     console.log(`result: ${inspect_fun(result.value)}`);
+
+  if (print_ast_json_enabled)
     console.log(`result (JSON): ${JSON.stringify(result.value)}`);
-  }
   
   // -----------------------------------------------------------------------------------------------
   // check that the parsed result is complete and expand:
