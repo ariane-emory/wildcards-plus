@@ -5328,32 +5328,32 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 // ---------------------------------------------------------------------------------------
 const DiscardedComments             = discard(wst_star(comment));
 const SpecialFunctionInclude                     = make_special_function_Rule('include');
-const SpecialFunctionUpdateConfigurationBinary   =
-      xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                    DiscardedComments,     // -
-                                    '.',                   // [0][1]
-                                    DiscardedComments),    // -
-                            ident,                         // [1]
-                            DiscardedComments,             // -
-                            '(',                           // [2]
-                            DiscardedComments,             // -
-                            Jsonc,   // [3]
-                            DiscardedComments,             // [4]
-                            ')'),                          // [4]
-            arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
-const SpecialFunctionUpdateConfigurationBinary2 =
-      xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                    DiscardedComments,     // -
-                                    '.',                   // [0][1]
-                                    DiscardedComments),    // -
-                            ident,                         // [1]
-                            DiscardedComments,             // -
-                            '(',                           // [2]
-                            DiscardedComments,             // -
-                            () => LimitedContent,   // [3]
-                            DiscardedComments,             // [4]
-                            ')'),                          // [4]
-            arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+let SpecialFunctionUpdateConfigurationBinary   =
+    xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                  DiscardedComments,     // -
+                                  '.',                   // [0][1]
+                                  DiscardedComments),    // -
+                          ident,                         // [1]
+                          DiscardedComments,             // -
+                          '(',                           // [2]
+                          DiscardedComments,             // -
+                          Jsonc,   // [3]
+                          DiscardedComments,             // [4]
+                          ')'),                          // [4]
+          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+// SpecialFunctionUpdateConfigurationBinary =
+//   xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+//                                 DiscardedComments,     // -
+//                                 '.',                   // [0][1]
+//                                 DiscardedComments),    // -
+//                         ident,                         // [1]
+//                         DiscardedComments,             // -
+//                         '(',                           // [2]
+//                         DiscardedComments,             // -
+//                         () => LimitedContent,   // [3]
+//                         DiscardedComments,             // [4]
+//                         ')'),                          // [4]
+//         arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
                                                                                 arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
@@ -5702,11 +5702,25 @@ main().catch(err => {
 // =======================================================================================
 
 
-// SpecialFunctionUpdateConfigurationBinary2.finalize();
+const SpecialFunctionUpdateConfigurationBinary2 =
+      xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                    DiscardedComments,     // -
+                                    '.',                   // [0][1]
+                                    DiscardedComments),    // -
+                            ident,                         // [1]
+                            DiscardedComments,             // -
+                            '(',                           // [2]
+                            DiscardedComments,             // -
+                            () => LimitedContent,   // [3]
+                            DiscardedComments,             // [4]
+                            ')'),                          // [4]
+            arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 
-// var s = `%config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")`;
+SpecialFunctionUpdateConfigurationBinary2.finalize();
 
-// // log_match_enabled = true;
+var s = `%config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")`;
 
-// console.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary2.match(s)));
-// // console.log(inspect_fun(r(plaintext).match(s)));
+log_match_enabled = true;
+
+console.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary2.match(s)));
+
