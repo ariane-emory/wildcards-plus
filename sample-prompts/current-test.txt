@@ -330,6 +330,7 @@
 |wanderer                                      @tool_or_weapon
 |{2|interstellar} bounty hunter                #weapon
 |soldier                                       #weapon
+|2 space pirate                                  #weapon
 |trooper                                       #weapon
 |prize fighter                                 #weapon #melee
 |assassin                                      @likely_weapon
