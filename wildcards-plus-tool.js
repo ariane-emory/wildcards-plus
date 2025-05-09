@@ -5789,7 +5789,9 @@ const JsoncObject2 =
         },
               wst_cutting_seq(
                 wst_enc('{', () => json_string, ":"),
+                JsoncComments,
                 Jsonc,
+                JsoncComments,
                 optional(second(wst_seq(',',
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
