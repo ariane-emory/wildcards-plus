@@ -5703,7 +5703,7 @@ const SpecialFunctionUpdateConfigurationBinary2 =
 
 SpecialFunctionUpdateConfigurationBinary2.finalize();
 
-var s = "%config.model(\"devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt\"";
+var s = "%config.model(\"devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt\")";
 
 log_match_enabled = true;
 
