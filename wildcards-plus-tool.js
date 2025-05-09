@@ -5783,7 +5783,7 @@ main().catch(err => {
 const JsoncObject2 =
       xform(arr => {
         console.log(`ARR: ${JSON.stringify(arr, null, 2)}`);
-        return Object.fromEntries(arr);
+        return Object.fromEntries([ [arr[0], arr[1]], ...(arr[2][0]??[]) ]);
       },
             wst_cutting_seq(
               wst_enc('{', () => json_string, ":"),
@@ -5801,11 +5801,29 @@ const JsoncObject2 =
                                               ))             
                                  , ',')),
                                '}'))));
+[
+  "foo",
+  123,
+  []
+]
 
+[
+  "foo",           // [0]
+  123,             // [1]
+  [                // [2]
+    [              // [2][0] the list 
+      [            // [2][0][1]
+        "bar",
+        234
+      ]
+    ]
+  ]
+]
 
 JsoncObject2.finalize()
 
 let s = `{"foo": 123, "bar": 234 }`;
+s = `{"foo": 123 }`;
 //  s = `{"foo": 123 }`;
 
 console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
