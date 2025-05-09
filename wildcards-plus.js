@@ -4843,10 +4843,10 @@ function expand_wildcards(thing, context = new Context()) {
                           `must produce a valid JSONC object, Jsonc.matcch(...) result ` +
                           `was ${inspect_fun(jsconc_parsed_walked_value)}`);
         
-        context.config[thing.key] = jsconc_parsed_walked_value.value;
+        value_object = jsconc_parsed_walked_value.value;
       }
       
-      context.config = { ...context.config, ...thing.value_object };
+      context.config = { ...context.config, ...value_object };
       
       if (log_config_enabled)
         console.log(`Updated config to ${JSON.stringify(context.config)}`);
