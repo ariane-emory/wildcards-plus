@@ -990,7 +990,7 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      log(indent + 1, `matching first sequence item #1 out of ` +
+      log(indent + 1, `matching first sequence item #0 out of ` +
           `${this.elements.length}: ${this.elements[0]}...`);
     
     const start_rule_match_result =
@@ -1007,7 +1007,7 @@ class Sequence extends Rule {
     }
 
     if (log_match_enabled)
-      log(indent + 1, `matched sequence item #1: ` +
+      log(indent + 1, `matched sequence item #0: ` +
           `${JSON.stringify(last_match_result)}.`);
     
     const values = [];
@@ -1030,7 +1030,7 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        log(indent + 1, `matching sequence item #${ix+1} out of ` +
+        log(indent + 1, `matching sequence item #${ix} out of ` +
             `${this.elements.length}: ${this.elements[ix]}...`);
       
       const element = this.elements[ix];
