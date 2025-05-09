@@ -4993,6 +4993,14 @@ function expand_wildcards(thing, context = new Context()) {
              thing instanceof ASTSpecialFunctionSetPickMultiple) {
       const walked = walk(thing.limited_content, context);
 
+      // const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
+      //       ? 'pick_one_priority'
+      //       : 'pick_multiple_priority';
+
+      // const prior_key = thing instanceof ASTSpecialFunctionSetPickSingle
+      //       ? 'prior_pick_one_priority'
+      //       : 'prior_pick_multiple_priority';
+      
       if (! picker_priority_names.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
@@ -5017,11 +5025,11 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionRevertPickSingle || 
              thing instanceof ASTSpecialFunctionRevertPickMultiple) {
-      const cur_key = thing instanceof ASTSSpecialFunctionSetPickSingle
+      const cur_key = thing instanceof ASTSpecialFunctionRevertPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
 
-      const prior_key = thing instanceof ASTSSpecialFunctionSetPickSingle
+      const prior_key = thing instanceof ASTSpecialFunctionRevertPickSingle
             ? 'prior_pick_one_priority'
             : 'prior_pick_multiple_priority';
       
