@@ -5398,10 +5398,12 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 const SetFlag              = xform(ident => new ASTSetFlag(ident),
                                    second(seq('#', ident, word_break)));
+const UnsetFlag            = xform(ident => new ASTUnSetFlag(ident),
+                                   second(seq('#!', ident, word_break)));
+// const UnsetFlag = unexpected('#!');
 const CheckFlag            = xform(ident => new ASTCheckFlag(ident),
                                    second(seq('?', plus(ident, ','),
                                               word_break)))
-const UnsetFlag = unexpected('#!');
 const NotFlag              = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
                                    seq('!', optional('#'),
                                        ident, word_break));
