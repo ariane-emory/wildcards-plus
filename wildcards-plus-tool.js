@@ -1851,9 +1851,9 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
-  avoiding_repitition:           'Avoiding repetition',
+  avoid_repetition:           'Avoiding repetition',
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
-  true_randomness:                   'Just plain old randomness',
+  true_randomness:               'Just plain old randomness',
 });
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
@@ -1862,7 +1862,7 @@ const picker_priority_descriptions_to_names = new Map(
 );
 const picker_configuration = {
   pick_one_priority:      picker_priority.ensure_weighted_distribution,
-  pick_multiple_priority: picker_priority.avoiding_repitition,
+  pick_multiple_priority: picker_priority.avoid_repetition,
 };
 // ---------------------------------------------------------------------------------------
 class WeightedPicker {
@@ -1943,7 +1943,7 @@ class WeightedPicker {
 
     let exhausted_indices = null;
     
-    if (priority == picker_priority.avoiding_repitition) {
+    if (priority == picker_priority.avoid_repetition) {
       exhausted_indices = new Set(this.used_indices.keys());
     }
     else if (priority == picker_priority.ensure_weighted_distribution) {
@@ -1976,7 +1976,7 @@ class WeightedPicker {
     
     let ret = null;
     
-    if (priority === picker_priority.avoiding_repitition) {
+    if (priority === picker_priority.avoid_repetition) {
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
     }
     else if (priority === picker_priority.ensure_weighted_distribution) {
@@ -2018,7 +2018,7 @@ class WeightedPicker {
     
     if (this.__indices_are_exhausted(legal_option_indices, priority)) {
       // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-      if (priority === picker_priority.avoiding_repitition) {
+      if (priority === picker_priority.avoid_repetition) {
         if (this.last_pick_index !== null) {
           const last_pick_index = this.last_pick_index;
           this.__clear_used_indices();
@@ -4935,6 +4935,21 @@ function expand_wildcards(thing, context = new Context()) {
       
       return '';
     }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSinglePickPrioritizes) {
+      const walked = walk(thing.limited_content, context);
+
+      if (! picker_priority_names.includes(walked))
+        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+
+      picker_configuration.pick_one_priority = picker_priority[walked];
+
+      console.log(`Updated single pick priority to ` +
+                  `${inspect_fun(picker_configuration.pick_one_priority)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
     // get rid of these soon:
     else if (thing instanceof ASTSpecialFunction) {
       // console.log(`IGNORING ${inspect_fun(thing)}`);
@@ -5293,7 +5308,7 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
 const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
                                                                                 arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
-                                                                                arg => new ASTSpecialFunction('set-picker-configuration-single-pick', [arg]));
+                                                                                arg => new ASTSinglePickPrioritizes(arg));
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                                  DiscardedComments,     // -
                                                                                  assignment_operator,   // _
@@ -5414,7 +5429,7 @@ Prompt.finalize();
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
 
-// picker_configuration.pick_one_priority = picker_priority.avoiding_repitition;
+// picker_configuration.pick_one_priority = picker_priority.avoid_repetition;
 // picker_configuration.pick_multiple_priority = picker_priority.ensure_weighted_distribution;
 
 // =======================================================================================
@@ -5628,10 +5643,10 @@ async function main() {
   console.log('================================================================================');
 }
 // ---------------------------------------------------------------------------------------
-main().catch(err => {
-  console.error('Unhandled error:', err);
-  process.exit(1);
-});
-// =======================================================================================
-// END OF MAIN SECTION.
-// =======================================================================================
+                                                                                  main().catch(err => {
+                                                                                    console.error('Unhandled error:', err);
+                                                                                    process.exit(1);
+                                                                                  });
+                                                                                  // =======================================================================================
+                                                                                  // END OF MAIN SECTION.
+                                                                                  // =======================================================================================
