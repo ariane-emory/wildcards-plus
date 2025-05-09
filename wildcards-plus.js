@@ -5385,7 +5385,7 @@ console.log(`-------------------------------------------------------------------
 console.log(`${prompt_string}`);
 
 const base_context = load_prelude();
-base_context.pick_one_priority = user_selected_pick_single_priority;
+base_context.pick_one_priority      = user_selected_pick_single_priority;
 base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 
 // ---------------------------------------------------------------------------------------
