@@ -62,7 +62,8 @@
 
   // 9-18 steps, equally likely:
   { %config.steps(9)  | %config.steps(10) | %config.steps(11) | %config.steps(12) | %config.steps(13)
-  | %config.steps(14) | %config.steps(15) | %config.steps(16) | %config.steps(17) | %config.steps(18) }
+//  | %config.steps(14) | %config.steps(15) | %config.steps(16) | %config.steps(17) | %config.steps(18)
+  }
 
   // possible resolutions:
   { 3 %config({ "width": 1024, "height": 512 })

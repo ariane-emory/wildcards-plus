@@ -1711,7 +1711,7 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
-  avoid_repetition:           'Avoiding repetition',
+  avoid_repetition:              'Avoiding repetition',
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
@@ -1846,7 +1846,7 @@ class WeightedPicker {
       ret = this.options[option_index].weight;
     }
     else {
-      throw Error("unexpected priority");
+      throw Error(`unexpected priority: ${inspect_fun(priority)}`);
     }
 
     // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
@@ -5378,12 +5378,12 @@ prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
 
 const user_selected_pick_one_priority =
-      picker_priority_descriptions_to_names.get(picker_priority_descriptions[user_selection[2][0]]);
+      picker_priority_descriptions[user_selection[2][0]];
 // console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
-const user_selected_pick_multiple_priority = 
-      picker_priority_descriptions_to_names.get(picker_priority_descriptions[user_selection[3][0]]);
+const user_selected_pick_multiple_priority =
+      picker_priority_descriptions[user_selection[3][0]];
 // console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
