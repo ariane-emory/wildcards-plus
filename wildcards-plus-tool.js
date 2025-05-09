@@ -2568,1082 +2568,2161 @@ const prelude_text = disable_prelude ? '' : `
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
 @wizards_artists   := { @#__wizards_artists @__wizards_artists }
-@__wizards_artists := {
-#artist__zacharias_martin_aagaard Zacharias Martin Aagaard |
-#artist__slim_aarons Slim Aarons |
-#artist__elenore_abbott Elenore Abbott |
-#artist__tomma_abts Tomma Abts |
-#artist__vito_acconci Vito Acconci |
-#artist__andreas_achenbach Andreas Achenbach |
-#artist__ansel_adams Ansel Adams |
-#artist__josh_adamski Josh Adamski |
-#artist__charles_addams Charles Addams |
-#artist__etel_adnan Etel Adnan |
-#artist__alena_aenami Alena Aenami |
-#artist__leonid_afremov Leonid Afremov |
-#artist__petros_afshar Petros Afshar |
-#artist__yaacov_agam Yaacov Agam |
-#artist__eileen_agar Eileen Agar |
-#artist__craigie_aitchison Craigie Aitchison |
-#artist__ivan_aivazovsky Ivan Aivazovsky |
-#artist__francesco_albani Francesco Albani |
-#artist__alessio_albi Alessio Albi |
-#artist__miles_aldridge Miles Aldridge |
-#artist__john_white_alexander John White Alexander |
-#artist__alessandro_allori Alessandro Allori |
-#artist__mike_allred Mike Allred |
-#artist__lawrence_alma_tadema Lawrence Alma-Tadema |
-#artist__lilia_alvarado Lilia Alvarado |
-#artist__tarsila_do_amaral Tarsila do Amaral |
-#artist__ghada_amer Ghada Amer |
-#artist__cuno_amiet Cuno Amiet |
-#artist__el_anatsui El Anatsui |
-#artist__helga_ancher Helga Ancher |
-#artist__sarah_andersen Sarah Andersen |
-#artist__richard_anderson Richard Anderson |
-#artist__sophie_gengembre_anderson Sophie Gengembre Anderson |
-#artist__wes_anderson Wes Anderson |
-#artist__alex_andreev Alex Andreev |
-#artist__sofonisba_anguissola Sofonisba Anguissola |
-#artist__louis_anquetin Louis Anquetin |
-#artist__mary_jane_ansell Mary Jane Ansell |
-#artist__chiho_aoshima Chiho Aoshima |
-#artist__sabbas_apterus Sabbas Apterus |
-#artist__hirohiko_araki Hirohiko Araki |
-#artist__howard_arkley Howard Arkley |
-#artist__rolf_armstrong Rolf Armstrong |
-#artist__gerd_arntz Gerd Arntz |
-#artist__guy_aroch Guy Aroch |
-#artist__miki_asai Miki Asai |
-#artist__clemens_ascher Clemens Ascher |
-#artist__henry_asencio Henry Asencio |
-#artist__andrew_atroshenko Andrew Atroshenko |
-#artist__deborah_azzopardi Deborah Azzopardi |
-#artist__lois_van_baarle Lois van Baarle |
-#artist__ingrid_baars Ingrid Baars |
-#artist__anne_bachelier Anne Bachelier |
-#artist__francis_bacon Francis Bacon |
-#artist__firmin_baes Firmin Baes |
-#artist__tom_bagshaw Tom Bagshaw |
-#artist__karol_bak Karol Bak |
-#artist__christopher_balaskas Christopher Balaskas |
-#artist__benedick_bana Benedick Bana |
-#artist__banksy Banksy |
-#artist__george_barbier George Barbier |
-#artist__cicely_mary_barker Cicely Mary Barker |
-#artist__wayne_barlowe Wayne Barlowe |
-#artist__will_barnet Will Barnet |
-#artist__matthew_barney Matthew Barney |
-#artist__angela_barrett Angela Barrett |
-#artist__jean_michel_basquiat Jean-Michel Basquiat |
-#artist__lillian_bassman Lillian Bassman |
-#artist__pompeo_batoni Pompeo Batoni |
-#artist__casey_baugh Casey Baugh |
-#artist__chiara_bautista Chiara Bautista |
-#artist__herbert_bayer Herbert Bayer |
-#artist__mary_beale Mary Beale |
-#artist__alan_bean Alan Bean |
-#artist__romare_bearden Romare Bearden |
-#artist__cecil_beaton Cecil Beaton |
-#artist__cecilia_beaux Cecilia Beaux |
-#artist__jasmine_becket_griffith Jasmine Becket-Griffith |
-#artist__vanessa_beecroft Vanessa Beecroft |
-#artist__beeple Beeple |
-#artist__zdzislaw_beksinski Zdzisław Beksiński |
-#artist__katerina_belkina Katerina Belkina |
-#artist__julie_bell Julie Bell |
-#artist__vanessa_bell Vanessa Bell |
-#artist__bernardo_bellotto Bernardo Bellotto |
-#artist__ambrosius_benson Ambrosius Benson |
-#artist__stan_berenstain Stan Berenstain |
-#artist__laura_berger Laura Berger |
-#artist__jody_bergsma Jody Bergsma |
-#artist__john_berkey John Berkey |
-#artist__gian_lorenzo_bernini Gian Lorenzo Bernini |
-#artist__marta_bevacqua Marta Bevacqua |
-#artist__john_t_biggers John T. Biggers |
-#artist__enki_bilal Enki Bilal |
-#artist__ivan_bilibin Ivan Bilibin |
-#artist__butcher_billy Butcher Billy |
-#artist__george_caleb_bingham George Caleb Bingham |
-#artist__ed_binkley Ed Binkley |
-#artist__george_birrell George Birrell |
-#artist__robert_bissell Robert Bissell |
-#artist__charles_blackman Charles Blackman |
-#artist__mary_blair Mary Blair |
-#artist__john_blanche John Blanche |
-#artist__don_blanding Don Blanding |
-#artist__albert_bloch Albert Bloch |
-#artist__hyman_bloom Hyman Bloom |
-#artist__peter_blume Peter Blume |
-#artist__don_bluth Don Bluth |
-#artist__umberto_boccioni Umberto Boccioni |
-#artist__anna_bocek Anna Bocek |
-#artist__lee_bogle Lee Bogle |
-#artist__louis_leopold_boily Louis-Léopold Boily |
-#artist__giovanni_boldini Giovanni Boldini |
-#artist__enoch_bolles Enoch Bolles |
-#artist__david_bomberg David Bomberg |
-#artist__chesley_bonestell Chesley Bonestell |
-#artist__lee_bontecou Lee Bontecou |
-#artist__michael_borremans Michael Borremans |
-#artist__matt_bors Matt Bors |
-#artist__flora_borsi Flora Borsi |
-#artist__hieronymus_bosch Hieronymus Bosch |
-#artist__sam_bosma Sam Bosma |
-#artist__johfra_bosschart Johfra Bosschart |
-#artist__fernando_botero Fernando Botero |
-#artist__sandro_botticelli Sandro Botticelli |
-#artist__william_adolphe_bouguereau William-Adolphe Bouguereau |
-#artist__susan_seddon_boulet Susan Seddon Boulet |
-#artist__louise_bourgeois Louise Bourgeois |
-#artist__annick_bouvattier Annick Bouvattier |
-#artist__david_michael_bowers David Michael Bowers |
-#artist__noah_bradley Noah Bradley |
-#artist__aleksi_briclot Aleksi Briclot |
-#artist__frederick_arthur_bridgman Frederick Arthur Bridgman |
-#artist__renie_britenbucher Renie Britenbucher |
-#artist__romero_britto Romero Britto |
-#artist__gerald_brom Gerald Brom |
-#artist__bronzino Bronzino |
-#artist__herman_brood Herman Brood |
-#artist__mark_brooks Mark Brooks |
-#artist__romaine_brooks Romaine Brooks |
-#artist__troy_brooks Troy Brooks |
-#artist__broom_lee Broom Lee |
-#artist__allie_brosh Allie Brosh |
-#artist__ford_madox_brown Ford Madox Brown |
-#artist__charles_le_brun Charles Le Brun |
-#artist__elisabeth_vigee_le_brun Élisabeth Vigée Le Brun |
-#artist__james_bullough James Bullough |
-#artist__laurel_burch Laurel Burch |
-#artist__alejandro_burdisio Alejandro Burdisio |
-#artist__daniel_buren Daniel Buren |
-#artist__jon_burgerman Jon BurGerman |
-#artist__richard_burlet Richard Burlet |
-#artist__jim_burns Jim Burns |
-#artist__stasia_burrington Stasia Burrington |
-#artist__kaethe_butcher Kaethe Butcher |
-#artist__saturno_butto Saturno Butto |
-#artist__paul_cadmus Paul Cadmus |
-#artist__zhichao_cai Zhichao Cai |
-#artist__randolph_caldecott Randolph Caldecott |
-#artist__alexander_calder_milne Alexander Calder Milne |
-#artist__clyde_caldwell Clyde Caldwell |
-#artist__vincent_callebaut Vincent Callebaut |
-#artist__fred_calleri Fred Calleri |
-#artist__charles_camoin Charles Camoin |
-#artist__mike_campau Mike Campau |
-#artist__eric_canete Eric Canete |
-#artist__josef_capek Josef Capek |
-#artist__leonetto_cappiello Leonetto Cappiello |
-#artist__eric_carle Eric Carle |
-#artist__larry_carlson Larry Carlson |
-#artist__bill_carman Bill Carman |
-#artist__jean_baptiste_carpeaux Jean-Baptiste Carpeaux |
-#artist__rosalba_carriera Rosalba Carriera |
-#artist__michael_carson Michael Carson |
-#artist__felice_casorati Felice Casorati |
-#artist__mary_cassatt Mary Cassatt |
-#artist__a_j_casson A. J. Casson |
-#artist__giorgio_barbarelli_da_castelfranco Giorgio Barbarelli da Castelfranco |
-#artist__paul_catherall Paul Catherall |
-#artist__george_catlin George Catlin |
-#artist__patrick_caulfield Patrick Caulfield |
-#artist__nicoletta_ceccoli Nicoletta Ceccoli |
-#artist__agnes_cecile Agnes Cecile |
-#artist__paul_cezanne Paul Cézanne |
-#artist__paul_chabas Paul Chabas |
-#artist__marc_chagall Marc Chagall |
-#artist__tom_chambers Tom Chambers |
-#artist__katia_chausheva Katia Chausheva |
-#artist__hsiao_ron_cheng Hsiao-Ron Cheng |
-#artist__yanjun_cheng Yanjun Cheng |
-#artist__sandra_chevrier Sandra Chevrier |
-#artist__judy_chicago Judy Chicago |
-#artist__dale_chihuly Dale Chihuly |
-#artist__frank_cho Frank Cho |
-#artist__james_c_christensen James C. Christensen |
-#artist__mikalojus_konstantinas_ciurlionis Mikalojus Konstantinas Ciurlionis |
-#artist__alson_skinner_clark Alson Skinner Clark |
-#artist__amanda_clark Amanda Clark |
-#artist__harry_clarke Harry Clarke |
-#artist__george_clausen George Clausen |
-#artist__francesco_clemente Francesco Clemente |
-#artist__alvin_langdon_coburn Alvin Langdon Coburn |
-#artist__clifford_coffin Clifford Coffin |
-#artist__vince_colletta Vince Colletta |
-#artist__beth_conklin Beth Conklin |
-#artist__john_constable John Constable |
-#artist__darwyn_cooke Darwyn Cooke |
-#artist__richard_corben Richard Corben |
-#artist__vittorio_matteo_corcos Vittorio Matteo Corcos |
-#artist__paul_corfield Paul Corfield |
-#artist__fernand_cormon Fernand Cormon |
-#artist__norman_cornish Norman Cornish |
-#artist__camille_corot Camille Corot |
-#artist__gemma_correll Gemma Correll |
-#artist__petra_cortright Petra Cortright |
-#artist__lorenzo_costa_the_elder Lorenzo Costa the Elder |
-#artist__olive_cotton Olive Cotton |
-#artist__peter_coulson Peter Coulson |
-#artist__gustave_courbet Gustave Courbet |
-#artist__frank_cadogan_cowper Frank Cadogan Cowper |
-#artist__kinuko_y_craft Kinuko Y. Craft |
-#artist__clayton_crain Clayton Crain |
-#artist__lucas_cranach_the_elder Lucas Cranach the Elder |
-#artist__lucas_cranach_the_younger Lucas Cranach the Younger |
-#artist__walter_crane Walter Crane |
-#artist__martin_creed Martin Creed |
-#artist__gregory_crewdson Gregory Crewdson |
-#artist__debbie_criswell Debbie Criswell |
-#artist__victoria_crowe Victoria Crowe |
-#artist__etam_cru Etam Cru |
-#artist__robert_crumb Robert Crumb |
-#artist__carlos_cruz_diez Carlos Cruz-Diez |
-#artist__john_currin John Currin |
-#artist__krenz_cushart Krenz Cushart |
-#artist__camilla_derrico Camilla d'Errico |
-#artist__pino_daeni Pino Daeni |
-#artist__salvador_dali Salvador Dalí |
-#artist__sunil_das Sunil Das |
-#artist__ian_davenport Ian Davenport |
-#artist__stuart_davis Stuart Davis |
-#artist__roger_dean Roger Dean |
-#artist__michael_deforge Michael Deforge |
-#artist__edgar_degas Edgar Degas |
-#artist__eugene_delacroix Eugene Delacroix |
-#artist__robert_delaunay Robert Delaunay |
-#artist__sonia_delaunay Sonia Delaunay |
-#artist__gabriele_dellotto Gabriele Dell'otto |
-#artist__nicolas_delort Nicolas Delort |
-#artist__jean_delville Jean Delville |
-#artist__posuka_demizu Posuka Demizu |
-#artist__guy_denning Guy Denning |
-#artist__monsu_desiderio Monsù Desiderio |
-#artist__charles_maurice_detmold Charles Maurice Detmold |
-#artist__edward_julius_detmold Edward Julius Detmold |
-#artist__anne_dewailly Anne Dewailly |
-#artist__walt_disney Walt Disney |
-#artist__tony_diterlizzi Tony DiTerlizzi |
-#artist__anna_dittmann Anna Dittmann |
-#artist__dima_dmitriev Dima Dmitriev |
-#artist__peter_doig Peter Doig |
-#artist__kees_van_dongen Kees van Dongen |
-#artist__gustave_dore Gustave Doré |
-#artist__dave_dorman Dave Dorman |
-#artist__emilio_giuseppe_dossena Emilio Giuseppe Dossena |
-#artist__david_downton David Downton |
-#artist__jessica_drossin Jessica Drossin |
-#artist__philippe_druillet Philippe Druillet |
-#artist__tj_drysdale TJ Drysdale |
-#artist__ton_dubbeldam Ton Dubbeldam |
-#artist__marcel_duchamp Marcel Duchamp |
-#artist__joseph_ducreux Joseph Ducreux |
-#artist__edmund_dulac Edmund Dulac |
-#artist__marlene_dumas Marlene Dumas |
-#artist__charles_dwyer Charles Dwyer |
-#artist__william_dyce William Dyce |
-#artist__chris_dyer Chris Dyer |
-#artist__eyvind_earle Eyvind Earle |
-#artist__amy_earles Amy Earles |
-#artist__lori_earley Lori Earley |
-#artist__jeff_easley Jeff Easley |
-#artist__tristan_eaton Tristan Eaton |
-#artist__jason_edmiston Jason Edmiston |
-#artist__alfred_eisenstaedt Alfred Eisenstaedt |
-#artist__jesper_ejsing Jesper Ejsing |
-#artist__olafur_eliasson Olafur Eliasson |
-#artist__harrison_ellenshaw Harrison Ellenshaw |
-#artist__christine_ellger Christine Ellger |
-#artist__larry_elmore Larry Elmore |
-#artist__joseba_elorza Joseba Elorza |
-#artist__peter_elson Peter Elson |
-#artist__gil_elvgren Gil Elvgren |
-#artist__ed_emshwiller Ed Emshwiller |
-#artist__kilian_eng Kilian Eng |
-#artist__jason_a_engle Jason A. Engle |
-#artist__max_ernst Max Ernst |
-#artist__romain_de_tirtoff_erte Romain de Tirtoff Erté |
-#artist__m_c_escher M. C. Escher |
-#artist__tim_etchells Tim Etchells |
-#artist__walker_evans Walker Evans |
-#artist__jan_van_eyck Jan van Eyck |
-#artist__glenn_fabry Glenn Fabry |
-#artist__ludwig_fahrenkrog Ludwig Fahrenkrog |
-#artist__shepard_fairey Shepard Fairey |
-#artist__andy_fairhurst Andy Fairhurst |
-#artist__luis_ricardo_falero Luis Ricardo Falero |
-#artist__jean_fautrier Jean Fautrier |
-#artist__andrew_ferez Andrew Ferez |
-#artist__hugh_ferriss Hugh Ferriss |
-#artist__david_finch David Finch |
-#artist__callie_fink Callie Fink |
-#artist__virgil_finlay Virgil Finlay |
-#artist__anato_finnstark Anato Finnstark |
-#artist__howard_finster Howard Finster |
-#artist__oskar_fischinger Oskar Fischinger |
-#artist__samuel_melton_fisher Samuel Melton Fisher |
-#artist__john_anster_fitzgerald John Anster Fitzgerald |
-#artist__tony_fitzpatrick Tony Fitzpatrick |
-#artist__hippolyte_flandrin Hippolyte Flandrin |
-#artist__dan_flavin Dan Flavin |
-#artist__max_fleischer Max Fleischer |
-#artist__govaert_flinck Govaert Flinck |
-#artist__alex_russell_flint Alex Russell Flint |
-#artist__lucio_fontana Lucio Fontana |
-#artist__chris_foss Chris Foss |
-#artist__jon_foster Jon Foster |
-#artist__jean_fouquet Jean Fouquet |
-#artist__toby_fox Toby Fox |
-#artist__art_frahm Art Frahm |
-#artist__lisa_frank Lisa Frank |
-#artist__helen_frankenthaler Helen Frankenthaler |
-#artist__frank_frazetta Frank Frazetta |
-#artist__kelly_freas Kelly Freas |
-#artist__lucian_freud Lucian Freud |
-#artist__brian_froud Brian Froud |
-#artist__wendy_froud Wendy Froud |
-#artist__tom_fruin Tom Fruin |
-#artist__john_wayne_gacy John Wayne Gacy |
-#artist__justin_gaffrey Justin Gaffrey |
-#artist__hashimoto_gaho Hashimoto Gahō |
-#artist__neil_gaiman Neil Gaiman |
-#artist__stephen_gammell Stephen Gammell |
-#artist__hope_gangloff Hope Gangloff |
-#artist__alex_garant Alex Garant |
-#artist__gilbert_garcin Gilbert Garcin |
-#artist__michael_and_inessa_garmash Michael and Inessa Garmash |
-#artist__antoni_gaudi Antoni Gaudi |
-3 #artist__jack_gaughan Jack Gaughan |
-#artist__paul_gauguin Paul Gauguin |
-#artist__giovanni_battista_gaulli Giovanni Battista Gaulli |
-#artist__anne_geddes Anne Geddes |
-#artist__bill_gekas Bill Gekas |
-#artist__artemisia_gentileschi Artemisia Gentileschi |
-#artist__orazio_gentileschi Orazio Gentileschi |
-#artist__daniel_f_gerhartz Daniel F. Gerhartz |
-#artist__theodore_gericault Théodore Géricault |
-#artist__jean_leon_gerome Jean-Léon Gérôme |
-#artist__mark_gertler Mark Gertler |
-#artist__atey_ghailan Atey Ghailan |
-#artist__alberto_giacometti Alberto Giacometti |
-#artist__donato_giancola Donato Giancola |
-#artist__hr_giger H.R. Giger |
-#artist__james_gilleard James Gilleard |
-#artist__harold_gilman Harold Gilman |
-#artist__charles_ginner Charles Ginner |
-#artist__jean_giraud Jean Giraud |
-#artist__anne_louis_girodet Anne-Louis Girodet |
-#artist__milton_glaser Milton Glaser |
-#artist__warwick_goble Warwick Goble |
-#artist__john_william_godward John William Godward |
-#artist__sacha_goldberger Sacha Goldberger |
-#artist__nan_goldin Nan Goldin |
-#artist__josan_gonzalez Josan Gonzalez |
-#artist__felix_gonzalez_torres Felix Gonzalez-Torres |
-#artist__derek_gores Derek Gores |
-#artist__edward_gorey Edward Gorey |
-#artist__arshile_gorky Arshile Gorky |
-#artist__alessandro_gottardo Alessandro Gottardo |
-#artist__adolph_gottlieb Adolph Gottlieb |
-#artist__francisco_goya Francisco Goya |
-#artist__laurent_grasso Laurent Grasso |
-#artist__mab_graves Mab Graves |
-#artist__eileen_gray Eileen Gray |
-#artist__kate_greenaway Kate Greenaway |
-#artist__alex_grey Alex Grey |
-#artist__carne_griffiths Carne Griffiths |
-#artist__gris_grimly Gris Grimly |
-#artist__brothers_grimm Brothers Grimm |
-#artist__tracie_grimwood Tracie Grimwood |
-#artist__matt_groening Matt Groening |
-#artist__alex_gross Alex Gross |
-#artist__tom_grummett Tom Grummett |
-#artist__huang_guangjian Huang Guangjian |
-#artist__wu_guanzhong Wu Guanzhong |
-#artist__rebecca_guay Rebecca Guay |
-#artist__guercino Guercino |
-#artist__jeannette_guichard_bunel Jeannette Guichard-Bunel |
-#artist__scott_gustafson Scott Gustafson |
-#artist__wade_guyton Wade Guyton |
-#artist__hans_haacke Hans Haacke |
-#artist__robert_hagan Robert Hagan |
-#artist__philippe_halsman Philippe Halsman |
-#artist__maggi_hambling Maggi Hambling |
-#artist__richard_hamilton Richard Hamilton |
-#artist__bess_hamiti Bess Hamiti |
-#artist__tom_hammick Tom Hammick |
-#artist__david_hammons David Hammons |
-#artist__ren_hang Ren Hang |
-#artist__erin_hanson Erin Hanson |
-#artist__keith_haring Keith Haring |
-#artist__alexei_harlamoff Alexei Harlamoff |
-#artist__charley_harper Charley Harper |
-#artist__john_harris John Harris |
-#artist__florence_harrison Florence Harrison |
-#artist__marsden_hartley Marsden Hartley |
-#artist__ryohei_hase Ryohei Hase |
-#artist__childe_hassam Childe Hassam |
-#artist__ben_hatke Ben Hatke |
-#artist__mona_hatoum Mona Hatoum |
-#artist__pam_hawkes Pam Hawkes |
-#artist__jamie_hawkesworth Jamie Hawkesworth |
-#artist__stuart_haygarth Stuart Haygarth |
-#artist__erich_heckel Erich Heckel |
-#artist__valerie_hegarty Valerie Hegarty |
-#artist__mary_heilmann Mary Heilmann |
-#artist__michael_heizer Michael Heizer |
-#artist__gottfried_helnwein Gottfried Helnwein |
-#artist__barkley_l_hendricks Barkley L. Hendricks |
-#artist__bill_henson Bill Henson |
-#artist__barbara_hepworth Barbara Hepworth |
-#artist__herge Hergé |
-#artist__carolina_herrera Carolina Herrera |
-#artist__george_herriman George Herriman |
-#artist__don_hertzfeldt Don Hertzfeldt |
-#artist__prudence_heward Prudence Heward |
-#artist__ryan_hewett Ryan Hewett |
-#artist__nora_heysen Nora Heysen |
-#artist__george_elgar_hicks George Elgar Hicks |
-#artist__lorenz_hideyoshi Lorenz Hideyoshi |
-#artist__brothers_hildebrandt Brothers Hildebrandt |
-#artist__dan_hillier Dan Hillier |
-#artist__lewis_hine Lewis Hine |
-#artist__miho_hirano Miho Hirano |
-#artist__harumi_hironaka Harumi Hironaka |
-#artist__hiroshige Hiroshige |
-#artist__morris_hirshfield Morris Hirshfield |
-#artist__damien_hirst Damien Hirst |
-#artist__fan_ho Fan Ho |
-#artist__meindert_hobbema Meindert Hobbema |
-#artist__david_hockney David Hockney |
-#artist__filip_hodas Filip Hodas |
-#artist__howard_hodgkin Howard Hodgkin |
-#artist__ferdinand_hodler Ferdinand Hodler |
-#artist__tiago_hoisel Tiago Hoisel |
-#artist__katsushika_hokusai Katsushika Hokusai |
-#artist__hans_holbein_the_younger Hans Holbein the Younger |
-#artist__frank_holl Frank Holl |
-#artist__carsten_holler Carsten Holler |
-#artist__zena_holloway Zena Holloway |
-#artist__edward_hopper Edward Hopper |
-#artist__aaron_horkey Aaron Horkey |
-#artist__alex_horley Alex Horley |
-#artist__roni_horn Roni Horn |
-#artist__john_howe John Howe |
-#artist__alex_howitt Alex Howitt |
-#artist__meghan_howland Meghan Howland |
-#artist__john_hoyland John Hoyland |
-#artist__shilin_huang Shilin Huang |
-#artist__arthur_hughes Arthur Hughes |
-#artist__edward_robert_hughes Edward Robert Hughes |
-#artist__jack_hughes Jack Hughes |
-#artist__talbot_hughes Talbot Hughes |
-#artist__pieter_hugo Pieter Hugo |
-#artist__gary_hume Gary Hume |
-#artist__friedensreich_hundertwasser Friedensreich Hundertwasser |
-#artist__william_holman_hunt William Holman Hunt |
-#artist__george_hurrell George Hurrell |
-#artist__fabio_hurtado Fabio Hurtado |
-#artist__hush HUSH |
-#artist__michael_hutter Michael Hutter |
-#artist__pierre_huyghe Pierre Huyghe |
-#artist__doug_hyde Doug Hyde |
-#artist__louis_icart Louis Icart |
-#artist__robert_indiana Robert Indiana |
-#artist__jean_auguste_dominique_ingres Jean Auguste Dominique Ingres |
-#artist__robert_irwin Robert Irwin |
-#artist__gabriel_isak Gabriel Isak |
-#artist__junji_ito Junji Ito |
-#artist__christophe_jacrot Christophe Jacrot |
-#artist__louis_janmot Louis Janmot |
-#artist__frieke_janssens Frieke Janssens |
-#artist__alexander_jansson Alexander Jansson |
-#artist__tove_jansson Tove Jansson |
-#artist__aaron_jasinski Aaron Jasinski |
-#artist__alexej_von_jawlensky Alexej von Jawlensky |
-#artist__james_jean James Jean |
-#artist__oliver_jeffers Oliver Jeffers |
-#artist__lee_jeffries Lee Jeffries |
-#artist__georg_jensen Georg Jensen |
-#artist__ellen_jewett Ellen Jewett |
-#artist__he_jiaying He Jiaying |
-#artist__chantal_joffe Chantal Joffe |
-#artist__martine_johanna Martine Johanna |
-#artist__augustus_john Augustus John |
-#artist__gwen_john Gwen John |
-#artist__jasper_johns Jasper Johns |
-#artist__eastman_johnson Eastman Johnson |
-#artist__alfred_cheney_johnston Alfred Cheney Johnston |
-#artist__dorothy_johnstone Dorothy Johnstone |
-#artist__android_jones Android Jones |
-#artist__erik_jones Erik Jones |
-#artist__jeffrey_catherine_jones Jeffrey Catherine Jones |
-#artist__peter_andrew_jones Peter Andrew Jones |
-#artist__loui_jover Loui Jover |
-#artist__amy_judd Amy Judd |
-#artist__donald_judd Donald Judd |
-#artist__jean_jullien Jean Jullien |
-#artist__matthias_jung Matthias Jung |
-#artist__joe_jusko Joe Jusko |
-#artist__frida_kahlo Frida Kahlo |
-#artist__hayv_kahraman Hayv Kahraman |
-#artist__mw_kaluta M.W. Kaluta |
-#artist__nadav_kander Nadav Kander |
-#artist__wassily_kandinsky Wassily Kandinsky |
-#artist__jun_kaneko Jun Kaneko |
-#artist__titus_kaphar Titus Kaphar |
-#artist__michal_karcz Michal Karcz |
-#artist__gertrude_kasebier Gertrude Käsebier |
-#artist__terada_katsuya Terada Katsuya |
-#artist__audrey_kawasaki Audrey Kawasaki |
-#artist__hasui_kawase Hasui Kawase |
-#artist__glen_keane Glen Keane |
-#artist__margaret_keane Margaret Keane |
-#artist__ellsworth_kelly Ellsworth Kelly |
-#artist__michael_kenna Michael Kenna |
-#artist__thomas_benjamin_kennington Thomas Benjamin Kennington |
-#artist__william_kentridge William Kentridge |
-#artist__hendrik_kerstens Hendrik Kerstens |
-#artist__jeremiah_ketner Jeremiah Ketner |
-#artist__fernand_khnopff Fernand Khnopff |
-#artist__hideyuki_kikuchi Hideyuki Kikuchi |
-#artist__tom_killion Tom Killion |
-#artist__thomas_kinkade Thomas Kinkade |
-#artist__jack_kirby Jack Kirby |
-#artist__ernst_ludwig_kirchner Ernst Ludwig Kirchner |
-#artist__tatsuro_kiuchi Tatsuro Kiuchi |
-#artist__jon_klassen Jon Klassen |
-#artist__paul_klee Paul Klee |
-#artist__william_klein William Klein |
-#artist__yves_klein Yves Klein |
-#artist__carl_kleiner Carl Kleiner |
-#artist__gustav_klimt Gustav Klimt |
-#artist__godfrey_kneller Godfrey Kneller |
-#artist__emily_kame_kngwarreye Emily Kame Kngwarreye |
-#artist__chad_knight Chad Knight |
-#artist__nick_knight Nick Knight |
-#artist__helene_knoop Helene Knoop |
-#artist__phil_koch Phil Koch |
-#artist__kazuo_koike Kazuo Koike |
-#artist__oskar_kokoschka Oskar Kokoschka |
-#artist__kathe_kollwitz Käthe Kollwitz |
-#artist__michael_komarck Michael Komarck |
-#artist__satoshi_kon Satoshi Kon |
-#artist__jeff_koons Jeff Koons |
-#artist__caia_koopman Caia Koopman |
-#artist__konstantin_korovin Konstantin Korovin |
-#artist__mark_kostabi Mark Kostabi |
-#artist__bella_kotak Bella Kotak |
-#artist__andrea_kowch Andrea Kowch |
-#artist__lee_krasner Lee Krasner |
-#artist__barbara_kruger Barbara Kruger |
-#artist__brad_kunkle Brad Kunkle |
-#artist__yayoi_kusama Yayoi Kusama |
-#artist__michael_k_kutsche Michael K Kutsche |
-#artist__ilya_kuvshinov Ilya Kuvshinov |
-#artist__david_lachapelle David LaChapelle |
-#artist__raphael_lacoste Raphael Lacoste |
-#artist__lev_lagorio Lev Lagorio |
-#artist__rene_lalique René Lalique |
-#artist__abigail_larson Abigail Larson |
-#artist__gary_larson Gary Larson |
-#artist__denys_lasdun Denys Lasdun |
-#artist__maria_lassnig Maria Lassnig |
-#artist__dorothy_lathrop Dorothy Lathrop |
-#artist__melissa_launay Melissa Launay |
-#artist__john_lavery John Lavery |
-#artist__jacob_lawrence Jacob Lawrence |
-#artist__thomas_lawrence Thomas Lawrence |
-#artist__ernest_lawson Ernest Lawson |
-#artist__bastien_lecouffe_deharme Bastien Lecouffe-Deharme |
-#artist__alan_lee Alan Lee |
-#artist__minjae_lee Minjae Lee |
-#artist__nina_leen Nina Leen |
-#artist__fernand_leger Fernand Leger |
-#artist__paul_lehr Paul Lehr |
-#artist__frederic_leighton Frederic Leighton |
-#artist__alayna_lemmer Alayna Lemmer |
-#artist__tamara_de_lempicka Tamara de Lempicka |
-#artist__sol_lewitt Sol LeWitt |
-#artist__jc_leyendecker J.C. Leyendecker |
-#artist__andre_lhote André Lhote |
-#artist__roy_lichtenstein Roy Lichtenstein |
-#artist__rob_liefeld Rob Liefeld |
-#artist__fang_lijun Fang Lijun |
-#artist__maya_lin Maya Lin |
-#artist__filippino_lippi Filippino Lippi |
-#artist__herbert_list Herbert List |
-#artist__richard_long Richard Long |
-#artist__yoann_lossel Yoann Lossel |
-#artist__morris_louis Morris Louis |
-#artist__sarah_lucas Sarah Lucas |
-#artist__maximilien_luce Maximilien Luce |
-#artist__loretta_lux Loretta Lux |
-#artist__george_platt_lynes George Platt Lynes |
-#artist__frances_macdonald Frances MacDonald |
-#artist__august_macke August Macke |
-#artist__stephen_mackey Stephen Mackey |
-#artist__rachel_maclean Rachel Maclean |
-#artist__raimundo_de_madrazo_y_garreta Raimundo de Madrazo y Garreta |
-#artist__joe_madureira Joe Madureira |
-#artist__rene_magritte Rene Magritte |
-#artist__jim_mahfood Jim Mahfood |
-#artist__vivian_maier Vivian Maier |
-#artist__aristide_maillol Aristide Maillol |
-#artist__don_maitz Don Maitz |
-#artist__laura_makabresku Laura Makabresku |
-#artist__alex_maleev Alex Maleev |
-#artist__keith_mallett Keith Mallett |
-#artist__johji_manabe Johji Manabe |
-#artist__milo_manara Milo Manara |
-#artist__edouard_manet Édouard Manet |
-#artist__henri_manguin Henri Manguin |
-#artist__jeremy_mann Jeremy Mann |
-#artist__sally_mann Sally Mann |
-#artist__andrea_mantegna Andrea Mantegna |
-#artist__antonio_j_manzanedo Antonio J. Manzanedo |
-#artist__robert_mapplethorpe Robert Mapplethorpe |
-#artist__franz_marc Franz Marc |
-#artist__ivan_marchuk Ivan Marchuk |
-#artist__brice_marden Brice Marden |
-#artist__andrei_markin Andrei Markin |
-#artist__kerry_james_marshall Kerry James Marshall |
-#artist__serge_marshennikov Serge Marshennikov |
-#artist__agnes_martin Agnes Martin |
-#artist__adam_martinakis Adam Martinakis |
-#artist__stephan_martiniere Stephan Martinière |
-#artist__ilya_mashkov Ilya Mashkov |
-#artist__henri_matisse Henri Matisse |
-#artist__rodney_matthews Rodney Matthews |
-#artist__anton_mauve Anton Mauve |
-#artist__peter_max Peter Max |
-#artist__mike_mayhew Mike Mayhew |
-#artist__angus_mcbride Angus McBride |
-#artist__anne_mccaffrey Anne McCaffrey |
-#artist__robert_mccall Robert McCall |
-#artist__scott_mccloud Scott McCloud |
-#artist__steve_mccurry Steve McCurry |
-#artist__todd_mcfarlane Todd McFarlane |
-#artist__barry_mcgee Barry McGee |
-#artist__ryan_mcginley Ryan McGinley |
-#artist__robert_mcginnis Robert McGinnis |
-#artist__richard_mcguire Richard McGuire |
-#artist__patrick_mchale Patrick McHale |
-#artist__kelly_mckernan Kelly McKernan |
-#artist__angus_mckie Angus McKie |
-#artist__alasdair_mclellan Alasdair McLellan |
-#artist__jon_mcnaught Jon McNaught |
-#artist__dan_mcpharlin Dan McPharlin |
-#artist__tara_mcpherson Tara McPherson |
-#artist__ralph_mcquarrie Ralph McQuarrie |
-#artist__ian_mcque Ian McQue |
-#artist__syd_mead Syd Mead |
-#artist__richard_meier Richard Meier |
-#artist__maria_sibylla_merian Maria Sibylla Merian |
-#artist__willard_metcalf Willard Metcalf |
-#artist__gabriel_metsu Gabriel Metsu |
-#artist__jean_metzinger Jean Metzinger |
-#artist__michelangelo Michelangelo |
-#artist__nicolas_mignard Nicolas Mignard |
-#artist__mike_mignola Mike Mignola |
-#artist__dimitra_milan Dimitra Milan |
-#artist__john_everett_millais John Everett Millais |
-#artist__marilyn_minter Marilyn Minter |
-#artist__januz_miralles Januz Miralles |
-#artist__joan_miro Joan Miró |
-#artist__joan_mitchell Joan Mitchell |
-#artist__hayao_miyazaki Hayao Miyazaki |
-#artist__paula_modersohn_becker Paula Modersohn-Becker |
-#artist__amedeo_modigliani Amedeo Modigliani |
-#artist__moebius Moebius |
-#artist__peter_mohrbacher Peter Mohrbacher |
-#artist__piet_mondrian Piet Mondrian |
-#artist__claude_monet Claude Monet |
-#artist__jean_baptiste_monge Jean-Baptiste Monge |
-#artist__alyssa_monks Alyssa Monks |
-#artist__alan_moore Alan Moore |
-#artist__antonio_mora Antonio Mora |
-#artist__edward_moran Edward Moran |
-#artist__koji_morimoto Kōji Morimoto |
-#artist__berthe_morisot Berthe Morisot |
-#artist__daido_moriyama Daido Moriyama |
-#artist__james_wilson_morrice James Wilson Morrice |
-#artist__sarah_morris Sarah Morris |
-#artist__john_lowrie_morrison John Lowrie Morrison |
-#artist__igor_morski Igor Morski |
-#artist__john_kenn_mortensen John Kenn Mortensen |
-#artist__victor_moscoso Victor Moscoso |
-#artist__inna_mosina Inna Mosina |
-#artist__richard_mosse Richard Mosse |
-#artist__thomas_edwin_mostyn Thomas Edwin Mostyn |
-#artist__marcel_mouly Marcel Mouly |
-#artist__emmanuelle_moureaux Emmanuelle Moureaux |
-#artist__alphonse_mucha Alphonse Mucha |
-#artist__craig_mullins Craig Mullins |
-#artist__augustus_edwin_mulready Augustus Edwin Mulready |
-#artist__dan_mumford Dan Mumford |
-#artist__edvard_munch Edvard Munch |
-#artist__alfred_munnings Alfred Munnings |
-#artist__gabriele_munter Gabriele Münter |
-#artist__takashi_murakami Takashi Murakami |
-#artist__patrice_murciano Patrice Murciano |
-#artist__scott_musgrove Scott Musgrove |
-#artist__wangechi_mutu Wangechi Mutu |
-#artist__go_nagai Go Nagai |
-#artist__hiroshi_nagai Hiroshi Nagai |
-#artist__patrick_nagel Patrick Nagel |
-#artist__tibor_nagy Tibor Nagy |
-#artist__scott_naismith Scott Naismith |
-#artist__juliana_nan Juliana Nan |
-#artist__ted_nasmith Ted Nasmith |
-#artist__todd_nauck Todd Nauck |
-#artist__bruce_nauman Bruce Nauman |
-#artist__ernst_wilhelm_nay Ernst Wilhelm Nay |
-#artist__alice_neel Alice Neel |
-#artist__keith_negley Keith Negley |
-#artist__leroy_neiman LeRoy Neiman |
-#artist__kadir_nelson Kadir Nelson |
-#artist__odd_nerdrum Odd Nerdrum |
-#artist__shirin_neshat Shirin Neshat |
-#artist__mikhail_nesterov Mikhail Nesterov |
-#artist__jane_newland Jane Newland |
-#artist__victo_ngai Victo Ngai |
-#artist__william_nicholson William Nicholson |
-#artist__florian_nicolle Florian Nicolle |
-#artist__kay_nielsen Kay Nielsen |
-#artist__tsutomu_nihei Tsutomu Nihei |
-#artist__victor_nizovtsev Victor Nizovtsev |
-#artist__isamu_noguchi Isamu Noguchi |
-#artist__catherine_nolin Catherine Nolin |
-#artist__francois_de_nome François De Nomé |
-#artist__earl_norem Earl Norem |
-#artist__phil_noto Phil Noto |
-#artist__georgia_okeeffe Georgia O'Keeffe |
-#artist__terry_oakes Terry Oakes |
-#artist__chris_ofili Chris Ofili |
-#artist__jack_ohman Jack Ohman |
-#artist__noriyoshi_ohrai Noriyoshi Ohrai |
-#artist__helio_oiticica Helio Oiticica |
-#artist__taro_okamoto Tarō Okamoto |
-#artist__tim_okamura Tim Okamura |
-#artist__naomi_okubo Naomi Okubo |
-#artist__atelier_olschinsky Atelier Olschinsky |
-#artist__greg_olsen Greg Olsen |
-#artist__oleg_oprisco Oleg Oprisco |
-#artist__tony_orrico Tony Orrico |
-#artist__mamoru_oshii Mamoru Oshii |
-#artist__ida_rentoul_outhwaite Ida Rentoul Outhwaite |
-#artist__yigal_ozeri Yigal Ozeri |
-#artist__gabriel_pacheco Gabriel Pacheco |
-#artist__michael_page Michael Page |
-#artist__rui_palha Rui Palha |
-#artist__polixeni_papapetrou Polixeni Papapetrou |
-#artist__julio_le_parc Julio Le Parc |
-#artist__michael_parkes Michael Parkes |
-#artist__philippe_parreno Philippe Parreno |
-#artist__maxfield_parrish Maxfield Parrish |
-#artist__alice_pasquini Alice Pasquini |
-#artist__james_mcintosh_patrick James McIntosh Patrick |
-#artist__john_pawson John Pawson |
-#artist__max_pechstein Max Pechstein |
-#artist__agnes_lawrence_pelton Agnes Lawrence Pelton |
-#artist__irving_penn Irving Penn |
-#artist__bruce_pennington Bruce Pennington |
-#artist__john_perceval John Perceval |
-#artist__george_perez George Perez |
-#artist__constant_permeke Constant Permeke |
-#artist__lilla_cabot_perry Lilla Cabot Perry |
-#artist__gaetano_pesce Gaetano Pesce |
-#artist__cleon_peterson Cleon Peterson |
-#artist__daria_petrilli Daria Petrilli |
-#artist__raymond_pettibon Raymond Pettibon |
-#artist__coles_phillips Coles Phillips |
-#artist__francis_picabia Francis Picabia |
-#artist__pablo_picasso Pablo Picasso |
-#artist__sopheap_pich Sopheap Pich |
-#artist__otto_piene Otto Piene |
-#artist__jerry_pinkney Jerry Pinkney |
-#artist__pinturicchio Pinturicchio |
-#artist__sebastiano_del_piombo Sebastiano del Piombo |
-#artist__camille_pissarro Camille Pissarro |
-#artist__ferris_plock Ferris Plock |
-#artist__bill_plympton Bill Plympton |
-#artist__willy_pogany Willy Pogany |
-#artist__patricia_polacco Patricia Polacco |
-#artist__jackson_pollock Jackson Pollock |
-#artist__beatrix_potter Beatrix Potter |
-#artist__edward_henry_potthast Edward Henry Potthast |
-#artist__simon_prades Simon Prades |
-#artist__maurice_prendergast Maurice Prendergast |
-#artist__dod_procter Dod Procter |
-#artist__leo_putz Leo Putz |
-#artist__howard_pyle Howard Pyle |
-#artist__arthur_rackham Arthur Rackham |
-#artist__natalia_rak Natalia Rak |
-#artist__paul_ranson Paul Ranson |
-#artist__raphael Raphael |
-#artist__abraham_rattner Abraham Rattner |
-#artist__jan_van_ravesteyn Jan van Ravesteyn |
-#artist__aliza_razell Aliza Razell |
-#artist__paula_rego Paula Rego |
-#artist__lotte_reiniger Lotte Reiniger |
-#artist__valentin_rekunenko Valentin Rekunenko |
-#artist__christoffer_relander Christoffer Relander |
-#artist__andrey_remnev Andrey Remnev |
-#artist__pierre_auguste_renoir Pierre-Auguste Renoir |
-#artist__ilya_repin Ilya Repin |
-#artist__joshua_reynolds Joshua Reynolds |
-#artist__rhads RHADS |
-#artist__bettina_rheims Bettina Rheims |
-#artist__jason_rhoades Jason Rhoades |
-#artist__georges_ribemont_dessaignes Georges Ribemont-Dessaignes |
-#artist__jusepe_de_ribera Jusepe de Ribera |
-#artist__gerhard_richter Gerhard Richter |
-#artist__chris_riddell Chris Riddell |
-#artist__hyacinthe_rigaud Hyacinthe Rigaud |
-#artist__rembrandt_van_rijn Rembrandt van Rijn |
-#artist__faith_ringgold Faith Ringgold |
-#artist__jozsef_rippl_ronai József Rippl-Rónai |
-#artist__pipilotti_rist Pipilotti Rist |
-#artist__charles_robinson Charles Robinson |
-#artist__theodore_robinson Theodore Robinson |
-#artist__kenneth_rocafort Kenneth Rocafort |
-#artist__andreas_rocha Andreas Rocha |
-#artist__norman_rockwell Norman Rockwell |
-#artist__ludwig_mies_van_der_rohe Ludwig Mies van der Rohe |
-#artist__fatima_ronquillo Fatima Ronquillo |
-#artist__salvator_rosa Salvator Rosa |
-#artist__kerby_rosanes Kerby Rosanes |
-#artist__conrad_roset Conrad Roset |
-#artist__bob_ross Bob Ross |
-#artist__dante_gabriel_rossetti Dante Gabriel Rossetti |
-#artist__jessica_rossier Jessica Rossier |
-#artist__marianna_rothen Marianna Rothen |
-#artist__mark_rothko Mark Rothko |
-#artist__eva_rothschild Eva Rothschild |
-#artist__georges_rousse Georges Rousse |
-#artist__luis_royo Luis Royo |
-#artist__joao_ruas Joao Ruas |
-#artist__peter_paul_rubens Peter Paul Rubens |
-#artist__rachel_ruysch Rachel Ruysch |
-#artist__albert_pinkham_ryder Albert Pinkham Ryder |
-#artist__mark_ryden Mark Ryden |
-#artist__ursula_von_rydingsvard Ursula von Rydingsvard |
-#artist__theo_van_rysselberghe Theo van Rysselberghe |
-#artist__eero_saarinen Eero Saarinen |
-#artist__wlad_safronow Wlad Safronow |
-#artist__amanda_sage Amanda Sage |
-#artist__antoine_de_saint_exupery Antoine de Saint-Exupery |
-#artist__nicola_samori Nicola Samori |
-#artist__rebeca_saray Rebeca Saray |
-#artist__john_singer_sargent John Singer Sargent |
-#artist__martiros_saryan Martiros Saryan |
-#artist__viviane_sassen Viviane Sassen |
-#artist__nike_savvas Nike Savvas |
-#artist__richard_scarry Richard Scarry |
-#artist__godfried_schalcken Godfried Schalcken |
-#artist__miriam_schapiro Miriam Schapiro |
-#artist__kenny_scharf Kenny Scharf |
-#artist__jerry_schatzberg Jerry Schatzberg |
-#artist__ary_scheffer Ary Scheffer |
-#artist__kees_scherer Kees Scherer |
-#artist__helene_schjerfbeck Helene Schjerfbeck |
-#artist__christian_schloe Christian Schloe |
-#artist__karl_schmidt_rottluff Karl Schmidt-Rottluff |
-#artist__julian_schnabel Julian Schnabel |
-#artist__fritz_scholder Fritz Scholder |
-#artist__charles_schulz Charles Schulz |
-#artist__sean_scully Sean Scully |
-#artist__ronald_searle Ronald Searle |
-#artist__mark_seliger Mark Seliger |
-#artist__anton_semenov Anton Semenov |
-#artist__edmondo_senatore Edmondo Senatore |
-#artist__maurice_sendak Maurice Sendak |
-#artist__richard_serra Richard Serra |
-#artist__georges_seurat Georges Seurat |
-#artist__dr_seuss Dr. Seuss |
-#artist__tanya_shatseva Tanya Shatseva |
-#artist__natalie_shau Natalie Shau |
-#artist__barclay_shaw Barclay Shaw |
-#artist__e_h_shepard E. H. Shepard |
-#artist__amrita_sher_gil Amrita Sher-Gil |
-#artist__irene_sheri Irene Sheri |
-#artist__duffy_sheridan Duffy Sheridan |
-#artist__cindy_sherman Cindy Sherman |
-#artist__shozo_shimamoto Shozo Shimamoto |
-#artist__hikari_shimoda Hikari Shimoda |
-#artist__makoto_shinkai Makoto Shinkai |
-#artist__chiharu_shiota Chiharu Shiota |
-#artist__elizabeth_shippen_green Elizabeth Shippen Green |
-#artist__masamune_shirow Masamune Shirow |
-#artist__tim_shumate Tim Shumate |
-#artist__yuri_shwedoff Yuri Shwedoff |
-#artist__malick_sidibe Malick Sidibé |
-#artist__jeanloup_sieff Jeanloup Sieff |
-#artist__bill_sienkiewicz Bill Sienkiewicz |
-#artist__marc_simonetti Marc Simonetti |
-#artist__david_sims David Sims |
-#artist__andy_singer Andy Singer |
-#artist__alfred_sisley Alfred Sisley |
-#artist__sandy_skoglund Sandy Skoglund |
-#artist__jeffrey_smart Jeffrey Smart |
-#artist__berndnaut_smilde Berndnaut Smilde |
-#artist__rodney_smith Rodney Smith |
-#artist__samantha_keely_smith Samantha Keely Smith |
-#artist__robert_smithson Robert Smithson |
-#artist__barbara_stauffacher_solomon Barbara Stauffacher Solomon |
-#artist__simeon_solomon Simeon Solomon |
-#artist__hajime_sorayama Hajime Sorayama |
-#artist__joaquin_sorolla Joaquín Sorolla |
-#artist__ettore_sottsass Ettore Sottsass |
-#artist__amadeo_de_souza_cardoso Amadeo de Souza-Cardoso |
-#artist__millicent_sowerby Millicent Sowerby |
-#artist__moses_soyer Moses Soyer |
-#artist__sparth Sparth |
-#artist__jack_spencer Jack Spencer |
-#artist__art_spiegelman Art Spiegelman |
-#artist__simon_stalenhag Simon Stålenhag |
-#artist__ralph_steadman Ralph Steadman |
-#artist__philip_wilson_steer Philip Wilson Steer |
-#artist__william_steig William Steig |
-#artist__fred_stein Fred Stein |
-#artist__theophile_steinlen Théophile Steinlen |
-#artist__brian_stelfreeze Brian Stelfreeze |
-#artist__frank_stella Frank Stella |
-#artist__joseph_stella Joseph Stella |
-#artist__irma_stern Irma Stern |
-#artist__alfred_stevens Alfred Stevens |
-#artist__marie_spartali_stillman Marie Spartali Stillman |
-#artist__stinkfish Stinkfish |
-#artist__anne_stokes Anne Stokes |
-#artist__william_stout William Stout |
-#artist__paul_strand Paul Strand |
-#artist__linnea_strid Linnea Strid |
-#artist__john_melhuish_strudwick John Melhuish Strudwick |
-#artist__drew_struzan Drew Struzan |
-#artist__tatiana_suarez Tatiana Suarez |
-#artist__eustache_le_sueur Eustache Le Sueur |
-#artist__rebecca_sugar Rebecca Sugar |
-#artist__hiroshi_sugimoto Hiroshi Sugimoto |
-#artist__graham_sutherland Graham Sutherland |
-#artist__jan_svankmajer Jan Svankmajer |
-#artist__raymond_swanland Raymond Swanland |
-#artist__annie_swynnerton Annie Swynnerton |
-#artist__stanislaw_szukalski Stanisław Szukalski |
-#artist__philip_taaffe Philip Taaffe |
-#artist__hiroyuki_mitsume_takahashi Hiroyuki-Mitsume Takahashi |
-#artist__dorothea_tanning Dorothea Tanning |
-#artist__margaret_tarrant Margaret Tarrant |
-#artist__genndy_tartakovsky Genndy Tartakovsky |
-#artist__teamlab teamLab |
-#artist__raina_telgemeier Raina Telgemeier |
-#artist__john_tenniel John Tenniel |
-#artist__sir_john_tenniel Sir John Tenniel |
-#artist__howard_terpning Howard Terpning |
-#artist__osamu_tezuka Osamu Tezuka |
-#artist__abbott_handerson_thayer Abbott Handerson Thayer |
-#artist__heather_theurer Heather Theurer |
-#artist__mickalene_thomas Mickalene Thomas |
-#artist__tom_thomson Tom Thomson |
-#artist__titian Titian |
-#artist__mark_tobey Mark Tobey |
-#artist__greg_tocchini Greg Tocchini |
-#artist__roland_topor Roland Topor |
-#artist__sergio_toppi Sergio Toppi |
-#artist__alex_toth Alex Toth |
-#artist__henri_de_toulouse_lautrec Henri de Toulouse-Lautrec |
-#artist__ross_tran Ross Tran |
-#artist__philip_treacy Philip Treacy |
-#artist__anne_truitt Anne Truitt |
-#artist__henry_scott_tuke Henry Scott Tuke |
-#artist__jmw_turner J.M.W. Turner |
-#artist__james_turrell James Turrell |
-#artist__john_henry_twachtman John Henry Twachtman |
-#artist__naomi_tydeman Naomi Tydeman |
-#artist__euan_uglow Euan Uglow |
-#artist__daniela_uhlig Daniela Uhlig |
-#artist__kitagawa_utamaro Kitagawa Utamaro |
-#artist__christophe_vacher Christophe Vacher |
-#artist__suzanne_valadon Suzanne Valadon |
-#artist__thiago_valdi Thiago Valdi |
-#artist__chris_van_allsburg Chris van Allsburg |
-#artist__francine_van_hove Francine Van Hove |
-#artist__jan_van_kessel_the_elder Jan van Kessel the Elder |
-#artist__remedios_varo Remedios Varo |
-#artist__nick_veasey Nick Veasey |
-#artist__diego_velazquez Diego Velázquez |
-#artist__eve_ventrue Eve Ventrue |
-#artist__johannes_vermeer Johannes Vermeer |
-#artist__charles_vess Charles Vess |
-#artist__roman_vishniac Roman Vishniac |
-#artist__kelly_vivanco Kelly Vivanco |
-#artist__brian_m_viveros Brian M. Viveros |
-#artist__elke_vogelsang Elke Vogelsang |
-#artist__vladimir_volegov Vladimir Volegov |
-#artist__robert_vonnoh Robert Vonnoh |
-#artist__mikhail_vrubel Mikhail Vrubel |
-#artist__louis_wain Louis Wain |
-#artist__kara_walker Kara Walker |
-#artist__josephine_wall Josephine Wall |
-#artist__bruno_walpoth Bruno Walpoth |
-#artist__chris_ware Chris Ware |
-#artist__andy_warhol Andy Warhol |
-#artist__john_william_waterhouse John William Waterhouse |
-#artist__bill_watterson Bill Watterson |
-#artist__george_frederic_watts George Frederic Watts |
-#artist__walter_ernest_webster Walter Ernest Webster |
-#artist__hendrik_weissenbruch Hendrik Weissenbruch |
-#artist__neil_welliver Neil Welliver |
-#artist__catrin_welz_stein Catrin Welz-Stein |
-#artist__vivienne_westwood Vivienne Westwood |
-#artist__michael_whelan Michael Whelan |
-#artist__james_abbott_mcneill_whistler James Abbott McNeill Whistler |
-#artist__william_whitaker William Whitaker |
-#artist__tim_white Tim White |
-#artist__coby_whitmore Coby Whitmore |
-#artist__david_wiesner David Wiesner |
-#artist__kehinde_wiley Kehinde Wiley |
-#artist__cathy_wilkes Cathy Wilkes |
-#artist__jessie_willcox_smith Jessie Willcox Smith |
-#artist__gilbert_williams Gilbert Williams |
-#artist__kyffin_williams Kyffin Williams |
-#artist__al_williamson Al Williamson |
-#artist__wes_wilson Wes Wilson |
-#artist__mike_winkelmann Mike Winkelmann |
-#artist__bec_winnel Bec Winnel |
-#artist__franz_xaver_winterhalter Franz Xaver Winterhalter |
-#artist__nathan_wirth Nathan Wirth |
-#artist__wlop WLOP |
-#artist__brandon_woelfel Brandon Woelfel |
-#artist__liam_wong Liam Wong |
-#artist__francesca_woodman Francesca Woodman |
-#artist__jim_woodring Jim Woodring |
-#artist__patrick_woodroffe Patrick Woodroffe |
-#artist__frank_lloyd_wright Frank Lloyd Wright |
-#artist__sulamith_wulfing Sulamith Wulfing |
-#artist__nc_wyeth N.C. Wyeth |
-#artist__rose_wylie Rose Wylie |
-#artist__stanislaw_wyspianski Stanisław Wyspiański |
-#artist__takato_yamamoto Takato Yamamoto |
-#artist__gene_luen_yang Gene Luen Yang |
-#artist__ikenaga_yasunari Ikenaga Yasunari |
-#artist__kozo_yokai Kozo Yokai |
-#artist__sean_yoro Sean Yoro |
-#artist__chie_yoshii Chie Yoshii |
-#artist__skottie_young Skottie Young |
-#artist__masaaki_yuasa Masaaki Yuasa |
-#artist__konstantin_yuon Konstantin Yuon |
-#artist__yuumei Yuumei |
-#artist__william_zorach William Zorach |
-#artist__ander_zorn Ander Zorn |
+@__wizards_artists_set := {
+#artist__zacharias_martin_aagaard |
+#artist__slim_aarons |
+#artist__elenore_abbott |
+#artist__tomma_abts |
+#artist__vito_acconci |
+#artist__andreas_achenbach |
+#artist__ansel_adams |
+#artist__josh_adamski |
+#artist__charles_addams |
+#artist__etel_adnan |
+#artist__alena_aenami |
+#artist__leonid_afremov |
+#artist__petros_afshar |
+#artist__yaacov_agam |
+#artist__eileen_agar |
+#artist__craigie_aitchison |
+#artist__ivan_aivazovsky |
+#artist__francesco_albani |
+#artist__alessio_albi |
+#artist__miles_aldridge |
+#artist__john_white_alexander |
+#artist__alessandro_allori |
+#artist__mike_allred |
+#artist__lawrence_alma_tadema |
+#artist__lilia_alvarado |
+#artist__tarsila_do_amaral |
+#artist__ghada_amer |
+#artist__cuno_amiet |
+#artist__el_anatsui |
+#artist__helga_ancher |
+#artist__sarah_andersen |
+#artist__richard_anderson |
+#artist__sophie_gengembre_anderson |
+#artist__wes_anderson |
+#artist__alex_andreev |
+#artist__sofonisba_anguissola |
+#artist__louis_anquetin |
+#artist__mary_jane_ansell |
+#artist__chiho_aoshima |
+#artist__sabbas_apterus |
+#artist__hirohiko_araki |
+#artist__howard_arkley |
+#artist__rolf_armstrong |
+#artist__gerd_arntz |
+#artist__guy_aroch |
+#artist__miki_asai |
+#artist__clemens_ascher |
+#artist__henry_asencio |
+#artist__andrew_atroshenko |
+#artist__deborah_azzopardi |
+#artist__lois_van_baarle |
+#artist__ingrid_baars |
+#artist__anne_bachelier |
+#artist__francis_bacon |
+#artist__firmin_baes |
+#artist__tom_bagshaw |
+#artist__karol_bak |
+#artist__christopher_balaskas |
+#artist__benedick_bana |
+#artist__banksy |
+#artist__george_barbier |
+#artist__cicely_mary_barker |
+#artist__wayne_barlowe |
+#artist__will_barnet |
+#artist__matthew_barney |
+#artist__angela_barrett |
+#artist__jean_michel_basquiat |
+#artist__lillian_bassman |
+#artist__pompeo_batoni |
+#artist__casey_baugh |
+#artist__chiara_bautista |
+#artist__herbert_bayer |
+#artist__mary_beale |
+#artist__alan_bean |
+#artist__romare_bearden |
+#artist__cecil_beaton |
+#artist__cecilia_beaux |
+#artist__jasmine_becket_griffith |
+#artist__vanessa_beecroft |
+#artist__beeple |
+#artist__zdzislaw_beksinski |
+#artist__katerina_belkina |
+#artist__julie_bell |
+#artist__vanessa_bell |
+#artist__bernardo_bellotto |
+#artist__ambrosius_benson |
+#artist__stan_berenstain |
+#artist__laura_berger |
+#artist__jody_bergsma |
+#artist__john_berkey |
+#artist__gian_lorenzo_bernini |
+#artist__marta_bevacqua |
+#artist__john_t_biggers |
+#artist__enki_bilal |
+#artist__ivan_bilibin |
+#artist__butcher_billy |
+#artist__george_caleb_bingham |
+#artist__ed_binkley |
+#artist__george_birrell |
+#artist__robert_bissell |
+#artist__charles_blackman |
+#artist__mary_blair |
+#artist__john_blanche |
+#artist__don_blanding |
+#artist__albert_bloch |
+#artist__hyman_bloom |
+#artist__peter_blume |
+#artist__don_bluth |
+#artist__umberto_boccioni |
+#artist__anna_bocek |
+#artist__lee_bogle |
+#artist__louis_leopold_boily |
+#artist__giovanni_boldini |
+#artist__enoch_bolles |
+#artist__david_bomberg |
+#artist__chesley_bonestell |
+#artist__lee_bontecou |
+#artist__michael_borremans |
+#artist__matt_bors |
+#artist__flora_borsi |
+#artist__hieronymus_bosch |
+#artist__sam_bosma |
+#artist__johfra_bosschart |
+#artist__fernando_botero |
+#artist__sandro_botticelli |
+#artist__william_adolphe_bouguereau |
+#artist__susan_seddon_boulet |
+#artist__louise_bourgeois |
+#artist__annick_bouvattier |
+#artist__david_michael_bowers |
+#artist__noah_bradley |
+#artist__aleksi_briclot |
+#artist__frederick_arthur_bridgman |
+#artist__renie_britenbucher |
+#artist__romero_britto |
+#artist__gerald_brom |
+#artist__bronzino |
+#artist__herman_brood |
+#artist__mark_brooks |
+#artist__romaine_brooks |
+#artist__troy_brooks |
+#artist__broom_lee |
+#artist__allie_brosh |
+#artist__ford_madox_brown |
+#artist__charles_le_brun |
+#artist__elisabeth_vigee_le_brun |
+#artist__james_bullough |
+#artist__laurel_burch |
+#artist__alejandro_burdisio |
+#artist__daniel_buren |
+#artist__jon_burgerman |
+#artist__richard_burlet |
+#artist__jim_burns |
+#artist__stasia_burrington |
+#artist__kaethe_butcher |
+#artist__saturno_butto |
+#artist__paul_cadmus |
+#artist__zhichao_cai |
+#artist__randolph_caldecott |
+#artist__alexander_calder_milne |
+#artist__clyde_caldwell |
+#artist__vincent_callebaut |
+#artist__fred_calleri |
+#artist__charles_camoin |
+#artist__mike_campau |
+#artist__eric_canete |
+#artist__josef_capek |
+#artist__leonetto_cappiello |
+#artist__eric_carle |
+#artist__larry_carlson |
+#artist__bill_carman |
+#artist__jean_baptiste_carpeaux |
+#artist__rosalba_carriera |
+#artist__michael_carson |
+#artist__felice_casorati |
+#artist__mary_cassatt |
+#artist__a_j_casson |
+#artist__giorgio_barbarelli_da_castelfranco |
+#artist__paul_catherall |
+#artist__george_catlin |
+#artist__patrick_caulfield |
+#artist__nicoletta_ceccoli |
+#artist__agnes_cecile |
+#artist__paul_cezanne |
+#artist__paul_chabas |
+#artist__marc_chagall |
+#artist__tom_chambers |
+#artist__katia_chausheva |
+#artist__hsiao_ron_cheng |
+#artist__yanjun_cheng |
+#artist__sandra_chevrier |
+#artist__judy_chicago |
+#artist__dale_chihuly |
+#artist__frank_cho |
+#artist__james_c_christensen |
+#artist__mikalojus_konstantinas_ciurlionis |
+#artist__alson_skinner_clark |
+#artist__amanda_clark |
+#artist__harry_clarke |
+#artist__george_clausen |
+#artist__francesco_clemente |
+#artist__alvin_langdon_coburn |
+#artist__clifford_coffin |
+#artist__vince_colletta |
+#artist__beth_conklin |
+#artist__john_constable |
+#artist__darwyn_cooke |
+#artist__richard_corben |
+#artist__vittorio_matteo_corcos |
+#artist__paul_corfield |
+#artist__fernand_cormon |
+#artist__norman_cornish |
+#artist__camille_corot |
+#artist__gemma_correll |
+#artist__petra_cortright |
+#artist__lorenzo_costa_the_elder |
+#artist__olive_cotton |
+#artist__peter_coulson |
+#artist__gustave_courbet |
+#artist__frank_cadogan_cowper |
+#artist__kinuko_y_craft |
+#artist__clayton_crain |
+#artist__lucas_cranach_the_elder |
+#artist__lucas_cranach_the_younger |
+#artist__walter_crane |
+#artist__martin_creed |
+#artist__gregory_crewdson |
+#artist__debbie_criswell |
+#artist__victoria_crowe |
+#artist__etam_cru |
+#artist__robert_crumb |
+#artist__carlos_cruz_diez |
+#artist__john_currin |
+#artist__krenz_cushart |
+#artist__camilla_derrico |
+#artist__pino_daeni |
+#artist__salvador_dali |
+#artist__sunil_das |
+#artist__ian_davenport |
+#artist__stuart_davis |
+#artist__roger_dean |
+#artist__michael_deforge |
+#artist__edgar_degas |
+#artist__eugene_delacroix |
+#artist__robert_delaunay |
+#artist__sonia_delaunay |
+#artist__gabriele_dellotto |
+#artist__nicolas_delort |
+#artist__jean_delville |
+#artist__posuka_demizu |
+#artist__guy_denning |
+#artist__monsu_desiderio |
+#artist__charles_maurice_detmold |
+#artist__edward_julius_detmold |
+#artist__anne_dewailly |
+#artist__walt_disney |
+#artist__tony_diterlizzi |
+#artist__anna_dittmann |
+#artist__dima_dmitriev |
+#artist__peter_doig |
+#artist__kees_van_dongen |
+#artist__gustave_dore |
+#artist__dave_dorman |
+#artist__emilio_giuseppe_dossena |
+#artist__david_downton |
+#artist__jessica_drossin |
+#artist__philippe_druillet |
+#artist__tj_drysdale |
+#artist__ton_dubbeldam |
+#artist__marcel_duchamp |
+#artist__joseph_ducreux |
+#artist__edmund_dulac |
+#artist__marlene_dumas |
+#artist__charles_dwyer |
+#artist__william_dyce |
+#artist__chris_dyer |
+#artist__eyvind_earle |
+#artist__amy_earles |
+#artist__lori_earley |
+#artist__jeff_easley |
+#artist__tristan_eaton |
+#artist__jason_edmiston |
+#artist__alfred_eisenstaedt |
+#artist__jesper_ejsing |
+#artist__olafur_eliasson |
+#artist__harrison_ellenshaw |
+#artist__christine_ellger |
+#artist__larry_elmore |
+#artist__joseba_elorza |
+#artist__peter_elson |
+#artist__gil_elvgren |
+#artist__ed_emshwiller |
+#artist__kilian_eng |
+#artist__jason_a_engle |
+#artist__max_ernst |
+#artist__romain_de_tirtoff_erte |
+#artist__m_c_escher |
+#artist__tim_etchells |
+#artist__walker_evans |
+#artist__jan_van_eyck |
+#artist__glenn_fabry |
+#artist__ludwig_fahrenkrog |
+#artist__shepard_fairey |
+#artist__andy_fairhurst |
+#artist__luis_ricardo_falero |
+#artist__jean_fautrier |
+#artist__andrew_ferez |
+#artist__hugh_ferriss |
+#artist__david_finch |
+#artist__callie_fink |
+#artist__virgil_finlay |
+#artist__anato_finnstark |
+#artist__howard_finster |
+#artist__oskar_fischinger |
+#artist__samuel_melton_fisher |
+#artist__john_anster_fitzgerald |
+#artist__tony_fitzpatrick |
+#artist__hippolyte_flandrin |
+#artist__dan_flavin |
+#artist__max_fleischer |
+#artist__govaert_flinck |
+#artist__alex_russell_flint |
+#artist__lucio_fontana |
+#artist__chris_foss |
+#artist__jon_foster |
+#artist__jean_fouquet |
+#artist__toby_fox |
+#artist__art_frahm |
+#artist__lisa_frank |
+#artist__helen_frankenthaler |
+#artist__frank_frazetta |
+#artist__kelly_freas |
+#artist__lucian_freud |
+#artist__brian_froud |
+#artist__wendy_froud |
+#artist__tom_fruin |
+#artist__john_wayne_gacy |
+#artist__justin_gaffrey |
+#artist__hashimoto_gaho |
+#artist__neil_gaiman |
+#artist__stephen_gammell |
+#artist__hope_gangloff |
+#artist__alex_garant |
+#artist__gilbert_garcin |
+#artist__michael_and_inessa_garmash |
+#artist__antoni_gaudi |
+3 |
+#artist__paul_gauguin |
+#artist__giovanni_battista_gaulli |
+#artist__anne_geddes |
+#artist__bill_gekas |
+#artist__artemisia_gentileschi |
+#artist__orazio_gentileschi |
+#artist__daniel_f_gerhartz |
+#artist__theodore_gericault |
+#artist__jean_leon_gerome |
+#artist__mark_gertler |
+#artist__atey_ghailan |
+#artist__alberto_giacometti |
+#artist__donato_giancola |
+#artist__hr_giger |
+#artist__james_gilleard |
+#artist__harold_gilman |
+#artist__charles_ginner |
+#artist__jean_giraud |
+#artist__anne_louis_girodet |
+#artist__milton_glaser |
+#artist__warwick_goble |
+#artist__john_william_godward |
+#artist__sacha_goldberger |
+#artist__nan_goldin |
+#artist__josan_gonzalez |
+#artist__felix_gonzalez_torres |
+#artist__derek_gores |
+#artist__edward_gorey |
+#artist__arshile_gorky |
+#artist__alessandro_gottardo |
+#artist__adolph_gottlieb |
+#artist__francisco_goya |
+#artist__laurent_grasso |
+#artist__mab_graves |
+#artist__eileen_gray |
+#artist__kate_greenaway |
+#artist__alex_grey |
+#artist__carne_griffiths |
+#artist__gris_grimly |
+#artist__brothers_grimm |
+#artist__tracie_grimwood |
+#artist__matt_groening |
+#artist__alex_gross |
+#artist__tom_grummett |
+#artist__huang_guangjian |
+#artist__wu_guanzhong |
+#artist__rebecca_guay |
+#artist__guercino |
+#artist__jeannette_guichard_bunel |
+#artist__scott_gustafson |
+#artist__wade_guyton |
+#artist__hans_haacke |
+#artist__robert_hagan |
+#artist__philippe_halsman |
+#artist__maggi_hambling |
+#artist__richard_hamilton |
+#artist__bess_hamiti |
+#artist__tom_hammick |
+#artist__david_hammons |
+#artist__ren_hang |
+#artist__erin_hanson |
+#artist__keith_haring |
+#artist__alexei_harlamoff |
+#artist__charley_harper |
+#artist__john_harris |
+#artist__florence_harrison |
+#artist__marsden_hartley |
+#artist__ryohei_hase |
+#artist__childe_hassam |
+#artist__ben_hatke |
+#artist__mona_hatoum |
+#artist__pam_hawkes |
+#artist__jamie_hawkesworth |
+#artist__stuart_haygarth |
+#artist__erich_heckel |
+#artist__valerie_hegarty |
+#artist__mary_heilmann |
+#artist__michael_heizer |
+#artist__gottfried_helnwein |
+#artist__barkley_l_hendricks |
+#artist__bill_henson |
+#artist__barbara_hepworth |
+#artist__herge |
+#artist__carolina_herrera |
+#artist__george_herriman |
+#artist__don_hertzfeldt |
+#artist__prudence_heward |
+#artist__ryan_hewett |
+#artist__nora_heysen |
+#artist__george_elgar_hicks |
+#artist__lorenz_hideyoshi |
+#artist__brothers_hildebrandt |
+#artist__dan_hillier |
+#artist__lewis_hine |
+#artist__miho_hirano |
+#artist__harumi_hironaka |
+#artist__hiroshige |
+#artist__morris_hirshfield |
+#artist__damien_hirst |
+#artist__fan_ho |
+#artist__meindert_hobbema |
+#artist__david_hockney |
+#artist__filip_hodas |
+#artist__howard_hodgkin |
+#artist__ferdinand_hodler |
+#artist__tiago_hoisel |
+#artist__katsushika_hokusai |
+#artist__hans_holbein_the_younger |
+#artist__frank_holl |
+#artist__carsten_holler |
+#artist__zena_holloway |
+#artist__edward_hopper |
+#artist__aaron_horkey |
+#artist__alex_horley |
+#artist__roni_horn |
+#artist__john_howe |
+#artist__alex_howitt |
+#artist__meghan_howland |
+#artist__john_hoyland |
+#artist__shilin_huang |
+#artist__arthur_hughes |
+#artist__edward_robert_hughes |
+#artist__jack_hughes |
+#artist__talbot_hughes |
+#artist__pieter_hugo |
+#artist__gary_hume |
+#artist__friedensreich_hundertwasser |
+#artist__william_holman_hunt |
+#artist__george_hurrell |
+#artist__fabio_hurtado |
+#artist__hush |
+#artist__michael_hutter |
+#artist__pierre_huyghe |
+#artist__doug_hyde |
+#artist__louis_icart |
+#artist__robert_indiana |
+#artist__jean_auguste_dominique_ingres |
+#artist__robert_irwin |
+#artist__gabriel_isak |
+#artist__junji_ito |
+#artist__christophe_jacrot |
+#artist__louis_janmot |
+#artist__frieke_janssens |
+#artist__alexander_jansson |
+#artist__tove_jansson |
+#artist__aaron_jasinski |
+#artist__alexej_von_jawlensky |
+#artist__james_jean |
+#artist__oliver_jeffers |
+#artist__lee_jeffries |
+#artist__georg_jensen |
+#artist__ellen_jewett |
+#artist__he_jiaying |
+#artist__chantal_joffe |
+#artist__martine_johanna |
+#artist__augustus_john |
+#artist__gwen_john |
+#artist__jasper_johns |
+#artist__eastman_johnson |
+#artist__alfred_cheney_johnston |
+#artist__dorothy_johnstone |
+#artist__android_jones |
+#artist__erik_jones |
+#artist__jeffrey_catherine_jones |
+#artist__peter_andrew_jones |
+#artist__loui_jover |
+#artist__amy_judd |
+#artist__donald_judd |
+#artist__jean_jullien |
+#artist__matthias_jung |
+#artist__joe_jusko |
+#artist__frida_kahlo |
+#artist__hayv_kahraman |
+#artist__mw_kaluta |
+#artist__nadav_kander |
+#artist__wassily_kandinsky |
+#artist__jun_kaneko |
+#artist__titus_kaphar |
+#artist__michal_karcz |
+#artist__gertrude_kasebier |
+#artist__terada_katsuya |
+#artist__audrey_kawasaki |
+#artist__hasui_kawase |
+#artist__glen_keane |
+#artist__margaret_keane |
+#artist__ellsworth_kelly |
+#artist__michael_kenna |
+#artist__thomas_benjamin_kennington |
+#artist__william_kentridge |
+#artist__hendrik_kerstens |
+#artist__jeremiah_ketner |
+#artist__fernand_khnopff |
+#artist__hideyuki_kikuchi |
+#artist__tom_killion |
+#artist__thomas_kinkade |
+#artist__jack_kirby |
+#artist__ernst_ludwig_kirchner |
+#artist__tatsuro_kiuchi |
+#artist__jon_klassen |
+#artist__paul_klee |
+#artist__william_klein |
+#artist__yves_klein |
+#artist__carl_kleiner |
+#artist__gustav_klimt |
+#artist__godfrey_kneller |
+#artist__emily_kame_kngwarreye |
+#artist__chad_knight |
+#artist__nick_knight |
+#artist__helene_knoop |
+#artist__phil_koch |
+#artist__kazuo_koike |
+#artist__oskar_kokoschka |
+#artist__kathe_kollwitz |
+#artist__michael_komarck |
+#artist__satoshi_kon |
+#artist__jeff_koons |
+#artist__caia_koopman |
+#artist__konstantin_korovin |
+#artist__mark_kostabi |
+#artist__bella_kotak |
+#artist__andrea_kowch |
+#artist__lee_krasner |
+#artist__barbara_kruger |
+#artist__brad_kunkle |
+#artist__yayoi_kusama |
+#artist__michael_k_kutsche |
+#artist__ilya_kuvshinov |
+#artist__david_lachapelle |
+#artist__raphael_lacoste |
+#artist__lev_lagorio |
+#artist__rene_lalique |
+#artist__abigail_larson |
+#artist__gary_larson |
+#artist__denys_lasdun |
+#artist__maria_lassnig |
+#artist__dorothy_lathrop |
+#artist__melissa_launay |
+#artist__john_lavery |
+#artist__jacob_lawrence |
+#artist__thomas_lawrence |
+#artist__ernest_lawson |
+#artist__bastien_lecouffe_deharme |
+#artist__alan_lee |
+#artist__minjae_lee |
+#artist__nina_leen |
+#artist__fernand_leger |
+#artist__paul_lehr |
+#artist__frederic_leighton |
+#artist__alayna_lemmer |
+#artist__tamara_de_lempicka |
+#artist__sol_lewitt |
+#artist__jc_leyendecker |
+#artist__andre_lhote |
+#artist__roy_lichtenstein |
+#artist__rob_liefeld |
+#artist__fang_lijun |
+#artist__maya_lin |
+#artist__filippino_lippi |
+#artist__herbert_list |
+#artist__richard_long |
+#artist__yoann_lossel |
+#artist__morris_louis |
+#artist__sarah_lucas |
+#artist__maximilien_luce |
+#artist__loretta_lux |
+#artist__george_platt_lynes |
+#artist__frances_macdonald |
+#artist__august_macke |
+#artist__stephen_mackey |
+#artist__rachel_maclean |
+#artist__raimundo_de_madrazo_y_garreta |
+#artist__joe_madureira |
+#artist__rene_magritte |
+#artist__jim_mahfood |
+#artist__vivian_maier |
+#artist__aristide_maillol |
+#artist__don_maitz |
+#artist__laura_makabresku |
+#artist__alex_maleev |
+#artist__keith_mallett |
+#artist__johji_manabe |
+#artist__milo_manara |
+#artist__edouard_manet |
+#artist__henri_manguin |
+#artist__jeremy_mann |
+#artist__sally_mann |
+#artist__andrea_mantegna |
+#artist__antonio_j_manzanedo |
+#artist__robert_mapplethorpe |
+#artist__franz_marc |
+#artist__ivan_marchuk |
+#artist__brice_marden |
+#artist__andrei_markin |
+#artist__kerry_james_marshall |
+#artist__serge_marshennikov |
+#artist__agnes_martin |
+#artist__adam_martinakis |
+#artist__stephan_martiniere |
+#artist__ilya_mashkov |
+#artist__henri_matisse |
+#artist__rodney_matthews |
+#artist__anton_mauve |
+#artist__peter_max |
+#artist__mike_mayhew |
+#artist__angus_mcbride |
+#artist__anne_mccaffrey |
+#artist__robert_mccall |
+#artist__scott_mccloud |
+#artist__steve_mccurry |
+#artist__todd_mcfarlane |
+#artist__barry_mcgee |
+#artist__ryan_mcginley |
+#artist__robert_mcginnis |
+#artist__richard_mcguire |
+#artist__patrick_mchale |
+#artist__kelly_mckernan |
+#artist__angus_mckie |
+#artist__alasdair_mclellan |
+#artist__jon_mcnaught |
+#artist__dan_mcpharlin |
+#artist__tara_mcpherson |
+#artist__ralph_mcquarrie |
+#artist__ian_mcque |
+#artist__syd_mead |
+#artist__richard_meier |
+#artist__maria_sibylla_merian |
+#artist__willard_metcalf |
+#artist__gabriel_metsu |
+#artist__jean_metzinger |
+#artist__michelangelo |
+#artist__nicolas_mignard |
+#artist__mike_mignola |
+#artist__dimitra_milan |
+#artist__john_everett_millais |
+#artist__marilyn_minter |
+#artist__januz_miralles |
+#artist__joan_miro |
+#artist__joan_mitchell |
+#artist__hayao_miyazaki |
+#artist__paula_modersohn_becker |
+#artist__amedeo_modigliani |
+#artist__moebius |
+#artist__peter_mohrbacher |
+#artist__piet_mondrian |
+#artist__claude_monet |
+#artist__jean_baptiste_monge |
+#artist__alyssa_monks |
+#artist__alan_moore |
+#artist__antonio_mora |
+#artist__edward_moran |
+#artist__koji_morimoto |
+#artist__berthe_morisot |
+#artist__daido_moriyama |
+#artist__james_wilson_morrice |
+#artist__sarah_morris |
+#artist__john_lowrie_morrison |
+#artist__igor_morski |
+#artist__john_kenn_mortensen |
+#artist__victor_moscoso |
+#artist__inna_mosina |
+#artist__richard_mosse |
+#artist__thomas_edwin_mostyn |
+#artist__marcel_mouly |
+#artist__emmanuelle_moureaux |
+#artist__alphonse_mucha |
+#artist__craig_mullins |
+#artist__augustus_edwin_mulready |
+#artist__dan_mumford |
+#artist__edvard_munch |
+#artist__alfred_munnings |
+#artist__gabriele_munter |
+#artist__takashi_murakami |
+#artist__patrice_murciano |
+#artist__scott_musgrove |
+#artist__wangechi_mutu |
+#artist__go_nagai |
+#artist__hiroshi_nagai |
+#artist__patrick_nagel |
+#artist__tibor_nagy |
+#artist__scott_naismith |
+#artist__juliana_nan |
+#artist__ted_nasmith |
+#artist__todd_nauck |
+#artist__bruce_nauman |
+#artist__ernst_wilhelm_nay |
+#artist__alice_neel |
+#artist__keith_negley |
+#artist__leroy_neiman |
+#artist__kadir_nelson |
+#artist__odd_nerdrum |
+#artist__shirin_neshat |
+#artist__mikhail_nesterov |
+#artist__jane_newland |
+#artist__victo_ngai |
+#artist__william_nicholson |
+#artist__florian_nicolle |
+#artist__kay_nielsen |
+#artist__tsutomu_nihei |
+#artist__victor_nizovtsev |
+#artist__isamu_noguchi |
+#artist__catherine_nolin |
+#artist__francois_de_nome |
+#artist__earl_norem |
+#artist__phil_noto |
+#artist__georgia_okeeffe |
+#artist__terry_oakes |
+#artist__chris_ofili |
+#artist__jack_ohman |
+#artist__noriyoshi_ohrai |
+#artist__helio_oiticica |
+#artist__taro_okamoto |
+#artist__tim_okamura |
+#artist__naomi_okubo |
+#artist__atelier_olschinsky |
+#artist__greg_olsen |
+#artist__oleg_oprisco |
+#artist__tony_orrico |
+#artist__mamoru_oshii |
+#artist__ida_rentoul_outhwaite |
+#artist__yigal_ozeri |
+#artist__gabriel_pacheco |
+#artist__michael_page |
+#artist__rui_palha |
+#artist__polixeni_papapetrou |
+#artist__julio_le_parc |
+#artist__michael_parkes |
+#artist__philippe_parreno |
+#artist__maxfield_parrish |
+#artist__alice_pasquini |
+#artist__james_mcintosh_patrick |
+#artist__john_pawson |
+#artist__max_pechstein |
+#artist__agnes_lawrence_pelton |
+#artist__irving_penn |
+#artist__bruce_pennington |
+#artist__john_perceval |
+#artist__george_perez |
+#artist__constant_permeke |
+#artist__lilla_cabot_perry |
+#artist__gaetano_pesce |
+#artist__cleon_peterson |
+#artist__daria_petrilli |
+#artist__raymond_pettibon |
+#artist__coles_phillips |
+#artist__francis_picabia |
+#artist__pablo_picasso |
+#artist__sopheap_pich |
+#artist__otto_piene |
+#artist__jerry_pinkney |
+#artist__pinturicchio |
+#artist__sebastiano_del_piombo |
+#artist__camille_pissarro |
+#artist__ferris_plock |
+#artist__bill_plympton |
+#artist__willy_pogany |
+#artist__patricia_polacco |
+#artist__jackson_pollock |
+#artist__beatrix_potter |
+#artist__edward_henry_potthast |
+#artist__simon_prades |
+#artist__maurice_prendergast |
+#artist__dod_procter |
+#artist__leo_putz |
+#artist__howard_pyle |
+#artist__arthur_rackham |
+#artist__natalia_rak |
+#artist__paul_ranson |
+#artist__raphael |
+#artist__abraham_rattner |
+#artist__jan_van_ravesteyn |
+#artist__aliza_razell |
+#artist__paula_rego |
+#artist__lotte_reiniger |
+#artist__valentin_rekunenko |
+#artist__christoffer_relander |
+#artist__andrey_remnev |
+#artist__pierre_auguste_renoir |
+#artist__ilya_repin |
+#artist__joshua_reynolds |
+#artist__rhads |
+#artist__bettina_rheims |
+#artist__jason_rhoades |
+#artist__georges_ribemont_dessaignes |
+#artist__jusepe_de_ribera |
+#artist__gerhard_richter |
+#artist__chris_riddell |
+#artist__hyacinthe_rigaud |
+#artist__rembrandt_van_rijn |
+#artist__faith_ringgold |
+#artist__jozsef_rippl_ronai |
+#artist__pipilotti_rist |
+#artist__charles_robinson |
+#artist__theodore_robinson |
+#artist__kenneth_rocafort |
+#artist__andreas_rocha |
+#artist__norman_rockwell |
+#artist__ludwig_mies_van_der_rohe |
+#artist__fatima_ronquillo |
+#artist__salvator_rosa |
+#artist__kerby_rosanes |
+#artist__conrad_roset |
+#artist__bob_ross |
+#artist__dante_gabriel_rossetti |
+#artist__jessica_rossier |
+#artist__marianna_rothen |
+#artist__mark_rothko |
+#artist__eva_rothschild |
+#artist__georges_rousse |
+#artist__luis_royo |
+#artist__joao_ruas |
+#artist__peter_paul_rubens |
+#artist__rachel_ruysch |
+#artist__albert_pinkham_ryder |
+#artist__mark_ryden |
+#artist__ursula_von_rydingsvard |
+#artist__theo_van_rysselberghe |
+#artist__eero_saarinen |
+#artist__wlad_safronow |
+#artist__amanda_sage |
+#artist__antoine_de_saint_exupery |
+#artist__nicola_samori |
+#artist__rebeca_saray |
+#artist__john_singer_sargent |
+#artist__martiros_saryan |
+#artist__viviane_sassen |
+#artist__nike_savvas |
+#artist__richard_scarry |
+#artist__godfried_schalcken |
+#artist__miriam_schapiro |
+#artist__kenny_scharf |
+#artist__jerry_schatzberg |
+#artist__ary_scheffer |
+#artist__kees_scherer |
+#artist__helene_schjerfbeck |
+#artist__christian_schloe |
+#artist__karl_schmidt_rottluff |
+#artist__julian_schnabel |
+#artist__fritz_scholder |
+#artist__charles_schulz |
+#artist__sean_scully |
+#artist__ronald_searle |
+#artist__mark_seliger |
+#artist__anton_semenov |
+#artist__edmondo_senatore |
+#artist__maurice_sendak |
+#artist__richard_serra |
+#artist__georges_seurat |
+#artist__dr_seuss |
+#artist__tanya_shatseva |
+#artist__natalie_shau |
+#artist__barclay_shaw |
+#artist__e_h_shepard |
+#artist__amrita_sher_gil |
+#artist__irene_sheri |
+#artist__duffy_sheridan |
+#artist__cindy_sherman |
+#artist__shozo_shimamoto |
+#artist__hikari_shimoda |
+#artist__makoto_shinkai |
+#artist__chiharu_shiota |
+#artist__elizabeth_shippen_green |
+#artist__masamune_shirow |
+#artist__tim_shumate |
+#artist__yuri_shwedoff |
+#artist__malick_sidibe |
+#artist__jeanloup_sieff |
+#artist__bill_sienkiewicz |
+#artist__marc_simonetti |
+#artist__david_sims |
+#artist__andy_singer |
+#artist__alfred_sisley |
+#artist__sandy_skoglund |
+#artist__jeffrey_smart |
+#artist__berndnaut_smilde |
+#artist__rodney_smith |
+#artist__samantha_keely_smith |
+#artist__robert_smithson |
+#artist__barbara_stauffacher_solomon |
+#artist__simeon_solomon |
+#artist__hajime_sorayama |
+#artist__joaquin_sorolla |
+#artist__ettore_sottsass |
+#artist__amadeo_de_souza_cardoso |
+#artist__millicent_sowerby |
+#artist__moses_soyer |
+#artist__sparth |
+#artist__jack_spencer |
+#artist__art_spiegelman |
+#artist__simon_stalenhag |
+#artist__ralph_steadman |
+#artist__philip_wilson_steer |
+#artist__william_steig |
+#artist__fred_stein |
+#artist__theophile_steinlen |
+#artist__brian_stelfreeze |
+#artist__frank_stella |
+#artist__joseph_stella |
+#artist__irma_stern |
+#artist__alfred_stevens |
+#artist__marie_spartali_stillman |
+#artist__stinkfish |
+#artist__anne_stokes |
+#artist__william_stout |
+#artist__paul_strand |
+#artist__linnea_strid |
+#artist__john_melhuish_strudwick |
+#artist__drew_struzan |
+#artist__tatiana_suarez |
+#artist__eustache_le_sueur |
+#artist__rebecca_sugar |
+#artist__hiroshi_sugimoto |
+#artist__graham_sutherland |
+#artist__jan_svankmajer |
+#artist__raymond_swanland |
+#artist__annie_swynnerton |
+#artist__stanislaw_szukalski |
+#artist__philip_taaffe |
+#artist__hiroyuki_mitsume_takahashi |
+#artist__dorothea_tanning |
+#artist__margaret_tarrant |
+#artist__genndy_tartakovsky |
+#artist__teamlab |
+#artist__raina_telgemeier |
+#artist__john_tenniel |
+#artist__sir_john_tenniel |
+#artist__howard_terpning |
+#artist__osamu_tezuka |
+#artist__abbott_handerson_thayer |
+#artist__heather_theurer |
+#artist__mickalene_thomas |
+#artist__tom_thomson |
+#artist__titian |
+#artist__mark_tobey |
+#artist__greg_tocchini |
+#artist__roland_topor |
+#artist__sergio_toppi |
+#artist__alex_toth |
+#artist__henri_de_toulouse_lautrec |
+#artist__ross_tran |
+#artist__philip_treacy |
+#artist__anne_truitt |
+#artist__henry_scott_tuke |
+#artist__jmw_turner |
+#artist__james_turrell |
+#artist__john_henry_twachtman |
+#artist__naomi_tydeman |
+#artist__euan_uglow |
+#artist__daniela_uhlig |
+#artist__kitagawa_utamaro |
+#artist__christophe_vacher |
+#artist__suzanne_valadon |
+#artist__thiago_valdi |
+#artist__chris_van_allsburg |
+#artist__francine_van_hove |
+#artist__jan_van_kessel_the_elder |
+#artist__remedios_varo |
+#artist__nick_veasey |
+#artist__diego_velazquez |
+#artist__eve_ventrue |
+#artist__johannes_vermeer |
+#artist__charles_vess |
+#artist__roman_vishniac |
+#artist__kelly_vivanco |
+#artist__brian_m_viveros |
+#artist__elke_vogelsang |
+#artist__vladimir_volegov |
+#artist__robert_vonnoh |
+#artist__mikhail_vrubel |
+#artist__louis_wain |
+#artist__kara_walker |
+#artist__josephine_wall |
+#artist__bruno_walpoth |
+#artist__chris_ware |
+#artist__andy_warhol |
+#artist__john_william_waterhouse |
+#artist__bill_watterson |
+#artist__george_frederic_watts |
+#artist__walter_ernest_webster |
+#artist__hendrik_weissenbruch |
+#artist__neil_welliver |
+#artist__catrin_welz_stein |
+#artist__vivienne_westwood |
+#artist__michael_whelan |
+#artist__james_abbott_mcneill_whistler |
+#artist__william_whitaker |
+#artist__tim_white |
+#artist__coby_whitmore |
+#artist__david_wiesner |
+#artist__kehinde_wiley |
+#artist__cathy_wilkes |
+#artist__jessie_willcox_smith |
+#artist__gilbert_williams |
+#artist__kyffin_williams |
+#artist__al_williamson |
+#artist__wes_wilson |
+#artist__mike_winkelmann |
+#artist__bec_winnel |
+#artist__franz_xaver_winterhalter |
+#artist__nathan_wirth |
+#artist__wlop |
+#artist__brandon_woelfel |
+#artist__liam_wong |
+#artist__francesca_woodman |
+#artist__jim_woodring |
+#artist__patrick_woodroffe |
+#artist__frank_lloyd_wright |
+#artist__sulamith_wulfing |
+#artist__nc_wyeth |
+#artist__rose_wylie |
+#artist__stanislaw_wyspianski |
+#artist__takato_yamamoto |
+#artist__gene_luen_yang |
+#artist__ikenaga_yasunari |
+#artist__kozo_yokai |
+#artist__sean_yoro |
+#artist__chie_yoshii |
+#artist__skottie_young |
+#artist__masaaki_yuasa |
+#artist__konstantin_yuon |
+#artist__yuumei |
+#artist__william_zorach |
+#artist__ander_zorn |
 // artists added by me (ariane-emory):
 3 #artist__ian_miller Ian Miller |
 3 #artist__john_zeleznik John Zeleznik |
 3 #artist__keith_parkinson Keith Parkinson |
 3 #artist__kevin_fales Kevin Fales |
 3 #artist__boris_vallejo
+}
+
+
+@__wizards_artists_names := {
+?artist__zacharias_martin_aagaard Zacharias Martin Aagaard |
+?artist__slim_aarons Slim Aarons |
+?artist__elenore_abbott Elenore Abbott |
+?artist__tomma_abts Tomma Abts |
+?artist__vito_acconci Vito Acconci |
+?artist__andreas_achenbach Andreas Achenbach |
+?artist__ansel_adams Ansel Adams |
+?artist__josh_adamski Josh Adamski |
+?artist__charles_addams Charles Addams |
+?artist__etel_adnan Etel Adnan |
+?artist__alena_aenami Alena Aenami |
+?artist__leonid_afremov Leonid Afremov |
+?artist__petros_afshar Petros Afshar |
+?artist__yaacov_agam Yaacov Agam |
+?artist__eileen_agar Eileen Agar |
+?artist__craigie_aitchison Craigie Aitchison |
+?artist__ivan_aivazovsky Ivan Aivazovsky |
+?artist__francesco_albani Francesco Albani |
+?artist__alessio_albi Alessio Albi |
+?artist__miles_aldridge Miles Aldridge |
+?artist__john_white_alexander John White Alexander |
+?artist__alessandro_allori Alessandro Allori |
+?artist__mike_allred Mike Allred |
+?artist__lawrence_alma_tadema Lawrence Alma-Tadema |
+?artist__lilia_alvarado Lilia Alvarado |
+?artist__tarsila_do_amaral Tarsila do Amaral |
+?artist__ghada_amer Ghada Amer |
+?artist__cuno_amiet Cuno Amiet |
+?artist__el_anatsui El Anatsui |
+?artist__helga_ancher Helga Ancher |
+?artist__sarah_andersen Sarah Andersen |
+?artist__richard_anderson Richard Anderson |
+?artist__sophie_gengembre_anderson Sophie Gengembre Anderson |
+?artist__wes_anderson Wes Anderson |
+?artist__alex_andreev Alex Andreev |
+?artist__sofonisba_anguissola Sofonisba Anguissola |
+?artist__louis_anquetin Louis Anquetin |
+?artist__mary_jane_ansell Mary Jane Ansell |
+?artist__chiho_aoshima Chiho Aoshima |
+?artist__sabbas_apterus Sabbas Apterus |
+?artist__hirohiko_araki Hirohiko Araki |
+?artist__howard_arkley Howard Arkley |
+?artist__rolf_armstrong Rolf Armstrong |
+?artist__gerd_arntz Gerd Arntz |
+?artist__guy_aroch Guy Aroch |
+?artist__miki_asai Miki Asai |
+?artist__clemens_ascher Clemens Ascher |
+?artist__henry_asencio Henry Asencio |
+?artist__andrew_atroshenko Andrew Atroshenko |
+?artist__deborah_azzopardi Deborah Azzopardi |
+?artist__lois_van_baarle Lois van Baarle |
+?artist__ingrid_baars Ingrid Baars |
+?artist__anne_bachelier Anne Bachelier |
+?artist__francis_bacon Francis Bacon |
+?artist__firmin_baes Firmin Baes |
+?artist__tom_bagshaw Tom Bagshaw |
+?artist__karol_bak Karol Bak |
+?artist__christopher_balaskas Christopher Balaskas |
+?artist__benedick_bana Benedick Bana |
+?artist__banksy Banksy |
+?artist__george_barbier George Barbier |
+?artist__cicely_mary_barker Cicely Mary Barker |
+?artist__wayne_barlowe Wayne Barlowe |
+?artist__will_barnet Will Barnet |
+?artist__matthew_barney Matthew Barney |
+?artist__angela_barrett Angela Barrett |
+?artist__jean_michel_basquiat Jean-Michel Basquiat |
+?artist__lillian_bassman Lillian Bassman |
+?artist__pompeo_batoni Pompeo Batoni |
+?artist__casey_baugh Casey Baugh |
+?artist__chiara_bautista Chiara Bautista |
+?artist__herbert_bayer Herbert Bayer |
+?artist__mary_beale Mary Beale |
+?artist__alan_bean Alan Bean |
+?artist__romare_bearden Romare Bearden |
+?artist__cecil_beaton Cecil Beaton |
+?artist__cecilia_beaux Cecilia Beaux |
+?artist__jasmine_becket_griffith Jasmine Becket-Griffith |
+?artist__vanessa_beecroft Vanessa Beecroft |
+?artist__beeple Beeple |
+?artist__zdzislaw_beksinski Zdzisław Beksiński |
+?artist__katerina_belkina Katerina Belkina |
+?artist__julie_bell Julie Bell |
+?artist__vanessa_bell Vanessa Bell |
+?artist__bernardo_bellotto Bernardo Bellotto |
+?artist__ambrosius_benson Ambrosius Benson |
+?artist__stan_berenstain Stan Berenstain |
+?artist__laura_berger Laura Berger |
+?artist__jody_bergsma Jody Bergsma |
+?artist__john_berkey John Berkey |
+?artist__gian_lorenzo_bernini Gian Lorenzo Bernini |
+?artist__marta_bevacqua Marta Bevacqua |
+?artist__john_t_biggers John T. Biggers |
+?artist__enki_bilal Enki Bilal |
+?artist__ivan_bilibin Ivan Bilibin |
+?artist__butcher_billy Butcher Billy |
+?artist__george_caleb_bingham George Caleb Bingham |
+?artist__ed_binkley Ed Binkley |
+?artist__george_birrell George Birrell |
+?artist__robert_bissell Robert Bissell |
+?artist__charles_blackman Charles Blackman |
+?artist__mary_blair Mary Blair |
+?artist__john_blanche John Blanche |
+?artist__don_blanding Don Blanding |
+?artist__albert_bloch Albert Bloch |
+?artist__hyman_bloom Hyman Bloom |
+?artist__peter_blume Peter Blume |
+?artist__don_bluth Don Bluth |
+?artist__umberto_boccioni Umberto Boccioni |
+?artist__anna_bocek Anna Bocek |
+?artist__lee_bogle Lee Bogle |
+?artist__louis_leopold_boily Louis-Léopold Boily |
+?artist__giovanni_boldini Giovanni Boldini |
+?artist__enoch_bolles Enoch Bolles |
+?artist__david_bomberg David Bomberg |
+?artist__chesley_bonestell Chesley Bonestell |
+?artist__lee_bontecou Lee Bontecou |
+?artist__michael_borremans Michael Borremans |
+?artist__matt_bors Matt Bors |
+?artist__flora_borsi Flora Borsi |
+?artist__hieronymus_bosch Hieronymus Bosch |
+?artist__sam_bosma Sam Bosma |
+?artist__johfra_bosschart Johfra Bosschart |
+?artist__fernando_botero Fernando Botero |
+?artist__sandro_botticelli Sandro Botticelli |
+?artist__william_adolphe_bouguereau William-Adolphe Bouguereau |
+?artist__susan_seddon_boulet Susan Seddon Boulet |
+?artist__louise_bourgeois Louise Bourgeois |
+?artist__annick_bouvattier Annick Bouvattier |
+?artist__david_michael_bowers David Michael Bowers |
+?artist__noah_bradley Noah Bradley |
+?artist__aleksi_briclot Aleksi Briclot |
+?artist__frederick_arthur_bridgman Frederick Arthur Bridgman |
+?artist__renie_britenbucher Renie Britenbucher |
+?artist__romero_britto Romero Britto |
+?artist__gerald_brom Gerald Brom |
+?artist__bronzino Bronzino |
+?artist__herman_brood Herman Brood |
+?artist__mark_brooks Mark Brooks |
+?artist__romaine_brooks Romaine Brooks |
+?artist__troy_brooks Troy Brooks |
+?artist__broom_lee Broom Lee |
+?artist__allie_brosh Allie Brosh |
+?artist__ford_madox_brown Ford Madox Brown |
+?artist__charles_le_brun Charles Le Brun |
+?artist__elisabeth_vigee_le_brun Élisabeth Vigée Le Brun |
+?artist__james_bullough James Bullough |
+?artist__laurel_burch Laurel Burch |
+?artist__alejandro_burdisio Alejandro Burdisio |
+?artist__daniel_buren Daniel Buren |
+?artist__jon_burgerman Jon BurGerman |
+?artist__richard_burlet Richard Burlet |
+?artist__jim_burns Jim Burns |
+?artist__stasia_burrington Stasia Burrington |
+?artist__kaethe_butcher Kaethe Butcher |
+?artist__saturno_butto Saturno Butto |
+?artist__paul_cadmus Paul Cadmus |
+?artist__zhichao_cai Zhichao Cai |
+?artist__randolph_caldecott Randolph Caldecott |
+?artist__alexander_calder_milne Alexander Calder Milne |
+?artist__clyde_caldwell Clyde Caldwell |
+?artist__vincent_callebaut Vincent Callebaut |
+?artist__fred_calleri Fred Calleri |
+?artist__charles_camoin Charles Camoin |
+?artist__mike_campau Mike Campau |
+?artist__eric_canete Eric Canete |
+?artist__josef_capek Josef Capek |
+?artist__leonetto_cappiello Leonetto Cappiello |
+?artist__eric_carle Eric Carle |
+?artist__larry_carlson Larry Carlson |
+?artist__bill_carman Bill Carman |
+?artist__jean_baptiste_carpeaux Jean-Baptiste Carpeaux |
+?artist__rosalba_carriera Rosalba Carriera |
+?artist__michael_carson Michael Carson |
+?artist__felice_casorati Felice Casorati |
+?artist__mary_cassatt Mary Cassatt |
+?artist__a_j_casson A. J. Casson |
+?artist__giorgio_barbarelli_da_castelfranco Giorgio Barbarelli da Castelfranco |
+?artist__paul_catherall Paul Catherall |
+?artist__george_catlin George Catlin |
+?artist__patrick_caulfield Patrick Caulfield |
+?artist__nicoletta_ceccoli Nicoletta Ceccoli |
+?artist__agnes_cecile Agnes Cecile |
+?artist__paul_cezanne Paul Cézanne |
+?artist__paul_chabas Paul Chabas |
+?artist__marc_chagall Marc Chagall |
+?artist__tom_chambers Tom Chambers |
+?artist__katia_chausheva Katia Chausheva |
+?artist__hsiao_ron_cheng Hsiao-Ron Cheng |
+?artist__yanjun_cheng Yanjun Cheng |
+?artist__sandra_chevrier Sandra Chevrier |
+?artist__judy_chicago Judy Chicago |
+?artist__dale_chihuly Dale Chihuly |
+?artist__frank_cho Frank Cho |
+?artist__james_c_christensen James C. Christensen |
+?artist__mikalojus_konstantinas_ciurlionis Mikalojus Konstantinas Ciurlionis |
+?artist__alson_skinner_clark Alson Skinner Clark |
+?artist__amanda_clark Amanda Clark |
+?artist__harry_clarke Harry Clarke |
+?artist__george_clausen George Clausen |
+?artist__francesco_clemente Francesco Clemente |
+?artist__alvin_langdon_coburn Alvin Langdon Coburn |
+?artist__clifford_coffin Clifford Coffin |
+?artist__vince_colletta Vince Colletta |
+?artist__beth_conklin Beth Conklin |
+?artist__john_constable John Constable |
+?artist__darwyn_cooke Darwyn Cooke |
+?artist__richard_corben Richard Corben |
+?artist__vittorio_matteo_corcos Vittorio Matteo Corcos |
+?artist__paul_corfield Paul Corfield |
+?artist__fernand_cormon Fernand Cormon |
+?artist__norman_cornish Norman Cornish |
+?artist__camille_corot Camille Corot |
+?artist__gemma_correll Gemma Correll |
+?artist__petra_cortright Petra Cortright |
+?artist__lorenzo_costa_the_elder Lorenzo Costa the Elder |
+?artist__olive_cotton Olive Cotton |
+?artist__peter_coulson Peter Coulson |
+?artist__gustave_courbet Gustave Courbet |
+?artist__frank_cadogan_cowper Frank Cadogan Cowper |
+?artist__kinuko_y_craft Kinuko Y. Craft |
+?artist__clayton_crain Clayton Crain |
+?artist__lucas_cranach_the_elder Lucas Cranach the Elder |
+?artist__lucas_cranach_the_younger Lucas Cranach the Younger |
+?artist__walter_crane Walter Crane |
+?artist__martin_creed Martin Creed |
+?artist__gregory_crewdson Gregory Crewdson |
+?artist__debbie_criswell Debbie Criswell |
+?artist__victoria_crowe Victoria Crowe |
+?artist__etam_cru Etam Cru |
+?artist__robert_crumb Robert Crumb |
+?artist__carlos_cruz_diez Carlos Cruz-Diez |
+?artist__john_currin John Currin |
+?artist__krenz_cushart Krenz Cushart |
+?artist__camilla_derrico Camilla d'Errico |
+?artist__pino_daeni Pino Daeni |
+?artist__salvador_dali Salvador Dalí |
+?artist__sunil_das Sunil Das |
+?artist__ian_davenport Ian Davenport |
+?artist__stuart_davis Stuart Davis |
+?artist__roger_dean Roger Dean |
+?artist__michael_deforge Michael Deforge |
+?artist__edgar_degas Edgar Degas |
+?artist__eugene_delacroix Eugene Delacroix |
+?artist__robert_delaunay Robert Delaunay |
+?artist__sonia_delaunay Sonia Delaunay |
+?artist__gabriele_dellotto Gabriele Dell'otto |
+?artist__nicolas_delort Nicolas Delort |
+?artist__jean_delville Jean Delville |
+?artist__posuka_demizu Posuka Demizu |
+?artist__guy_denning Guy Denning |
+?artist__monsu_desiderio Monsù Desiderio |
+?artist__charles_maurice_detmold Charles Maurice Detmold |
+?artist__edward_julius_detmold Edward Julius Detmold |
+?artist__anne_dewailly Anne Dewailly |
+?artist__walt_disney Walt Disney |
+?artist__tony_diterlizzi Tony DiTerlizzi |
+?artist__anna_dittmann Anna Dittmann |
+?artist__dima_dmitriev Dima Dmitriev |
+?artist__peter_doig Peter Doig |
+?artist__kees_van_dongen Kees van Dongen |
+?artist__gustave_dore Gustave Doré |
+?artist__dave_dorman Dave Dorman |
+?artist__emilio_giuseppe_dossena Emilio Giuseppe Dossena |
+?artist__david_downton David Downton |
+?artist__jessica_drossin Jessica Drossin |
+?artist__philippe_druillet Philippe Druillet |
+?artist__tj_drysdale TJ Drysdale |
+?artist__ton_dubbeldam Ton Dubbeldam |
+?artist__marcel_duchamp Marcel Duchamp |
+?artist__joseph_ducreux Joseph Ducreux |
+?artist__edmund_dulac Edmund Dulac |
+?artist__marlene_dumas Marlene Dumas |
+?artist__charles_dwyer Charles Dwyer |
+?artist__william_dyce William Dyce |
+?artist__chris_dyer Chris Dyer |
+?artist__eyvind_earle Eyvind Earle |
+?artist__amy_earles Amy Earles |
+?artist__lori_earley Lori Earley |
+?artist__jeff_easley Jeff Easley |
+?artist__tristan_eaton Tristan Eaton |
+?artist__jason_edmiston Jason Edmiston |
+?artist__alfred_eisenstaedt Alfred Eisenstaedt |
+?artist__jesper_ejsing Jesper Ejsing |
+?artist__olafur_eliasson Olafur Eliasson |
+?artist__harrison_ellenshaw Harrison Ellenshaw |
+?artist__christine_ellger Christine Ellger |
+?artist__larry_elmore Larry Elmore |
+?artist__joseba_elorza Joseba Elorza |
+?artist__peter_elson Peter Elson |
+?artist__gil_elvgren Gil Elvgren |
+?artist__ed_emshwiller Ed Emshwiller |
+?artist__kilian_eng Kilian Eng |
+?artist__jason_a_engle Jason A. Engle |
+?artist__max_ernst Max Ernst |
+?artist__romain_de_tirtoff_erte Romain de Tirtoff Erté |
+?artist__m_c_escher M. C. Escher |
+?artist__tim_etchells Tim Etchells |
+?artist__walker_evans Walker Evans |
+?artist__jan_van_eyck Jan van Eyck |
+?artist__glenn_fabry Glenn Fabry |
+?artist__ludwig_fahrenkrog Ludwig Fahrenkrog |
+?artist__shepard_fairey Shepard Fairey |
+?artist__andy_fairhurst Andy Fairhurst |
+?artist__luis_ricardo_falero Luis Ricardo Falero |
+?artist__jean_fautrier Jean Fautrier |
+?artist__andrew_ferez Andrew Ferez |
+?artist__hugh_ferriss Hugh Ferriss |
+?artist__david_finch David Finch |
+?artist__callie_fink Callie Fink |
+?artist__virgil_finlay Virgil Finlay |
+?artist__anato_finnstark Anato Finnstark |
+?artist__howard_finster Howard Finster |
+?artist__oskar_fischinger Oskar Fischinger |
+?artist__samuel_melton_fisher Samuel Melton Fisher |
+?artist__john_anster_fitzgerald John Anster Fitzgerald |
+?artist__tony_fitzpatrick Tony Fitzpatrick |
+?artist__hippolyte_flandrin Hippolyte Flandrin |
+?artist__dan_flavin Dan Flavin |
+?artist__max_fleischer Max Fleischer |
+?artist__govaert_flinck Govaert Flinck |
+?artist__alex_russell_flint Alex Russell Flint |
+?artist__lucio_fontana Lucio Fontana |
+?artist__chris_foss Chris Foss |
+?artist__jon_foster Jon Foster |
+?artist__jean_fouquet Jean Fouquet |
+?artist__toby_fox Toby Fox |
+?artist__art_frahm Art Frahm |
+?artist__lisa_frank Lisa Frank |
+?artist__helen_frankenthaler Helen Frankenthaler |
+?artist__frank_frazetta Frank Frazetta |
+?artist__kelly_freas Kelly Freas |
+?artist__lucian_freud Lucian Freud |
+?artist__brian_froud Brian Froud |
+?artist__wendy_froud Wendy Froud |
+?artist__tom_fruin Tom Fruin |
+?artist__john_wayne_gacy John Wayne Gacy |
+?artist__justin_gaffrey Justin Gaffrey |
+?artist__hashimoto_gaho Hashimoto Gahō |
+?artist__neil_gaiman Neil Gaiman |
+?artist__stephen_gammell Stephen Gammell |
+?artist__hope_gangloff Hope Gangloff |
+?artist__alex_garant Alex Garant |
+?artist__gilbert_garcin Gilbert Garcin |
+?artist__michael_and_inessa_garmash Michael and Inessa Garmash |
+?artist__antoni_gaudi Antoni Gaudi |
+3 ?artist__jack_gaughan Jack Gaughan |
+?artist__paul_gauguin Paul Gauguin |
+?artist__giovanni_battista_gaulli Giovanni Battista Gaulli |
+?artist__anne_geddes Anne Geddes |
+?artist__bill_gekas Bill Gekas |
+?artist__artemisia_gentileschi Artemisia Gentileschi |
+?artist__orazio_gentileschi Orazio Gentileschi |
+?artist__daniel_f_gerhartz Daniel F. Gerhartz |
+?artist__theodore_gericault Théodore Géricault |
+?artist__jean_leon_gerome Jean-Léon Gérôme |
+?artist__mark_gertler Mark Gertler |
+?artist__atey_ghailan Atey Ghailan |
+?artist__alberto_giacometti Alberto Giacometti |
+?artist__donato_giancola Donato Giancola |
+?artist__hr_giger H.R. Giger |
+?artist__james_gilleard James Gilleard |
+?artist__harold_gilman Harold Gilman |
+?artist__charles_ginner Charles Ginner |
+?artist__jean_giraud Jean Giraud |
+?artist__anne_louis_girodet Anne-Louis Girodet |
+?artist__milton_glaser Milton Glaser |
+?artist__warwick_goble Warwick Goble |
+?artist__john_william_godward John William Godward |
+?artist__sacha_goldberger Sacha Goldberger |
+?artist__nan_goldin Nan Goldin |
+?artist__josan_gonzalez Josan Gonzalez |
+?artist__felix_gonzalez_torres Felix Gonzalez-Torres |
+?artist__derek_gores Derek Gores |
+?artist__edward_gorey Edward Gorey |
+?artist__arshile_gorky Arshile Gorky |
+?artist__alessandro_gottardo Alessandro Gottardo |
+?artist__adolph_gottlieb Adolph Gottlieb |
+?artist__francisco_goya Francisco Goya |
+?artist__laurent_grasso Laurent Grasso |
+?artist__mab_graves Mab Graves |
+?artist__eileen_gray Eileen Gray |
+?artist__kate_greenaway Kate Greenaway |
+?artist__alex_grey Alex Grey |
+?artist__carne_griffiths Carne Griffiths |
+?artist__gris_grimly Gris Grimly |
+?artist__brothers_grimm Brothers Grimm |
+?artist__tracie_grimwood Tracie Grimwood |
+?artist__matt_groening Matt Groening |
+?artist__alex_gross Alex Gross |
+?artist__tom_grummett Tom Grummett |
+?artist__huang_guangjian Huang Guangjian |
+?artist__wu_guanzhong Wu Guanzhong |
+?artist__rebecca_guay Rebecca Guay |
+?artist__guercino Guercino |
+?artist__jeannette_guichard_bunel Jeannette Guichard-Bunel |
+?artist__scott_gustafson Scott Gustafson |
+?artist__wade_guyton Wade Guyton |
+?artist__hans_haacke Hans Haacke |
+?artist__robert_hagan Robert Hagan |
+?artist__philippe_halsman Philippe Halsman |
+?artist__maggi_hambling Maggi Hambling |
+?artist__richard_hamilton Richard Hamilton |
+?artist__bess_hamiti Bess Hamiti |
+?artist__tom_hammick Tom Hammick |
+?artist__david_hammons David Hammons |
+?artist__ren_hang Ren Hang |
+?artist__erin_hanson Erin Hanson |
+?artist__keith_haring Keith Haring |
+?artist__alexei_harlamoff Alexei Harlamoff |
+?artist__charley_harper Charley Harper |
+?artist__john_harris John Harris |
+?artist__florence_harrison Florence Harrison |
+?artist__marsden_hartley Marsden Hartley |
+?artist__ryohei_hase Ryohei Hase |
+?artist__childe_hassam Childe Hassam |
+?artist__ben_hatke Ben Hatke |
+?artist__mona_hatoum Mona Hatoum |
+?artist__pam_hawkes Pam Hawkes |
+?artist__jamie_hawkesworth Jamie Hawkesworth |
+?artist__stuart_haygarth Stuart Haygarth |
+?artist__erich_heckel Erich Heckel |
+?artist__valerie_hegarty Valerie Hegarty |
+?artist__mary_heilmann Mary Heilmann |
+?artist__michael_heizer Michael Heizer |
+?artist__gottfried_helnwein Gottfried Helnwein |
+?artist__barkley_l_hendricks Barkley L. Hendricks |
+?artist__bill_henson Bill Henson |
+?artist__barbara_hepworth Barbara Hepworth |
+?artist__herge Hergé |
+?artist__carolina_herrera Carolina Herrera |
+?artist__george_herriman George Herriman |
+?artist__don_hertzfeldt Don Hertzfeldt |
+?artist__prudence_heward Prudence Heward |
+?artist__ryan_hewett Ryan Hewett |
+?artist__nora_heysen Nora Heysen |
+?artist__george_elgar_hicks George Elgar Hicks |
+?artist__lorenz_hideyoshi Lorenz Hideyoshi |
+?artist__brothers_hildebrandt Brothers Hildebrandt |
+?artist__dan_hillier Dan Hillier |
+?artist__lewis_hine Lewis Hine |
+?artist__miho_hirano Miho Hirano |
+?artist__harumi_hironaka Harumi Hironaka |
+?artist__hiroshige Hiroshige |
+?artist__morris_hirshfield Morris Hirshfield |
+?artist__damien_hirst Damien Hirst |
+?artist__fan_ho Fan Ho |
+?artist__meindert_hobbema Meindert Hobbema |
+?artist__david_hockney David Hockney |
+?artist__filip_hodas Filip Hodas |
+?artist__howard_hodgkin Howard Hodgkin |
+?artist__ferdinand_hodler Ferdinand Hodler |
+?artist__tiago_hoisel Tiago Hoisel |
+?artist__katsushika_hokusai Katsushika Hokusai |
+?artist__hans_holbein_the_younger Hans Holbein the Younger |
+?artist__frank_holl Frank Holl |
+?artist__carsten_holler Carsten Holler |
+?artist__zena_holloway Zena Holloway |
+?artist__edward_hopper Edward Hopper |
+?artist__aaron_horkey Aaron Horkey |
+?artist__alex_horley Alex Horley |
+?artist__roni_horn Roni Horn |
+?artist__john_howe John Howe |
+?artist__alex_howitt Alex Howitt |
+?artist__meghan_howland Meghan Howland |
+?artist__john_hoyland John Hoyland |
+?artist__shilin_huang Shilin Huang |
+?artist__arthur_hughes Arthur Hughes |
+?artist__edward_robert_hughes Edward Robert Hughes |
+?artist__jack_hughes Jack Hughes |
+?artist__talbot_hughes Talbot Hughes |
+?artist__pieter_hugo Pieter Hugo |
+?artist__gary_hume Gary Hume |
+?artist__friedensreich_hundertwasser Friedensreich Hundertwasser |
+?artist__william_holman_hunt William Holman Hunt |
+?artist__george_hurrell George Hurrell |
+?artist__fabio_hurtado Fabio Hurtado |
+?artist__hush HUSH |
+?artist__michael_hutter Michael Hutter |
+?artist__pierre_huyghe Pierre Huyghe |
+?artist__doug_hyde Doug Hyde |
+?artist__louis_icart Louis Icart |
+?artist__robert_indiana Robert Indiana |
+?artist__jean_auguste_dominique_ingres Jean Auguste Dominique Ingres |
+?artist__robert_irwin Robert Irwin |
+?artist__gabriel_isak Gabriel Isak |
+?artist__junji_ito Junji Ito |
+?artist__christophe_jacrot Christophe Jacrot |
+?artist__louis_janmot Louis Janmot |
+?artist__frieke_janssens Frieke Janssens |
+?artist__alexander_jansson Alexander Jansson |
+?artist__tove_jansson Tove Jansson |
+?artist__aaron_jasinski Aaron Jasinski |
+?artist__alexej_von_jawlensky Alexej von Jawlensky |
+?artist__james_jean James Jean |
+?artist__oliver_jeffers Oliver Jeffers |
+?artist__lee_jeffries Lee Jeffries |
+?artist__georg_jensen Georg Jensen |
+?artist__ellen_jewett Ellen Jewett |
+?artist__he_jiaying He Jiaying |
+?artist__chantal_joffe Chantal Joffe |
+?artist__martine_johanna Martine Johanna |
+?artist__augustus_john Augustus John |
+?artist__gwen_john Gwen John |
+?artist__jasper_johns Jasper Johns |
+?artist__eastman_johnson Eastman Johnson |
+?artist__alfred_cheney_johnston Alfred Cheney Johnston |
+?artist__dorothy_johnstone Dorothy Johnstone |
+?artist__android_jones Android Jones |
+?artist__erik_jones Erik Jones |
+?artist__jeffrey_catherine_jones Jeffrey Catherine Jones |
+?artist__peter_andrew_jones Peter Andrew Jones |
+?artist__loui_jover Loui Jover |
+?artist__amy_judd Amy Judd |
+?artist__donald_judd Donald Judd |
+?artist__jean_jullien Jean Jullien |
+?artist__matthias_jung Matthias Jung |
+?artist__joe_jusko Joe Jusko |
+?artist__frida_kahlo Frida Kahlo |
+?artist__hayv_kahraman Hayv Kahraman |
+?artist__mw_kaluta M.W. Kaluta |
+?artist__nadav_kander Nadav Kander |
+?artist__wassily_kandinsky Wassily Kandinsky |
+?artist__jun_kaneko Jun Kaneko |
+?artist__titus_kaphar Titus Kaphar |
+?artist__michal_karcz Michal Karcz |
+?artist__gertrude_kasebier Gertrude Käsebier |
+?artist__terada_katsuya Terada Katsuya |
+?artist__audrey_kawasaki Audrey Kawasaki |
+?artist__hasui_kawase Hasui Kawase |
+?artist__glen_keane Glen Keane |
+?artist__margaret_keane Margaret Keane |
+?artist__ellsworth_kelly Ellsworth Kelly |
+?artist__michael_kenna Michael Kenna |
+?artist__thomas_benjamin_kennington Thomas Benjamin Kennington |
+?artist__william_kentridge William Kentridge |
+?artist__hendrik_kerstens Hendrik Kerstens |
+?artist__jeremiah_ketner Jeremiah Ketner |
+?artist__fernand_khnopff Fernand Khnopff |
+?artist__hideyuki_kikuchi Hideyuki Kikuchi |
+?artist__tom_killion Tom Killion |
+?artist__thomas_kinkade Thomas Kinkade |
+?artist__jack_kirby Jack Kirby |
+?artist__ernst_ludwig_kirchner Ernst Ludwig Kirchner |
+?artist__tatsuro_kiuchi Tatsuro Kiuchi |
+?artist__jon_klassen Jon Klassen |
+?artist__paul_klee Paul Klee |
+?artist__william_klein William Klein |
+?artist__yves_klein Yves Klein |
+?artist__carl_kleiner Carl Kleiner |
+?artist__gustav_klimt Gustav Klimt |
+?artist__godfrey_kneller Godfrey Kneller |
+?artist__emily_kame_kngwarreye Emily Kame Kngwarreye |
+?artist__chad_knight Chad Knight |
+?artist__nick_knight Nick Knight |
+?artist__helene_knoop Helene Knoop |
+?artist__phil_koch Phil Koch |
+?artist__kazuo_koike Kazuo Koike |
+?artist__oskar_kokoschka Oskar Kokoschka |
+?artist__kathe_kollwitz Käthe Kollwitz |
+?artist__michael_komarck Michael Komarck |
+?artist__satoshi_kon Satoshi Kon |
+?artist__jeff_koons Jeff Koons |
+?artist__caia_koopman Caia Koopman |
+?artist__konstantin_korovin Konstantin Korovin |
+?artist__mark_kostabi Mark Kostabi |
+?artist__bella_kotak Bella Kotak |
+?artist__andrea_kowch Andrea Kowch |
+?artist__lee_krasner Lee Krasner |
+?artist__barbara_kruger Barbara Kruger |
+?artist__brad_kunkle Brad Kunkle |
+?artist__yayoi_kusama Yayoi Kusama |
+?artist__michael_k_kutsche Michael K Kutsche |
+?artist__ilya_kuvshinov Ilya Kuvshinov |
+?artist__david_lachapelle David LaChapelle |
+?artist__raphael_lacoste Raphael Lacoste |
+?artist__lev_lagorio Lev Lagorio |
+?artist__rene_lalique René Lalique |
+?artist__abigail_larson Abigail Larson |
+?artist__gary_larson Gary Larson |
+?artist__denys_lasdun Denys Lasdun |
+?artist__maria_lassnig Maria Lassnig |
+?artist__dorothy_lathrop Dorothy Lathrop |
+?artist__melissa_launay Melissa Launay |
+?artist__john_lavery John Lavery |
+?artist__jacob_lawrence Jacob Lawrence |
+?artist__thomas_lawrence Thomas Lawrence |
+?artist__ernest_lawson Ernest Lawson |
+?artist__bastien_lecouffe_deharme Bastien Lecouffe-Deharme |
+?artist__alan_lee Alan Lee |
+?artist__minjae_lee Minjae Lee |
+?artist__nina_leen Nina Leen |
+?artist__fernand_leger Fernand Leger |
+?artist__paul_lehr Paul Lehr |
+?artist__frederic_leighton Frederic Leighton |
+?artist__alayna_lemmer Alayna Lemmer |
+?artist__tamara_de_lempicka Tamara de Lempicka |
+?artist__sol_lewitt Sol LeWitt |
+?artist__jc_leyendecker J.C. Leyendecker |
+?artist__andre_lhote André Lhote |
+?artist__roy_lichtenstein Roy Lichtenstein |
+?artist__rob_liefeld Rob Liefeld |
+?artist__fang_lijun Fang Lijun |
+?artist__maya_lin Maya Lin |
+?artist__filippino_lippi Filippino Lippi |
+?artist__herbert_list Herbert List |
+?artist__richard_long Richard Long |
+?artist__yoann_lossel Yoann Lossel |
+?artist__morris_louis Morris Louis |
+?artist__sarah_lucas Sarah Lucas |
+?artist__maximilien_luce Maximilien Luce |
+?artist__loretta_lux Loretta Lux |
+?artist__george_platt_lynes George Platt Lynes |
+?artist__frances_macdonald Frances MacDonald |
+?artist__august_macke August Macke |
+?artist__stephen_mackey Stephen Mackey |
+?artist__rachel_maclean Rachel Maclean |
+?artist__raimundo_de_madrazo_y_garreta Raimundo de Madrazo y Garreta |
+?artist__joe_madureira Joe Madureira |
+?artist__rene_magritte Rene Magritte |
+?artist__jim_mahfood Jim Mahfood |
+?artist__vivian_maier Vivian Maier |
+?artist__aristide_maillol Aristide Maillol |
+?artist__don_maitz Don Maitz |
+?artist__laura_makabresku Laura Makabresku |
+?artist__alex_maleev Alex Maleev |
+?artist__keith_mallett Keith Mallett |
+?artist__johji_manabe Johji Manabe |
+?artist__milo_manara Milo Manara |
+?artist__edouard_manet Édouard Manet |
+?artist__henri_manguin Henri Manguin |
+?artist__jeremy_mann Jeremy Mann |
+?artist__sally_mann Sally Mann |
+?artist__andrea_mantegna Andrea Mantegna |
+?artist__antonio_j_manzanedo Antonio J. Manzanedo |
+?artist__robert_mapplethorpe Robert Mapplethorpe |
+?artist__franz_marc Franz Marc |
+?artist__ivan_marchuk Ivan Marchuk |
+?artist__brice_marden Brice Marden |
+?artist__andrei_markin Andrei Markin |
+?artist__kerry_james_marshall Kerry James Marshall |
+?artist__serge_marshennikov Serge Marshennikov |
+?artist__agnes_martin Agnes Martin |
+?artist__adam_martinakis Adam Martinakis |
+?artist__stephan_martiniere Stephan Martinière |
+?artist__ilya_mashkov Ilya Mashkov |
+?artist__henri_matisse Henri Matisse |
+?artist__rodney_matthews Rodney Matthews |
+?artist__anton_mauve Anton Mauve |
+?artist__peter_max Peter Max |
+?artist__mike_mayhew Mike Mayhew |
+?artist__angus_mcbride Angus McBride |
+?artist__anne_mccaffrey Anne McCaffrey |
+?artist__robert_mccall Robert McCall |
+?artist__scott_mccloud Scott McCloud |
+?artist__steve_mccurry Steve McCurry |
+?artist__todd_mcfarlane Todd McFarlane |
+?artist__barry_mcgee Barry McGee |
+?artist__ryan_mcginley Ryan McGinley |
+?artist__robert_mcginnis Robert McGinnis |
+?artist__richard_mcguire Richard McGuire |
+?artist__patrick_mchale Patrick McHale |
+?artist__kelly_mckernan Kelly McKernan |
+?artist__angus_mckie Angus McKie |
+?artist__alasdair_mclellan Alasdair McLellan |
+?artist__jon_mcnaught Jon McNaught |
+?artist__dan_mcpharlin Dan McPharlin |
+?artist__tara_mcpherson Tara McPherson |
+?artist__ralph_mcquarrie Ralph McQuarrie |
+?artist__ian_mcque Ian McQue |
+?artist__syd_mead Syd Mead |
+?artist__richard_meier Richard Meier |
+?artist__maria_sibylla_merian Maria Sibylla Merian |
+?artist__willard_metcalf Willard Metcalf |
+?artist__gabriel_metsu Gabriel Metsu |
+?artist__jean_metzinger Jean Metzinger |
+?artist__michelangelo Michelangelo |
+?artist__nicolas_mignard Nicolas Mignard |
+?artist__mike_mignola Mike Mignola |
+?artist__dimitra_milan Dimitra Milan |
+?artist__john_everett_millais John Everett Millais |
+?artist__marilyn_minter Marilyn Minter |
+?artist__januz_miralles Januz Miralles |
+?artist__joan_miro Joan Miró |
+?artist__joan_mitchell Joan Mitchell |
+?artist__hayao_miyazaki Hayao Miyazaki |
+?artist__paula_modersohn_becker Paula Modersohn-Becker |
+?artist__amedeo_modigliani Amedeo Modigliani |
+?artist__moebius Moebius |
+?artist__peter_mohrbacher Peter Mohrbacher |
+?artist__piet_mondrian Piet Mondrian |
+?artist__claude_monet Claude Monet |
+?artist__jean_baptiste_monge Jean-Baptiste Monge |
+?artist__alyssa_monks Alyssa Monks |
+?artist__alan_moore Alan Moore |
+?artist__antonio_mora Antonio Mora |
+?artist__edward_moran Edward Moran |
+?artist__koji_morimoto Kōji Morimoto |
+?artist__berthe_morisot Berthe Morisot |
+?artist__daido_moriyama Daido Moriyama |
+?artist__james_wilson_morrice James Wilson Morrice |
+?artist__sarah_morris Sarah Morris |
+?artist__john_lowrie_morrison John Lowrie Morrison |
+?artist__igor_morski Igor Morski |
+?artist__john_kenn_mortensen John Kenn Mortensen |
+?artist__victor_moscoso Victor Moscoso |
+?artist__inna_mosina Inna Mosina |
+?artist__richard_mosse Richard Mosse |
+?artist__thomas_edwin_mostyn Thomas Edwin Mostyn |
+?artist__marcel_mouly Marcel Mouly |
+?artist__emmanuelle_moureaux Emmanuelle Moureaux |
+?artist__alphonse_mucha Alphonse Mucha |
+?artist__craig_mullins Craig Mullins |
+?artist__augustus_edwin_mulready Augustus Edwin Mulready |
+?artist__dan_mumford Dan Mumford |
+?artist__edvard_munch Edvard Munch |
+?artist__alfred_munnings Alfred Munnings |
+?artist__gabriele_munter Gabriele Münter |
+?artist__takashi_murakami Takashi Murakami |
+?artist__patrice_murciano Patrice Murciano |
+?artist__scott_musgrove Scott Musgrove |
+?artist__wangechi_mutu Wangechi Mutu |
+?artist__go_nagai Go Nagai |
+?artist__hiroshi_nagai Hiroshi Nagai |
+?artist__patrick_nagel Patrick Nagel |
+?artist__tibor_nagy Tibor Nagy |
+?artist__scott_naismith Scott Naismith |
+?artist__juliana_nan Juliana Nan |
+?artist__ted_nasmith Ted Nasmith |
+?artist__todd_nauck Todd Nauck |
+?artist__bruce_nauman Bruce Nauman |
+?artist__ernst_wilhelm_nay Ernst Wilhelm Nay |
+?artist__alice_neel Alice Neel |
+?artist__keith_negley Keith Negley |
+?artist__leroy_neiman LeRoy Neiman |
+?artist__kadir_nelson Kadir Nelson |
+?artist__odd_nerdrum Odd Nerdrum |
+?artist__shirin_neshat Shirin Neshat |
+?artist__mikhail_nesterov Mikhail Nesterov |
+?artist__jane_newland Jane Newland |
+?artist__victo_ngai Victo Ngai |
+?artist__william_nicholson William Nicholson |
+?artist__florian_nicolle Florian Nicolle |
+?artist__kay_nielsen Kay Nielsen |
+?artist__tsutomu_nihei Tsutomu Nihei |
+?artist__victor_nizovtsev Victor Nizovtsev |
+?artist__isamu_noguchi Isamu Noguchi |
+?artist__catherine_nolin Catherine Nolin |
+?artist__francois_de_nome François De Nomé |
+?artist__earl_norem Earl Norem |
+?artist__phil_noto Phil Noto |
+?artist__georgia_okeeffe Georgia O'Keeffe |
+?artist__terry_oakes Terry Oakes |
+?artist__chris_ofili Chris Ofili |
+?artist__jack_ohman Jack Ohman |
+?artist__noriyoshi_ohrai Noriyoshi Ohrai |
+?artist__helio_oiticica Helio Oiticica |
+?artist__taro_okamoto Tarō Okamoto |
+?artist__tim_okamura Tim Okamura |
+?artist__naomi_okubo Naomi Okubo |
+?artist__atelier_olschinsky Atelier Olschinsky |
+?artist__greg_olsen Greg Olsen |
+?artist__oleg_oprisco Oleg Oprisco |
+?artist__tony_orrico Tony Orrico |
+?artist__mamoru_oshii Mamoru Oshii |
+?artist__ida_rentoul_outhwaite Ida Rentoul Outhwaite |
+?artist__yigal_ozeri Yigal Ozeri |
+?artist__gabriel_pacheco Gabriel Pacheco |
+?artist__michael_page Michael Page |
+?artist__rui_palha Rui Palha |
+?artist__polixeni_papapetrou Polixeni Papapetrou |
+?artist__julio_le_parc Julio Le Parc |
+?artist__michael_parkes Michael Parkes |
+?artist__philippe_parreno Philippe Parreno |
+?artist__maxfield_parrish Maxfield Parrish |
+?artist__alice_pasquini Alice Pasquini |
+?artist__james_mcintosh_patrick James McIntosh Patrick |
+?artist__john_pawson John Pawson |
+?artist__max_pechstein Max Pechstein |
+?artist__agnes_lawrence_pelton Agnes Lawrence Pelton |
+?artist__irving_penn Irving Penn |
+?artist__bruce_pennington Bruce Pennington |
+?artist__john_perceval John Perceval |
+?artist__george_perez George Perez |
+?artist__constant_permeke Constant Permeke |
+?artist__lilla_cabot_perry Lilla Cabot Perry |
+?artist__gaetano_pesce Gaetano Pesce |
+?artist__cleon_peterson Cleon Peterson |
+?artist__daria_petrilli Daria Petrilli |
+?artist__raymond_pettibon Raymond Pettibon |
+?artist__coles_phillips Coles Phillips |
+?artist__francis_picabia Francis Picabia |
+?artist__pablo_picasso Pablo Picasso |
+?artist__sopheap_pich Sopheap Pich |
+?artist__otto_piene Otto Piene |
+?artist__jerry_pinkney Jerry Pinkney |
+?artist__pinturicchio Pinturicchio |
+?artist__sebastiano_del_piombo Sebastiano del Piombo |
+?artist__camille_pissarro Camille Pissarro |
+?artist__ferris_plock Ferris Plock |
+?artist__bill_plympton Bill Plympton |
+?artist__willy_pogany Willy Pogany |
+?artist__patricia_polacco Patricia Polacco |
+?artist__jackson_pollock Jackson Pollock |
+?artist__beatrix_potter Beatrix Potter |
+?artist__edward_henry_potthast Edward Henry Potthast |
+?artist__simon_prades Simon Prades |
+?artist__maurice_prendergast Maurice Prendergast |
+?artist__dod_procter Dod Procter |
+?artist__leo_putz Leo Putz |
+?artist__howard_pyle Howard Pyle |
+?artist__arthur_rackham Arthur Rackham |
+?artist__natalia_rak Natalia Rak |
+?artist__paul_ranson Paul Ranson |
+?artist__raphael Raphael |
+?artist__abraham_rattner Abraham Rattner |
+?artist__jan_van_ravesteyn Jan van Ravesteyn |
+?artist__aliza_razell Aliza Razell |
+?artist__paula_rego Paula Rego |
+?artist__lotte_reiniger Lotte Reiniger |
+?artist__valentin_rekunenko Valentin Rekunenko |
+?artist__christoffer_relander Christoffer Relander |
+?artist__andrey_remnev Andrey Remnev |
+?artist__pierre_auguste_renoir Pierre-Auguste Renoir |
+?artist__ilya_repin Ilya Repin |
+?artist__joshua_reynolds Joshua Reynolds |
+?artist__rhads RHADS |
+?artist__bettina_rheims Bettina Rheims |
+?artist__jason_rhoades Jason Rhoades |
+?artist__georges_ribemont_dessaignes Georges Ribemont-Dessaignes |
+?artist__jusepe_de_ribera Jusepe de Ribera |
+?artist__gerhard_richter Gerhard Richter |
+?artist__chris_riddell Chris Riddell |
+?artist__hyacinthe_rigaud Hyacinthe Rigaud |
+?artist__rembrandt_van_rijn Rembrandt van Rijn |
+?artist__faith_ringgold Faith Ringgold |
+?artist__jozsef_rippl_ronai József Rippl-Rónai |
+?artist__pipilotti_rist Pipilotti Rist |
+?artist__charles_robinson Charles Robinson |
+?artist__theodore_robinson Theodore Robinson |
+?artist__kenneth_rocafort Kenneth Rocafort |
+?artist__andreas_rocha Andreas Rocha |
+?artist__norman_rockwell Norman Rockwell |
+?artist__ludwig_mies_van_der_rohe Ludwig Mies van der Rohe |
+?artist__fatima_ronquillo Fatima Ronquillo |
+?artist__salvator_rosa Salvator Rosa |
+?artist__kerby_rosanes Kerby Rosanes |
+?artist__conrad_roset Conrad Roset |
+?artist__bob_ross Bob Ross |
+?artist__dante_gabriel_rossetti Dante Gabriel Rossetti |
+?artist__jessica_rossier Jessica Rossier |
+?artist__marianna_rothen Marianna Rothen |
+?artist__mark_rothko Mark Rothko |
+?artist__eva_rothschild Eva Rothschild |
+?artist__georges_rousse Georges Rousse |
+?artist__luis_royo Luis Royo |
+?artist__joao_ruas Joao Ruas |
+?artist__peter_paul_rubens Peter Paul Rubens |
+?artist__rachel_ruysch Rachel Ruysch |
+?artist__albert_pinkham_ryder Albert Pinkham Ryder |
+?artist__mark_ryden Mark Ryden |
+?artist__ursula_von_rydingsvard Ursula von Rydingsvard |
+?artist__theo_van_rysselberghe Theo van Rysselberghe |
+?artist__eero_saarinen Eero Saarinen |
+?artist__wlad_safronow Wlad Safronow |
+?artist__amanda_sage Amanda Sage |
+?artist__antoine_de_saint_exupery Antoine de Saint-Exupery |
+?artist__nicola_samori Nicola Samori |
+?artist__rebeca_saray Rebeca Saray |
+?artist__john_singer_sargent John Singer Sargent |
+?artist__martiros_saryan Martiros Saryan |
+?artist__viviane_sassen Viviane Sassen |
+?artist__nike_savvas Nike Savvas |
+?artist__richard_scarry Richard Scarry |
+?artist__godfried_schalcken Godfried Schalcken |
+?artist__miriam_schapiro Miriam Schapiro |
+?artist__kenny_scharf Kenny Scharf |
+?artist__jerry_schatzberg Jerry Schatzberg |
+?artist__ary_scheffer Ary Scheffer |
+?artist__kees_scherer Kees Scherer |
+?artist__helene_schjerfbeck Helene Schjerfbeck |
+?artist__christian_schloe Christian Schloe |
+?artist__karl_schmidt_rottluff Karl Schmidt-Rottluff |
+?artist__julian_schnabel Julian Schnabel |
+?artist__fritz_scholder Fritz Scholder |
+?artist__charles_schulz Charles Schulz |
+?artist__sean_scully Sean Scully |
+?artist__ronald_searle Ronald Searle |
+?artist__mark_seliger Mark Seliger |
+?artist__anton_semenov Anton Semenov |
+?artist__edmondo_senatore Edmondo Senatore |
+?artist__maurice_sendak Maurice Sendak |
+?artist__richard_serra Richard Serra |
+?artist__georges_seurat Georges Seurat |
+?artist__dr_seuss Dr. Seuss |
+?artist__tanya_shatseva Tanya Shatseva |
+?artist__natalie_shau Natalie Shau |
+?artist__barclay_shaw Barclay Shaw |
+?artist__e_h_shepard E. H. Shepard |
+?artist__amrita_sher_gil Amrita Sher-Gil |
+?artist__irene_sheri Irene Sheri |
+?artist__duffy_sheridan Duffy Sheridan |
+?artist__cindy_sherman Cindy Sherman |
+?artist__shozo_shimamoto Shozo Shimamoto |
+?artist__hikari_shimoda Hikari Shimoda |
+?artist__makoto_shinkai Makoto Shinkai |
+?artist__chiharu_shiota Chiharu Shiota |
+?artist__elizabeth_shippen_green Elizabeth Shippen Green |
+?artist__masamune_shirow Masamune Shirow |
+?artist__tim_shumate Tim Shumate |
+?artist__yuri_shwedoff Yuri Shwedoff |
+?artist__malick_sidibe Malick Sidibé |
+?artist__jeanloup_sieff Jeanloup Sieff |
+?artist__bill_sienkiewicz Bill Sienkiewicz |
+?artist__marc_simonetti Marc Simonetti |
+?artist__david_sims David Sims |
+?artist__andy_singer Andy Singer |
+?artist__alfred_sisley Alfred Sisley |
+?artist__sandy_skoglund Sandy Skoglund |
+?artist__jeffrey_smart Jeffrey Smart |
+?artist__berndnaut_smilde Berndnaut Smilde |
+?artist__rodney_smith Rodney Smith |
+?artist__samantha_keely_smith Samantha Keely Smith |
+?artist__robert_smithson Robert Smithson |
+?artist__barbara_stauffacher_solomon Barbara Stauffacher Solomon |
+?artist__simeon_solomon Simeon Solomon |
+?artist__hajime_sorayama Hajime Sorayama |
+?artist__joaquin_sorolla Joaquín Sorolla |
+?artist__ettore_sottsass Ettore Sottsass |
+?artist__amadeo_de_souza_cardoso Amadeo de Souza-Cardoso |
+?artist__millicent_sowerby Millicent Sowerby |
+?artist__moses_soyer Moses Soyer |
+?artist__sparth Sparth |
+?artist__jack_spencer Jack Spencer |
+?artist__art_spiegelman Art Spiegelman |
+?artist__simon_stalenhag Simon Stålenhag |
+?artist__ralph_steadman Ralph Steadman |
+?artist__philip_wilson_steer Philip Wilson Steer |
+?artist__william_steig William Steig |
+?artist__fred_stein Fred Stein |
+?artist__theophile_steinlen Théophile Steinlen |
+?artist__brian_stelfreeze Brian Stelfreeze |
+?artist__frank_stella Frank Stella |
+?artist__joseph_stella Joseph Stella |
+?artist__irma_stern Irma Stern |
+?artist__alfred_stevens Alfred Stevens |
+?artist__marie_spartali_stillman Marie Spartali Stillman |
+?artist__stinkfish Stinkfish |
+?artist__anne_stokes Anne Stokes |
+?artist__william_stout William Stout |
+?artist__paul_strand Paul Strand |
+?artist__linnea_strid Linnea Strid |
+?artist__john_melhuish_strudwick John Melhuish Strudwick |
+?artist__drew_struzan Drew Struzan |
+?artist__tatiana_suarez Tatiana Suarez |
+?artist__eustache_le_sueur Eustache Le Sueur |
+?artist__rebecca_sugar Rebecca Sugar |
+?artist__hiroshi_sugimoto Hiroshi Sugimoto |
+?artist__graham_sutherland Graham Sutherland |
+?artist__jan_svankmajer Jan Svankmajer |
+?artist__raymond_swanland Raymond Swanland |
+?artist__annie_swynnerton Annie Swynnerton |
+?artist__stanislaw_szukalski Stanisław Szukalski |
+?artist__philip_taaffe Philip Taaffe |
+?artist__hiroyuki_mitsume_takahashi Hiroyuki-Mitsume Takahashi |
+?artist__dorothea_tanning Dorothea Tanning |
+?artist__margaret_tarrant Margaret Tarrant |
+?artist__genndy_tartakovsky Genndy Tartakovsky |
+?artist__teamlab teamLab |
+?artist__raina_telgemeier Raina Telgemeier |
+?artist__john_tenniel John Tenniel |
+?artist__sir_john_tenniel Sir John Tenniel |
+?artist__howard_terpning Howard Terpning |
+?artist__osamu_tezuka Osamu Tezuka |
+?artist__abbott_handerson_thayer Abbott Handerson Thayer |
+?artist__heather_theurer Heather Theurer |
+?artist__mickalene_thomas Mickalene Thomas |
+?artist__tom_thomson Tom Thomson |
+?artist__titian Titian |
+?artist__mark_tobey Mark Tobey |
+?artist__greg_tocchini Greg Tocchini |
+?artist__roland_topor Roland Topor |
+?artist__sergio_toppi Sergio Toppi |
+?artist__alex_toth Alex Toth |
+?artist__henri_de_toulouse_lautrec Henri de Toulouse-Lautrec |
+?artist__ross_tran Ross Tran |
+?artist__philip_treacy Philip Treacy |
+?artist__anne_truitt Anne Truitt |
+?artist__henry_scott_tuke Henry Scott Tuke |
+?artist__jmw_turner J.M.W. Turner |
+?artist__james_turrell James Turrell |
+?artist__john_henry_twachtman John Henry Twachtman |
+?artist__naomi_tydeman Naomi Tydeman |
+?artist__euan_uglow Euan Uglow |
+?artist__daniela_uhlig Daniela Uhlig |
+?artist__kitagawa_utamaro Kitagawa Utamaro |
+?artist__christophe_vacher Christophe Vacher |
+?artist__suzanne_valadon Suzanne Valadon |
+?artist__thiago_valdi Thiago Valdi |
+?artist__chris_van_allsburg Chris van Allsburg |
+?artist__francine_van_hove Francine Van Hove |
+?artist__jan_van_kessel_the_elder Jan van Kessel the Elder |
+?artist__remedios_varo Remedios Varo |
+?artist__nick_veasey Nick Veasey |
+?artist__diego_velazquez Diego Velázquez |
+?artist__eve_ventrue Eve Ventrue |
+?artist__johannes_vermeer Johannes Vermeer |
+?artist__charles_vess Charles Vess |
+?artist__roman_vishniac Roman Vishniac |
+?artist__kelly_vivanco Kelly Vivanco |
+?artist__brian_m_viveros Brian M. Viveros |
+?artist__elke_vogelsang Elke Vogelsang |
+?artist__vladimir_volegov Vladimir Volegov |
+?artist__robert_vonnoh Robert Vonnoh |
+?artist__mikhail_vrubel Mikhail Vrubel |
+?artist__louis_wain Louis Wain |
+?artist__kara_walker Kara Walker |
+?artist__josephine_wall Josephine Wall |
+?artist__bruno_walpoth Bruno Walpoth |
+?artist__chris_ware Chris Ware |
+?artist__andy_warhol Andy Warhol |
+?artist__john_william_waterhouse John William Waterhouse |
+?artist__bill_watterson Bill Watterson |
+?artist__george_frederic_watts George Frederic Watts |
+?artist__walter_ernest_webster Walter Ernest Webster |
+?artist__hendrik_weissenbruch Hendrik Weissenbruch |
+?artist__neil_welliver Neil Welliver |
+?artist__catrin_welz_stein Catrin Welz-Stein |
+?artist__vivienne_westwood Vivienne Westwood |
+?artist__michael_whelan Michael Whelan |
+?artist__james_abbott_mcneill_whistler James Abbott McNeill Whistler |
+?artist__william_whitaker William Whitaker |
+?artist__tim_white Tim White |
+?artist__coby_whitmore Coby Whitmore |
+?artist__david_wiesner David Wiesner |
+?artist__kehinde_wiley Kehinde Wiley |
+?artist__cathy_wilkes Cathy Wilkes |
+?artist__jessie_willcox_smith Jessie Willcox Smith |
+?artist__gilbert_williams Gilbert Williams |
+?artist__kyffin_williams Kyffin Williams |
+?artist__al_williamson Al Williamson |
+?artist__wes_wilson Wes Wilson |
+?artist__mike_winkelmann Mike Winkelmann |
+?artist__bec_winnel Bec Winnel |
+?artist__franz_xaver_winterhalter Franz Xaver Winterhalter |
+?artist__nathan_wirth Nathan Wirth |
+?artist__wlop WLOP |
+?artist__brandon_woelfel Brandon Woelfel |
+?artist__liam_wong Liam Wong |
+?artist__francesca_woodman Francesca Woodman |
+?artist__jim_woodring Jim Woodring |
+?artist__patrick_woodroffe Patrick Woodroffe |
+?artist__frank_lloyd_wright Frank Lloyd Wright |
+?artist__sulamith_wulfing Sulamith Wulfing |
+?artist__nc_wyeth N.C. Wyeth |
+?artist__rose_wylie Rose Wylie |
+?artist__stanislaw_wyspianski Stanisław Wyspiański |
+?artist__takato_yamamoto Takato Yamamoto |
+?artist__gene_luen_yang Gene Luen Yang |
+?artist__ikenaga_yasunari Ikenaga Yasunari |
+?artist__kozo_yokai Kozo Yokai |
+?artist__sean_yoro Sean Yoro |
+?artist__chie_yoshii Chie Yoshii |
+?artist__skottie_young Skottie Young |
+?artist__masaaki_yuasa Masaaki Yuasa |
+?artist__konstantin_yuon Konstantin Yuon |
+?artist__yuumei Yuumei |
+?artist__william_zorach William Zorach |
+?artist__ander_zorn Ander Zorn |
+// artists added by me (ariane-emory):
+3 ?artist__ian_miller Ian Miller |
+3 ?artist__john_zeleznik John Zeleznik |
+3 ?artist__keith_parkinson Keith Parkinson |
+3 ?artist__kevin_fales Kevin Fales |
+3 ?artist__boris_vallejo
 }
 
 // The matching list of styles:

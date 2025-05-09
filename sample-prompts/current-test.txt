@@ -15,11 +15,11 @@
 %config.loras([])
 
 // #sdxl_on
-#flux_on
+// #flux_on
 #hidream_fast_on
 // #hidream_full_on
 
-#hidream_high_steps
+// #hidream_high_steps
 // #flux_high_steps
 
 // #sdxl_always_lightning
