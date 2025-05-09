@@ -5789,11 +5789,12 @@ const JsoncObject2 =
         },
               wst_cutting_seq(
                 elem(2, wst_seq('{', JsoncComments, () => json_string, JsoncComments, ":", JsoncComments)),
+                //JsoncComments, 
                 Jsonc,
                 optional(second(wst_seq(',',
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(JsoncComments,
+                                                wst_seq(// JsoncComments,
                                                         () => json_string,
                                                         JsoncComments,
                                                         ':',
@@ -5822,12 +5823,13 @@ JsoncObject2.finalize()
 
 let s;
 
-s = `{ }`;
-console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
+// s = `{ }`;
+// console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
 
+log_match_enabled = true;
 s = `{"foo": 123 }`;
 console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
 
-s = `{"foo": 123, "bar": 234 }`;
-console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
+// s = `{"foo": 123, "bar": 234 }`;
+// console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
 
