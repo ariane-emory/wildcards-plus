@@ -460,4 +460,4 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {| 0 IMPOSSIBLE }
 
 %single-pick-prioritizes({ avoiding_repetition | true_randomness })
-%config({ foo: 123 })
+%config({ "foo": 123 })
