@@ -1,0 +1,4 @@
+%config.steps({ \20 | \25 })
+// %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
+
+FOOBAR
