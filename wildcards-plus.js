@@ -1711,7 +1711,7 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
-  avoid_repetition:              'Avoiding repetition',
+  avoid_repetition:           'Avoiding repetition',
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
@@ -1842,7 +1842,7 @@ class WeightedPicker {
       ret = this.options[option_index].weight;
     }
     else {
-      throw Error(`unexpected priority: ${inspect_fun(priority)}`);
+      throw Error("unexpected priority");
     }
 
     // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
@@ -4785,9 +4785,16 @@ function expand_wildcards(thing, context = new Context()) {
       let value = thing.value;
 
       if (thing.value instanceof ASTNode) {
+        // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
+        
         const walked_value = walk(thing.value, context);
-        const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
-
+        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+        
+        const jsconc_parsed_walked_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
+                                            ? JsoncObject
+                                            : Jsonc).match(walked_value);
+        // console.log(`JSCONC_PARSED_WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+        
         if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
           throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
                           (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
