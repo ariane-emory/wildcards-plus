@@ -46,7 +46,7 @@
   { %config.cfg_scale(1.0) | %config.cfg_scale(1.5) | %config.cfg_scale(2.0) | %config.cfg_scale(2.5) }
 
   // possible resolutions:
-  { 3 %config({ "width": 1024, "height": 512 })
+  { // 3 %config({ "width": 1024, "height": 512 })
   | 3 %config({ "width": 768,  "height": 384 })
   | 3 %config({ "width": 640,  "height": 320 })
   | 3 ?square_on %config({ "width": 768,  "height": 768 })
@@ -68,7 +68,7 @@
   }
 
   // possible resolutions:
-  { 3 %config({ "width": 1024, "height": 512 })
+  { // 3 %config({ "width": 1024, "height": 512 })
   | 3 %config({ "width": 768,  "height": 384 })
   | 3 %config({ "width": 640,  "height": 320 })
   | 3 ?square_on %config({ "width": 768,  "height": 768 })
@@ -88,7 +88,7 @@
   // { !lightning_on %config.steps(30) }   
   
   // possible resolutions:
-  { 3 ?sdxl_hires %config({ "width": 1280, "height": 640 })
+  { // 3 ?sdxl_hires %config({ "width": 1280, "height": 640 })
   | 3 ?sdxl_hires %config({ "width": 1152, "height": 576 })
   | 3 ?sdxl_hires %config({ "width": 1024, "height": 512 })
   | 3 %config({ "width": 768,  "height": 384 })
