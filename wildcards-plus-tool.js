@@ -5464,7 +5464,7 @@ let   SpecialFunctionUpdateConfigurationBinary =
                         ')'),                          // [4]
         arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', choice(JsoncObject, () => LimitedContent),
-                                                                                arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
+                                                                                arg =>  new ASTSpecialFunctionUpdateConfigUnary(arg));
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
                                                                                 arg => new ASTSSpecialFunctionetPickSingle(arg));
 const SpecialFunctionSetPickMultiple          = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
@@ -5803,6 +5803,11 @@ async function main() {
   }
 
   console.log('================================================================================');
+
+  let res = Prompt.match(`{ \\{ GRAULT \\} }`);
+  console.log(JSON.stringify(res, null, 2));
+  console.log(inspect_fun(expand_wildcards(res.value, base_context)));
+  
 }
 // ---------------------------------------------------------------------------------------
 main().catch(err => {
@@ -5848,3 +5853,5 @@ main().catch(err => {
 
 // s = `{ }`;
 // console.log(JSON.stringify(JsoncObject.match(s), null, 2));
+
+
