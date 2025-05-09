@@ -2215,6 +2215,9 @@ function choose_indefinite_article(word) {
 }
 // -------------------------------------------------------------------------------------------------
 function unescape(str) {
+  if (typeof str !== 'string')
+    return str;
+  
   return str
     .replace(/\\n/g,   '\n')
     .replace(/\\ /g,   ' ')
@@ -2337,7 +2340,8 @@ function smart_join(arr) {
     str += left_word;
   }
 
-  return unescape(str);
+  // return unescape(str);
+  return str;
 }
 // =================================================================================================
 // END OF HELPER FUNCTIONS SECTION.
@@ -4956,7 +4960,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (thing.value instanceof ASTNode) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
-        const walked_value = walk(thing.value, context);
+        const walked_value = expand_wildcards(thing.value, context);
         // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
         
         const jsconc_parsed_walked_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
@@ -5114,7 +5118,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
   }
   
-  return smart_join(walk(thing, context));
+  return unescape(smart_join(walk(thing, context)))
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
