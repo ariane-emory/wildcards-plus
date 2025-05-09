@@ -5450,12 +5450,12 @@ const LimitedContent          = choice(AnonWildcardNoLoras, ScalarReference,
                                        // SpecialFunctionSetConfiguration,
                                        // low_pri_text, plaintext
                                       );
-const Content                 = choice(NamedWildcardReference, NamedWildcardUsage,
-                                       SetFlag, A1111StyleLora, AnonWildcard, comment,
-                                       ScalarReference,
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       A1111StyleLora,
+                                       ecaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, low_pri_text, plaintext);
-const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage,
-                                       SetFlag, AnonWildcard, comment, ScalarReference,
+const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       ecaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, low_pri_text, plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
