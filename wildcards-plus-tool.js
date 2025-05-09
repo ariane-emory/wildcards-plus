@@ -4949,7 +4949,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
       
-      return smart_join(walk(pick));
+      return expand_wildcards(pick, context);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
