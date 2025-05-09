@@ -1845,6 +1845,33 @@ const JsoncObject =
                                            ))             
                               , ','),
                             '}'));
+const JsoncObject2 =
+      choice(
+        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => {
+          console.log(`ARR: ${JSON.stringify(arr, null, 2)}`);
+          return Object.fromEntries([ [arr[0], arr[1]], ...(arr[2][0]??[]) ]);
+        },
+              wst_cutting_seq(
+                wst_enc('{', () => json_string, ":"),
+                JsoncComments,
+                Jsonc,
+                JsoncComments,
+                optional(second(wst_seq(',',
+                                        wst_star(
+                                          xform(arr =>  [arr[1], arr[5]],
+                                                wst_seq(JsoncComments,
+                                                        () => json_string,
+                                                        JsoncComments,
+                                                        ':',
+                                                        JsoncComments,
+                                                        Jsonc, 
+                                                        JsoncComments
+                                                       ))             
+                                          , ',')),
+                               )),
+                '}')));
+
 // ---------------------------------------------------------------------------------------
 Jsonc.finalize(); 
 // =======================================================================================
@@ -5778,34 +5805,6 @@ main().catch(err => {
 // log_match_enabled = true;
 
 // console.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary2.match(s)));
-
-
-const JsoncObject2 =
-      choice(
-        xform(arr => ({}), wst_seq('{', '}')),
-        xform(arr => {
-          console.log(`ARR: ${JSON.stringify(arr, null, 2)}`);
-          return Object.fromEntries([ [arr[0], arr[1]], ...(arr[2][0]??[]) ]);
-        },
-              wst_cutting_seq(
-                wst_enc('{', () => json_string, ":"),
-                JsoncComments,
-                Jsonc,
-                JsoncComments,
-                optional(second(wst_seq(',',
-                                        wst_star(
-                                          xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(JsoncComments,
-                                                        () => json_string,
-                                                        JsoncComments,
-                                                        ':',
-                                                        JsoncComments,
-                                                        Jsonc, 
-                                                        JsoncComments
-                                                       ))             
-                                          , ',')),
-                               )),
-                '}')));
 
 [
   "foo",           // [0]
