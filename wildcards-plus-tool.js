@@ -5283,13 +5283,6 @@ class ASTSpecialFunction extends AST {
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSpecialFunctionSetConfig extends AST {
-  constructor(value_object) {
-    super();
-    this.value_object = value_object;
-  }
-}
-// ---------------------------------------------------------------------------------------
 class ASTSpecialFunctionUpdateConfigUnary extends AST {
   constructor(value_object, assign) {
     super();
