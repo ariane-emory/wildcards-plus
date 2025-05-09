@@ -5277,34 +5277,34 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 const DiscardedComments             = discard(wst_star(comment));
 const SpecialFunctionInclude                     = make_special_function_Rule('include');
 const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                    DiscardedComments,     // -
-                                                                    '.',                   // [0][1]
-                                                                    DiscardedComments),    // -
-                                                            ident,                         // [1]
-                                                            DiscardedComments,             // -
-                                                            '(',                           // [2]
-                                                            DiscardedComments,             // -
-                                                            Jsonc,                         // [3]
-                                                            DiscardedComments,             // [4]
-                                                            ')'),                          // [4]
-                                            arr => new ASTSpecialFunction('update-config',
-                                                                          [arr[1], arr[3]]));
+                                                                                 DiscardedComments,     // -
+                                                                                 '.',                   // [0][1]
+                                                                                 DiscardedComments),    // -
+                                                                         ident,                         // [1]
+                                                                         DiscardedComments,             // -
+                                                                         '(',                           // [2]
+                                                                         DiscardedComments,             // -
+                                                                         Jsonc,                         // [3]
+                                                                         DiscardedComments,             // [4]
+                                                                         ')'),                          // [4]
+                                                         arr => new ASTSpecialFunction('update-config',
+                                                                                       [arr[1], arr[3]]));
 const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject, 'update-config');
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent, 'set-picker-configuration-single-pick');
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                    DiscardedComments,     // -
-                                                                    assignment_operator,   // _
-                                                                    DiscardedComments),    // -
-                                                            JsoncObject),                 // [1]
-                                            arr => new ASTSpecialFunction('set-config',
-                                                                          [arr[1]]));
+                                                                                 DiscardedComments,     // -
+                                                                                 assignment_operator,   // _
+                                                                                 DiscardedComments),    // -
+                                                                         JsoncObject),                 // [1]
+                                                         arr => new ASTSpecialFunction('set-config',
+                                                                                       [arr[1]]));
 const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateConfigurationUnary,
-                                             SpecialFunctionUpdateConfigurationBinary);
+                                                          SpecialFunctionUpdateConfigurationBinary);
 const UnexpectedSpecialFunctionInclude           = unexpected(SpecialFunctionInclude,
                                                               () => "%include is only supported when " +
-                                                 "using wildcards-plus-tool.js, NOT when " +
-                                                 "running the wildcards-plus.js script " +
-                                                 "inside Draw Things!");
+                                                              "using wildcards-plus-tool.js, NOT when " +
+                                                              "running the wildcards-plus.js script " +
+                                                              "inside Draw Things!");
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetConfiguration,
                                              SpecialFunctionSetPickSingle);
