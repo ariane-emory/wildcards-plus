@@ -5224,7 +5224,7 @@ const make_special_function_Rule = rule =>
             c_funcall(second(seq('%', rule)),
                       first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
 // ---------------------------------------------------------------------------------------
-const make_unary_SpecialFunction_Rule = (prefix, rule, sf_name) =>
+const make_unary_SpecialFunction_Rule = (prefix, rule, xform_func) =>
       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
                                     DiscardedComments,     // -
                                     '(',                   // [0][1]
@@ -5232,8 +5232,7 @@ const make_unary_SpecialFunction_Rule = (prefix, rule, sf_name) =>
                             rule,                          // [1]
                             DiscardedComments,             // -
                             ')'),                          // [2]
-            arr => new ASTSpecialFunction(sf_name,
-                                          [arr[1]]));
+            arr => xform_func(arr[1]));
 // ---------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // ---------------------------------------------------------------------------------------
@@ -5289,8 +5288,8 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
                                                                          ')'),                          // [4]
                                                          arr => new ASTSpecialFunction('update-config',
                                                                                        [arr[1], arr[3]]));
-const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject, 'update-config');
-const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent, 'set-picker-configuration-single-pick');
+const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject, arg => new ASTSpecialFunction('update-config', [arg]));
+const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent, arg => new ASTSpecialFunction('set-picker-configuration-single-pick', [arg]));
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                                  DiscardedComments,     // -
                                                                                  assignment_operator,   // _
