@@ -4948,7 +4948,7 @@ function expand_wildcards(thing, context = new Context()) {
         const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
 
         if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-          throw new Error(`walking ${thing.constructor.name}.value must produce a valid JSONC ` +
+          throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
                           (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
                           `, Jsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_walked_value));
@@ -5390,7 +5390,7 @@ const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetConfiguration,
                                              SpecialFunctionSetPickSingle,
                                              SpecialFunctionSetPickMultiple);
-const SpecialFunction               = choice(dt_hosted? UnexpectedSpecialFunctionInclude : SpecialFunctionInclude,
+const AnySpecialFunction            = choice(dt_hosted? UnexpectedSpecialFunctionInclude : SpecialFunctionInclude,
                                              SpecialFunctionNotInclude);
 const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
@@ -5477,7 +5477,7 @@ const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsag
                                        SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
-const PromptBody              = wst_star(choice(SpecialFunction,
+const PromptBody              = wst_star(choice(AnySpecialFunction,
                                                 NamedWildcardDefinition,
                                                 ScalarAssignment,
                                                 Content));
