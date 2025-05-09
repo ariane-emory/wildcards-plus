@@ -5224,7 +5224,7 @@ const make_special_function_Rule = rule =>
             c_funcall(second(seq('%', rule)),
                       first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
 // ---------------------------------------------------------------------------------------
-const make_unary_SpecialFunction_Rule = (prefix, sf_name, rule,) =>
+const make_unary_SpecialFunction_Rule = (prefix, rule, sf_name) =>
       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
                                     DiscardedComments,     // -
                                     '(',                   // [0][1]
@@ -5289,8 +5289,8 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
                                                             ')'),                          // [4]
                                             arr => new ASTSpecialFunction('update-config',
                                                                           [arr[1], arr[3]]));
-const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', 'update-config', JsoncObject);
-const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', 'set-picker-configuration-single-pick', () => LimitedContent);
+const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject, 'update-config');
+const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent, 'set-picker-configuration-single-pick');
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                     DiscardedComments,     // -
                                                                     assignment_operator,   // _
