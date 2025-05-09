@@ -5193,7 +5193,7 @@ class ASTSpecialFunction {
 class ASTSpecialFunctionUpdateConfigUnary {
   constructor(value_object) {
     this.value_object = value_object;
-    console.log(`CONSTRUCTED ASTSFUCU: ${inspect_fun(this)}`);
+    // console.log(`CONSTRUCTED ASTSFUCU: ${inspect_fun(this)}`);
   }
 }
 // =======================================================================================
@@ -5252,8 +5252,8 @@ const make_unary_SpecialFunction_Rule = (prefix, rule, xform_func) =>
                             DiscardedComments,             // -
                             ')'),                          // [2]
             arr => {
-              console.log(`THIS ARR: ${inspect_fun(arr)}`);
-              console.log(`THIS ARR[1]: ${inspect_fun(arr[1])}`);
+              // console.log(`THIS ARR: ${inspect_fun(arr)}`);
+              // console.log(`THIS ARR[1]: ${inspect_fun(arr[1])}`);
               return xform_func(arr[1]);
             });
 // ---------------------------------------------------------------------------------------
