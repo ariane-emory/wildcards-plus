@@ -1,26 +1,3 @@
 POST http://127.0.0.1:7860/sdapi/v1/txt2img
 Content-Type: application/json
-{
-  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
-  "steps": 10,
-  "seed": 1793191902,
-  "model":"oldmaster_v30_f16.ckpt"
-}
-
-POST http://127.0.0.1:7860/sdapi/v1/txt2img
-Content-Type: application/json
-{
-  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
-  "steps": 10,
-  "seed": 1793191902,
-  "model":"bookIllustrationChar_v10"
-}
-
-POST http://127.0.0.1:7860/sdapi/v1/txt2img
-Content-Type: application/json
-{
-  "prompt": "masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, warm lighting, warm color pallete. \n\nAn athletic alien bounty hunter with hooved feet and a spined tail in a busy crew cabin on a secluded starship orbiting a shining planet wielding her phase knife. She is wearing her helmetless hazardous environment suit.",
-  "steps": 10,
-  "seed": 1793191902
-}
-
+{"prompt":"masterpiece, best quality, absurdres, aesthetic, 8k, high depth of field, ultra high resolution, detailed background, wide shot, science fiction, futuristic, Traveller RPG, hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time, natural lighting, warm lighting. \n\nA piece by Casey Baugh which depicts a exotic Vilani communications officer in a crew cabin on a remote space station orbiting a huge red star holding a highly-detailed scanner. He is clad in his highly-detailed uniform. \nBy Casey Baugh, contemporary, dark, drawing, expressionism, portraits.","seed":1908792258,"steps":40,"width":960,"height":512,"shift":1,"sampler":"Euler A","cfg_scale":6,"model":"oldmaster_v30_f16.ckpt","loras":[{"file":"ethereon_lora_f16.ckpt","weight":1}]}

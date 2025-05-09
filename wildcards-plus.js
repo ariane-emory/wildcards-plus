@@ -2,7 +2,7 @@
 //@api-1.0
 // wildcards-plus
 // author ariane-emory (includes some code from wetcircuit's original wildcards.js)
-// v0.2
+// v0.8
 // Draw Things 1.20240502.2
 // =======================================================================================
 
@@ -11,8 +11,44 @@
 // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
 // =====================================================================================
 {
+  // -------------------------------------------------------------------------------------
+  // DT's env doesn't seem to have structuredClone, so we'll define this early:
+  // -------------------------------------------------------------------------------------
+  function structured_clone(thing) {
+    if (thing === null || typeof thing !== "object") {
+      return thing;
+    }
+    else if (Array.isArray(thing)) {
+      return thing.map(structured_clone);
+    }
+    else if (thing instanceof Set) {
+      const result = new Set();
+      for (const value of thing.values()) {
+        result.add(structured_clone(value));
+      }
+      return result;
+    }
+    else if (thing instanceof Map) {
+      const result = new Map();
+      for (const [key, value] of thing.entries()) {
+        result.set(structured_clone(key), structured_clone(value));
+      }
+      return result;
+    }
+    else {
+      const copy = {};
+      for (const key in thing) {
+        if (Object.prototype.hasOwnProperty.call(thing, key)) {
+          copy[key] = structured_clone(thing[key]);
+        }
+      }
+      return copy;
+    }
+  }
+  // ---------------------------------------------------------------------------------------
   inspect_fun = JSON.stringify;
-  dt_hosted = true;
+  clone_fun   = structured_clone;
+  dt_hosted   = true;
 }
 // ---------------------------------------------------------------------------------------
 
@@ -1553,19 +1589,19 @@ const enclosing       = (left, enclosed, right) =>
 // BASIC JSON GRAMMAR SECTION:
 // =======================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
-const json = choice(() => json_object, () => json_array,
+const json = choice(() => JsonObject,  () => JsonArray,
                     () => json_string, () => json_true,   () => json_false,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
-const json_object = xform(arr =>  Object.fromEntries(arr), 
-                          wst_cutting_enc('{',
-                                          wst_star(
-                                            xform(arr => [arr[0], arr[2]],
-                                                  wst_seq(() => json_string, ':', json)),
-                                            ','),
-                                          '}'));
+const JsonObject = xform(arr =>  Object.fromEntries(arr), 
+                         wst_cutting_enc('{',
+                                         wst_star(
+                                           xform(arr => [arr[0], arr[2]],
+                                                 wst_seq(() => json_string, ':', json)),
+                                           ','),
+                                         '}'));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const json_array = wst_cutting_enc('[', wst_star(json, ','), ']');
+const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -1609,7 +1645,7 @@ const json_number = xform(reify_json_number,
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // ---------------------------------------------------------------------------------------
-json.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
+json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
 // =======================================================================================
 // END OF BASIC JSON GRAMMAR SECTION.
 // =======================================================================================
@@ -1618,90 +1654,325 @@ json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =======================================================================================
 // JSONC GRAMMAR SECTION:
 // =======================================================================================
-const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
-const jsonc = second(wst_seq(jsonc_comments,
-                             choice(() => jsonc_object, () => jsonc_array,
+const JsoncComments = wst_star(choice(c_block_comment, c_line_comment));
+const Jsonc = second(wst_seq(JsoncComments,
+                             choice(() => JsoncObject, () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
                                     () => json_null,    () => json_number),
-                             jsonc_comments));
-const jsonc_array =
+                             JsoncComments));
+const JsoncArray =
       wst_cutting_enc('[',
-                      wst_star(second(seq(jsonc_comments,
-                                          jsonc,
-                                          jsonc_comments)),
+                      wst_star(second(seq(JsoncComments,
+                                          Jsonc,
+                                          JsoncComments)),
                                ','),
                       ']');
-const jsonc_object =
+const JsoncObject =
       xform(arr =>  Object.fromEntries(arr), 
             wst_cutting_enc('{',
                             wst_star(
                               xform(arr => [arr[1], arr[5]],
-                                    wst_seq(jsonc_comments,
+                                    wst_seq(JsoncComments,
                                             () => json_string,
-                                            jsonc_comments,
+                                            JsoncComments,
                                             ':',
-                                            jsonc_comments,
-                                            jsonc, 
-                                            jsonc_comments
+                                            JsoncComments,
+                                            Jsonc, 
+                                            JsoncComments
                                            ))             
                               , ','),
                             '}'));
 // ---------------------------------------------------------------------------------------
-jsonc.finalize(); // .finalize-ing resolves the thunks that were used the in json and json_object for forward references to not-yet-defined rules.
+Jsonc.finalize(); 
 // =======================================================================================
 // END OF JSONC GRAMMAR SECTION.
 // =======================================================================================
 
 
 // =======================================================================================
-// WildcardPicker CLASS SECTION:
-// =======================================================================================
-class WildcardPicker {
+const always = () => true;
+const never  = () => false;
+const picker_priority = Object.freeze({
+  avoid_repetition:           'Avoiding repetition',
+  ensure_weighted_distribution:  'Ensuring a weighted distribution',
+  true_randomness:               'Just plain old randomness',
+});
+const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
+const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
+const picker_priority_descriptions_to_names = new Map(
+  Object.entries(picker_priority).map(([k, v]) => [v, k])
+);
+// const picker_configuration = {
+//   pick_one_priority:      picker_priority.ensure_weighted_distribution,
+//   pick_multiple_priority: picker_priority.avoid_repetition,
+// };
+// ---------------------------------------------------------------------------------------
+class WeightedPicker {
   // -------------------------------------------------------------------------------------
-  constructor(optSpecs = []) {
-    this.options = [];
-    this.range   = 0;
+  constructor(initialOptions = []) {
+    // console.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
+    
+    this.options = []; // array of [weight, value]
+    this.used_indices = new Map();
+    this.last_pick_index = null;
 
-    for (const optSpec of optSpecs) {
-      if (Array.isArray(optSpec)) {
-        this.add(...optSpec);
-      } else {
-        this.add(1, optSpec);
-      }
-    }
+    for (const [weight, value] of initialOptions)
+      this.add(weight, value);
   }
   // -------------------------------------------------------------------------------------
   add(weight, value) {
-    this.options.push([ weight, value ]);
-    this.range += weight;
+    this.options.push({weight: weight, value: value });
   }
   // -------------------------------------------------------------------------------------
-  pick() {
-    if (this.options.length == 1) {
-      // console.log(`one option: ${inspect_fun(this.options[0][1])}`);
+  __record_index_usage(index) {
+    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+    this.last_pick_index = index;
+  }
+  // -------------------------------------------------------------------------------------
+  pick(min_count = 1, max_count = min_count,
+       allow_if = always, forbid_if = never,
+       priority = null) {
+    if (! priority)
+      throw new Error("no priority");
 
-      return this.options[0][1];
+    // console.log(`PICK ${min_count}-${max_count}`);
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+
+    const res = [];
+    
+    for (let ix = 0; ix < count; ix++) {
+      const pick = this.pick_one(allow_if, forbid_if, priority);
+
+      // if (pick)
+      res.push(pick);
+    }
+
+    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+    
+    return res;
+  }
+  // -------------------------------------------------------------------------------------
+  __gather_legal_option_indices(allow_if, forbid_if) {
+    const legal_option_indices = [];
+    
+    for (let ix = 0; ix < this.options.length; ix++) {
+      const option = this.options[ix];
+      
+      if (option.weight !== 0 &&
+          allow_if(option.value) &&
+          !forbid_if(option.value))
+        legal_option_indices.push(ix);
+    }
+
+    return legal_option_indices;
+  }
+  // -------------------------------------------------------------------------------------
+  __clear_used_indices() {
+    this.used_indices.clear();
+    this.last_pick_index = null;
+    // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+  }
+  // -------------------------------------------------------------------------------------  
+  __indices_are_exhausted(option_indices, priority) {
+    // console.log(`this.options      = ${inspect_fun(this.options)}`);
+    // console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+    
+    if (! priority)
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+
+    if (this.used_indices.size == 0)
+      return false;
+
+    let exhausted_indices = null;
+    
+    if (priority == picker_priority.avoid_repetition) {
+      exhausted_indices = new Set(this.used_indices.keys());
+    }
+    else if (priority == picker_priority.ensure_weighted_distribution) {
+      exhausted_indices = new Set();
+
+      for (const [used_index, usage_count] of this.used_indices) {
+        const option = this.options[used_index];
+
+        // console.log(`option ${used_index} of ${inspect_fun(this.options)}: ${inspect_fun(option)}`);
+
+        if (usage_count >= option.weight)
+          exhausted_indices.add(used_index);
+      }
+      
+      // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
+    }
+    else if (priority === picker_priority.true_randomness) {
+      return false;
+    }
+    else {
+      throw new Error(`bad priority: ${inspect_fun(priority)}`);
     }
     
-    let   total   = 0;
-    const random  = Math.random() * this.range;
-
-    for (const option of this.options) {
-      total += option[0];
-
-      if (random < total)
-        return option[1];      
+    return exhausted_indices.isSupersetOf(new Set(option_indices));
+  }
+  // -------------------------------------------------------------------------------------
+  __effective_weight(option_index, priority) {
+    if (! ((option_index || option_index === 0) && priority))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    let ret = null;
+    
+    if (priority === picker_priority.avoid_repetition) {
+      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
     }
+    else if (priority === picker_priority.ensure_weighted_distribution) {
+      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+    }
+    else if (priority === picker_priority.true_randomness) {
+      ret = this.options[option_index].weight;
+    }
+    else {
+      throw Error("unexpected priority");
+    }
+
+    // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+    
+    return ret;
+  };
+  // -------------------------------------------------------------------------------------
+  pick_one(allow_if, forbid_if, priority) {
+    // console.log(`PICK ONE =======================================================================`);
+    // console.log(`PRIORITY        = ${inspect_fun(priority)}`);
+    // console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+    // console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+
+    if (! (priority && allow_if && forbid_if))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    const noisy = false;
+
+    // // console.log(`PICK_ONE!`);
+    
+    // // console.log(`PICK FROM ${JSON.stringify(this)}`);
+
+    if (this.options.length === 0) {
+      // // console.log(`PICK_ONE: NO OPTIONS 1!`);
+      return null;
+    }
+
+    let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+    
+    if (this.__indices_are_exhausted(legal_option_indices, priority)) {
+      // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      if (priority === picker_priority.avoid_repetition) {
+        if (this.last_pick_index !== null) {
+          const last_pick_index = this.last_pick_index;
+          this.__clear_used_indices();
+          this.__record_index_usage(last_pick_index);
+        }
+        else /* ensure_weighted_distribution, true_randomness */ {
+          this.__clear_used_indices();
+        }
+      }
+      else {
+        this.__clear_used_indices();
+      }
+      
+      // console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+      
+      legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+    }
+    
+    if (legal_option_indices.length === 0) {
+      // // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+      // console.log(`BEFORE BAIL 1: ${inspect_fun(this.used_indices)}`);
+      return null;
+    }
+
+    if (legal_option_indices.length === 1) {
+      // // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      this.__record_index_usage(legal_option_indices[0]);
+      // console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+      return this.options[legal_option_indices[0]].value;
+    }
+
+    // // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+
+    let total_weight = 0;
+
+    // console.log(`BEFORE TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    
+    for (const legal_option_ix of legal_option_indices) {
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+      // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+      // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+      total_weight += adjusted_weight;
+    }
+    // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
+    // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    
+    // Since we now avoid adding options with a weight of 0, this shouldnever be true:
+    if (total_weight === 0) {
+      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
+                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
+
+      if (noisy) {
+        // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
+      }
+    }
+    
+    if (noisy) {
+      // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
+    }
+    
+    let random = Math.random() * total_weight;
+
+    if (noisy) {
+      // console.log(`------------------------------------------------------------------------`);
+      // console.log(`RANDOM IS ${random}`);
+      // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+    }
+    
+    for (const legal_option_ix of legal_option_indices) {
+      const option          = this.options[legal_option_ix];
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+
+      if (adjusted_weight === 0)
+        continue;
+
+      if (noisy) {
+        // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+      }
+      
+      if (random < adjusted_weight) {
+        this.__record_index_usage(legal_option_ix);
+        return option.value;
+      }
+
+      random -= adjusted_weight;
+
+      if (noisy) {
+        // console.log(`RANDOM IS NOW ${random}`);
+      }
+    }
+
+    throw new Error("random selection failed");
   }
 }
-// =======================================================================================
-// END OF WildcardPicker CLASS SECTION.
 // =======================================================================================
 
 
 // =======================================================================================
 // HELPER FUNCTIONS SECTION:
 // =======================================================================================
+function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
+  console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
+  
+  const index = array.findIndex(existing => existing.file === lora.file);
+  if (index !== -1) {
+    array.splice(index, 1); // Remove the existing entry
+  }
+  array.push(lora); // Add the new entry at the end
+}
+// -------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
     Object.keys(obj).length === 0 &&
@@ -1728,7 +1999,7 @@ function pretty_list(arr) {
 }
 // ---------------------------------------------------------------------------------------
 function capitalize(string) {
-  // console.log(`CAPITALIZING '${string}'`);
+  // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 // ---------------------------------------------------------------------------------------
@@ -1776,7 +2047,13 @@ function unescape(str) {
 };
 // ---------------------------------------------------------------------------------------
 function smart_join(arr) {
-  arr = [...arr];
+  if (! arr)
+    return arr;
+  
+  if (typeof arr === 'string')
+    return arr;
+  
+  arr = [...arr.filter(x=> x)];
   
   // console.log(`JOINING ${inspect_fun(arr)}`);
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
@@ -1788,10 +2065,10 @@ function smart_join(arr) {
   let str       = left_word;
 
   for (let ix = 1; ix < arr.length; ix++)  {
-    let right_word = null;
-    let prev_char = null;
-    let prev_char_is_escaped = null
-    let next_char = null;
+    let right_word           = null;
+    let prev_char            = null;
+    let prev_char_is_escaped = null;
+    let next_char            = null;
 
     const update_pos_vars = () => {
       right_word           = arr[ix]?.toString() ?? "";
@@ -1810,8 +2087,15 @@ function smart_join(arr) {
 
     update_pos_vars();
     
-    if (prev_char === ',' && right_word === ',')
+    if (right_word === '') {
+      // console.log(`JUMP EMPTY!`);
       continue;
+    }
+
+    if (prev_char === ',' && right_word === ',') {
+      // console.log(`JUMP COMMA!`);
+      continue;
+    }
 
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
       shift_left(3);
@@ -1878,9 +2162,6 @@ function smart_join(arr) {
     str += left_word;
   }
 
-  // console.log(`before = '${str}'`);
-  // console.log(`after  = '${unescape(str)}'`);
-
   return unescape(str);
 }
 // =======================================================================================
@@ -1912,6 +2193,7 @@ const dt_samplers = [   // order is significant, do not rearrange!
   'DPM++ 2M Trailing',  // 15
   'DDIM Trailing',      // 16
 ];
+const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
 // ---------------------------------------------------------------------------------------
 const key_names = [
   // [ automatic1111's name,  Draw Things' name ],
@@ -1924,7 +2206,35 @@ const key_names = [
 ];
 // ---------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
-  config = { ...config };
+  config = clone_fun(config);
+
+  if (is_empty_object(config))
+    return config;
+
+  if (config.model) {
+    config.model = config.model.toLowerCase();
+    
+    if (config.model.endsWith('_f16.ckpt')) {
+      // do nothing
+    }
+    else if (config.model.endsWith('_f16')) {
+      config.model = `${config.model}.ckpt`;}
+    else {
+      config.model= `${config.model}_f16.ckpt`;
+    }
+  }
+  
+  // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
+  if (config.sampler) {
+    if (typeof config.sampler === 'string') {
+      const lc = config.sampler.toLowerCase();
+      // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
+      const got = dt_samplers_caps_correction.get(lc);
+
+      if (got)
+        config.sampler = got;
+    }
+  }
   
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
     if (config.sampler !== undefined && typeof config.sampler === 'string') {
@@ -1937,7 +2247,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       if (config[automatic1111_name] !== undefined) {
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
-                    `config.sampler = ${config[automatic1111_name]}.`);
+                    `config.${dt_name} = ${config[automatic1111_name]}.`);
         config[dt_name] = config[automatic1111_name];
         delete config[automatic1111_name];
       }
@@ -1982,8 +2292,10 @@ class Context {
     noisy = false,
     files = [],
     config = {},
-    new_loras = [],
+    add_loras = [],
     top_file = true,
+    pick_one_priority = picker_priority.ensure_weighted_distribution,
+    pick_multiple_priority = picker_priority.avoid_repetition,
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
@@ -1991,8 +2303,10 @@ class Context {
     this.noisy = noisy;
     this.files = files;
     this.config = config;
-    this.new_loras = new_loras;
+    this.add_loras = add_loras;
     this.top_file = top_file;
+    this.pick_one_priority = pick_one_priority;
+    this.pick_multiple_priority = pick_multiple_priority;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
       this.flags.add("dt_hosted");
@@ -2005,48 +2319,62 @@ class Context {
   // -------------------------------------------------------------------------------------
   clone() {
     return new Context({
-      flags: new Set(this.flags),
-      scalar_variables: new Map(this.scalar_variables),
-      named_wildcards: new Map(this.named_wildcards),
-      noisy: this.noisy,
-      files: [...this.files],
-      top_file: this.top_file,
+      flags:                  new Set(this.flags),
+      scalar_variables:       new Map(this.scalar_variables),
+      named_wildcards:        new Map(this.named_wildcards),
+      noisy:                  this.noisy,
+      files:                  [ ...this.files ],
+      config:                 { ...this.config }, /// ???
+      add_loras:              [ ...this.add_loras
+                                .map(o => ({ file: o.file, weigh: o.weight })) ],
+      top_file:               this.top_file,
+      pick_one_priority:      this.pick_one_priority,
+      pick_multiple_priority: this.pick_multiple_priority,      
     });
   }
   // -------------------------------------------------------------------------------------
   shallow_copy() {
     return new Context({
       flags: this.flags,
-      scalar_variables: this.scalar_variables,
-      named_wildcards: this.named_wildcards,
-      noisy: this.noisy,
-      files: this.files,
-      top_file: false, // deliberately not copied!
+      scalar_variables:       this.scalar_variables,
+      named_wildcards:        this.named_wildcards,
+      noisy:                  this.noisy,
+      files:                  this.files,
+      config:                 this.config,
+      add_loras:              this.add_loras,
+      top_file:               false, // deliberately not copied!
+      pick_one_priority:      this.pick_one_priority,
+      pick_multiple_priority: this.pick_multiple_priority,
     });
   }
 }
 // ---------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
-@set_gender_if_unset := {!female !male !neuter {3 #female|2 #male|#neuter}}
-@gender              := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
-@pro_3rd_subj        := {@set_gender_if_unset {?female she   |?male he  |?neuter it }}
-@pro_3rd_obj         := {@set_gender_if_unset {?female her   |?male him |?neuter it }}
-@pro_pos_adj         := {@set_gender_if_unset {?female her   |?male his |?neuter its}}
-@pro_pos             := {@set_gender_if_unset {?female hers  |?male his |?neuter its}}
-@__digit             := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
-@__high_digit        := {<5|<6|<7|<8|<9}
-@random_weight       := {:1. @__digit}
-@high_random_weight  := {:1. @__high_digit}
-
-@pony_score_9        := {score_9,}
-@pony_score_8_up     := {score_9, score_8_up,}
-@pony_score_7_up     := {score_9, score_8_up, score_7_up,}
-@pony_score_6_up     := {score_9, score_8_up, score_7_up, score_6_up,}
-@pony_score_5_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
-@pony_score_4_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
-@aris_defaults       := {masterpiece, best quality, absurdres, aesthetic, 8k,
-                         high depth of field, ultra high resolution, detailed background,
-                         wide shot,}
+@set_gender_if_unset    := {!female !male !neuter {3 #female|2 #male|#neuter}}
+@gender                 := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
+@pro_3rd_subj           := {@set_gender_if_unset {?female she   |?male he  |?neuter it }}
+@pro_3rd_obj            := {@set_gender_if_unset {?female her   |?male him |?neuter it }}
+@pro_pos_adj            := {@set_gender_if_unset {?female her   |?male his |?neuter its}}
+@pro_pos                := {@set_gender_if_unset {?female hers  |?male his |?neuter its}}
+@__digit                := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
+@__low_digit            := {<1|<2|<3|<4|<5}
+@__high_digit           := {<5|<6|<7|<8|<9}
+@low_random_weight      := { 0. @__low_digit }
+@lt1_random_weight      := { 0. @__digit     } 
+@lowish_random_weight   := { 0. @__high_digit}
+@random_weight          := {{1. @__high_digit}|{1. @__low_digit}}
+@highish_random_weight  := { 1. @__low_digit }
+@gt1_random_weight      := { 1. @__digit     }
+@high_random_weight     := { 1. @__high_digit}
+@pony_score_9           := {score_9,}
+@pony_score_8_up        := {score_9, score_8_up,}
+@pony_score_7_up        := {score_9, score_8_up, score_7_up,}
+@pony_score_6_up        := {score_9, score_8_up, score_7_up, score_6_up,}
+@pony_score_5_up        := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
+@pony_score_4_up        := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
+@aris_defaults          := {masterpiece, best quality, absurdres, aesthetic, 8k,
+                            high depth of field, ultra high resolution, detailed background,
+                            wide shot,}
 
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
@@ -3120,7 +3448,13 @@ const prelude_text = disable_prelude ? '' : `
 #artist__konstantin_yuon Konstantin Yuon |
 #artist__yuumei Yuumei |
 #artist__william_zorach William Zorach |
-#artist__ander_zorn Ander Zorn
+#artist__ander_zorn Ander Zorn |
+// artists added by me (ariane-emory):
+3 #artist__ian_miller Ian Miller |
+3 #artist__john_zeleznik John Zeleznik |
+3 #artist__keith_parkinson Keith Parkinson |
+3 #artist__kevin_fales Kevin Fales |
+3 #artist__boris_vallejo
 }
 
 // The matching list of styles:
@@ -4194,7 +4528,13 @@ const prelude_text = disable_prelude ? '' : `
 ?artist__konstantin_yuon color-field, impressionism, landscapes |
 ?artist__yuumei characters, digital, dream-like, environmentalism, fantasy, femininity, manga-anime, whimsical |
 ?artist__william_zorach cubism, expressionism, folk-art, modern, sculpture |
-?artist__ander_zorn etching, nudes, painting, portraits, Swedish
+?artist__ander_zorn etching, nudes, painting, portraits, Swedish |
+// artists added by me (ariane-emory):
+?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
+?artist__john_zeleznik science-fiction, Rifts, palladium-books, painting |
+?artist__keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
+?artist__kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books |
+?artist__boris_vallejo fantasy, science fiction, magic, nature, muscles, femininity
 }
 `;
 // ---------------------------------------------------------------------------------------
@@ -4221,15 +4561,44 @@ function load_prelude(into_context = new Context()) {
 // THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =======================================================================================
 function expand_wildcards(thing, context = new Context()) {
-  function walk(thing, context) {
+  // -----------------------------------------------------------------------------------
+  function forbid_fun(option) {
+    for (const not_flag of option.not_flags)
+      if (context.flags.has(not_flag.name))
+        return true;
+    return false;
+  };
+  // -------------------------------------------------------------------------------------
+  function allow_fun(option) {
+    let allowed = true;
+    
+    for (const check_flag of option.check_flags) {
+      let found = false;
+      
+      for (const name of check_flag.names) {
+        if (context.flags.has(name)) {
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        allowed = false;
+        break;
+      }
+    }
+    
+    return allowed;
+  };
+  // -------------------------------------------------------------------------------------
+  function walk(thing) {
     // -----------------------------------------------------------------------------------
     // basic types (strings and Arrays):
     // -----------------------------------------------------------------------------------
     if (typeof thing === 'string')
-      return thing
+      return thing;
+    // -----------------------------------------------------------------------------------
     else if (Array.isArray(thing)) {
-      // return thing.map(x => walk(x, context));
-      
       const ret = [];
 
       for (const t of thing) {
@@ -4239,9 +4608,7 @@ function expand_wildcards(thing, context = new Context()) {
                       ? inspect_fun(t)
                       : `${typeof t} '${t}'`);
         
-        const val = walk(t, context);
-
-        ret.push(val);
+        ret.push(walk(t));
       }
 
       return ret;
@@ -4265,24 +4632,28 @@ function expand_wildcards(thing, context = new Context()) {
       if (!got)
         return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
-      const res = [ walk(got, context) ];
-
-      if (thing.capitalize)
-        res[0] = capitalize(res[0]);
-
-      const count = rand_int(thing.min_count, thing.max_count);
+      let res = [];
       
-      for (let ix = 1; ix < count; ix++) {
-        let val = walk(got, context);
+      if (got instanceof ASTLatchedNamedWildcardedValue) {
+        for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
+          res.push(walk(got));        
+      }
+      else {
+        const priority = thing.min_count === 1 && thing.max_count === 1
+              ? context.pick_one_priority
+              : context.pick_multiple_priority;
         
-        for (let iix = 0; iix < (Math.max(5, got.options.length * 2)); iix++) {
-          if (! res.includes(val))
-            break;
+        const picks = got.pick(thing.min_count, thing.max_count,
+                               allow_fun, forbid_fun,
+                               priority);
+        
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
+      }
+      
+      res = res.filter(s => s !== '');
 
-          val = walk(got, context);
-        }
-
-        res.push(val);
+      if (thing.capitalize && res.length > 0) {
+        res[0] = capitalize(res[0]);
       }
 
       return thing.joiner == ','
@@ -4317,7 +4688,7 @@ function expand_wildcards(thing, context = new Context()) {
         return '';
       }
 
-      const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
 
       if (context.noisy)
         console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
@@ -4347,8 +4718,6 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination))
         console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
-      // else
-      //   console.log(`SETTING ${inspect_fun(thing)} IN ${inspect_fun(context.named_wildcards)}` );
 
       context.named_wildcards.set(thing.destination, thing.wildcard);
 
@@ -4370,15 +4739,14 @@ function expand_wildcards(thing, context = new Context()) {
                     `TO '${thing.destination.name}'`);
       }
 
-      const val = walk(thing.source, context);
+      const val = expand_wildcards(thing.source, context);
 
-      if (context.noisy)
-        console.log(`ASSIGNED ${inspect_fun(val)} TO "${thing.destination.name}'`);
-      
       context.scalar_variables.set(thing.destination.name, val);
 
-      if (context.noisy)
+      if (context.noisy) {
+        console.log(`ASSIGN ${inspect_fun(val)} TO "${thing.destination.name}'`);
         console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+      }
       
       return '';
     }
@@ -4386,110 +4754,67 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const new_picker = new WildcardPicker();
+      const pick = thing.pick_one(allow_fun, forbid_fun,
+                                  context.pick_one_priority)?.body;
 
-      for (const option of thing.options) {
-        let skip = false;
-
-        // if (option.not_flags.length > 1)
-        //   console.log(`alternative ${inspect_fun(option.body).replace(/\s+/, ' ')} is guarded against ${inspect_fun(option.not_flags.map(nf => nf.name).join(", "))}`);
-        
-        for (const not_flag of option.not_flags) {
-          // console.log(`CHECKING FOR NOT ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}...`);
-
-          if (context.flags.has(not_flag.name)) {
-            // console.log(`FOUND ${inspect_fun(not_flag.name)} in ${inspect_fun(Array.from(context.flags))}, forbid!`);
-            skip = true;
-            break;
-          }
-        }
-
-        if (skip)
-          continue;
-        
-        for (const check_flag of option.check_flags) {
-          // if (context.noisy)
-          //   console.log(`CHECKING FOR ${inspect_fun(check_flag.name)}...`);
-
-          let found = false;
-          
-          for (const name of check_flag.names) {
-            // console.log(`check for ${name} in ${inspect_fun(Array.from(context.flags))}: ${context.flags.has(name)} during ${inspect_fun(option.body)}`);
-            
-            if (context.flags.has(name)) {
-              // console.log(`FOUND ${name} in ${inspect_fun(Array.from(context.flags))}, allow!`);
-              found = true;
-              break;
-            }
-          }
-
-          if (!found) {
-            skip = true;
-            break;
-          }
-        }
-
-        if (skip)
-          continue;
-
-        new_picker.add(option.weight, option.body);
-      }
-
-      if (new_picker.options.length == 0)
-        return '';
+      if (! pick)
+        return ''; // inelegant... investigate why this is necessary?
       
-      const pick = new_picker.pick();
-
-      // console.log(`PICKED ${inspect_fun(pick)}`);
-      
-      return smart_join(walk(pick, context).flat(Infinity).filter(s => s !== ''));
-      // return walk(pick, context);
+      return smart_join(walk(pick));
     }
     // -----------------------------------------------------------------------------------
-    // TLDs:
+    // SpecialFunctions:
     // -----------------------------------------------------------------------------------
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
-      if (thing.args.lenrth > 2)
-        throw new Error(`update-config takes 1 or 2 arguments, got ` +
-                        `${inspect_fun(thing.args)}`);
+    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
+      if (typeof thing.value_object !== 'object')
+        throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
 
-      let config = {};
-
-      if (thing.args.length === 2) {
-        // TOOD: check types
-        config[thing.args[0]] = thing.args[1];
-      }
-      else {
-        config = thing.args[0];
-      }
+      context.config = { ...context.config, ...thing.value_object };
       
-      if (typeof config !== 'object')
-        throw new Error(`update-config's argument must be either: an object OR a ` +
-                        `string and an object, got ${inspect_fun(config)}`);
-
-      context.config = { ...context.config, ...config };
-
       if (log_config_enabled)
         console.log(`Updated config to ${JSON.stringify(context.config)}`);
       
       return '';
-    } 
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'set-config') {
-      const config = thing.args[0];
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
+      context.config[thing.key] = thing.value
       
-      context.new_loras = []; // kinda ugly but seems correct for this case...
-
-      if (typeof config !== 'object')
-        throw new Error(`set-config's argument must be an object, ` +
-                        `got ${inspect_fun(config)}`);
-
-      context.config = config;
-
       if (log_config_enabled)
-        console.log(`Set config to ${JSON.stringify(config)}`);
+        console.log(`Updated config to ${JSON.stringify(context.config)}`);
       
       return '';
-    } 
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSetPickSingle) {
+      const walked = walk(thing.limited_content, context);
+
+      if (! picker_priority_names.includes(walked))
+        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+
+      context.pick_one_priority = picker_priority[walked];
+
+      console.log(`Updated single pick priority to ` +
+                  `${inspect_fun(context.pick_one_priority)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSetPickMultiple) {
+      const walked = walk(thing.limited_content, context);
+
+      if (! picker_priority_names.includes(walked))
+        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+
+      context.pick_multiple_priority = picker_priority[walked];
+
+      console.log(`Updated multiple pick priority to ` +
+                  `${inspect_fun(context.pick_multiple_priority)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    // get rid of these soon:
     else if (thing instanceof ASTSpecialFunction) {
       // console.log(`IGNORING ${inspect_fun(thing)}`);
       console.log(`IGNORING UNIMPLEMENTED SpecialFunction: ${JSON.stringify(thing)}`);
@@ -4498,22 +4823,83 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      context.new_loras.push(thing);
+      // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      
+      let walked_file = walk(thing.file, context);
+
+      // console.log(`walked_file is ${typeof walked_file} ` +
+      //             `${walked_file.constructor.name} ` +
+      //             `${inspect_fun(walked_file)} ` +
+      //             `${Array.isArray(walked_file)}`);
+
+      if (Array.isArray(walked_file))
+        walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
+
+      let walked_weight = walk(thing.weight, context);
+
+      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      //             `${walked_weight.constructor.name} ` +
+      //             `${inspect_fun(walked_weight)} ` +
+      //             `${Array.isArray(walked_weight)}`);
+
+      if (Array.isArray(walked_weight))
+        walked_weight = smart_join(walked_weight);
+      
+      const weight_match_result = json_number.match(walked_weight);
+
+      if (!weight_match_result || !weight_match_result.is_finished)
+        throw new Error(`LoRA weight must be a number, got ` +
+                        `${inspect_fun(walked_weight)}`);
+
+      let file    = walked_file.toLowerCase();
+
+      if (file.endsWith('_lora_f16.ckpt')) {
+        // do nothing 
+      }
+      else if (file.endsWith('_lora_f16')) {
+        file = `${file}.ckpt`;
+      }
+      else if (file.endsWith('_lora')) {
+        file = `${file}_f16.ckpt`;
+      }
+      else {
+        file = `${file}_lora_f16.ckpt`;
+      }
+
+      const weight = weight_match_result.value;
+
+      add_lora_to_array({ file: file, weight: weight },
+                        context.add_loras,
+                        "context.add_loras");
       
       return '';
     }
+    // -----------------------------------------------------------------------------------
+    // numbers get strung:
+    // -----------------------------------------------------------------------------------
+    // else if (typeof thing === 'number') {
+    //   return thing.toString();
+    // }
+    // -----------------------------------------------------------------------------------
+    // null gets passed through:
+    // -----------------------------------------------------------------------------------
+    // else if (thing === null) {
+    //   return '';
+    // }
+    // -----------------------------------------------------------------------------------
     // error case, unrecognized objects:
     // -----------------------------------------------------------------------------------
     else {
       throw new Error(`confusing thing: ` +
                       (typeof thing === 'object'
-                       ? thing.constructor.name
+                       ? thing?.constructor.name
                        : typeof thing) +
                       ' ' +
                       inspect_fun(thing));
     }
   }
-  return smart_join(walk(thing, context).flat(Infinity).filter(s => s !== ''));
+  
+  return smart_join(walk(thing, context));
 }
 // =======================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -4546,7 +4932,7 @@ class ASTNotFlag  {
   }
 }
 // ---------------------------------------------------------------------------------------
-// References:
+// NamedWildcard references:
 // ---------------------------------------------------------------------------------------
 class ASTNamedWildcardReference {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
@@ -4559,6 +4945,8 @@ class ASTNamedWildcardReference {
   }
 }
 // ---------------------------------------------------------------------------------------
+// Scalar references:
+// ---------------------------------------------------------------------------------------
 class ASTScalarReference {
   constructor(name, capitalize) {
     this.name       = name;
@@ -4566,16 +4954,17 @@ class ASTScalarReference {
   }
 }
 // ---------------------------------------------------------------------------------------
-// for A1111-style Loras:
+// A1111-style Loras:
 // ---------------------------------------------------------------------------------------
 class ASTLora {
   constructor(file, weight) {
     this.file   = file;
     this.weight = weight;
+    // console.log(`Constructed LoRa ${this}!`);
   }
 }
 // ---------------------------------------------------------------------------------------
-// NamedWildcards:
+// Latch a NamedWildcard:
 // ---------------------------------------------------------------------------------------
 class ASTLatchNamedWildcard {
   constructor(name) {
@@ -4583,11 +4972,15 @@ class ASTLatchNamedWildcard {
   }
 }
 // ---------------------------------------------------------------------------------------
+// Unlatch a NamedWildcard:
+// ---------------------------------------------------------------------------------------
 class ASTUnlatchNamedWildcard {
   constructor(name) {
     this.name = name;
   }
 }
+// ---------------------------------------------------------------------------------------
+// Named wildcard definitions:
 // ---------------------------------------------------------------------------------------
 class ASTNamedWildcardDefinition {
   constructor(destination, wildcard) {
@@ -4596,7 +4989,7 @@ class ASTNamedWildcardDefinition {
   }
 }
 // ---------------------------------------------------------------------------------------
-// internal usage.. might not /really/ be part of the AST per se?
+// Internal usage.. might not /really/ be part of the AST per se?
 // ---------------------------------------------------------------------------------------
 class ASTLatchedNamedWildcardedValue {
   constructor(latched_value, original_value) {
@@ -4605,12 +4998,32 @@ class ASTLatchedNamedWildcardedValue {
   }
 }
 // ---------------------------------------------------------------------------------------
-// scalar assignment:
+// Scalar assignment:
 // ---------------------------------------------------------------------------------------
 class ASTScalarAssignment  {
   constructor(destination, source) {
     this.destination = destination;
-    this.source = source;
+    this.source      = source;
+  }
+}
+// ---------------------------------------------------------------------------------------
+// AnonWildcards:
+// ---------------------------------------------------------------------------------------
+class ASTAnonWildcard extends WeightedPicker {
+  constructor(options) {
+    super(options
+          .filter(o => o.weight !== 0)
+          .map(o => [o.weight, o]));
+    // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTAnonWildcardAlternative {
+  constructor(weight, check_flags, not_flags, body) {
+    this.weight      = weight;
+    this.check_flags = check_flags;
+    this.not_flags   = not_flags;
+    this.body        = body;
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -4619,24 +5032,33 @@ class ASTScalarAssignment  {
 class ASTSpecialFunction {
   constructor(directive, args) {
     this.directive = directive;
-    this.args = args;
+    this.args      = args;
   }
 }
 // ---------------------------------------------------------------------------------------
-// AnonWildcards:
-// ---------------------------------------------------------------------------------------
-class ASTAnonWildcard {
-  constructor(options) {
-    this.options = options;
+class ASTSpecialFunctionUpdateConfigUnary {
+  constructor(value_object) {
+    this.value_object = value_object;
+    // console.log(`CONSTRUCTED ASTSFUCU: ${inspect_fun(this)}`);
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTAnonWildcardAlternative {
-  constructor(weight, check_flags, not_flags, body) {
-    this.weight = weight;
-    this.check_flags = check_flags;
-    this.not_flags = not_flags;
-    this.body = body;
+class ASTSpecialFunctionUpdateConfigBinary {
+  constructor(key, value) {
+    this.key   = key;
+    this.value = value;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTSetPickSingle {
+  constructor(limited_content) {
+    this.limited_content = limited_content;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTSetPickMultiple {
+  constructor(limited_content) {
+    this.limited_content = limited_content;
   }
 }
 // =======================================================================================
@@ -4651,42 +5073,54 @@ class ASTAnonWildcardAlternative {
 // =======================================================================================
 // terminals:
 // ---------------------------------------------------------------------------------------
+const word_break              = /(?=\s|[{|}]|$)/;
 const plaintext               = /[^{|}\s]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+const filename                = /[A-Za-z0-9 ._\-()]+/;
+// ^ conservative regex, no unicode or weird symbols
 // ---------------------------------------------------------------------------------------
-// A1111-style Loras subsection:
+// A1111-style LoRAs:
 // ---------------------------------------------------------------------------------------
-// conservative regex, no unicode or weird symbols:
-const filename = /[A-Za-z0-9 ._\-()]+/;
-const A1111StyleLoraWeight =
-      choice(
-        xform(parseFloat, /\d*\.\d+/),
-        xform(parseInt,   /\d+/))
-const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
-                                                 ? arr[3]
-                                                 : `${arr[3]}.ckpt`),
-                                                arr[5]),
-                             wst_seq('<', 'lora', ':', 
-                                     choice(filename, () => LimitedContent),
-                                     ':',
-                                     choice(A1111StyleLoraWeight, () => LimitedContent),
-                                     '>'));
-// const A1111StyleLora = xform(arr => new ASTLora((arr[3].endsWith('.ckpt')
-//                                              ? arr[3]
-//                                              : `${arr[3]}.ckpt`),
-//                                             arr[5]),
-//                          wst_seq('<', 'lora', ':', filename, ':', A1111StyleLoraWeight, '>'));
-// remmove these soon:
-const uninteresting = r(/[^<]+/);
-const phase2_prompt = star(choice(
-  A1111StyleLora,
-  uninteresting,
-  '<',
-));
+const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
+const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
+                                   wst_seq('<',                                    // [0]
+                                           'lora',                                 // [1]
+                                           ':',                                    // [2]
+                                           choice(filename, () => LimitedContent), // [3]
+                                           optional(second(wst_seq(':',
+                                                                   choice(A1111StyleLoraWeight,
+                                                                          () => LimitedContent))),
+                                                    "1.0"), // [4][0]
+                                           '>'));
+// ---------------------------------------------------------------------------------------
+// helper funs used to make grammar rules::
+// ---------------------------------------------------------------------------------------
+const make_ASTFlagCmd_Rule = (klass, ...rules) =>
+      xform(ident => new klass(ident),
+            second(seq(...rules, ident, word_break)));
+// ---------------------------------------------------------------------------------------
+const make_special_function_Rule = rule =>
+      xform(tld_fun,
+            c_funcall(second(seq('%', rule)),
+                      first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
+// ---------------------------------------------------------------------------------------
+const make_unary_SpecialFunction_Rule = (prefix, rule, xform_func) =>
+      xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
+                                    DiscardedComments,     // -
+                                    '(',                   // [0][1]
+                                    DiscardedComments),    // -
+                            rule,                          // [1]
+                            DiscardedComments,             // -
+                            ')'),                          // [2]
+            arr => {
+              // console.log(`THIS ARR: ${inspect_fun(arr)}`);
+              // console.log(`THIS ARR[1]: ${inspect_fun(arr[1])}`);
+              return xform_func(arr[1]);
+            });
 // ---------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // ---------------------------------------------------------------------------------------
@@ -4711,80 +5145,76 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 }
 // ---------------------------------------------------------------------------------------
-const make_ASTFlagCmd = (klass, ...rules) =>
-      xform(ident => new klass(ident),
-            second(seq(...rules, ident, /(?=\s|[{|}]|$)/)));
-// ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // ---------------------------------------------------------------------------------------
-const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
+const SetFlag                 = make_ASTFlagCmd_Rule(ASTSetFlag,   '#');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
-                                      second(seq('?', plus(ident, ','), /(?=\s|[{|}]|$)/)))
+                                      second(seq('?', plus(ident, ','),
+                                                 word_break)))
 const MalformedNotSetCombo    = unexpected('#!');
-const NotFlag                 = xform((arr => {
-  //console.log(`ARR: ${inspect_fun(arr)}`);
-  return new ASTNotFlag(arr[2], arr[1][0]);
-}),
+const NotFlag                 = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
                                       seq('!', optional('#'),
-                                          ident, /(?=\s|[{|}]|$)/));
+                                          ident, word_break));
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
 const tld_fun = arr => new ASTSpecialFunction(...arr);
-const make_special_function = rule =>
-      xform(tld_fun,
-            c_funcall(second(seq('%', rule)),
-                      first(wst_seq(DiscardedComments, jsonc, DiscardedComments))));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
 const DiscardedComments             = discard(wst_star(comment));
-const SFInclude                     = make_special_function('include');
-const SFUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                    DiscardedComments,     // -
-                                                                    '.',                   // [0][1]
-                                                                    DiscardedComments),    // -
-                                                            ident,                         // [1]
-                                                            DiscardedComments,             // -
-                                                            '(',                           // [2]
-                                                            DiscardedComments,             // -
-                                                            jsonc,                         // [3]
-                                                            DiscardedComments,             // [4]
-                                                            ')'),                          // [4]
-                                            arr => new ASTSpecialFunction('update-config',
-                                                                          [arr[1], arr[3] ]));
-const SFUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                    DiscardedComments,     // -
-                                                                    '(',                   // [0][1]
-                                                                    DiscardedComments),    // -
-                                                            jsonc_object,                  // [1]
-                                                            DiscardedComments,             // -
-                                                            ')'),                          // [2]
-                                            arr => new ASTSpecialFunction('update-config',
-                                                                          [arr[1]]));
-const SFSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                    DiscardedComments,     // -
-                                                                    assignment_operator,   // _
-                                                                    DiscardedComments),    // -
-                                                            jsonc_object),                 // [1]
-                                            arr => new ASTSpecialFunction('set-config',
-                                                                          [arr[1]]));
-const SFUpdateConfiguration         = choice(SFUpdateConfigurationUnary,
-                                             SFUpdateConfigurationBinary);
-const UnexpectedSFInclude           = unexpected(SFInclude,
-                                                 () => "%include is only supported when " +
-                                                 "using wildcards-plus-tool.js, NOT when " +
-                                                 "running the wildcards-plus.js script " +
-                                                 "inside Draw Things!");
-const SpecialFunction               = choice(dt_hosted? UnexpectedSFInclude : SFInclude,
-                                             SFUpdateConfiguration,
-                                             SFSetConfiguration);
+const SpecialFunctionInclude                     = make_special_function_Rule('include');
+const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                                 DiscardedComments,     // -
+                                                                                 '.',                   // [0][1]
+                                                                                 DiscardedComments),    // -
+                                                                         ident,                         // [1]
+                                                                         DiscardedComments,             // -
+                                                                         '(',                           // [2]
+                                                                         DiscardedComments,             // -
+                                                                         Jsonc,                         // [3]
+                                                                         DiscardedComments,             // [4]
+                                                                         ')'),                          // [4]
+                                                         arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
+                                                                                arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
+const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
+                                                                                arg => new ASTSetPickSingle(arg));
+const SpecialFunctionSetPickMultiple          = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
+                                                                                arg => new ASTSetPickMultiple(arg));
+const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                                 DiscardedComments,     // -
+                                                                                 assignment_operator,   // _
+                                                                                 DiscardedComments),    // -
+                                                                         JsoncObject),                 // [1]
+                                                         arr => new ASTSpecialFunction('set-config',
+                                                                                       [arr[1]]));
+const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateConfigurationUnary,
+                                                          SpecialFunctionUpdateConfigurationBinary);
+const UnexpectedSpecialFunctionInclude           = unexpected(SpecialFunctionInclude,
+                                                              () => "%include is only supported when " +
+                                                              "using wildcards-plus-tool.js, NOT when " +
+                                                              "running the wildcards-plus.js script " +
+                                                              "inside Draw Things!");
+const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
+                                             SpecialFunctionSetConfiguration,
+                                             SpecialFunctionSetPickSingle,
+                                             SpecialFunctionSetPickMultiple);
+const SpecialFunction               = choice(dt_hosted? UnexpectedSpecialFunctionInclude : SpecialFunctionInclude,
+                                             SpecialFunctionNotInclude);
 const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                 optional(wb_uint, 1),
                                                 wst_star(choice(comment, TestFlag, SetFlag)),
                                                 () => ContentStar));
+const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
+                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                                 optional(wb_uint, 1),
+                                                 wst_star(choice(comment, TestFlag, SetFlag)),
+                                                 () => ContentStarNoLoras));
 const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const AnonWildcardNoLoras           = xform(arr => new ASTAnonWildcard(arr),
+                                            brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
 const NamedWildcardReference        = xform(seq(discard('@'),
                                                 optional('^'),                             // [0]
                                                 optional(xform(parseInt, /\d+/)),          // [1]
@@ -4820,7 +5250,8 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                         if (!bang && !hash)
                                           return new ASTNamedWildcardReference(ident);
 
-                                        if (bang) // goes before hash so that "@!#" works correctly.
+                                        // goes before hash so that "@!#" works correctly:
+                                        if (bang) 
                                           objs.push(new ASTUnlatchNamedWildcard(ident));
 
                                         if (hash)
@@ -4836,32 +5267,30 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
                                               ScalarAssignmentSource));
-const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
-                                             NamedWildcardReference),
-                                       
+const LimitedContent          = choice(AnonWildcardNoLoras, ScalarReference,
+                                       xform(name => new ASTNamedWildcardReference(name),
+                                             NamedWildcardDesignator),
+                                       // not permitted in the 'limited' content:
                                        // NamedWildcardUsage, SetFlag,
-                                       AnonWildcard,
                                        // comment,
-                                       ScalarReference,
-                                       // SFUpdateConfiguration,
-                                       // SFSetConfiguration,
+                                       // SpecialFunctionUpdateConfiguration,
+                                       // SpecialFunctionSetConfiguration,
                                        // low_pri_text, plaintext
                                       );
-const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
-                                       A1111StyleLora,
-                                       AnonWildcard, comment, ScalarReference,
-                                       SFUpdateConfiguration,
-                                       SFSetConfiguration,
-                                       low_pri_text, plaintext);
-const ContentStar             = xform(wst_star(Content), arr => arr.flat(1));
-// const PromptBody              = wst_star(choice(NamedWildcardDefinition,
-//                                                 ScalarAssignment,
-//                                                 Content));
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage,
+                                       SetFlag, A1111StyleLora, AnonWildcard, comment,
+                                       ScalarReference,
+                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
+const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage,
+                                       SetFlag, AnonWildcard, comment, ScalarReference,
+                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
+const ContentStar             = wst_star(Content);
+const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(SpecialFunction,
                                                 NamedWildcardDefinition,
                                                 ScalarAssignment,
                                                 Content));
-const Prompt                  = xform(arr => arr.flat(Infinity), PromptBody);
+const Prompt                  = PromptBody;
 // ---------------------------------------------------------------------------------------
 Prompt.finalize();
 // =======================================================================================
@@ -4870,9 +5299,8 @@ Prompt.finalize();
 
 
 // =======================================================================================
-// DEV NOTE: Copy into wildcards-plus.js starting through this line!
+// DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
-
 
 
 
@@ -4880,25 +5308,20 @@ Prompt.finalize();
 // MAIN SECTION: All of the Draw Things-specific code goes down here.
 // ---------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
-const fallback_prompt        = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
-const pipeline_configuration = pipeline.configuration;
-const ui_prompt              = pipeline.prompts.prompt;
-const ui_hint                = "no wildcards found in the prompt.";
-
-// // look for wildcards in the UI prompt:
-// if (ui_prompt.includes('{') && ui_prompt.includes('}')) {
-// 	ui_hint = "wildcard detected in the prompt.";
-prompt_string = ui_prompt;
-// } else {
-// 	prompt_string = "";
-// }
+const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
+// v DT's env doesn't seem to have structuredClone :(
+const pipeline_configuration      = clone_fun(pipeline.configuration);
+const ui_prompt                   = pipeline.prompts.prompt;
+const ui_hint                     = "no wildcards found in the prompt.";
+let   prompt_string               = ui_prompt;
+const default_batch_count         = 1;
 // ---------------------------------------------------------------------------------------
 
 
 // ---------------------------------------------------------------------------------------
 // UI:
 // ---------------------------------------------------------------------------------------
-const doc_string = `Wildcards Plus v0.7 by ariane-emory (based on @wetcircuit's original wildcard.js script)
+const doc_string = `Wildcards Plus v0.8 by ariane-emory (based on @wetcircuit's original wildcard.js script)
 
 Generate a batch of images using inline wildcards to randomize elements within the prompt.
 
@@ -4908,20 +5331,38 @@ The full documentation would be too large to fit in this tiny box, please see th
 
 const user_selection = requestFromUser('Wildcards', '', function() {
   return [
-	  this.section('Prompt', ui_hint, [
-		  this.textField(prompt_string, fallback_prompt, true, 240),
-		  this.slider(10, this.slider.fractional(0), 1, 500, 'batch count')
-    ]),
-	  this.section('about',
-                 doc_string,
-                 [])
+	  this.section('Prompt', ui_hint,
+                 [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
+    this.section("Batch count", "",
+                 [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
+    this.section("When picking a single item, prioritize:", "",
+                 [ this.menu(picker_priority_descriptions.indexOf(picker_priority.ensure_weighted_distribution),
+                             picker_priority_descriptions) ]),
+    this.section("When picking multiple items, prioritize:", "",
+                 [ this.menu(picker_priority_descriptions.indexOf(picker_priority.avoid_repetition),
+                             picker_priority_descriptions) ]),
+	  this.section('about', doc_string, [])
   ];
 });
 
-const batch_count = user_selection[0][1];
-prompt_string     = user_selection[0][0]
-// ---------------------------------------------------------------------------------------
+// console.log(`USER SELECTION:`);
+// console.log(JSON.stringify(user_selection, null, 2));
 
+prompt_string     = user_selection[0][0]
+const batch_count = user_selection[1][0];
+
+const user_selected_pick_one_priority =
+      picker_priority_descriptions_to_names.get(picker_priority_descriptions[user_selection[2][0]]);
+// console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
+//             `= ${picker_configuration.pick_one_priority}`);
+
+const user_selected_pick_multiple_priority = 
+      picker_priority_descriptions_to_names.get(picker_priority_descriptions[user_selection[3][0]]);
+// console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
+//             `= ${picker_configuration.pick_one_priority}`);
+
+console.log(`Single pick priority:   ${user_selected_pick_one_priority}`);
+console.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
 
 // ---------------------------------------------------------------------------------------
 // parse the prompt_string here:
@@ -4930,47 +5371,93 @@ const parse_result     = Prompt.match(prompt_string);
 
 if (! parse_result.is_finished)
   throw new Error(`error parsing prompt!`);
+
+const AST              = parse_result.value;
 // ---------------------------------------------------------------------------------------
 
-
-console.log(`\nPIPELINE: ${JSON.stringify(pipeline)}\n`);
-
-
-// ---------------------------------------------------------------------------------------
-// run the pipeline:
-// ---------------------------------------------------------------------------------------
-console.log(`\nThe wildcards-plus prompt is: ${prompt_string}\n`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
+console.log(`pipeline.configuration is:`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
+console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
+console.log(`The wildcards-plus prompt is:`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
+console.log(`${prompt_string}`);
 
 const base_context = load_prelude();
+base_context.pick_one_priority      = user_selected_pick_one_priority;
+base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 
+// ---------------------------------------------------------------------------------------
+// main loop:
+// ---------------------------------------------------------------------------------------
 for (let ix = 0; ix < batch_count; ix++) {
   const start_date = new Date();
 
-  console.log(`Beginning render #${ix+1} of ${batch_count} at ${start_date}:`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
 
   // expand the wildcards using a cloned context and generate a new configuration:
+  
   const context                 = base_context.clone();
-  const generated_prompt        = expand_wildcards(parse_result.value, context);
-  const generated_configuration = { ...pipeline_configuration,
+
+  // console.log(`CLONED: ${inspect_fun(context)}`);
+  
+  // console.log(`PL_C.L: ${inspect_fun(pipeline_configuration.loras)}`);
+  // console.log(`PL.C.L: ${inspect_fun(pipeline.configuration.loras)}`);
+
+  const generated_prompt        = expand_wildcards(AST, context);
+  const generated_configuration = { ...clone_fun(pipeline_configuration),
                                     seed: -1,
                                     ...munge_config(context.config) };
-  const new_loras = context.new_loras;
+  const add_loras               = context.add_loras;
+  // const added_loras_files       = [];
 
-  if (log_config_enabled && new_loras.length !== 0)
-    console.log(`Main loop found new_loras: ${inspect_fun(new_loras)} in Context.\n`);
+  if (add_loras.length > 0) {
+    if (log_config_enabled && add_loras.length !== 0) {
+      console.log(`-----------------------------------------------------------------------------------------------------------------`);
+      console.log(`Found add_loras in Context: ${inspect_fun(add_loras)} in Context.`);
+    }
 
-  generated_configuration.loras ||= [];
-  
-  for (const lora of new_loras) {
-    generated_configuration.loras.push({ file: lora.file, weight: lora.weight });
+    // console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
+    //             `${JSON.stringify(generated_configuration)}`);
+    
+    if (generated_configuration.loras && generated_configuration.length > 0)
+      generated_configuration.loras = [ ...generated_configuration.loras ];
+    else 
+      generated_configuration.loras ||= [];
+
+    for (const lora of add_loras) {
+      const already_have_this_lora = pipeline.configuration.loras
+            .filter(l => l.file === lora.file).length > 0;
+
+      // console.log(`THIS: ${already_have_this_lora}`);
+      
+      if (! already_have_this_lora) {
+        // added_loras_files.push(lora.file);
+        // console.log(`RECORDED ${inspect_fun(added_loras_files)}.`);
+        add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
+      }
+      
+      // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
+      //             `${JSON.stringify(generated_configuration)}`);
+    }
   }
-  
-  console.log(`The generated configuration is: ` +
-              `${JSON.stringify(generated_configuration)}`);
-  console.log(`The expanded prompt is: ` +
-              `${generated_prompt}`);
 
-  // render an image:
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  console.log(`GENERATED CONFIGURATION:`);
+  console.log(`${JSON.stringify(generated_configuration, null, 2)}`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  console.log(`The expanded prompt is:`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  console.log(`${generated_prompt}`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  console.log(`Generating image #${ix+1} out of ${batch_count}...`);
+
+  // -------------------------------------------------------------------------------------
+  // run the pipeline:
+  // -------------------------------------------------------------------------------------
   canvas.clear();
   pipeline.run({
     configuration: generated_configuration,
@@ -4980,7 +5467,32 @@ for (let ix = 0; ix < batch_count; ix++) {
   const end_time     = new Date().getTime();
   const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
-  console.log(`Generated in ${elapsed_time} seconds\n`);
+  console.log(`... image generated in ${elapsed_time} seconds.`);
+
+  // if (added_loras_files.files === 0)
+  //   console.log(`DID NOT ADD ANYTHING!`);
+  // else
+  //   console.log(`To remove: ${inspect_fun(added_loras_files)}`);
+  
+  // for (let ix = 0; ix < added_loras_files.length; ix++) {
+  //   const lora_file = added_loras_files[ix];
+  
+  //   console.log(`Look for '${lora_file}' in ${JSON.stringify(pipeline.configuration.loras, null, 2)}...`);
+  
+  //   const other_loras = pipeline.configuration.loras.filter(l => l.file != lora_file);
+  //   console.log(`other_loras = ${inspect_fun(other_loras)}, p.c.l = ${inspect_fun(pipeline.configuration.loras)}`);
+  //   console.log(`other_loras.length = ${other_loras.length}, p.c.l.l = ${pipeline.configuration.loras.length}`);
+  
+  //   if (other_loras.length !== pipeline.configuration.loras.length) {
+  //     console.log(`Removing lora "${lora_file}".`);
+
+  //     pipeline.configuration.loras = other_loras;
+  //     console.log(`PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
+  //   }
+  // }
+  
+  // console.log(`END PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
 }
 
 console.log('Job complete. Open Console to see job report.');
