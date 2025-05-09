@@ -5802,7 +5802,8 @@ const JsoncObject2 =
                                                         JsoncComments
                                                        ))             
                                           , ',')),
-                                '}')))));
+                               )),
+                '}')));
 
 [
   "foo",           // [0]
@@ -5826,6 +5827,9 @@ let s;
 
 s = `{"foo": 123 }`;
 console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
+
+// {"foo": 123 };
+
 
 // s = `{ }`;
 // console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
