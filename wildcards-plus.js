@@ -5434,7 +5434,7 @@ const pipeline_configuration      = clone_fun(pipeline.configuration);
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "no wildcards found in the prompt.";
 let   prompt_string               = ui_prompt;
-const default_batch_count         = 1;
+const default_batch_count         = 5;
 // -------------------------------------------------------------------------------------------------
 
 
