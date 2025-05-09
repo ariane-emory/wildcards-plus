@@ -5788,7 +5788,7 @@ const JsoncObject2 =
           return Object.fromEntries([ [arr[0], arr[1]], ...(arr[2][0]??[]) ]);
         },
               wst_cutting_seq(
-                wst_enc('{', () => json_string, ":"),
+                elem(2, wst_seq('{', JsoncComments, () => json_string, JsoncComments, ":", JsoncComments)),
                 Jsonc,
                 optional(second(wst_seq(',',
                                         wst_star(
