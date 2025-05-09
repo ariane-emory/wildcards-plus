@@ -4939,7 +4939,8 @@ function expand_wildcards(thing, context = new Context()) {
       return smart_join(walk(pick));
     }
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary || thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
+    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
+             thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
       let value = thing.value;
 
       if (thing.value instanceof AST) {
@@ -4970,38 +4971,6 @@ function expand_wildcards(thing, context = new Context()) {
       
       return '';
     }
-    // -----------------------------------------------------------------------------------
-    // else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
-    //   // console.log(`VALUE = ${inspect_fun(thing.value)}, ${thing.value instanceof AST}`);
-
-    //   let thing_value = thing.value;
-    
-    //   if (thing.value instanceof AST) {
-    //     // console.log(`RIGHT`);
-    
-    //     const walked_value = walk(thing.value, context);
-
-    //     // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
-
-    //     const jsconc_parsed_walked_value = Jsonc.match(walked_value);
-    
-    //     console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
-
-    //     if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-    //       throw new Error(`walking ASTSpecialFunctionUpdateConfigBinary.value must ` +
-    //                       `produce valid JSONC, Jsonc.matcch(...) result was ` +
-    //                       `${inspect_fun(jsconc_parsed_walked_value)}`);
-    
-    //     thing_value= jsconc_parsed_walked_value.value;
-    //   }
-    
-    //   context.config[thing.key]  = thing_value;
-    
-    //   if (log_config_enabled)
-    //     console.log(`Updated config to ${JSON.stringify(context.config)}`);
-    
-    //   return '';
-    // }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSSpecialFunctionetPickSingle) {
       const walked = walk(thing.limited_content, context);
