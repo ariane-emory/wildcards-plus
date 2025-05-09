@@ -5375,8 +5375,7 @@ const comment                 = discard(choice(c_block_comment, c_line_comment))
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
 const escaped_brc             =
       xform(x => {
-        // console.log(`X: ${inspect_fun(x)}`);
-        
+        // console.log(`X: ${inspect_fun(x)}`);        
         return x;
       },
             second(choice('\\{', '\\}')));
