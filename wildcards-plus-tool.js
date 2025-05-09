@@ -4983,7 +4983,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       let value_object = thing.value_object;
 
-      console.log(`THING.VALUE_OBJECT = ${inspect_fun(thing.value_object)}, ${thing.value_object instanceof AST}`);
+      // console.log(`THING.VALUE_OBJECT = ${inspect_fun(thing.value_object)}, ${thing.value_object instanceof AST}`);
       
       if (thing.value_object instanceof AST) {
         // console.log(`RIGHT`);
@@ -5370,7 +5370,7 @@ const comment                 = discard(choice(c_block_comment, c_line_comment))
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
 const escaped_brc             =
       xform(x => {
-        console.log(`X: ${inspect_fun(x)}`);
+        // console.log(`X: ${inspect_fun(x)}`);
         
         return x;
       },
