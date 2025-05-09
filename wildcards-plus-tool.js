@@ -4941,7 +4941,7 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     // SpecialFunctions:
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
+    else if (thing instanceof ASTSpecialFunctionSetConfig) {
       if (typeof thing.value_object !== 'object')
         throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
 
