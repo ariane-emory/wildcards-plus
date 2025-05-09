@@ -4927,6 +4927,15 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
+      context.config[thing.key] = thing.value
+      
+      if (log_config_enabled)
+        console.log(`Updated config to ${JSON.stringify(context.config)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
       if (thing.args.length > 2)
         throw new Error(`update-config takes 1 or 2 arguments, got ` +
@@ -5194,6 +5203,13 @@ class ASTSpecialFunctionUpdateConfigUnary {
   constructor(value_object) {
     this.value_object = value_object;
     // console.log(`CONSTRUCTED ASTSFUCU: ${inspect_fun(this)}`);
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTSpecialFunctionUpdateConfigBinary {
+  constructor(key, value) {
+    this.key   = key;
+    this.value = value;
   }
 }
 // =======================================================================================
