@@ -2567,7 +2567,7 @@ const prelude_text = disable_prelude ? '' : `
 
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
-// @wizards_artists   := { @#__wizards_artists @__wizards_artists }
+// @wizards_artists := { @#__wizards_artists @__wizards_artists }
 
 @wizards_artists := {
  @__set_wizards_artists_artist_if_unset @__wizards_artists_artist_name
