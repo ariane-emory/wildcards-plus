@@ -4941,15 +4941,15 @@ function expand_wildcards(thing, context = new Context()) {
     }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
-      console.log(`VALUE = ${inspect_fun(thing.value)}, ${thing.value instanceof AST}`);
+      // console.log(`VALUE = ${inspect_fun(thing.value)}, ${thing.value instanceof AST}`);
       
       if (! (thing.value instanceof AST)) {
-        console.log(`LEFT`);
+        // console.log(`LEFT`);
         
         context.config[thing.key] = thing.value;
       }
       else {
-        console.log(`RIGHT`);
+        // console.log(`RIGHT`);
         
         const walked_value = walk(thing.value, context);
 
