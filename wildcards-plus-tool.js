@@ -4965,7 +4965,7 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`JSCONC_PARSED_WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
         
         if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-                      throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
+          throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
                           (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
                           `, Jsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_walked_value));
@@ -5013,6 +5013,25 @@ function expand_wildcards(thing, context = new Context()) {
           `pick priority to ${inspect_fun(context.pick_one_priority)}`);
       
       return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunctionRevertPickSingle || 
+             thing instanceof ASTSpecialFunctionRevertPickMultiple) {
+      const cur_key = thing instanceof ASTSSpecialFunctionSetPickSingle
+            ? 'pick_one_priority'
+            : 'pick_multiple_priority';
+
+      const prior_key = thing instanceof ASTSSpecialFunctionSetPickSingle
+            ? 'prior_pick_one_priority'
+            : 'prior_pick_multiple_priority';
+      
+      const cur_val   = context[cur_key];
+      const prior_val = context[prior_key];
+      
+      context[cur_key]   = prior_val;
+      context[prior_key] = cur_val;
+
+      console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ${inspect_fun(prior_val)}.`);
     }
     // ---------------------------------------------------------------------------------------------
     // ASTLora:
