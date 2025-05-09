@@ -4940,17 +4940,17 @@ function expand_wildcards(thing, context = new Context()) {
     }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
-      if (typeof thing.value_object !== 'object')
+      if (typeof thing.value !== 'object')
         throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
 
-      let value_object = thing.value_object;
+      let value = thing.value;
 
-      // console.log(`THING.VALUE_OBJECT = ${inspect_fun(thing.value_object)}, ${thing.value_object instanceof AST}`);
+      // console.log(`THING.VALUE = ${inspect_fun(thing.value)}, ${thing.value instanceof AST}`);
       
-      if (thing.value_object instanceof AST) {
+      if (thing.value instanceof AST) {
         // console.log(`RIGHT`);
         
-        const walked_value = walk(thing.value_object, context);
+        const walked_value = walk(thing.value, context);
 
         // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
 
@@ -4959,16 +4959,16 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
 
         if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-          throw new Error(`walking ${thing.constructor.name}.value_object ` +
+          throw new Error(`walking ${thing.constructor.name}.value ` +
                           `must produce a valid JSONC object, Jsonc.match(...) result ` +
                           `was ${inspect_fun(jsconc_parsed_walked_value)}`);
         
-        value_object = jsconc_parsed_walked_value.value;
+        value = jsconc_parsed_walked_value.value;
       }
 
       context.config = thing.assign
-        ? value_object
-        : { ...context.config, ...value_object };
+        ? value
+        : { ...context.config, ...value };
       
       if (log_config_enabled)
         console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
@@ -5284,9 +5284,9 @@ class ASTSpecialFunction extends AST {
 }
 // ---------------------------------------------------------------------------------------
 class ASTSpecialFunctionUpdateConfigUnary extends AST {
-  constructor(value_object, assign) {
+  constructor(value, assign) {
     super();
-    this.value_object = value_object;
+    this.value = value;
     this.assign = assign; // otherwise update
   }
 }
