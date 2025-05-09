@@ -823,7 +823,7 @@ class CuttingEnclosed extends Enclosed {
                       `after ${this.start_rule} at ` +
                       `char ${index}` +
                       `, found: ` +
-                      `"${input.substring(start_rule_result.index)}"`);
+                      `"${abbreviate(input.substring(start_rule_result.index))}"`);
     }
     else {
       throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
@@ -1096,7 +1096,7 @@ class CuttingSequence extends Sequence {
                     `after ${this.elements[0]} at ` +
                     `char ${index}` +
                     `, found: ` +
-                    `'${input.substr(start_rule_result.index)}'`);
+                    `'${abbreviate(input.substr(start_rule_result.index))}'`);
   }
   // -------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -1478,6 +1478,10 @@ class MatchResult {
 
 // ---------------------------------------------------------------------------------------
 // helper functions and related vars:
+// ---------------------------------------------------------------------------------------
+function abbreviate(s, len = 100) {
+  return s.length < 100 ? s : `${s.substring(0, len).trim()}...`;
+}
 // ---------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
   return index == input.length
@@ -2321,10 +2325,6 @@ function smart_join(arr) {
   }
 
   return unescape(str);
-}
-// ---------------------------------------------------------------------------------------
-function abbreviate(s, len = 100) {
-  return s.length < 100 ? s : `${s.substring(0, len).trim()}...`;
 }
 // =======================================================================================
 // END OF HELPER FUNCTIONS SECTION.
