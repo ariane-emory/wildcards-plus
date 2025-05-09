@@ -4950,6 +4950,20 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTMultiplePickPrioritizes) {
+      const walked = walk(thing.limited_content, context);
+
+      if (! picker_priority_names.includes(walked))
+        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+
+      picker_configuration.pick_multiple_priority = picker_priority[walked];
+
+      console.log(`Updated multiple pick priority to ` +
+                  `${inspect_fun(picker_configuration.pick_multiple_priority)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
     // get rid of these soon:
     else if (thing instanceof ASTSpecialFunction) {
       // console.log(`IGNORING ${inspect_fun(thing)}`);
@@ -5187,6 +5201,12 @@ class ASTSpecialFunctionUpdateConfigBinary {
 }
 // ---------------------------------------------------------------------------------------
 class ASTSinglePickPrioritizes {
+  constructor(limited_content) {
+    this.limited_content = limited_content;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTMultiplePickPrioritizes {
   constructor(limited_content) {
     this.limited_content = limited_content;
   }
@@ -5643,10 +5663,10 @@ async function main() {
   console.log('================================================================================');
 }
 // ---------------------------------------------------------------------------------------
-                                                                                  main().catch(err => {
-                                                                                    console.error('Unhandled error:', err);
-                                                                                    process.exit(1);
-                                                                                  });
-                                                                                  // =======================================================================================
-                                                                                  // END OF MAIN SECTION.
-                                                                                  // =======================================================================================
+main().catch(err => {
+  console.error('Unhandled error:', err);
+  process.exit(1);
+});
+// =======================================================================================
+// END OF MAIN SECTION.
+// =======================================================================================
