@@ -5325,8 +5325,7 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
                                                                          Jsonc,                         // [3]
                                                                          DiscardedComments,             // [4]
                                                                          ')'),                          // [4]
-                                                         arr => new ASTSpecialFunction('update-config',
-                                                                                       [arr[1], arr[3]]));
+                                                         arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
                                                                                 arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
