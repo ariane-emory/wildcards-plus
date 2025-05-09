@@ -2472,6 +2472,8 @@ class Context {
     top_file = true,
     pick_one_priority = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority = picker_priority.avoid_repetition,
+    prior_pick_one_priority = pick_one_priority,
+    prior_pick_multiple_priority = pick_multiple_priority,
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
@@ -2483,6 +2485,8 @@ class Context {
     this.top_file = top_file;
     this.pick_one_priority = pick_one_priority;
     this.pick_multiple_priority = pick_multiple_priority;
+    this.prior_pick_one_priority = prior_pick_one_priority;
+    this.prior_pick_multiple_priority = prior_pick_multiple_priority;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
       this.flags.add("dt_hosted");
@@ -2495,32 +2499,36 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   clone() {
     return new Context({
-      flags:                  new Set(this.flags),
-      scalar_variables:       new Map(this.scalar_variables),
-      named_wildcards:        new Map(this.named_wildcards),
-      noisy:                  this.noisy,
-      files:                  [ ...this.files ],
-      config:                 { ...this.config }, /// ???
-      add_loras:              [ ...this.add_loras
-                                .map(o => ({ file: o.file, weigh: o.weight })) ],
-      top_file:               this.top_file,
-      pick_one_priority:      this.pick_one_priority,
-      pick_multiple_priority: this.pick_multiple_priority,      
+      flags:                        new Set(this.flags),
+      scalar_variables:             new Map(this.scalar_variables),
+      named_wildcards:              new Map(this.named_wildcards),
+      noisy:                        this.noisy,
+      files:                        [ ...this.files ],
+      config:                       { ...this.config }, /// ???
+      add_loras:                    [ ...this.add_loras
+                                      .map(o => ({ file: o.file, weigh: o.weight })) ],
+      top_file:                     this.top_file,
+      pick_one_priority:            this.pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,      
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      prior_pick_multiple_priority: this.pick_multiple_priority,      
     });
   }
   // -----------------------------------------------------------------------------------------------
   shallow_copy() {
     return new Context({
       flags: this.flags,
-      scalar_variables:       this.scalar_variables,
-      named_wildcards:        this.named_wildcards,
-      noisy:                  this.noisy,
-      files:                  this.files,
-      config:                 this.config,
-      add_loras:              this.add_loras,
-      top_file:               false, // deliberately not copied!
-      pick_one_priority:      this.pick_one_priority,
-      pick_multiple_priority: this.pick_multiple_priority,
+      scalar_variables:             this.scalar_variables,
+      named_wildcards:              this.named_wildcards,
+      noisy:                        this.noisy,
+      files:                        this.files,
+      config:                       this.config,
+      add_loras:                    this.add_loras,
+      top_file:                     false, // deliberately not copied!
+      pick_one_priority:            this.pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      prior_pick_multiple_priority: this.pick_multiple_priority,      
     });
   }
 }
