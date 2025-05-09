@@ -5369,6 +5369,12 @@ const SpecialFunctionSetPickSingle =
 const SpecialFunctionSetPickMultiple =
       unarySpecialFunction('multi-pick-prioritizes', () => LimitedContent,
                            arg => new ASTSpecialFunctionSetPickMultiple(arg));
+const SpecialFunctionRevertPickSingle =
+      unarySpecialFunction('revert-single-pick-prioritizes', () => LimitedContent,
+                           () => new ASTSSpecialFunctionRevertPickSingle());
+const SpecialFunctionRevertPickMultiple =
+      unarySpecialFunction('revert-multi-pick-prioritizes', () => LimitedContent,
+                           () => new ASTSpecialFunctionRevertPickMultiple());
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                   DiscardedComments,     // -
