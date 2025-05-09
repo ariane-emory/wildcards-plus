@@ -4939,43 +4939,6 @@ function expand_wildcards(thing, context = new Context()) {
       return smart_join(walk(pick));
     }
     // -----------------------------------------------------------------------------------
-    // SpecialFunctions:
-    // -----------------------------------------------------------------------------------
-    // else if (thing instanceof ASTSpecialFunctionSetConfig) {
-    //   if (typeof thing.value_object !== 'object')
-    //     throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
-
-    //   let value_object = thing.value_object;
-
-    //   // console.log(`THING.VALUE_OBJECT = ${inspect_fun(thing.value_object)}, ${thing.value_object instanceof AST}`);
-    
-    //   if (thing.value_object instanceof AST) {
-    //     // console.log(`RIGHT`);
-    
-    //     const walked_value = walk(thing.value_object, context);
-
-    //     // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
-
-    //     const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
-    
-    //     // console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
-
-    //     if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-    //       throw new Error(`walking ASTSpecialFunctionSetConfig.value_object ` +
-    //                       `must produce a valid JSONC object, Jsonc.matcch(...) result ` +
-    //                       `was ${inspect_fun(jsconc_parsed_walked_value)}`);
-    
-    //     value_object = jsconc_parsed_walked_value.value;
-    //   }
-    
-    //   context.config = value_object ;
-    
-    //   if (log_config_enabled)
-    //     console.log(`Set config to ${JSON.stringify(context.config)}`);
-    
-    //   return '';
-    // }
-    // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
       if (typeof thing.value_object !== 'object')
         throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
