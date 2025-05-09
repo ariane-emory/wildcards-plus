@@ -5137,6 +5137,13 @@ class ASTSetFlag extends ASTNode {
   }
 }
 // --------------------------------------------------------------------------------------------------
+class ASTUnsetFlag extends ASTNode {
+  constructor(name) {
+    super();
+    this.name = name;
+  }
+}
+// --------------------------------------------------------------------------------------------------
 class ASTCheckFlag extends ASTNode {
   constructor(names) {
     super();
@@ -5362,9 +5369,9 @@ const unarySpecialFunction = (prefix, rule, xform_func) =>
 const make__ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
-  const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
-  const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
-  const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
+  const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
+  const check_flags        = flags.filter(f => f instanceof ASTCheckFlag);
+  const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_immediately_not_flags = not_flags
         .filter(f => f.set_immediately)
         .map(f => new ASTSetFlag(f.name)) ;
@@ -5375,7 +5382,7 @@ const make__ASTAnonWildcardAlternative = arr => {
     not_flags,
     [
       ...set_immediately_not_flags,
-      ...set_flags,
+      ...set_or_unset_flags,
       ...arr[3]
     ]);
 }
@@ -5398,7 +5405,7 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 const SetFlag              = xform(ident => new ASTSetFlag(ident),
                                    second(seq('#', ident, word_break)));
-const UnsetFlag            = xform(ident => new ASTUnSetFlag(ident),
+const UnsetFlag            = xform(ident => new ASTUnsetFlag(ident),
                                    second(seq('#!', ident, word_break)));
 // const UnsetFlag = unexpected('#!');
 const CheckFlag            = xform(ident => new ASTCheckFlag(ident),
