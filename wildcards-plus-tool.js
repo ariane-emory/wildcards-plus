@@ -4935,49 +4935,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       return '';
     }
-    // -----------------------------------------------------------------------------------
-    // else if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
-    //   if (thing.args.length > 2)
-    //     throw new Error(`update-config takes 1 or 2 arguments, got ` +
-    //                     `${inspect_fun(thing.args)}`);
-
-    //   let config = {};
-
-    //   if (thing.args.length === 2) {
-    //     // TOOD: maybe check types? unsure.
-    //     config[thing.args[0]] = thing.args[1];
-    //   }
-    //   else {
-    //     config = thing.args[0];
-    //   }
-    
-    //   if (typeof config !== 'object')
-    //     throw new Error(`update-config's argument must be either: an object OR a ` +
-    //                     `string and an object, got ${inspect_fun(config)}`);
-
-    //   context.config = { ...context.config, ...config };
-
-    //   if (log_config_enabled)
-    //     console.log(`Updated config to ${JSON.stringify(context.config)}`);
-    
-    //   return '';
-    // } 
-    // if (thing instanceof ASTSpecialFunction && thing.directive == 'set-config') {
-    //   const config = thing.args[0];
-    
-    //   context.add_loras = []; // kinda ugly but seems correct for this case...
-
-    //   if (typeof config !== 'object')
-    //     throw new Error(`set-config's argument must be an object, ` +
-    //                     `got ${inspect_fun(config)}`);
-
-    //   context.config = config;
-
-    //   if (log_config_enabled)
-    //     console.log(`Set config to ${JSON.stringify(config)}`);
-    
-    //   return '';
-    // } 
+    // get rid of these soon:
     else if (thing instanceof ASTSpecialFunction) {
       // console.log(`IGNORING ${inspect_fun(thing)}`);
       console.log(`IGNORING UNIMPLEMENTED SpecialFunction: ${JSON.stringify(thing)}`);
@@ -5210,6 +5168,12 @@ class ASTSpecialFunctionUpdateConfigBinary {
   constructor(key, value) {
     this.key   = key;
     this.value = value;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTSinglePickPrioritizes {
+  constructor(limited_content) {
+    this.limited_content = limited_content;
   }
 }
 // =======================================================================================
