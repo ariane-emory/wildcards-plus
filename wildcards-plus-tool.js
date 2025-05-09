@@ -4993,7 +4993,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionSetPickSingle || 
              thing instanceof ASTSpecialFunctionSetPickMultiple) {
-      const walked = picker_priority[walk(thing.limited_content, context)];
+      const walked = picker_priority[walk(thing.limited_content)];
       const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -5116,7 +5116,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
   }
   
-  return unescape(smart_join(walk(thing, context)))
+  return unescape(smart_join(walk(thing)))
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
