@@ -5036,6 +5036,8 @@ function expand_wildcards(thing, context = new Context()) {
 
       console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ${inspect_fun(prior_val)}` +
                   `${inspect_fun(context)}`);
+
+      return '';
     }
     // ---------------------------------------------------------------------------------------------
     // ASTLora:
