@@ -4981,6 +4981,27 @@ function expand_wildcards(thing, context = new Context()) {
       if (typeof thing.value_object !== 'object')
         throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
 
+      let value_object = thing.value_object;;
+
+      if (thing.value instanceof AST) {
+        // console.log(`RIGHT`);
+        
+        const walked_value = walk(thing.value, context);
+
+        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+
+        const jsconc_parsed_walked_value = Jsonc_object.match(walked_value);
+        
+        console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+
+        if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
+          throw new Error(`walking ASTSpecialFunctionUpdateConfigBinary.value must ` +
+                          `produce valid JSONC, Jsonc.matcch(...) result was ` +
+                          `${inspect_fun(jsconc_parsed_walked_value)}`);
+        
+        context.config[thing.key] = jsconc_parsed_walked_value.value;
+      }
+      
       context.config = { ...context.config, ...thing.value_object };
       
       if (log_config_enabled)
@@ -5442,7 +5463,7 @@ let   SpecialFunctionUpdateConfigurationBinary =
                         DiscardedComments,             // [4]
                         ')'),                          // [4]
         arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
-const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
+const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', choice(JsoncObject, () => LimitedContent),
                                                                                 arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
                                                                                 arg => new ASTSSpecialFunctionetPickSingle(arg));
