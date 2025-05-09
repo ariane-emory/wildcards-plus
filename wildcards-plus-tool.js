@@ -5427,9 +5427,9 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
                                               ScalarAssignmentSource));
-const LimitedContent          = choice(AnonWildcardNoLoras, ScalarReference,
-                                       xform(name => new ASTNamedWildcardReference(name),
+const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardDesignator),
+                                       AnonWildcardNoLoras, ScalarReference,
                                        // not permitted in the 'limited' content:
                                        // NamedWildcardUsage, SetFlag,
                                        // comment,
@@ -5437,12 +5437,12 @@ const LimitedContent          = choice(AnonWildcardNoLoras, ScalarReference,
                                        // SpecialFunctionSetConfiguration,
                                        // low_pri_text, plaintext
                                       );
-const Content                 = choice(NamedWildcardReference, NamedWildcardUsage,
-                                       SetFlag, A1111StyleLora, AnonWildcard, comment,
-                                       ScalarReference,
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       A1111StyleLora,
+                                       escaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, low_pri_text, plaintext);
-const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage,
-                                       SetFlag, AnonWildcard, comment, ScalarReference,
+const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       escaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, low_pri_text, plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
