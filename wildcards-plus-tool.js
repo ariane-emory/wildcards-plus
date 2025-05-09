@@ -5011,7 +5011,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       console.log(
         `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-          `${walked}: ` +
+          `${inspect_fun(walked)}: ` +
           `${inspect_fun(context)}`);
       
       return '';
