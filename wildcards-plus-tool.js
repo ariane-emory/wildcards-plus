@@ -5003,8 +5003,7 @@ function expand_wildcards(thing, context = new Context()) {
       const prior_val = context[prior_key];
 
       console.log(inspect_fun([walked, cur_key, prior_key, cur_val, prior_val,
-                               picker_priority[walked]
-                              ]));
+                               picker_priority[walked]]));
       
       if (! picker_priority_names.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
