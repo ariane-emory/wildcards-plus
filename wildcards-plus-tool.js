@@ -1899,7 +1899,7 @@ class WeightedPicker {
       throw new Error("no priority");
 
     // console.log(`PICK ${min_count}-${max_count}`);
-    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+    const count =Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
     
@@ -4941,23 +4941,34 @@ function expand_wildcards(thing, context = new Context()) {
     }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
-      const walked_value = walk(thing.value, context);
-
-      console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
-
-      const jsconc_parsed_walked_value = Jsonc.match(walked_value);
+      console.log(`VALUE = ${inspect_fun(thing.value)}, ${thing.value instanceof AST}`);
       
-      console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+      if (! (thing.value instanceof AST)) {
+        console.log(`LEFT`);
+        
+        context.config[thing.key] = thing.value;
+      }
+      else {
+        console.log(`RIGHT`);
+        
+        const walked_value = walk(thing.value, context);
 
-      if (! jsconc_parsed_walked_value.is_finished)
-        throw new Error(`walking ASTSpecialFunctionUpdateConfigBinary.value must ` +
-                        `produce valid JSONC, Jsonc.matcch(...) result was ` +
-                        `${inspect_fun(jsconc_parsed_walked_value)}`);
-      
-      context.config[thing.key] = jsconc_parsed_walked_value.value;
+        console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+
+        const jsconc_parsed_walked_value = Jsonc.match(walked_value);
+        
+        console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+
+        if (! jsconc_parsed_walked_value.is_finished)
+          throw new Error(`walking ASTSpecialFunctionUpdateConfigBinary.value must ` +
+                          `produce valid JSONC, Jsonc.matcch(...) result was ` +
+                          `${inspect_fun(jsconc_parsed_walked_value)}`);
+        
+        context.config[thing.key] = jsconc_parsed_walked_value.value;
+      }
       
       if (log_config_enabled)
-        console.log(`Updated config to ${JSON.stringify(context.config)}`);
+                    console.log(`Updated config to ${JSON.stringify(context.config)}`);
       
       return '';
     }
@@ -5198,12 +5209,21 @@ class ASTScalarAssignment extends AST  {
 // ---------------------------------------------------------------------------------------
 // AnonWildcards:
 // ---------------------------------------------------------------------------------------
-class ASTAnonWildcard  extends WeightedPicker {
+class ASTAnonWildcard  extends AST {
   constructor(options) {
-    super(options
-          .filter(o => o.weight !== 0)
-          .map(o => [o.weight, o]));
+    super();
+    this.picker = new WeightedPicker(options
+                                     .filter(o => o.weight !== 0)
+                                     .map(o => [o.weight, o]));
     // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+  }
+  // -------------------------------------------------------------------------------------
+  pick(...args) {
+    return this.picker.pick(...args);
+  }
+  // -------------------------------------------------------------------------------------
+  pick_one(...args) {
+    return this.picker.pick_one(...args);
   }
 }
 // ---------------------------------------------------------------------------------------
