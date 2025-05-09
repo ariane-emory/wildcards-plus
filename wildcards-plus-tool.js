@@ -5000,9 +5000,10 @@ function expand_wildcards(thing, context = new Context()) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
-      console.log(inspect_fun({cur_key: cur_key, prior_key: prior_key,
-                               cur_val: cur_val, prior_val: prior_val,
-                               walked: walked}));
+      console.log(`SET PICK DATA: ` +
+                  `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+                                  cur_val: cur_val, prior_val: prior_val,
+                                  walked: walked})}`);
       
       if (! picker_priority_descriptions.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
@@ -5028,8 +5029,9 @@ function expand_wildcards(thing, context = new Context()) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
-      console.log(inspect_fun({cur_key: cur_key, prior_key: prior_key,
-                               cur_val: cur_val, prior_val: prior_val }));
+      console.log(`REVERT PICK DATA: ` +
+                  `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+                                  cur_val: cur_val, prior_val: prior_val })}`);
             
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
@@ -5410,10 +5412,10 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      unarySpecialFunction('single-pick-prioritizes', () => LimitedContent,
+      unarySpecialFunction('single-pick-prioritizes', choice(() => LimitedContent, /[a-z_]+/),
                            arg => new ASTSpecialFunctionSetPickSingle(arg));
 const SpecialFunctionSetPickMultiple =
-      unarySpecialFunction('multi-pick-prioritizes', () => LimitedContent,
+      unarySpecialFunction('multi-pick-prioritizes', () => choice(() => LimitedContent, /[a-z_]+/),
                            arg => new ASTSpecialFunctionSetPickMultiple(arg));
 const SpecialFunctionRevertPickSingle =
       xform('%revert-single-pick-prioritizes', 
