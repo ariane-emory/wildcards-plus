@@ -5444,10 +5444,10 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        A1111StyleLora,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
+                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
 const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
+                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(SpecialFunction,
