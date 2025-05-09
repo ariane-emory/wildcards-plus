@@ -2902,7 +2902,7 @@ const prelude_text = disable_prelude ? '' : `
 #artist__gilbert_garcin Gilbert Garcin |
 #artist__michael_and_inessa_garmash Michael and Inessa Garmash |
 #artist__antoni_gaudi Antoni Gaudi |
-#artist__jack_gaughan Jack Gaughan |
+3 #artist__jack_gaughan Jack Gaughan |
 #artist__paul_gauguin Paul Gauguin |
 #artist__giovanni_battista_gaulli Giovanni Battista Gaulli |
 #artist__anne_geddes Anne Geddes |
