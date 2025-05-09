@@ -305,7 +305,7 @@ class Rule {
             `Matching ${this.constructor.name} ${this.toString()} at ` +
             `char ${string_input_mode_enabled ? index : input[index]?.start}, ` +
             `token #${index}: ` +
-            `${input[index].toString().replace("\n", " ")}...`);
+            `${abbreviate(input.substring(index))}`)
     }
 
     const ret = this.__match(indent, input, index);
@@ -1403,7 +1403,7 @@ class Regex extends Rule {
 
     if (log_match_enabled)
       log(indent, `testing  /${this.regexp.source}/ at char ${index} of ` +
-          `'${input}'...`); 
+          `'${abbreviate(input.substring(index))}'`); 
 
     const match = this.regexp.exec(input);
     
@@ -1481,7 +1481,7 @@ class MatchResult {
 // helper functions and related vars:
 // ---------------------------------------------------------------------------------------
 function abbreviate(s, len = 100) {
-  return s.length < 100 ? s : `${s.substring(0, len).trim()}...`;
+  return s.length < 100 ? s : `"${s.substring(0, len).replace("\n","").trim()}..."`;
 }
 // ---------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
@@ -5341,19 +5341,19 @@ let SpecialFunctionUpdateConfigurationBinary   =
                           DiscardedComments,             // [4]
                           ')'),                          // [4]
           arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
-// SpecialFunctionUpdateConfigurationBinary =
-//   xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-//                                 DiscardedComments,     // -
-//                                 '.',                   // [0][1]
-//                                 DiscardedComments),    // -
-//                         ident,                         // [1]
-//                         DiscardedComments,             // -
-//                         '(',                           // [2]
-//                         DiscardedComments,             // -
-//                         () => LimitedContent,   // [3]
-//                         DiscardedComments,             // [4]
-//                         ')'),                          // [4]
-//         arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+SpecialFunctionUpdateConfigurationBinary =
+  xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                DiscardedComments,     // -
+                                '.',                   // [0][1]
+                                DiscardedComments),    // -
+                        ident,                         // [1]
+                        DiscardedComments,             // -
+                        '(',                           // [2]
+                        DiscardedComments,             // -
+                        () => LimitedContent,   // [3]
+                        DiscardedComments,             // [4]
+                        ')'),                          // [4]
+        arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
                                                                                 arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
@@ -5454,7 +5454,7 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
                                        // comment,
                                        // SpecialFunctionUpdateConfiguration,
                                        // SpecialFunctionSetConfiguration,
-                                       /*low_pri_text,*/ plaintext_no_rpar,
+                                       /*low_pri_text, plaintext_no_rpar, */
                                       );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        A1111StyleLora,
@@ -5537,11 +5537,14 @@ async function main() {
       input.on('end', () => resolve(data));
       input.on('error', err => reject(err));
     });
+    
     result = Prompt.match(prompt_input);
   } else if (args.length === 0) {
     throw new Error("Error: No input file provided.");
   }
   else {
+    // log_match_enabled = true;
+    
     result = parse_file(args[0]);
   }
 
@@ -5702,25 +5705,25 @@ main().catch(err => {
 // =======================================================================================
 
 
-const SpecialFunctionUpdateConfigurationBinary2 =
-      xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                    DiscardedComments,     // -
-                                    '.',                   // [0][1]
-                                    DiscardedComments),    // -
-                            ident,                         // [1]
-                            DiscardedComments,             // -
-                            '(',                           // [2]
-                            DiscardedComments,             // -
-                            () => LimitedContent,   // [3]
-                            DiscardedComments,             // [4]
-                            ')'),                          // [4]
-            arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+// const SpecialFunctionUpdateConfigurationBinary2 =
+//       xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+//                                     DiscardedComments,     // -
+//                                     '.',                   // [0][1]
+//                                     DiscardedComments),    // -
+//                             ident,                         // [1]
+//                             DiscardedComments,             // -
+//                             '(',                           // [2]
+//                             DiscardedComments,             // -
+//                             () => LimitedContent,   // [3]
+//                             DiscardedComments,             // [4]
+//                             ')'),                          // [4]
+//             arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 
-SpecialFunctionUpdateConfigurationBinary2.finalize();
+// SpecialFunctionUpdateConfigurationBinary2.finalize();
 
-var s = `%config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")`;
+// var s = `%config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")`;
 
-log_match_enabled = true;
+// log_match_enabled = true;
 
-console.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary2.match(s)));
+// console.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary2.match(s)));
 
