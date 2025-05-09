@@ -5259,18 +5259,12 @@ class ASTSpecialFunctionSetPickMultiple extends AST {
 // -------------------------------------------------------------------------------------------------
 const word_break              = /(?=\s|[{|}]|$)/;
 const plaintext               = /[^{|}\s]+/;
-// const plaintext_no_rpar       = /[^{|}\s\)]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
-const escaped_brc             =
-      xform(x => {
-        // console.log(`X: ${inspect_fun(x)}`);        
-        return x;
-      },
-            second(choice('\\{', '\\}')));
+const escaped_brc             = second(choice('\\{', '\\}'));
 const filename                = /[A-Za-z0-9 ._\-()]+/;
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
@@ -5468,14 +5462,7 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               ScalarAssignmentSource));
 const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardDesignator),
-                                       escaped_brc, AnonWildcardNoLoras, ScalarReference,
-                                       // not permitted in the 'limited' content:
-                                       // NamedWildcardUsage, SetFlag,
-                                       // comment,
-                                       // SpecialFunctionUpdateConfiguration,
-                                       // SpecialFunctionSetConfiguration,
-                                       /*low_pri_text, plaintext_no_rpar, */
-                                      );
+                                       /* escaped_brc, */ AnonWildcardNoLoras, ScalarReference);
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        A1111StyleLora,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
