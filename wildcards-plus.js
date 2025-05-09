@@ -5050,10 +5050,10 @@ class ASTAnonWildcardAlternative extends AST {
 // -------------------------------------------------------------------------------------------------
 // Directives:
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunction extends AST {
-  constructor(directive, args) {
+class ASTSpecialFunctionInclude extends AST {
+  constructor(args) {
     super();
-    this.directive = directive;
+    // this.directive = directive;
     this.args      = args;
   }
 }
@@ -5101,47 +5101,18 @@ class ASTSpecialFunctionSetPickMultiple extends AST {
 // -------------------------------------------------------------------------------------------------
 const word_break              = /(?=\s|[{|}]|$)/;
 const plaintext               = /[^{|}\s]+/;
-// const plaintext_no_rpar       = /[^{|}\s\)]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
-const escaped_brc             =
-      xform(x => {
-        // console.log(`X: ${inspect_fun(x)}`);        
-        return x;
-      },
-            second(choice('\\{', '\\}')));
+const escaped_brc             = second(choice('\\{', '\\}'));
 const filename                = /[A-Za-z0-9 ._\-()]+/;
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
-// A1111-style LoRAs:
+// combinators:
 // -------------------------------------------------------------------------------------------------
-const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
-const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
-                                   wst_seq('<',                                    // [0]
-                                           'lora',                                 // [1]
-                                           ':',                                    // [2]
-                                           choice(filename, () => LimitedContent), // [3]
-                                           optional(second(wst_seq(':',
-                                                                   choice(A1111StyleLoraWeight,
-                                                                          () => LimitedContent))),
-                                                    "1.0"), // [4][0]
-                                           '>'));
-// -------------------------------------------------------------------------------------------------
-// helper funs used to make grammar rules::
-// -------------------------------------------------------------------------------------------------
-const ASTFlagCmd = (klass, ...rules) =>
-      xform(ident => new klass(ident),
-            second(seq(...rules, ident, word_break)));
-// -------------------------------------------------------------------------------------------------
-const variadic_SpecialFunction = rule =>
-      xform(tld_fun,
-            c_funcall(second(seq('%', rule)),
-                      first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
-// -------------------------------------------------------------------------------------------------
-const unary_SpecialFunction = (prefix, rule, xform_func) =>
+const unarySpecialFunction = (prefix, rule, xform_func) =>
       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
                                     DiscardedComments,     // -
                                     '(',                   // [0][1]
@@ -5178,35 +5149,52 @@ const make__ASTAnonWildcardAlternative = arr => {
     ]);
 }
 // -------------------------------------------------------------------------------------------------
+// A1111-style LoRAs:
+// -------------------------------------------------------------------------------------------------
+const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
+const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
+                                   wst_seq('<',                                    // [0]
+                                           'lora',                                 // [1]
+                                           ':',                                    // [2]
+                                           choice(filename, () => LimitedContent), // [3]
+                                           optional(second(wst_seq(':',
+                                                                   choice(A1111StyleLoraWeight,
+                                                                          () => LimitedContent))),
+                                                    "1.0"), // [4][0]
+                                           '>'));
+// -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag                 = ASTFlagCmd(ASTSetFlag,   '#');
-const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
-                                      second(seq('?', plus(ident, ','),
-                                                 word_break)))
-const MalformedNotSetCombo    = unexpected('#!');
-const NotFlag                 = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
-                                      seq('!', optional('#'),
-                                          ident, word_break));
-const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
-// -------------------------------------------------------------------------------------------------
-const tld_fun = arr => new ASTSpecialFunction(...arr);
+const SetFlag              = xform(ident => new ASTSetFlag(ident),
+                                   second(seq('#', ident, word_break)));
+const CheckFlag            = xform(ident => new ASTCheckFlag(ident),
+                                   second(seq('?', plus(ident, ','),
+                                              word_break)))
+const MalformedNotSetCombo = unexpected('#!');
+const NotFlag              = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
+                                   seq('!', optional('#'),
+                                       ident, word_break));
+const TestFlag             = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments                = discard(wst_star(comment));
-const SpecialFunctionInclude           = variadic_SpecialFunction('include');
+const SpecialFunctionInclude           = xform(arr => new ASTSpecialFunctionInclude(arr[1]),
+                                               c_funcall('%include',
+                                                         first(wst_seq(DiscardedComments,
+                                                                       Jsonc,
+                                                                       DiscardedComments))))
 const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     () => "%include is only supported when " +
                                                     "using wildcards-plus-tool.js, NOT when " +
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
-const SpecialFunctionSetPickSingle   =
-      unary_SpecialFunction('single-pick-prioritizes', () => LimitedContent,
-                            arg => new ASTSSpecialFunctionSetPickSingle(arg));
+const SpecialFunctionSetPickSingle =
+      unarySpecialFunction('single-pick-prioritizes', () => LimitedContent,
+                           arg => new ASTSSpecialFunctionSetPickSingle(arg));
 const SpecialFunctionSetPickMultiple =
-      unary_SpecialFunction('multi-pick-prioritizes', () => LimitedContent,
-                            arg => new ASTSpecialFunctionSetPickMultiple(arg));
+      unarySpecialFunction('multi-pick-prioritizes', () => LimitedContent,
+                           arg => new ASTSpecialFunctionSetPickMultiple(arg));
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                   DiscardedComments,     // -
@@ -5221,10 +5209,10 @@ let   SpecialFunctionUpdateConfigurationBinary =
                           ')'),                          // [4]
           arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 const SpecialFunctionUpdateConfigurationUnary =
-      unary_SpecialFunction('config',
-                            choice(JsoncObject, () => LimitedContent),
-                            arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
-                                                                           false));
+      unarySpecialFunction('config',
+                           choice(JsoncObject, () => LimitedContent),
+                           arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
+                                                                          false));
 const SpecialFunctionSetConfiguration
       = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                       DiscardedComments,     // -
@@ -5310,14 +5298,7 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               ScalarAssignmentSource));
 const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardDesignator),
-                                       escaped_brc, AnonWildcardNoLoras, ScalarReference,
-                                       // not permitted in the 'limited' content:
-                                       // NamedWildcardUsage, SetFlag,
-                                       // comment,
-                                       // SpecialFunctionUpdateConfiguration,
-                                       // SpecialFunctionSetConfiguration,
-                                       /*low_pri_text, plaintext_no_rpar, */
-                                      );
+                                       /* escaped_brc, */ AnonWildcardNoLoras, ScalarReference);
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        A1111StyleLora,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
