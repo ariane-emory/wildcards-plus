@@ -102,7 +102,7 @@
 
   // two sampler possibilities:
   { ?lightning_on %config.sampler("LCM") }
-  { !lightning_on { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") } }
+  { !lightning_on { %config.sampler("DPM++ SDE Karras") | %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") } }
 
   // eight possible CFG values:
   { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
@@ -460,4 +460,4 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {| 0 IMPOSSIBLE }
 
 %single-pick-prioritizes({ avoiding_repetition | true_randomness })
-%config({ "foo": 123 })
+// %config({ "foo": 123 })
