@@ -16,7 +16,8 @@
 
 #sdxl_on
 #flux_on
-#hidream_on
+#hidream_fast_on
+// #hidream_full_on
 
 #hidream_high_steps
 // #flux_high_steps
@@ -64,9 +65,10 @@
   | 3 ?square_on %config({ "width": 512,  "height": 512 })
   }
 
-| 3 ?hidream_on
+| 3 ?hidream_fast_on,hidream_full_on
   // Hidream with some basic settings that seem to work alright:
-  %config.model({ "hidream_i1_fast_q5p.ckpt" |  "hidream_i1_full_q5p.ckpt" })
+  %config.model({ ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
+                | ?hidream_full_on "hidream_i1_full_q5p.ckpt" })
   
   %config.shift({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
   %config.sampler({ 2 "DDIM Trailing" | "Euler A" | 2 "Euler A Trailing" })
