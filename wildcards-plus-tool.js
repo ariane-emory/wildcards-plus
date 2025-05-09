@@ -4991,8 +4991,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionSetPickSingle || 
              thing instanceof ASTSpecialFunctionSetPickMultiple) {
-      const walked = walk(thing.limited_content, context);
-
+      const walked = picker_priority[walk(thing.limited_content, context)];
       const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -5001,18 +5000,18 @@ function expand_wildcards(thing, context = new Context()) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
-
       console.log(inspect_fun([walked, cur_key, prior_key, cur_val, prior_val,
                                picker_priority[walked]]));
       
-      if (! picker_priority_names.includes(walked))
+      if (! picker_priority_descriptions.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
       context[prior_key] = context[cur_key];
       context[cur_key]   = walked;
       
       console.log(
-        `Updated ${cur_key} to ${inspect_fun(context.pick_one_priority)}: ` +
+        `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+          `${walked}: ` +
           `${inspect_fun(context)}`);
       
       return '';
@@ -5020,6 +5019,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionRevertPickSingle || 
              thing instanceof ASTSpecialFunctionRevertPickMultiple) {
+      const walked = walk(thing.limited_content, context);
       const cur_key = thing instanceof ASTSpecialFunctionRevertPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -5028,11 +5028,14 @@ function expand_wildcards(thing, context = new Context()) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
+      console.log(inspect_fun([walked, cur_key, prior_key, cur_val, prior_val,
+                               picker_priority[walked]]));
       
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
 
-      console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ${inspect_fun(prior_val)}.`);
+      console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ${inspect_fun(prior_val)}` +
+                  `${inspect_fun(context)}`);
     }
     // ---------------------------------------------------------------------------------------------
     // ASTLora:
