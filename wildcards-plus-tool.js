@@ -5085,22 +5085,27 @@ function expand_wildcards(thing, context = new Context()) {
 // =======================================================================================
 // SD PROMPT AST CLASSES SECTION:
 // =======================================================================================
+class AST {}
+// ---------------------------------------------------------------------------------------
 // Flags:
 // ---------------------------------------------------------------------------------------
-class ASTSetFlag {
+class ASTSetFlag extends AST {
   constructor(name) {
+    super();
     this.name = name;
   }
 }
 // ----------------------------------------------------------------------------------------
-class ASTCheckFlag {
+class ASTCheckFlag extends AST {
   constructor(names) {
+    super();
     this.names = names;
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTNotFlag  {
+class ASTNotFlag extends AST  {
   constructor(name, set_immediately) {
+    super();
     this.name = name;
     this.set_immediately = set_immediately;
     // if (this.set_immediately)
@@ -5110,8 +5115,9 @@ class ASTNotFlag  {
 // ---------------------------------------------------------------------------------------
 // NamedWildcard references:
 // ---------------------------------------------------------------------------------------
-class ASTNamedWildcardReference {
+class ASTNamedWildcardReference extends AST {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
+    super();
     this.name       = name;
     this.min_count  = min_count;
     this.max_count  = max_count;
@@ -5123,8 +5129,9 @@ class ASTNamedWildcardReference {
 // ---------------------------------------------------------------------------------------
 // Scalar references:
 // ---------------------------------------------------------------------------------------
-class ASTScalarReference {
+class ASTScalarReference extends AST {
   constructor(name, capitalize) {
+    super();
     this.name       = name;
     this.capitalize = capitalize;
   }
@@ -5132,8 +5139,9 @@ class ASTScalarReference {
 // ---------------------------------------------------------------------------------------
 // A1111-style Loras:
 // ---------------------------------------------------------------------------------------
-class ASTLora {
+class ASTLora extends AST {
   constructor(file, weight) {
+    super();
     this.file   = file;
     this.weight = weight;
     // console.log(`Constructed LoRa ${this}!`);
@@ -5142,24 +5150,27 @@ class ASTLora {
 // ---------------------------------------------------------------------------------------
 // Latch a NamedWildcard:
 // ---------------------------------------------------------------------------------------
-class ASTLatchNamedWildcard {
+class ASTLatchNamedWildcard extends AST {
   constructor(name) {
+    super();
     this.name = name;
   }
 }
 // ---------------------------------------------------------------------------------------
 // Unlatch a NamedWildcard:
 // ---------------------------------------------------------------------------------------
-class ASTUnlatchNamedWildcard {
+class ASTUnlatchNamedWildcard extends AST {
   constructor(name) {
+    super();
     this.name = name;
   }
 }
 // ---------------------------------------------------------------------------------------
 // Named wildcard definitions:
 // ---------------------------------------------------------------------------------------
-class ASTNamedWildcardDefinition {
+class ASTNamedWildcardDefinition extends AST {
   constructor(destination, wildcard) {
+    super();
     this.destination = destination;
     this.wildcard    = wildcard;
   }
@@ -5167,8 +5178,9 @@ class ASTNamedWildcardDefinition {
 // ---------------------------------------------------------------------------------------
 // Internal usage.. might not /really/ be part of the AST per se?
 // ---------------------------------------------------------------------------------------
-class ASTLatchedNamedWildcardedValue {
+class ASTLatchedNamedWildcardedValue extends AST {
   constructor(latched_value, original_value) {
+    super();
     this.latched_value  = latched_value;
     this.original_value = original_value;
   }
@@ -5176,8 +5188,9 @@ class ASTLatchedNamedWildcardedValue {
 // ---------------------------------------------------------------------------------------
 // Scalar assignment:
 // ---------------------------------------------------------------------------------------
-class ASTScalarAssignment  {
+class ASTScalarAssignment extends AST  {
   constructor(destination, source) {
+    super();
     this.destination = destination;
     this.source      = source;
   }
@@ -5185,7 +5198,7 @@ class ASTScalarAssignment  {
 // ---------------------------------------------------------------------------------------
 // AnonWildcards:
 // ---------------------------------------------------------------------------------------
-class ASTAnonWildcard extends WeightedPicker {
+class ASTAnonWildcard  extends WeightedPicker {
   constructor(options) {
     super(options
           .filter(o => o.weight !== 0)
@@ -5194,8 +5207,9 @@ class ASTAnonWildcard extends WeightedPicker {
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTAnonWildcardAlternative {
+class ASTAnonWildcardAlternative extends AST {
   constructor(weight, check_flags, not_flags, body) {
+    super();
     this.weight      = weight;
     this.check_flags = check_flags;
     this.not_flags   = not_flags;
@@ -5205,35 +5219,40 @@ class ASTAnonWildcardAlternative {
 // ---------------------------------------------------------------------------------------
 // Directives:
 // ---------------------------------------------------------------------------------------
-class ASTSpecialFunction {
+class ASTSpecialFunction extends AST {
   constructor(directive, args) {
+    super();
     this.directive = directive;
     this.args      = args;
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSpecialFunctionUpdateConfigUnary {
+class ASTSpecialFunctionUpdateConfigUnary extends AST {
   constructor(value_object) {
+    super();
     this.value_object = value_object;
     // console.log(`CONSTRUCTED ASTSFUCU: ${inspect_fun(this)}`);
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSpecialFunctionUpdateConfigBinary {
+class ASTSpecialFunctionUpdateConfigBinary extends AST {
   constructor(key, value) {
+    super();
     this.key   = key;
     this.value = value;
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSSpecialFunctionetPickSingle {
+class ASTSSpecialFunctionetPickSingle extends AST {
   constructor(limited_content) {
+    super();
     this.limited_content = limited_content;
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSpecialFunctionSetPickMultiple {
+class ASTSpecialFunctionSetPickMultiple extends AST {
   constructor(limited_content) {
+    super();
     this.limited_content = limited_content;
   }
 }
@@ -5363,7 +5382,7 @@ SpecialFunctionUpdateConfigurationBinary =
                         DiscardedComments,             // -
                         '(',                           // [2]
                         DiscardedComments,             // -
-                        () => LimitedContent,   // [3]
+                        choice(Jsonc,  () => LimitedContent),   // [3]
                         DiscardedComments,             // [4]
                         ')'),                          // [4]
         arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
