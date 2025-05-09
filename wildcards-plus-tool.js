@@ -4868,7 +4868,7 @@ function expand_wildcards(thing, context = new Context()) {
       const got = context.named_wildcards.get(thing.name);
       
       if (!got)
-        return `ERROR: Named wildcard ${thing.name} not found!`;
+        return `<ERROR: Named wildcard ${thing.name} not found!>`;
 
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         if (context.noisy)
