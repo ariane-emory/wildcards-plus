@@ -5428,21 +5428,8 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
 const DiscardedComments             = discard(wst_star(comment));
-const SpecialFunctionInclude                     = make_special_function_Rule('include');
-let SpecialFunctionUpdateConfigurationBinary   =
-    xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                  DiscardedComments,     // -
-                                  '.',                   // [0][1]
-                                  DiscardedComments),    // -
-                          ident,                         // [1]
-                          DiscardedComments,             // -
-                          '(',                           // [2]
-                          DiscardedComments,             // -
-                          Jsonc,   // [3]
-                          DiscardedComments,             // [4]
-                          ')'),                          // [4]
-          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
-SpecialFunctionUpdateConfigurationBinary =
+const SpecialFunctionInclude                 = make_special_function_Rule('include');
+let   SpecialFunctionUpdateConfigurationBinary =
   xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                 DiscardedComments,     // -
                                 '.',                   // [0][1]
