@@ -2391,9 +2391,12 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   if (config.model) {
     config.model = config.model.toLowerCase();
     
-    if (config.model.endsWith('_f16.ckpt')) {
+    if (config.model.endsWith('.ckpt')) {
       // do nothing
     }
+    // else if (config.model.endsWith('_f16.ckpt')) {
+    //   // do nothing
+    // }
     else if (config.model.endsWith('_f16')) {
       config.model = `${config.model}.ckpt`;}
     else {
@@ -4987,7 +4990,7 @@ function expand_wildcards(thing, context = new Context()) {
       console.log(
         `Updated ` +
           (thing instanceof ASTSSpecialFunctionSetPickSingle ? 'single' : 'multiple') +
-          `pick priority to  ${inspect_fun(context.pick_one_priority)}`);
+          `pick priority to ${inspect_fun(context.pick_one_priority)}`);
       
       return '';
     }
