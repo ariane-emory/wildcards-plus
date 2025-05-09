@@ -13,7 +13,7 @@
 
 // #always_lightning_on
 
-{ !always_lightning_on
+{2 !always_lightning_on
 | !always_lightning_off #lightning_on }  // enable lightning 4-step in SDXL models.
 
 #square_on                               // enable square aspect ratios
@@ -30,7 +30,7 @@
 }
 
 // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
-@lora := { <lora:@lora_names: @lowish_random_weight> }
+@lora := { <lora:@lora_names: @low_random_weight> }
 
 { 2 ?flux_on
   // devMODE

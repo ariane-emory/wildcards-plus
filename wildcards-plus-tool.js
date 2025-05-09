@@ -5271,10 +5271,6 @@ const filename                = /[A-Za-z0-9 ._\-()]+/;
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
-const ASTFlagCommand = (klass, ...rules) =>
-      xform(ident => new klass(ident),
-            second(seq(...rules, ident, word_break)));
-// -------------------------------------------------------------------------------------------------
 const unarySpecialFunction = (prefix, rule, xform_func) =>
       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
                                     DiscardedComments,     // -
@@ -5328,15 +5324,16 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag                 = ASTFlagCommand(ASTSetFlag,   '#');
-const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
-                                      second(seq('?', plus(ident, ','),
-                                                 word_break)))
-const MalformedNotSetCombo    = unexpected('#!');
-const NotFlag                 = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
-                                      seq('!', optional('#'),
-                                          ident, word_break));
-const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
+const SetFlag              = xform(ident => new ASTSetFlag(ident),
+                                   second(seq('#', ident, word_break)));
+const CheckFlag            = xform(ident => new ASTCheckFlag(ident),
+                                   second(seq('?', plus(ident, ','),
+                                              word_break)))
+const MalformedNotSetCombo = unexpected('#!');
+const NotFlag              = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
+                                   seq('!', optional('#'),
+                                       ident, word_break));
+const TestFlag             = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
