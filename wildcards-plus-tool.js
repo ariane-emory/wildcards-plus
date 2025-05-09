@@ -2570,7 +2570,7 @@ const prelude_text = disable_prelude ? '' : `
 // @wizards_artists   := { @#__wizards_artists @__wizards_artists }
 
 @wizards_artists := {
- @__set_wizards_artists_artist_if_unset @wizards_artists_artist_name
+ @__set_wizards_artists_artist_if_unset @__wizards_artists_artist_name
 }
 
 @__set_wizards_artists_artist_if_unset := {
@@ -3652,6 +3652,10 @@ const prelude_text = disable_prelude ? '' : `
 }
 
 @wizards_artists_artist_name := {
+ @__set_wizards_artists_artist_if_unset @__wizards_artists_artist_name
+}
+
+@__wizards_artists_artist_name := {
 ?artist__zacharias_martin_aagaard Zacharias Martin Aagaard |
 ?artist__slim_aarons Slim Aarons |
 ?artist__elenore_abbott Elenore Abbott |
