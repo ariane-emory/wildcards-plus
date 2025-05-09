@@ -5238,6 +5238,7 @@ class ASTSpecialFunctionSetPickMultiple {
 // ---------------------------------------------------------------------------------------
 const word_break              = /(?=\s|[{|}]|$)/;
 const plaintext               = /[^{|}\s]+/;
+const plaintext_no_rpar       = /[^{|}\s\)]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
@@ -5440,15 +5441,15 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
                                        // comment,
                                        // SpecialFunctionUpdateConfiguration,
                                        // SpecialFunctionSetConfiguration,
-                                       low_pri_text, plaintext
+                                       /*low_pri_text,*/ plaintext_no_rpar,
                                       );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        A1111StyleLora,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
+                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
 const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
+                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(SpecialFunction,
