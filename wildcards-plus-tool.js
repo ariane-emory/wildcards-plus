@@ -4989,36 +4989,32 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSSpecialFunctionSetPickSingle || 
+    else if (thing instanceof ASTSpecialFunctionSetPickSingle || 
              thing instanceof ASTSpecialFunctionSetPickMultiple) {
       const walked = walk(thing.limited_content, context);
 
-      // const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
-      //       ? 'pick_one_priority'
-      //       : 'pick_multiple_priority';
+      const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
+            ? 'pick_one_priority'
+            : 'pick_multiple_priority';
+      const prior_key = thing instanceof ASTSpecialFunctionSetPickSingle
+            ? 'prior_pick_one_priority'
+            : 'prior_pick_multiple_priority';
+      const cur_val   = context[cur_key];
+      const prior_val = context[prior_key];
 
-      // const prior_key = thing instanceof ASTSpecialFunctionSetPickSingle
-      //       ? 'prior_pick_one_priority'
-      //       : 'prior_pick_multiple_priority';
+      console.log(inspect_fun([walked, cur_key, prior_key, cur_val, prior_val,
+                               picker_priority[walked]
+                              ]));
       
       if (! picker_priority_names.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
-      context[thing instanceof ASTSSpecialFunctionSetPickSingle
-              ? 'prior_pick_one_priority'
-              : 'prior_pick_multiple_priority'] =
-        context[thing instanceof ASTSSpecialFunctionSetPickSingle
-                ? 'pick_one_priority'
-                : 'pick_multiple_priority'];
-
-      context[thing instanceof ASTSSpecialFunctionSetPickSingle
-              ? 'pick_one_priority'
-              : 'pick_multiple_priority'] = picker_priority[walked];
-
+      context[prior_key] = context[cur_key];
+      context[cur_key]   = walked;
+      
       console.log(
-        `Updated ` +
-          (thing instanceof ASTSSpecialFunctionSetPickSingle ? 'single' : 'multiple') +
-          `pick priority to ${inspect_fun(context.pick_one_priority)}`);
+        `Updated ${cur_key} to ${inspect_fun(context.pick_one_priority)}: ` +
+          `${inspect_fun(context)}`);
       
       return '';
     }
@@ -5028,11 +5024,9 @@ function expand_wildcards(thing, context = new Context()) {
       const cur_key = thing instanceof ASTSpecialFunctionRevertPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
-
       const prior_key = thing instanceof ASTSpecialFunctionRevertPickSingle
             ? 'prior_pick_one_priority'
             : 'prior_pick_multiple_priority';
-      
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
       
@@ -5291,7 +5285,7 @@ class ASTSpecialFunctionSetPickMultiple extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSSpecialFunctionSetPickSingle extends ASTNode {
+class ASTSpecialFunctionSetPickSingle extends ASTNode {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
@@ -5413,7 +5407,7 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
       unarySpecialFunction('single-pick-prioritizes', () => LimitedContent,
-                           arg => new ASTSSpecialFunctionSetPickSingle(arg));
+                           arg => new ASTSpecialFunctionSetPickSingle(arg));
 const SpecialFunctionSetPickMultiple =
       unarySpecialFunction('multi-pick-prioritizes', () => LimitedContent,
                            arg => new ASTSpecialFunctionSetPickMultiple(arg));
