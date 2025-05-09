@@ -4941,40 +4941,40 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     // SpecialFunctions:
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionSetConfig) {
-      if (typeof thing.value_object !== 'object')
-        throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
+    // else if (thing instanceof ASTSpecialFunctionSetConfig) {
+    //   if (typeof thing.value_object !== 'object')
+    //     throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
 
-      let value_object = thing.value_object;
+    //   let value_object = thing.value_object;
 
-      // console.log(`THING.VALUE_OBJECT = ${inspect_fun(thing.value_object)}, ${thing.value_object instanceof AST}`);
-      
-      if (thing.value_object instanceof AST) {
-        // console.log(`RIGHT`);
-        
-        const walked_value = walk(thing.value_object, context);
+    //   // console.log(`THING.VALUE_OBJECT = ${inspect_fun(thing.value_object)}, ${thing.value_object instanceof AST}`);
+    
+    //   if (thing.value_object instanceof AST) {
+    //     // console.log(`RIGHT`);
+    
+    //     const walked_value = walk(thing.value_object, context);
 
-        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+    //     // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
 
-        const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
-        
-        // console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+    //     const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
+    
+    //     // console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
 
-        if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-          throw new Error(`walking ASTSpecialFunctionSetConfig.value_object ` +
-                          `must produce a valid JSONC object, Jsonc.matcch(...) result ` +
-                          `was ${inspect_fun(jsconc_parsed_walked_value)}`);
-        
-        value_object = jsconc_parsed_walked_value.value;
-      }
-      
-      context.config = value_object ;
-      
-      if (log_config_enabled)
-        console.log(`Set config to ${JSON.stringify(context.config)}`);
-      
-      return '';
-    }
+    //     if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
+    //       throw new Error(`walking ASTSpecialFunctionSetConfig.value_object ` +
+    //                       `must produce a valid JSONC object, Jsonc.matcch(...) result ` +
+    //                       `was ${inspect_fun(jsconc_parsed_walked_value)}`);
+    
+    //     value_object = jsconc_parsed_walked_value.value;
+    //   }
+    
+    //   context.config = value_object ;
+    
+    //   if (log_config_enabled)
+    //     console.log(`Set config to ${JSON.stringify(context.config)}`);
+    
+    //   return '';
+    // }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
       if (typeof thing.value_object !== 'object')
@@ -5326,9 +5326,10 @@ class ASTSpecialFunctionSetConfig extends AST {
 }
 // ---------------------------------------------------------------------------------------
 class ASTSpecialFunctionUpdateConfigUnary extends AST {
-  constructor(value_object) {
+  constructor(value_object, assign) {
     super();
     this.value_object = value_object;
+    this.assign = assign; // otherwise update
   }
 }
 // ---------------------------------------------------------------------------------------
@@ -5460,8 +5461,12 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
-const DiscardedComments             = discard(wst_star(comment));
-const SpecialFunctionInclude        = make_special_function_Rule('include');
+const DiscardedComments              = discard(wst_star(comment));
+const SpecialFunctionInclude         = make_special_function_Rule('include');
+const SpecialFunctionSetPickSingle   = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
+                                                                       arg => new ASTSSpecialFunctionetPickSingle(arg));
+const SpecialFunctionSetPickMultiple = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
+                                                                       arg => new ASTSpecialFunctionSetPickMultiple(arg));
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                   DiscardedComments,     // -
@@ -5476,17 +5481,13 @@ let   SpecialFunctionUpdateConfigurationBinary =
                           ')'),                          // [4]
           arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', choice(JsoncObject, () => LimitedContent),
-                                                                                arg =>  new ASTSpecialFunctionUpdateConfigUnary(arg));
-const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
-                                                                                arg => new ASTSSpecialFunctionetPickSingle(arg));
-const SpecialFunctionSetPickMultiple          = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
-                                                                                arg => new ASTSpecialFunctionSetPickMultiple(arg));
+                                                                                arg =>  new ASTSpecialFunctionUpdateConfigUnary(arg, false));
 const SpecialFunctionSetConfiguration         = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                               DiscardedComments,     // -
                                                                               assignment_operator,   // _
                                                                               DiscardedComments),    // -
                                                                       choice(JsoncObject, () => LimitedContent)), // [1]
-                                                      arr => new ASTSpecialFunctionSetConfig(arr[1]));
+                                                      arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true));
 const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateConfigurationUnary,
                                                           SpecialFunctionUpdateConfigurationBinary);
 const UnexpectedSpecialFunctionInclude           = unexpected(SpecialFunctionInclude,
