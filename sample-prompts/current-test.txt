@@ -10,7 +10,7 @@
 %config.loras([])
 
 #sdxl_on
-// #flux_on
+#flux_on
 #hidream_on
 
 // #always_lightning_on
@@ -43,7 +43,7 @@
   %config.steps(8)
   // don't worry, capitalization will be automatically fixed to "Euler A":
   %config.sampler({ "DDIM Trailing" | "Euler A" | "Euler A Trailing" })
-  { %config.cfg_scale(1.0) | %config.cfg_scale(1.5) | %config.cfg_scale(2.0) | %config.cfg_scale(2.5) }
+  %config.cfg_scale({ \1.0 | \1.5 | \2.0 | \2.5 })
 
   // possible resolutions:
   { // 3 %config({ "width": 1024, "height": 512 })
@@ -54,7 +54,7 @@
   | 3 ?square_on %config({ "width": 512,  "height": 512 })
   }
 
-| 2 ?hidream_on
+| 3 ?hidream_on
   // Hidream with some basic settings that seem to work alright:
   %config({ "model": "hidream_i1_fast_q5p.ckpt"})
   
@@ -74,7 +74,7 @@
   | 3 ?square_on %config({ "width": 512,  "height": 512 })
   }
 
-| 6 ?sdxl_on
+| 8 ?sdxl_on
   // various SDXL models:
   
   { ?lightning_on {   <lora:sdxl_lightning_4step_lora:1.0> %config.steps(4)
@@ -98,15 +98,14 @@
   }
 
   // three possible 'shift' values:
-  { %config.shift(1.00) | %config.shift(1.10) | %config.shift(1.20) }
+   %config.shift({ \1.00 | \1.10 | \1.20 })
 
   // two sampler possibilities:
   { ?lightning_on %config.sampler("LCM") }
   { !lightning_on { %config.sampler("DPM++ SDE Karras") | %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") } }
 
   // eight possible CFG values:
-  { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
-  | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) | %config.cfg_scale(9.0) | %config.cfg_scale(10.0) }
+  %config.cfg_scale({ \3.0 | \4.0 | \5.0 | \6.0 | \7.0 | \8.0 | \9.0 | \10.0 })
 
   // lots of models pick from:
   { 4 %config.model("bookIllustrationChar_v10")
