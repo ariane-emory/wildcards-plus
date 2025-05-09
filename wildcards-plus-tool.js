@@ -5329,6 +5329,8 @@ const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule(
                                                                                 arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
                                                                                 arg => new ASTSinglePickPrioritizes(arg));
+const SpecialFunctionSetPickMultiple          = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
+                                                                                arg => new ASTMultiplePickPrioritizes(arg));
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                                  DiscardedComments,     // -
                                                                                  assignment_operator,   // _
@@ -5345,7 +5347,8 @@ const UnexpectedSpecialFunctionInclude           = unexpected(SpecialFunctionInc
                                                               "inside Draw Things!");
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetConfiguration,
-                                             SpecialFunctionSetPickSingle);
+                                             SpecialFunctionSetPickSingle,
+                                             SpecialFunctionSetPickMultiple);
 const SpecialFunction               = choice(dt_hosted? UnexpectedSpecialFunctionInclude : SpecialFunctionInclude,
                                              SpecialFunctionNotInclude);
 const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
