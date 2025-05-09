@@ -1,3 +1,5 @@
 %config.steps({ \20 | \25 })
 
 Done!
+
+\{
