@@ -23,9 +23,10 @@
 // #flux_high_steps
 
 // #sdxl_always_lightning
+// #sdxl_always_lightning_off
 
-{2 !sdxl_always_lightning
-|  !always_lightning_off #lightning_on }  // enable lightning 4-step in SDXL models.
+{ !sdxl_always_lightning
+| !sdxl_always_lightning_off #sdxl_lightning_on }  // enable lightning 4-step in SDXL models.
 
 #square_on                               // enable square aspect ratios
 // #sdxl_hires                              // enable higher resulutions
@@ -90,13 +91,13 @@
 | 8 ?sdxl_on
   // various SDXL models:
   
-  { ?lightning_on {   <lora:sdxl_lightning_4step_lora:1.0> %config.steps(4)
+  { ?sdxl_lightning_on {   <lora:sdxl_lightning_4step_lora:1.0> %config.steps(4)
                   | 2 <lora:sdxl_lightning_8step_lora:1.0> %config.steps(8) } }
 
   { @1-2lora | @1-3lora }
 
-  { !lightning_on %config.steps({ \25 | \30 | \35 }) }
-  // { !lightning_on %config.steps(30) }   
+  { !sdxl_lightning_on %config.steps({ \25 | \30 | \35 }) }
+  // { !sdxl_lightning_on %config.steps(30) }   
   
   // possible resolutions:
   { // 3 ?sdxl_hires %config({ "width": 1280, "height": 640 })
@@ -114,8 +115,8 @@
    %config.shift({ \1.00 | \1.10 | \1.20 })
 
   // two sampler possibilities:
-  { ?lightning_on %config.sampler("LCM") }
-  { !lightning_on { %config.sampler("DPM++ SDE Karras") | %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") } }
+  { ?sdxl_lightning_on %config.sampler("LCM") }
+  { !sdxl_lightning_on { %config.sampler("DPM++ SDE Karras") | %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") } }
 
   // eight possible CFG values:
   %config.cfg_scale({ \3.0 | \4.0 | \5.0 | \6.0 | \7.0 | \8.0 | \9.0 | \10.0 })
