@@ -4915,7 +4915,19 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     // SpecialFunctions:
     // -----------------------------------------------------------------------------------
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
+    else if (thing instanceof ASTUpdateConfigUnary) {
+      if (typeof thing.value_object !== 'object')
+        throw new Error(`ASTUpdateConfigUnary's argument must be an object!`);
+
+      context.config = { ...context.config, ...thing.value_object };
+      
+      if (log_config_enabled)
+        console.log(`Updated config to ${JSON.stringify(context.config)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
       if (thing.args.length > 2)
         throw new Error(`update-config takes 1 or 2 arguments, got ` +
                         `${inspect_fun(thing.args)}`);
@@ -5179,8 +5191,8 @@ class ASTSpecialFunction {
 }
 // ---------------------------------------------------------------------------------------
 class ASTUpdateConfigUnary {
-  constructor(value) {
-    this.value = value;
+  constructor(value_object) {
+    this.value_object = value_object;
   }
 }
 // =======================================================================================
