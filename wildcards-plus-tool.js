@@ -4968,7 +4968,7 @@ function expand_wildcards(thing, context = new Context()) {
       }
       
       if (log_config_enabled)
-                    console.log(`Updated config to ${JSON.stringify(context.config)}`);
+        console.log(`Updated config to ${JSON.stringify(context.config)}`);
       
       return '';
     }
@@ -5779,3 +5779,28 @@ main().catch(err => {
 
 // console.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary2.match(s)));
 
+
+const JsoncObject2 =
+      xform(arr => {
+        return Object.fromEntries(arr);
+      },
+            wst_cutting_enc('{',
+                            wst_star(
+                              xform(arr => [arr[1], arr[5]],
+                                    wst_seq(JsoncComments,
+                                            () => json_string,
+                                            JsoncComments,
+                                            ':',
+                                            JsoncComments,
+                                            Jsonc, 
+                                            JsoncComments
+                                           ))             
+                              , ','),
+                            '}'));
+
+
+JsoncObject2.finalize()
+
+let s = `{"foo": 123, "bar": 234 }`;
+
+console.log(inspect_fun(JsoncObject2.match(s)));
