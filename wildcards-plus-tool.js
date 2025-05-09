@@ -1850,13 +1850,21 @@ Jsonc.finalize();
 // =======================================================================================
 const always = () => true;
 const never  = () => false;
-const picker_strategy = Object.freeze({
-  total:     'total',
-  used:      'used',
-  random:    'random',
+const picker_priority = Object.freeze({
+  avoid_repetition:           'Avoiding repetition',
+  ensure_weighted_distribution:  'Ensuring a weighted distribution',
+  true_randomness:               'Just plain old randomness',
 });
+const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
+const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
+const picker_priority_descriptions_to_names = new Map(
+  Object.entries(picker_priority).map(([k, v]) => [v, k])
+);
+// const picker_configuration = {
+//   pick_one_priority:      picker_priority.ensure_weighted_distribution,
+//   pick_multiple_priority: picker_priority.avoid_repetition,
+// };
 // ---------------------------------------------------------------------------------------
-
 class WeightedPicker {
   // -------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
@@ -1864,6 +1872,7 @@ class WeightedPicker {
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
+    this.last_pick_index = null;
 
     for (const [weight, value] of initialOptions)
       this.add(weight, value);
@@ -1871,6 +1880,34 @@ class WeightedPicker {
   // -------------------------------------------------------------------------------------
   add(weight, value) {
     this.options.push({weight: weight, value: value });
+  }
+  // -------------------------------------------------------------------------------------
+  __record_index_usage(index) {
+    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+    this.last_pick_index = index;
+  }
+  // -------------------------------------------------------------------------------------
+  pick(min_count = 1, max_count = min_count,
+       allow_if = always, forbid_if = never,
+       priority = null) {
+    if (! priority)
+      throw new Error("no priority");
+
+    // console.log(`PICK ${min_count}-${max_count}`);
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+
+    const res = [];
+    
+    for (let ix = 0; ix < count; ix++) {
+      const pick = this.pick_one(allow_if, forbid_if, priority);
+
+      // if (pick)
+      res.push(pick);
+    }
+
+    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+    
+    return res;
   }
   // -------------------------------------------------------------------------------------
   __gather_legal_option_indices(allow_if, forbid_if) {
@@ -1888,15 +1925,17 @@ class WeightedPicker {
     return legal_option_indices;
   }
   // -------------------------------------------------------------------------------------
-  __record_index_usage(index) {
-    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+  __clear_used_indices() {
+    this.used_indices.clear();
+    this.last_pick_index = null;
+    // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -------------------------------------------------------------------------------------  
-  __indices_are_exhausted(option_indices, strategy) {
+  __indices_are_exhausted(option_indices, priority) {
     // console.log(`this.options      = ${inspect_fun(this.options)}`);
     // console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
     
-    if (! strategy)
+    if (! priority)
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
     if (this.used_indices.size == 0)
@@ -1904,10 +1943,10 @@ class WeightedPicker {
 
     let exhausted_indices = null;
     
-    if (strategy == picker_strategy.used) {
+    if (priority == picker_priority.avoid_repetition) {
       exhausted_indices = new Set(this.used_indices.keys());
     }
-    else if (strategy == picker_strategy.total) {
+    else if (priority == picker_priority.ensure_weighted_distribution) {
       exhausted_indices = new Set();
 
       for (const [used_index, usage_count] of this.used_indices) {
@@ -1921,134 +1960,145 @@ class WeightedPicker {
       
       // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
-    else if (strategy === picker_strategy.random) {
+    else if (priority === picker_priority.true_randomness) {
       return false;
     }
     else {
-      throw new Error(`bad strategy: ${inspect_fun(strange)}`);
+      throw new Error(`bad priority: ${inspect_fun(priority)}`);
     }
     
     return exhausted_indices.isSupersetOf(new Set(option_indices));
   }
   // -------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count,
-       allow_if = always, forbid_if = never,
-       strategy = null) {
-    if (! strategy)
-      throw new Error("no strategy");
-
-    // console.log(`PICK ${min_count}-${max_count}`);
-    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
-
-    const res = [];
-    
-    for (let ix = 0; ix < count; ix++) {
-      const pick = this.pick_one(allow_if, forbid_if, strategy);
-
-      // if (pick)
-      res.push(pick);
-    }
-
-    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
-    
-    return res;
-  }
-  // -------------------------------------------------------------------------------------
-  __effective_weight(option_index, strategy) {
-    if (! ((option_index || option_index === 0) && strategy))
+  __effective_weight(option_index, priority) {
+    if (! ((option_index || option_index === 0) && priority))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
     let ret = null;
     
-    if (strategy === picker_strategy.used)
+    if (priority === picker_priority.avoid_repetition) {
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    else if (strategy === picker_strategy.total)
-      ret =  this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-    else if (strategy === picker_strategy.random)
+    }
+    else if (priority === picker_priority.ensure_weighted_distribution) {
+      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+    }
+    else if (priority === picker_priority.true_randomness) {
       ret = this.options[option_index].weight;
-    else 
-      throw Error("unexpected strategy");
+    }
+    else {
+      throw Error("unexpected priority");
+    }
 
     // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
     return ret;
   };
   // -------------------------------------------------------------------------------------
-  pick_one(allow_if, forbid_if, strategy) {
-    if (! (strategy && allow_if && forbid_if))
+  pick_one(allow_if, forbid_if, priority) {
+    // console.log(`PICK ONE =======================================================================`);
+    // console.log(`PRIORITY        = ${inspect_fun(priority)}`);
+    // console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+    // console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+
+    if (! (priority && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
     
     const noisy = false;
+
+    // // console.log(`PICK_ONE!`);
     
-    
-    // console.log(`PICK_ONE!`);    
-    // console.log(`PICK FROM ${JSON.stringify(this)}`);
+    // // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
     if (this.options.length === 0) {
-      // console.log(`PICK_ONE: NO OPTIONS 1!`);
+      // // console.log(`PICK_ONE: NO OPTIONS 1!`);
       return null;
     }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
-    if (this.__indices_are_exhausted(legal_option_indices, strategy)) {
-      // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-      this.used_indices.clear();
+    if (this.__indices_are_exhausted(legal_option_indices, priority)) {
+      // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      if (priority === picker_priority.avoid_repetition) {
+        if (this.last_pick_index !== null) {
+          const last_pick_index = this.last_pick_index;
+          this.__clear_used_indices();
+          this.__record_index_usage(last_pick_index);
+        }
+        else /* ensure_weighted_distribution, true_randomness */ {
+          this.__clear_used_indices();
+        }
+      }
+      else {
+        this.__clear_used_indices();
+      }
+      
+      // console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+      
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
-      // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+      // // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+      // console.log(`BEFORE BAIL 1: ${inspect_fun(this.used_indices)}`);
       return null;
     }
 
     if (legal_option_indices.length === 1) {
-      // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      // // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
       this.__record_index_usage(legal_option_indices[0]);
+      // console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
       return this.options[legal_option_indices[0]].value;
     }
 
-    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    // // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
+    // console.log(`BEFORE TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    
     for (const legal_option_ix of legal_option_indices) {
-      const adjusted_weight = this.__effective_weight(legal_option_ix, strategy);
-      // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+      // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+      // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
       total_weight += adjusted_weight;
     }
-
+    // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
+    // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    
     // Since we now avoid adding options with a weight of 0, this shouldnever be true:
     if (total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${inspect_fun(legal_option_indices.map(ix => this.options[ix]))}`);
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
+                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
-      if (noisy)
-        console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
-      // return null;
+      if (noisy) {
+        // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
+      }
     }
     
-    if (noisy)
-      console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
+    if (noisy) {
+      // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
+    }
     
     let random = Math.random() * total_weight;
 
     if (noisy) {
-      console.log(`------------------------------------------------------------------------`);
-      console.log(`RANDOM IS ${random}`);
-      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+      // console.log(`------------------------------------------------------------------------`);
+      // console.log(`RANDOM IS ${random}`);
+      // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
     }
     
     for (const legal_option_ix of legal_option_indices) {
       const option          = this.options[legal_option_ix];
-      const adjusted_weight = this.__effective_weight(legal_option_ix, strategy);
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
 
       if (adjusted_weight === 0)
         continue;
 
-      if (noisy)
-        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+      if (noisy) {
+        // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+      }
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -2057,59 +2107,14 @@ class WeightedPicker {
 
       random -= adjusted_weight;
 
-      if (noisy)
-        console.log(`RANDOM IS NOW ${random}`);
+      if (noisy) {
+        // console.log(`RANDOM IS NOW ${random}`);
+      }
     }
 
     throw new Error("random selection failed");
   }
 }
-// =======================================================================================
-
-
-// =======================================================================================
-// WildcardPicker CLASS SECTION:
-// =======================================================================================
-class WildcardPicker {
-  // -------------------------------------------------------------------------------------
-  constructor(optSpecs = []) {
-    this.options = [];
-    this.range   = 0;
-
-    for (const optSpec of optSpecs) {
-      if (Array.isArray(optSpec)) {
-        this.add(...optSpec);
-      } else {
-        this.add(1, optSpec);
-      }
-    }
-  }
-  // -------------------------------------------------------------------------------------
-  add(weight, value) {
-    this.options.push([ weight, value ]);
-    this.range += weight;
-  }
-  // -------------------------------------------------------------------------------------
-  pick() {
-    if (this.options.length == 0)
-      throw new Error("empty");
-    
-    if (this.options.length == 1) 
-      return this.options[0][1];
-    
-    let   total   = 0;
-    const random  = Math.random() * this.range;
-
-    for (const option of this.options) {
-      total += option[0];
-
-      if (random < total)
-        return option[1];      
-    }
-  }
-}
-// =======================================================================================
-// END OF WildcardPicker CLASS SECTION.
 // =======================================================================================
 
 
@@ -2447,6 +2452,8 @@ class Context {
     config = {},
     add_loras = [],
     top_file = true,
+    pick_one_priority = picker_priority.ensure_weighted_distribution,
+    pick_multiple_priority = picker_priority.avoid_repetition,
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
@@ -2456,6 +2463,8 @@ class Context {
     this.config = config;
     this.add_loras = add_loras;
     this.top_file = top_file;
+    this.pick_one_priority = pick_one_priority;
+    this.pick_multiple_priority = pick_multiple_priority;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
       this.flags.add("dt_hosted");
@@ -2468,28 +2477,32 @@ class Context {
   // -------------------------------------------------------------------------------------
   clone() {
     return new Context({
-      flags:            new Set(this.flags),
-      scalar_variables: new Map(this.scalar_variables),
-      named_wildcards:  new Map(this.named_wildcards),
-      noisy:            this.noisy,
-      files:            [ ...this.files ],
-      config:           { ...this.config }, /// ???
-      add_loras:        [ ...this.add_loras
-                          .map(o => ({ file: o.file, weigh: o.weight })) ],
-      top_file:         this.top_file,
+      flags:                  new Set(this.flags),
+      scalar_variables:       new Map(this.scalar_variables),
+      named_wildcards:        new Map(this.named_wildcards),
+      noisy:                  this.noisy,
+      files:                  [ ...this.files ],
+      config:                 { ...this.config }, /// ???
+      add_loras:              [ ...this.add_loras
+                                .map(o => ({ file: o.file, weigh: o.weight })) ],
+      top_file:               this.top_file,
+      pick_one_priority:      this.pick_one_priority,
+      pick_multiple_priority: this.pick_multiple_priority,      
     });
   }
   // -------------------------------------------------------------------------------------
   shallow_copy() {
     return new Context({
       flags: this.flags,
-      scalar_variables: this.scalar_variables,
-      named_wildcards: this.named_wildcards,
-      noisy: this.noisy,
-      files: this.files,
-      config: this.config,
-      add_loras: this.add_loras,
-      top_file: false, // deliberately not copied!
+      scalar_variables:       this.scalar_variables,
+      named_wildcards:        this.named_wildcards,
+      noisy:                  this.noisy,
+      files:                  this.files,
+      config:                 this.config,
+      add_loras:              this.add_loras,
+      top_file:               false, // deliberately not copied!
+      pick_one_priority:      this.pick_one_priority,
+      pick_multiple_priority: this.pick_multiple_priority,
     });
   }
 }
@@ -4784,13 +4797,13 @@ function expand_wildcards(thing, context = new Context()) {
           res.push(walk(got));        
       }
       else {
-        const strategy = thing.min_count === 1 && thing.max_count === 1
-              ? picker_strategy.total
-              : picker_strategy.used;
+        const priority = thing.min_count === 1 && thing.max_count === 1
+              ? context.pick_one_priority
+              : context.pick_multiple_priority;
         
         const picks = got.pick(thing.min_count, thing.max_count,
                                allow_fun, forbid_fun,
-                               strategy);
+                               priority);
         
         res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
       }
@@ -4899,7 +4912,8 @@ function expand_wildcards(thing, context = new Context()) {
     // AnonWildcards:
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTAnonWildcard) {
-      const pick = thing.pick_one(allow_fun, forbid_fun, picker_strategy.total)?.body;
+      const pick = thing.pick_one(allow_fun, forbid_fun,
+                                  context.pick_one_priority)?.body;
 
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
@@ -4909,48 +4923,56 @@ function expand_wildcards(thing, context = new Context()) {
     // -----------------------------------------------------------------------------------
     // SpecialFunctions:
     // -----------------------------------------------------------------------------------
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'update-config') {
-      if (thing.args.lenrth > 2)
-        throw new Error(`update-config takes 1 or 2 arguments, got ` +
-                        `${inspect_fun(thing.args)}`);
+    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
+      if (typeof thing.value_object !== 'object')
+        throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
 
-      let config = {};
-
-      if (thing.args.length === 2) {
-        // TOOD: maybe check types? unsure.
-        config[thing.args[0]] = thing.args[1];
-      }
-      else {
-        config = thing.args[0];
-      }
+      context.config = { ...context.config, ...thing.value_object };
       
-      if (typeof config !== 'object')
-        throw new Error(`update-config's argument must be either: an object OR a ` +
-                        `string and an object, got ${inspect_fun(config)}`);
-
-      context.config = { ...context.config, ...config };
-
       if (log_config_enabled)
         console.log(`Updated config to ${JSON.stringify(context.config)}`);
       
       return '';
-    } 
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'set-config') {
-      const config = thing.args[0];
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
+      context.config[thing.key] = thing.value
       
-      context.add_loras = []; // kinda ugly but seems correct for this case...
-
-      if (typeof config !== 'object')
-        throw new Error(`set-config's argument must be an object, ` +
-                        `got ${inspect_fun(config)}`);
-
-      context.config = config;
-
       if (log_config_enabled)
-        console.log(`Set config to ${JSON.stringify(config)}`);
+        console.log(`Updated config to ${JSON.stringify(context.config)}`);
       
       return '';
-    } 
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSSpecialFunctionetPickSingle) {
+      const walked = walk(thing.limited_content, context);
+
+      if (! picker_priority_names.includes(walked))
+        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+
+      context.pick_one_priority = picker_priority[walked];
+
+      console.log(`Updated single pick priority to ` +
+                  `${inspect_fun(context.pick_one_priority)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunctionSetPickMultiple) {
+      const walked = walk(thing.limited_content, context);
+
+      if (! picker_priority_names.includes(walked))
+        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+
+      context.pick_multiple_priority = picker_priority[walked];
+
+      console.log(`Updated multiple pick priority to ` +
+                  `${inspect_fun(context.pick_multiple_priority)}`);
+      
+      return '';
+    }
+    // -----------------------------------------------------------------------------------
+    // get rid of these soon:
     else if (thing instanceof ASTSpecialFunction) {
       // console.log(`IGNORING ${inspect_fun(thing)}`);
       console.log(`IGNORING UNIMPLEMENTED SpecialFunction: ${JSON.stringify(thing)}`);
@@ -5143,15 +5165,6 @@ class ASTScalarAssignment  {
   }
 }
 // ---------------------------------------------------------------------------------------
-// Directives:
-// ---------------------------------------------------------------------------------------
-class ASTSpecialFunction {
-  constructor(directive, args) {
-    this.directive = directive;
-    this.args      = args;
-  }
-}
-// ---------------------------------------------------------------------------------------
 // AnonWildcards:
 // ---------------------------------------------------------------------------------------
 class ASTAnonWildcard extends WeightedPicker {
@@ -5169,6 +5182,41 @@ class ASTAnonWildcardAlternative {
     this.check_flags = check_flags;
     this.not_flags   = not_flags;
     this.body        = body;
+  }
+}
+// ---------------------------------------------------------------------------------------
+// Directives:
+// ---------------------------------------------------------------------------------------
+class ASTSpecialFunction {
+  constructor(directive, args) {
+    this.directive = directive;
+    this.args      = args;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTSpecialFunctionUpdateConfigUnary {
+  constructor(value_object) {
+    this.value_object = value_object;
+    // console.log(`CONSTRUCTED ASTSFUCU: ${inspect_fun(this)}`);
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTSpecialFunctionUpdateConfigBinary {
+  constructor(key, value) {
+    this.key   = key;
+    this.value = value;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTSSpecialFunctionetPickSingle {
+  constructor(limited_content) {
+    this.limited_content = limited_content;
+  }
+}
+// ---------------------------------------------------------------------------------------
+class ASTSpecialFunctionSetPickMultiple {
+  constructor(limited_content) {
+    this.limited_content = limited_content;
   }
 }
 // =======================================================================================
@@ -5207,6 +5255,31 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
                                                     "1.0"), // [4][0]
                                            '>'));
 // ---------------------------------------------------------------------------------------
+// helper funs used to make grammar rules::
+// ---------------------------------------------------------------------------------------
+const make_ASTFlagCmd_Rule = (klass, ...rules) =>
+      xform(ident => new klass(ident),
+            second(seq(...rules, ident, word_break)));
+// ---------------------------------------------------------------------------------------
+const make_special_function_Rule = rule =>
+      xform(tld_fun,
+            c_funcall(second(seq('%', rule)),
+                      first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
+// ---------------------------------------------------------------------------------------
+const make_unary_SpecialFunction_Rule = (prefix, rule, xform_func) =>
+      xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
+                                    DiscardedComments,     // -
+                                    '(',                   // [0][1]
+                                    DiscardedComments),    // -
+                            rule,                          // [1]
+                            DiscardedComments,             // -
+                            ')'),                          // [2]
+            arr => {
+              // console.log(`THIS ARR: ${inspect_fun(arr)}`);
+              // console.log(`THIS ARR[1]: ${inspect_fun(arr[1])}`);
+              return xform_func(arr[1]);
+            });
+// ---------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // ---------------------------------------------------------------------------------------
 const make_ASTAnonWildcardAlternative = arr => {
@@ -5230,13 +5303,9 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 }
 // ---------------------------------------------------------------------------------------
-const make_ASTFlagCmd = (klass, ...rules) =>
-      xform(ident => new klass(ident),
-            second(seq(...rules, ident, word_break)));
-// ---------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // ---------------------------------------------------------------------------------------
-const SetFlag                 = make_ASTFlagCmd(ASTSetFlag,   '#');
+const SetFlag                 = make_ASTFlagCmd_Rule(ASTSetFlag,   '#');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
                                       second(seq('?', plus(ident, ','),
                                                  word_break)))
@@ -5247,54 +5316,50 @@ const NotFlag                 = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // ---------------------------------------------------------------------------------------
 const tld_fun = arr => new ASTSpecialFunction(...arr);
-const make_special_function = rule =>
-      xform(tld_fun,
-            c_funcall(second(seq('%', rule)),
-                      first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
 // ---------------------------------------------------------------------------------------
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
 const DiscardedComments             = discard(wst_star(comment));
-const SFInclude                     = make_special_function('include');
-const SFUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                    DiscardedComments,     // -
-                                                                    '.',                   // [0][1]
-                                                                    DiscardedComments),    // -
-                                                            ident,                         // [1]
-                                                            DiscardedComments,             // -
-                                                            '(',                           // [2]
-                                                            DiscardedComments,             // -
-                                                            Jsonc,                         // [3]
-                                                            DiscardedComments,             // [4]
-                                                            ')'),                          // [4]
-                                            arr => new ASTSpecialFunction('update-config',
-                                                                          [arr[1], arr[3]]));
-const SFUpdateConfigurationUnary    = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                    DiscardedComments,     // -
-                                                                    '(',                   // [0][1]
-                                                                    DiscardedComments),    // -
-                                                            JsoncObject,                  // [1]
-                                                            DiscardedComments,             // -
-                                                            ')'),                          // [2]
-                                            arr => new ASTSpecialFunction('update-config',
-                                                                          [arr[1]]));
-const SFSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                    DiscardedComments,     // -
-                                                                    assignment_operator,   // _
-                                                                    DiscardedComments),    // -
-                                                            JsoncObject),                 // [1]
-                                            arr => new ASTSpecialFunction('set-config',
-                                                                          [arr[1]]));
-const SFUpdateConfiguration         = choice(SFUpdateConfigurationUnary,
-                                             SFUpdateConfigurationBinary);
-const UnexpectedSFInclude           = unexpected(SFInclude,
-                                                 () => "%include is only supported when " +
-                                                 "using wildcards-plus-tool.js, NOT when " +
-                                                 "running the wildcards-plus.js script " +
-                                                 "inside Draw Things!");
-const SpecialFunction               = choice(dt_hosted? UnexpectedSFInclude : SFInclude,
-                                             SFUpdateConfiguration,
-                                             SFSetConfiguration);
+const SpecialFunctionInclude                     = make_special_function_Rule('include');
+const SpecialFunctionUpdateConfigurationBinary   =
+      xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                    DiscardedComments,     // -
+                                    '.',                   // [0][1]
+                                    DiscardedComments),    // -
+                            ident,                         // [1]
+                            DiscardedComments,             // -
+                            '(',                           // [2]
+                            DiscardedComments,             // -
+                            Jsonc,                         // [3]
+                            DiscardedComments,             // [4]
+                            ')'),                          // [4]
+            arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
+                                                                                arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
+const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
+                                                                                arg => new ASTSSpecialFunctionetPickSingle(arg));
+const SpecialFunctionSetPickMultiple          = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
+                                                                                arg => new ASTSpecialFunctionSetPickMultiple(arg));
+const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                                                                 DiscardedComments,     // -
+                                                                                 assignment_operator,   // _
+                                                                                 DiscardedComments),    // -
+                                                                         JsoncObject),                 // [1]
+                                                         arr => new ASTSpecialFunction('set-config',
+                                                                                       [arr[1]]));
+const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateConfigurationUnary,
+                                                          SpecialFunctionUpdateConfigurationBinary);
+const UnexpectedSpecialFunctionInclude           = unexpected(SpecialFunctionInclude,
+                                                              () => "%include is only supported when " +
+                                                              "using wildcards-plus-tool.js, NOT when " +
+                                                              "running the wildcards-plus.js script " +
+                                                              "inside Draw Things!");
+const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
+                                             SpecialFunctionSetConfiguration,
+                                             SpecialFunctionSetPickSingle,
+                                             SpecialFunctionSetPickMultiple);
+const SpecialFunction               = choice(dt_hosted? UnexpectedSpecialFunctionInclude : SpecialFunctionInclude,
+                                             SpecialFunctionNotInclude);
 const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                 optional(wb_uint, 1),
@@ -5367,19 +5432,17 @@ const LimitedContent          = choice(AnonWildcardNoLoras, ScalarReference,
                                        // not permitted in the 'limited' content:
                                        // NamedWildcardUsage, SetFlag,
                                        // comment,
-                                       // SFUpdateConfiguration,
-                                       // SFSetConfiguration,
+                                       // SpecialFunctionUpdateConfiguration,
+                                       // SpecialFunctionSetConfiguration,
                                        // low_pri_text, plaintext
                                       );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage,
                                        SetFlag, A1111StyleLora, AnonWildcard, comment,
                                        ScalarReference,
-                                       SFUpdateConfiguration, SFSetConfiguration,
-                                       low_pri_text, plaintext);
+                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
 const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage,
                                        SetFlag, AnonWildcard, comment, ScalarReference,
-                                       SFUpdateConfiguration, SFSetConfiguration,
-                                       low_pri_text, plaintext);
+                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(SpecialFunction,
@@ -5397,7 +5460,6 @@ Prompt.finalize();
 // =======================================================================================
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =======================================================================================
-
 
 
 // =======================================================================================
