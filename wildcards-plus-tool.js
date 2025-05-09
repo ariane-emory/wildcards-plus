@@ -4941,7 +4941,20 @@ function expand_wildcards(thing, context = new Context()) {
     }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
-      context.config[thing.key] = thing.value
+      const walked_value = walk(thing.value, context);
+
+      console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+
+      const jsconc_parsed_walked_value = Jsonc.match(walked_value);
+      
+      console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+
+      if (! jsconc_parsed_walked_value.is_finished)
+        throw new Error(`walking ASTSpecialFunctionUpdateConfigBinary.value must ` +
+                        `produce valid JSONC, Jsonc.matcch(...) result was ` +
+                        `${inspect_fun(jsconc_parsed_walked_value)}`);
+      
+      context.config[thing.key] = jsconc_parsed_walked_value.value;
       
       if (log_config_enabled)
         console.log(`Updated config to ${JSON.stringify(context.config)}`);
