@@ -84,8 +84,6 @@
 
   { !lightning_on %config.steps(35) }
   
-    
-  
   // possible resolutions:
   { 3 ?sdxl_hires %config({ "width": 1280, "height": 640 })
   | 3 ?sdxl_hires %config({ "width": 1152, "height": 576 })
