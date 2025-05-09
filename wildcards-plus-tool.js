@@ -5290,16 +5290,16 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 // helper funs used to make grammar rules::
 // -------------------------------------------------------------------------------------------------
-const make_ASTFlagCmd_Rule = (klass, ...rules) =>
+const ASTFlagCmd = (klass, ...rules) =>
       xform(ident => new klass(ident),
             second(seq(...rules, ident, word_break)));
 // -------------------------------------------------------------------------------------------------
-const make_special_function_Rule = rule =>
+const variadic_SpecialFunction = rule =>
       xform(tld_fun,
             c_funcall(second(seq('%', rule)),
                       first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
 // -------------------------------------------------------------------------------------------------
-const make_unary_SpecialFunction_Rule = (prefix, rule, xform_func) =>
+const unary_SpecialFunction = (prefix, rule, xform_func) =>
       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
                                     DiscardedComments,     // -
                                     '(',                   // [0][1]
@@ -5315,7 +5315,7 @@ const make_unary_SpecialFunction_Rule = (prefix, rule, xform_func) =>
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
-const make_ASTAnonWildcardAlternative = arr => {
+const make__ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
@@ -5338,7 +5338,7 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag                 = make_ASTFlagCmd_Rule(ASTSetFlag,   '#');
+const SetFlag                 = ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
                                       second(seq('?', plus(ident, ','),
                                                  word_break)))
@@ -5353,18 +5353,18 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments                = discard(wst_star(comment));
-const SpecialFunctionInclude           = make_special_function_Rule('include');
+const SpecialFunctionInclude           = variadic_SpecialFunction('include');
 const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     () => "%include is only supported when " +
                                                     "using wildcards-plus-tool.js, NOT when " +
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle   =
-      make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
-                                      arg => new ASTSSpecialFunctionSetPickSingle(arg));
+      unary_SpecialFunction('single-pick-prioritizes', () => LimitedContent,
+                            arg => new ASTSSpecialFunctionSetPickSingle(arg));
 const SpecialFunctionSetPickMultiple =
-      make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
-                                      arg => new ASTSpecialFunctionSetPickMultiple(arg));
+      unary_SpecialFunction('multi-pick-prioritizes', () => LimitedContent,
+                            arg => new ASTSpecialFunctionSetPickMultiple(arg));
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                   DiscardedComments,     // -
@@ -5379,8 +5379,8 @@ let   SpecialFunctionUpdateConfigurationBinary =
                           ')'),                          // [4]
           arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 const SpecialFunctionUpdateConfigurationUnary =
-      make_unary_SpecialFunction_Rule('config',
-                                      choice(JsoncObject, () => LimitedContent),
+      unary_SpecialFunction('config',
+                            choice(JsoncObject, () => LimitedContent),
                                       arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
                                                                                      false));
 const SpecialFunctionSetConfiguration
@@ -5400,12 +5400,12 @@ const AnySpecialFunction            = choice((dt_hosted
                                               ? UnexpectedSpecialFunctionInclude
                                               : SpecialFunctionInclude),
                                              SpecialFunctionNotInclude);
-const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
+const AnonWildcardAlternative       = xform(make__ASTAnonWildcardAlternative,
                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                 optional(wb_uint, 1),
                                                 wst_star(choice(comment, TestFlag, SetFlag)),
                                                 () => ContentStar));
-const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
+const AnonWildcardAlternativeNoLoras = xform(make__ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                  optional(wb_uint, 1),
                                                  wst_star(choice(comment, TestFlag, SetFlag)),
