@@ -1,12 +1,8 @@
 // // %config.steps(@foo)
-
 // %config.steps({ \20 | \25 })
-
 // %config.model({ "devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt" | "foo_f16.ckpt" })
+// FOOBAR
+// { \{ GRAULT \} }
 
 %config({ \{ "steps": 12, "model": "devmode8stepsflux1dev_v03gguidancefp8_f16" \} })
 %config({ "steps": 24, "model": "devmode8stepsflux1dev_f16" })
-
-// FOOBAR
-
-// { \{ GRAULT \} }
