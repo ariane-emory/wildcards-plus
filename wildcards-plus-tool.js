@@ -5782,25 +5782,29 @@ main().catch(err => {
 
 const JsoncObject2 =
       xform(arr => {
+        console.log(`ARR: ${inspect_fun(arr)}`);
         return Object.fromEntries(arr);
       },
-            wst_cutting_enc('{',
-                            wst_star(
-                              xform(arr => [arr[1], arr[5]],
-                                    wst_seq(JsoncComments,
-                                            () => json_string,
-                                            JsoncComments,
-                                            ':',
-                                            JsoncComments,
-                                            Jsonc, 
-                                            JsoncComments
-                                           ))             
-                              , ','),
-                            '}'));
+            wst_cutting_seq(
+              wst_enc('{', () => json_string, ":"),
+               Jsonc,
+              // wst_star(
+              //   xform(arr =>  [arr[1], arr[5]],
+              //         wst_seq(JsoncComments,
+              //                 () => json_string,
+              //                 JsoncComments,
+              //                 ':',
+              //                 JsoncComments,
+              //                       Jsonc, 
+              //                 JsoncComments
+              //                ))             
+              //   , ','),
+              '}'));
 
 
 JsoncObject2.finalize()
 
 let s = `{"foo": 123, "bar": 234 }`;
+ s = `{"foo": 123 }`;
 
 console.log(inspect_fun(JsoncObject2.match(s)));
