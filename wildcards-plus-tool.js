@@ -5251,8 +5251,8 @@ const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+const escaped_brc             = second(choice('\\{', '\\{'));
 const filename                = /[A-Za-z0-9 ._\-()]+/;
-const ecaped_brc              = second(choice('\\{', '\\{'));
 // ^ conservative regex, no unicode or weird symbols
 // ---------------------------------------------------------------------------------------
 // A1111-style LoRAs:
@@ -5442,7 +5442,7 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                               ScalarAssignmentSource));
 const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardDesignator),
-                                       ecaped_brc, AnonWildcardNoLoras, ScalarReference,
+                                       escaped_brc, AnonWildcardNoLoras, ScalarReference,
                                        // not permitted in the 'limited' content:
                                        // NamedWildcardUsage, SetFlag,
                                        // comment,
@@ -5452,10 +5452,10 @@ const LimitedContent          = choice(xform(name => new ASTNamedWildcardReferen
                                       );
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
                                        A1111StyleLora,
-                                       ecaped_brc, AnonWildcard, comment, ScalarReference,
+                                       escaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, low_pri_text, plaintext);
 const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
-                                       ecaped_brc, AnonWildcard, comment, ScalarReference,
+                                       escaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, low_pri_text, plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
