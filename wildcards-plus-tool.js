@@ -5288,8 +5288,10 @@ const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq
                                                                          ')'),                          // [4]
                                                          arr => new ASTSpecialFunction('update-config',
                                                                                        [arr[1], arr[3]]));
-const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject, arg => new ASTSpecialFunction('update-config', [arg]));
-const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent, arg => new ASTSpecialFunction('set-picker-configuration-single-pick', [arg]));
+const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
+                                                                                arg => new ASTSpecialFunction('update-config', [arg]));
+const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
+                                                                                arg => new ASTSpecialFunction('set-picker-configuration-single-pick', [arg]));
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                                  DiscardedComments,     // -
                                                                                  assignment_operator,   // _
