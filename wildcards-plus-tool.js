@@ -5274,6 +5274,31 @@ const escaped_brc             =
 const filename                = /[A-Za-z0-9 ._\-()]+/;
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
+// combinators:
+// -------------------------------------------------------------------------------------------------
+const ASTFlagCommand = (klass, ...rules) =>
+      xform(ident => new klass(ident),
+            second(seq(...rules, ident, word_break)));
+// -------------------------------------------------------------------------------------------------
+const variadicSpecialFunction = rule =>
+      xform(tld_fun,
+            c_funcall(second(seq('%', rule)),
+                      first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
+// -------------------------------------------------------------------------------------------------
+const unarySpecialFunction = (prefix, rule, xform_func) =>
+      xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
+                                    DiscardedComments,     // -
+                                    '(',                   // [0][1]
+                                    DiscardedComments),    // -
+                            rule,                          // [1]
+                            DiscardedComments,             // -
+                            ')'),                          // [2]
+            arr => {
+              // console.log(`THIS ARR: ${inspect_fun(arr)}`);
+              // console.log(`THIS ARR[1]: ${inspect_fun(arr[1])}`);
+              return xform_func(arr[1]);
+            });
+// -------------------------------------------------------------------------------------------------
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
@@ -5287,31 +5312,6 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
                                                                           () => LimitedContent))),
                                                     "1.0"), // [4][0]
                                            '>'));
-// -------------------------------------------------------------------------------------------------
-// helper funs used to make grammar rules::
-// -------------------------------------------------------------------------------------------------
-const ASTFlagCmd = (klass, ...rules) =>
-      xform(ident => new klass(ident),
-            second(seq(...rules, ident, word_break)));
-// -------------------------------------------------------------------------------------------------
-const variadic_SpecialFunction = rule =>
-      xform(tld_fun,
-            c_funcall(second(seq('%', rule)),
-                      first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
-// -------------------------------------------------------------------------------------------------
-const unary_SpecialFunction = (prefix, rule, xform_func) =>
-      xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
-                                    DiscardedComments,     // -
-                                    '(',                   // [0][1]
-                                    DiscardedComments),    // -
-                            rule,                          // [1]
-                            DiscardedComments,             // -
-                            ')'),                          // [2]
-            arr => {
-              // console.log(`THIS ARR: ${inspect_fun(arr)}`);
-              // console.log(`THIS ARR[1]: ${inspect_fun(arr[1])}`);
-              return xform_func(arr[1]);
-            });
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
@@ -5338,7 +5338,7 @@ const make__ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag                 = ASTFlagCmd(ASTSetFlag,   '#');
+const SetFlag                 = ASTFlagCommand(ASTSetFlag,   '#');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
                                       second(seq('?', plus(ident, ','),
                                                  word_break)))
@@ -5353,18 +5353,18 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments                = discard(wst_star(comment));
-const SpecialFunctionInclude           = variadic_SpecialFunction('include');
+const SpecialFunctionInclude           = variadicSpecialFunction('include');
 const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     () => "%include is only supported when " +
                                                     "using wildcards-plus-tool.js, NOT when " +
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle   =
-      unary_SpecialFunction('single-pick-prioritizes', () => LimitedContent,
-                            arg => new ASTSSpecialFunctionSetPickSingle(arg));
+      unarySpecialFunction('single-pick-prioritizes', () => LimitedContent,
+                           arg => new ASTSSpecialFunctionSetPickSingle(arg));
 const SpecialFunctionSetPickMultiple =
-      unary_SpecialFunction('multi-pick-prioritizes', () => LimitedContent,
-                            arg => new ASTSpecialFunctionSetPickMultiple(arg));
+      unarySpecialFunction('multi-pick-prioritizes', () => LimitedContent,
+                           arg => new ASTSpecialFunctionSetPickMultiple(arg));
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                   DiscardedComments,     // -
@@ -5379,8 +5379,8 @@ let   SpecialFunctionUpdateConfigurationBinary =
                           ')'),                          // [4]
           arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 const SpecialFunctionUpdateConfigurationUnary =
-      unary_SpecialFunction('config',
-                            choice(JsoncObject, () => LimitedContent),
+      unarySpecialFunction('config',
+                           choice(JsoncObject, () => LimitedContent),
                                       arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
                                                                                      false));
 const SpecialFunctionSetConfiguration

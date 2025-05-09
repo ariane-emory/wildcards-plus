@@ -7,9 +7,9 @@
 // =================================================================================================
 
 
-// =================================================================================================
+// ===============================================================================================
 // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
-// =================================================================================================
+// ===============================================================================================
 {
   // -----------------------------------------------------------------------------------------------
   // DT's env doesn't seem to have structuredClone, so we'll define this early:
@@ -45,7 +45,7 @@
       return copy;
     }
   }
-  // -----------------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------------------
   inspect_fun = JSON.stringify;
   clone_fun   = structured_clone;
   dt_hosted   = true;
@@ -1672,42 +1672,6 @@ const JsoncArray =
                                           JsoncComments)),
                                ','),
                       ']');
-// const JsoncObject2 =
-//       xform(arr => Object.fromEntries(arr), 
-//             wst_cutting_enc('{',
-//                             wst_star(
-//                               xform(arr => [arr[1], arr[5]],
-//                                     wst_seq(JsoncComments,
-//                                             () => json_string,
-//                                             JsoncComments,
-//                                             ':',
-//                                             JsoncComments,
-//                                             Jsonc, 
-//                                             JsoncComments
-//                                            ))             
-//                               , ','),
-//                             '}'));
-
-// [
-//   "model",                     // [0]
-//   [],                          // [1]
-//   "hidream_i1_fast_q5p.ckpt",  // [2]
-//   [],                          // [3]
-//   [                            // [4]
-//     [                          // [4][0]
-//       [                         
-//         "sampler",
-//         "DDIM Trailing"
-//       ],
-//       [
-//         "shift",
-//         1.5
-//       ]
-//     ]
-//   ],
-//   "}"
-// ]
-
 const JsoncObject =
       choice(
         xform(arr => ({}), wst_seq('{', '}')),
@@ -1979,7 +1943,7 @@ class WeightedPicker {
     let random = Math.random() * total_weight;
 
     if (noisy) {
-      // console.log(`------------------------------------------------------------------------`);
+      // console.log(`----------------------------------------------------------------------------------`);
       // console.log(`RANDOM IS ${random}`);
       // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
       // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
@@ -4817,108 +4781,55 @@ function expand_wildcards(thing, context = new Context()) {
       return smart_join(walk(pick));
     }
     // ---------------------------------------------------------------------------------------------
-    // SpecialFunctions:
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
-      if (typeof thing.value_object !== 'object')
-        throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
+    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
+             thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
+      let value = thing.value;
 
-      let value_object = thing.value_object;
-
-      // console.log(`THING.VALUE_OBJECT = ${inspect_fun(thing.value_object)}, ${thing.value_object instanceof AST}`);
-      
-      if (thing.value_object instanceof AST) {
-        // console.log(`RIGHT`);
-        
-        const walked_value = walk(thing.value_object, context);
-
-        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
-
-        const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
-        
-        // console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
-
-        if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-          throw new Error(`walking ASTSpecialFunctionUpdateConfigUnary.value_object ` +
-                          `must produce a valid JSONC object, Jsonc.matcch(...) result ` +
-                          `was ${inspect_fun(jsconc_parsed_walked_value)}`);
-        
-        value_object = jsconc_parsed_walked_value.value;
-      }
-      
-      context.config = { ...context.config, ...value_object };
-      
-      if (log_config_enabled)
-        console.log(`Updated config to ${JSON.stringify(context.config)}`);
-      
-      return '';
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
-      // console.log(`VALUE = ${inspect_fun(thing.value)}, ${thing.value instanceof AST}`);
-      
-      if (! (thing.value instanceof AST)) {
-        // console.log(`LEFT`);
-        
-        context.config[thing.key] = thing.value;
-      }
-      else {
-        // console.log(`RIGHT`);
-        
+      if (thing.value instanceof AST) {
         const walked_value = walk(thing.value, context);
-
-        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
-
-        const jsconc_parsed_walked_value = Jsonc.match(walked_value);
-        
-        console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+        const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
 
         if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-          throw new Error(`walking ASTSpecialFunctionUpdateConfigBinary.value must ` +
-                          `produce valid JSONC, Jsonc.matcch(...) result was ` +
-                          `${inspect_fun(jsconc_parsed_walked_value)}`);
+          throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
+                          (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
+                          `, Jsonc.match(...) result was ` +
+                          inspect_fun(jsconc_parsed_walked_value));
         
-        context.config[thing.key] = jsconc_parsed_walked_value.value;
+        value = jsconc_parsed_walked_value.value;
+      }
+
+      if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
+        context.config = thing.assign
+          ? value
+          : { ...context.config, ...value };
+      } else { // ASTSpecialFunctionUpdateConfigUnary
+        context.config[thing.key] = value;
       }
       
       if (log_config_enabled)
-        console.log(`Updated config to ${JSON.stringify(context.config)}`);
+        console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
+                    `${JSON.stringify(context.config)}`);
       
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSSpecialFunctionetPickSingle) {
+    else if (thing instanceof ASTSSpecialFunctionSetPickSingle || 
+             thing instanceof ASTSpecialFunctionSetPickMultiple) {
       const walked = walk(thing.limited_content, context);
 
       if (! picker_priority_names.includes(walked))
         throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
-      context.pick_one_priority = picker_priority[walked];
+      context[thing instanceof ASTSSpecialFunctionSetPickSingle
+              ? 'pick_one_priority'
+              : 'pick_multiple_priority'] = picker_priority[walked];
 
-      console.log(`Updated single pick priority to ` +
-                  `${inspect_fun(context.pick_one_priority)}`);
+      console.log(
+        `Updated ` +
+          (thing instanceof ASTSSpecialFunctionSetPickSingle ? 'single' : 'multiple') +
+          `pick priority to  ${inspect_fun(context.pick_one_priority)}`);
       
       return '';
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionSetPickMultiple) {
-      const walked = walk(thing.limited_content, context);
-
-      if (! picker_priority_names.includes(walked))
-        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
-
-      context.pick_multiple_priority = picker_priority[walked];
-
-      console.log(`Updated multiple pick priority to ` +
-                  `${inspect_fun(context.pick_multiple_priority)}`);
-      
-      return '';
-    }
-    // ---------------------------------------------------------------------------------------------
-    // get rid of these soon:
-    else if (thing instanceof ASTSpecialFunction) {
-      // console.log(`IGNORING ${inspect_fun(thing)}`);
-      console.log(`IGNORING UNIMPLEMENTED SpecialFunction: ${JSON.stringify(thing)}`);
     }
     // ---------------------------------------------------------------------------------------------
     // ASTLora:
@@ -4975,20 +4886,6 @@ function expand_wildcards(thing, context = new Context()) {
       
       return '';
     }
-    // ---------------------------------------------------------------------------------------------
-    // numbers get strung:
-    // ---------------------------------------------------------------------------------------------
-    // else if (typeof thing === 'number') {
-    //   return thing.toString();
-    // }
-    // ---------------------------------------------------------------------------------------------
-    // null gets passed through:
-    // ---------------------------------------------------------------------------------------------
-    // else if (thing === null) {
-    //   return '';
-    // }
-    // ---------------------------------------------------------------------------------------------
-    // error case, unrecognized objects:
     // ---------------------------------------------------------------------------------------------
     else {
       throw new Error(`confusing thing: ` +
@@ -5162,10 +5059,10 @@ class ASTSpecialFunction extends AST {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTSpecialFunctionUpdateConfigUnary extends AST {
-  constructor(value_object) {
+  constructor(value, assign) {
     super();
-    this.value_object = value_object;
-    // console.log(`CONSTRUCTED ASTSFUCU: ${inspect_fun(this)}`);
+    this.value = value;
+    this.assign = assign; // otherwise update
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -5177,7 +5074,7 @@ class ASTSpecialFunctionUpdateConfigBinary extends AST {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSSpecialFunctionetPickSingle extends AST {
+class ASTSSpecialFunctionSetPickSingle extends AST {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
@@ -5212,8 +5109,7 @@ const comment                 = discard(choice(c_block_comment, c_line_comment))
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
 const escaped_brc             =
       xform(x => {
-        // console.log(`X: ${inspect_fun(x)}`);
-        
+        // console.log(`X: ${inspect_fun(x)}`);        
         return x;
       },
             second(choice('\\{', '\\}')));
@@ -5236,16 +5132,16 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 // helper funs used to make grammar rules::
 // -------------------------------------------------------------------------------------------------
-const make_ASTFlagCmd_Rule = (klass, ...rules) =>
+const ASTFlagCmd = (klass, ...rules) =>
       xform(ident => new klass(ident),
             second(seq(...rules, ident, word_break)));
 // -------------------------------------------------------------------------------------------------
-const make_special_function_Rule = rule =>
+const variadic_SpecialFunction = rule =>
       xform(tld_fun,
             c_funcall(second(seq('%', rule)),
                       first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
 // -------------------------------------------------------------------------------------------------
-const make_unary_SpecialFunction_Rule = (prefix, rule, xform_func) =>
+const unary_SpecialFunction = (prefix, rule, xform_func) =>
       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
                                     DiscardedComments,     // -
                                     '(',                   // [0][1]
@@ -5261,7 +5157,7 @@ const make_unary_SpecialFunction_Rule = (prefix, rule, xform_func) =>
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
-const make_ASTAnonWildcardAlternative = arr => {
+const make__ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
@@ -5284,7 +5180,7 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag                 = make_ASTFlagCmd_Rule(ASTSetFlag,   '#');
+const SetFlag                 = ASTFlagCmd(ASTSetFlag,   '#');
 const CheckFlag               = xform(ident => new ASTCheckFlag(ident),
                                       second(seq('?', plus(ident, ','),
                                                  word_break)))
@@ -5298,8 +5194,19 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
-const DiscardedComments             = discard(wst_star(comment));
-const SpecialFunctionInclude        = make_special_function_Rule('include');
+const DiscardedComments                = discard(wst_star(comment));
+const SpecialFunctionInclude           = variadic_SpecialFunction('include');
+const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
+                                                    () => "%include is only supported when " +
+                                                    "using wildcards-plus-tool.js, NOT when " +
+                                                    "running the wildcards-plus.js script " +
+                                                    "inside Draw Things!");
+const SpecialFunctionSetPickSingle   =
+      unary_SpecialFunction('single-pick-prioritizes', () => LimitedContent,
+                            arg => new ASTSSpecialFunctionSetPickSingle(arg));
+const SpecialFunctionSetPickMultiple =
+      unary_SpecialFunction('multi-pick-prioritizes', () => LimitedContent,
+                            arg => new ASTSpecialFunctionSetPickMultiple(arg));
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                   DiscardedComments,     // -
@@ -5313,38 +5220,34 @@ let   SpecialFunctionUpdateConfigurationBinary =
                           DiscardedComments,             // [4]
                           ')'),                          // [4]
           arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
-const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', choice(JsoncObject, () => LimitedContent),
-                                                                                arg =>  new ASTSpecialFunctionUpdateConfigUnary(arg));
-const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
-                                                                                arg => new ASTSSpecialFunctionetPickSingle(arg));
-const SpecialFunctionSetPickMultiple          = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
-                                                                                arg => new ASTSpecialFunctionSetPickMultiple(arg));
-const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                                 DiscardedComments,     // -
-                                                                                 assignment_operator,   // _
-                                                                                 DiscardedComments),    // -
-                                                                         JsoncObject),                 // [1]
-                                                         arr => new ASTSpecialFunction('set-config',
-                                                                                       [arr[1]]));
+const SpecialFunctionUpdateConfigurationUnary =
+      unary_SpecialFunction('config',
+                            choice(JsoncObject, () => LimitedContent),
+                            arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
+                                                                           false));
+const SpecialFunctionSetConfiguration
+      = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                      DiscardedComments,     // -
+                                      assignment_operator,   // _
+                                      DiscardedComments),    // -
+                              choice(JsoncObject, () => LimitedContent)), // [1]
+              arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true));
 const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateConfigurationUnary,
                                                           SpecialFunctionUpdateConfigurationBinary);
-const UnexpectedSpecialFunctionInclude           = unexpected(SpecialFunctionInclude,
-                                                              () => "%include is only supported when " +
-                                                              "using wildcards-plus-tool.js, NOT when " +
-                                                              "running the wildcards-plus.js script " +
-                                                              "inside Draw Things!");
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetConfiguration,
                                              SpecialFunctionSetPickSingle,
                                              SpecialFunctionSetPickMultiple);
-const SpecialFunction               = choice(dt_hosted? UnexpectedSpecialFunctionInclude : SpecialFunctionInclude,
+const AnySpecialFunction            = choice((dt_hosted
+                                              ? UnexpectedSpecialFunctionInclude
+                                              : SpecialFunctionInclude),
                                              SpecialFunctionNotInclude);
-const AnonWildcardAlternative       = xform(make_ASTAnonWildcardAlternative,
+const AnonWildcardAlternative       = xform(make__ASTAnonWildcardAlternative,
                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                 optional(wb_uint, 1),
                                                 wst_star(choice(comment, TestFlag, SetFlag)),
                                                 () => ContentStar));
-const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
+const AnonWildcardAlternativeNoLoras = xform(make__ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag, SetFlag)),
                                                  optional(wb_uint, 1),
                                                  wst_star(choice(comment, TestFlag, SetFlag)),
@@ -5424,7 +5327,7 @@ const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsag
                                        SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
-const PromptBody              = wst_star(choice(SpecialFunction,
+const PromptBody              = wst_star(choice(AnySpecialFunction,
                                                 NamedWildcardDefinition,
                                                 ScalarAssignment,
                                                 Content));
