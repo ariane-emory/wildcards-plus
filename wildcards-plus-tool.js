@@ -1819,7 +1819,7 @@ json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =======================================================================================
 const JsoncComments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(JsoncComments,
-                             choice(() => JsoncObject, () => JsoncArray,
+                             choice(() => JsoncObject,  () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
                                     () => json_null,    () => json_number),
                              JsoncComments));
@@ -1830,27 +1830,50 @@ const JsoncArray =
                                           JsoncComments)),
                                ','),
                       ']');
-const JsoncObject2 =
-      xform(arr => Object.fromEntries(arr), 
-            wst_cutting_enc('{',
-                            wst_star(
-                              xform(arr => [arr[1], arr[5]],
-                                    wst_seq(JsoncComments,
-                                            () => json_string,
-                                            JsoncComments,
-                                            ':',
-                                            JsoncComments,
-                                            Jsonc, 
-                                            JsoncComments
-                                           ))             
-                              , ','),
-                            '}'));
+// const JsoncObject2 =
+//       xform(arr => Object.fromEntries(arr), 
+//             wst_cutting_enc('{',
+//                             wst_star(
+//                               xform(arr => [arr[1], arr[5]],
+//                                     wst_seq(JsoncComments,
+//                                             () => json_string,
+//                                             JsoncComments,
+//                                             ':',
+//                                             JsoncComments,
+//                                             Jsonc, 
+//                                             JsoncComments
+//                                            ))             
+//                               , ','),
+//                             '}'));
+
+// [
+//   "model",                     // [0]
+//   [],                          // [1]
+//   "hidream_i1_fast_q5p.ckpt",  // [2]
+//   [],                          // [3]
+//   [                            // [4]
+//     [                          // [4][0]
+//       [                         
+//         "sampler",
+//         "DDIM Trailing"
+//       ],
+//       [
+//         "shift",
+//         1.5
+//       ]
+//     ]
+//   ],
+//   "}"
+// ]
+
 const JsoncObject =
       choice(
         xform(arr => ({}), wst_seq('{', '}')),
         xform(arr => {
-          // console.log(`ARR: ${JSON.stringify(arr, null, 2)}`);
-          return Object.fromEntries([ [arr[0], arr[1]], ...(arr[2][0]??[]) ]);
+          // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
+          const arr2 = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
+          return Object.fromEntries(arr2);
         },
               wst_cutting_seq(
                 wst_enc('{', () => json_string, ":"),
@@ -1871,7 +1894,6 @@ const JsoncObject =
                                           , ',')),
                                )),
                 '}')));
-
 // ---------------------------------------------------------------------------------------
 Jsonc.finalize(); 
 // =======================================================================================
@@ -5806,28 +5828,15 @@ main().catch(err => {
 
 // console.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary2.match(s)));
 
-[
-  "foo",           // [0]
-  123,             // [1]
-  [                // [2]
-    [              // [2][0] the list 
-      [            // [2][0][1]
-        "bar",
-        234
-      ]
-    ]
-  ]
-]
+// // JsoncObject2.finalize()
 
-JsoncObject2.finalize()
+// let s;
 
-let s;
+// s = `{"foo": 123, "bar": 234 }`;
+// console.log(JSON.stringify(JsoncObject.match(s), null, 2));
 
-s = `{"foo": 123, "bar": 234 }`;
-console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
+// s = `{"foo": 123 }`;
+// console.log(JSON.stringify(JsoncObject.match(s), null, 2));
 
-s = `{"foo": 123 }`;
-console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
-
-s = `{ }`;
-console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
+// s = `{ }`;
+// console.log(JSON.stringify(JsoncObject.match(s), null, 2));
