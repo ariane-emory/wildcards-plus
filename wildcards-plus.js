@@ -56,7 +56,7 @@
 // =================================================================================================
 // GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
-// Code in this section originall copy/pasted from the grammar.js file in my 'jparse'
+// Code in this section originally copy/pasted from the grammar.js file in my 'jparse'
 // project circa ac2979f but updated since.
 // 
 // Not all of this section is actually used by the wildcards-plus script right 
@@ -1396,7 +1396,7 @@ function pipe_funs(...fns) {
 // =================================================================================================
 // COMMON-GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
-// Code in this section copy/pasted from the common-grammar.js file in my
+// Code in this section originally copy/pasted from the common-grammar.js file in my
 // 'jparse' project circa ac2979f but updated since
 // 
 // Not all of this section is actually used by the wildcards-plus script right 
@@ -4655,10 +4655,10 @@ function expand_wildcards(thing, context = new Context()) {
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUnsetFlag) {
-      console.log(`UNSET FLAG '${thing.name}'.`);
-      console.log(`FLAGS BEFORE '${inspect_fun(context.flags)}'.`);
-      context.flags = context.flags.filter(f => f !== thing.name);
-      console.log(`FLAGS AFTER '${inspect_fun(context.flags)}'.`);
+      // console.log(`UNSET FLAG '${thing.name}'.`);
+      // console.log(`FLAGS BEFORE '${inspect_fun(context.flags)}'.`);
+      context.flags = new Set(Array.from(context.flags).filter(f => f !== thing.name));
+      // console.log(`FLAGS AFTER '${inspect_fun(context.flags)}'.`);
       
       return ''; // produce nothing
     }
@@ -4987,6 +4987,13 @@ class ASTSetFlag extends ASTNode {
   }
 }
 // --------------------------------------------------------------------------------------------------
+class ASTUnsetFlag extends ASTNode {
+  constructor(name) {
+    super();
+    this.name = name;
+  }
+}
+// --------------------------------------------------------------------------------------------------
 class ASTCheckFlag extends ASTNode {
   constructor(names) {
     super();
@@ -5212,9 +5219,9 @@ const unarySpecialFunction = (prefix, rule, xform_func) =>
 const make__ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
-  const set_flags   = flags.filter(f => f instanceof ASTSetFlag);
-  const check_flags = flags.filter(f => f instanceof ASTCheckFlag);
-  const not_flags   = flags.filter(f => f instanceof ASTNotFlag);
+  const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
+  const check_flags        = flags.filter(f => f instanceof ASTCheckFlag);
+  const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_immediately_not_flags = not_flags
         .filter(f => f.set_immediately)
         .map(f => new ASTSetFlag(f.name)) ;
@@ -5225,7 +5232,7 @@ const make__ASTAnonWildcardAlternative = arr => {
     not_flags,
     [
       ...set_immediately_not_flags,
-      ...set_flags,
+      ...set_or_unset_flags,
       ...arr[3]
     ]);
 }
@@ -5248,14 +5255,16 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 const SetFlag              = xform(ident => new ASTSetFlag(ident),
                                    second(seq('#', ident, word_break)));
+const UnsetFlag            = xform(ident => new ASTUnsetFlag(ident),
+                                   second(seq('#!', ident, word_break)));
+// const UnsetFlag = unexpected('#!');
 const CheckFlag            = xform(ident => new ASTCheckFlag(ident),
                                    second(seq('?', plus(ident, ','),
                                               word_break)))
-const MalformedNotSetCombo = unexpected('#!');
 const NotFlag              = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
                                    seq('!', optional('#'),
                                        ident, word_break));
-const TestFlag             = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
+const TestFlag             = choice(CheckFlag, NotFlag);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
@@ -5320,14 +5329,14 @@ const AnySpecialFunction            = choice((dt_hosted
                                               : SpecialFunctionInclude),
                                              SpecialFunctionNotInclude);
 const AnonWildcardAlternative       = xform(make__ASTAnonWildcardAlternative,
-                                            seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                 optional(wb_uint, 1),
-                                                wst_star(choice(comment, TestFlag, SetFlag)),
+                                                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                 () => ContentStar));
 const AnonWildcardAlternativeNoLoras = xform(make__ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag, SetFlag)),
+                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag, SetFlag)),
+                                                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  () => ContentStarNoLoras));
 const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
@@ -5388,11 +5397,11 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
 const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardDesignator),
                                        /* escaped_brc, */ AnonWildcardNoLoras, ScalarReference);
-const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
                                        A1111StyleLora,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
-const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
 const ContentStar             = wst_star(Content);
