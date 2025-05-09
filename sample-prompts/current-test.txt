@@ -470,5 +470,3 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 
 { 0 impossible }
 {| 0 IMPOSSIBLE }
-
-#foo #!foo
