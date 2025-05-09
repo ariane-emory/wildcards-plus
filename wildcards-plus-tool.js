@@ -1830,42 +1830,6 @@ const JsoncArray =
                                           JsoncComments)),
                                ','),
                       ']');
-// const JsoncObject2 =
-//       xform(arr => Object.fromEntries(arr), 
-//             wst_cutting_enc('{',
-//                             wst_star(
-//                               xform(arr => [arr[1], arr[5]],
-//                                     wst_seq(JsoncComments,
-//                                             () => json_string,
-//                                             JsoncComments,
-//                                             ':',
-//                                             JsoncComments,
-//                                             Jsonc, 
-//                                             JsoncComments
-//                                            ))             
-//                               , ','),
-//                             '}'));
-
-// [
-//   "model",                     // [0]
-//   [],                          // [1]
-//   "hidream_i1_fast_q5p.ckpt",  // [2]
-//   [],                          // [3]
-//   [                            // [4]
-//     [                          // [4][0]
-//       [                         
-//         "sampler",
-//         "DDIM Trailing"
-//       ],
-//       [
-//         "shift",
-//         1.5
-//       ]
-//     ]
-//   ],
-//   "}"
-// ]
-
 const JsoncObject =
       choice(
         xform(arr => ({}), wst_seq('{', '}')),
