@@ -1717,13 +1717,9 @@ const picker_priority = Object.freeze({
 });
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
-const picker_priority_descriptions_to_names = new Map(
-  Object.entries(picker_priority).map(([k, v]) => [v, k])
-);
-// const picker_configuration = {
-//   pick_one_priority:      picker_priority.ensure_weighted_distribution,
-//   pick_multiple_priority: picker_priority.avoid_repetition,
-// };
+// const picker_priority_descriptions_to_names = new Map(
+//   Object.entries(picker_priority).map(([k, v]) => [v, k])
+// );
 // -------------------------------------------------------------------------------------------------
 class WeightedPicker {
   // -----------------------------------------------------------------------------------------------
