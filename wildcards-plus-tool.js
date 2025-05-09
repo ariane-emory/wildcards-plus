@@ -5781,26 +5781,28 @@ main().catch(err => {
 
 
 const JsoncObject2 =
-      xform(arr => {
-        console.log(`ARR: ${JSON.stringify(arr, null, 2)}`);
-        return Object.fromEntries([ [arr[0], arr[1]], ...(arr[2][0]??[]) ]);
-      },
-            wst_cutting_seq(
-              wst_enc('{', () => json_string, ":"),
-              Jsonc,
-              optional(second(wst_seq(',',
-                               wst_star(
-                                 xform(arr =>  [arr[1], arr[5]],
-                                       wst_seq(JsoncComments,
-                                               () => json_string,
-                                               JsoncComments,
-                                               ':',
-                                               JsoncComments,
-                                               Jsonc, 
-                                               JsoncComments
-                                              ))             
-                                 , ',')),
-                               '}'))));
+      choice(
+        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => {
+          console.log(`ARR: ${JSON.stringify(arr, null, 2)}`);
+          return Object.fromEntries([ [arr[0], arr[1]], ...(arr[2][0]??[]) ]);
+        },
+              wst_cutting_seq(
+                wst_enc('{', () => json_string, ":"),
+                Jsonc,
+                optional(second(wst_seq(',',
+                                        wst_star(
+                                          xform(arr =>  [arr[1], arr[5]],
+                                                wst_seq(JsoncComments,
+                                                        () => json_string,
+                                                        JsoncComments,
+                                                        ':',
+                                                        JsoncComments,
+                                                        Jsonc, 
+                                                        JsoncComments
+                                                       ))             
+                                          , ',')),
+                                '}')))));
 [
   "foo",
   123,
@@ -5823,7 +5825,10 @@ const JsoncObject2 =
 JsoncObject2.finalize()
 
 let s = `{"foo": 123, "bar": 234 }`;
-s = `{"foo": 123 }`;
-//  s = `{"foo": 123 }`;
+console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
 
+s = `{"foo": 123 }`;
+console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
+
+s = `{ }`;
 console.log(JSON.stringify(JsoncObject2.match(s), null, 2));
