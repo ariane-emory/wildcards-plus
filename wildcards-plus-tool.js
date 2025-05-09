@@ -5275,7 +5275,7 @@ const ASTFlagCommand = (klass, ...rules) =>
             second(seq(...rules, ident, word_break)));
 // -------------------------------------------------------------------------------------------------
 const variadicSpecialFunction = rule =>
-      xform(tld_fun,
+      xform(arr => new ASTSpecialFunction(...arr),
             c_funcall(second(seq('%', rule)),
                       first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
 // -------------------------------------------------------------------------------------------------
@@ -5342,8 +5342,6 @@ const NotFlag                 = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
                                           ident, word_break));
 const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag);
 // -------------------------------------------------------------------------------------------------
-const tld_fun = arr => new ASTSpecialFunction(...arr);
-// -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments                = discard(wst_star(comment));
@@ -5375,8 +5373,8 @@ let   SpecialFunctionUpdateConfigurationBinary =
 const SpecialFunctionUpdateConfigurationUnary =
       unarySpecialFunction('config',
                            choice(JsoncObject, () => LimitedContent),
-                                      arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
-                                                                                     false));
+                           arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
+                                                                          false));
 const SpecialFunctionSetConfiguration
       = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                       DiscardedComments,     // -
