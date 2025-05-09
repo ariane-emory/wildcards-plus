@@ -106,10 +106,11 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
 // -------------------------------------------------------------------------------------------------
 function process_includes(thing, context = new Context()) {
   function walk(thing, context) {
-    if (thing instanceof ASTSpecialFunction && thing.directive == 'include') {
+    if (thing instanceof ASTSpecialFunctionInclude) {
       const current_file = context.files[context.files.length - 1];
       const res = []
 
+      console.log(`INSPECT: ${inspect_fun(thing, null, 2)}`);
       for (let filename of thing.args) {
         if (typeof filename !== 'string')
           throw new Error(`include's arguments must be strings, got ${inspect_fun(filename)}`);
@@ -5208,10 +5209,10 @@ class ASTAnonWildcardAlternative extends AST {
 // -------------------------------------------------------------------------------------------------
 // Directives:
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunction extends AST {
-  constructor(directive, args) {
+class ASTSpecialFunctionInclude extends AST {
+  constructor(args) {
     super();
-    this.directive = directive;
+    // this.directive = directive;
     this.args      = args;
   }
 }
@@ -5273,11 +5274,6 @@ const filename                = /[A-Za-z0-9 ._\-()]+/;
 const ASTFlagCommand = (klass, ...rules) =>
       xform(ident => new klass(ident),
             second(seq(...rules, ident, word_break)));
-// -------------------------------------------------------------------------------------------------
-const variadicSpecialFunction = rule =>
-      xform(arr => new ASTSpecialFunction(...arr),
-            c_funcall(second(seq('%', rule)),
-                      first(wst_seq(DiscardedComments, Jsonc, DiscardedComments))));
 // -------------------------------------------------------------------------------------------------
 const unarySpecialFunction = (prefix, rule, xform_func) =>
       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
@@ -5345,13 +5341,17 @@ const TestFlag                = choice(CheckFlag, MalformedNotSetCombo, NotFlag)
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments                = discard(wst_star(comment));
-const SpecialFunctionInclude           = variadicSpecialFunction('include');
+const SpecialFunctionInclude           = xform(arr => new ASTSpecialFunctionInclude(arr[1]),
+                                               c_funcall('%include',
+                                                         first(wst_seq(DiscardedComments,
+                                                                       Jsonc,
+                                                                       DiscardedComments))))
 const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     () => "%include is only supported when " +
                                                     "using wildcards-plus-tool.js, NOT when " +
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
-const SpecialFunctionSetPickSingle   =
+const SpecialFunctionSetPickSingle =
       unarySpecialFunction('single-pick-prioritizes', () => LimitedContent,
                            arg => new ASTSSpecialFunctionSetPickSingle(arg));
 const SpecialFunctionSetPickMultiple =
