@@ -4791,7 +4791,7 @@ function expand_wildcards(thing, context = new Context()) {
       return ret;
     }
     // ---------------------------------------------------------------------------------------------
-    // Flags:
+    // flags:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSetFlag) {
       // console.log(`SET FLAG '${thing.name}'.`);
@@ -4801,7 +4801,7 @@ function expand_wildcards(thing, context = new Context()) {
       return ''; // produce nothing
     }
     // ---------------------------------------------------------------------------------------------
-    // References:
+    // references:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardReference) {
       const got = context.named_wildcards.get(thing.name);
@@ -4957,13 +4957,14 @@ function expand_wildcards(thing, context = new Context()) {
         value = jsconc_parsed_walked_value.value;
       }
 
-      if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
+      if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
+        context.config[thing.key] = value;
+      }
+      else { // ASTSpecialFunctionUpdateConfigUnary
         context.config = thing.assign
           ? value
           : { ...context.config, ...value };
-      } else { // ASTSpecialFunctionUpdateConfigUnary
-        context.config[thing.key] = value;
-      }
+      } 
       
       if (log_config_enabled)
         console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
