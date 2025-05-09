@@ -4939,36 +4939,30 @@ function expand_wildcards(thing, context = new Context()) {
       return smart_join(walk(pick));
     }
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
-      if (typeof thing.value !== 'object')
-        throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
-
+    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary || thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
       let value = thing.value;
 
-      // console.log(`THING.VALUE = ${inspect_fun(thing.value)}, ${thing.value instanceof AST}`);
-      
       if (thing.value instanceof AST) {
-        // console.log(`RIGHT`);
-        
         const walked_value = walk(thing.value, context);
-
-        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
-
         const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
-        
-        // console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
 
         if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
           throw new Error(`walking ${thing.constructor.name}.value ` +
-                          `must produce a valid JSONC object, Jsonc.match(...) result ` +
-                          `was ${inspect_fun(jsconc_parsed_walked_value)}`);
+                          `must produce a valid JSONC ` +
+                          (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
+                          `, Jsonc.match(...) result was ` +
+                          inspect_fun(jsconc_parsed_walked_value));
         
         value = jsconc_parsed_walked_value.value;
       }
 
-      context.config = thing.assign
+      if (thing instanceof ASTSpecialFunctionUpdateConfigUnary) {
+        context.config = thing.assign
         ? value
-        : { ...context.config, ...value };
+          : { ...context.config, ...value };
+      } else { // ASTSpecialFunctionUpdateConfigUnary
+        context.config[thing.key] = value;
+      }
       
       if (log_config_enabled)
         console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
@@ -4977,37 +4971,37 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
-      // console.log(`VALUE = ${inspect_fun(thing.value)}, ${thing.value instanceof AST}`);
+    // else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
+    //   // console.log(`VALUE = ${inspect_fun(thing.value)}, ${thing.value instanceof AST}`);
 
-      let thing_value = thing.value;
-      
-      if (thing.value instanceof AST) {
-        // console.log(`RIGHT`);
-        
-        const walked_value = walk(thing.value, context);
+    //   let thing_value = thing.value;
+    
+    //   if (thing.value instanceof AST) {
+    //     // console.log(`RIGHT`);
+    
+    //     const walked_value = walk(thing.value, context);
 
-        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+    //     // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
 
-        const jsconc_parsed_walked_value = Jsonc.match(walked_value);
-        
-        console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+    //     const jsconc_parsed_walked_value = Jsonc.match(walked_value);
+    
+    //     console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
 
-        if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-          throw new Error(`walking ASTSpecialFunctionUpdateConfigBinary.value must ` +
-                          `produce valid JSONC, Jsonc.matcch(...) result was ` +
-                          `${inspect_fun(jsconc_parsed_walked_value)}`);
-        
-        thing_value= jsconc_parsed_walked_value.value;
-      }
-      
-      context.config[thing.key]  = thing_value;
-      
-      if (log_config_enabled)
-        console.log(`Updated config to ${JSON.stringify(context.config)}`);
-      
-      return '';
-    }
+    //     if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
+    //       throw new Error(`walking ASTSpecialFunctionUpdateConfigBinary.value must ` +
+    //                       `produce valid JSONC, Jsonc.matcch(...) result was ` +
+    //                       `${inspect_fun(jsconc_parsed_walked_value)}`);
+    
+    //     thing_value= jsconc_parsed_walked_value.value;
+    //   }
+    
+    //   context.config[thing.key]  = thing_value;
+    
+    //   if (log_config_enabled)
+    //     console.log(`Updated config to ${JSON.stringify(context.config)}`);
+    
+    //   return '';
+    // }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSSpecialFunctionetPickSingle) {
       const walked = walk(thing.limited_content, context);
