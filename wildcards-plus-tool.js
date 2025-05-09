@@ -4981,23 +4981,25 @@ function expand_wildcards(thing, context = new Context()) {
       if (typeof thing.value_object !== 'object')
         throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
 
-      let value_object = thing.value_object;;
+      let value_object = thing.value_object;
 
-      if (thing.value instanceof AST) {
+      console.log(`THING.VALUE_OBJECT = ${inspect_fun(thing.value_object)}, ${thing.value_object instanceof AST}`);
+      
+      if (thing.value_object instanceof AST) {
         // console.log(`RIGHT`);
         
-        const walked_value = walk(thing.value, context);
+        const walked_value = walk(thing.value_object, context);
 
         // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
 
-        const jsconc_parsed_walked_value = Jsonc_object.match(walked_value);
+        const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
         
-        console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+        // console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
 
         if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-          throw new Error(`walking ASTSpecialFunctionUpdateConfigBinary.value must ` +
-                          `produce valid JSONC, Jsonc.matcch(...) result was ` +
-                          `${inspect_fun(jsconc_parsed_walked_value)}`);
+          throw new Error(`walking ASTSpecialFunctionUpdateConfigUnary.value_object ` +
+                          `must produce a valid JSONC object, Jsonc.matcch(...) result ` +
+                          `was ${inspect_fun(jsconc_parsed_walked_value)}`);
         
         context.config[thing.key] = jsconc_parsed_walked_value.value;
       }

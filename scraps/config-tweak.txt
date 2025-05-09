@@ -4,8 +4,7 @@
 
 // %config.model({ "devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt" | "foo_f16.ckpt" })
 
-%config({ \{ steps: 12, model: "devmode8stepsflux1dev_v03gguidancefp8_f16 \} })
-
+%config({ \{ "steps": 12, "model": "devmode8stepsflux1dev_v03gguidancefp8_f16" \} })
 
 // FOOBAR
 

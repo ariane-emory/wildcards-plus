@@ -147,7 +147,7 @@ class Rule {
             `Matching ${this.constructor.name} ${this.toString()} at ` +
             `char ${string_input_mode_enabled ? index : input[index]?.start}, ` +
             `token #${index}: ` +
-            `${input[index].toString().replace("\n", " ")}...`);
+            `${abbreviate(input.substring(index))}`)
     }
 
     const ret = this.__match(indent, input, index);
@@ -534,8 +534,9 @@ class Element extends Rule {
           ? DISCARD
           : rule_match_result.value[this.index];
     
-    if (log_match_enabled)
-      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result)} = ${ret instanceof Symbol ? ret.toString() : ret}`);
+    if (log_match_enabled) {
+      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result)} = ${typeof ret === 'symbol' ? ret.toString() : ret}`);
+    }
     
     rule_match_result.value = ret;
     
@@ -665,7 +666,7 @@ class CuttingEnclosed extends Enclosed {
                       `after ${this.start_rule} at ` +
                       `char ${index}` +
                       `, found: ` +
-                      `"${input.substring(start_rule_result.index)}"`);
+                      `"${abbreviate(input.substring(start_rule_result.index))}"`);
     }
     else {
       throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
@@ -831,7 +832,7 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      log(indent + 1, `matching first sequence item #1 out of ` +
+      log(indent + 1, `matching first sequence item #0 out of ` +
           `${this.elements.length}: ${this.elements[0]}...`);
     
     const start_rule_match_result =
@@ -848,7 +849,7 @@ class Sequence extends Rule {
     }
 
     if (log_match_enabled)
-      log(indent + 1, `matched sequence item #1: ` +
+      log(indent + 1, `matched sequence item #0: ` +
           `${JSON.stringify(last_match_result)}.`);
     
     const values = [];
@@ -871,7 +872,7 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        log(indent + 1, `matching sequence item #${ix+1} out of ` +
+        log(indent + 1, `matching sequence item #${ix} out of ` +
             `${this.elements.length}: ${this.elements[ix]}...`);
       
       const element = this.elements[ix];
@@ -938,7 +939,7 @@ class CuttingSequence extends Sequence {
                     `after ${this.elements[0]} at ` +
                     `char ${index}` +
                     `, found: ` +
-                    `'${input.substr(start_rule_result.index)}'`);
+                    `'${abbreviate(input.substr(start_rule_result.index))}'`);
   }
   // -------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -1244,7 +1245,7 @@ class Regex extends Rule {
 
     if (log_match_enabled)
       log(indent, `testing  /${this.regexp.source}/ at char ${index} of ` +
-          `'${input}'...`); 
+          `'${abbreviate(input.substring(index))}'`); 
 
     const match = this.regexp.exec(input);
     
@@ -1320,6 +1321,10 @@ class MatchResult {
 
 // ---------------------------------------------------------------------------------------
 // helper functions and related vars:
+// ---------------------------------------------------------------------------------------
+function abbreviate(s, len = 100) {
+  return s.length < 100 ? s : `"${s.substring(0, len).replace("\n","").trim()}..."`;
+}
 // ---------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
   return index == input.length
@@ -1656,7 +1661,7 @@ json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =======================================================================================
 const JsoncComments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(JsoncComments,
-                             choice(() => JsoncObject, () => JsoncArray,
+                             choice(() => JsoncObject,  () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
                                     () => json_null,    () => json_number),
                              JsoncComments));
@@ -1667,21 +1672,70 @@ const JsoncArray =
                                           JsoncComments)),
                                ','),
                       ']');
+// const JsoncObject2 =
+//       xform(arr => Object.fromEntries(arr), 
+//             wst_cutting_enc('{',
+//                             wst_star(
+//                               xform(arr => [arr[1], arr[5]],
+//                                     wst_seq(JsoncComments,
+//                                             () => json_string,
+//                                             JsoncComments,
+//                                             ':',
+//                                             JsoncComments,
+//                                             Jsonc, 
+//                                             JsoncComments
+//                                            ))             
+//                               , ','),
+//                             '}'));
+
+// [
+//   "model",                     // [0]
+//   [],                          // [1]
+//   "hidream_i1_fast_q5p.ckpt",  // [2]
+//   [],                          // [3]
+//   [                            // [4]
+//     [                          // [4][0]
+//       [                         
+//         "sampler",
+//         "DDIM Trailing"
+//       ],
+//       [
+//         "shift",
+//         1.5
+//       ]
+//     ]
+//   ],
+//   "}"
+// ]
+
 const JsoncObject =
-      xform(arr =>  Object.fromEntries(arr), 
-            wst_cutting_enc('{',
-                            wst_star(
-                              xform(arr => [arr[1], arr[5]],
-                                    wst_seq(JsoncComments,
-                                            () => json_string,
-                                            JsoncComments,
-                                            ':',
-                                            JsoncComments,
-                                            Jsonc, 
-                                            JsoncComments
-                                           ))             
-                              , ','),
-                            '}'));
+      choice(
+        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => {
+          // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
+          const arr2 = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
+          return Object.fromEntries(arr2);
+        },
+              wst_cutting_seq(
+                wst_enc('{', () => json_string, ":"),
+                JsoncComments,
+                Jsonc,
+                JsoncComments,
+                optional(second(wst_seq(',',
+                                        wst_star(
+                                          xform(arr =>  [arr[1], arr[5]],
+                                                wst_seq(JsoncComments,
+                                                        () => json_string,
+                                                        JsoncComments,
+                                                        ':',
+                                                        JsoncComments,
+                                                        Jsonc, 
+                                                        JsoncComments
+                                                       ))             
+                                          , ',')),
+                               )),
+                '}')));
 // ---------------------------------------------------------------------------------------
 Jsonc.finalize(); 
 // =======================================================================================
@@ -1736,7 +1790,7 @@ class WeightedPicker {
       throw new Error("no priority");
 
     // console.log(`PICK ${min_count}-${max_count}`);
-    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+    const count =Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
     
@@ -2272,7 +2326,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   }
 
   if (log_config_enabled)
-    console.log(`Munged config:    ${JSON.stringify(config)}.`);
+    console.log(`Munged config:    ${JSON.stringify(config)}`);
 
   return config;
 }
@@ -4769,6 +4823,29 @@ function expand_wildcards(thing, context = new Context()) {
       if (typeof thing.value_object !== 'object')
         throw new Error(`ASTSpecialFunctionUpdateConfigUnary's argument must be an object!`);
 
+      let value_object = thing.value_object;
+
+      console.log(`THING.VALUE_OBJECT = ${inspect_fun(thing.value_object)}, ${thing.value_object instanceof AST}`);
+      
+      if (thing.value_object instanceof AST) {
+        // console.log(`RIGHT`);
+        
+        const walked_value = walk(thing.value_object, context);
+
+        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+
+        const jsconc_parsed_walked_value = JsoncObject.match(walked_value);
+        
+        // console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+
+        if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
+          throw new Error(`walking ASTSpecialFunctionUpdateConfigUnary.value_object ` +
+                          `must produce a valid JSONC object, Jsonc.matcch(...) result ` +
+                          `was ${inspect_fun(jsconc_parsed_walked_value)}`);
+        
+        context.config[thing.key] = jsconc_parsed_walked_value.value;
+      }
+      
       context.config = { ...context.config, ...thing.value_object };
       
       if (log_config_enabled)
@@ -4778,7 +4855,31 @@ function expand_wildcards(thing, context = new Context()) {
     }
     // -----------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
-      context.config[thing.key] = thing.value
+      // console.log(`VALUE = ${inspect_fun(thing.value)}, ${thing.value instanceof AST}`);
+      
+      if (! (thing.value instanceof AST)) {
+        // console.log(`LEFT`);
+        
+        context.config[thing.key] = thing.value;
+      }
+      else {
+        // console.log(`RIGHT`);
+        
+        const walked_value = walk(thing.value, context);
+
+        // console.log(`WALKED_VALUE: ${inspect_fun(walked_value)}`);
+
+        const jsconc_parsed_walked_value = Jsonc.match(walked_value);
+        
+        console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
+
+        if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
+          throw new Error(`walking ASTSpecialFunctionUpdateConfigBinary.value must ` +
+                          `produce valid JSONC, Jsonc.matcch(...) result was ` +
+                          `${inspect_fun(jsconc_parsed_walked_value)}`);
+        
+        context.config[thing.key] = jsconc_parsed_walked_value.value;
+      }
       
       if (log_config_enabled)
         console.log(`Updated config to ${JSON.stringify(context.config)}`);
@@ -4786,7 +4887,7 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTSetPickSingle) {
+    else if (thing instanceof ASTSSpecialFunctionetPickSingle) {
       const walked = walk(thing.limited_content, context);
 
       if (! picker_priority_names.includes(walked))
@@ -4800,7 +4901,7 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // -----------------------------------------------------------------------------------
-    else if (thing instanceof ASTSetPickMultiple) {
+    else if (thing instanceof ASTSpecialFunctionSetPickMultiple) {
       const walked = walk(thing.limited_content, context);
 
       if (! picker_priority_names.includes(walked))
@@ -4909,22 +5010,27 @@ function expand_wildcards(thing, context = new Context()) {
 // =======================================================================================
 // SD PROMPT AST CLASSES SECTION:
 // =======================================================================================
+class AST {}
+// ---------------------------------------------------------------------------------------
 // Flags:
 // ---------------------------------------------------------------------------------------
-class ASTSetFlag {
+class ASTSetFlag extends AST {
   constructor(name) {
+    super();
     this.name = name;
   }
 }
 // ----------------------------------------------------------------------------------------
-class ASTCheckFlag {
+class ASTCheckFlag extends AST {
   constructor(names) {
+    super();
     this.names = names;
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTNotFlag  {
+class ASTNotFlag extends AST  {
   constructor(name, set_immediately) {
+    super();
     this.name = name;
     this.set_immediately = set_immediately;
     // if (this.set_immediately)
@@ -4934,8 +5040,9 @@ class ASTNotFlag  {
 // ---------------------------------------------------------------------------------------
 // NamedWildcard references:
 // ---------------------------------------------------------------------------------------
-class ASTNamedWildcardReference {
+class ASTNamedWildcardReference extends AST {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
+    super();
     this.name       = name;
     this.min_count  = min_count;
     this.max_count  = max_count;
@@ -4947,8 +5054,9 @@ class ASTNamedWildcardReference {
 // ---------------------------------------------------------------------------------------
 // Scalar references:
 // ---------------------------------------------------------------------------------------
-class ASTScalarReference {
+class ASTScalarReference extends AST {
   constructor(name, capitalize) {
+    super();
     this.name       = name;
     this.capitalize = capitalize;
   }
@@ -4956,8 +5064,9 @@ class ASTScalarReference {
 // ---------------------------------------------------------------------------------------
 // A1111-style Loras:
 // ---------------------------------------------------------------------------------------
-class ASTLora {
+class ASTLora extends AST {
   constructor(file, weight) {
+    super();
     this.file   = file;
     this.weight = weight;
     // console.log(`Constructed LoRa ${this}!`);
@@ -4966,24 +5075,27 @@ class ASTLora {
 // ---------------------------------------------------------------------------------------
 // Latch a NamedWildcard:
 // ---------------------------------------------------------------------------------------
-class ASTLatchNamedWildcard {
+class ASTLatchNamedWildcard extends AST {
   constructor(name) {
+    super();
     this.name = name;
   }
 }
 // ---------------------------------------------------------------------------------------
 // Unlatch a NamedWildcard:
 // ---------------------------------------------------------------------------------------
-class ASTUnlatchNamedWildcard {
+class ASTUnlatchNamedWildcard extends AST {
   constructor(name) {
+    super();
     this.name = name;
   }
 }
 // ---------------------------------------------------------------------------------------
 // Named wildcard definitions:
 // ---------------------------------------------------------------------------------------
-class ASTNamedWildcardDefinition {
+class ASTNamedWildcardDefinition extends AST {
   constructor(destination, wildcard) {
+    super();
     this.destination = destination;
     this.wildcard    = wildcard;
   }
@@ -4991,8 +5103,9 @@ class ASTNamedWildcardDefinition {
 // ---------------------------------------------------------------------------------------
 // Internal usage.. might not /really/ be part of the AST per se?
 // ---------------------------------------------------------------------------------------
-class ASTLatchedNamedWildcardedValue {
+class ASTLatchedNamedWildcardedValue extends AST {
   constructor(latched_value, original_value) {
+    super();
     this.latched_value  = latched_value;
     this.original_value = original_value;
   }
@@ -5000,8 +5113,9 @@ class ASTLatchedNamedWildcardedValue {
 // ---------------------------------------------------------------------------------------
 // Scalar assignment:
 // ---------------------------------------------------------------------------------------
-class ASTScalarAssignment  {
+class ASTScalarAssignment extends AST  {
   constructor(destination, source) {
+    super();
     this.destination = destination;
     this.source      = source;
   }
@@ -5009,17 +5123,27 @@ class ASTScalarAssignment  {
 // ---------------------------------------------------------------------------------------
 // AnonWildcards:
 // ---------------------------------------------------------------------------------------
-class ASTAnonWildcard extends WeightedPicker {
+class ASTAnonWildcard  extends AST {
   constructor(options) {
-    super(options
-          .filter(o => o.weight !== 0)
-          .map(o => [o.weight, o]));
+    super();
+    this.picker = new WeightedPicker(options
+                                     .filter(o => o.weight !== 0)
+                                     .map(o => [o.weight, o]));
     // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+  }
+  // -------------------------------------------------------------------------------------
+  pick(...args) {
+    return this.picker.pick(...args);
+  }
+  // -------------------------------------------------------------------------------------
+  pick_one(...args) {
+    return this.picker.pick_one(...args);
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTAnonWildcardAlternative {
+class ASTAnonWildcardAlternative extends AST {
   constructor(weight, check_flags, not_flags, body) {
+    super();
     this.weight      = weight;
     this.check_flags = check_flags;
     this.not_flags   = not_flags;
@@ -5029,35 +5153,40 @@ class ASTAnonWildcardAlternative {
 // ---------------------------------------------------------------------------------------
 // Directives:
 // ---------------------------------------------------------------------------------------
-class ASTSpecialFunction {
+class ASTSpecialFunction extends AST {
   constructor(directive, args) {
+    super();
     this.directive = directive;
     this.args      = args;
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSpecialFunctionUpdateConfigUnary {
+class ASTSpecialFunctionUpdateConfigUnary extends AST {
   constructor(value_object) {
+    super();
     this.value_object = value_object;
     // console.log(`CONSTRUCTED ASTSFUCU: ${inspect_fun(this)}`);
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSpecialFunctionUpdateConfigBinary {
+class ASTSpecialFunctionUpdateConfigBinary extends AST {
   constructor(key, value) {
+    super();
     this.key   = key;
     this.value = value;
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSetPickSingle {
+class ASTSSpecialFunctionetPickSingle extends AST {
   constructor(limited_content) {
+    super();
     this.limited_content = limited_content;
   }
 }
 // ---------------------------------------------------------------------------------------
-class ASTSetPickMultiple {
+class ASTSpecialFunctionSetPickMultiple extends AST {
   constructor(limited_content) {
+    super();
     this.limited_content = limited_content;
   }
 }
@@ -5075,11 +5204,19 @@ class ASTSetPickMultiple {
 // ---------------------------------------------------------------------------------------
 const word_break              = /(?=\s|[{|}]|$)/;
 const plaintext               = /[^{|}\s]+/;
+const plaintext_no_rpar       = /[^{|}\s\)]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                 = discard(choice(c_block_comment, c_line_comment));
 const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+const escaped_brc             =
+      xform(x => {
+        console.log(`X: ${inspect_fun(x)}`);
+        
+        return x;
+      },
+            second(choice('\\{', '\\}')));
 const filename                = /[A-Za-z0-9 ._\-()]+/;
 // ^ conservative regex, no unicode or weird symbols
 // ---------------------------------------------------------------------------------------
@@ -5162,25 +5299,26 @@ const tld_fun = arr => new ASTSpecialFunction(...arr);
 // other non-terminals:
 // ---------------------------------------------------------------------------------------
 const DiscardedComments             = discard(wst_star(comment));
-const SpecialFunctionInclude                     = make_special_function_Rule('include');
-const SpecialFunctionUpdateConfigurationBinary   = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                                                                 DiscardedComments,     // -
-                                                                                 '.',                   // [0][1]
-                                                                                 DiscardedComments),    // -
-                                                                         ident,                         // [1]
-                                                                         DiscardedComments,             // -
-                                                                         '(',                           // [2]
-                                                                         DiscardedComments,             // -
-                                                                         Jsonc,                         // [3]
-                                                                         DiscardedComments,             // [4]
-                                                                         ')'),                          // [4]
-                                                         arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
-const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', JsoncObject,
-                                                                                arg => new ASTSpecialFunctionUpdateConfigUnary(arg));
+const SpecialFunctionInclude        = make_special_function_Rule('include');
+let   SpecialFunctionUpdateConfigurationBinary =
+    xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
+                                  DiscardedComments,     // -
+                                  '.',                   // [0][1]
+                                  DiscardedComments),    // -
+                          ident,                         // [1]
+                          DiscardedComments,             // -
+                          '(',                           // [2]
+                          DiscardedComments,             // -
+                          choice(Jsonc, () => LimitedContent),   // [3]
+                          DiscardedComments,             // [4]
+                          ')'),                          // [4]
+          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+const SpecialFunctionUpdateConfigurationUnary = make_unary_SpecialFunction_Rule('config', choice(JsoncObject, () => LimitedContent),
+                                                                                arg =>  new ASTSpecialFunctionUpdateConfigUnary(arg));
 const SpecialFunctionSetPickSingle            = make_unary_SpecialFunction_Rule('single-pick-prioritizes', () => LimitedContent,
-                                                                                arg => new ASTSetPickSingle(arg));
+                                                                                arg => new ASTSSpecialFunctionetPickSingle(arg));
 const SpecialFunctionSetPickMultiple          = make_unary_SpecialFunction_Rule('multi-pick-prioritizes', () => LimitedContent,
-                                                                                arg => new ASTSetPickMultiple(arg));
+                                                                                arg => new ASTSpecialFunctionSetPickMultiple(arg));
 const SpecialFunctionSetConfiguration            = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                                                                  DiscardedComments,     // -
                                                                                  assignment_operator,   // _
@@ -5267,23 +5405,23 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
                                               ScalarAssignmentSource));
-const LimitedContent          = choice(AnonWildcardNoLoras, ScalarReference,
-                                       xform(name => new ASTNamedWildcardReference(name),
+const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
                                              NamedWildcardDesignator),
+                                       escaped_brc, AnonWildcardNoLoras, ScalarReference,
                                        // not permitted in the 'limited' content:
                                        // NamedWildcardUsage, SetFlag,
                                        // comment,
                                        // SpecialFunctionUpdateConfiguration,
                                        // SpecialFunctionSetConfiguration,
-                                       // low_pri_text, plaintext
+                                       /*low_pri_text, plaintext_no_rpar, */
                                       );
-const Content                 = choice(NamedWildcardReference, NamedWildcardUsage,
-                                       SetFlag, A1111StyleLora, AnonWildcard, comment,
-                                       ScalarReference,
-                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
-const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage,
-                                       SetFlag, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionNotInclude, low_pri_text, plaintext);
+const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       A1111StyleLora,
+                                       escaped_brc, AnonWildcard, comment, ScalarReference,
+                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
+const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag,
+                                       escaped_brc, AnonWildcard, comment, ScalarReference,
+                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(SpecialFunction,
