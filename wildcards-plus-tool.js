@@ -4959,7 +4959,7 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`JSONC PARSED WALKED_VALUE: ${inspect_fun(jsconc_parsed_walked_value)}`);
 
         if (! jsconc_parsed_walked_value || ! jsconc_parsed_walked_value.is_finished)
-          throw new Error(`walking ASTSpecialFunctionUpdateConfigUnary.value_object ` +
+          throw new Error(`walking ${thing.constructor.name}.value_object ` +
                           `must produce a valid JSONC object, Jsonc.match(...) result ` +
                           `was ${inspect_fun(jsconc_parsed_walked_value)}`);
         
