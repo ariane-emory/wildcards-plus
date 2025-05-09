@@ -5330,7 +5330,7 @@ const SpecialFunctionUpdateConfigurationBinary   =
                             DiscardedComments,             // -
                             '(',                           // [2]
                             DiscardedComments,             // -
-                            Jsonc,                         // [3]
+                            LimitedContent,                         // [3]
                             DiscardedComments,             // [4]
                             ')'),                          // [4]
             arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
