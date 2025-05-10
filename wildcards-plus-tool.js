@@ -1360,8 +1360,6 @@ class Literal extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index) {
-    // console.log(`input = ${typeof input} ${abbreviate(inspect_fun(input))}`);
-    
     if (index_is_at_end_of_input(index, input))
       return null;
 
@@ -5947,7 +5945,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(expand_wildcards(got, context));
+          res.push(expand_wildcards(got, context)); // not walk!
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
