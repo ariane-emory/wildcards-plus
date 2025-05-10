@@ -6370,22 +6370,22 @@ class ASTNode {}
 // -------------------------------------------------------------------------------------------------
 class ASTSetFlag extends ASTNode {
   constructor(flag_arr) {
-    if (! Array.isArray(flag_arr))
-      throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+    // if (! Array.isArray(flag_arr))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
 
     super();
     this.flag = flag_arr;
     
-    if (this.flag === undefined)
-      throw new Error("stop after constructing ASTSetFlag");
+    // if (this.flag === undefined)
+    //   throw new Error("stop after constructing ASTSetFlag");
   }
 }
 // --------------------------------------------------------------------------------------------------
 class ASTUnsetFlag extends ASTNode {
   constructor(flag_arr) {
-    if (! Array.isArray(flag_arr))
-      throw new Error(`$this.constructor.name} ` +
-                      `ARG NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+    // if (! Array.isArray(flag_arr))
+    //   throw new Error(`$this.constructor.name} ` +
+    //                   `ARG NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
 
     super();
     this.flag = flag_arr;
@@ -6394,8 +6394,8 @@ class ASTUnsetFlag extends ASTNode {
 // --------------------------------------------------------------------------------------------------
 class ASTCheckFlags extends ASTNode {
   constructor(flag_arrs) {
-    if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
-      throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
+    // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
+    //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
 
     super();
     this.flags = flag_arrs;
@@ -6404,12 +6404,13 @@ class ASTCheckFlags extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 class ASTNotFlag extends ASTNode  {
   constructor(flag_arr, set_immediately) {
-    if (! Array.isArray(flag_arr))
-      throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+    // if (! Array.isArray(flag_arr))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
 
     super();
     this.flag = flag_arr;
     this.set_immediately = set_immediately;
+
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
@@ -6612,11 +6613,7 @@ const unarySpecialFunction = (prefix, rule, xform_func) =>
                             rule,                          // [1]
                             DiscardedComments,             // -
                             ')'),                          // [2]
-            arr => {
-              // console.log(`THIS ARR: ${inspect_fun(arr)}`);
-              // console.log(`THIS ARR[1]: ${inspect_fun(arr[1])}`);
-              return xform_func(arr[1]);
-            });
+            arr => xform_func(arr[1]));
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
