@@ -2262,7 +2262,7 @@ function smart_join(arr) {
   
   arr = [...arr.flat(Infinity).filter(x=> x)];
 
-  if (arr.length === 0)
+  if (arr.length === 0) // investigate why this is necessary.
     return '';
   
   if (log_join_enabled)
