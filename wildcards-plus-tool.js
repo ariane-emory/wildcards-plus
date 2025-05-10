@@ -2261,6 +2261,9 @@ function smart_join(arr) {
     return arr;
   
   arr = [...arr.flat(Infinity).filter(x=> x)];
+
+  if (arr.length === 0)
+    return '';
   
   if (log_join_enabled)
     console.log(`JOINING ${inspect_fun(arr)}`);
@@ -2381,6 +2384,9 @@ function smart_join(arr) {
     str += left_word;
   }
 
+  if (log_join_enabled)
+    console.log(`JOINED ${inspect_fun(str)}`);
+  
   return str;
 }
 // =================================================================================================
@@ -5870,6 +5876,9 @@ function load_prelude(into_context = new Context()) {
   
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
+  if (ignored === undefined)
+    throw new Error("crap");
+  
   return into_context;
 }
 // =================================================================================================
@@ -6258,8 +6267,16 @@ function expand_wildcards(thing, context = new Context()) {
                       inspect_fun(thing));
     }
   }
+  
+  const ret = unescape(smart_join(walk(thing)));
 
-  return unescape(smart_join(walk(thing)));
+  // if (ret === undefined)
+  //   throw new Error("what");
+  
+  // if (ret.match(/^\s+$/))
+  //   throw "bombλ";
+  
+  return ret;
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.

@@ -457,7 +457,7 @@
 
 #wizards_artists_artist_is_set 
 
-{3|@aris_defaults,}
+{2|@aris_defaults,}
 science fiction,
 {3|greebles,|greeblies,}
 {|#traveller Traveller RPG,}
