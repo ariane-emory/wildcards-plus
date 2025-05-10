@@ -23,7 +23,7 @@
 // ---------------------------------------------------------------------------------------
 @role :=
 {#weapon mercenary 
-|{3|hyperdrive|@ship_term} technician          
+|{3|hyperdrive} technician          
 |engineer                                      
 |communications officer                        
 |scientist                                     
@@ -42,9 +42,9 @@
 |{?traveller psion}                            
 |2 {space|star|interstellar} {trader|merchant} 
 |{space|star} marine                           
-|@ship_term captain                            
-|@ship_term pilot                              
-|{|@ship_term} {navigator|astrogator}          
+|captain                            
+|pilot                              
+|{navigator|astrogator}          
 }
 
 // =======================================================================================
