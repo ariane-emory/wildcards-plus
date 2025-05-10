@@ -2572,10 +2572,17 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(flag) {
-    this.flags.push(flag);
+    // only if flag isn't already set!
+    if (this.flag_is_set(flag))
+      return;
+    
+    if (flag.length > 1)
+          console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
 
-    if (this.flags.includes(undefined))
-      throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+        this.flags.push(flag);
+
+        if (this.flags.includes(undefined))
+          throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag ) {
