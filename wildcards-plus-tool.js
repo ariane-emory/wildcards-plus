@@ -2541,7 +2541,7 @@ class Context {
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
 
     if (dt_hosted && !this.flags.has("dt_hosted"))
-      this.flags.add("dt_hosted");
+      this.set_flag("dt_hosted");
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(flag) {
