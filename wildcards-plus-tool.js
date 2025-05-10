@@ -2563,7 +2563,7 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   shallow_copy() {
     return new Context({
-      flags: this.flags,
+      flags:                        this.flags,
       scalar_variables:             this.scalar_variables,
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
