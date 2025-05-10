@@ -6335,7 +6335,7 @@ class ASTNode {}
 class ASTSetFlag extends ASTNode {
   constructor(flag) {
     super();
-    this.flag = flag;
+    this.flag = [flag];
     
     if (this.flag === undefined)
       throw new Error("stop after constructing ASTSetFlag");
@@ -6345,21 +6345,21 @@ class ASTSetFlag extends ASTNode {
 class ASTUnsetFlag extends ASTNode {
   constructor(flag) {
     super();
-    this.flag = flag;
+    this.flag = [flag];
   }
 }
 // --------------------------------------------------------------------------------------------------
 class ASTCheckFlags extends ASTNode {
   constructor(flags) {
     super();
-    this.flags = flags;
+    this.flags = flags.map(f => [f]);
   }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTNotFlag extends ASTNode  {
   constructor(flag, set_immediately) {
     super();
-    this.flag = flag;
+    this.flag = [flag];
     this.set_immediately = set_immediately;
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
