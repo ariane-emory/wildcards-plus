@@ -6633,9 +6633,6 @@ const SetFlag              = xform(arr => {
   return new ASTSetFlag(arr);
 },
                                    second(seq('#', plus(ident, '.'), word_break)));
-const UnsetFlag            = xform(ident => new ASTUnsetFlag(ident),
-                                   second(seq('#!', ident, word_break)));
-// const UnsetFlag = unexpected('#!');
 const CheckFlag            = xform(arr => {
   if (arr.length > 1)
     console.log(`CONSTRUCT CHECKFLAG WITH ${inspect_fun(arr)}`);
@@ -6651,6 +6648,8 @@ const NotFlag              = xform(arr => {
                                    seq('!', optional('#'),
                                        plus(ident, '.'), word_break));
 const TestFlag             = choice(CheckFlag, NotFlag);
+const UnsetFlag            = xform(ident => new ASTUnsetFlag(ident),
+                                   second(seq('#!', ident, word_break)));
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
