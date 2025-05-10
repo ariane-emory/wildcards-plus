@@ -5900,7 +5900,7 @@ function expand_wildcards(thing, context = new Context()) {
                       ? inspect_fun(t)
                       : `${typeof t} '${t}'`);
         
-        ret.push(walk(t));
+        ret.push(walk(t, context));
       }
 
       // console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
@@ -5939,7 +5939,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(walk(got));        
+          res.push(walk(got, context));        
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
@@ -5991,7 +5991,7 @@ function expand_wildcards(thing, context = new Context()) {
         return '';
       }
 
-      const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
 
       if (context.noisy)
         console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
@@ -6107,7 +6107,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionSetPickSingle || 
              thing instanceof ASTSpecialFunctionSetPickMultiple) {
-      const walked = picker_priority[walk(thing.limited_content)];
+      const walked = picker_priority[walk(thing.limited_content, context)];
       const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -6231,7 +6231,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
   }
 
-  const ret = walk(thing);
+  const ret = walk(thing, context);
   // console.log(`EXPAND_WILDCARDS PRE-RET: ${inspect_fun(ret.filter(r => r))}`);
   return unescape(smart_join(ret))
 }
