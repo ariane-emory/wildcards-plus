@@ -2146,8 +2146,9 @@ class WeightedPicker {
 function is_prefix_of(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
-
-  return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
+  
+  // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
+  return prefix_arr.every((val, idx) => val === full_arr[idx]);
 }
 // =================================================================================================
 function is_flag_set(test_flag, setf_flags) {
