@@ -6334,9 +6334,9 @@ class ASTNode {}
 // Flags:
 // -------------------------------------------------------------------------------------------------
 class ASTSetFlag extends ASTNode {
-  constructor(flag) {
+  constructor(flag_arr) {
     super();
-    this.flag = [flag];
+    this.flag = flag_arr;
     
     if (this.flag === undefined)
       throw new Error("stop after constructing ASTSetFlag");
@@ -6609,7 +6609,11 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag              = xform(ident => new ASTSetFlag(ident),
+const SetFlag              = xform(ident => {
+  ident = [ident];
+  console.log(`CONSTRUCT SETFLAG WITH ${inspect_fun(ident)}`);
+  return new ASTSetFlag(ident);
+},
                                    second(seq('#', ident, word_break)));
 const UnsetFlag            = xform(ident => new ASTUnsetFlag(ident),
                                    second(seq('#!', ident, word_break)));
