@@ -5904,8 +5904,8 @@ function expand_wildcards(thing, context = new Context()) {
     for (const check_flag of option.check_flags) {
       let found = false;
       
-      for (const name of check_flag.flags) {
-        if (context.flags.has(name)) {
+      for (const flag of check_flag.flags) {
+        if (context.flags.has(flag)) {
           found = true;
           break;
         }
