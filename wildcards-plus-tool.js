@@ -6196,7 +6196,7 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`LoRA weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
-      let file    = walked_file.toLowerCase();
+      let file = walked_file.toLowerCase();
 
       if (file.endsWith('_lora_f16.ckpt')) {
         // do nothing 
