@@ -2545,24 +2545,29 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(flag) {
-    const msg = `look for ${inspect_fun(flag)} in ${inspect_fun(this.flags)}...`
-    // console.log(msg);
-    const ret = this.flags.includes(flag);
+    // const msg = `look for ${inspect_fun(flag)} in ${inspect_fun(this.flags)}...`
+    // // console.log(msg);
+    // const ret = this.flags.includes(flag);
     
     let r = false;
 
-    for (const f in this.flags) {
+    for (const f of this.flags) {
+      //sconsole.log(`${inspect_fun(f)} === ${inspect_fun(flag)} = ${f == flag}`);
+      
       if (f === flag) {
+        // console.log (`FOUND IT!`);
         r = true;
         break;
       }
     }
 
-    if (ret  !== r)
-      throw new Error(msg);
+    // if (! r)
+    //   console.log(`DIDN'T FIND IT...`);
     
-    return ret;
-
+    // if (ret  !== r)
+    //   throw new Error(`${msg} ret = ${inspect_fun(ret)}, r = ${inspect_fun(r)}`);
+    
+    return r;
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(flag) {
