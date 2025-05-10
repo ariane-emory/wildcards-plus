@@ -299,6 +299,10 @@ const trailing_separator_modes = Object.freeze({
 class Rule {
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0) {
+    if (typeof input !== 'string') {
+      throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
+    }
+    
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
         log(indent,
@@ -1356,6 +1360,8 @@ class Literal extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index) {
+    // console.log(`input = ${typeof input} ${abbreviate(inspect_fun(input))}`);
+    
     if (index_is_at_end_of_input(index, input))
       return null;
 
@@ -5950,7 +5956,7 @@ function expand_wildcards(thing, context = new Context()) {
                                allow_fun, forbid_fun,
                                priority);
         
-        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
+        res.push(...picks.map(p => walk(p?.body ?? '', context)));
       }
       
       res = res.filter(s => s !== '');
@@ -6042,7 +6048,7 @@ function expand_wildcards(thing, context = new Context()) {
                     `TO '${thing.destination.name}'`);
       }
 
-      const val = expand_wildcards(thing.source, context);
+      const val = walk(thing.source, context);
 
       context.scalar_variables.set(thing.destination.name, val);
 
@@ -6063,7 +6069,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
       
-      return expand_wildcards(pick, context);
+      return walk(pick, context);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
@@ -6073,7 +6079,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (thing.value instanceof ASTNode) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
-        const expanded_value = expand_wildcards(thing.value, context);
+        const expanded_value = walk(thing.value, context);
         
         const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
                                               ? JsoncObject
@@ -6131,7 +6137,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       if (log_config_enabled)
         console.log(
-        `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+          `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
             `${inspect_fun(walked)}: ` /*+
                                          `${inspect_fun(context)}` */);
       
@@ -6170,7 +6176,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTLora) {
       // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
-      let walked_file = expand_wildcards(thing.file, context);
+      let walked_file = walk(thing.file, context);
 
       // console.log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
@@ -6180,7 +6186,7 @@ function expand_wildcards(thing, context = new Context()) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = expand_wildcards(thing.weight, context);
+      let walked_weight = walk(thing.weight, context);
 
       // console.log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
@@ -6232,7 +6238,7 @@ function expand_wildcards(thing, context = new Context()) {
   }
 
   const ret = walk(thing, context);
-  // console.log(`EXPAND_WILDCARDS PRE-RET: ${inspect_fun(ret.filter(r => r))}`);
+  // console.log(`WALK PRE-RET: ${inspect_fun(ret.filter(r => r))}`);
   return unescape(smart_join(ret))
 }
 // =================================================================================================
