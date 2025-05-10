@@ -2693,10 +2693,6 @@ const prelude_text = disable_prelude ? '' : `
 // Artist Summoning':
 // @wizards_artists := { @#__wizards_artists @__wizards_artists }
 
-@wizards_artists := {
- @__set_wizards_artists_artist_if_unset @__wizards_artists_artist_name
-}
-
 @__set_wizards_artists_artist_if_unset := {
 !wizards_artist #wizards_artist.zacharias_martin_aagaard |
 !wizards_artist #wizards_artist.slim_aarons |
@@ -3774,11 +3770,11 @@ const prelude_text = disable_prelude ? '' : `
 !wizards_artist #wizards_artist.boris_vallejo 3 Boris Vallejo
 }
 
-@wizards_artists_artist_name := {
- @__set_wizards_artists_artist_if_unset @__wizards_artists_artist_name
+@wizards_artists := {
+ @__set_wizards_artists_artist_if_unset @wizards_artists_artist_name
 }
 
-@__wizards_artists_artist_name := {
+@wizards_artists_artist_name := { @__set_wizards_artists_artist_if_unset {
 ?wizards_artist.zacharias_martin_aagaard Zacharias Martin Aagaard |
 ?wizards_artist.slim_aarons Slim Aarons |
 ?wizards_artist.elenore_abbott Elenore Abbott |
@@ -4854,7 +4850,7 @@ const prelude_text = disable_prelude ? '' : `
 3 ?wizards_artist.keith_parkinson Keith Parkinson |
 3 ?wizards_artist.kevin_fales Kevin Fales |
 3 ?wizards_artist.boris_vallejo
-}
+}}
 
 // The matching list of styles:
 @wizards_artist_styles := { @__set_wizards_artists_artist_if_unset {
