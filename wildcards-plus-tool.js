@@ -2152,11 +2152,11 @@ function arr_is_prefix_of(prefix_arr, full_arr) {
 }
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_alt(prefix_arr, full_arr) {
-  if (prefix.length > full.length)
+  if (prefix_arr.length > full_arr.length)
     return false;
 
-  for (let ix = 0; ix < prefix.length; ix++)
-    if (prefix[ix] !== full[ix])
+  for (let ix = 0; ix < prefix_arr.length; ix++)
+    if (prefix_arr[ix] !== full_arr[ix])
       return false;
   
   return true;
@@ -2555,7 +2555,7 @@ class Context {
       // console.log(`${inspect_fun(flag)} === ` +
       //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
       
-      if (arr_is_prefix_of(test_flag, flag)) {
+      if (arr_is_prefix_of_alt(test_flag, flag)) {
         // console.log (`FOUND IT!`);
         r = true;
         break;
