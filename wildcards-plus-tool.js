@@ -299,6 +299,10 @@ const trailing_separator_modes = Object.freeze({
 class Rule {
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0) {
+    if (typeof input !== 'string') {
+      throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
+    }
+
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
         log(indent,
