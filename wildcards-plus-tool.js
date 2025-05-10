@@ -2605,11 +2605,15 @@ class Context {
   unset_flag(flag) {
     if (! Array.isArray(flag))
       throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
-    
-    this.flags = this.flags.filter(f => ! arr_is_prefix_of(flag, f));
 
+    // console.log(`UNSETTING ${inspect_fun(flag)} IN ${inspect_fun(this.flags)}`);
+
+    console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    this.flags = this.flags.filter(f => ! arr_is_prefix_of(flag, f));
+    console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    
     if (this.flags.includes(undefined))
-      throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+                  throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -6024,7 +6028,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUnsetFlag) {
-      // console.log(`UNSET FLAG '${thing.name}'.`);
+      console.log(`UNSETTING FLAG '${thing.flag}'.`);
       // console.log(`FLAGS BEFORE '${inspect_fun(context.flags)}'.`);
       // context.flags = new Set(Array.from(context.flags).filter(f => f !== thing.name));
       context.unset_flag(thing.flag);
