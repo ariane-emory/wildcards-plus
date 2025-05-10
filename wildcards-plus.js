@@ -6039,7 +6039,8 @@ function expand_wildcards(thing, context = new Context()) {
 
       let file    = walked_file.toLowerCase();
 
-      if (file.endsWith('_lora_f16.ckpt')) {
+      // if (file.endsWith('_lora_f16.ckpt')) {
+      if (file.endsWith('.ckpt')) {
         // do nothing 
       }
       else if (file.endsWith('_lora_f16')) {
