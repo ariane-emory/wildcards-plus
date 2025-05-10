@@ -2545,69 +2545,79 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(flag) {
-    // console.log(`look for ${inspect_fun(flag)} in ${inspect_fun(this.flags)}...`);
-    return this.flags.includes(flag);
+    const msg = `look for ${inspect_fun(flag)} in ${inspect_fun(this.flags)}...`
+    // console.log(msg);
+    const ret = this.flags.includes(flag);
+    
+    let r = false;
 
-    // for (const f in this.flags)
-    //   if (f === flag)
-    //     return true;
+    for (const f in this.flags) {
+      if (f === flag) {
+        r = true;
+        break;
+      }
+    }
 
-    // return false;
+    if (ret  !== r)
+      throw new Error("bomb");
+    
+    return ret;
+
   }
-    // -----------------------------------------------------------------------------------------------
-    set_flag(flag) {
-      this.flags.push(flag);
+  // -----------------------------------------------------------------------------------------------
+  set_flag(flag) {
+    this.flags.push(flag);
 
-      if (this.flags.includes(undefined))
-        throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-    }
-    // -----------------------------------------------------------------------------------------------
-    unset_flag(flag ) {
-      this.flags = new Set(this.flags.filter(f => f !== flag.flag));
+    if (this.flags.includes(undefined))
+      throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  unset_flag(flag ) {
+    this.flags = new Set(this.flags.filter(f => f !== flag.flag));
 
-      if (this.flags.includes(undefined))
-        throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-    }
-    // -----------------------------------------------------------------------------------------------
-    reset_temporaries() {
-      this.flags = new Set();
-      this.scalar_variables = new Map();
-    }
-    // -----------------------------------------------------------------------------------------------
-    clone() {
-      return new Context({
-        flags:                        [...this.flags],
-        scalar_variables:             new Map(this.scalar_variables),
-        named_wildcards:              new Map(this.named_wildcards),
-        noisy:                        this.noisy,
-        files:                        [ ...this.files ],
-        config:                       { ...this.config }, /// ???
-        add_loras:                    [ ...this.add_loras
-                                        .map(o => ({ file: o.file, weigh: o.weight })) ],
-        top_file:                     this.top_file,
-        pick_one_priority:            this.pick_one_priority,
-        prior_pick_one_priority:      this.prior_pick_one_priority,
-        pick_multiple_priority:       this.pick_multiple_priority,      
-        prior_pick_multiple_priority: this.pick_multiple_priority,      
-      });
-    }
-    // -----------------------------------------------------------------------------------------------
-    shallow_copy() {
-      return new Context({
-        flags:                        this.flags,
-        scalar_variables:             this.scalar_variables,
-        named_wildcards:              this.named_wildcards,
-        noisy:                        this.noisy,
-        files:                        this.files,
-        config:                       this.config,
-        add_loras:                    this.add_loras,
-        top_file:                     false, // deliberately not copied!
-        pick_one_priority:            this.pick_one_priority,
-        prior_pick_one_priority:      this.prior_pick_one_priority,
-        pick_multiple_priority:       this.pick_multiple_priority,
-        prior_pick_multiple_priority: this.pick_multiple_priority,      
-      });
-    }
+    if (this.flags.includes(undefined))
+      throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  reset_temporaries() {
+    this.flags = new Set();
+    this.scalar_variables = new Map();
+  }
+  // -----------------------------------------------------------------------------------------------
+  clone() {
+    return new Context({
+      flags:                        [...this.flags],
+      scalar_variables:             new Map(this.scalar_variables),
+      named_wildcards:              new Map(this.named_wildcards),
+      noisy:                        this.noisy,
+      files:                        [ ...this.files ],
+      config:                       { ...this.config }, /// ???
+      add_loras:                    [ ...this.add_loras
+                                      .map(o => ({ file: o.file, weigh: o.weight })) ],
+      top_file:                     this.top_file,
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.pick_multiple_priority,      
+    });
+  }
+  // -----------------------------------------------------------------------------------------------
+  shallow_copy() {
+    return new Context({
+      flags:                        this.flags,
+      scalar_variables:             this.scalar_variables,
+      named_wildcards:              this.named_wildcards,
+      noisy:                        this.noisy,
+      files:                        this.files,
+      config:                       this.config,
+      add_loras:                    this.add_loras,
+      top_file:                     false, // deliberately not copied!
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,
+      prior_pick_multiple_priority: this.pick_multiple_priority,      
+    });
+  }
 }
 // -------------------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
