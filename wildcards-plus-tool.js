@@ -2608,7 +2608,7 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   clone() {
     return new Context({
-      flags:                        [...this.flags],
+      flags:                        this.flags.map(arr => [...arr]),
       scalar_variables:             new Map(this.scalar_variables),
       named_wildcards:              new Map(this.named_wildcards),
       noisy:                        this.noisy,
