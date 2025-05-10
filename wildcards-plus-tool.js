@@ -6973,11 +6973,8 @@ async function main() {
     console.log('==========================================================================================');
     console.log(`Expanding #${posted_count + 1} of ${count}:`);
     console.log('==========================================================================================');
-    // console.log(`posted_count = ${posted_count}`);
 
     const context    = base_context.clone();
-    // console.log(`Cloned: ${inspect_fun(context.add_loras)}`);
-    // console.log(`AST:    ${inspect_fun(AST)}`);
     expanded         = expand_wildcards(AST, context);
     config           = munge_config(context.config);
     const add_loras  = context.add_loras;
@@ -6986,7 +6983,6 @@ async function main() {
     if (have_loras) {
       console.log('-----------------------------------------------------------------------------------------');
       if (log_config_enabled)
-        // console.log(`Found ${add_loras.length} LoRAs in context.add_loras: ${inspect_fun(add_loras)}`);
         console.log(`Found ${add_loras.length} LoRAs in context.add_loras:`);
       
       config.loras ||= [];
@@ -6996,12 +6992,8 @@ async function main() {
 
       if (log_config_enabled) {
         console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
-        // console.log(`Config now has ${config?.loras.length ?? -1} LoRAs.`);
       }
     }
-    // else {
-    //   console.log(`No LoRAs to add!`);
-    // }
     
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
