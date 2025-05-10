@@ -14,9 +14,9 @@
 
 %config.loras([])
 
-// #sdxl_on
+#sdxl_on
 // #flux_on
-#hidream_fast_on
+// #hidream_fast_on
 // #hidream_full_on
 
 // #hidream_high_steps
@@ -101,7 +101,7 @@
   
   // possible resolutions:
   { // 3 ?sdxl_hires %config({ "width": 1280, "height": 640 })
-  | 3 ?sdxl_hires %config({ "width": 1152, "height": 576 })
+  // | 3 ?sdxl_hires %config({ "width": 1152, "height": 576 })
   | 3 ?sdxl_hires %config({ "width": 1024, "height": 512 })
   | 3 %config({ "width": 768,  "height": 384 })
   | 3 %config({ "width": 640,  "height": 320 })
