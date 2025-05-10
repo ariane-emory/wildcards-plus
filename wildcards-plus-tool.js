@@ -2304,8 +2304,7 @@ function smart_join(arr) {
     const article_match = str.match(/(?:^|\s)([Aa])$/);
     if (article_match) {
       const originalArticle = article_match[1];
-      const nextWord = right_word;
-      const updatedArticle = articleCorrection(originalArticle, nextWord);
+      const updatedArticle = articleCorrection(originalArticle, right_word);
       if (updatedArticle !== originalArticle) {
         str = str.slice(0, -originalArticle.length) + updatedArticle;
       }
