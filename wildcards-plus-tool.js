@@ -2552,6 +2552,10 @@ class Context {
     this.flags.add(flag);
   }
   // -----------------------------------------------------------------------------------------------
+  unset_flag(flag ) {
+    this.flags = new Set(Array.from(this.flags).filter(f => f !== flag.flag));
+  }
+  // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
     this.flags = new Set();
     this.scalar_variables = new Map();
@@ -5966,7 +5970,9 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTUnsetFlag) {
       // console.log(`UNSET FLAG '${thing.name}'.`);
       // console.log(`FLAGS BEFORE '${inspect_fun(context.flags)}'.`);
-      context.flags = new Set(Array.from(context.flags).filter(f => f !== thing.name));
+        // context.flags = new Set(Array.from(context.flags).filter(f => f !== thing.name));
+      context.unset_flag(thing);
+      
       // console.log(`FLAGS AFTER '${inspect_fun(context.flags)}'.`);
       
       return ''; // produce nothing
@@ -6306,9 +6312,9 @@ class ASTSetFlag extends ASTNode {
 }
 // --------------------------------------------------------------------------------------------------
 class ASTUnsetFlag extends ASTNode {
-  constructor(name) {
+  constructor(flag) {
     super();
-    this.name = name;
+    this.flag = flag;
   }
 }
 // --------------------------------------------------------------------------------------------------
