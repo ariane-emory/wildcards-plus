@@ -6239,9 +6239,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
   }
 
-  const ret = walk(thing, context);
-  // console.log(`WALK PRE-RET: ${inspect_fun(ret.filter(r => r))}`);
-  return unescape(smart_join(ret))
+  return unescape(smart_join(walk(thing, context);))
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
