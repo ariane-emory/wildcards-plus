@@ -6360,16 +6360,16 @@ class ASTSetFlag extends ASTNode {
 }
 // --------------------------------------------------------------------------------------------------
 class ASTUnsetFlag extends ASTNode {
-  constructor(flag) {
+  constructor(flag_arr) {
     super();
-    this.flag = [flag];
+    this.flag = flag_arr;
   }
 }
 // --------------------------------------------------------------------------------------------------
 class ASTCheckFlags extends ASTNode {
-  constructor(flags) {
+  constructor(flag_arrs) {
     super();
-    this.flags = flags.map(f => [f]);
+    this.flags = flag_arrs;
   }
 }
 // -------------------------------------------------------------------------------------------------
