@@ -2309,6 +2309,7 @@ function smart_join(arr) {
         str = str.slice(0, -originalArticle.length) + updatedArticle;
       }
     }
+    
     // if (left_word === "a" || left_word.endsWith(" a") ||
     //     left_word === "A" || left_word.endsWith(" A")) {
     //   const nextWord = right_word;
