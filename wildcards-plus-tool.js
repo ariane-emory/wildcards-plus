@@ -2559,7 +2559,7 @@ class Context {
     }
 
     if (ret  !== r)
-      throw new Error("bomb");
+      throw new Error(msg);
     
     return ret;
 
