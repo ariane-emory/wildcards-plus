@@ -5906,7 +5906,7 @@ function expand_wildcards(thing, context = new Context()) {
                       ? inspect_fun(t)
                       : `${typeof t} '${t}'`);
         
-        ret.push(walk(t, context));
+        ret.push(walk(t));
       }
 
       // console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
@@ -5997,7 +5997,7 @@ function expand_wildcards(thing, context = new Context()) {
         return '';
       }
 
-      const latched = new ASTLatchedNamedWildcardedValue(walk(got, context), got);
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
 
       if (context.noisy)
         console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
@@ -6048,7 +6048,7 @@ function expand_wildcards(thing, context = new Context()) {
                     `TO '${thing.destination.name}'`);
       }
 
-      const val = walk(thing.source, context);
+      const val = walk(thing.source);
 
       context.scalar_variables.set(thing.destination.name, val);
 
@@ -6069,7 +6069,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
       
-      return walk(pick, context);
+      return walk(pick);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
@@ -6113,7 +6113,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionSetPickSingle || 
              thing instanceof ASTSpecialFunctionSetPickMultiple) {
-      const walked = picker_priority[walk(thing.limited_content, context)];
+      const walked = picker_priority[walk(thing.limited_content)];
       const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -6176,7 +6176,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTLora) {
       // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
-      let walked_file = walk(thing.file, context);
+      let walked_file = walk(thing.file);
 
       // console.log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
@@ -6186,7 +6186,7 @@ function expand_wildcards(thing, context = new Context()) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = walk(thing.weight, context);
+      let walked_weight = walk(thing.weight);
 
       // console.log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
@@ -6237,7 +6237,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
   }
 
-  return unescape(smart_join(walk(thing, context)));
+  return unescape(smart_join(walk(thing)));
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
