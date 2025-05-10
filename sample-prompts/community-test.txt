@@ -16,10 +16,10 @@
 
 // #sdxl_on
 // #flux_on
-// #hidream_fast_on
+#hidream_fast_on
 #hidream_full_on
-// #hidream_high_steps
 
+// #hidream_high_steps
 // #flux_high_steps
 
 // #sdxl_always_lightning
@@ -75,18 +75,20 @@
   %config.sampler({ 2 "DDIM Trailing" | "Euler A" | 2 "Euler A Trailing" })
   %config.cfg_scale({ 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0})
 
-  // // 9-18 steps, equally likely:
-  // %config.steps({ { \9 | \10 | \11 | \12 | \13 }
-  //               | ?hidream_high_steps { \14 | \15 | \16 | \17 | \18 } })
-
+  // 9-18 steps, equally likely:
   %config.steps(40)
 
   // possible resolutions:
-  { 3 %config({ "width": 1920, "height": 960 })
+  { 3 %config({ "width": 1600, "height": 768 })
   | 3 %config({ "width": 1280, "height": 640 })
   | 3 %config({ "width": 1024, "height": 512 })
-  | 3 ?square_on %config({ "width": 1280,  "height": 1280 })
+  | 3 %config({ "width": 768,  "height": 384 })
+  | 3 %config({ "width": 640,  "height": 320 })
+
   | 3 ?square_on %config({ "width": 1024,  "height": 1024 })
+  | 3 ?square_on %config({ "width": 768,   "height": 768 })
+  | 3 ?square_on %config({ "width": 640,   "height": 640 })
+  | 3 ?square_on %config({ "width": 512,   "height": 512 })
   }
 
 | 8 ?sdxl_on
