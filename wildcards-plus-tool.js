@@ -2662,12 +2662,24 @@ class Context {
 }
 // -------------------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
-@set_gender_if_unset    := {!female !male !neuter {3 #female|2 #male|#neuter}}
-@gender                 := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
-@pro_3rd_subj           := {@set_gender_if_unset {?female she   |?male he  |?neuter it }}
-@pro_3rd_obj            := {@set_gender_if_unset {?female her   |?male him |?neuter it }}
-@pro_pos_adj            := {@set_gender_if_unset {?female her   |?male his |?neuter its}}
-@pro_pos                := {@set_gender_if_unset {?female hers  |?male his |?neuter its}}
+@__set_gender_if_unset    := {!gender {3 #gender.female #female
+                                      |2 #gender.male   #male
+                                      |1 #gender.neuter #neuter}}
+@gender                 := {@__set_gender_if_unset {?gender.female woman
+                                                   |?gender.male   man
+                                                   |?gender.neuter androgyne }}
+@pro_3rd_subj           := {@__set_gender_if_unset {?gender.female she
+                                                   |?gender.male   he
+                                                   |?gender.neuter it }}
+@pro_3rd_obj            := {@__set_gender_if_unset {?gender.female her
+                                                   |?gender.male   him
+                                                   |?gender.neuter it }}
+@pro_pos_adj            := {@__set_gender_if_unset {?gender.female her
+                                                   |?gender.male his
+                                                   |?gender.neuter its}}
+@pro_pos                := {@__set_gender_if_unset {?gender.female hers
+                                                   |?gender.male his
+                                                   |?gender.neuter its}}
 
 @__digit                := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
 @__low_digit            := {<1|<2|<3|<4|<5}
