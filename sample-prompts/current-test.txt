@@ -457,10 +457,18 @@
 
 #wizards_artists_artist_is_set 
 
-@aris_defaults, science fiction, {|futuristic,} {2|greebles,|greeblies,}
-{|#traveller Traveller RPG,} {|#traveller GDW,} {|#traveller Third Imperium,}
-hyperrealistic, {|photorealistic,} {|infinite focus,} extremely detailed, {|100-hour render time,}
-@0-2,colour_modifiers
+{3|@aris_defaults,}
+science fiction,
+{3|greebles,|greeblies,}
+{|#traveller Traveller RPG,}
+{|#traveller GDW,}
+{|#traveller Third Imperium,}
+{2|futuristic,}
+{2|hyperrealistic,}
+{2|infinite focus,}
+{2|extremely detailed,}
+{2|100-hour render time,}
+{2|@0-2,colour_modifiers}
 .
 
 \n\n
