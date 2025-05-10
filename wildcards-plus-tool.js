@@ -2544,17 +2544,18 @@ class Context {
       this.set_flag("dt_hosted");
   }
   // -----------------------------------------------------------------------------------------------
-  flag_is_set(flag) {
-    const msg = `look for ${inspect_fun(flag)} in ${inspect_fun(this.flags)}...`;
-    console.log(msg);
-    // const ret = this.flags.includes(flag);
+  flag_is_set(test_flag) {
+    // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
+    // console.log(msg);
+    // const ret = this.flags.includes(test_flag);
     
     let r = false;
 
-    for (const f of this.flags) {
-      console.log(`${inspect_fun(f)} === ${inspect_fun(flag)} = ${f == flag}`);
+    for (const flag of this.flags) {
+      // console.log(`${inspect_fun(flag)} === ` +
+      //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
       
-      if (f === flag) {
+      if (arr_is_prefix_of(test_flag, flag)) {
         // console.log (`FOUND IT!`);
         r = true;
         break;
