@@ -23,7 +23,7 @@
 // #flux_high_steps
 
 // #sdxl_always_lightning
-// #sdxl_always_lightning_off
+#sdxl_always_lightning_off
 
 { !sdxl_always_lightning
 | !sdxl_always_lightning_off #sdxl_lightning_on }  // enable lightning 4-step in SDXL models.
@@ -459,7 +459,6 @@
 
 @aris_defaults, science fiction, {|futuristic,} {2|greebles,|greeblies,}
 {|#traveller Traveller RPG,} {|#traveller GDW,} {|#traveller Third Imperium,}
-{|Kevin Siembeda,} {|Palladium Books,} {|Rifts,}
 hyperrealistic, {|photorealistic,} {|infinite focus,} extremely detailed, {|100-hour render time,}
 @0-2,colour_modifiers
 .
