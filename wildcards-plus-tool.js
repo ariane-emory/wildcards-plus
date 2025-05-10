@@ -7059,11 +7059,6 @@ async function main() {
   }
 
   console.log('==========================================================================================');
-
-  // let res = Prompt.match(`{ \\{ GRAULT \\} }`);
-  
-  // console.log(`AST: ${JSON.stringify(res, null, 2)}`);
-  // console.log(inspect_fun(expand_wildcards(res.value, base_context)));
 }
 // -------------------------------------------------------------------------------------------------
 main().catch(err => {
