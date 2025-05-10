@@ -3,10 +3,10 @@
 // actual textual content of the prompt:
 // =======================================================================================
 
-%single-pick-prioritizes({ true_randomness })
-%revert-single-pick-prioritizes
-%multi-pick-prioritizes(true_randomness)
-%revert-multi-pick-prioritizes
+// %single-pick-prioritizes({ true_randomness })
+// %revert-single-pick-prioritizes
+// %multi-pick-prioritizes(true_randomness)
+// %revert-multi-pick-prioritizes
 
 // ---------------------------------------------------------------------------------------
 // template config flags to enable model families or other features:
@@ -17,13 +17,13 @@
 #sdxl_on
 #flux_on
 #hidream_fast_on
-#hidream_full_on
+// #hidream_full_on
 
 // #hidream_high_steps
 // #flux_high_steps
 
 // #sdxl_always_lightning
-#sdxl_always_lightning_off
+// #sdxl_always_lightning_off
 
 { !sdxl_always_lightning
 | !sdxl_always_lightning_off #sdxl_lightning_on }  // enable lightning 4-step in SDXL models.

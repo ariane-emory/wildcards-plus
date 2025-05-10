@@ -2514,7 +2514,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 // =================================================================================================
 class Context {
   constructor({ 
-    flags = new Set(),
+    flags = [], // new Set(),
     scalar_variables = new Map(),
     named_wildcards = new Map(),
     noisy = false,
@@ -2545,15 +2545,15 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(flag) {
-    return this.flags.has(flag);
+    return this.flags.includes(flag);
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(flag) {
-    this.flags.add(flag);
+    this.flags.push(flag);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag ) {
-    this.flags = new Set(Array.from(this.flags).filter(f => f !== flag.flag));
+    this.flags = new Set(this.flags.filter(f => f !== flag.flag));
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -2563,7 +2563,7 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   clone() {
     return new Context({
-      flags:                        new Set(this.flags),
+      flags:                        [...this.flags],
       scalar_variables:             new Map(this.scalar_variables),
       named_wildcards:              new Map(this.named_wildcards),
       noisy:                        this.noisy,
@@ -5970,7 +5970,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTUnsetFlag) {
       // console.log(`UNSET FLAG '${thing.name}'.`);
       // console.log(`FLAGS BEFORE '${inspect_fun(context.flags)}'.`);
-        // context.flags = new Set(Array.from(context.flags).filter(f => f !== thing.name));
+      // context.flags = new Set(Array.from(context.flags).filter(f => f !== thing.name));
       context.unset_flag(thing);
       
       // console.log(`FLAGS AFTER '${inspect_fun(context.flags)}'.`);
