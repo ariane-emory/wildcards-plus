@@ -6626,10 +6626,10 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag              = xform(ident => {
-  // ident = [ident];
-  // console.log(`CONSTRUCT SETFLAG WITH ${inspect_fun(ident)}`);
-  return new ASTSetFlag(ident);
+const SetFlag              = xform(arr => {
+  // arr = [arr];
+  console.log(`CONSTRUCT SETFLAG WITH ${inspect_fun(arr)}`);
+  return new ASTSetFlag(arr);
 },
                                    second(seq('#', plus(ident, '.'), word_break)));
 const UnsetFlag            = xform(ident => new ASTUnsetFlag(ident),
