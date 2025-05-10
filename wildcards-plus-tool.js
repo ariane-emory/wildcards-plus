@@ -6628,14 +6628,19 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 const SetFlag              = xform(arr => {
   // arr = [arr];
-  console.log(`CONSTRUCT SETFLAG WITH ${inspect_fun(arr)}`);
+  if (arr.length > 1)
+    console.log(`CONSTRUCT SETFLAG WITH ${inspect_fun(arr)}`);
   return new ASTSetFlag(arr);
 },
                                    second(seq('#', plus(ident, '.'), word_break)));
 const UnsetFlag            = xform(ident => new ASTUnsetFlag(ident),
                                    second(seq('#!', ident, word_break)));
 // const UnsetFlag = unexpected('#!');
-const CheckFlag            = xform(idents => new ASTCheckFlags(idents),
+const CheckFlag            = xform(arr => {
+  if (arr.length > 1)
+    console.log(`CONSTRUCT CHECKFLAG WITH ${inspect_fun(arr)}`);
+  return new ASTCheckFlags(arr);
+},
                                    second(seq('?', plus(ident, ','),
                                               word_break)))
 const NotFlag              = xform(arr => {
