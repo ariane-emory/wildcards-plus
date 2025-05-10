@@ -2233,10 +2233,8 @@ function smart_join(arr) {
   if (! arr)
     return arr;
   
-  if (typeof arr === 'string') {
-    console.log(`RETURN ${inspect_fun(arr)}`);
+  if (typeof arr === 'string')
     return arr;
-  }
   
   arr = [...arr.flat(Infinity).filter(x=> x)];
   
