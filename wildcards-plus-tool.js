@@ -2604,7 +2604,7 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
     if (! Array.isArray(flag))
-      throw new Error(`NOT AN ARRAY: ${inspect_fun(flag)}`);
+      throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
     
     this.flags = new Set(this.flags.filter(f => f !== flag.flag));
 
@@ -6376,7 +6376,8 @@ class ASTSetFlag extends ASTNode {
 class ASTUnsetFlag extends ASTNode {
   constructor(flag_arr) {
     if (! Array.isArray(flag_arr))
-      throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+      throw new Error(`$this.constructor.name} ` +
+                      `ARG NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
 
     super();
     this.flag = flag_arr;
@@ -6670,7 +6671,7 @@ const NotFlag              = xform(arr => {
                                    seq('!', optional('#'),
                                        plus(ident, '.'), word_break));
 const UnsetFlag            = xform(arr => {
-  if (arr.length > 1)
+  // if (arr.length > 1)
     console.log(`CONSTRUCT UNSETFLAG WITH ${inspect_fun(arr)}`);
   return new ASTUnsetFlag(arr);
 },
