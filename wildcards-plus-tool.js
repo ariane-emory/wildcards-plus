@@ -2162,7 +2162,7 @@ function arr_is_prefix_of_alt(prefix_arr, full_arr) {
   return true;
 }
 // -------------------------------------------------------------------------------------------------
-function is_flag_set(test_flag, setf_flags) {
+function is_flag_set(test_flag, set_flags) {
   // GPT's idea, clearly inadequate.
   return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
 }
@@ -6358,9 +6358,9 @@ class ASTCheckFlags extends ASTNode {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTNotFlag extends ASTNode  {
-  constructor(flag, set_immediately) {
+  constructor(flag_arr, set_immediately) {
     super();
-    this.flag = [flag];
+    this.flag = flag_arr;
     this.set_immediately = set_immediately;
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
@@ -6611,7 +6611,7 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 const SetFlag              = xform(ident => {
   // ident = [ident];
-  console.log(`CONSTRUCT SETFLAG WITH ${inspect_fun(ident)}`);
+  // console.log(`CONSTRUCT SETFLAG WITH ${inspect_fun(ident)}`);
   return new ASTSetFlag(ident);
 },
                                    second(seq('#', plus(ident, '.'), word_break)));
@@ -6621,9 +6621,13 @@ const UnsetFlag            = xform(ident => new ASTUnsetFlag(ident),
 const CheckFlag            = xform(idents => new ASTCheckFlags(idents),
                                    second(seq('?', plus(ident, ','),
                                               word_break)))
-const NotFlag              = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
+const NotFlag              = xform(arr => {
+  if (arr[2].length > 1)
+    console.log(`CONSTRUCT NOTFLAG WITH ${inspect_fun(arr[2])}`);
+  return new ASTNotFlag(arr[2], arr[1][0]);
+},
                                    seq('!', optional('#'),
-                                       ident, word_break));
+                                       plus(ident, '.'), word_break));
 const TestFlag             = choice(CheckFlag, NotFlag);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
