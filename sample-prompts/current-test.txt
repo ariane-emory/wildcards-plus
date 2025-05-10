@@ -501,6 +501,7 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 { ?foo.bar.baz.quux FOO.BAR.BAZ.QUUX IS SET \n }
 
 #!foo.bar
+UNSET IT \n
 
 { ?foo              FOO IS SET \n }
 { ?foo.bar          FOO.BAR IS SET \n }
