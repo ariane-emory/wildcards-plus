@@ -6315,6 +6315,7 @@ class ASTSetFlag extends ASTNode {
   constructor(flag) {
     super();
     this.flag = flag;
+    
     if (this.flag === undefined)
       throw new Error("stop after constructing ASTSetFlag");
   }
@@ -6557,7 +6558,7 @@ const make__ASTAnonWildcardAlternative = arr => {
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_immediately_not_flags = not_flags
         .filter(f => f.set_immediately)
-        .map(f => new ASTSetFlag(f.name)) ;
+        .map(f => new ASTSetFlag(f.flag));
   
   return new ASTAnonWildcardAlternative(
     arr[1][0],
