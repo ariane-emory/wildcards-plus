@@ -19,102 +19,37 @@
 }
 
 // ---------------------------------------------------------------------------------------
-// weapons:
-// ---------------------------------------------------------------------------------------
-@weapon_phrase           := {@weapon_verb @pro_pos_rand {2 !melee @ranged_weapon|@melee_weapon}}
-@weapon_verb             := {3 holding|wielding|brandishing|displaying|presenting}
-@melee_weapon            := {{vibro|phase|energy|monomolecular|pulse}
-                             {sword|blade|knife|dagger|baton}}
-@ranged_weapon_early_adj := {|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien
-                            |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
-@ranged_weapon_late_adj  := {|laser|plasma|gauss|smart|pulse|combat|high-velocity|ion}
-@ranged_weapon           := {@ranged_weapon_early_adj
-                             @ranged_weapon_late_adj
-                             {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|blaster
-                             |{grenade|rocket} launcher|stunner|cannon|disintegrator}
-                            }                
-
-// ---------------------------------------------------------------------------------------
-// tools:
-// ---------------------------------------------------------------------------------------
-@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
-                |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
-@tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
-@tool :=
-{hydrospanner
-|2 probe
-|2 scanner
-|2 toolkit
-|equipment
-|instruments
-|pair of binoculars
-|telescope
-|plasma cutter
-|3 vacuum suit's helmet under one arm
-|optical device
-|tricorder
-|cyberdeck
-|2 datapad
-|2 communicator
-|1 radio
-}
-
-// ---------------------------------------------------------------------------------------
-// inventory flags:
-// ---------------------------------------------------------------------------------------
-@maybe_no_equipment := {|2 #tool|#weapon}
-@tool_or_weapon     := {#tool|#weapon}
-@likely_weapon      := {#tool|2 #weapon}
-@likely_tool        := {2 #tool|#weapon}
-
-// ---------------------------------------------------------------------------------------
 // roles/character types:
 // ---------------------------------------------------------------------------------------
 @role :=
 {#weapon mercenary 
-|{3|hyperdrive|@ship_term} technician          @likely_tool
-|engineer                                      @likely_tool
-|communications officer                        @maybe_no_equipment
-|scientist                                     #tool
-|explorer                                      @likely_tool
-|scout                                         @tool_or_weapon
-|wanderer                                      @tool_or_weapon
-|{2|interstellar} bounty hunter                #weapon
-|soldier                                       #weapon
-|2 space pirate                                  #weapon
-|trooper                                       #weapon
-|prize fighter                                 #weapon #melee
-|assassin                                      @likely_weapon
-|medic                                         #tool
-|cyberdoc                                      #tool
-|worker                                        #tool
-|{?traveller psion}                            @maybe_no_equipment
-|2 {space|star|interstellar} {trader|merchant} @maybe_no_equipment #merchant
-|{space|star} marine                           #weapon
-|@ship_term captain                            @maybe_no_equipment
-|@ship_term pilot                              @maybe_no_equipment
-|{|@ship_term} {navigator|astrogator}          @maybe_no_equipment
+|{3|hyperdrive|@ship_term} technician          
+|engineer                                      
+|communications officer                        
+|scientist                                     
+|explorer                                      
+|scout                                         
+|wanderer                                      
+|{2|interstellar} bounty hunter                
+|soldier                                       
+|2 space pirate                                
+|trooper                                       
+|prize fighter                                 
+|assassin                                      
+|medic                                         
+|cyberdoc                                      
+|worker                                        
+|{?traveller psion}                            
+|2 {space|star|interstellar} {trader|merchant} 
+|{space|star} marine                           
+|@ship_term captain                            
+|@ship_term pilot                              
+|{|@ship_term} {navigator|astrogator}          
 }
-
-// ---------------------------------------------------------------------------------------
-// colour palette/lighting stuff:
-// ---------------------------------------------------------------------------------------
-@colour_modifiers := {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
 
 // =======================================================================================
 // generate the prompt body:
 // =======================================================================================
-
-#wizards_artists_artist_is_set #artist__helen_frankenthaler
-
-@aris_defaults, science fiction, {|futuristic,} {2|greebles,|greeblies,}
-{|#traveller Traveller RPG,} {|#traveller GDW,} {|#traveller Third Imperium,}
-{|Kevin Siembeda,} {|Palladium Books,} {|Rifts,}
-hyperrealistic, {|photorealistic,} {|infinite focus,} extremely detailed, {|100-hour render time,}
-@0-2,colour_modifiers
-.
-
-\n\n
 
 A { {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
 @2&char_early_adj @role
