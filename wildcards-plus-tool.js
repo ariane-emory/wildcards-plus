@@ -272,6 +272,7 @@ let print_ast_enabled         = false;
 let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
+let log_flags_enabled         = false;
 let log_config_enabled        = true;
 let log_join_enabled          = false;
 let log_finalize_enabled      = false;
@@ -2592,9 +2593,10 @@ class Context {
     // only if flag isn't already set!
     if (this.flag_is_set(flag))
       return;
-    
-    if (flag.length > 1)
-      console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
+
+    if (log_flags_enabled)
+      if (flag.length > 1)
+        console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
 
     this.flags.push(flag);
 
@@ -2608,12 +2610,16 @@ class Context {
 
     // console.log(`UNSETTING ${inspect_fun(flag)} IN ${inspect_fun(this.flags)}`);
 
-    console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    if (log_flags_enabled)
+      console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    
     this.flags = this.flags.filter(f => ! arr_is_prefix_of(flag, f));
-    console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+
+    if (log_flags_enabled)
+      console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
     if (this.flags.includes(undefined))
-                  throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+      throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -6028,12 +6034,10 @@ function expand_wildcards(thing, context = new Context()) {
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUnsetFlag) {
-      console.log(`UNSETTING FLAG '${thing.flag}'.`);
-      // console.log(`FLAGS BEFORE '${inspect_fun(context.flags)}'.`);
-      // context.flags = new Set(Array.from(context.flags).filter(f => f !== thing.name));
+      if (log_flags_enabled)
+        console.log(`UNSETTING FLAG '${thing.flag}'.`);
+
       context.unset_flag(thing.flag);
-      
-      // console.log(`FLAGS AFTER '${inspect_fun(context.flags)}'.`);
       
       return ''; // produce nothing
     }
@@ -6655,28 +6659,32 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 const SetFlag              = xform(arr => {
   // arr = [arr];
-  if (arr.length > 1)
-    console.log(`CONSTRUCT SETFLAG WITH ${inspect_fun(arr)}`);
+  if (log_flags_enabled)
+    if (arr.length > 1)
+      console.log(`CONSTRUCT SETFLAG WITH ${inspect_fun(arr)}`);
   return new ASTSetFlag(arr);
 },
                                    second(seq('#', plus(ident, '.'), word_break)));
 const CheckFlag            = xform(arr => {
-  if (arr.some(e  => e.length > 1))
-    console.log(`CONSTRUCT CHECKFLAG WITH ${inspect_fun(arr)}`);
+  if (log_flags_enabled)
+    if (arr.some(e => e.length > 1))
+      console.log(`CONSTRUCT CHECKFLAG WITH ${inspect_fun(arr)}`);
   return new ASTCheckFlags(arr);
 },
                                    second(seq('?', plus(plus(ident, '.'), ','),
                                               word_break)))
 const NotFlag              = xform(arr => {
-  if (arr[2].length > 1)
-    console.log(`CONSTRUCT NOTFLAG WITH ${inspect_fun(arr[2])}`);
+  if (log_flags_enabled)
+    if (arr[2].length > 1)
+      console.log(`CONSTRUCT NOTFLAG WITH ${inspect_fun(arr[2])}`);
   return new ASTNotFlag(arr[2], arr[1][0]);
 },
                                    seq('!', optional('#'),
                                        plus(ident, '.'), word_break));
 const UnsetFlag            = xform(arr => {
-  // if (arr.length > 1)
-  console.log(`CONSTRUCT UNSETFLAG WITH ${inspect_fun(arr)}`);
+  if (log_flags_enabled)
+    if (arr.length > 1)
+      console.log(`CONSTRUCT UNSETFLAG WITH ${inspect_fun(arr)}`);
   return new ASTUnsetFlag(arr);
 },
                                    second(seq('#!', plus(ident, '.'), word_break)));
