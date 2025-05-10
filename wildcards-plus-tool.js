@@ -2545,15 +2545,22 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(flag) {
+    console.log(`look for ${inspect_fun(flag)} in ${inspect_fun(this.flags)}...`);
     return this.flags.includes(flag);
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(flag) {
     this.flags.push(flag);
+
+    if (this.flags.includes(undefined))
+      throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag ) {
     this.flags = new Set(this.flags.filter(f => f !== flag.flag));
+
+    if (this.flags.includes(undefined))
+      throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -6308,6 +6315,8 @@ class ASTSetFlag extends ASTNode {
   constructor(flag) {
     super();
     this.flag = flag;
+    if (this.flag === undefined)
+      throw new Error("stop after constructing ASTSetFlag");
   }
 }
 // --------------------------------------------------------------------------------------------------
