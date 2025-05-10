@@ -5904,7 +5904,7 @@ function expand_wildcards(thing, context = new Context()) {
     for (const check_flag of option.check_flags) {
       let found = false;
       
-      for (const name of check_flag.names) {
+      for (const name of check_flag.flags) {
         if (context.flags.has(name)) {
           found = true;
           break;
@@ -6304,10 +6304,10 @@ class ASTUnsetFlag extends ASTNode {
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTCheckFlag extends ASTNode {
-  constructor(names) {
+class ASTCheckFlags extends ASTNode {
+  constructor(flags) {
     super();
-    this.names = names;
+    this.flags = flags;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6530,7 +6530,7 @@ const make__ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
-  const check_flags        = flags.filter(f => f instanceof ASTCheckFlag);
+  const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_immediately_not_flags = not_flags
         .filter(f => f.set_immediately)
@@ -6568,7 +6568,7 @@ const SetFlag              = xform(ident => new ASTSetFlag(ident),
 const UnsetFlag            = xform(ident => new ASTUnsetFlag(ident),
                                    second(seq('#!', ident, word_break)));
 // const UnsetFlag = unexpected('#!');
-const CheckFlag            = xform(ident => new ASTCheckFlag(ident),
+const CheckFlag            = xform(idents => new ASTCheckFlags(idents),
                                    second(seq('?', plus(ident, ','),
                                               word_break)))
 const NotFlag              = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
