@@ -114,6 +114,7 @@ let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_config_enabled        = true;
+let log_join_enabled          = false;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
@@ -2074,7 +2075,9 @@ function smart_join(arr) {
   
   arr = [...arr.filter(x=> x)];
   
-  // console.log(`JOINING ${inspect_fun(arr)}`);
+  if (log_join_enabled)
+    console.log(`JOINING ${inspect_fun(arr)}`);
+  
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => ch === "_" || ch === "-";
@@ -2122,11 +2125,12 @@ function smart_join(arr) {
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       shift_left(1);
     
-    // console.log(`str = '${str}', ` +
-    //             `left_word = '${left_word}', ` +
-    //             `right_word = '${right_word}', ` +
-    //             `prev_char = '${prev_char}', ` +
-    //             `next_char = '${next_char}'`);
+    if (log_join_enabled)
+      console.log(`str = '${str}', ` +
+                  `left_word = '${left_word}', ` +
+                  `right_word = '${right_word}', ` +
+                  `prev_char = '${prev_char}', ` +
+                  `next_char = '${next_char}'`);
 
     // handle "a" → "an" if necessary:
     const articleCorrection = (originalArticle, nextWord) => {
@@ -2138,20 +2142,29 @@ function smart_join(arr) {
     };
 
     // Normalize article if needed:
-    if (left_word === "a" || left_word.endsWith(" a") ||
-        left_word === "A" || left_word.endsWith(" A")) {
-      const nextWord = right_word;
-      const updatedArticle = articleCorrection(left_word.trim(), nextWord);
-      if (updatedArticle !== left_word.trim()) {
-        if (left_word === "a" || left_word === "A") {
-          str = str.slice(0, -1) + updatedArticle;
-          left_word = updatedArticle;
-        } else {
-          str = str.slice(0, -2) + " " + updatedArticle;
-          left_word = updatedArticle;
-        }
+    const article_match = str.match(/(?:^|\s)([Aa])$/);
+    if (article_match) {
+      const originalArticle = article_match[1];
+      const updatedArticle = articleCorrection(originalArticle, right_word);
+      if (updatedArticle !== originalArticle) {
+        str = str.slice(0, -originalArticle.length) + updatedArticle;
       }
     }
+    
+    // if (left_word === "a" || left_word.endsWith(" a") ||
+    //     left_word === "A" || left_word.endsWith(" A")) {
+    //   const nextWord = right_word;
+    //   const updatedArticle = articleCorrection(left_word.trim(), nextWord);
+    //   if (updatedArticle !== left_word.trim()) {
+    //     if (left_word === "a" || left_word === "A") {
+    //       str = str.slice(0, -1) + updatedArticle;
+    //       left_word = updatedArticle;
+    //     } else {
+    //       str = str.slice(0, -2) + " " + updatedArticle;
+    //       left_word = updatedArticle;
+    //     }
+    //   }
+    // }
     
     if (!(!str || !right_word) && 
         !whitep(prev_char) &&
@@ -5731,6 +5744,7 @@ function expand_wildcards(thing, context = new Context()) {
         ret.push(walk(t));
       }
 
+      console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
       return ret;
     }
     // ---------------------------------------------------------------------------------------------
@@ -6055,8 +6069,10 @@ function expand_wildcards(thing, context = new Context()) {
                       inspect_fun(thing));
     }
   }
-  
-  return unescape(smart_join(walk(thing)))
+
+  const ret = walk(thing);
+  // console.log(`EXPAND_WILDCARDS PRE-RET: ${inspect_fun(ret.filter(r => r))}`);
+  return unescape(smart_join(ret))
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.

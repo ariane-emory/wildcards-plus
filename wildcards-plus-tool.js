@@ -5903,7 +5903,8 @@ function expand_wildcards(thing, context = new Context()) {
         ret.push(walk(t));
       }
 
-      console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
+      // console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
+      
       return ret;
     }
     // ---------------------------------------------------------------------------------------------
