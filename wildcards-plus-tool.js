@@ -2606,7 +2606,7 @@ class Context {
     if (! Array.isArray(flag))
       throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
     
-    this.flags = new Set(this.flags.filter(f => f !== flag.flag));
+    this.flags = this.flags.filter(f => ! arr_is_prefix_of(flag, f));
 
     if (this.flags.includes(undefined))
       throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
@@ -6027,7 +6027,7 @@ function expand_wildcards(thing, context = new Context()) {
       // console.log(`UNSET FLAG '${thing.name}'.`);
       // console.log(`FLAGS BEFORE '${inspect_fun(context.flags)}'.`);
       // context.flags = new Set(Array.from(context.flags).filter(f => f !== thing.name));
-      context.unset_flag(thing);
+      context.unset_flag(thing.flag);
       
       // console.log(`FLAGS AFTER '${inspect_fun(context.flags)}'.`);
       
@@ -6672,7 +6672,7 @@ const NotFlag              = xform(arr => {
                                        plus(ident, '.'), word_break));
 const UnsetFlag            = xform(arr => {
   // if (arr.length > 1)
-    console.log(`CONSTRUCT UNSETFLAG WITH ${inspect_fun(arr)}`);
+  console.log(`CONSTRUCT UNSETFLAG WITH ${inspect_fun(arr)}`);
   return new ASTUnsetFlag(arr);
 },
                                    second(seq('#!', plus(ident, '.'), word_break)));
