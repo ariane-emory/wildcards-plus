@@ -2150,12 +2150,23 @@ function is_prefix_of(prefix_arr, full_arr) {
   // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
   return prefix_arr.every((val, idx) => val === full_arr[idx]);
 }
-// =================================================================================================
+// -------------------------------------------------------------------------------------------------
+function is_prefix_of_alt(prefix_arr, full_arr) {
+  if (prefix.length > full.length)
+    return false;
+
+  for (let ix = 0; ix < prefix.length; ix++)
+    if (prefix[ix] !== full[ix])
+      return false;
+  
+  return true;
+}
+// -------------------------------------------------------------------------------------------------
 function is_flag_set(test_flag, setf_flags) {
   // GPT's idea, clearly inadequate.
   return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
 }
-// =================================================================================================
+// -------------------------------------------------------------------------------------------------
 function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
   console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
   
@@ -2165,7 +2176,7 @@ function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") 
   }
   array.push(lora); // Add the new entry at the end
 }
-// -----------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
     Object.keys(obj).length === 0 &&
