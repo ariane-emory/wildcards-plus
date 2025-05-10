@@ -5947,7 +5947,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(walk(got, context));        // change expand_wildcards to fix....
+          res.push(expand_wildcards(got, context));
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
