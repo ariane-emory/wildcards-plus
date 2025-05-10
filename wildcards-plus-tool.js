@@ -2161,17 +2161,17 @@ function arr_is_prefix_of_alt(prefix_arr, full_arr) {
   
   return true;
 }
-// -------------------------------------------------------------------------------------------------
-function equal_arrs(this_arr, that_arr) {
-  if (this_arr.length != that_arr.length)
-    return false;
+// // -------------------------------------------------------------------------------------------------
+// function equal_arrs(this_arr, that_arr) {
+//   if (this_arr.length != that_arr.length)
+//     return false;
 
-  for (let ix = 0; ix < this_arr.length; ix++)
-    if (this_arr[ix] !== that_arr[ix])
-      return false;
-  
-  return true;
-}
+//   for (let ix = 0; ix < this_arr.length; ix++)
+//     if (this_arr[ix] !== that_arr[ix])
+//       return false;
+
+//   return true;
+// }
 // -------------------------------------------------------------------------------------------------
 function is_flag_set(test_flag, set_flags) {
   // GPT's idea, clearly inadequate.
