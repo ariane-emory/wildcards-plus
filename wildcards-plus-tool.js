@@ -4857,11 +4857,7 @@ const prelude_text = disable_prelude ? '' : `
 }
 
 // The matching list of styles:
-@wizards_artist_styles   := {
-   @__set_wizards_artists_artist_if_unset @__wizards_artist_styles
-}
-
-@__wizards_artist_styles := {
+@wizards_artist_styles := { @__set_wizards_artists_artist_if_unset {
 ?wizards_artist.zacharias_martin_aagaard landscapes, Observational, painting, Romanticism, Slice-of-life |
 ?wizards_artist.slim_aarons fashion, luxury, nostalgia, pastel-colors, photography, photography-color, social-commentary |
 ?wizards_artist.elenore_abbott art-nouveau, dream-like, ethereal, femininity, mythology, pastel-colors, romanticism, watercolor |
@@ -5937,7 +5933,7 @@ const prelude_text = disable_prelude ? '' : `
 ?wizards_artist.keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
 ?wizards_artist.kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books |
 ?wizards_artist.boris_vallejo fantasy, science fiction, magic, nature, muscles, femininity
-}
+}}
 `;
 // -------------------------------------------------------------------------------------------------
 let prelude_parse_result = null;
