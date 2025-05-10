@@ -2547,8 +2547,7 @@ class Context {
   flag_is_set(test_flag) {
     if (! Array.isArray(test_flag))
       throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
-    
-    
+
     // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
     // console.log(msg);
     // const ret = this.flags.includes(test_flag);
