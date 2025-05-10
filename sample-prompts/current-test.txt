@@ -15,9 +15,9 @@
 %config.loras([])
 
 #sdxl_on
-// #flux_on
-// #hidream_fast_on
-// #hidream_full_on
+#flux_on
+#hidream_fast_on
+#hidream_full_on
 
 // #hidream_high_steps
 // #flux_high_steps
@@ -83,7 +83,7 @@
   { // 3 %config({ "width": 1024, "height": 512 })
   | 3 %config({ "width": 768,  "height": 384 })
   | 3 %config({ "width": 640,  "height": 320 })
-  | 3 ?square_on %config({ "width": 768,  "height": 768 })
+  // | 3 ?square_on %config({ "width": 768,  "height": 768 })
   | 3 ?square_on %config({ "width": 640,  "height": 640 })
   | 3 ?square_on %config({ "width": 512,  "height": 512 })
   }
@@ -106,13 +106,13 @@
   | 3 %config({ "width": 768,  "height": 384 })
   | 3 %config({ "width": 640,  "height": 320 })
   | 3 ?square_on ?sdxl_hires %config({ "width": 1024,  "height": 1024 })
-  | 3 ?square_on %config({ "width": 768,  "height": 768 })
+  // | 3 ?square_on %config({ "width": 768,  "height": 768 })
   | 3 ?square_on %config({ "width": 640,  "height": 640 })
   | 3 ?square_on %config({ "width": 512,  "height": 512 })
   }
 
   // three possible 'shift' values:
-   %config.shift({ \1.00 | \1.10 | \1.20 })
+  %config.shift({ \1.00 | \1.10 | \1.20 })
 
   // two sampler possibilities:
   { ?sdxl_lightning_on %config.sampler("LCM") }
