@@ -7073,39 +7073,3 @@ main().catch(err => {
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
-
-
-// const SpecialFunctionUpdateConfigurationBinary2 =
-//       xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-//                                     DiscardedComments,     // -
-//                                     '.',                   // [0][1]
-//                                     DiscardedComments),    // -
-//                             ident,                         // [1]
-//                             DiscardedComments,             // -
-//                             '(',                           // [2]
-//                             DiscardedComments,             // -
-//                             () => LimitedContent,   // [3]
-//                             DiscardedComments,             // [4]
-//                             ')'),                          // [4]
-//             arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
-
-// SpecialFunctionUpdateConfigurationBinary2.finalize();
-
-// var s = `%config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")`;
-
-// log_match_enabled = true;
-
-// console.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary2.match(s)));
-
-// // JsoncObject2.finalize()
-
-// let s;
-
-// s = `{"foo": 123, "bar": 234 }`;
-// console.log(JSON.stringify(JsoncObject.match(s), null, 2));
-
-// s = `{"foo": 123 }`;
-// console.log(JSON.stringify(JsoncObject.match(s), null, 2));
-
-// s = `{ }`;
-// console.log(JSON.stringify(JsoncObject.match(s), null, 2));
