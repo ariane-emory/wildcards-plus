@@ -6634,11 +6634,11 @@ const SetFlag              = xform(arr => {
 },
                                    second(seq('#', plus(ident, '.'), word_break)));
 const CheckFlag            = xform(arr => {
-  if (arr.length > 1)
+  if (arr.some(e  => e.length > 1))
     console.log(`CONSTRUCT CHECKFLAG WITH ${inspect_fun(arr)}`);
   return new ASTCheckFlags(arr);
 },
-                                   second(seq('?', plus(ident, ','),
+                                   second(seq('?', plus(plus(ident, '.'), ','),
                                               word_break)))
 const NotFlag              = xform(arr => {
   if (arr[2].length > 1)
