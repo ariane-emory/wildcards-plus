@@ -2544,6 +2544,10 @@ class Context {
       this.flags.add("dt_hosted");
   }
   // -----------------------------------------------------------------------------------------------
+  flag_is_set(flag) {
+    return this.flags.has(flag);
+  }
+  // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
     this.flags = new Set();
     this.scalar_variables = new Map();
@@ -5893,7 +5897,7 @@ function expand_wildcards(thing, context = new Context()) {
   // ---------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
-      if (context.flags.has(not_flag.name))
+      if (context.flag_is_set(not_flag.name))
         return true;
     return false;
   };
@@ -5905,7 +5909,7 @@ function expand_wildcards(thing, context = new Context()) {
       let found = false;
       
       for (const flag of check_flag.flags) {
-        if (context.flags.has(flag)) {
+        if (context.flag_is_set(flag)) {
           found = true;
           break;
         }
