@@ -2548,6 +2548,10 @@ class Context {
     return this.flags.has(flag);
   }
   // -----------------------------------------------------------------------------------------------
+  set_flag(flag) {
+    this.flags.add(flag);
+  }
+  // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
     this.flags = new Set();
     this.scalar_variables = new Map();
@@ -5954,7 +5958,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTSetFlag) {
       // console.log(`SET FLAG '${thing.name}'.`);
       
-      context.flags.add(thing.name);
+      context.set_flag(thing.flag);
 
       return ''; // produce nothing
     }
@@ -6295,9 +6299,9 @@ class ASTNode {}
 // Flags:
 // -------------------------------------------------------------------------------------------------
 class ASTSetFlag extends ASTNode {
-  constructor(name) {
+  constructor(flag) {
     super();
-    this.name = name;
+    this.flag = flag;
   }
 }
 // --------------------------------------------------------------------------------------------------
