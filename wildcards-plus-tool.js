@@ -6659,6 +6659,7 @@ const SetFlag              = xform(arr => {
   if (log_flags_enabled)
     if (arr.length > 1)
       console.log(`CONSTRUCT SETFLAG WITH ${inspect_fun(arr)}`);
+
   return new ASTSetFlag(arr);
 },
                                    second(seq('#', plus(ident, '.'), word_break)));
@@ -6666,6 +6667,7 @@ const CheckFlag            = xform(arr => {
   if (log_flags_enabled)
     if (arr.some(e => e.length > 1))
       console.log(`CONSTRUCT CHECKFLAG WITH ${inspect_fun(arr)}`);
+
   return new ASTCheckFlags(arr);
 },
                                    second(seq('?', plus(plus(ident, '.'), ','),
@@ -6674,6 +6676,7 @@ const NotFlag              = xform(arr => {
   if (log_flags_enabled)
     if (arr[2].length > 1)
       console.log(`CONSTRUCT NOTFLAG WITH ${inspect_fun(arr[2])}`);
+
   return new ASTNotFlag(arr[2], arr[1][0]);
 },
                                    seq('!', optional('#'),
@@ -6682,6 +6685,7 @@ const UnsetFlag            = xform(arr => {
   if (log_flags_enabled)
     if (arr.length > 1)
       console.log(`CONSTRUCT UNSETFLAG WITH ${inspect_fun(arr)}`);
+
   return new ASTUnsetFlag(arr);
 },
                                    second(seq('#!', plus(ident, '.'), word_break)));
