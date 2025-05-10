@@ -2557,8 +2557,8 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
-    if (! Array.isArray(test_flag))
-      throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
+    // if (! Array.isArray(test_flag))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
 
     // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
     // console.log(msg);
@@ -2587,8 +2587,8 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(flag) {
-    if (! Array.isArray(flag))
-      throw new Error(`NOT AN ARRAY: ${inspect_fun(flag)}`);
+    // if (! Array.isArray(flag))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag)}`);
     
     // only if flag isn't already set!
     if (this.flag_is_set(flag))
@@ -2600,13 +2600,13 @@ class Context {
 
     this.flags.push(flag);
 
-    if (this.flags.includes(undefined))
-      throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    // if (this.flags.includes(undefined))
+    //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
-    if (! Array.isArray(flag))
-      throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
+    // if (! Array.isArray(flag))
+    //   throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
 
     if (log_flags_enabled)
       console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
@@ -2616,8 +2616,8 @@ class Context {
     if (log_flags_enabled)
       console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
-    if (this.flags.includes(undefined))
-      throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    // if (this.flags.includes(undefined))
+    //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
