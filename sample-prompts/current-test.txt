@@ -492,6 +492,10 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 // abstract, abstract-expressionism, color-field, contemporary, expressionism, feminism, painting, printmaking, watercolor.
 
 #foo.bar.baz
-#foo.bar.baz
-#foo.bar.baz
-{ !foo.bar.baz FOOBARBAZ }
+
+\n
+
+{ ?foo              FOO IS SET \n }
+{ ?foo.bar          FOO.BAR IS SET \n }
+{ ?foo.bar.baz      FOO.BAR.BAZ IS SET \n }
+{ ?foo.bar.baz.quux FOO.BAR.BAZ.QUUX IS SET \n }
