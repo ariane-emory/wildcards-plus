@@ -2150,6 +2150,11 @@ function is_prefix_of(prefix_arr, full_arr) {
   return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
 }
 // =================================================================================================
+function is_flag_set(test_flag, setf_flags) {
+  // GPT's idea, clearly inadequate.
+  return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
+}
+// =================================================================================================
 function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
   console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
   
