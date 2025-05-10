@@ -2545,6 +2545,10 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
+    if (! Array.isArray(test_flag))
+      throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
+    
+    
     // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
     // console.log(msg);
     // const ret = this.flags.includes(test_flag);
@@ -2572,20 +2576,26 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(flag) {
+    if (! Array.isArray(flag))
+      throw new Error(`NOT AN ARRAY: ${inspect_fun(flag)}`);
+    
     // only if flag isn't already set!
     if (this.flag_is_set(flag))
       return;
     
     if (flag.length > 1)
-          console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
+      console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
 
-        this.flags.push(flag);
+    this.flags.push(flag);
 
-        if (this.flags.includes(undefined))
-          throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    if (this.flags.includes(undefined))
+      throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  unset_flag(flag ) {
+  unset_flag(flag) {
+    if (! Array.isArray(flag))
+      throw new Error(`NOT AN ARRAY: ${inspect_fun(flag)}`);
+    
     this.flags = new Set(this.flags.filter(f => f !== flag.flag));
 
     if (this.flags.includes(undefined))
