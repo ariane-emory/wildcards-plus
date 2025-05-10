@@ -273,6 +273,7 @@ let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_config_enabled        = true;
+let log_join_enabled          = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
@@ -2233,7 +2234,9 @@ function smart_join(arr) {
   
   arr = [...arr.filter(x=> x)];
   
-  // console.log(`JOINING ${inspect_fun(arr)}`);
+  if (log_join_enabled)
+    console.log(`JOINING ${inspect_fun(arr)}`);
+  
   const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => ch === "_" || ch === "-";
@@ -2281,11 +2284,12 @@ function smart_join(arr) {
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       shift_left(1);
     
-    // console.log(`str = '${str}', ` +
-    //             `left_word = '${left_word}', ` +
-    //             `right_word = '${right_word}', ` +
-    //             `prev_char = '${prev_char}', ` +
-    //             `next_char = '${next_char}'`);
+    if (log_join_enabled)
+      console.log(`str = '${str}', ` +
+                  `left_word = '${left_word}', ` +
+                  `right_word = '${right_word}', ` +
+                  `prev_char = '${prev_char}', ` +
+                  `next_char = '${next_char}'`);
 
     // handle "a" → "an" if necessary:
     const articleCorrection = (originalArticle, nextWord) => {
