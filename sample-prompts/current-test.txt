@@ -448,6 +448,9 @@
 // =======================================================================================
 
 { #wizards_artist.helen_frankenthaler
+| #wizards_artist.frank_frazetta
+| #wizards_artist.boris_vallejo
+| #wizards_artist.gerald_brom
 | #wizards_artist.jack_gaughan 
 | #wizards_artist.chris_foss
 | #wizards_artist.peter_elson
