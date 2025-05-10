@@ -446,7 +446,8 @@
 // generate the prompt body:
 // =======================================================================================
 
-#wizards_artists_artist_is_set #artist__helen_frankenthaler
+#artist__helen_frankenthaler
+#wizards_artists_artist_is_set 
 
 @aris_defaults, science fiction, {|futuristic,} {2|greebles,|greeblies,}
 {|#traveller Traveller RPG,} {|#traveller GDW,} {|#traveller Third Imperium,}
