@@ -46,7 +46,7 @@
 
 { 2 ?flux_on
   // devMODE
-  { %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
+  { %confgig.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
   | %config.model("devmode8stepsflux1dev_v03fp8_f16.ckpt")
   }
   
@@ -447,12 +447,12 @@
 // generate the prompt body:
 // =======================================================================================
 
-{ #artist__helen_frankenthaler
-| #artist__jack_gaughan 
-| #artist__chris_foss
-| #artist__peter_elson
-| #artist__john_blanche
-| #artist__wayne_barlowe
+{ #wizards_artist.helen_frankenthaler
+| #wizards_artist.jack_gaughan 
+| #wizards_artist.chris_foss
+| #wizards_artist.peter_elson
+| #wizards_artist.john_blanche
+| #wizards_artist.wayne_barlowe
 }
 
 #wizards_artists_artist_is_set 
