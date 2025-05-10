@@ -461,12 +461,12 @@
 science fiction,
 {3|greebles,|greeblies,}
 {|#traveller Traveller RPG,}
-{|#traveller GDW,}
-{|#traveller Third Imperium,}
-{2|futuristic,}
+{|?traveller GDW,}
+{|?traveller Third Imperium,}
+{|futuristic,}
 {2|hyperrealistic,}
 {2|infinite focus,}
-{2|extremely detailed,}
+{|extremely detailed,}
 {2|100-hour render time,}
 {2|@0-2,colour_modifiers}
 .
