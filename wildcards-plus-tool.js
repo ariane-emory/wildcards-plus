@@ -6239,7 +6239,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
   }
 
-  return unescape(smart_join(walk(thing, context);))
+  return unescape(smart_join(walk(thing, context)));
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
