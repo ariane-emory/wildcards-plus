@@ -273,7 +273,7 @@ let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_config_enabled        = true;
-let log_join_enabled          = true;
+let log_join_enabled          = false;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
@@ -5894,6 +5894,7 @@ function expand_wildcards(thing, context = new Context()) {
         ret.push(walk(t));
       }
 
+      console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
       return ret;
     }
     // ---------------------------------------------------------------------------------------------
@@ -6218,8 +6219,10 @@ function expand_wildcards(thing, context = new Context()) {
                       inspect_fun(thing));
     }
   }
-  
-  return unescape(smart_join(walk(thing)))
+
+  const ret = walk(thing);
+  console.log(`EXPAND_WILDCARDS PRE-RET: ${inspect_fun(ret.filter(r => r))}`);
+  return unescape(smart_join(ret))
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
