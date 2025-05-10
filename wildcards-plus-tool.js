@@ -2235,9 +2235,11 @@ function smart_join(arr) {
   if (! arr)
     return arr;
   
-  if (typeof arr === 'string')
+  if (typeof arr === 'string') {
+    console.log(`RETURN ${inspect_fun(arr)}`);
     return arr;
-
+  }
+  
   arr = [...arr.flat(Infinity).filter(x=> x)];
   
   if (log_join_enabled)
@@ -2248,7 +2250,7 @@ function smart_join(arr) {
   const linkingp     = (ch)  => ch === "_" || ch === "-";
   const whitep       = (ch)  => ch === ' ' || ch === '\n';
   
-  let left_word = arr[0]?.toString() ?? "";
+  let left_word = arr[0]; // ?.toString() ?? "";
   let str       = left_word;
 
   for (let ix = 1; ix < arr.length; ix++)  {
@@ -2258,7 +2260,7 @@ function smart_join(arr) {
     let next_char            = null;
 
     const update_pos_vars = () => {
-      right_word           = arr[ix]?.toString() ?? "";
+      right_word           = arr[ix]; // ?.toString() ?? "";
       prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
@@ -5945,7 +5947,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(walk(got, context));        
+          res.push(walk(got, context));        // change expand_wildcards to fix....
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
