@@ -140,6 +140,10 @@ const trailing_separator_modes = Object.freeze({
 class Rule {
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0) {
+    if (typeof input !== 'string') {
+      throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
+    }
+    
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
         log(indent,
@@ -1980,6 +1984,30 @@ class WeightedPicker {
 // =================================================================================================
 // HELPER FUNCTIONS SECTION:
 // =================================================================================================
+function is_prefix_of(prefix_arr, full_arr) {
+  if (prefix_arr.length > full_arr.length)
+    return false;
+  
+  // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
+  return prefix_arr.every((val, idx) => val === full_arr[idx]);
+}
+// -------------------------------------------------------------------------------------------------
+function is_prefix_of_alt(prefix_arr, full_arr) {
+  if (prefix.length > full.length)
+    return false;
+
+  for (let ix = 0; ix < prefix.length; ix++)
+    if (prefix[ix] !== full[ix])
+      return false;
+  
+  return true;
+}
+// -------------------------------------------------------------------------------------------------
+function is_flag_set(test_flag, setf_flags) {
+  // GPT's idea, clearly inadequate.
+  return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
+}
+// -------------------------------------------------------------------------------------------------
 function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
   console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
   
@@ -1989,7 +2017,7 @@ function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") 
   }
   array.push(lora); // Add the new entry at the end
 }
-// -----------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
     Object.keys(obj).length === 0 &&
@@ -2073,7 +2101,7 @@ function smart_join(arr) {
   if (typeof arr === 'string')
     return arr;
   
-  arr = [...arr.filter(x=> x)];
+  arr = [...arr.flat(Infinity).filter(x=> x)];
   
   if (log_join_enabled)
     console.log(`JOINING ${inspect_fun(arr)}`);
@@ -2083,7 +2111,7 @@ function smart_join(arr) {
   const linkingp     = (ch)  => ch === "_" || ch === "-";
   const whitep       = (ch)  => ch === ' ' || ch === '\n';
   
-  let left_word = arr[0]?.toString() ?? "";
+  let left_word = arr[0]; // ?.toString() ?? "";
   let str       = left_word;
 
   for (let ix = 1; ix < arr.length; ix++)  {
@@ -2093,7 +2121,7 @@ function smart_join(arr) {
     let next_char            = null;
 
     const update_pos_vars = () => {
-      right_word           = arr[ix]?.toString() ?? "";
+      right_word           = arr[ix]; // ?.toString() ?? "";
       prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
@@ -2376,7 +2404,7 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   shallow_copy() {
     return new Context({
-      flags: this.flags,
+      flags:                        this.flags,
       scalar_variables:             this.scalar_variables,
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
@@ -5780,7 +5808,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(walk(got));        
+          res.push(expand_wildcards(got, context)); // not walk!
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
@@ -5791,7 +5819,7 @@ function expand_wildcards(thing, context = new Context()) {
                                allow_fun, forbid_fun,
                                priority);
         
-        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context))); // not walk!
       }
       
       res = res.filter(s => s !== '');
@@ -5883,7 +5911,7 @@ function expand_wildcards(thing, context = new Context()) {
                     `TO '${thing.destination.name}'`);
       }
 
-      const val = expand_wildcards(thing.source, context);
+      const val = walk(thing.source);
 
       context.scalar_variables.set(thing.destination.name, val);
 
@@ -5904,7 +5932,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
       
-      return expand_wildcards(pick, context);
+      return walk(pick);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
@@ -5914,7 +5942,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (thing.value instanceof ASTNode) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
-        const expanded_value = expand_wildcards(thing.value, context);
+        const expanded_value = expand_wildcards(thing.value, context); // not walk!
         
         const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
                                               ? JsoncObject
@@ -6011,7 +6039,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTLora) {
       // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
-      let walked_file = expand_wildcards(thing.file, context);
+      let walked_file = walk(thing.file);
 
       // console.log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
@@ -6021,7 +6049,7 @@ function expand_wildcards(thing, context = new Context()) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = expand_wildcards(thing.weight, context);
+      let walked_weight = walk(thing.weight);
 
       // console.log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
@@ -6037,7 +6065,7 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`LoRA weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
-      let file    = walked_file.toLowerCase();
+      let file = walked_file.toLowerCase();
 
       // if (file.endsWith('_lora_f16.ckpt')) {
       if (file.endsWith('.ckpt')) {
@@ -6072,9 +6100,7 @@ function expand_wildcards(thing, context = new Context()) {
     }
   }
 
-  const ret = walk(thing);
-  // console.log(`EXPAND_WILDCARDS PRE-RET: ${inspect_fun(ret.filter(r => r))}`);
-  return unescape(smart_join(ret))
+  return unescape(smart_join(walk(thing)));
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
