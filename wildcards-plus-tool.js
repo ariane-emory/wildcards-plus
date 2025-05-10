@@ -273,7 +273,7 @@ let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_config_enabled        = true;
-let log_join_enabled          = false;
+let log_join_enabled          = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
@@ -2237,8 +2237,8 @@ function smart_join(arr) {
   
   if (typeof arr === 'string')
     return arr;
-  
-  arr = [...arr.filter(x=> x)];
+
+  arr = [...arr.flat(Infinity).filter(x=> x)];
   
   if (log_join_enabled)
     console.log(`JOINING ${inspect_fun(arr)}`);
@@ -5956,7 +5956,7 @@ function expand_wildcards(thing, context = new Context()) {
                                allow_fun, forbid_fun,
                                priority);
         
-        res.push(...picks.map(p => walk(p?.body ?? '', context)));
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context))); // not walk!
       }
       
       res = res.filter(s => s !== '');
@@ -6079,7 +6079,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (thing.value instanceof ASTNode) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
-        const expanded_value = walk(thing.value, context);
+        const expanded_value = expand_wildcards(thing.value, context); // not walk!
         
         const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
                                               ? JsoncObject
