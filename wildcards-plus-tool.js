@@ -5897,7 +5897,7 @@ function expand_wildcards(thing, context = new Context()) {
   // ---------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
-      if (context.flag_is_set(not_flag.name))
+      if (context.flag_is_set(not_flag.flag))
         return true;
     return false;
   };
@@ -6316,9 +6316,9 @@ class ASTCheckFlags extends ASTNode {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTNotFlag extends ASTNode  {
-  constructor(name, set_immediately) {
+  constructor(flag, set_immediately) {
     super();
-    this.name = name;
+    this.flag = flag;
     this.set_immediately = set_immediately;
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
