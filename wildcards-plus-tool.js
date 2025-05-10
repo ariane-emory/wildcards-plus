@@ -2143,7 +2143,7 @@ class WeightedPicker {
 // =================================================================================================
 // HELPER FUNCTIONS SECTION:
 // =================================================================================================
-function is_prefix_of(prefix_arr, full_arr) {
+function arr_is_prefix_of(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
   
@@ -2151,7 +2151,7 @@ function is_prefix_of(prefix_arr, full_arr) {
   return prefix_arr.every((val, idx) => val === full_arr[idx]);
 }
 // -------------------------------------------------------------------------------------------------
-function is_prefix_of_alt(prefix_arr, full_arr) {
+function arr_is_prefix_of_alt(prefix_arr, full_arr) {
   if (prefix.length > full.length)
     return false;
 
@@ -2545,14 +2545,14 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(flag) {
-    // const msg = `look for ${inspect_fun(flag)} in ${inspect_fun(this.flags)}...`
-    // // console.log(msg);
+    const msg = `look for ${inspect_fun(flag)} in ${inspect_fun(this.flags)}...`;
+    console.log(msg);
     // const ret = this.flags.includes(flag);
     
     let r = false;
 
     for (const f of this.flags) {
-      //sconsole.log(`${inspect_fun(f)} === ${inspect_fun(flag)} = ${f == flag}`);
+      console.log(`${inspect_fun(f)} === ${inspect_fun(flag)} = ${f == flag}`);
       
       if (f === flag) {
         // console.log (`FOUND IT!`);
