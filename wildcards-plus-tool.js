@@ -2608,8 +2608,6 @@ class Context {
     if (! Array.isArray(flag))
       throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
 
-    // console.log(`UNSETTING ${inspect_fun(flag)} IN ${inspect_fun(this.flags)}`);
-
     if (log_flags_enabled)
       console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
