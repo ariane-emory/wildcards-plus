@@ -332,7 +332,7 @@ science fiction,
 
 \n\n
 
-A 
+A
 @0-2&char_early_adj @char_late_adj @role
 {2|@early_alien_feature_sentence}
 {2|@early_cyborg_feature_sentence}
