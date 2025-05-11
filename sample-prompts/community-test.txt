@@ -45,10 +45,9 @@
   %config.n_iter   (1)
   %config.seed     (-1)
 
-  { %config({ "width": 1600, "height": 832,  "steps": 40 }) // works
-  | %config({ "width": 1536, "height": 768,  "steps": 50 }) // works
-  | %config({ "width": 1280,  "height": 1280 })
-  | %config({ "width": 1024,  "height": 1024 })
+  { %config({ "width": 1216,  "height": 1216, "steps": 50  })
+  | %config({ "width": 1280,  "height": 1152, "steps": 50  })
+  | %config({ "width": 1664,  "height": 832,  "steps": 50  })
   }
   
   
