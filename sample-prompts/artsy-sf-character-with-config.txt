@@ -47,7 +47,7 @@
 // ---------------------------------------------------------------------------------------
 
 @lora_names :=
-{ ?sdxl-on { mj52_v2.0
+{ ?sdxl_on { mj52_v2.0
            | ethereon
            | trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
            | add_detail_xl
