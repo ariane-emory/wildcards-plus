@@ -122,14 +122,14 @@ function save_post_request(options, data) {
         `${json}`;
   
   if (log_post_enabled)
-    console.log(`Saving POST data to '${dir}/${filename}'...`);
+    console.log(`Saving POST data to '${filename}'...`);
 
   if (!fs.existsSync(dir))
     fs.mkdirSync(dir, { recursive: true });
 
   try {
     fs.writeFileSync(filename, file_data);
-    console.log(`Saved POST data to '${filename}'.`);
+    console.log(`Saved  POST data to '${filename}'.`);
     
     return true;
   }
