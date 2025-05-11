@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // -*- fill-column: 100; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 // This file is NOT the Draw Things script: that's over in wildcards-plus.js.
