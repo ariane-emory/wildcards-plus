@@ -4963,7 +4963,7 @@ const prelude_text = disable_prelude ? '' : `
 ?wizards_artist.robert_bissell animals, contemporary, fantasy, impressionism, kids-book, mysterious, nature, painting, Plein-air, whimsical, wildlife |
 ?wizards_artist.charles_blackman colorful, painting, portraits |
 ?wizards_artist.mary_blair , animation, characters, childhood, illustration, nature, vibrant, whimsical |
-?wizards_artist.john_blanche elegant, fantasy, French, portraits, science-fiction |
+?wizards_artist.john_blanche elegant, fantasy, French, portraits, science-fiction, Warhammer |
 ?wizards_artist.don_blanding architecture, art-deco, high-contrast, minimalism |
 ?wizards_artist.albert_bloch Engraving, Impressionism, painting, Realism, Satire, Social-commentary |
 ?wizards_artist.hyman_bloom contemporary, expressionism |
