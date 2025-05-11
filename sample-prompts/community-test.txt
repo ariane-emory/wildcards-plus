@@ -190,6 +190,7 @@
 |androgynous
 |?neuter 2 androgynous
 |mysterious
+|enigmatic
 |solitary #solo
 |inscrutable
 |independant #solo
@@ -206,6 +207,7 @@
 |youthful
 |beautiful
 }
+
 @char_late_adj :=
 {4
 |alien #alien
