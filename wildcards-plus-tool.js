@@ -108,7 +108,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
 // -------------------------------------------------------------------------------------------------
 function save_post_request(data) {
   if (! save_post_requests_enable)
-    return false;
+    return true;
 
   const json = JSON.stringify(data)
   const timestamp = Math.floor(Date.now() / 1000);
@@ -118,6 +118,18 @@ function save_post_request(data) {
 
   if (log_post_enabled)
     console.log(`Saving post data to '${filename}'...`);
+
+  try {
+    fs.writeFileSync(filename, json);
+    console.log(`Saved data to '${filename}'.`);
+    
+    return true;
+  }
+  catch (err) {
+    console.error(`ERROR WHILE SAVING: ${err}`);
+
+    return false;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 function process_includes(thing, context = new Context()) {
