@@ -66,7 +66,8 @@
   
   %config.model    ({ ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
                     | ?hidream_full_on "hidream_i1_full_q5p.ckpt"
-                    | ?hidream_full_on "hidream_i1_full_q8p.ckpt"})  
+                    // | ?hidream_full_on "hidream_i1_full_q8p.ckpt"
+                    })  
   %config.steps    ({ \40 | \50 })
   %config.sampler  ({ "DDIM Trailing" | "Euler A" | "Euler A Trailing" })
   %config.cfg_scale({ 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0})
