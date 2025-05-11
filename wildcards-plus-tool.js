@@ -112,16 +112,20 @@ function save_post_request(options, data) {
 
   const json = JSON.stringify(data)
   const timestamp = Math.floor(Date.now() / 1000);
+  const dir = 'posts';
   const filename = data.seed
-        ? `./.${timestamp}__${data.seed == -1 ? "random" : data.seed}.req`
-        : `./.${timestamp}.req`;
+        ? `./${dir}/${timestamp}__${data.seed == -1 ? "random" : data.seed}.req`
+        : `./${dir}/${timestamp}.req`;
   const file_data = `POST http://${options.hostname}:` +
         `${options.port}/${options.path}\n` +
         `Content-Type: application/json\n` + 
         `${json}`;
   
   if (log_post_enabled)
-    console.log(`Saving post data to '${filename}'...`);
+    console.log(`Saving post data to '${dir}/${filename}'...`);
+
+  if (!fs.existsSync(dir))
+    fs.mkdirSync(dir, { recursive: true });
 
   try {
     fs.writeFileSync(filename, file_data);
