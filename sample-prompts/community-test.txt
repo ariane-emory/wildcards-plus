@@ -329,7 +329,7 @@
 @early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
 
 // ---------------------------------------------------------------------------------------
-// ailen features:
+// alien features:
 // ---------------------------------------------------------------------------------------
 @alien_features :=
 {an insectoid appearance
