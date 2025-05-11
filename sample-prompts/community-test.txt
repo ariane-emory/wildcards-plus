@@ -41,7 +41,8 @@
   %config.cfg_scale({ \1.0 | \1.5 | \2.0 | \2.5 })
   %config.shift    ({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
   %config.n_iter   (2)
-
+  %config.seed     (-1)
+  
   // possible resolutions:
   { 3 %config({ "width": 1920, "height": 1024 })
   | 3 %config({ "width": 1600, "height": 768  })
@@ -68,6 +69,7 @@
   %config.cfg_scale({ 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0})
   %config.shift    ({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
   %config.n_iter   (2)
+  %config.seed     (-1)
   
   // possible resolutions:
   { 3 %config({ "width": 1920, "height": 1024 })
