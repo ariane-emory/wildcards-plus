@@ -117,7 +117,7 @@ function save_post_request(options, data) {
         ? `./${dir}/${timestamp}__${data.seed == -1 ? "random" : data.seed}.req`
         : `./${dir}/${timestamp}.req`;
   const file_data = `POST http://${options.hostname}:` +
-        `${options.port}/${options.path}\n` +
+        `${options.port}${options.path}\n` +
         `Content-Type: application/json\n` + 
         `${json}`;
   
