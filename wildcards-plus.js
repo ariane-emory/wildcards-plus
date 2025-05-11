@@ -115,12 +115,14 @@ let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_flags_enabled         = false;
 let log_config_enabled        = true;
+let log_post_enabled          = true;
 let log_join_enabled          = false;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
 let print_before_ast_enabled  = false;
 let print_after_ast_enabled   = false;
+let save_post_requests_enable = true;
 // -------------------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // -------------------------------------------------------------------------------------------------
@@ -4804,7 +4806,7 @@ const prelude_text = disable_prelude ? '' : `
 ?wizards_artist.robert_bissell animals, contemporary, fantasy, impressionism, kids-book, mysterious, nature, painting, Plein-air, whimsical, wildlife |
 ?wizards_artist.charles_blackman colorful, painting, portraits |
 ?wizards_artist.mary_blair , animation, characters, childhood, illustration, nature, vibrant, whimsical |
-?wizards_artist.john_blanche elegant, fantasy, French, portraits, science-fiction |
+?wizards_artist.john_blanche elegant, fantasy, French, portraits, science-fiction, Warhammer |
 ?wizards_artist.don_blanding architecture, art-deco, high-contrast, minimalism |
 ?wizards_artist.albert_bloch Engraving, Impressionism, painting, Realism, Satire, Social-commentary |
 ?wizards_artist.hyman_bloom contemporary, expressionism |
@@ -6051,9 +6053,9 @@ function expand_wildcards(thing, context = new Context()) {
           : { ...context.config, ...value };
       } 
       
-      if (log_config_enabled)
-        console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
-                    `${JSON.stringify(context.config)}`);
+      // if (log_config_enabled)
+      //   console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
+      //               `${JSON.stringify(context.config)}`);
       
       return '';
     }

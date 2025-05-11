@@ -15,7 +15,7 @@
 %config.loras([])
 
 #flux_on
-#hidream_full_on
+// #hidream_full_on
 // #hidream_fast_on
 
 #artsy
