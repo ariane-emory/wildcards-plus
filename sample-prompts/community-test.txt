@@ -15,7 +15,7 @@
 %config.loras([])
 
 #flux_on
-#hidream_full_on
+// #hidream_full_on
 // #hidream_fast_on
 
 #artsy
@@ -45,7 +45,7 @@
 %config.seed     (-1)
 
 { %config({ "width": 1024,  "height": 1024, "steps": 50  })
-| %config({ "width": 1152,  "height": 960,  "steps": 50  })
+| %config({ "width": 1152,  "height": 960,  "steps": 50  }) // confirmed
 | %config({ "width": 1280,  "height": 640,  "steps": 50  })
 }
 
