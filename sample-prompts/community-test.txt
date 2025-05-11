@@ -14,7 +14,7 @@
 
 %config.loras([])
 
-// #flux_on
+#flux_on
 #hidream_full_on
 // #hidream_fast_on
 
@@ -34,15 +34,14 @@
 
 // ---------------------------------------------------------------------------------------
 
-{ 2 ?flux_on
+{ 3 ?flux_on
   // Flux Dev:
   
   %config.model    ("flux_1_dev_q8p.ckpt")
-  %config.steps    (40)
   %config.sampler  ({ "DDIM Trailing" | "Euler A" | "Euler A Trailing" })
   %config.cfg_scale({ \1.0 | \1.5 | \2.0 | \2.5 })
   %config.shift    ({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
-  %config.n_iter   (1)
+  %config.n_iter   (2)
   %config.seed     (-1)
 
   { %config({ "width": 1216,  "height": 1216, "steps": 50  })
@@ -61,7 +60,7 @@
   %config.sampler  ({ "DDIM Trailing" | "Euler A" | "Euler A Trailing" })
   %config.cfg_scale({ 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0})
   %config.shift    ({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
-  %config.n_iter   (1)
+  %config.n_iter   (2 )
   %config.seed     (-1)  
 
   { %config({ "width": 960,   "height": 960, "steps": 40  })
