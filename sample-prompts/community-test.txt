@@ -12,7 +12,7 @@
 // template config flags to enable model families or other features:
 // ---------------------------------------------------------------------------------------
 
-%config.loras([])
+// %config.loras([])
 
 #flux_on
 #hidream_full_on
