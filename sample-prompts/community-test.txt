@@ -42,7 +42,7 @@
   %config.sampler  ({ "DDIM Trailing" | "Euler A" | "Euler A Trailing" })
   %config.cfg_scale({ \1.0 | \1.5 | \2.0 | \2.5 })
   %config.shift    ({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
-  %config.n_iter   (2)
+  %config.n_iter   (1)
   %config.seed     (-1)
 
   { %config({ "width": 1600, "height": 832,  "steps": 40 }) // works
@@ -63,11 +63,12 @@
   %config.sampler  ({ "DDIM Trailing" | "Euler A" | "Euler A Trailing" })
   %config.cfg_scale({ 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0})
   %config.shift    ({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
-  %config.n_iter   (2)
+  %config.n_iter   (1)
   %config.seed     (-1)  
 
-  { /* %config({ "width": 960,   "height": 960 })
-  | */ %config({ "width": 1280,  "height": 640  })
+  { %config({ "width": 960,   "height": 960  })
+  | %config({ "width": 1152,  "height": 768  })
+  | %config({ "width": 1280,  "height": 640  })
   }
 }
 
