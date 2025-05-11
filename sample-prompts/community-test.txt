@@ -25,7 +25,7 @@
 { #wizards_artist.frank_frazetta
 | 2 #wizards_artist.boris_vallejo
 | 2 #wizards_artist.gerald_brom
-| 2 #wizards_artist.john_blanche
+| #wizards_artist.john_blanche
 | #wizards_artist.jack_gaughan 
 | #wizards_artist.chris_foss
 | #wizards_artist.peter_elson
