@@ -19,21 +19,22 @@
 // #hidream_fast_on
 
 #square_on
+#artsy
 
 // ---------------------------------------------------------------------------------------
+// force an artist:
+{ #wizards_artist.helen_frankenthaler
+| #wizards_artist.frank_frazetta
+| #wizards_artist.boris_vallejo
+| #wizards_artist.gerald_brom
+| #wizards_artist.jack_gaughan 
+| #wizards_artist.chris_foss
+| #wizards_artist.peter_elson
+| #wizards_artist.john_blanche
+| #wizards_artist.wayne_barlowe
+}
 
-// @lora_names :=
-// { mj52_v2.0
-// | ethereon
-// | trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
-// | add_detail_xl
-// | detailed_notrigger
-// | xl_more_art_full_v1
-// }
-
-// named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
-// @lora := { <lora:@lora_names: @low_random_weight> }
-
+// ---------------------------------------------------------------------------------------
 { 2 ?flux_on
   %config.model    ("flux_1_dev_q8p.ckpt")
   %config.steps    (50)
@@ -78,9 +79,7 @@
   }
 }
 
-// Chance of 'artsy' mode:
-// {|3 #artsy}
-#artsy
+
 
 // =======================================================================================
 // make random sci-fi characters:
@@ -286,9 +285,11 @@
 |explorer                                      @likely_tool
 |scout                                         @tool_or_weapon
 |wanderer                                      @tool_or_weapon
+|traveller                                     @tool_or_weapon
+|vagabond                                      @tool_or_weapon
 |{2|interstellar} bounty hunter                #weapon
 |soldier                                       #weapon
-|2 space pirate                                  #weapon
+|2 space pirate                                #weapon
 |trooper                                       #weapon
 |prize fighter                                 #weapon #melee
 |assassin                                      @likely_weapon
@@ -390,19 +391,6 @@
 // generate the prompt body:
 // =======================================================================================
 
-{ #wizards_artist.helen_frankenthaler
-| #wizards_artist.frank_frazetta
-| #wizards_artist.boris_vallejo
-| #wizards_artist.gerald_brom
-| #wizards_artist.jack_gaughan 
-| #wizards_artist.chris_foss
-| #wizards_artist.peter_elson
-| #wizards_artist.john_blanche
-| #wizards_artist.wayne_barlowe
-}
-
-#wizards_artists_artist_is_set 
-
 {2|@aris_defaults,}
 science fiction,
 {3|greebles,|greeblies,}
@@ -420,7 +408,6 @@ science fiction,
 \n\n
 
 A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
-// A { ?artsy {masterpiece|piece|piece of art{|<work}} by Helen Frankenthaler {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
 {2|@early_alien_feature_sentence}
 {2|@early_cyborg_feature_sentence}
@@ -435,22 +422,3 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {|8 @sky_sentence}
 
 {?artsy By @wizards_artists, @wizards_artist_styles. }
-// abstract, abstract-expressionism, color-field, contemporary, expressionism, feminism, painting, printmaking, watercolor.
-
-// #foo
-// #foo.bar.baz
-
-// \n
-
-// { ?foo              FOO IS SET \n }
-// { ?foo.bar          FOO.BAR IS SET \n }
-// { ?foo.bar.baz      FOO.BAR.BAZ IS SET \n }
-// { ?foo.bar.baz.quux FOO.BAR.BAZ.QUUX IS SET \n }
-
-// #!foo.bar
-// UNSET IT \n
-
-// { ?foo              FOO IS SET \n }
-// { ?foo.bar          FOO.BAR IS SET \n }
-// { ?foo.bar.baz      FOO.BAR.BAZ IS SET \n }
-// { ?foo.bar.baz.quux FOO.BAR.BAZ.QUUX IS SET \n }

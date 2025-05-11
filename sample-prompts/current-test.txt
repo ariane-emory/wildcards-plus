@@ -343,9 +343,11 @@
 |explorer                                      @likely_tool
 |scout                                         @tool_or_weapon
 |wanderer                                      @tool_or_weapon
+|traveller                                     @tool_or_weapon
+|vagabond                                      @tool_or_weapon
 |{2|interstellar} bounty hunter                #weapon
 |soldier                                       #weapon
-|2 space pirate                                  #weapon
+|2 space pirate                                #weapon
 |trooper                                       #weapon
 |prize fighter                                 #weapon #melee
 |assassin                                      @likely_weapon
