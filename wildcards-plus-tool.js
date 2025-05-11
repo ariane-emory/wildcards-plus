@@ -77,8 +77,6 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   if (log_post_enabled)
     console.log(`POST data is: ${JSON.stringify(data)}`);
 
-  save_post_request(data);
-  
   const options = {
     hostname: hostname,
     port: port,
@@ -89,6 +87,8 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
       'Content-Length': string_data.length
     }
   };
+
+  save_post_request(options, data);
 
   const req = http.request(options);
 
@@ -106,7 +106,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   });
 }
 // -------------------------------------------------------------------------------------------------
-function save_post_request(data) {
+function save_post_request(options, data) {
   if (! save_post_requests_enable)
     return true;
 
@@ -115,12 +115,16 @@ function save_post_request(data) {
   const filename = data.seed
         ? `./.${timestamp}__${data.seed == -1 ? "random" : data.seed}.req`
         : `./.${timestamp}.req`;
-
+  const file_data = `POST http://${options.hostname}:` +
+        `${options.port}/${options.path}\n` +
+        `Content-Type: application/json\n` + 
+        `${json}`;
+  
   if (log_post_enabled)
     console.log(`Saving post data to '${filename}'...`);
 
   try {
-    fs.writeFileSync(filename, json);
+    fs.writeFileSync(filename, file_data);
     console.log(`Saved data to '${filename}'.`);
     
     return true;
