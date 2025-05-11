@@ -15,10 +15,9 @@
 %config.loras([])
 
 #flux_on
-#hidream_full_on
+// #hidream_full_on
 // #hidream_fast_on
 
-#square_on
 #artsy
 
 // ---------------------------------------------------------------------------------------
@@ -34,32 +33,23 @@
 }
 
 // ---------------------------------------------------------------------------------------
-// possible resolutions:
-{ 3 %config({ "width": 1920, "height": 1024 })
-| 3 %config({ "width": 1600, "height": 768 })
-| 3 %config({ "width": 1280, "height": 640 })
-// | 3 %config({ "width": 1024, "height": 512 })
-// | 3 %config({ "width": 768,  "height": 384 })
-// | 3 %config({ "width": 640,  "height": 320 })
-
-| 3 ?square_on %config({ "width": 1472,  "height": 1472 })
-| 3 ?square_on %config({ "width": 1280,  "height": 1280 })
-| 3 ?square_on %config({ "width": 1024,  "height": 1024 })
-// | 3 ?square_on %config({ "width": 768,   "height": 768 })
-// | 3 ?square_on %config({ "width": 640,   "height": 640 })
-// | 3 ?square_on %config({ "width": 512,   "height": 512 })
-}
 
 { 2 ?flux_on
   // Flux Dev:
   
   %config.model    ("flux_1_dev_q8p.ckpt")
-  %config.steps    (40)
+  // %config.steps    (40)
   %config.sampler  ({ "DDIM Trailing" | "Euler A" | "Euler A Trailing" })
   %config.cfg_scale({ \1.0 | \1.5 | \2.0 | \2.5 })
   %config.shift    ({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
   %config.n_iter   (2)
   %config.seed     (-1)
+
+  %config({ "width": 1600, "height": 832,  "steps": 40 }) // works
+  // %config({ "width": 1536, "height": 768,  "steps": 50 })
+  // %config({ "width": 1152, "height": 1152, "steps": 40 })
+  // %config({ "width": 1088, "height": 1088, "steps": 50 })
+  
   
 | 2 ?hidream_fast_on,hidream_full_on
   // Hidream with some basic settings that seem to work alright:
@@ -74,6 +64,14 @@
   %config.shift    ({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
   %config.n_iter   (2)
   %config.seed     (-1)  
+
+  { 3 %config({ "width": 1920, "height": 1024 })
+  | 3 %config({ "width": 1600, "height": 768 })
+  | 3 %config({ "width": 1280, "height": 640 })
+  | 3 %config({ "width": 1472,  "height": 1472 })
+  | 3 %config({ "width": 1280,  "height": 1280 })
+  | 3 %config({ "width": 1024,  "height": 1024 })
+  }
 }
 
 // =======================================================================================
