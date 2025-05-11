@@ -14,59 +14,48 @@
 
 %config.loras([])
 
-// #sdxl_on
-// #flux_on
-#hidream_fast_on
+#flux_on
 #hidream_full_on
+// #hidream_fast_on
 
-// #hidream_high_steps
-// #flux_high_steps
+#square_on
 
-// #sdxl_always_lightning
-// #sdxl_always_lightning_off
-
-{ !sdxl_always_lightning
-| !sdxl_always_lightning_off #sdxl_lightning_on }  // enable lightning 4-step in SDXL models.
-
-#square_on                               // enable square aspect ratios
-// #sdxl_hires                              // enable higher resulutions
 // ---------------------------------------------------------------------------------------
 
-@lora_names :=
-{ mj52_v2.0
-| ethereon
-| trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
-| add_detail_xl
-| detailed_notrigger
-| xl_more_art_full_v1
-}
+// @lora_names :=
+// { mj52_v2.0
+// | ethereon
+// | trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
+// | add_detail_xl
+// | detailed_notrigger
+// | xl_more_art_full_v1
+// }
 
 // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
-@lora := { <lora:@lora_names: @low_random_weight> }
+// @lora := { <lora:@lora_names: @low_random_weight> }
 
 { 2 ?flux_on
-  // devMODE
-  { %confgig.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
-  | %config.model("devmode8stepsflux1dev_v03fp8_f16.ckpt")
-  }
-  
-  %config.steps({ { \8 | \9 | \10 }
-                | ?flux_high_steps { \11 | \12 | \13 } })
+  %config.model("flux_1_dev_q8p.ckpt")
+  %config.steps(40)
   
   // don't worry, capitalization will be automatically fixed to "Euler A":
   %config.sampler({ "DDIM Trailing" | 3 "Euler A" | "Euler A Trailing" })
   %config.cfg_scale({ \1.0 | \1.5 | \2.0 | \2.5 })
 
   // possible resolutions:
-  { // 3 %config({ "width": 1024, "height": 512 })
+  { 3 %config({ "width": 1600, "height": 768 })
+  | 3 %config({ "width": 1280, "height": 640 })
+  | 3 %config({ "width": 1024, "height": 512 })
   | 3 %config({ "width": 768,  "height": 384 })
   | 3 %config({ "width": 640,  "height": 320 })
-  | 3 ?square_on %config({ "width": 768,  "height": 768 })
-  | 3 ?square_on %config({ "width": 640,  "height": 640 })
-  | 3 ?square_on %config({ "width": 512,  "height": 512 })
+
+  | 3 ?square_on %config({ "width": 1024,  "height": 1024 })
+  | 3 ?square_on %config({ "width": 768,   "height": 768 })
+  | 3 ?square_on %config({ "width": 640,   "height": 640 })
+  | 3 ?square_on %config({ "width": 512,   "height": 512 })
   }
 
-| 3 ?hidream_fast_on,hidream_full_on
+| 2 ?hidream_fast_on,hidream_full_on
   // Hidream with some basic settings that seem to work alright:
   %config.model({ ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
                 | ?hidream_full_on "hidream_i1_full_q5p.ckpt" })
@@ -89,52 +78,6 @@
   | 3 ?square_on %config({ "width": 768,   "height": 768 })
   | 3 ?square_on %config({ "width": 640,   "height": 640 })
   | 3 ?square_on %config({ "width": 512,   "height": 512 })
-  }
-
-| 8 ?sdxl_on
-  // various SDXL models:
-  
-  { ?sdxl_lightning_on {   <lora:sdxl_lightning_4step_lora:1.0> %config.steps(4)
-                  | 2 <lora:sdxl_lightning_8step_lora:1.0> %config.steps(8) } }
-
-  { @1-2lora | @1-3lora }
-
-  { !sdxl_lightning_on %config.steps({ \25 | \30 | \35 }) }
-  // { !sdxl_lightning_on %config.steps(30) }   
-  
-  // possible resolutions:
-  { // 3 ?sdxl_hires %config({ "width": 1280, "height": 640 })
-  // | 3 ?sdxl_hires %config({ "width": 1152, "height": 576 })
-  | 3 ?sdxl_hires %config({ "width": 1024, "height": 512 })
-  | 3 %config({ "width": 768,  "height": 384 })
-  | 3 %config({ "width": 640,  "height": 320 })
-  | 3 ?square_on ?sdxl_hires %config({ "width": 1024,  "height": 1024 })
-  // | 3 ?square_on %config({ "width": 768,  "height": 768 })
-  | 3 ?square_on %config({ "width": 640,  "height": 640 })
-  | 3 ?square_on %config({ "width": 512,  "height": 512 })
-  }
-
-  // three possible 'shift' values:
-  %config.shift({ \1.00 | \1.10 | \1.20 })
-
-  // two sampler possibilities:
-  { ?sdxl_lightning_on %config.sampler("LCM") }
-  { !sdxl_lightning_on { %config.sampler("DPM++ SDE Karras") | %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") } }
-
-  // eight possible CFG values:
-  %config.cfg_scale({ \3.0 | \4.0 | \5.0 | \6.0 | \7.0 | \8.0 | \9.0 | \10.0 })
-
-  // lots of models pick from:
-  { 4 %config.model("bookIllustrationChar_v10")
-  | 4 %config.model("challengexlv10yoursecret_v10")
-  | 0 %config.model("cyberrealisticpony_v10") {@pony_score_7_up|@pony_score_8_up}
-  | 0 %config.model("cyberrealisticpony_v90alt1")
-  | 0 %config.model("cyberrealisticxl_v57")
-  | 4 %config.model("ultrarealisticby_v10fp16")
-  | 4 %config.model("nightvisionxl_v900")
-  | 8 %config.model("oldmaster_v30")
-  | 4 %config.model("zavychromaxl_v100")
-  | 4 %config.model("comicbookxl_v10")
   }
 }
 

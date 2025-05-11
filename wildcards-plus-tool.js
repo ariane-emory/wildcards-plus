@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // -*- fill-column: 100; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 // This file is NOT the Draw Things script: that's over in wildcards-plus.js.
@@ -3774,11 +3773,11 @@ const prelude_text = disable_prelude ? '' : `
  #wizards_artist.william_zorach |
  #wizards_artist.ander_zorn |
 // artists added by me (ariane-emory):
- #wizards_artist.ian_miller 3 Ian Miller |
- #wizards_artist.john_zeleznik 3 John Zeleznik |
- #wizards_artist.keith_parkinson 3 Keith Parkinson |
- #wizards_artist.kevin_fales 3 Kevin Fales |
- #wizards_artist.boris_vallejo 3 Boris Vallejo
+ 3 #wizards_artist.ian_miller  |
+ 3 #wizards_artist.john_zeleznik |
+ 3 #wizards_artist.keith_parkinson |
+ 3 #wizards_artist.kevin_fales |
+ 3 #wizards_artist.boris_vallejo
 }}
 
 @wizards_artists := { @__set_wizards_artists_artist_if_unset {
@@ -4852,11 +4851,11 @@ const prelude_text = disable_prelude ? '' : `
 ?wizards_artist.william_zorach William Zorach |
 ?wizards_artist.ander_zorn Ander Zorn |
 // artists added by me (ariane-emory):
-3 ?wizards_artist.ian_miller Ian Miller |
-3 ?wizards_artist.john_zeleznik John Zeleznik |
-3 ?wizards_artist.keith_parkinson Keith Parkinson |
-3 ?wizards_artist.kevin_fales Kevin Fales |
-3 ?wizards_artist.boris_vallejo
+?wizards_artist.ian_miller Ian Miller |
+?wizards_artist.john_zeleznik John Zeleznik |
+?wizards_artist.keith_parkinson Keith Parkinson |
+?wizards_artist.kevin_fales Kevin Fales |
+?wizards_artist.boris_vallejo Boris Vallejo
 }}
 
 // The matching list of styles:
