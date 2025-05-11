@@ -113,8 +113,8 @@ function save_post_request(data) {
   const json = JSON.stringify(data)
   const timestamp = Math.floor(Date.now() / 1000);
   const filename = data.seed
-        ? `./${timestamp}__${data.seed == -1 ? "noseed" : data.seed}.req`
-        : `./${timestamp}.req`;
+        ? `./.${timestamp}__${data.seed == -1 ? "random" : data.seed}.req`
+        : `./.${timestamp}.req`;
 
   if (log_post_enabled)
     console.log(`Saving post data to '${filename}'...`);
