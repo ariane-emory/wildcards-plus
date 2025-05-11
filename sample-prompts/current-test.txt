@@ -14,8 +14,8 @@
 
 %config.loras([])
 
-// #sdxl_on
-// #flux_on
+#sdxl_on
+#flux_on
 #hidream_fast_on
 #hidream_full_on
 
@@ -28,8 +28,9 @@
 { !sdxl_always_lightning
 | !sdxl_always_lightning_off #sdxl_lightning_on }  // enable lightning 4-step in SDXL models.
 
-#square_on                               // enable square aspect ratios
-// #sdxl_hires                              // enable higher resulutions
+#square_on                                         // enable square aspect ratios
+// #sdxl_hires                                     // enable higher resolutions
+
 // ---------------------------------------------------------------------------------------
 
 @lora_names :=
@@ -214,12 +215,13 @@
              |{access|maintenance} tunnel
              }
 |4 ?planet,moon #outdoors {alley
-                        |{|2 hive city|2 megacity|2 arcology} street
-                        |crater
-                        |bazaar
-                        |market
-                        }
+                          |{|2 hive city|2 megacity|2 arcology} street
+                          |crater
+                          |bazaar
+                          |market
+                          }
 }
+
 @place_to_be_at :=
 {{ware|store} #indoors <house
 |?planet,moon an alien ruin
@@ -231,6 +233,7 @@
 |?ship,station #indoors helm
 |?ship,station 2 #indoors {|navigation|control|sensor|computer} console
 }
+
 @place_to_be_in_adj :=
 {3
 |!vehicle !#busy busy
@@ -243,6 +246,7 @@
 |?outdoors 2 smoky
 |?outdoors foggy
 }
+
 @place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
                  |at {a|the} @#place_to_be_at @place_to_be_at}
 
@@ -270,6 +274,7 @@
 |youthful
 |beautiful
 }
+
 @char_late_adj :=
 {4
 |alien #alien
@@ -382,38 +387,42 @@
 // ---------------------------------------------------------------------------------------
 // cyborg features:
 // ---------------------------------------------------------------------------------------
-@cyborg_features := {{a|one} {bionic|mechanical} arm
-                    |{bionic|mechanical} arms
-                    |{a|one} {bionic|cyber {|<netic}} eye
-                    |{bionic|cyber {|<netic}} eyes
-                    }
+@cyborg_features :=
+{{a|one} {bionic|mechanical} arm
+|{bionic|mechanical} arms
+|{a|one} {bionic|cyber {|<netic}} eye
+|{bionic|cyber {|<netic}} eyes
+}
+
 @cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
 @early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
 
 // ---------------------------------------------------------------------------------------
 // ailen features:
 // ---------------------------------------------------------------------------------------
-@alien_features := {an insectoid appearance
-                   |2 digitigrade legs
-                   |gills on @pro_pos_adj throat
-                   |!#alien_claws {{|razor} sharp|retractable} claws
-                   |hooved feet
-                   |!#alien_wings {|diaphanous|batlike} wings
-                   |!#alien_horns {curling|back-curved} horns
-                   |!#alien_skin chitinous armored plates on @pro_pos_adj skin
-                   |!#alien_skin scaled skin
-                   |!#alien_tail a {|2 prehensile|spined} tail
-                   |!#alien_skin skin like an amphibian
-                   |!#alien_eyes {two|three|four|six} eyes
-                   |vicious fangs
-                   |a slitted nose
-                   |!#alien_eyes slitted eyes
-                   |!#alien_eyes compound eyes
-                   |four arms
-                   |!#alien_skin {smooth|shiny} fur
-                   |!#alien_quills quill {<-like|<s instead of} hair
-                   |a reptilian appearance
-                   }                   
+@alien_features :=
+{an insectoid appearance
+|2 digitigrade legs
+|gills on @pro_pos_adj throat
+|!#alien_claws {{|razor} sharp|retractable} claws
+|hooved feet
+|!#alien_wings {|diaphanous|batlike} wings
+|!#alien_horns {curling|back-curved} horns
+|!#alien_skin chitinous armored plates on @pro_pos_adj skin
+|!#alien_skin scaled skin
+|!#alien_tail a {|2 prehensile|spined} tail
+|!#alien_skin skin like an amphibian
+|!#alien_eyes {two|three|four|six} eyes
+|vicious fangs
+|a slitted nose
+|!#alien_eyes slitted eyes
+|!#alien_eyes compound eyes
+|four arms
+|!#alien_skin {smooth|shiny} fur
+|!#alien_quills quill {<-like|<s instead of} hair
+|a reptilian appearance
+}
+
 @alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
 @early_alien_feature_sentence := {?alien #eafs with @1-2&alien_features }
 
@@ -459,8 +468,6 @@
 | #wizards_artist.wayne_barlowe
 }
 
-#wizards_artists_artist_is_set 
-
 {2|@aris_defaults,}
 science fiction,
 {3|greebles,|greeblies,}
@@ -478,7 +485,6 @@ science fiction,
 \n\n
 
 A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
-// A { ?artsy {masterpiece|piece|piece of art{|<work}} by Helen Frankenthaler {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
 {2|@early_alien_feature_sentence}
 {2|@early_cyborg_feature_sentence}
@@ -493,22 +499,3 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {|8 @sky_sentence}
 
 {?artsy By @wizards_artists, @wizards_artist_styles. }
-// abstract, abstract-expressionism, color-field, contemporary, expressionism, feminism, painting, printmaking, watercolor.
-
-// #foo
-// #foo.bar.baz
-
-// \n
-
-// { ?foo              FOO IS SET \n }
-// { ?foo.bar          FOO.BAR IS SET \n }
-// { ?foo.bar.baz      FOO.BAR.BAZ IS SET \n }
-// { ?foo.bar.baz.quux FOO.BAR.BAZ.QUUX IS SET \n }
-
-// #!foo.bar
-// UNSET IT \n
-
-// { ?foo              FOO IS SET \n }
-// { ?foo.bar          FOO.BAR IS SET \n }
-// { ?foo.bar.baz      FOO.BAR.BAZ IS SET \n }
-// { ?foo.bar.baz.quux FOO.BAR.BAZ.QUUX IS SET \n }
