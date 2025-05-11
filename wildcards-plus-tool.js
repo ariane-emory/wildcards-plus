@@ -74,7 +74,7 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   data = { ...data, ...config };
   const string_data = JSON.stringify(data);
 
-  if (log_config_enabled)
+  if (log_post_enabled)
     console.log(`POST data is: ${JSON.stringify(data)}`);
 
   const options = {
@@ -274,6 +274,7 @@ let string_input_mode_enabled = true;
 let log_enabled               = true;
 let log_flags_enabled         = false;
 let log_config_enabled        = true;
+let log_post_enabled          = true;
 let log_join_enabled          = false;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
@@ -6210,9 +6211,9 @@ function expand_wildcards(thing, context = new Context()) {
           : { ...context.config, ...value };
       } 
       
-      if (log_config_enabled)
-        console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
-                    `${JSON.stringify(context.config)}`);
+      // if (log_config_enabled)
+      //   console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
+      //               `${JSON.stringify(context.config)}`);
       
       return '';
     }
@@ -7031,7 +7032,8 @@ async function main() {
             console.log(`can't rewind, no prior prompt`);
           }
         }
-        else {          
+        else { // /^y.*/
+          console.log(`------------------------------------------------------------------------------------------`);
           const parsed    = parseInt(answer);
           const gen_count = isNaN(parsed) ? 1 : parsed;  
           
