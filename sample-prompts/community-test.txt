@@ -49,8 +49,9 @@
   // | 3 %config({ "width": 768,  "height": 384 })
   // | 3 %config({ "width": 640,  "height": 320 })
 
+  | 3 ?square_on %config({ "width": 1280,  "height": 1280 })
   | 3 ?square_on %config({ "width": 1024,  "height": 1024 })
-  | 3 ?square_on %config({ "width": 768,   "height": 768 })
+  // | 3 ?square_on %config({ "width": 768,   "height": 768 })
   // | 3 ?square_on %config({ "width": 640,   "height": 640 })
   // | 3 ?square_on %config({ "width": 512,   "height": 512 })
   }
@@ -72,6 +73,7 @@
   // | 3 %config({ "width": 768,  "height": 384 })
   // | 3 %config({ "width": 640,  "height": 320 })
 
+  | 3 ?square_on %config({ "width": 1280,  "height": 1280 })
   | 3 ?square_on %config({ "width": 1024,  "height": 1024 })
   | 3 ?square_on %config({ "width": 768,   "height": 768 })
   // | 3 ?square_on %config({ "width": 640,   "height": 640 })
