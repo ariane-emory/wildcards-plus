@@ -145,6 +145,8 @@
   | 8 %config.model("oldmaster_v30")
   | 4 %config.model("zavychromaxl_v100")
   | 4 %config.model("comicbookxl_v10")
+  | 4 %config.model("plantmilkmodelsuite_hempii")
+  | 4 %config.model("juggernautxl_ragnarokby")
   }
 }
 
