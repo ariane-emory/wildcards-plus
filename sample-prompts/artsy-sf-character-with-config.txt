@@ -47,22 +47,22 @@
 // ---------------------------------------------------------------------------------------
 
 @lora_names :=
-{ ?sdxl_on { mj52_v2.0
-           | ethereon
-           | trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
-           | add_detail_xl
-           | detailed_notrigger
-           | xl_more_art_full_v1
-           }
-| ?flux_on { the_dark_side_of_the_future
-           | blue_future
-           | ck_spaceships_000011
-           | fulltechnicalladyarmorstylemk1
-           | gerald_brom
-           | nistyle_test2_000013
-           | ck_metalgearsolid_000019
-           | anime_v1.3
-           }
+{ ?sdxl_selected { mj52_v2.0
+                 | ethereon
+                 | trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
+                 | add_detail_xl
+                 | detailed_notrigger
+                 | xl_more_art_full_v1
+                 }
+| ?flux_selected { the_dark_side_of_the_future
+                 | blue_future
+                 | ck_spaceships_000011
+                 | fulltechnicalladyarmorstylemk1
+                 | gerald_brom
+                 | nistyle_test2_000013
+                 | ck_metalgearsolid_000019
+                 | anime_v1.3
+                 }
 }
 
 // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
@@ -72,7 +72,7 @@
 // =================================================================================================
 // Flux config:
 // =================================================================================================
-{ 2 ?flux_on
+{ 2 ?flux_on #flux_selected
   { %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
   | %config.model("devmode8stepsflux1dev_v03fp8_f16.ckpt")
   }
@@ -98,7 +98,7 @@
 // =================================================================================================
 // HiDream config:
 // =================================================================================================
-| 3 ?hidream_fast_on,hidream_full_on
+| 3 ?hidream_fast_on,hidream_full_on #hidream_selected
   %config.model({ ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
                 | ?hidream_full_on "hidream_i1_full_q5p.ckpt" })
   
@@ -122,7 +122,7 @@
 // =================================================================================================
 // SDXL config:
 // =================================================================================================
-| 8 ?sdxl_on
+| 8 ?sdxl_on #sdxl_selected
   { ?sdxl_lightning_on {   <lora:sdxl_lightning_4step_lora:1.0> %config.steps(4)
                   | 2 <lora:sdxl_lightning_8step_lora:1.0> %config.steps(8) } }
 
