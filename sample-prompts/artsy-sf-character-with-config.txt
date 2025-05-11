@@ -1,3 +1,16 @@
+{ #wizards_artist.helen_frankenthaler
+| #wizards_artist.frank_frazetta
+| #wizards_artist.boris_vallejo
+| #wizards_artist.gerald_brom
+| #wizards_artist.jack_gaughan 
+| #wizards_artist.chris_foss
+| #wizards_artist.peter_elson
+| #wizards_artist.john_blanche
+| #wizards_artist.wayne_barlowe
+}
+
+#artsy
+
 // =======================================================================================
 // use wildcards to randomize some parts of the configuration before we get on with the
 // actual textual content of the prompt:
@@ -134,10 +147,6 @@
   | 4 %config.model("comicbookxl_v10")
   }
 }
-
-// Chance of 'artsy' mode:
-// {|3 #artsy}
-#artsy
 
 // =======================================================================================
 // make random sci-fi characters:
@@ -456,17 +465,6 @@
 // =======================================================================================
 // generate the prompt body:
 // =======================================================================================
-
-{ #wizards_artist.helen_frankenthaler
-| #wizards_artist.frank_frazetta
-| #wizards_artist.boris_vallejo
-| #wizards_artist.gerald_brom
-| #wizards_artist.jack_gaughan 
-| #wizards_artist.chris_foss
-| #wizards_artist.peter_elson
-| #wizards_artist.john_blanche
-| #wizards_artist.wayne_barlowe
-}
 
 {2|@aris_defaults,}
 science fiction,
