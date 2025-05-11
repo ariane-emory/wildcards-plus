@@ -60,7 +60,7 @@
 
 { 2 ?flux_on
   // devMODE
-  { %confgig.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
+  { %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
   | %config.model("devmode8stepsflux1dev_v03fp8_f16.ckpt")
   }
   
