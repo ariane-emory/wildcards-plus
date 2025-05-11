@@ -110,10 +110,10 @@ function save_post_request(options, data) {
   if (! save_post_requests_enable)
     return true;
 
-  const json = JSON.stringify(data, null, 2);
+  const json      = JSON.stringify(data, null, 2);
   const timestamp = Math.floor(Date.now() / 1000);
-  const dir = 'posts';
-  const filename = data.seed
+  const dir       = 'posts';
+  const filename  = data.seed
         ? `./${dir}/${timestamp}__${data.seed == -1 ? "random" : data.seed}.req`
         : `./${dir}/${timestamp}.req`;
   const file_data = `POST http://${options.hostname}:` +
