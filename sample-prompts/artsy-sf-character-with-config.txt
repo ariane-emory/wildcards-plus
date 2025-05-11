@@ -54,16 +54,30 @@
            | detailed_notrigger
            | xl_more_art_full_v1
            }
+| ?flux_on { the_dark_side_of_the_future
+           | blue_future
+           | ck_spaceships_000011
+           | fulltechnicalladyarmorstylemk1
+           | gerald_brom
+           | nistyle_test2_000013
+           | ck_metalgearsolid_000019
+           | anime_v1.3
+           }
 }
 
 // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
 @lora := { <lora:@lora_names: @low_random_weight> }
 
+
+// =================================================================================================
+// Flux config:
+// =================================================================================================
 { 2 ?flux_on
-  // devMODE
   { %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
   | %config.model("devmode8stepsflux1dev_v03fp8_f16.ckpt")
   }
+  
+  { @1-2lora | @1-3lora }
   
   %config.steps({ { \8 | \9 | \10 }
                 | ?flux_high_steps { \11 | \12 | \13 } })
@@ -81,8 +95,10 @@
   | 3 ?square_on %config({ "width": 512,  "height": 512 })
   }
 
+// =================================================================================================
+// HiDream config:
+// =================================================================================================
 | 3 ?hidream_fast_on,hidream_full_on
-  // Hidream with some basic settings that seem to work alright:
   %config.model({ ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
                 | ?hidream_full_on "hidream_i1_full_q5p.ckpt" })
   
@@ -103,9 +119,10 @@
   | 3 ?square_on %config({ "width": 512,  "height": 512 })
   }
 
+// =================================================================================================
+// SDXL config:
+// =================================================================================================
 | 8 ?sdxl_on
-  // various SDXL models:
-  
   { ?sdxl_lightning_on {   <lora:sdxl_lightning_4step_lora:1.0> %config.steps(4)
                   | 2 <lora:sdxl_lightning_8step_lora:1.0> %config.steps(8) } }
 
