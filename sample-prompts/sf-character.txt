@@ -1,12 +1,11 @@
 // =======================================================================================
-// random sci-fi characters
+// make random sci-fi characters:
 // =======================================================================================
 
-@pro_pos_rand := {2 @pro_pos_adj|a}
+{#planet|#ship|#moon|#station} // where are we?
 
-{3 #female|2 #male|#neuter}
-{#planet|#ship|#moon|#station}
-@setting_word := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
+@pro_pos_rand  := {2 @pro_pos_adj|a}
+@setting_word  := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
 
 @ship_term     := {starship|spacecraft|space ship|shuttle}
 @ship_late_adj := {space|interstellar}
@@ -14,10 +13,12 @@
                   |@ship_late_adj frigate
                   |@ship_late_adj battleship|@ship_late_adj destroyer
                   |{|@ship_late_adj} merchant vessel
+                  |{|@ship_late_adj} freighter
+                  |{|@ship_late_adj} liner
                   |{|@ship_late_adj} vessel}
 
 // ---------------------------------------------------------------------------------------
-// L2 places:
+// 'level 2' places, for phrases like 'in $place in a $largerPlace':
 // ---------------------------------------------------------------------------------------
 @l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station
                  |?planet planet|?planet world|?moon moon}}
@@ -45,7 +46,7 @@
 @l2_place_phrase    := {@l2_place {|2 orbiting a @l2_orbit_phrase}}
 
 // ---------------------------------------------------------------------------------------
-// places:
+// places to be 'in' or 'at':
 // ---------------------------------------------------------------------------------------
 @place_to_be_in := 
 {2 #indoors  {2 crew cabin 
@@ -55,6 +56,8 @@
              |equipment room
              |laboratory
              |lounge
+             |workshop
+             |factory
              |security room
              |?station 2 market
              |?planet,moon #vehicle air/raft
@@ -71,16 +74,17 @@
              |{access|maintenance} tunnel
              }
 |4 ?planet,moon #outdoors {alley
-                        |{|2 hive city|2 megacity} street
-                        |crater
-                        |bazaar
-                        |market
-                        }
+                          |{|2 hive city|2 megacity|2 arcology} street
+                          |crater
+                          |bazaar
+                          |market
+                          }
 }
+
 @place_to_be_at :=
 {{ware|store} #indoors <house
 |?planet,moon an alien ruin
-|the abandoned wreck of a @ship_term2
+|abandoned wreck of a @ship_term2
 |{2|holographic} computer
 |?planet,moon #outdoors colony
 |holographic #indoors projector
@@ -88,6 +92,7 @@
 |?ship,station #indoors helm
 |?ship,station 2 #indoors {|navigation|control|sensor|computer} console
 }
+
 @place_to_be_in_adj :=
 {3
 |!vehicle !#busy busy
@@ -100,6 +105,7 @@
 |?outdoors 2 smoky
 |?outdoors foggy
 }
+
 @place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
                  |at {a|the} @#place_to_be_at @place_to_be_at}
 
@@ -127,12 +133,16 @@
 |youthful
 |beautiful
 }
+
 @char_late_adj :=
-{3
+{4
 |alien #alien
 |android
 |cyborg #cyborg
 |human #human
+|?traveller Vargr
+|?traveller Vilani
+|?traveller Zhodani
 }
 
 // ---------------------------------------------------------------------------------------
@@ -152,7 +162,7 @@
                             }                
 
 // ---------------------------------------------------------------------------------------
-// tool:
+// tools:
 // ---------------------------------------------------------------------------------------
 @tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
                 |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
@@ -185,28 +195,34 @@
 @likely_tool        := {2 #tool|#weapon}
 
 // ---------------------------------------------------------------------------------------
-// role:
+// roles/character types:
 // ---------------------------------------------------------------------------------------
 @role :=
 {#weapon mercenary 
-|{3|hyperdrive|@ship_term} technician        @likely_tool
-|engineer                                    @likely_tool
-|communications officer                      @maybe_no_equipment
-|scientist                                   #tool
-|explorer                                    @likely_tool
-|scout                                       @tool_or_weapon
-|wanderer                                    @tool_or_weapon
-|{2|interstellar} bounty hunter              #weapon
-|soldier                                     #weapon
-|prize fighter                               #weapon #melee
-|assassin                                    @likely_weapon
-|medic                                       #tool
-|worker                                      #tool
-|{space|star|interstellar} {trader|merchant} @maybe_no_equipment
-|{space|star} marine                         #weapon
-|@ship_term captain                          @maybe_no_equipment
-|@ship_term pilot                            @maybe_no_equipment
-|{|@ship_term} {navigator|astrogator}        @maybe_no_equipment
+|{3|hyperdrive|@ship_term} technician          @likely_tool
+|engineer                                      @likely_tool
+|communications officer                        @maybe_no_equipment
+|scientist                                     #tool
+|explorer                                      @likely_tool
+|scout                                         @tool_or_weapon
+|wanderer                                      @tool_or_weapon
+|traveller                                     @tool_or_weapon
+|vagabond                                      @tool_or_weapon
+|{2|interstellar} bounty hunter                #weapon
+|soldier                                       #weapon
+|2 space pirate                                #weapon
+|trooper                                       #weapon
+|prize fighter                                 #weapon #melee
+|assassin                                      @likely_weapon
+|medic                                         #tool
+|cyberdoc                                      #tool
+|worker                                        #tool
+|{?traveller psion}                            @maybe_no_equipment
+|2 {space|star|interstellar} {trader|merchant} @maybe_no_equipment #merchant
+|{space|star} marine                           #weapon
+|@ship_term captain                            @maybe_no_equipment
+|@ship_term pilot                              @maybe_no_equipment
+|{|@ship_term} {navigator|astrogator}          @maybe_no_equipment
 }
 
 // ---------------------------------------------------------------------------------------
@@ -214,58 +230,63 @@
 // ---------------------------------------------------------------------------------------
 @clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_verb     := {2 wearing|clad in|dressed in}
-@clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|millitary
+@clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|!merchant millitary
                       |!#high-tech high-tech|#highly-detailed highly-detailed
                       |{|starship|space ship|spacecraft} crew members'
-                      |!#greebled {|highly} greebled}
+                      |!merchant !#greebled {|highly} greebled}
 @clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
                       |@pro_pos_rand @clothing_adj flight suit
                       |@pro_pos_rand @clothing_adj body suit
                       |@pro_pos_rand @clothing_adj uniform
+                      |3 ?merchant @pro_pos_rand @clothing_adj rich attire
                       |@pro_pos_rand @clothing_adj {|helmetless}
                                      {space|vacuum|hazardous environment} suit
                       |@pro_pos_rand @clothing_adj exoskeleton}
  
 // ---------------------------------------------------------------------------------------
-// cyborg feature:
+// cyborg features:
 // ---------------------------------------------------------------------------------------
-@cyborg_features := {{a|one} {bionic|mechanical} arm
-                    |{bionic|mechanical} arms
-                    |{a|one} {bionic|cyber {|<netic}} eye
-                    |{bionic|cyber {|<netic}} eyes
-                    }
+@cyborg_features :=
+{{a|one} {bionic|mechanical} arm
+|{bionic|mechanical} arms
+|{a|one} {bionic|cyber {|<netic}} eye
+|{bionic|cyber {|<netic}} eyes
+}
+
 @cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
 @early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
 
 // ---------------------------------------------------------------------------------------
-// ailen feature:
+// ailen features:
 // ---------------------------------------------------------------------------------------
-@alien_features := {an insectoid appearance
-                   |2 digitigrade legs
-                   |gills on @pro_pos_adj throat
-                   |!#alien_claws {{|razor} sharp|retractable} claws
-                   |hooved feet
-                   |!#alien_wings {|diaphanous|batlike} wings
-                   |!#alien_horns {curling|back-curved} horns
-                   |!#alien_skin chitinous armored plates on @pro_pos_adj skin
-                   |!#alien_skin scaled skin
-                   |!#alien_tail a {|2 prehensile|spined} tail
-                   |!#alien_skin skin like an amphibian
-                   |!#alien_eyes {two|three|four|six} eyes
-                   |vicious fangs
-                   |a slitted nose
-                   |!#alien_eyes slitted eyes
-                   |!#alien_eyes compound eyes
-                   |four arms
-                   |!#alien_skin {smooth|shiny} fur
-                   |!#alien_quills quill {<-like|<s instead of} hair
-                   |a reptilian appearance
-                   }                   
+@alien_features :=
+{an insectoid appearance
+|2 digitigrade legs
+|gills on @pro_pos_adj throat
+|!#alien_claws {{|razor} sharp|retractable} claws
+|hooved feet
+|!#alien_wings {|diaphanous|batlike} wings
+|!#alien_horns {curling|back-curved} horns
+|!#alien_skin chitinous armored plates on @pro_pos_adj skin
+|!#alien_skin scaled skin
+|!#alien_tail a {|2 prehensile|spined} tail
+|!#alien_skin skin like an amphibian
+|!#alien_eyes {two|three|four|six} eyes
+|vicious fangs
+|a slitted nose
+|!#alien_eyes slitted eyes
+|!#alien_eyes compound eyes
+|four arms
+|!#alien_skin {smooth|shiny} fur
+|!#alien_quills quill {<-like|<s instead of} hair
+|a reptilian appearance
+}
+
 @alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
 @early_alien_feature_sentence := {?alien #eafs with @1-2&alien_features }
 
 // ---------------------------------------------------------------------------------------
-// sky:
+// things in the sky:
 // ---------------------------------------------------------------------------------------
 @late_sky_verb_frag       := {in the sky above|overhead}
 @early_sky_verb_frag      := {can be seen|hangs|looms}
@@ -286,18 +307,33 @@
 |A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} @early_sky_verb_frag @late_sky_verb_frag.
 }}
 
-// =======================================================================================
-@colour_modifiers := {warm color pallete|warm lighting
-                     |natural lighting|?outdoors golden hour}
+// ---------------------------------------------------------------------------------------
+// colour palette/lighting stuff:
+// ---------------------------------------------------------------------------------------
+@colour_modifiers := {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
 
-@aris_defaults, science fiction, {|futuristic,} {|greebling,}
-hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time,
-@0-2,colour_modifiers
+// =======================================================================================
+// generate the prompt body:
+// =======================================================================================
+
+{2|@aris_defaults,}
+science fiction,
+{3|greebles,|greeblies,}
+{|#traveller Traveller RPG,}
+{|?traveller GDW,}
+{|?traveller Third Imperium,}
+{|futuristic,}
+{2|hyperrealistic,}
+{2|infinite focus,}
+{|extremely detailed,}
+{2|100-hour render time,}
+{2|@0-2,colour_modifiers}
 .
 
 \n\n
 
-A @0-2&char_early_adj @char_late_adj @role
+A 
+@0-2&char_early_adj @char_late_adj @role
 {2|@early_alien_feature_sentence}
 {2|@early_cyborg_feature_sentence}
 @place_phrase {|3 @l2_place_phrase|5 ?outdoors @l2_place_phrase}
