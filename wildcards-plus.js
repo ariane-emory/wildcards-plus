@@ -113,6 +113,7 @@ let print_ast_enabled         = false;
 let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
+let log_flags_enabled         = false;
 let log_config_enabled        = true;
 let log_join_enabled          = false;
 let log_finalize_enabled      = false;
@@ -140,6 +141,10 @@ const trailing_separator_modes = Object.freeze({
 class Rule {
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0) {
+    if (typeof input !== 'string') {
+      throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
+    }
+    
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
         log(indent,
@@ -1980,6 +1985,41 @@ class WeightedPicker {
 // =================================================================================================
 // HELPER FUNCTIONS SECTION:
 // =================================================================================================
+function arr_is_prefix_of(prefix_arr, full_arr) {
+  if (prefix_arr.length > full_arr.length)
+    return false;
+  
+  // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
+  return prefix_arr.every((val, idx) => val === full_arr[idx]);
+}
+// -------------------------------------------------------------------------------------------------
+function arr_is_prefix_of_alt(prefix_arr, full_arr) {
+  if (prefix_arr.length > full_arr.length)
+    return false;
+
+  for (let ix = 0; ix < prefix_arr.length; ix++)
+    if (prefix_arr[ix] !== full_arr[ix])
+      return false;
+  
+  return true;
+}
+// // -------------------------------------------------------------------------------------------------
+// function equal_arrs(this_arr, that_arr) {
+//   if (this_arr.length != that_arr.length)
+//     return false;
+
+//   for (let ix = 0; ix < this_arr.length; ix++)
+//     if (this_arr[ix] !== that_arr[ix])
+//       return false;
+
+//   return true;
+// }
+// -------------------------------------------------------------------------------------------------
+function is_flag_set(test_flag, set_flags) {
+  // GPT's idea, clearly inadequate.
+  return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
+}
+// -------------------------------------------------------------------------------------------------
 function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
   console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
   
@@ -1989,7 +2029,7 @@ function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") 
   }
   array.push(lora); // Add the new entry at the end
 }
-// -----------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
     Object.keys(obj).length === 0 &&
@@ -2073,7 +2113,10 @@ function smart_join(arr) {
   if (typeof arr === 'string')
     return arr;
   
-  arr = [...arr.filter(x=> x)];
+  arr = [...arr.flat(Infinity).filter(x=> x)];
+
+  if (arr.length === 0) // investigate why this is necessary.
+    return '';
   
   if (log_join_enabled)
     console.log(`JOINING ${inspect_fun(arr)}`);
@@ -2083,7 +2126,7 @@ function smart_join(arr) {
   const linkingp     = (ch)  => ch === "_" || ch === "-";
   const whitep       = (ch)  => ch === ' ' || ch === '\n';
   
-  let left_word = arr[0]?.toString() ?? "";
+  let left_word = arr[0]; // ?.toString() ?? "";
   let str       = left_word;
 
   for (let ix = 1; ix < arr.length; ix++)  {
@@ -2093,7 +2136,7 @@ function smart_join(arr) {
     let next_char            = null;
 
     const update_pos_vars = () => {
-      right_word           = arr[ix]?.toString() ?? "";
+      right_word           = arr[ix]; // ?.toString() ?? "";
       prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
@@ -2194,6 +2237,9 @@ function smart_join(arr) {
     str += left_word;
   }
 
+  if (log_join_enabled)
+    console.log(`JOINED ${inspect_fun(str)}`);
+  
   return str;
 }
 // =================================================================================================
@@ -2321,7 +2367,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 // =================================================================================================
 class Context {
   constructor({ 
-    flags = new Set(),
+    flags = [], // new Set(),
     scalar_variables = new Map(),
     named_wildcards = new Map(),
     noisy = false,
@@ -2347,8 +2393,72 @@ class Context {
     this.pick_multiple_priority = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
 
-    if (dt_hosted && !this.flags.has("dt_hosted"))
-      this.flags.add("dt_hosted");
+    if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
+      this.set_flag(["dt_hosted"]);
+  }
+  // -----------------------------------------------------------------------------------------------
+  flag_is_set(test_flag) {
+    // if (! Array.isArray(test_flag))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
+
+    // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
+    // console.log(msg);
+    // const ret = this.flags.includes(test_flag);
+    
+    let r = false;
+
+    for (const flag of this.flags) {
+      // console.log(`${inspect_fun(flag)} === ` +
+      //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
+      
+      if (arr_is_prefix_of_alt(test_flag, flag)) {
+        // console.log (`FOUND IT!`);
+        r = true;
+        break;
+      }
+    }
+
+    // if (! r)
+    //   console.log(`DIDN'T FIND IT...`);
+    
+    // if (ret  !== r)
+    //   throw new Error(`${msg} ret = ${inspect_fun(ret)}, r = ${inspect_fun(r)}`);
+    
+    return r;
+  }
+  // -----------------------------------------------------------------------------------------------
+  set_flag(flag) {
+    // if (! Array.isArray(flag))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag)}`);
+    
+    // only if flag isn't already set!
+    if (this.flag_is_set(flag))
+      return;
+
+    if (log_flags_enabled)
+      if (flag.length > 1)
+        console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
+
+    this.flags.push(flag);
+
+    // if (this.flags.includes(undefined))
+    //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  unset_flag(flag) {
+    // if (! Array.isArray(flag))
+    //   throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
+
+    if (log_flags_enabled)
+      console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    
+    this.flags = this.flags.filter(f => ! arr_is_prefix_of(flag, f));
+
+    if (log_flags_enabled)
+      console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    
+    // if (this.flags.includes(undefined))
+    //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -2358,7 +2468,7 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   clone() {
     return new Context({
-      flags:                        new Set(this.flags),
+      flags:                        this.flags.map(arr => [...arr]),
       scalar_variables:             new Map(this.scalar_variables),
       named_wildcards:              new Map(this.named_wildcards),
       noisy:                        this.noisy,
@@ -2376,7 +2486,7 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   shallow_copy() {
     return new Context({
-      flags: this.flags,
+      flags:                        this.flags,
       scalar_variables:             this.scalar_variables,
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
@@ -2393,12 +2503,25 @@ class Context {
 }
 // -------------------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
-@set_gender_if_unset    := {!female !male !neuter {3 #female|2 #male|#neuter}}
-@gender                 := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
-@pro_3rd_subj           := {@set_gender_if_unset {?female she   |?male he  |?neuter it }}
-@pro_3rd_obj            := {@set_gender_if_unset {?female her   |?male him |?neuter it }}
-@pro_pos_adj            := {@set_gender_if_unset {?female her   |?male his |?neuter its}}
-@pro_pos                := {@set_gender_if_unset {?female hers  |?male his |?neuter its}}
+@__set_gender_if_unset    := {!gender {3 #gender.female #female
+                                      |2 #gender.male   #male
+                                      |1 #gender.neuter #neuter}}
+@gender                 := {@__set_gender_if_unset {?gender.female woman
+                                                   |?gender.male   man
+                                                   |?gender.neuter androgyne }}
+@pro_3rd_subj           := {@__set_gender_if_unset {?gender.female she
+                                                   |?gender.male   he
+                                                   |?gender.neuter it        }}
+@pro_3rd_obj            := {@__set_gender_if_unset {?gender.female her
+                                                   |?gender.male   him
+                                                   |?gender.neuter it        }}
+@pro_pos_adj            := {@__set_gender_if_unset {?gender.female her
+                                                   |?gender.male his
+                                                   |?gender.neuter its       }}
+@pro_pos                := {@__set_gender_if_unset {?gender.female hers
+                                                   |?gender.male his
+                                                   |?gender.neuter its       }}
+
 @__digit                := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
 @__low_digit            := {<1|<2|<3|<4|<5}
 @__high_digit           := {<5|<6|<7|<8|<9}
@@ -2421,3254 +2544,3240 @@ const prelude_text = disable_prelude ? '' : `
 
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
-// @wizards_artists := { @#__wizards_artists @__wizards_artists }
 
-@wizards_artists := {
- @__set_wizards_artists_artist_if_unset @__wizards_artists_artist_name
-}
-
-@__set_wizards_artists_artist_if_unset := {
-!#wizards_artists_artist_is_set !#artist__zacharias_martin_aagaard |
-!#wizards_artists_artist_is_set !#artist__slim_aarons |
-!#wizards_artists_artist_is_set !#artist__elenore_abbott |
-!#wizards_artists_artist_is_set !#artist__tomma_abts |
-!#wizards_artists_artist_is_set !#artist__vito_acconci |
-!#wizards_artists_artist_is_set !#artist__andreas_achenbach |
-!#wizards_artists_artist_is_set !#artist__ansel_adams |
-!#wizards_artists_artist_is_set !#artist__josh_adamski |
-!#wizards_artists_artist_is_set !#artist__charles_addams |
-!#wizards_artists_artist_is_set !#artist__etel_adnan |
-!#wizards_artists_artist_is_set !#artist__alena_aenami |
-!#wizards_artists_artist_is_set !#artist__leonid_afremov |
-!#wizards_artists_artist_is_set !#artist__petros_afshar |
-!#wizards_artists_artist_is_set !#artist__yaacov_agam |
-!#wizards_artists_artist_is_set !#artist__eileen_agar |
-!#wizards_artists_artist_is_set !#artist__craigie_aitchison |
-!#wizards_artists_artist_is_set !#artist__ivan_aivazovsky |
-!#wizards_artists_artist_is_set !#artist__francesco_albani |
-!#wizards_artists_artist_is_set !#artist__alessio_albi |
-!#wizards_artists_artist_is_set !#artist__miles_aldridge |
-!#wizards_artists_artist_is_set !#artist__john_white_alexander |
-!#wizards_artists_artist_is_set !#artist__alessandro_allori |
-!#wizards_artists_artist_is_set !#artist__mike_allred |
-!#wizards_artists_artist_is_set !#artist__lawrence_alma_tadema |
-!#wizards_artists_artist_is_set !#artist__lilia_alvarado |
-!#wizards_artists_artist_is_set !#artist__tarsila_do_amaral |
-!#wizards_artists_artist_is_set !#artist__ghada_amer |
-!#wizards_artists_artist_is_set !#artist__cuno_amiet |
-!#wizards_artists_artist_is_set !#artist__el_anatsui |
-!#wizards_artists_artist_is_set !#artist__helga_ancher |
-!#wizards_artists_artist_is_set !#artist__sarah_andersen |
-!#wizards_artists_artist_is_set !#artist__richard_anderson |
-!#wizards_artists_artist_is_set !#artist__sophie_gengembre_anderson |
-!#wizards_artists_artist_is_set !#artist__wes_anderson |
-!#wizards_artists_artist_is_set !#artist__alex_andreev |
-!#wizards_artists_artist_is_set !#artist__sofonisba_anguissola |
-!#wizards_artists_artist_is_set !#artist__louis_anquetin |
-!#wizards_artists_artist_is_set !#artist__mary_jane_ansell |
-!#wizards_artists_artist_is_set !#artist__chiho_aoshima |
-!#wizards_artists_artist_is_set !#artist__sabbas_apterus |
-!#wizards_artists_artist_is_set !#artist__hirohiko_araki |
-!#wizards_artists_artist_is_set !#artist__howard_arkley |
-!#wizards_artists_artist_is_set !#artist__rolf_armstrong |
-!#wizards_artists_artist_is_set !#artist__gerd_arntz |
-!#wizards_artists_artist_is_set !#artist__guy_aroch |
-!#wizards_artists_artist_is_set !#artist__miki_asai |
-!#wizards_artists_artist_is_set !#artist__clemens_ascher |
-!#wizards_artists_artist_is_set !#artist__henry_asencio |
-!#wizards_artists_artist_is_set !#artist__andrew_atroshenko |
-!#wizards_artists_artist_is_set !#artist__deborah_azzopardi |
-!#wizards_artists_artist_is_set !#artist__lois_van_baarle |
-!#wizards_artists_artist_is_set !#artist__ingrid_baars |
-!#wizards_artists_artist_is_set !#artist__anne_bachelier |
-!#wizards_artists_artist_is_set !#artist__francis_bacon |
-!#wizards_artists_artist_is_set !#artist__firmin_baes |
-!#wizards_artists_artist_is_set !#artist__tom_bagshaw |
-!#wizards_artists_artist_is_set !#artist__karol_bak |
-!#wizards_artists_artist_is_set !#artist__christopher_balaskas |
-!#wizards_artists_artist_is_set !#artist__benedick_bana |
-!#wizards_artists_artist_is_set !#artist__banksy |
-!#wizards_artists_artist_is_set !#artist__george_barbier |
-!#wizards_artists_artist_is_set !#artist__cicely_mary_barker |
-!#wizards_artists_artist_is_set !#artist__wayne_barlowe |
-!#wizards_artists_artist_is_set !#artist__will_barnet |
-!#wizards_artists_artist_is_set !#artist__matthew_barney |
-!#wizards_artists_artist_is_set !#artist__angela_barrett |
-!#wizards_artists_artist_is_set !#artist__jean_michel_basquiat |
-!#wizards_artists_artist_is_set !#artist__lillian_bassman |
-!#wizards_artists_artist_is_set !#artist__pompeo_batoni |
-!#wizards_artists_artist_is_set !#artist__casey_baugh |
-!#wizards_artists_artist_is_set !#artist__chiara_bautista |
-!#wizards_artists_artist_is_set !#artist__herbert_bayer |
-!#wizards_artists_artist_is_set !#artist__mary_beale |
-!#wizards_artists_artist_is_set !#artist__alan_bean |
-!#wizards_artists_artist_is_set !#artist__romare_bearden |
-!#wizards_artists_artist_is_set !#artist__cecil_beaton |
-!#wizards_artists_artist_is_set !#artist__cecilia_beaux |
-!#wizards_artists_artist_is_set !#artist__jasmine_becket_griffith |
-!#wizards_artists_artist_is_set !#artist__vanessa_beecroft |
-!#wizards_artists_artist_is_set !#artist__beeple |
-!#wizards_artists_artist_is_set !#artist__zdzislaw_beksinski |
-!#wizards_artists_artist_is_set !#artist__katerina_belkina |
-!#wizards_artists_artist_is_set !#artist__julie_bell |
-!#wizards_artists_artist_is_set !#artist__vanessa_bell |
-!#wizards_artists_artist_is_set !#artist__bernardo_bellotto |
-!#wizards_artists_artist_is_set !#artist__ambrosius_benson |
-!#wizards_artists_artist_is_set !#artist__stan_berenstain |
-!#wizards_artists_artist_is_set !#artist__laura_berger |
-!#wizards_artists_artist_is_set !#artist__jody_bergsma |
-!#wizards_artists_artist_is_set !#artist__john_berkey |
-!#wizards_artists_artist_is_set !#artist__gian_lorenzo_bernini |
-!#wizards_artists_artist_is_set !#artist__marta_bevacqua |
-!#wizards_artists_artist_is_set !#artist__john_t_biggers |
-!#wizards_artists_artist_is_set !#artist__enki_bilal |
-!#wizards_artists_artist_is_set !#artist__ivan_bilibin |
-!#wizards_artists_artist_is_set !#artist__butcher_billy |
-!#wizards_artists_artist_is_set !#artist__george_caleb_bingham |
-!#wizards_artists_artist_is_set !#artist__ed_binkley |
-!#wizards_artists_artist_is_set !#artist__george_birrell |
-!#wizards_artists_artist_is_set !#artist__robert_bissell |
-!#wizards_artists_artist_is_set !#artist__charles_blackman |
-!#wizards_artists_artist_is_set !#artist__mary_blair |
-!#wizards_artists_artist_is_set !#artist__john_blanche |
-!#wizards_artists_artist_is_set !#artist__don_blanding |
-!#wizards_artists_artist_is_set !#artist__albert_bloch |
-!#wizards_artists_artist_is_set !#artist__hyman_bloom |
-!#wizards_artists_artist_is_set !#artist__peter_blume |
-!#wizards_artists_artist_is_set !#artist__don_bluth |
-!#wizards_artists_artist_is_set !#artist__umberto_boccioni |
-!#wizards_artists_artist_is_set !#artist__anna_bocek |
-!#wizards_artists_artist_is_set !#artist__lee_bogle |
-!#wizards_artists_artist_is_set !#artist__louis_leopold_boily |
-!#wizards_artists_artist_is_set !#artist__giovanni_boldini |
-!#wizards_artists_artist_is_set !#artist__enoch_bolles |
-!#wizards_artists_artist_is_set !#artist__david_bomberg |
-!#wizards_artists_artist_is_set !#artist__chesley_bonestell |
-!#wizards_artists_artist_is_set !#artist__lee_bontecou |
-!#wizards_artists_artist_is_set !#artist__michael_borremans |
-!#wizards_artists_artist_is_set !#artist__matt_bors |
-!#wizards_artists_artist_is_set !#artist__flora_borsi |
-!#wizards_artists_artist_is_set !#artist__hieronymus_bosch |
-!#wizards_artists_artist_is_set !#artist__sam_bosma |
-!#wizards_artists_artist_is_set !#artist__johfra_bosschart |
-!#wizards_artists_artist_is_set !#artist__fernando_botero |
-!#wizards_artists_artist_is_set !#artist__sandro_botticelli |
-!#wizards_artists_artist_is_set !#artist__william_adolphe_bouguereau |
-!#wizards_artists_artist_is_set !#artist__susan_seddon_boulet |
-!#wizards_artists_artist_is_set !#artist__louise_bourgeois |
-!#wizards_artists_artist_is_set !#artist__annick_bouvattier |
-!#wizards_artists_artist_is_set !#artist__david_michael_bowers |
-!#wizards_artists_artist_is_set !#artist__noah_bradley |
-!#wizards_artists_artist_is_set !#artist__aleksi_briclot |
-!#wizards_artists_artist_is_set !#artist__frederick_arthur_bridgman |
-!#wizards_artists_artist_is_set !#artist__renie_britenbucher |
-!#wizards_artists_artist_is_set !#artist__romero_britto |
-!#wizards_artists_artist_is_set !#artist__gerald_brom |
-!#wizards_artists_artist_is_set !#artist__bronzino |
-!#wizards_artists_artist_is_set !#artist__herman_brood |
-!#wizards_artists_artist_is_set !#artist__mark_brooks |
-!#wizards_artists_artist_is_set !#artist__romaine_brooks |
-!#wizards_artists_artist_is_set !#artist__troy_brooks |
-!#wizards_artists_artist_is_set !#artist__broom_lee |
-!#wizards_artists_artist_is_set !#artist__allie_brosh |
-!#wizards_artists_artist_is_set !#artist__ford_madox_brown |
-!#wizards_artists_artist_is_set !#artist__charles_le_brun |
-!#wizards_artists_artist_is_set !#artist__elisabeth_vigee_le_brun |
-!#wizards_artists_artist_is_set !#artist__james_bullough |
-!#wizards_artists_artist_is_set !#artist__laurel_burch |
-!#wizards_artists_artist_is_set !#artist__alejandro_burdisio |
-!#wizards_artists_artist_is_set !#artist__daniel_buren |
-!#wizards_artists_artist_is_set !#artist__jon_burgerman |
-!#wizards_artists_artist_is_set !#artist__richard_burlet |
-!#wizards_artists_artist_is_set !#artist__jim_burns |
-!#wizards_artists_artist_is_set !#artist__stasia_burrington |
-!#wizards_artists_artist_is_set !#artist__kaethe_butcher |
-!#wizards_artists_artist_is_set !#artist__saturno_butto |
-!#wizards_artists_artist_is_set !#artist__paul_cadmus |
-!#wizards_artists_artist_is_set !#artist__zhichao_cai |
-!#wizards_artists_artist_is_set !#artist__randolph_caldecott |
-!#wizards_artists_artist_is_set !#artist__alexander_calder_milne |
-!#wizards_artists_artist_is_set !#artist__clyde_caldwell |
-!#wizards_artists_artist_is_set !#artist__vincent_callebaut |
-!#wizards_artists_artist_is_set !#artist__fred_calleri |
-!#wizards_artists_artist_is_set !#artist__charles_camoin |
-!#wizards_artists_artist_is_set !#artist__mike_campau |
-!#wizards_artists_artist_is_set !#artist__eric_canete |
-!#wizards_artists_artist_is_set !#artist__josef_capek |
-!#wizards_artists_artist_is_set !#artist__leonetto_cappiello |
-!#wizards_artists_artist_is_set !#artist__eric_carle |
-!#wizards_artists_artist_is_set !#artist__larry_carlson |
-!#wizards_artists_artist_is_set !#artist__bill_carman |
-!#wizards_artists_artist_is_set !#artist__jean_baptiste_carpeaux |
-!#wizards_artists_artist_is_set !#artist__rosalba_carriera |
-!#wizards_artists_artist_is_set !#artist__michael_carson |
-!#wizards_artists_artist_is_set !#artist__felice_casorati |
-!#wizards_artists_artist_is_set !#artist__mary_cassatt |
-!#wizards_artists_artist_is_set !#artist__a_j_casson |
-!#wizards_artists_artist_is_set !#artist__giorgio_barbarelli_da_castelfranco |
-!#wizards_artists_artist_is_set !#artist__paul_catherall |
-!#wizards_artists_artist_is_set !#artist__george_catlin |
-!#wizards_artists_artist_is_set !#artist__patrick_caulfield |
-!#wizards_artists_artist_is_set !#artist__nicoletta_ceccoli |
-!#wizards_artists_artist_is_set !#artist__agnes_cecile |
-!#wizards_artists_artist_is_set !#artist__paul_cezanne |
-!#wizards_artists_artist_is_set !#artist__paul_chabas |
-!#wizards_artists_artist_is_set !#artist__marc_chagall |
-!#wizards_artists_artist_is_set !#artist__tom_chambers |
-!#wizards_artists_artist_is_set !#artist__katia_chausheva |
-!#wizards_artists_artist_is_set !#artist__hsiao_ron_cheng |
-!#wizards_artists_artist_is_set !#artist__yanjun_cheng |
-!#wizards_artists_artist_is_set !#artist__sandra_chevrier |
-!#wizards_artists_artist_is_set !#artist__judy_chicago |
-!#wizards_artists_artist_is_set !#artist__dale_chihuly |
-!#wizards_artists_artist_is_set !#artist__frank_cho |
-!#wizards_artists_artist_is_set !#artist__james_c_christensen |
-!#wizards_artists_artist_is_set !#artist__mikalojus_konstantinas_ciurlionis |
-!#wizards_artists_artist_is_set !#artist__alson_skinner_clark |
-!#wizards_artists_artist_is_set !#artist__amanda_clark |
-!#wizards_artists_artist_is_set !#artist__harry_clarke |
-!#wizards_artists_artist_is_set !#artist__george_clausen |
-!#wizards_artists_artist_is_set !#artist__francesco_clemente |
-!#wizards_artists_artist_is_set !#artist__alvin_langdon_coburn |
-!#wizards_artists_artist_is_set !#artist__clifford_coffin |
-!#wizards_artists_artist_is_set !#artist__vince_colletta |
-!#wizards_artists_artist_is_set !#artist__beth_conklin |
-!#wizards_artists_artist_is_set !#artist__john_constable |
-!#wizards_artists_artist_is_set !#artist__darwyn_cooke |
-!#wizards_artists_artist_is_set !#artist__richard_corben |
-!#wizards_artists_artist_is_set !#artist__vittorio_matteo_corcos |
-!#wizards_artists_artist_is_set !#artist__paul_corfield |
-!#wizards_artists_artist_is_set !#artist__fernand_cormon |
-!#wizards_artists_artist_is_set !#artist__norman_cornish |
-!#wizards_artists_artist_is_set !#artist__camille_corot |
-!#wizards_artists_artist_is_set !#artist__gemma_correll |
-!#wizards_artists_artist_is_set !#artist__petra_cortright |
-!#wizards_artists_artist_is_set !#artist__lorenzo_costa_the_elder |
-!#wizards_artists_artist_is_set !#artist__olive_cotton |
-!#wizards_artists_artist_is_set !#artist__peter_coulson |
-!#wizards_artists_artist_is_set !#artist__gustave_courbet |
-!#wizards_artists_artist_is_set !#artist__frank_cadogan_cowper |
-!#wizards_artists_artist_is_set !#artist__kinuko_y_craft |
-!#wizards_artists_artist_is_set !#artist__clayton_crain |
-!#wizards_artists_artist_is_set !#artist__lucas_cranach_the_elder |
-!#wizards_artists_artist_is_set !#artist__lucas_cranach_the_younger |
-!#wizards_artists_artist_is_set !#artist__walter_crane |
-!#wizards_artists_artist_is_set !#artist__martin_creed |
-!#wizards_artists_artist_is_set !#artist__gregory_crewdson |
-!#wizards_artists_artist_is_set !#artist__debbie_criswell |
-!#wizards_artists_artist_is_set !#artist__victoria_crowe |
-!#wizards_artists_artist_is_set !#artist__etam_cru |
-!#wizards_artists_artist_is_set !#artist__robert_crumb |
-!#wizards_artists_artist_is_set !#artist__carlos_cruz_diez |
-!#wizards_artists_artist_is_set !#artist__john_currin |
-!#wizards_artists_artist_is_set !#artist__krenz_cushart |
-!#wizards_artists_artist_is_set !#artist__camilla_derrico |
-!#wizards_artists_artist_is_set !#artist__pino_daeni |
-!#wizards_artists_artist_is_set !#artist__salvador_dali |
-!#wizards_artists_artist_is_set !#artist__sunil_das |
-!#wizards_artists_artist_is_set !#artist__ian_davenport |
-!#wizards_artists_artist_is_set !#artist__stuart_davis |
-!#wizards_artists_artist_is_set !#artist__roger_dean |
-!#wizards_artists_artist_is_set !#artist__michael_deforge |
-!#wizards_artists_artist_is_set !#artist__edgar_degas |
-!#wizards_artists_artist_is_set !#artist__eugene_delacroix |
-!#wizards_artists_artist_is_set !#artist__robert_delaunay |
-!#wizards_artists_artist_is_set !#artist__sonia_delaunay |
-!#wizards_artists_artist_is_set !#artist__gabriele_dellotto |
-!#wizards_artists_artist_is_set !#artist__nicolas_delort |
-!#wizards_artists_artist_is_set !#artist__jean_delville |
-!#wizards_artists_artist_is_set !#artist__posuka_demizu |
-!#wizards_artists_artist_is_set !#artist__guy_denning |
-!#wizards_artists_artist_is_set !#artist__monsu_desiderio |
-!#wizards_artists_artist_is_set !#artist__charles_maurice_detmold |
-!#wizards_artists_artist_is_set !#artist__edward_julius_detmold |
-!#wizards_artists_artist_is_set !#artist__anne_dewailly |
-!#wizards_artists_artist_is_set !#artist__walt_disney |
-!#wizards_artists_artist_is_set !#artist__tony_diterlizzi |
-!#wizards_artists_artist_is_set !#artist__anna_dittmann |
-!#wizards_artists_artist_is_set !#artist__dima_dmitriev |
-!#wizards_artists_artist_is_set !#artist__peter_doig |
-!#wizards_artists_artist_is_set !#artist__kees_van_dongen |
-!#wizards_artists_artist_is_set !#artist__gustave_dore |
-!#wizards_artists_artist_is_set !#artist__dave_dorman |
-!#wizards_artists_artist_is_set !#artist__emilio_giuseppe_dossena |
-!#wizards_artists_artist_is_set !#artist__david_downton |
-!#wizards_artists_artist_is_set !#artist__jessica_drossin |
-!#wizards_artists_artist_is_set !#artist__philippe_druillet |
-!#wizards_artists_artist_is_set !#artist__tj_drysdale |
-!#wizards_artists_artist_is_set !#artist__ton_dubbeldam |
-!#wizards_artists_artist_is_set !#artist__marcel_duchamp |
-!#wizards_artists_artist_is_set !#artist__joseph_ducreux |
-!#wizards_artists_artist_is_set !#artist__edmund_dulac |
-!#wizards_artists_artist_is_set !#artist__marlene_dumas |
-!#wizards_artists_artist_is_set !#artist__charles_dwyer |
-!#wizards_artists_artist_is_set !#artist__william_dyce |
-!#wizards_artists_artist_is_set !#artist__chris_dyer |
-!#wizards_artists_artist_is_set !#artist__eyvind_earle |
-!#wizards_artists_artist_is_set !#artist__amy_earles |
-!#wizards_artists_artist_is_set !#artist__lori_earley |
-!#wizards_artists_artist_is_set !#artist__jeff_easley |
-!#wizards_artists_artist_is_set !#artist__tristan_eaton |
-!#wizards_artists_artist_is_set !#artist__jason_edmiston |
-!#wizards_artists_artist_is_set !#artist__alfred_eisenstaedt |
-!#wizards_artists_artist_is_set !#artist__jesper_ejsing |
-!#wizards_artists_artist_is_set !#artist__olafur_eliasson |
-!#wizards_artists_artist_is_set !#artist__harrison_ellenshaw |
-!#wizards_artists_artist_is_set !#artist__christine_ellger |
-!#wizards_artists_artist_is_set !#artist__larry_elmore |
-!#wizards_artists_artist_is_set !#artist__joseba_elorza |
-!#wizards_artists_artist_is_set !#artist__peter_elson |
-!#wizards_artists_artist_is_set !#artist__gil_elvgren |
-!#wizards_artists_artist_is_set !#artist__ed_emshwiller |
-!#wizards_artists_artist_is_set !#artist__kilian_eng |
-!#wizards_artists_artist_is_set !#artist__jason_a_engle |
-!#wizards_artists_artist_is_set !#artist__max_ernst |
-!#wizards_artists_artist_is_set !#artist__romain_de_tirtoff_erte |
-!#wizards_artists_artist_is_set !#artist__m_c_escher |
-!#wizards_artists_artist_is_set !#artist__tim_etchells |
-!#wizards_artists_artist_is_set !#artist__walker_evans |
-!#wizards_artists_artist_is_set !#artist__jan_van_eyck |
-!#wizards_artists_artist_is_set !#artist__glenn_fabry |
-!#wizards_artists_artist_is_set !#artist__ludwig_fahrenkrog |
-!#wizards_artists_artist_is_set !#artist__shepard_fairey |
-!#wizards_artists_artist_is_set !#artist__andy_fairhurst |
-!#wizards_artists_artist_is_set !#artist__luis_ricardo_falero |
-!#wizards_artists_artist_is_set !#artist__jean_fautrier |
-!#wizards_artists_artist_is_set !#artist__andrew_ferez |
-!#wizards_artists_artist_is_set !#artist__hugh_ferriss |
-!#wizards_artists_artist_is_set !#artist__david_finch |
-!#wizards_artists_artist_is_set !#artist__callie_fink |
-!#wizards_artists_artist_is_set !#artist__virgil_finlay |
-!#wizards_artists_artist_is_set !#artist__anato_finnstark |
-!#wizards_artists_artist_is_set !#artist__howard_finster |
-!#wizards_artists_artist_is_set !#artist__oskar_fischinger |
-!#wizards_artists_artist_is_set !#artist__samuel_melton_fisher |
-!#wizards_artists_artist_is_set !#artist__john_anster_fitzgerald |
-!#wizards_artists_artist_is_set !#artist__tony_fitzpatrick |
-!#wizards_artists_artist_is_set !#artist__hippolyte_flandrin |
-!#wizards_artists_artist_is_set !#artist__dan_flavin |
-!#wizards_artists_artist_is_set !#artist__max_fleischer |
-!#wizards_artists_artist_is_set !#artist__govaert_flinck |
-!#wizards_artists_artist_is_set !#artist__alex_russell_flint |
-!#wizards_artists_artist_is_set !#artist__lucio_fontana |
-!#wizards_artists_artist_is_set !#artist__chris_foss |
-!#wizards_artists_artist_is_set !#artist__jon_foster |
-!#wizards_artists_artist_is_set !#artist__jean_fouquet |
-!#wizards_artists_artist_is_set !#artist__toby_fox |
-!#wizards_artists_artist_is_set !#artist__art_frahm |
-!#wizards_artists_artist_is_set !#artist__lisa_frank |
-!#wizards_artists_artist_is_set !#artist__helen_frankenthaler |
-!#wizards_artists_artist_is_set !#artist__frank_frazetta |
-!#wizards_artists_artist_is_set !#artist__kelly_freas |
-!#wizards_artists_artist_is_set !#artist__lucian_freud |
-!#wizards_artists_artist_is_set !#artist__brian_froud |
-!#wizards_artists_artist_is_set !#artist__wendy_froud |
-!#wizards_artists_artist_is_set !#artist__tom_fruin |
-!#wizards_artists_artist_is_set !#artist__john_wayne_gacy |
-!#wizards_artists_artist_is_set !#artist__justin_gaffrey |
-!#wizards_artists_artist_is_set !#artist__hashimoto_gaho |
-!#wizards_artists_artist_is_set !#artist__neil_gaiman |
-!#wizards_artists_artist_is_set !#artist__stephen_gammell |
-!#wizards_artists_artist_is_set !#artist__hope_gangloff |
-!#wizards_artists_artist_is_set !#artist__alex_garant |
-!#wizards_artists_artist_is_set !#artist__gilbert_garcin |
-!#wizards_artists_artist_is_set !#artist__michael_and_inessa_garmash |
-!#wizards_artists_artist_is_set !#artist__antoni_gaudi |
-3 |
-!#wizards_artists_artist_is_set !#artist__paul_gauguin |
-!#wizards_artists_artist_is_set !#artist__giovanni_battista_gaulli |
-!#wizards_artists_artist_is_set !#artist__anne_geddes |
-!#wizards_artists_artist_is_set !#artist__bill_gekas |
-!#wizards_artists_artist_is_set !#artist__artemisia_gentileschi |
-!#wizards_artists_artist_is_set !#artist__orazio_gentileschi |
-!#wizards_artists_artist_is_set !#artist__daniel_f_gerhartz |
-!#wizards_artists_artist_is_set !#artist__theodore_gericault |
-!#wizards_artists_artist_is_set !#artist__jean_leon_gerome |
-!#wizards_artists_artist_is_set !#artist__mark_gertler |
-!#wizards_artists_artist_is_set !#artist__atey_ghailan |
-!#wizards_artists_artist_is_set !#artist__alberto_giacometti |
-!#wizards_artists_artist_is_set !#artist__donato_giancola |
-!#wizards_artists_artist_is_set !#artist__hr_giger |
-!#wizards_artists_artist_is_set !#artist__james_gilleard |
-!#wizards_artists_artist_is_set !#artist__harold_gilman |
-!#wizards_artists_artist_is_set !#artist__charles_ginner |
-!#wizards_artists_artist_is_set !#artist__jean_giraud |
-!#wizards_artists_artist_is_set !#artist__anne_louis_girodet |
-!#wizards_artists_artist_is_set !#artist__milton_glaser |
-!#wizards_artists_artist_is_set !#artist__warwick_goble |
-!#wizards_artists_artist_is_set !#artist__john_william_godward |
-!#wizards_artists_artist_is_set !#artist__sacha_goldberger |
-!#wizards_artists_artist_is_set !#artist__nan_goldin |
-!#wizards_artists_artist_is_set !#artist__josan_gonzalez |
-!#wizards_artists_artist_is_set !#artist__felix_gonzalez_torres |
-!#wizards_artists_artist_is_set !#artist__derek_gores |
-!#wizards_artists_artist_is_set !#artist__edward_gorey |
-!#wizards_artists_artist_is_set !#artist__arshile_gorky |
-!#wizards_artists_artist_is_set !#artist__alessandro_gottardo |
-!#wizards_artists_artist_is_set !#artist__adolph_gottlieb |
-!#wizards_artists_artist_is_set !#artist__francisco_goya |
-!#wizards_artists_artist_is_set !#artist__laurent_grasso |
-!#wizards_artists_artist_is_set !#artist__mab_graves |
-!#wizards_artists_artist_is_set !#artist__eileen_gray |
-!#wizards_artists_artist_is_set !#artist__kate_greenaway |
-!#wizards_artists_artist_is_set !#artist__alex_grey |
-!#wizards_artists_artist_is_set !#artist__carne_griffiths |
-!#wizards_artists_artist_is_set !#artist__gris_grimly |
-!#wizards_artists_artist_is_set !#artist__brothers_grimm |
-!#wizards_artists_artist_is_set !#artist__tracie_grimwood |
-!#wizards_artists_artist_is_set !#artist__matt_groening |
-!#wizards_artists_artist_is_set !#artist__alex_gross |
-!#wizards_artists_artist_is_set !#artist__tom_grummett |
-!#wizards_artists_artist_is_set !#artist__huang_guangjian |
-!#wizards_artists_artist_is_set !#artist__wu_guanzhong |
-!#wizards_artists_artist_is_set !#artist__rebecca_guay |
-!#wizards_artists_artist_is_set !#artist__guercino |
-!#wizards_artists_artist_is_set !#artist__jeannette_guichard_bunel |
-!#wizards_artists_artist_is_set !#artist__scott_gustafson |
-!#wizards_artists_artist_is_set !#artist__wade_guyton |
-!#wizards_artists_artist_is_set !#artist__hans_haacke |
-!#wizards_artists_artist_is_set !#artist__robert_hagan |
-!#wizards_artists_artist_is_set !#artist__philippe_halsman |
-!#wizards_artists_artist_is_set !#artist__maggi_hambling |
-!#wizards_artists_artist_is_set !#artist__richard_hamilton |
-!#wizards_artists_artist_is_set !#artist__bess_hamiti |
-!#wizards_artists_artist_is_set !#artist__tom_hammick |
-!#wizards_artists_artist_is_set !#artist__david_hammons |
-!#wizards_artists_artist_is_set !#artist__ren_hang |
-!#wizards_artists_artist_is_set !#artist__erin_hanson |
-!#wizards_artists_artist_is_set !#artist__keith_haring |
-!#wizards_artists_artist_is_set !#artist__alexei_harlamoff |
-!#wizards_artists_artist_is_set !#artist__charley_harper |
-!#wizards_artists_artist_is_set !#artist__john_harris |
-!#wizards_artists_artist_is_set !#artist__florence_harrison |
-!#wizards_artists_artist_is_set !#artist__marsden_hartley |
-!#wizards_artists_artist_is_set !#artist__ryohei_hase |
-!#wizards_artists_artist_is_set !#artist__childe_hassam |
-!#wizards_artists_artist_is_set !#artist__ben_hatke |
-!#wizards_artists_artist_is_set !#artist__mona_hatoum |
-!#wizards_artists_artist_is_set !#artist__pam_hawkes |
-!#wizards_artists_artist_is_set !#artist__jamie_hawkesworth |
-!#wizards_artists_artist_is_set !#artist__stuart_haygarth |
-!#wizards_artists_artist_is_set !#artist__erich_heckel |
-!#wizards_artists_artist_is_set !#artist__valerie_hegarty |
-!#wizards_artists_artist_is_set !#artist__mary_heilmann |
-!#wizards_artists_artist_is_set !#artist__michael_heizer |
-!#wizards_artists_artist_is_set !#artist__gottfried_helnwein |
-!#wizards_artists_artist_is_set !#artist__barkley_l_hendricks |
-!#wizards_artists_artist_is_set !#artist__bill_henson |
-!#wizards_artists_artist_is_set !#artist__barbara_hepworth |
-!#wizards_artists_artist_is_set !#artist__herge |
-!#wizards_artists_artist_is_set !#artist__carolina_herrera |
-!#wizards_artists_artist_is_set !#artist__george_herriman |
-!#wizards_artists_artist_is_set !#artist__don_hertzfeldt |
-!#wizards_artists_artist_is_set !#artist__prudence_heward |
-!#wizards_artists_artist_is_set !#artist__ryan_hewett |
-!#wizards_artists_artist_is_set !#artist__nora_heysen |
-!#wizards_artists_artist_is_set !#artist__george_elgar_hicks |
-!#wizards_artists_artist_is_set !#artist__lorenz_hideyoshi |
-!#wizards_artists_artist_is_set !#artist__brothers_hildebrandt |
-!#wizards_artists_artist_is_set !#artist__dan_hillier |
-!#wizards_artists_artist_is_set !#artist__lewis_hine |
-!#wizards_artists_artist_is_set !#artist__miho_hirano |
-!#wizards_artists_artist_is_set !#artist__harumi_hironaka |
-!#wizards_artists_artist_is_set !#artist__hiroshige |
-!#wizards_artists_artist_is_set !#artist__morris_hirshfield |
-!#wizards_artists_artist_is_set !#artist__damien_hirst |
-!#wizards_artists_artist_is_set !#artist__fan_ho |
-!#wizards_artists_artist_is_set !#artist__meindert_hobbema |
-!#wizards_artists_artist_is_set !#artist__david_hockney |
-!#wizards_artists_artist_is_set !#artist__filip_hodas |
-!#wizards_artists_artist_is_set !#artist__howard_hodgkin |
-!#wizards_artists_artist_is_set !#artist__ferdinand_hodler |
-!#wizards_artists_artist_is_set !#artist__tiago_hoisel |
-!#wizards_artists_artist_is_set !#artist__katsushika_hokusai |
-!#wizards_artists_artist_is_set !#artist__hans_holbein_the_younger |
-!#wizards_artists_artist_is_set !#artist__frank_holl |
-!#wizards_artists_artist_is_set !#artist__carsten_holler |
-!#wizards_artists_artist_is_set !#artist__zena_holloway |
-!#wizards_artists_artist_is_set !#artist__edward_hopper |
-!#wizards_artists_artist_is_set !#artist__aaron_horkey |
-!#wizards_artists_artist_is_set !#artist__alex_horley |
-!#wizards_artists_artist_is_set !#artist__roni_horn |
-!#wizards_artists_artist_is_set !#artist__john_howe |
-!#wizards_artists_artist_is_set !#artist__alex_howitt |
-!#wizards_artists_artist_is_set !#artist__meghan_howland |
-!#wizards_artists_artist_is_set !#artist__john_hoyland |
-!#wizards_artists_artist_is_set !#artist__shilin_huang |
-!#wizards_artists_artist_is_set !#artist__arthur_hughes |
-!#wizards_artists_artist_is_set !#artist__edward_robert_hughes |
-!#wizards_artists_artist_is_set !#artist__jack_hughes |
-!#wizards_artists_artist_is_set !#artist__talbot_hughes |
-!#wizards_artists_artist_is_set !#artist__pieter_hugo |
-!#wizards_artists_artist_is_set !#artist__gary_hume |
-!#wizards_artists_artist_is_set !#artist__friedensreich_hundertwasser |
-!#wizards_artists_artist_is_set !#artist__william_holman_hunt |
-!#wizards_artists_artist_is_set !#artist__george_hurrell |
-!#wizards_artists_artist_is_set !#artist__fabio_hurtado |
-!#wizards_artists_artist_is_set !#artist__hush |
-!#wizards_artists_artist_is_set !#artist__michael_hutter |
-!#wizards_artists_artist_is_set !#artist__pierre_huyghe |
-!#wizards_artists_artist_is_set !#artist__doug_hyde |
-!#wizards_artists_artist_is_set !#artist__louis_icart |
-!#wizards_artists_artist_is_set !#artist__robert_indiana |
-!#wizards_artists_artist_is_set !#artist__jean_auguste_dominique_ingres |
-!#wizards_artists_artist_is_set !#artist__robert_irwin |
-!#wizards_artists_artist_is_set !#artist__gabriel_isak |
-!#wizards_artists_artist_is_set !#artist__junji_ito |
-!#wizards_artists_artist_is_set !#artist__christophe_jacrot |
-!#wizards_artists_artist_is_set !#artist__louis_janmot |
-!#wizards_artists_artist_is_set !#artist__frieke_janssens |
-!#wizards_artists_artist_is_set !#artist__alexander_jansson |
-!#wizards_artists_artist_is_set !#artist__tove_jansson |
-!#wizards_artists_artist_is_set !#artist__aaron_jasinski |
-!#wizards_artists_artist_is_set !#artist__alexej_von_jawlensky |
-!#wizards_artists_artist_is_set !#artist__james_jean |
-!#wizards_artists_artist_is_set !#artist__oliver_jeffers |
-!#wizards_artists_artist_is_set !#artist__lee_jeffries |
-!#wizards_artists_artist_is_set !#artist__georg_jensen |
-!#wizards_artists_artist_is_set !#artist__ellen_jewett |
-!#wizards_artists_artist_is_set !#artist__he_jiaying |
-!#wizards_artists_artist_is_set !#artist__chantal_joffe |
-!#wizards_artists_artist_is_set !#artist__martine_johanna |
-!#wizards_artists_artist_is_set !#artist__augustus_john |
-!#wizards_artists_artist_is_set !#artist__gwen_john |
-!#wizards_artists_artist_is_set !#artist__jasper_johns |
-!#wizards_artists_artist_is_set !#artist__eastman_johnson |
-!#wizards_artists_artist_is_set !#artist__alfred_cheney_johnston |
-!#wizards_artists_artist_is_set !#artist__dorothy_johnstone |
-!#wizards_artists_artist_is_set !#artist__android_jones |
-!#wizards_artists_artist_is_set !#artist__erik_jones |
-!#wizards_artists_artist_is_set !#artist__jeffrey_catherine_jones |
-!#wizards_artists_artist_is_set !#artist__peter_andrew_jones |
-!#wizards_artists_artist_is_set !#artist__loui_jover |
-!#wizards_artists_artist_is_set !#artist__amy_judd |
-!#wizards_artists_artist_is_set !#artist__donald_judd |
-!#wizards_artists_artist_is_set !#artist__jean_jullien |
-!#wizards_artists_artist_is_set !#artist__matthias_jung |
-!#wizards_artists_artist_is_set !#artist__joe_jusko |
-!#wizards_artists_artist_is_set !#artist__frida_kahlo |
-!#wizards_artists_artist_is_set !#artist__hayv_kahraman |
-!#wizards_artists_artist_is_set !#artist__mw_kaluta |
-!#wizards_artists_artist_is_set !#artist__nadav_kander |
-!#wizards_artists_artist_is_set !#artist__wassily_kandinsky |
-!#wizards_artists_artist_is_set !#artist__jun_kaneko |
-!#wizards_artists_artist_is_set !#artist__titus_kaphar |
-!#wizards_artists_artist_is_set !#artist__michal_karcz |
-!#wizards_artists_artist_is_set !#artist__gertrude_kasebier |
-!#wizards_artists_artist_is_set !#artist__terada_katsuya |
-!#wizards_artists_artist_is_set !#artist__audrey_kawasaki |
-!#wizards_artists_artist_is_set !#artist__hasui_kawase |
-!#wizards_artists_artist_is_set !#artist__glen_keane |
-!#wizards_artists_artist_is_set !#artist__margaret_keane |
-!#wizards_artists_artist_is_set !#artist__ellsworth_kelly |
-!#wizards_artists_artist_is_set !#artist__michael_kenna |
-!#wizards_artists_artist_is_set !#artist__thomas_benjamin_kennington |
-!#wizards_artists_artist_is_set !#artist__william_kentridge |
-!#wizards_artists_artist_is_set !#artist__hendrik_kerstens |
-!#wizards_artists_artist_is_set !#artist__jeremiah_ketner |
-!#wizards_artists_artist_is_set !#artist__fernand_khnopff |
-!#wizards_artists_artist_is_set !#artist__hideyuki_kikuchi |
-!#wizards_artists_artist_is_set !#artist__tom_killion |
-!#wizards_artists_artist_is_set !#artist__thomas_kinkade |
-!#wizards_artists_artist_is_set !#artist__jack_kirby |
-!#wizards_artists_artist_is_set !#artist__ernst_ludwig_kirchner |
-!#wizards_artists_artist_is_set !#artist__tatsuro_kiuchi |
-!#wizards_artists_artist_is_set !#artist__jon_klassen |
-!#wizards_artists_artist_is_set !#artist__paul_klee |
-!#wizards_artists_artist_is_set !#artist__william_klein |
-!#wizards_artists_artist_is_set !#artist__yves_klein |
-!#wizards_artists_artist_is_set !#artist__carl_kleiner |
-!#wizards_artists_artist_is_set !#artist__gustav_klimt |
-!#wizards_artists_artist_is_set !#artist__godfrey_kneller |
-!#wizards_artists_artist_is_set !#artist__emily_kame_kngwarreye |
-!#wizards_artists_artist_is_set !#artist__chad_knight |
-!#wizards_artists_artist_is_set !#artist__nick_knight |
-!#wizards_artists_artist_is_set !#artist__helene_knoop |
-!#wizards_artists_artist_is_set !#artist__phil_koch |
-!#wizards_artists_artist_is_set !#artist__kazuo_koike |
-!#wizards_artists_artist_is_set !#artist__oskar_kokoschka |
-!#wizards_artists_artist_is_set !#artist__kathe_kollwitz |
-!#wizards_artists_artist_is_set !#artist__michael_komarck |
-!#wizards_artists_artist_is_set !#artist__satoshi_kon |
-!#wizards_artists_artist_is_set !#artist__jeff_koons |
-!#wizards_artists_artist_is_set !#artist__caia_koopman |
-!#wizards_artists_artist_is_set !#artist__konstantin_korovin |
-!#wizards_artists_artist_is_set !#artist__mark_kostabi |
-!#wizards_artists_artist_is_set !#artist__bella_kotak |
-!#wizards_artists_artist_is_set !#artist__andrea_kowch |
-!#wizards_artists_artist_is_set !#artist__lee_krasner |
-!#wizards_artists_artist_is_set !#artist__barbara_kruger |
-!#wizards_artists_artist_is_set !#artist__brad_kunkle |
-!#wizards_artists_artist_is_set !#artist__yayoi_kusama |
-!#wizards_artists_artist_is_set !#artist__michael_k_kutsche |
-!#wizards_artists_artist_is_set !#artist__ilya_kuvshinov |
-!#wizards_artists_artist_is_set !#artist__david_lachapelle |
-!#wizards_artists_artist_is_set !#artist__raphael_lacoste |
-!#wizards_artists_artist_is_set !#artist__lev_lagorio |
-!#wizards_artists_artist_is_set !#artist__rene_lalique |
-!#wizards_artists_artist_is_set !#artist__abigail_larson |
-!#wizards_artists_artist_is_set !#artist__gary_larson |
-!#wizards_artists_artist_is_set !#artist__denys_lasdun |
-!#wizards_artists_artist_is_set !#artist__maria_lassnig |
-!#wizards_artists_artist_is_set !#artist__dorothy_lathrop |
-!#wizards_artists_artist_is_set !#artist__melissa_launay |
-!#wizards_artists_artist_is_set !#artist__john_lavery |
-!#wizards_artists_artist_is_set !#artist__jacob_lawrence |
-!#wizards_artists_artist_is_set !#artist__thomas_lawrence |
-!#wizards_artists_artist_is_set !#artist__ernest_lawson |
-!#wizards_artists_artist_is_set !#artist__bastien_lecouffe_deharme |
-!#wizards_artists_artist_is_set !#artist__alan_lee |
-!#wizards_artists_artist_is_set !#artist__minjae_lee |
-!#wizards_artists_artist_is_set !#artist__nina_leen |
-!#wizards_artists_artist_is_set !#artist__fernand_leger |
-!#wizards_artists_artist_is_set !#artist__paul_lehr |
-!#wizards_artists_artist_is_set !#artist__frederic_leighton |
-!#wizards_artists_artist_is_set !#artist__alayna_lemmer |
-!#wizards_artists_artist_is_set !#artist__tamara_de_lempicka |
-!#wizards_artists_artist_is_set !#artist__sol_lewitt |
-!#wizards_artists_artist_is_set !#artist__jc_leyendecker |
-!#wizards_artists_artist_is_set !#artist__andre_lhote |
-!#wizards_artists_artist_is_set !#artist__roy_lichtenstein |
-!#wizards_artists_artist_is_set !#artist__rob_liefeld |
-!#wizards_artists_artist_is_set !#artist__fang_lijun |
-!#wizards_artists_artist_is_set !#artist__maya_lin |
-!#wizards_artists_artist_is_set !#artist__filippino_lippi |
-!#wizards_artists_artist_is_set !#artist__herbert_list |
-!#wizards_artists_artist_is_set !#artist__richard_long |
-!#wizards_artists_artist_is_set !#artist__yoann_lossel |
-!#wizards_artists_artist_is_set !#artist__morris_louis |
-!#wizards_artists_artist_is_set !#artist__sarah_lucas |
-!#wizards_artists_artist_is_set !#artist__maximilien_luce |
-!#wizards_artists_artist_is_set !#artist__loretta_lux |
-!#wizards_artists_artist_is_set !#artist__george_platt_lynes |
-!#wizards_artists_artist_is_set !#artist__frances_macdonald |
-!#wizards_artists_artist_is_set !#artist__august_macke |
-!#wizards_artists_artist_is_set !#artist__stephen_mackey |
-!#wizards_artists_artist_is_set !#artist__rachel_maclean |
-!#wizards_artists_artist_is_set !#artist__raimundo_de_madrazo_y_garreta |
-!#wizards_artists_artist_is_set !#artist__joe_madureira |
-!#wizards_artists_artist_is_set !#artist__rene_magritte |
-!#wizards_artists_artist_is_set !#artist__jim_mahfood |
-!#wizards_artists_artist_is_set !#artist__vivian_maier |
-!#wizards_artists_artist_is_set !#artist__aristide_maillol |
-!#wizards_artists_artist_is_set !#artist__don_maitz |
-!#wizards_artists_artist_is_set !#artist__laura_makabresku |
-!#wizards_artists_artist_is_set !#artist__alex_maleev |
-!#wizards_artists_artist_is_set !#artist__keith_mallett |
-!#wizards_artists_artist_is_set !#artist__johji_manabe |
-!#wizards_artists_artist_is_set !#artist__milo_manara |
-!#wizards_artists_artist_is_set !#artist__edouard_manet |
-!#wizards_artists_artist_is_set !#artist__henri_manguin |
-!#wizards_artists_artist_is_set !#artist__jeremy_mann |
-!#wizards_artists_artist_is_set !#artist__sally_mann |
-!#wizards_artists_artist_is_set !#artist__andrea_mantegna |
-!#wizards_artists_artist_is_set !#artist__antonio_j_manzanedo |
-!#wizards_artists_artist_is_set !#artist__robert_mapplethorpe |
-!#wizards_artists_artist_is_set !#artist__franz_marc |
-!#wizards_artists_artist_is_set !#artist__ivan_marchuk |
-!#wizards_artists_artist_is_set !#artist__brice_marden |
-!#wizards_artists_artist_is_set !#artist__andrei_markin |
-!#wizards_artists_artist_is_set !#artist__kerry_james_marshall |
-!#wizards_artists_artist_is_set !#artist__serge_marshennikov |
-!#wizards_artists_artist_is_set !#artist__agnes_martin |
-!#wizards_artists_artist_is_set !#artist__adam_martinakis |
-!#wizards_artists_artist_is_set !#artist__stephan_martiniere |
-!#wizards_artists_artist_is_set !#artist__ilya_mashkov |
-!#wizards_artists_artist_is_set !#artist__henri_matisse |
-!#wizards_artists_artist_is_set !#artist__rodney_matthews |
-!#wizards_artists_artist_is_set !#artist__anton_mauve |
-!#wizards_artists_artist_is_set !#artist__peter_max |
-!#wizards_artists_artist_is_set !#artist__mike_mayhew |
-!#wizards_artists_artist_is_set !#artist__angus_mcbride |
-!#wizards_artists_artist_is_set !#artist__anne_mccaffrey |
-!#wizards_artists_artist_is_set !#artist__robert_mccall |
-!#wizards_artists_artist_is_set !#artist__scott_mccloud |
-!#wizards_artists_artist_is_set !#artist__steve_mccurry |
-!#wizards_artists_artist_is_set !#artist__todd_mcfarlane |
-!#wizards_artists_artist_is_set !#artist__barry_mcgee |
-!#wizards_artists_artist_is_set !#artist__ryan_mcginley |
-!#wizards_artists_artist_is_set !#artist__robert_mcginnis |
-!#wizards_artists_artist_is_set !#artist__richard_mcguire |
-!#wizards_artists_artist_is_set !#artist__patrick_mchale |
-!#wizards_artists_artist_is_set !#artist__kelly_mckernan |
-!#wizards_artists_artist_is_set !#artist__angus_mckie |
-!#wizards_artists_artist_is_set !#artist__alasdair_mclellan |
-!#wizards_artists_artist_is_set !#artist__jon_mcnaught |
-!#wizards_artists_artist_is_set !#artist__dan_mcpharlin |
-!#wizards_artists_artist_is_set !#artist__tara_mcpherson |
-!#wizards_artists_artist_is_set !#artist__ralph_mcquarrie |
-!#wizards_artists_artist_is_set !#artist__ian_mcque |
-!#wizards_artists_artist_is_set !#artist__syd_mead |
-!#wizards_artists_artist_is_set !#artist__richard_meier |
-!#wizards_artists_artist_is_set !#artist__maria_sibylla_merian |
-!#wizards_artists_artist_is_set !#artist__willard_metcalf |
-!#wizards_artists_artist_is_set !#artist__gabriel_metsu |
-!#wizards_artists_artist_is_set !#artist__jean_metzinger |
-!#wizards_artists_artist_is_set !#artist__michelangelo |
-!#wizards_artists_artist_is_set !#artist__nicolas_mignard |
-!#wizards_artists_artist_is_set !#artist__mike_mignola |
-!#wizards_artists_artist_is_set !#artist__dimitra_milan |
-!#wizards_artists_artist_is_set !#artist__john_everett_millais |
-!#wizards_artists_artist_is_set !#artist__marilyn_minter |
-!#wizards_artists_artist_is_set !#artist__januz_miralles |
-!#wizards_artists_artist_is_set !#artist__joan_miro |
-!#wizards_artists_artist_is_set !#artist__joan_mitchell |
-!#wizards_artists_artist_is_set !#artist__hayao_miyazaki |
-!#wizards_artists_artist_is_set !#artist__paula_modersohn_becker |
-!#wizards_artists_artist_is_set !#artist__amedeo_modigliani |
-!#wizards_artists_artist_is_set !#artist__moebius |
-!#wizards_artists_artist_is_set !#artist__peter_mohrbacher |
-!#wizards_artists_artist_is_set !#artist__piet_mondrian |
-!#wizards_artists_artist_is_set !#artist__claude_monet |
-!#wizards_artists_artist_is_set !#artist__jean_baptiste_monge |
-!#wizards_artists_artist_is_set !#artist__alyssa_monks |
-!#wizards_artists_artist_is_set !#artist__alan_moore |
-!#wizards_artists_artist_is_set !#artist__antonio_mora |
-!#wizards_artists_artist_is_set !#artist__edward_moran |
-!#wizards_artists_artist_is_set !#artist__koji_morimoto |
-!#wizards_artists_artist_is_set !#artist__berthe_morisot |
-!#wizards_artists_artist_is_set !#artist__daido_moriyama |
-!#wizards_artists_artist_is_set !#artist__james_wilson_morrice |
-!#wizards_artists_artist_is_set !#artist__sarah_morris |
-!#wizards_artists_artist_is_set !#artist__john_lowrie_morrison |
-!#wizards_artists_artist_is_set !#artist__igor_morski |
-!#wizards_artists_artist_is_set !#artist__john_kenn_mortensen |
-!#wizards_artists_artist_is_set !#artist__victor_moscoso |
-!#wizards_artists_artist_is_set !#artist__inna_mosina |
-!#wizards_artists_artist_is_set !#artist__richard_mosse |
-!#wizards_artists_artist_is_set !#artist__thomas_edwin_mostyn |
-!#wizards_artists_artist_is_set !#artist__marcel_mouly |
-!#wizards_artists_artist_is_set !#artist__emmanuelle_moureaux |
-!#wizards_artists_artist_is_set !#artist__alphonse_mucha |
-!#wizards_artists_artist_is_set !#artist__craig_mullins |
-!#wizards_artists_artist_is_set !#artist__augustus_edwin_mulready |
-!#wizards_artists_artist_is_set !#artist__dan_mumford |
-!#wizards_artists_artist_is_set !#artist__edvard_munch |
-!#wizards_artists_artist_is_set !#artist__alfred_munnings |
-!#wizards_artists_artist_is_set !#artist__gabriele_munter |
-!#wizards_artists_artist_is_set !#artist__takashi_murakami |
-!#wizards_artists_artist_is_set !#artist__patrice_murciano |
-!#wizards_artists_artist_is_set !#artist__scott_musgrove |
-!#wizards_artists_artist_is_set !#artist__wangechi_mutu |
-!#wizards_artists_artist_is_set !#artist__go_nagai |
-!#wizards_artists_artist_is_set !#artist__hiroshi_nagai |
-!#wizards_artists_artist_is_set !#artist__patrick_nagel |
-!#wizards_artists_artist_is_set !#artist__tibor_nagy |
-!#wizards_artists_artist_is_set !#artist__scott_naismith |
-!#wizards_artists_artist_is_set !#artist__juliana_nan |
-!#wizards_artists_artist_is_set !#artist__ted_nasmith |
-!#wizards_artists_artist_is_set !#artist__todd_nauck |
-!#wizards_artists_artist_is_set !#artist__bruce_nauman |
-!#wizards_artists_artist_is_set !#artist__ernst_wilhelm_nay |
-!#wizards_artists_artist_is_set !#artist__alice_neel |
-!#wizards_artists_artist_is_set !#artist__keith_negley |
-!#wizards_artists_artist_is_set !#artist__leroy_neiman |
-!#wizards_artists_artist_is_set !#artist__kadir_nelson |
-!#wizards_artists_artist_is_set !#artist__odd_nerdrum |
-!#wizards_artists_artist_is_set !#artist__shirin_neshat |
-!#wizards_artists_artist_is_set !#artist__mikhail_nesterov |
-!#wizards_artists_artist_is_set !#artist__jane_newland |
-!#wizards_artists_artist_is_set !#artist__victo_ngai |
-!#wizards_artists_artist_is_set !#artist__william_nicholson |
-!#wizards_artists_artist_is_set !#artist__florian_nicolle |
-!#wizards_artists_artist_is_set !#artist__kay_nielsen |
-!#wizards_artists_artist_is_set !#artist__tsutomu_nihei |
-!#wizards_artists_artist_is_set !#artist__victor_nizovtsev |
-!#wizards_artists_artist_is_set !#artist__isamu_noguchi |
-!#wizards_artists_artist_is_set !#artist__catherine_nolin |
-!#wizards_artists_artist_is_set !#artist__francois_de_nome |
-!#wizards_artists_artist_is_set !#artist__earl_norem |
-!#wizards_artists_artist_is_set !#artist__phil_noto |
-!#wizards_artists_artist_is_set !#artist__georgia_okeeffe |
-!#wizards_artists_artist_is_set !#artist__terry_oakes |
-!#wizards_artists_artist_is_set !#artist__chris_ofili |
-!#wizards_artists_artist_is_set !#artist__jack_ohman |
-!#wizards_artists_artist_is_set !#artist__noriyoshi_ohrai |
-!#wizards_artists_artist_is_set !#artist__helio_oiticica |
-!#wizards_artists_artist_is_set !#artist__taro_okamoto |
-!#wizards_artists_artist_is_set !#artist__tim_okamura |
-!#wizards_artists_artist_is_set !#artist__naomi_okubo |
-!#wizards_artists_artist_is_set !#artist__atelier_olschinsky |
-!#wizards_artists_artist_is_set !#artist__greg_olsen |
-!#wizards_artists_artist_is_set !#artist__oleg_oprisco |
-!#wizards_artists_artist_is_set !#artist__tony_orrico |
-!#wizards_artists_artist_is_set !#artist__mamoru_oshii |
-!#wizards_artists_artist_is_set !#artist__ida_rentoul_outhwaite |
-!#wizards_artists_artist_is_set !#artist__yigal_ozeri |
-!#wizards_artists_artist_is_set !#artist__gabriel_pacheco |
-!#wizards_artists_artist_is_set !#artist__michael_page |
-!#wizards_artists_artist_is_set !#artist__rui_palha |
-!#wizards_artists_artist_is_set !#artist__polixeni_papapetrou |
-!#wizards_artists_artist_is_set !#artist__julio_le_parc |
-!#wizards_artists_artist_is_set !#artist__michael_parkes |
-!#wizards_artists_artist_is_set !#artist__philippe_parreno |
-!#wizards_artists_artist_is_set !#artist__maxfield_parrish |
-!#wizards_artists_artist_is_set !#artist__alice_pasquini |
-!#wizards_artists_artist_is_set !#artist__james_mcintosh_patrick |
-!#wizards_artists_artist_is_set !#artist__john_pawson |
-!#wizards_artists_artist_is_set !#artist__max_pechstein |
-!#wizards_artists_artist_is_set !#artist__agnes_lawrence_pelton |
-!#wizards_artists_artist_is_set !#artist__irving_penn |
-!#wizards_artists_artist_is_set !#artist__bruce_pennington |
-!#wizards_artists_artist_is_set !#artist__john_perceval |
-!#wizards_artists_artist_is_set !#artist__george_perez |
-!#wizards_artists_artist_is_set !#artist__constant_permeke |
-!#wizards_artists_artist_is_set !#artist__lilla_cabot_perry |
-!#wizards_artists_artist_is_set !#artist__gaetano_pesce |
-!#wizards_artists_artist_is_set !#artist__cleon_peterson |
-!#wizards_artists_artist_is_set !#artist__daria_petrilli |
-!#wizards_artists_artist_is_set !#artist__raymond_pettibon |
-!#wizards_artists_artist_is_set !#artist__coles_phillips |
-!#wizards_artists_artist_is_set !#artist__francis_picabia |
-!#wizards_artists_artist_is_set !#artist__pablo_picasso |
-!#wizards_artists_artist_is_set !#artist__sopheap_pich |
-!#wizards_artists_artist_is_set !#artist__otto_piene |
-!#wizards_artists_artist_is_set !#artist__jerry_pinkney |
-!#wizards_artists_artist_is_set !#artist__pinturicchio |
-!#wizards_artists_artist_is_set !#artist__sebastiano_del_piombo |
-!#wizards_artists_artist_is_set !#artist__camille_pissarro |
-!#wizards_artists_artist_is_set !#artist__ferris_plock |
-!#wizards_artists_artist_is_set !#artist__bill_plympton |
-!#wizards_artists_artist_is_set !#artist__willy_pogany |
-!#wizards_artists_artist_is_set !#artist__patricia_polacco |
-!#wizards_artists_artist_is_set !#artist__jackson_pollock |
-!#wizards_artists_artist_is_set !#artist__beatrix_potter |
-!#wizards_artists_artist_is_set !#artist__edward_henry_potthast |
-!#wizards_artists_artist_is_set !#artist__simon_prades |
-!#wizards_artists_artist_is_set !#artist__maurice_prendergast |
-!#wizards_artists_artist_is_set !#artist__dod_procter |
-!#wizards_artists_artist_is_set !#artist__leo_putz |
-!#wizards_artists_artist_is_set !#artist__howard_pyle |
-!#wizards_artists_artist_is_set !#artist__arthur_rackham |
-!#wizards_artists_artist_is_set !#artist__natalia_rak |
-!#wizards_artists_artist_is_set !#artist__paul_ranson |
-!#wizards_artists_artist_is_set !#artist__raphael |
-!#wizards_artists_artist_is_set !#artist__abraham_rattner |
-!#wizards_artists_artist_is_set !#artist__jan_van_ravesteyn |
-!#wizards_artists_artist_is_set !#artist__aliza_razell |
-!#wizards_artists_artist_is_set !#artist__paula_rego |
-!#wizards_artists_artist_is_set !#artist__lotte_reiniger |
-!#wizards_artists_artist_is_set !#artist__valentin_rekunenko |
-!#wizards_artists_artist_is_set !#artist__christoffer_relander |
-!#wizards_artists_artist_is_set !#artist__andrey_remnev |
-!#wizards_artists_artist_is_set !#artist__pierre_auguste_renoir |
-!#wizards_artists_artist_is_set !#artist__ilya_repin |
-!#wizards_artists_artist_is_set !#artist__joshua_reynolds |
-!#wizards_artists_artist_is_set !#artist__rhads |
-!#wizards_artists_artist_is_set !#artist__bettina_rheims |
-!#wizards_artists_artist_is_set !#artist__jason_rhoades |
-!#wizards_artists_artist_is_set !#artist__georges_ribemont_dessaignes |
-!#wizards_artists_artist_is_set !#artist__jusepe_de_ribera |
-!#wizards_artists_artist_is_set !#artist__gerhard_richter |
-!#wizards_artists_artist_is_set !#artist__chris_riddell |
-!#wizards_artists_artist_is_set !#artist__hyacinthe_rigaud |
-!#wizards_artists_artist_is_set !#artist__rembrandt_van_rijn |
-!#wizards_artists_artist_is_set !#artist__faith_ringgold |
-!#wizards_artists_artist_is_set !#artist__jozsef_rippl_ronai |
-!#wizards_artists_artist_is_set !#artist__pipilotti_rist |
-!#wizards_artists_artist_is_set !#artist__charles_robinson |
-!#wizards_artists_artist_is_set !#artist__theodore_robinson |
-!#wizards_artists_artist_is_set !#artist__kenneth_rocafort |
-!#wizards_artists_artist_is_set !#artist__andreas_rocha |
-!#wizards_artists_artist_is_set !#artist__norman_rockwell |
-!#wizards_artists_artist_is_set !#artist__ludwig_mies_van_der_rohe |
-!#wizards_artists_artist_is_set !#artist__fatima_ronquillo |
-!#wizards_artists_artist_is_set !#artist__salvator_rosa |
-!#wizards_artists_artist_is_set !#artist__kerby_rosanes |
-!#wizards_artists_artist_is_set !#artist__conrad_roset |
-!#wizards_artists_artist_is_set !#artist__bob_ross |
-!#wizards_artists_artist_is_set !#artist__dante_gabriel_rossetti |
-!#wizards_artists_artist_is_set !#artist__jessica_rossier |
-!#wizards_artists_artist_is_set !#artist__marianna_rothen |
-!#wizards_artists_artist_is_set !#artist__mark_rothko |
-!#wizards_artists_artist_is_set !#artist__eva_rothschild |
-!#wizards_artists_artist_is_set !#artist__georges_rousse |
-!#wizards_artists_artist_is_set !#artist__luis_royo |
-!#wizards_artists_artist_is_set !#artist__joao_ruas |
-!#wizards_artists_artist_is_set !#artist__peter_paul_rubens |
-!#wizards_artists_artist_is_set !#artist__rachel_ruysch |
-!#wizards_artists_artist_is_set !#artist__albert_pinkham_ryder |
-!#wizards_artists_artist_is_set !#artist__mark_ryden |
-!#wizards_artists_artist_is_set !#artist__ursula_von_rydingsvard |
-!#wizards_artists_artist_is_set !#artist__theo_van_rysselberghe |
-!#wizards_artists_artist_is_set !#artist__eero_saarinen |
-!#wizards_artists_artist_is_set !#artist__wlad_safronow |
-!#wizards_artists_artist_is_set !#artist__amanda_sage |
-!#wizards_artists_artist_is_set !#artist__antoine_de_saint_exupery |
-!#wizards_artists_artist_is_set !#artist__nicola_samori |
-!#wizards_artists_artist_is_set !#artist__rebeca_saray |
-!#wizards_artists_artist_is_set !#artist__john_singer_sargent |
-!#wizards_artists_artist_is_set !#artist__martiros_saryan |
-!#wizards_artists_artist_is_set !#artist__viviane_sassen |
-!#wizards_artists_artist_is_set !#artist__nike_savvas |
-!#wizards_artists_artist_is_set !#artist__richard_scarry |
-!#wizards_artists_artist_is_set !#artist__godfried_schalcken |
-!#wizards_artists_artist_is_set !#artist__miriam_schapiro |
-!#wizards_artists_artist_is_set !#artist__kenny_scharf |
-!#wizards_artists_artist_is_set !#artist__jerry_schatzberg |
-!#wizards_artists_artist_is_set !#artist__ary_scheffer |
-!#wizards_artists_artist_is_set !#artist__kees_scherer |
-!#wizards_artists_artist_is_set !#artist__helene_schjerfbeck |
-!#wizards_artists_artist_is_set !#artist__christian_schloe |
-!#wizards_artists_artist_is_set !#artist__karl_schmidt_rottluff |
-!#wizards_artists_artist_is_set !#artist__julian_schnabel |
-!#wizards_artists_artist_is_set !#artist__fritz_scholder |
-!#wizards_artists_artist_is_set !#artist__charles_schulz |
-!#wizards_artists_artist_is_set !#artist__sean_scully |
-!#wizards_artists_artist_is_set !#artist__ronald_searle |
-!#wizards_artists_artist_is_set !#artist__mark_seliger |
-!#wizards_artists_artist_is_set !#artist__anton_semenov |
-!#wizards_artists_artist_is_set !#artist__edmondo_senatore |
-!#wizards_artists_artist_is_set !#artist__maurice_sendak |
-!#wizards_artists_artist_is_set !#artist__richard_serra |
-!#wizards_artists_artist_is_set !#artist__georges_seurat |
-!#wizards_artists_artist_is_set !#artist__dr_seuss |
-!#wizards_artists_artist_is_set !#artist__tanya_shatseva |
-!#wizards_artists_artist_is_set !#artist__natalie_shau |
-!#wizards_artists_artist_is_set !#artist__barclay_shaw |
-!#wizards_artists_artist_is_set !#artist__e_h_shepard |
-!#wizards_artists_artist_is_set !#artist__amrita_sher_gil |
-!#wizards_artists_artist_is_set !#artist__irene_sheri |
-!#wizards_artists_artist_is_set !#artist__duffy_sheridan |
-!#wizards_artists_artist_is_set !#artist__cindy_sherman |
-!#wizards_artists_artist_is_set !#artist__shozo_shimamoto |
-!#wizards_artists_artist_is_set !#artist__hikari_shimoda |
-!#wizards_artists_artist_is_set !#artist__makoto_shinkai |
-!#wizards_artists_artist_is_set !#artist__chiharu_shiota |
-!#wizards_artists_artist_is_set !#artist__elizabeth_shippen_green |
-!#wizards_artists_artist_is_set !#artist__masamune_shirow |
-!#wizards_artists_artist_is_set !#artist__tim_shumate |
-!#wizards_artists_artist_is_set !#artist__yuri_shwedoff |
-!#wizards_artists_artist_is_set !#artist__malick_sidibe |
-!#wizards_artists_artist_is_set !#artist__jeanloup_sieff |
-!#wizards_artists_artist_is_set !#artist__bill_sienkiewicz |
-!#wizards_artists_artist_is_set !#artist__marc_simonetti |
-!#wizards_artists_artist_is_set !#artist__david_sims |
-!#wizards_artists_artist_is_set !#artist__andy_singer |
-!#wizards_artists_artist_is_set !#artist__alfred_sisley |
-!#wizards_artists_artist_is_set !#artist__sandy_skoglund |
-!#wizards_artists_artist_is_set !#artist__jeffrey_smart |
-!#wizards_artists_artist_is_set !#artist__berndnaut_smilde |
-!#wizards_artists_artist_is_set !#artist__rodney_smith |
-!#wizards_artists_artist_is_set !#artist__samantha_keely_smith |
-!#wizards_artists_artist_is_set !#artist__robert_smithson |
-!#wizards_artists_artist_is_set !#artist__barbara_stauffacher_solomon |
-!#wizards_artists_artist_is_set !#artist__simeon_solomon |
-!#wizards_artists_artist_is_set !#artist__hajime_sorayama |
-!#wizards_artists_artist_is_set !#artist__joaquin_sorolla |
-!#wizards_artists_artist_is_set !#artist__ettore_sottsass |
-!#wizards_artists_artist_is_set !#artist__amadeo_de_souza_cardoso |
-!#wizards_artists_artist_is_set !#artist__millicent_sowerby |
-!#wizards_artists_artist_is_set !#artist__moses_soyer |
-!#wizards_artists_artist_is_set !#artist__sparth |
-!#wizards_artists_artist_is_set !#artist__jack_spencer |
-!#wizards_artists_artist_is_set !#artist__art_spiegelman |
-!#wizards_artists_artist_is_set !#artist__simon_stalenhag |
-!#wizards_artists_artist_is_set !#artist__ralph_steadman |
-!#wizards_artists_artist_is_set !#artist__philip_wilson_steer |
-!#wizards_artists_artist_is_set !#artist__william_steig |
-!#wizards_artists_artist_is_set !#artist__fred_stein |
-!#wizards_artists_artist_is_set !#artist__theophile_steinlen |
-!#wizards_artists_artist_is_set !#artist__brian_stelfreeze |
-!#wizards_artists_artist_is_set !#artist__frank_stella |
-!#wizards_artists_artist_is_set !#artist__joseph_stella |
-!#wizards_artists_artist_is_set !#artist__irma_stern |
-!#wizards_artists_artist_is_set !#artist__alfred_stevens |
-!#wizards_artists_artist_is_set !#artist__marie_spartali_stillman |
-!#wizards_artists_artist_is_set !#artist__stinkfish |
-!#wizards_artists_artist_is_set !#artist__anne_stokes |
-!#wizards_artists_artist_is_set !#artist__william_stout |
-!#wizards_artists_artist_is_set !#artist__paul_strand |
-!#wizards_artists_artist_is_set !#artist__linnea_strid |
-!#wizards_artists_artist_is_set !#artist__john_melhuish_strudwick |
-!#wizards_artists_artist_is_set !#artist__drew_struzan |
-!#wizards_artists_artist_is_set !#artist__tatiana_suarez |
-!#wizards_artists_artist_is_set !#artist__eustache_le_sueur |
-!#wizards_artists_artist_is_set !#artist__rebecca_sugar |
-!#wizards_artists_artist_is_set !#artist__hiroshi_sugimoto |
-!#wizards_artists_artist_is_set !#artist__graham_sutherland |
-!#wizards_artists_artist_is_set !#artist__jan_svankmajer |
-!#wizards_artists_artist_is_set !#artist__raymond_swanland |
-!#wizards_artists_artist_is_set !#artist__annie_swynnerton |
-!#wizards_artists_artist_is_set !#artist__stanislaw_szukalski |
-!#wizards_artists_artist_is_set !#artist__philip_taaffe |
-!#wizards_artists_artist_is_set !#artist__hiroyuki_mitsume_takahashi |
-!#wizards_artists_artist_is_set !#artist__dorothea_tanning |
-!#wizards_artists_artist_is_set !#artist__margaret_tarrant |
-!#wizards_artists_artist_is_set !#artist__genndy_tartakovsky |
-!#wizards_artists_artist_is_set !#artist__teamlab |
-!#wizards_artists_artist_is_set !#artist__raina_telgemeier |
-!#wizards_artists_artist_is_set !#artist__john_tenniel |
-!#wizards_artists_artist_is_set !#artist__sir_john_tenniel |
-!#wizards_artists_artist_is_set !#artist__howard_terpning |
-!#wizards_artists_artist_is_set !#artist__osamu_tezuka |
-!#wizards_artists_artist_is_set !#artist__abbott_handerson_thayer |
-!#wizards_artists_artist_is_set !#artist__heather_theurer |
-!#wizards_artists_artist_is_set !#artist__mickalene_thomas |
-!#wizards_artists_artist_is_set !#artist__tom_thomson |
-!#wizards_artists_artist_is_set !#artist__titian |
-!#wizards_artists_artist_is_set !#artist__mark_tobey |
-!#wizards_artists_artist_is_set !#artist__greg_tocchini |
-!#wizards_artists_artist_is_set !#artist__roland_topor |
-!#wizards_artists_artist_is_set !#artist__sergio_toppi |
-!#wizards_artists_artist_is_set !#artist__alex_toth |
-!#wizards_artists_artist_is_set !#artist__henri_de_toulouse_lautrec |
-!#wizards_artists_artist_is_set !#artist__ross_tran |
-!#wizards_artists_artist_is_set !#artist__philip_treacy |
-!#wizards_artists_artist_is_set !#artist__anne_truitt |
-!#wizards_artists_artist_is_set !#artist__henry_scott_tuke |
-!#wizards_artists_artist_is_set !#artist__jmw_turner |
-!#wizards_artists_artist_is_set !#artist__james_turrell |
-!#wizards_artists_artist_is_set !#artist__john_henry_twachtman |
-!#wizards_artists_artist_is_set !#artist__naomi_tydeman |
-!#wizards_artists_artist_is_set !#artist__euan_uglow |
-!#wizards_artists_artist_is_set !#artist__daniela_uhlig |
-!#wizards_artists_artist_is_set !#artist__kitagawa_utamaro |
-!#wizards_artists_artist_is_set !#artist__christophe_vacher |
-!#wizards_artists_artist_is_set !#artist__suzanne_valadon |
-!#wizards_artists_artist_is_set !#artist__thiago_valdi |
-!#wizards_artists_artist_is_set !#artist__chris_van_allsburg |
-!#wizards_artists_artist_is_set !#artist__francine_van_hove |
-!#wizards_artists_artist_is_set !#artist__jan_van_kessel_the_elder |
-!#wizards_artists_artist_is_set !#artist__remedios_varo |
-!#wizards_artists_artist_is_set !#artist__nick_veasey |
-!#wizards_artists_artist_is_set !#artist__diego_velazquez |
-!#wizards_artists_artist_is_set !#artist__eve_ventrue |
-!#wizards_artists_artist_is_set !#artist__johannes_vermeer |
-!#wizards_artists_artist_is_set !#artist__charles_vess |
-!#wizards_artists_artist_is_set !#artist__roman_vishniac |
-!#wizards_artists_artist_is_set !#artist__kelly_vivanco |
-!#wizards_artists_artist_is_set !#artist__brian_m_viveros |
-!#wizards_artists_artist_is_set !#artist__elke_vogelsang |
-!#wizards_artists_artist_is_set !#artist__vladimir_volegov |
-!#wizards_artists_artist_is_set !#artist__robert_vonnoh |
-!#wizards_artists_artist_is_set !#artist__mikhail_vrubel |
-!#wizards_artists_artist_is_set !#artist__louis_wain |
-!#wizards_artists_artist_is_set !#artist__kara_walker |
-!#wizards_artists_artist_is_set !#artist__josephine_wall |
-!#wizards_artists_artist_is_set !#artist__bruno_walpoth |
-!#wizards_artists_artist_is_set !#artist__chris_ware |
-!#wizards_artists_artist_is_set !#artist__andy_warhol |
-!#wizards_artists_artist_is_set !#artist__john_william_waterhouse |
-!#wizards_artists_artist_is_set !#artist__bill_watterson |
-!#wizards_artists_artist_is_set !#artist__george_frederic_watts |
-!#wizards_artists_artist_is_set !#artist__walter_ernest_webster |
-!#wizards_artists_artist_is_set !#artist__hendrik_weissenbruch |
-!#wizards_artists_artist_is_set !#artist__neil_welliver |
-!#wizards_artists_artist_is_set !#artist__catrin_welz_stein |
-!#wizards_artists_artist_is_set !#artist__vivienne_westwood |
-!#wizards_artists_artist_is_set !#artist__michael_whelan |
-!#wizards_artists_artist_is_set !#artist__james_abbott_mcneill_whistler |
-!#wizards_artists_artist_is_set !#artist__william_whitaker |
-!#wizards_artists_artist_is_set !#artist__tim_white |
-!#wizards_artists_artist_is_set !#artist__coby_whitmore |
-!#wizards_artists_artist_is_set !#artist__david_wiesner |
-!#wizards_artists_artist_is_set !#artist__kehinde_wiley |
-!#wizards_artists_artist_is_set !#artist__cathy_wilkes |
-!#wizards_artists_artist_is_set !#artist__jessie_willcox_smith |
-!#wizards_artists_artist_is_set !#artist__gilbert_williams |
-!#wizards_artists_artist_is_set !#artist__kyffin_williams |
-!#wizards_artists_artist_is_set !#artist__al_williamson |
-!#wizards_artists_artist_is_set !#artist__wes_wilson |
-!#wizards_artists_artist_is_set !#artist__mike_winkelmann |
-!#wizards_artists_artist_is_set !#artist__bec_winnel |
-!#wizards_artists_artist_is_set !#artist__franz_xaver_winterhalter |
-!#wizards_artists_artist_is_set !#artist__nathan_wirth |
-!#wizards_artists_artist_is_set !#artist__wlop |
-!#wizards_artists_artist_is_set !#artist__brandon_woelfel |
-!#wizards_artists_artist_is_set !#artist__liam_wong |
-!#wizards_artists_artist_is_set !#artist__francesca_woodman |
-!#wizards_artists_artist_is_set !#artist__jim_woodring |
-!#wizards_artists_artist_is_set !#artist__patrick_woodroffe |
-!#wizards_artists_artist_is_set !#artist__frank_lloyd_wright |
-!#wizards_artists_artist_is_set !#artist__sulamith_wulfing |
-!#wizards_artists_artist_is_set !#artist__nc_wyeth |
-!#wizards_artists_artist_is_set !#artist__rose_wylie |
-!#wizards_artists_artist_is_set !#artist__stanislaw_wyspianski |
-!#wizards_artists_artist_is_set !#artist__takato_yamamoto |
-!#wizards_artists_artist_is_set !#artist__gene_luen_yang |
-!#wizards_artists_artist_is_set !#artist__ikenaga_yasunari |
-!#wizards_artists_artist_is_set !#artist__kozo_yokai |
-!#wizards_artists_artist_is_set !#artist__sean_yoro |
-!#wizards_artists_artist_is_set !#artist__chie_yoshii |
-!#wizards_artists_artist_is_set !#artist__skottie_young |
-!#wizards_artists_artist_is_set !#artist__masaaki_yuasa |
-!#wizards_artists_artist_is_set !#artist__konstantin_yuon |
-!#wizards_artists_artist_is_set !#artist__yuumei |
-!#wizards_artists_artist_is_set !#artist__william_zorach |
-!#wizards_artists_artist_is_set !#artist__ander_zorn |
+@__set_wizards_artists_artist_if_unset := { !wizards_artist {
+ #wizards_artist.zacharias_martin_aagaard |
+ #wizards_artist.slim_aarons |
+ #wizards_artist.elenore_abbott |
+ #wizards_artist.tomma_abts |
+ #wizards_artist.vito_acconci |
+ #wizards_artist.andreas_achenbach |
+ #wizards_artist.ansel_adams |
+ #wizards_artist.josh_adamski |
+ #wizards_artist.charles_addams |
+ #wizards_artist.etel_adnan |
+ #wizards_artist.alena_aenami |
+ #wizards_artist.leonid_afremov |
+ #wizards_artist.petros_afshar |
+ #wizards_artist.yaacov_agam |
+ #wizards_artist.eileen_agar |
+ #wizards_artist.craigie_aitchison |
+ #wizards_artist.ivan_aivazovsky |
+ #wizards_artist.francesco_albani |
+ #wizards_artist.alessio_albi |
+ #wizards_artist.miles_aldridge |
+ #wizards_artist.john_white_alexander |
+ #wizards_artist.alessandro_allori |
+ #wizards_artist.mike_allred |
+ #wizards_artist.lawrence_alma_tadema |
+ #wizards_artist.lilia_alvarado |
+ #wizards_artist.tarsila_do_amaral |
+ #wizards_artist.ghada_amer |
+ #wizards_artist.cuno_amiet |
+ #wizards_artist.el_anatsui |
+ #wizards_artist.helga_ancher |
+ #wizards_artist.sarah_andersen |
+ #wizards_artist.richard_anderson |
+ #wizards_artist.sophie_gengembre_anderson |
+ #wizards_artist.wes_anderson |
+ #wizards_artist.alex_andreev |
+ #wizards_artist.sofonisba_anguissola |
+ #wizards_artist.louis_anquetin |
+ #wizards_artist.mary_jane_ansell |
+ #wizards_artist.chiho_aoshima |
+ #wizards_artist.sabbas_apterus |
+ #wizards_artist.hirohiko_araki |
+ #wizards_artist.howard_arkley |
+ #wizards_artist.rolf_armstrong |
+ #wizards_artist.gerd_arntz |
+ #wizards_artist.guy_aroch |
+ #wizards_artist.miki_asai |
+ #wizards_artist.clemens_ascher |
+ #wizards_artist.henry_asencio |
+ #wizards_artist.andrew_atroshenko |
+ #wizards_artist.deborah_azzopardi |
+ #wizards_artist.lois_van_baarle |
+ #wizards_artist.ingrid_baars |
+ #wizards_artist.anne_bachelier |
+ #wizards_artist.francis_bacon |
+ #wizards_artist.firmin_baes |
+ #wizards_artist.tom_bagshaw |
+ #wizards_artist.karol_bak |
+ #wizards_artist.christopher_balaskas |
+ #wizards_artist.benedick_bana |
+ #wizards_artist.banksy |
+ #wizards_artist.george_barbier |
+ #wizards_artist.cicely_mary_barker |
+ #wizards_artist.wayne_barlowe |
+ #wizards_artist.will_barnet |
+ #wizards_artist.matthew_barney |
+ #wizards_artist.angela_barrett |
+ #wizards_artist.jean_michel_basquiat |
+ #wizards_artist.lillian_bassman |
+ #wizards_artist.pompeo_batoni |
+ #wizards_artist.casey_baugh |
+ #wizards_artist.chiara_bautista |
+ #wizards_artist.herbert_bayer |
+ #wizards_artist.mary_beale |
+ #wizards_artist.alan_bean |
+ #wizards_artist.romare_bearden |
+ #wizards_artist.cecil_beaton |
+ #wizards_artist.cecilia_beaux |
+ #wizards_artist.jasmine_becket_griffith |
+ #wizards_artist.vanessa_beecroft |
+ #wizards_artist.beeple |
+ #wizards_artist.zdzislaw_beksinski |
+ #wizards_artist.katerina_belkina |
+ #wizards_artist.julie_bell |
+ #wizards_artist.vanessa_bell |
+ #wizards_artist.bernardo_bellotto |
+ #wizards_artist.ambrosius_benson |
+ #wizards_artist.stan_berenstain |
+ #wizards_artist.laura_berger |
+ #wizards_artist.jody_bergsma |
+ #wizards_artist.john_berkey |
+ #wizards_artist.gian_lorenzo_bernini |
+ #wizards_artist.marta_bevacqua |
+ #wizards_artist.john_t_biggers |
+ #wizards_artist.enki_bilal |
+ #wizards_artist.ivan_bilibin |
+ #wizards_artist.butcher_billy |
+ #wizards_artist.george_caleb_bingham |
+ #wizards_artist.ed_binkley |
+ #wizards_artist.george_birrell |
+ #wizards_artist.robert_bissell |
+ #wizards_artist.charles_blackman |
+ #wizards_artist.mary_blair |
+ #wizards_artist.john_blanche |
+ #wizards_artist.don_blanding |
+ #wizards_artist.albert_bloch |
+ #wizards_artist.hyman_bloom |
+ #wizards_artist.peter_blume |
+ #wizards_artist.don_bluth |
+ #wizards_artist.umberto_boccioni |
+ #wizards_artist.anna_bocek |
+ #wizards_artist.lee_bogle |
+ #wizards_artist.louis_leopold_boily |
+ #wizards_artist.giovanni_boldini |
+ #wizards_artist.enoch_bolles |
+ #wizards_artist.david_bomberg |
+ #wizards_artist.chesley_bonestell |
+ #wizards_artist.lee_bontecou |
+ #wizards_artist.michael_borremans |
+ #wizards_artist.matt_bors |
+ #wizards_artist.flora_borsi |
+ #wizards_artist.hieronymus_bosch |
+ #wizards_artist.sam_bosma |
+ #wizards_artist.johfra_bosschart |
+ #wizards_artist.fernando_botero |
+ #wizards_artist.sandro_botticelli |
+ #wizards_artist.william_adolphe_bouguereau |
+ #wizards_artist.susan_seddon_boulet |
+ #wizards_artist.louise_bourgeois |
+ #wizards_artist.annick_bouvattier |
+ #wizards_artist.david_michael_bowers |
+ #wizards_artist.noah_bradley |
+ #wizards_artist.aleksi_briclot |
+ #wizards_artist.frederick_arthur_bridgman |
+ #wizards_artist.renie_britenbucher |
+ #wizards_artist.romero_britto |
+ #wizards_artist.gerald_brom |
+ #wizards_artist.bronzino |
+ #wizards_artist.herman_brood |
+ #wizards_artist.mark_brooks |
+ #wizards_artist.romaine_brooks |
+ #wizards_artist.troy_brooks |
+ #wizards_artist.broom_lee |
+ #wizards_artist.allie_brosh |
+ #wizards_artist.ford_madox_brown |
+ #wizards_artist.charles_le_brun |
+ #wizards_artist.elisabeth_vigee_le_brun |
+ #wizards_artist.james_bullough |
+ #wizards_artist.laurel_burch |
+ #wizards_artist.alejandro_burdisio |
+ #wizards_artist.daniel_buren |
+ #wizards_artist.jon_burgerman |
+ #wizards_artist.richard_burlet |
+ #wizards_artist.jim_burns |
+ #wizards_artist.stasia_burrington |
+ #wizards_artist.kaethe_butcher |
+ #wizards_artist.saturno_butto |
+ #wizards_artist.paul_cadmus |
+ #wizards_artist.zhichao_cai |
+ #wizards_artist.randolph_caldecott |
+ #wizards_artist.alexander_calder_milne |
+ #wizards_artist.clyde_caldwell |
+ #wizards_artist.vincent_callebaut |
+ #wizards_artist.fred_calleri |
+ #wizards_artist.charles_camoin |
+ #wizards_artist.mike_campau |
+ #wizards_artist.eric_canete |
+ #wizards_artist.josef_capek |
+ #wizards_artist.leonetto_cappiello |
+ #wizards_artist.eric_carle |
+ #wizards_artist.larry_carlson |
+ #wizards_artist.bill_carman |
+ #wizards_artist.jean_baptiste_carpeaux |
+ #wizards_artist.rosalba_carriera |
+ #wizards_artist.michael_carson |
+ #wizards_artist.felice_casorati |
+ #wizards_artist.mary_cassatt |
+ #wizards_artist.a_j_casson |
+ #wizards_artist.giorgio_barbarelli_da_castelfranco |
+ #wizards_artist.paul_catherall |
+ #wizards_artist.george_catlin |
+ #wizards_artist.patrick_caulfield |
+ #wizards_artist.nicoletta_ceccoli |
+ #wizards_artist.agnes_cecile |
+ #wizards_artist.paul_cezanne |
+ #wizards_artist.paul_chabas |
+ #wizards_artist.marc_chagall |
+ #wizards_artist.tom_chambers |
+ #wizards_artist.katia_chausheva |
+ #wizards_artist.hsiao_ron_cheng |
+ #wizards_artist.yanjun_cheng |
+ #wizards_artist.sandra_chevrier |
+ #wizards_artist.judy_chicago |
+ #wizards_artist.dale_chihuly |
+ #wizards_artist.frank_cho |
+ #wizards_artist.james_c_christensen |
+ #wizards_artist.mikalojus_konstantinas_ciurlionis |
+ #wizards_artist.alson_skinner_clark |
+ #wizards_artist.amanda_clark |
+ #wizards_artist.harry_clarke |
+ #wizards_artist.george_clausen |
+ #wizards_artist.francesco_clemente |
+ #wizards_artist.alvin_langdon_coburn |
+ #wizards_artist.clifford_coffin |
+ #wizards_artist.vince_colletta |
+ #wizards_artist.beth_conklin |
+ #wizards_artist.john_constable |
+ #wizards_artist.darwyn_cooke |
+ #wizards_artist.richard_corben |
+ #wizards_artist.vittorio_matteo_corcos |
+ #wizards_artist.paul_corfield |
+ #wizards_artist.fernand_cormon |
+ #wizards_artist.norman_cornish |
+ #wizards_artist.camille_corot |
+ #wizards_artist.gemma_correll |
+ #wizards_artist.petra_cortright |
+ #wizards_artist.lorenzo_costa_the_elder |
+ #wizards_artist.olive_cotton |
+ #wizards_artist.peter_coulson |
+ #wizards_artist.gustave_courbet |
+ #wizards_artist.frank_cadogan_cowper |
+ #wizards_artist.kinuko_y_craft |
+ #wizards_artist.clayton_crain |
+ #wizards_artist.lucas_cranach_the_elder |
+ #wizards_artist.lucas_cranach_the_younger |
+ #wizards_artist.walter_crane |
+ #wizards_artist.martin_creed |
+ #wizards_artist.gregory_crewdson |
+ #wizards_artist.debbie_criswell |
+ #wizards_artist.victoria_crowe |
+ #wizards_artist.etam_cru |
+ #wizards_artist.robert_crumb |
+ #wizards_artist.carlos_cruz_diez |
+ #wizards_artist.john_currin |
+ #wizards_artist.krenz_cushart |
+ #wizards_artist.camilla_derrico |
+ #wizards_artist.pino_daeni |
+ #wizards_artist.salvador_dali |
+ #wizards_artist.sunil_das |
+ #wizards_artist.ian_davenport |
+ #wizards_artist.stuart_davis |
+ #wizards_artist.roger_dean |
+ #wizards_artist.michael_deforge |
+ #wizards_artist.edgar_degas |
+ #wizards_artist.eugene_delacroix |
+ #wizards_artist.robert_delaunay |
+ #wizards_artist.sonia_delaunay |
+ #wizards_artist.gabriele_dellotto |
+ #wizards_artist.nicolas_delort |
+ #wizards_artist.jean_delville |
+ #wizards_artist.posuka_demizu |
+ #wizards_artist.guy_denning |
+ #wizards_artist.monsu_desiderio |
+ #wizards_artist.charles_maurice_detmold |
+ #wizards_artist.edward_julius_detmold |
+ #wizards_artist.anne_dewailly |
+ #wizards_artist.walt_disney |
+ #wizards_artist.tony_diterlizzi |
+ #wizards_artist.anna_dittmann |
+ #wizards_artist.dima_dmitriev |
+ #wizards_artist.peter_doig |
+ #wizards_artist.kees_van_dongen |
+ #wizards_artist.gustave_dore |
+ #wizards_artist.dave_dorman |
+ #wizards_artist.emilio_giuseppe_dossena |
+ #wizards_artist.david_downton |
+ #wizards_artist.jessica_drossin |
+ #wizards_artist.philippe_druillet |
+ #wizards_artist.tj_drysdale |
+ #wizards_artist.ton_dubbeldam |
+ #wizards_artist.marcel_duchamp |
+ #wizards_artist.joseph_ducreux |
+ #wizards_artist.edmund_dulac |
+ #wizards_artist.marlene_dumas |
+ #wizards_artist.charles_dwyer |
+ #wizards_artist.william_dyce |
+ #wizards_artist.chris_dyer |
+ #wizards_artist.eyvind_earle |
+ #wizards_artist.amy_earles |
+ #wizards_artist.lori_earley |
+ #wizards_artist.jeff_easley |
+ #wizards_artist.tristan_eaton |
+ #wizards_artist.jason_edmiston |
+ #wizards_artist.alfred_eisenstaedt |
+ #wizards_artist.jesper_ejsing |
+ #wizards_artist.olafur_eliasson |
+ #wizards_artist.harrison_ellenshaw |
+ #wizards_artist.christine_ellger |
+ #wizards_artist.larry_elmore |
+ #wizards_artist.joseba_elorza |
+ #wizards_artist.peter_elson |
+ #wizards_artist.gil_elvgren |
+ #wizards_artist.ed_emshwiller |
+ #wizards_artist.kilian_eng |
+ #wizards_artist.jason_a_engle |
+ #wizards_artist.max_ernst |
+ #wizards_artist.romain_de_tirtoff_erte |
+ #wizards_artist.m_c_escher |
+ #wizards_artist.tim_etchells |
+ #wizards_artist.walker_evans |
+ #wizards_artist.jan_van_eyck |
+ #wizards_artist.glenn_fabry |
+ #wizards_artist.ludwig_fahrenkrog |
+ #wizards_artist.shepard_fairey |
+ #wizards_artist.andy_fairhurst |
+ #wizards_artist.luis_ricardo_falero |
+ #wizards_artist.jean_fautrier |
+ #wizards_artist.andrew_ferez |
+ #wizards_artist.hugh_ferriss |
+ #wizards_artist.david_finch |
+ #wizards_artist.callie_fink |
+ #wizards_artist.virgil_finlay |
+ #wizards_artist.anato_finnstark |
+ #wizards_artist.howard_finster |
+ #wizards_artist.oskar_fischinger |
+ #wizards_artist.samuel_melton_fisher |
+ #wizards_artist.john_anster_fitzgerald |
+ #wizards_artist.tony_fitzpatrick |
+ #wizards_artist.hippolyte_flandrin |
+ #wizards_artist.dan_flavin |
+ #wizards_artist.max_fleischer |
+ #wizards_artist.govaert_flinck |
+ #wizards_artist.alex_russell_flint |
+ #wizards_artist.lucio_fontana |
+ #wizards_artist.chris_foss |
+ #wizards_artist.jon_foster |
+ #wizards_artist.jean_fouquet |
+ #wizards_artist.toby_fox |
+ #wizards_artist.art_frahm |
+ #wizards_artist.lisa_frank |
+ #wizards_artist.helen_frankenthaler |
+ #wizards_artist.frank_frazetta |
+ #wizards_artist.kelly_freas |
+ #wizards_artist.lucian_freud |
+ #wizards_artist.brian_froud |
+ #wizards_artist.wendy_froud |
+ #wizards_artist.tom_fruin |
+ #wizards_artist.john_wayne_gacy |
+ #wizards_artist.justin_gaffrey |
+ #wizards_artist.hashimoto_gaho |
+ #wizards_artist.neil_gaiman |
+ #wizards_artist.stephen_gammell |
+ #wizards_artist.hope_gangloff |
+ #wizards_artist.alex_garant |
+ #wizards_artist.gilbert_garcin |
+ #wizards_artist.michael_and_inessa_garmash |
+ #wizards_artist.antoni_gaudi |
+ #wizards_artist.paul_gauguin |
+ #wizards_artist.giovanni_battista_gaulli |
+ #wizards_artist.anne_geddes |
+ #wizards_artist.bill_gekas |
+ #wizards_artist.artemisia_gentileschi |
+ #wizards_artist.orazio_gentileschi |
+ #wizards_artist.daniel_f_gerhartz |
+ #wizards_artist.theodore_gericault |
+ #wizards_artist.jean_leon_gerome |
+ #wizards_artist.mark_gertler |
+ #wizards_artist.atey_ghailan |
+ #wizards_artist.alberto_giacometti |
+ #wizards_artist.donato_giancola |
+ #wizards_artist.hr_giger |
+ #wizards_artist.james_gilleard |
+ #wizards_artist.harold_gilman |
+ #wizards_artist.charles_ginner |
+ #wizards_artist.jean_giraud |
+ #wizards_artist.anne_louis_girodet |
+ #wizards_artist.milton_glaser |
+ #wizards_artist.warwick_goble |
+ #wizards_artist.john_william_godward |
+ #wizards_artist.sacha_goldberger |
+ #wizards_artist.nan_goldin |
+ #wizards_artist.josan_gonzalez |
+ #wizards_artist.felix_gonzalez_torres |
+ #wizards_artist.derek_gores |
+ #wizards_artist.edward_gorey |
+ #wizards_artist.arshile_gorky |
+ #wizards_artist.alessandro_gottardo |
+ #wizards_artist.adolph_gottlieb |
+ #wizards_artist.francisco_goya |
+ #wizards_artist.laurent_grasso |
+ #wizards_artist.mab_graves |
+ #wizards_artist.eileen_gray |
+ #wizards_artist.kate_greenaway |
+ #wizards_artist.alex_grey |
+ #wizards_artist.carne_griffiths |
+ #wizards_artist.gris_grimly |
+ #wizards_artist.brothers_grimm |
+ #wizards_artist.tracie_grimwood |
+ #wizards_artist.matt_groening |
+ #wizards_artist.alex_gross |
+ #wizards_artist.tom_grummett |
+ #wizards_artist.huang_guangjian |
+ #wizards_artist.wu_guanzhong |
+ #wizards_artist.rebecca_guay |
+ #wizards_artist.guercino |
+ #wizards_artist.jeannette_guichard_bunel |
+ #wizards_artist.scott_gustafson |
+ #wizards_artist.wade_guyton |
+ #wizards_artist.hans_haacke |
+ #wizards_artist.robert_hagan |
+ #wizards_artist.philippe_halsman |
+ #wizards_artist.maggi_hambling |
+ #wizards_artist.richard_hamilton |
+ #wizards_artist.bess_hamiti |
+ #wizards_artist.tom_hammick |
+ #wizards_artist.david_hammons |
+ #wizards_artist.ren_hang |
+ #wizards_artist.erin_hanson |
+ #wizards_artist.keith_haring |
+ #wizards_artist.alexei_harlamoff |
+ #wizards_artist.charley_harper |
+ #wizards_artist.john_harris |
+ #wizards_artist.florence_harrison |
+ #wizards_artist.marsden_hartley |
+ #wizards_artist.ryohei_hase |
+ #wizards_artist.childe_hassam |
+ #wizards_artist.ben_hatke |
+ #wizards_artist.mona_hatoum |
+ #wizards_artist.pam_hawkes |
+ #wizards_artist.jamie_hawkesworth |
+ #wizards_artist.stuart_haygarth |
+ #wizards_artist.erich_heckel |
+ #wizards_artist.valerie_hegarty |
+ #wizards_artist.mary_heilmann |
+ #wizards_artist.michael_heizer |
+ #wizards_artist.gottfried_helnwein |
+ #wizards_artist.barkley_l_hendricks |
+ #wizards_artist.bill_henson |
+ #wizards_artist.barbara_hepworth |
+ #wizards_artist.herge |
+ #wizards_artist.carolina_herrera |
+ #wizards_artist.george_herriman |
+ #wizards_artist.don_hertzfeldt |
+ #wizards_artist.prudence_heward |
+ #wizards_artist.ryan_hewett |
+ #wizards_artist.nora_heysen |
+ #wizards_artist.george_elgar_hicks |
+ #wizards_artist.lorenz_hideyoshi |
+ #wizards_artist.brothers_hildebrandt |
+ #wizards_artist.dan_hillier |
+ #wizards_artist.lewis_hine |
+ #wizards_artist.miho_hirano |
+ #wizards_artist.harumi_hironaka |
+ #wizards_artist.hiroshige |
+ #wizards_artist.morris_hirshfield |
+ #wizards_artist.damien_hirst |
+ #wizards_artist.fan_ho |
+ #wizards_artist.meindert_hobbema |
+ #wizards_artist.david_hockney |
+ #wizards_artist.filip_hodas |
+ #wizards_artist.howard_hodgkin |
+ #wizards_artist.ferdinand_hodler |
+ #wizards_artist.tiago_hoisel |
+ #wizards_artist.katsushika_hokusai |
+ #wizards_artist.hans_holbein_the_younger |
+ #wizards_artist.frank_holl |
+ #wizards_artist.carsten_holler |
+ #wizards_artist.zena_holloway |
+ #wizards_artist.edward_hopper |
+ #wizards_artist.aaron_horkey |
+ #wizards_artist.alex_horley |
+ #wizards_artist.roni_horn |
+ #wizards_artist.john_howe |
+ #wizards_artist.alex_howitt |
+ #wizards_artist.meghan_howland |
+ #wizards_artist.john_hoyland |
+ #wizards_artist.shilin_huang |
+ #wizards_artist.arthur_hughes |
+ #wizards_artist.edward_robert_hughes |
+ #wizards_artist.jack_hughes |
+ #wizards_artist.talbot_hughes |
+ #wizards_artist.pieter_hugo |
+ #wizards_artist.gary_hume |
+ #wizards_artist.friedensreich_hundertwasser |
+ #wizards_artist.william_holman_hunt |
+ #wizards_artist.george_hurrell |
+ #wizards_artist.fabio_hurtado |
+ #wizards_artist.hush |
+ #wizards_artist.michael_hutter |
+ #wizards_artist.pierre_huyghe |
+ #wizards_artist.doug_hyde |
+ #wizards_artist.louis_icart |
+ #wizards_artist.robert_indiana |
+ #wizards_artist.jean_auguste_dominique_ingres |
+ #wizards_artist.robert_irwin |
+ #wizards_artist.gabriel_isak |
+ #wizards_artist.junji_ito |
+ #wizards_artist.christophe_jacrot |
+ #wizards_artist.louis_janmot |
+ #wizards_artist.frieke_janssens |
+ #wizards_artist.alexander_jansson |
+ #wizards_artist.tove_jansson |
+ #wizards_artist.aaron_jasinski |
+ #wizards_artist.alexej_von_jawlensky |
+ #wizards_artist.james_jean |
+ #wizards_artist.oliver_jeffers |
+ #wizards_artist.lee_jeffries |
+ #wizards_artist.georg_jensen |
+ #wizards_artist.ellen_jewett |
+ #wizards_artist.he_jiaying |
+ #wizards_artist.chantal_joffe |
+ #wizards_artist.martine_johanna |
+ #wizards_artist.augustus_john |
+ #wizards_artist.gwen_john |
+ #wizards_artist.jasper_johns |
+ #wizards_artist.eastman_johnson |
+ #wizards_artist.alfred_cheney_johnston |
+ #wizards_artist.dorothy_johnstone |
+ #wizards_artist.android_jones |
+ #wizards_artist.erik_jones |
+ #wizards_artist.jeffrey_catherine_jones |
+ #wizards_artist.peter_andrew_jones |
+ #wizards_artist.loui_jover |
+ #wizards_artist.amy_judd |
+ #wizards_artist.donald_judd |
+ #wizards_artist.jean_jullien |
+ #wizards_artist.matthias_jung |
+ #wizards_artist.joe_jusko |
+ #wizards_artist.frida_kahlo |
+ #wizards_artist.hayv_kahraman |
+ #wizards_artist.mw_kaluta |
+ #wizards_artist.nadav_kander |
+ #wizards_artist.wassily_kandinsky |
+ #wizards_artist.jun_kaneko |
+ #wizards_artist.titus_kaphar |
+ #wizards_artist.michal_karcz |
+ #wizards_artist.gertrude_kasebier |
+ #wizards_artist.terada_katsuya |
+ #wizards_artist.audrey_kawasaki |
+ #wizards_artist.hasui_kawase |
+ #wizards_artist.glen_keane |
+ #wizards_artist.margaret_keane |
+ #wizards_artist.ellsworth_kelly |
+ #wizards_artist.michael_kenna |
+ #wizards_artist.thomas_benjamin_kennington |
+ #wizards_artist.william_kentridge |
+ #wizards_artist.hendrik_kerstens |
+ #wizards_artist.jeremiah_ketner |
+ #wizards_artist.fernand_khnopff |
+ #wizards_artist.hideyuki_kikuchi |
+ #wizards_artist.tom_killion |
+ #wizards_artist.thomas_kinkade |
+ #wizards_artist.jack_kirby |
+ #wizards_artist.ernst_ludwig_kirchner |
+ #wizards_artist.tatsuro_kiuchi |
+ #wizards_artist.jon_klassen |
+ #wizards_artist.paul_klee |
+ #wizards_artist.william_klein |
+ #wizards_artist.yves_klein |
+ #wizards_artist.carl_kleiner |
+ #wizards_artist.gustav_klimt |
+ #wizards_artist.godfrey_kneller |
+ #wizards_artist.emily_kame_kngwarreye |
+ #wizards_artist.chad_knight |
+ #wizards_artist.nick_knight |
+ #wizards_artist.helene_knoop |
+ #wizards_artist.phil_koch |
+ #wizards_artist.kazuo_koike |
+ #wizards_artist.oskar_kokoschka |
+ #wizards_artist.kathe_kollwitz |
+ #wizards_artist.michael_komarck |
+ #wizards_artist.satoshi_kon |
+ #wizards_artist.jeff_koons |
+ #wizards_artist.caia_koopman |
+ #wizards_artist.konstantin_korovin |
+ #wizards_artist.mark_kostabi |
+ #wizards_artist.bella_kotak |
+ #wizards_artist.andrea_kowch |
+ #wizards_artist.lee_krasner |
+ #wizards_artist.barbara_kruger |
+ #wizards_artist.brad_kunkle |
+ #wizards_artist.yayoi_kusama |
+ #wizards_artist.michael_k_kutsche |
+ #wizards_artist.ilya_kuvshinov |
+ #wizards_artist.david_lachapelle |
+ #wizards_artist.raphael_lacoste |
+ #wizards_artist.lev_lagorio |
+ #wizards_artist.rene_lalique |
+ #wizards_artist.abigail_larson |
+ #wizards_artist.gary_larson |
+ #wizards_artist.denys_lasdun |
+ #wizards_artist.maria_lassnig |
+ #wizards_artist.dorothy_lathrop |
+ #wizards_artist.melissa_launay |
+ #wizards_artist.john_lavery |
+ #wizards_artist.jacob_lawrence |
+ #wizards_artist.thomas_lawrence |
+ #wizards_artist.ernest_lawson |
+ #wizards_artist.bastien_lecouffe_deharme |
+ #wizards_artist.alan_lee |
+ #wizards_artist.minjae_lee |
+ #wizards_artist.nina_leen |
+ #wizards_artist.fernand_leger |
+ #wizards_artist.paul_lehr |
+ #wizards_artist.frederic_leighton |
+ #wizards_artist.alayna_lemmer |
+ #wizards_artist.tamara_de_lempicka |
+ #wizards_artist.sol_lewitt |
+ #wizards_artist.jc_leyendecker |
+ #wizards_artist.andre_lhote |
+ #wizards_artist.roy_lichtenstein |
+ #wizards_artist.rob_liefeld |
+ #wizards_artist.fang_lijun |
+ #wizards_artist.maya_lin |
+ #wizards_artist.filippino_lippi |
+ #wizards_artist.herbert_list |
+ #wizards_artist.richard_long |
+ #wizards_artist.yoann_lossel |
+ #wizards_artist.morris_louis |
+ #wizards_artist.sarah_lucas |
+ #wizards_artist.maximilien_luce |
+ #wizards_artist.loretta_lux |
+ #wizards_artist.george_platt_lynes |
+ #wizards_artist.frances_macdonald |
+ #wizards_artist.august_macke |
+ #wizards_artist.stephen_mackey |
+ #wizards_artist.rachel_maclean |
+ #wizards_artist.raimundo_de_madrazo_y_garreta |
+ #wizards_artist.joe_madureira |
+ #wizards_artist.rene_magritte |
+ #wizards_artist.jim_mahfood |
+ #wizards_artist.vivian_maier |
+ #wizards_artist.aristide_maillol |
+ #wizards_artist.don_maitz |
+ #wizards_artist.laura_makabresku |
+ #wizards_artist.alex_maleev |
+ #wizards_artist.keith_mallett |
+ #wizards_artist.johji_manabe |
+ #wizards_artist.milo_manara |
+ #wizards_artist.edouard_manet |
+ #wizards_artist.henri_manguin |
+ #wizards_artist.jeremy_mann |
+ #wizards_artist.sally_mann |
+ #wizards_artist.andrea_mantegna |
+ #wizards_artist.antonio_j_manzanedo |
+ #wizards_artist.robert_mapplethorpe |
+ #wizards_artist.franz_marc |
+ #wizards_artist.ivan_marchuk |
+ #wizards_artist.brice_marden |
+ #wizards_artist.andrei_markin |
+ #wizards_artist.kerry_james_marshall |
+ #wizards_artist.serge_marshennikov |
+ #wizards_artist.agnes_martin |
+ #wizards_artist.adam_martinakis |
+ #wizards_artist.stephan_martiniere |
+ #wizards_artist.ilya_mashkov |
+ #wizards_artist.henri_matisse |
+ #wizards_artist.rodney_matthews |
+ #wizards_artist.anton_mauve |
+ #wizards_artist.peter_max |
+ #wizards_artist.mike_mayhew |
+ #wizards_artist.angus_mcbride |
+ #wizards_artist.anne_mccaffrey |
+ #wizards_artist.robert_mccall |
+ #wizards_artist.scott_mccloud |
+ #wizards_artist.steve_mccurry |
+ #wizards_artist.todd_mcfarlane |
+ #wizards_artist.barry_mcgee |
+ #wizards_artist.ryan_mcginley |
+ #wizards_artist.robert_mcginnis |
+ #wizards_artist.richard_mcguire |
+ #wizards_artist.patrick_mchale |
+ #wizards_artist.kelly_mckernan |
+ #wizards_artist.angus_mckie |
+ #wizards_artist.alasdair_mclellan |
+ #wizards_artist.jon_mcnaught |
+ #wizards_artist.dan_mcpharlin |
+ #wizards_artist.tara_mcpherson |
+ #wizards_artist.ralph_mcquarrie |
+ #wizards_artist.ian_mcque |
+ #wizards_artist.syd_mead |
+ #wizards_artist.richard_meier |
+ #wizards_artist.maria_sibylla_merian |
+ #wizards_artist.willard_metcalf |
+ #wizards_artist.gabriel_metsu |
+ #wizards_artist.jean_metzinger |
+ #wizards_artist.michelangelo |
+ #wizards_artist.nicolas_mignard |
+ #wizards_artist.mike_mignola |
+ #wizards_artist.dimitra_milan |
+ #wizards_artist.john_everett_millais |
+ #wizards_artist.marilyn_minter |
+ #wizards_artist.januz_miralles |
+ #wizards_artist.joan_miro |
+ #wizards_artist.joan_mitchell |
+ #wizards_artist.hayao_miyazaki |
+ #wizards_artist.paula_modersohn_becker |
+ #wizards_artist.amedeo_modigliani |
+ #wizards_artist.moebius |
+ #wizards_artist.peter_mohrbacher |
+ #wizards_artist.piet_mondrian |
+ #wizards_artist.claude_monet |
+ #wizards_artist.jean_baptiste_monge |
+ #wizards_artist.alyssa_monks |
+ #wizards_artist.alan_moore |
+ #wizards_artist.antonio_mora |
+ #wizards_artist.edward_moran |
+ #wizards_artist.koji_morimoto |
+ #wizards_artist.berthe_morisot |
+ #wizards_artist.daido_moriyama |
+ #wizards_artist.james_wilson_morrice |
+ #wizards_artist.sarah_morris |
+ #wizards_artist.john_lowrie_morrison |
+ #wizards_artist.igor_morski |
+ #wizards_artist.john_kenn_mortensen |
+ #wizards_artist.victor_moscoso |
+ #wizards_artist.inna_mosina |
+ #wizards_artist.richard_mosse |
+ #wizards_artist.thomas_edwin_mostyn |
+ #wizards_artist.marcel_mouly |
+ #wizards_artist.emmanuelle_moureaux |
+ #wizards_artist.alphonse_mucha |
+ #wizards_artist.craig_mullins |
+ #wizards_artist.augustus_edwin_mulready |
+ #wizards_artist.dan_mumford |
+ #wizards_artist.edvard_munch |
+ #wizards_artist.alfred_munnings |
+ #wizards_artist.gabriele_munter |
+ #wizards_artist.takashi_murakami |
+ #wizards_artist.patrice_murciano |
+ #wizards_artist.scott_musgrove |
+ #wizards_artist.wangechi_mutu |
+ #wizards_artist.go_nagai |
+ #wizards_artist.hiroshi_nagai |
+ #wizards_artist.patrick_nagel |
+ #wizards_artist.tibor_nagy |
+ #wizards_artist.scott_naismith |
+ #wizards_artist.juliana_nan |
+ #wizards_artist.ted_nasmith |
+ #wizards_artist.todd_nauck |
+ #wizards_artist.bruce_nauman |
+ #wizards_artist.ernst_wilhelm_nay |
+ #wizards_artist.alice_neel |
+ #wizards_artist.keith_negley |
+ #wizards_artist.leroy_neiman |
+ #wizards_artist.kadir_nelson |
+ #wizards_artist.odd_nerdrum |
+ #wizards_artist.shirin_neshat |
+ #wizards_artist.mikhail_nesterov |
+ #wizards_artist.jane_newland |
+ #wizards_artist.victo_ngai |
+ #wizards_artist.william_nicholson |
+ #wizards_artist.florian_nicolle |
+ #wizards_artist.kay_nielsen |
+ #wizards_artist.tsutomu_nihei |
+ #wizards_artist.victor_nizovtsev |
+ #wizards_artist.isamu_noguchi |
+ #wizards_artist.catherine_nolin |
+ #wizards_artist.francois_de_nome |
+ #wizards_artist.earl_norem |
+ #wizards_artist.phil_noto |
+ #wizards_artist.georgia_okeeffe |
+ #wizards_artist.terry_oakes |
+ #wizards_artist.chris_ofili |
+ #wizards_artist.jack_ohman |
+ #wizards_artist.noriyoshi_ohrai |
+ #wizards_artist.helio_oiticica |
+ #wizards_artist.taro_okamoto |
+ #wizards_artist.tim_okamura |
+ #wizards_artist.naomi_okubo |
+ #wizards_artist.atelier_olschinsky |
+ #wizards_artist.greg_olsen |
+ #wizards_artist.oleg_oprisco |
+ #wizards_artist.tony_orrico |
+ #wizards_artist.mamoru_oshii |
+ #wizards_artist.ida_rentoul_outhwaite |
+ #wizards_artist.yigal_ozeri |
+ #wizards_artist.gabriel_pacheco |
+ #wizards_artist.michael_page |
+ #wizards_artist.rui_palha |
+ #wizards_artist.polixeni_papapetrou |
+ #wizards_artist.julio_le_parc |
+ #wizards_artist.michael_parkes |
+ #wizards_artist.philippe_parreno |
+ #wizards_artist.maxfield_parrish |
+ #wizards_artist.alice_pasquini |
+ #wizards_artist.james_mcintosh_patrick |
+ #wizards_artist.john_pawson |
+ #wizards_artist.max_pechstein |
+ #wizards_artist.agnes_lawrence_pelton |
+ #wizards_artist.irving_penn |
+ #wizards_artist.bruce_pennington |
+ #wizards_artist.john_perceval |
+ #wizards_artist.george_perez |
+ #wizards_artist.constant_permeke |
+ #wizards_artist.lilla_cabot_perry |
+ #wizards_artist.gaetano_pesce |
+ #wizards_artist.cleon_peterson |
+ #wizards_artist.daria_petrilli |
+ #wizards_artist.raymond_pettibon |
+ #wizards_artist.coles_phillips |
+ #wizards_artist.francis_picabia |
+ #wizards_artist.pablo_picasso |
+ #wizards_artist.sopheap_pich |
+ #wizards_artist.otto_piene |
+ #wizards_artist.jerry_pinkney |
+ #wizards_artist.pinturicchio |
+ #wizards_artist.sebastiano_del_piombo |
+ #wizards_artist.camille_pissarro |
+ #wizards_artist.ferris_plock |
+ #wizards_artist.bill_plympton |
+ #wizards_artist.willy_pogany |
+ #wizards_artist.patricia_polacco |
+ #wizards_artist.jackson_pollock |
+ #wizards_artist.beatrix_potter |
+ #wizards_artist.edward_henry_potthast |
+ #wizards_artist.simon_prades |
+ #wizards_artist.maurice_prendergast |
+ #wizards_artist.dod_procter |
+ #wizards_artist.leo_putz |
+ #wizards_artist.howard_pyle |
+ #wizards_artist.arthur_rackham |
+ #wizards_artist.natalia_rak |
+ #wizards_artist.paul_ranson |
+ #wizards_artist.raphael |
+ #wizards_artist.abraham_rattner |
+ #wizards_artist.jan_van_ravesteyn |
+ #wizards_artist.aliza_razell |
+ #wizards_artist.paula_rego |
+ #wizards_artist.lotte_reiniger |
+ #wizards_artist.valentin_rekunenko |
+ #wizards_artist.christoffer_relander |
+ #wizards_artist.andrey_remnev |
+ #wizards_artist.pierre_auguste_renoir |
+ #wizards_artist.ilya_repin |
+ #wizards_artist.joshua_reynolds |
+ #wizards_artist.rhads |
+ #wizards_artist.bettina_rheims |
+ #wizards_artist.jason_rhoades |
+ #wizards_artist.georges_ribemont_dessaignes |
+ #wizards_artist.jusepe_de_ribera |
+ #wizards_artist.gerhard_richter |
+ #wizards_artist.chris_riddell |
+ #wizards_artist.hyacinthe_rigaud |
+ #wizards_artist.rembrandt_van_rijn |
+ #wizards_artist.faith_ringgold |
+ #wizards_artist.jozsef_rippl_ronai |
+ #wizards_artist.pipilotti_rist |
+ #wizards_artist.charles_robinson |
+ #wizards_artist.theodore_robinson |
+ #wizards_artist.kenneth_rocafort |
+ #wizards_artist.andreas_rocha |
+ #wizards_artist.norman_rockwell |
+ #wizards_artist.ludwig_mies_van_der_rohe |
+ #wizards_artist.fatima_ronquillo |
+ #wizards_artist.salvator_rosa |
+ #wizards_artist.kerby_rosanes |
+ #wizards_artist.conrad_roset |
+ #wizards_artist.bob_ross |
+ #wizards_artist.dante_gabriel_rossetti |
+ #wizards_artist.jessica_rossier |
+ #wizards_artist.marianna_rothen |
+ #wizards_artist.mark_rothko |
+ #wizards_artist.eva_rothschild |
+ #wizards_artist.georges_rousse |
+ #wizards_artist.luis_royo |
+ #wizards_artist.joao_ruas |
+ #wizards_artist.peter_paul_rubens |
+ #wizards_artist.rachel_ruysch |
+ #wizards_artist.albert_pinkham_ryder |
+ #wizards_artist.mark_ryden |
+ #wizards_artist.ursula_von_rydingsvard |
+ #wizards_artist.theo_van_rysselberghe |
+ #wizards_artist.eero_saarinen |
+ #wizards_artist.wlad_safronow |
+ #wizards_artist.amanda_sage |
+ #wizards_artist.antoine_de_saint_exupery |
+ #wizards_artist.nicola_samori |
+ #wizards_artist.rebeca_saray |
+ #wizards_artist.john_singer_sargent |
+ #wizards_artist.martiros_saryan |
+ #wizards_artist.viviane_sassen |
+ #wizards_artist.nike_savvas |
+ #wizards_artist.richard_scarry |
+ #wizards_artist.godfried_schalcken |
+ #wizards_artist.miriam_schapiro |
+ #wizards_artist.kenny_scharf |
+ #wizards_artist.jerry_schatzberg |
+ #wizards_artist.ary_scheffer |
+ #wizards_artist.kees_scherer |
+ #wizards_artist.helene_schjerfbeck |
+ #wizards_artist.christian_schloe |
+ #wizards_artist.karl_schmidt_rottluff |
+ #wizards_artist.julian_schnabel |
+ #wizards_artist.fritz_scholder |
+ #wizards_artist.charles_schulz |
+ #wizards_artist.sean_scully |
+ #wizards_artist.ronald_searle |
+ #wizards_artist.mark_seliger |
+ #wizards_artist.anton_semenov |
+ #wizards_artist.edmondo_senatore |
+ #wizards_artist.maurice_sendak |
+ #wizards_artist.richard_serra |
+ #wizards_artist.georges_seurat |
+ #wizards_artist.dr_seuss |
+ #wizards_artist.tanya_shatseva |
+ #wizards_artist.natalie_shau |
+ #wizards_artist.barclay_shaw |
+ #wizards_artist.e_h_shepard |
+ #wizards_artist.amrita_sher_gil |
+ #wizards_artist.irene_sheri |
+ #wizards_artist.duffy_sheridan |
+ #wizards_artist.cindy_sherman |
+ #wizards_artist.shozo_shimamoto |
+ #wizards_artist.hikari_shimoda |
+ #wizards_artist.makoto_shinkai |
+ #wizards_artist.chiharu_shiota |
+ #wizards_artist.elizabeth_shippen_green |
+ #wizards_artist.masamune_shirow |
+ #wizards_artist.tim_shumate |
+ #wizards_artist.yuri_shwedoff |
+ #wizards_artist.malick_sidibe |
+ #wizards_artist.jeanloup_sieff |
+ #wizards_artist.bill_sienkiewicz |
+ #wizards_artist.marc_simonetti |
+ #wizards_artist.david_sims |
+ #wizards_artist.andy_singer |
+ #wizards_artist.alfred_sisley |
+ #wizards_artist.sandy_skoglund |
+ #wizards_artist.jeffrey_smart |
+ #wizards_artist.berndnaut_smilde |
+ #wizards_artist.rodney_smith |
+ #wizards_artist.samantha_keely_smith |
+ #wizards_artist.robert_smithson |
+ #wizards_artist.barbara_stauffacher_solomon |
+ #wizards_artist.simeon_solomon |
+ #wizards_artist.hajime_sorayama |
+ #wizards_artist.joaquin_sorolla |
+ #wizards_artist.ettore_sottsass |
+ #wizards_artist.amadeo_de_souza_cardoso |
+ #wizards_artist.millicent_sowerby |
+ #wizards_artist.moses_soyer |
+ #wizards_artist.sparth |
+ #wizards_artist.jack_spencer |
+ #wizards_artist.art_spiegelman |
+ #wizards_artist.simon_stalenhag |
+ #wizards_artist.ralph_steadman |
+ #wizards_artist.philip_wilson_steer |
+ #wizards_artist.william_steig |
+ #wizards_artist.fred_stein |
+ #wizards_artist.theophile_steinlen |
+ #wizards_artist.brian_stelfreeze |
+ #wizards_artist.frank_stella |
+ #wizards_artist.joseph_stella |
+ #wizards_artist.irma_stern |
+ #wizards_artist.alfred_stevens |
+ #wizards_artist.marie_spartali_stillman |
+ #wizards_artist.stinkfish |
+ #wizards_artist.anne_stokes |
+ #wizards_artist.william_stout |
+ #wizards_artist.paul_strand |
+ #wizards_artist.linnea_strid |
+ #wizards_artist.john_melhuish_strudwick |
+ #wizards_artist.drew_struzan |
+ #wizards_artist.tatiana_suarez |
+ #wizards_artist.eustache_le_sueur |
+ #wizards_artist.rebecca_sugar |
+ #wizards_artist.hiroshi_sugimoto |
+ #wizards_artist.graham_sutherland |
+ #wizards_artist.jan_svankmajer |
+ #wizards_artist.raymond_swanland |
+ #wizards_artist.annie_swynnerton |
+ #wizards_artist.stanislaw_szukalski |
+ #wizards_artist.philip_taaffe |
+ #wizards_artist.hiroyuki_mitsume_takahashi |
+ #wizards_artist.dorothea_tanning |
+ #wizards_artist.margaret_tarrant |
+ #wizards_artist.genndy_tartakovsky |
+ #wizards_artist.teamlab |
+ #wizards_artist.raina_telgemeier |
+ #wizards_artist.john_tenniel |
+ #wizards_artist.sir_john_tenniel |
+ #wizards_artist.howard_terpning |
+ #wizards_artist.osamu_tezuka |
+ #wizards_artist.abbott_handerson_thayer |
+ #wizards_artist.heather_theurer |
+ #wizards_artist.mickalene_thomas |
+ #wizards_artist.tom_thomson |
+ #wizards_artist.titian |
+ #wizards_artist.mark_tobey |
+ #wizards_artist.greg_tocchini |
+ #wizards_artist.roland_topor |
+ #wizards_artist.sergio_toppi |
+ #wizards_artist.alex_toth |
+ #wizards_artist.henri_de_toulouse_lautrec |
+ #wizards_artist.ross_tran |
+ #wizards_artist.philip_treacy |
+ #wizards_artist.anne_truitt |
+ #wizards_artist.henry_scott_tuke |
+ #wizards_artist.jmw_turner |
+ #wizards_artist.james_turrell |
+ #wizards_artist.john_henry_twachtman |
+ #wizards_artist.naomi_tydeman |
+ #wizards_artist.euan_uglow |
+ #wizards_artist.daniela_uhlig |
+ #wizards_artist.kitagawa_utamaro |
+ #wizards_artist.christophe_vacher |
+ #wizards_artist.suzanne_valadon |
+ #wizards_artist.thiago_valdi |
+ #wizards_artist.chris_van_allsburg |
+ #wizards_artist.francine_van_hove |
+ #wizards_artist.jan_van_kessel_the_elder |
+ #wizards_artist.remedios_varo |
+ #wizards_artist.nick_veasey |
+ #wizards_artist.diego_velazquez |
+ #wizards_artist.eve_ventrue |
+ #wizards_artist.johannes_vermeer |
+ #wizards_artist.charles_vess |
+ #wizards_artist.roman_vishniac |
+ #wizards_artist.kelly_vivanco |
+ #wizards_artist.brian_m_viveros |
+ #wizards_artist.elke_vogelsang |
+ #wizards_artist.vladimir_volegov |
+ #wizards_artist.robert_vonnoh |
+ #wizards_artist.mikhail_vrubel |
+ #wizards_artist.louis_wain |
+ #wizards_artist.kara_walker |
+ #wizards_artist.josephine_wall |
+ #wizards_artist.bruno_walpoth |
+ #wizards_artist.chris_ware |
+ #wizards_artist.andy_warhol |
+ #wizards_artist.john_william_waterhouse |
+ #wizards_artist.bill_watterson |
+ #wizards_artist.george_frederic_watts |
+ #wizards_artist.walter_ernest_webster |
+ #wizards_artist.hendrik_weissenbruch |
+ #wizards_artist.neil_welliver |
+ #wizards_artist.catrin_welz_stein |
+ #wizards_artist.vivienne_westwood |
+ #wizards_artist.michael_whelan |
+ #wizards_artist.james_abbott_mcneill_whistler |
+ #wizards_artist.william_whitaker |
+ #wizards_artist.tim_white |
+ #wizards_artist.coby_whitmore |
+ #wizards_artist.david_wiesner |
+ #wizards_artist.kehinde_wiley |
+ #wizards_artist.cathy_wilkes |
+ #wizards_artist.jessie_willcox_smith |
+ #wizards_artist.gilbert_williams |
+ #wizards_artist.kyffin_williams |
+ #wizards_artist.al_williamson |
+ #wizards_artist.wes_wilson |
+ #wizards_artist.mike_winkelmann |
+ #wizards_artist.bec_winnel |
+ #wizards_artist.franz_xaver_winterhalter |
+ #wizards_artist.nathan_wirth |
+ #wizards_artist.wlop |
+ #wizards_artist.brandon_woelfel |
+ #wizards_artist.liam_wong |
+ #wizards_artist.francesca_woodman |
+ #wizards_artist.jim_woodring |
+ #wizards_artist.patrick_woodroffe |
+ #wizards_artist.frank_lloyd_wright |
+ #wizards_artist.sulamith_wulfing |
+ #wizards_artist.nc_wyeth |
+ #wizards_artist.rose_wylie |
+ #wizards_artist.stanislaw_wyspianski |
+ #wizards_artist.takato_yamamoto |
+ #wizards_artist.gene_luen_yang |
+ #wizards_artist.ikenaga_yasunari |
+ #wizards_artist.kozo_yokai |
+ #wizards_artist.sean_yoro |
+ #wizards_artist.chie_yoshii |
+ #wizards_artist.skottie_young |
+ #wizards_artist.masaaki_yuasa |
+ #wizards_artist.konstantin_yuon |
+ #wizards_artist.yuumei |
+ #wizards_artist.william_zorach |
+ #wizards_artist.ander_zorn |
 // artists added by me (ariane-emory):
-!#wizards_artists_artist_is_set !#artist__ian_miller 3 Ian Miller |
-!#wizards_artists_artist_is_set !#artist__john_zeleznik 3 John Zeleznik |
-!#wizards_artists_artist_is_set !#artist__keith_parkinson 3 Keith Parkinson |
-!#wizards_artists_artist_is_set !#artist__kevin_fales 3 Kevin Fales |
-!#wizards_artists_artist_is_set !#artist__boris_vallejo 3 Boris Vallejo
-}
+ 3 #wizards_artist.ian_miller  |
+ 3 #wizards_artist.john_zeleznik |
+ 3 #wizards_artist.keith_parkinson |
+ 3 #wizards_artist.kevin_fales |
+ 3 #wizards_artist.boris_vallejo
+}}
 
-@wizards_artists_artist_name := {
- @__set_wizards_artists_artist_if_unset @__wizards_artists_artist_name
-}
-
-@__wizards_artists_artist_name := {
-?artist__zacharias_martin_aagaard Zacharias Martin Aagaard |
-?artist__slim_aarons Slim Aarons |
-?artist__elenore_abbott Elenore Abbott |
-?artist__tomma_abts Tomma Abts |
-?artist__vito_acconci Vito Acconci |
-?artist__andreas_achenbach Andreas Achenbach |
-?artist__ansel_adams Ansel Adams |
-?artist__josh_adamski Josh Adamski |
-?artist__charles_addams Charles Addams |
-?artist__etel_adnan Etel Adnan |
-?artist__alena_aenami Alena Aenami |
-?artist__leonid_afremov Leonid Afremov |
-?artist__petros_afshar Petros Afshar |
-?artist__yaacov_agam Yaacov Agam |
-?artist__eileen_agar Eileen Agar |
-?artist__craigie_aitchison Craigie Aitchison |
-?artist__ivan_aivazovsky Ivan Aivazovsky |
-?artist__francesco_albani Francesco Albani |
-?artist__alessio_albi Alessio Albi |
-?artist__miles_aldridge Miles Aldridge |
-?artist__john_white_alexander John White Alexander |
-?artist__alessandro_allori Alessandro Allori |
-?artist__mike_allred Mike Allred |
-?artist__lawrence_alma_tadema Lawrence Alma-Tadema |
-?artist__lilia_alvarado Lilia Alvarado |
-?artist__tarsila_do_amaral Tarsila do Amaral |
-?artist__ghada_amer Ghada Amer |
-?artist__cuno_amiet Cuno Amiet |
-?artist__el_anatsui El Anatsui |
-?artist__helga_ancher Helga Ancher |
-?artist__sarah_andersen Sarah Andersen |
-?artist__richard_anderson Richard Anderson |
-?artist__sophie_gengembre_anderson Sophie Gengembre Anderson |
-?artist__wes_anderson Wes Anderson |
-?artist__alex_andreev Alex Andreev |
-?artist__sofonisba_anguissola Sofonisba Anguissola |
-?artist__louis_anquetin Louis Anquetin |
-?artist__mary_jane_ansell Mary Jane Ansell |
-?artist__chiho_aoshima Chiho Aoshima |
-?artist__sabbas_apterus Sabbas Apterus |
-?artist__hirohiko_araki Hirohiko Araki |
-?artist__howard_arkley Howard Arkley |
-?artist__rolf_armstrong Rolf Armstrong |
-?artist__gerd_arntz Gerd Arntz |
-?artist__guy_aroch Guy Aroch |
-?artist__miki_asai Miki Asai |
-?artist__clemens_ascher Clemens Ascher |
-?artist__henry_asencio Henry Asencio |
-?artist__andrew_atroshenko Andrew Atroshenko |
-?artist__deborah_azzopardi Deborah Azzopardi |
-?artist__lois_van_baarle Lois van Baarle |
-?artist__ingrid_baars Ingrid Baars |
-?artist__anne_bachelier Anne Bachelier |
-?artist__francis_bacon Francis Bacon |
-?artist__firmin_baes Firmin Baes |
-?artist__tom_bagshaw Tom Bagshaw |
-?artist__karol_bak Karol Bak |
-?artist__christopher_balaskas Christopher Balaskas |
-?artist__benedick_bana Benedick Bana |
-?artist__banksy Banksy |
-?artist__george_barbier George Barbier |
-?artist__cicely_mary_barker Cicely Mary Barker |
-?artist__wayne_barlowe Wayne Barlowe |
-?artist__will_barnet Will Barnet |
-?artist__matthew_barney Matthew Barney |
-?artist__angela_barrett Angela Barrett |
-?artist__jean_michel_basquiat Jean-Michel Basquiat |
-?artist__lillian_bassman Lillian Bassman |
-?artist__pompeo_batoni Pompeo Batoni |
-?artist__casey_baugh Casey Baugh |
-?artist__chiara_bautista Chiara Bautista |
-?artist__herbert_bayer Herbert Bayer |
-?artist__mary_beale Mary Beale |
-?artist__alan_bean Alan Bean |
-?artist__romare_bearden Romare Bearden |
-?artist__cecil_beaton Cecil Beaton |
-?artist__cecilia_beaux Cecilia Beaux |
-?artist__jasmine_becket_griffith Jasmine Becket-Griffith |
-?artist__vanessa_beecroft Vanessa Beecroft |
-?artist__beeple Beeple |
-?artist__zdzislaw_beksinski Zdzisław Beksiński |
-?artist__katerina_belkina Katerina Belkina |
-?artist__julie_bell Julie Bell |
-?artist__vanessa_bell Vanessa Bell |
-?artist__bernardo_bellotto Bernardo Bellotto |
-?artist__ambrosius_benson Ambrosius Benson |
-?artist__stan_berenstain Stan Berenstain |
-?artist__laura_berger Laura Berger |
-?artist__jody_bergsma Jody Bergsma |
-?artist__john_berkey John Berkey |
-?artist__gian_lorenzo_bernini Gian Lorenzo Bernini |
-?artist__marta_bevacqua Marta Bevacqua |
-?artist__john_t_biggers John T. Biggers |
-?artist__enki_bilal Enki Bilal |
-?artist__ivan_bilibin Ivan Bilibin |
-?artist__butcher_billy Butcher Billy |
-?artist__george_caleb_bingham George Caleb Bingham |
-?artist__ed_binkley Ed Binkley |
-?artist__george_birrell George Birrell |
-?artist__robert_bissell Robert Bissell |
-?artist__charles_blackman Charles Blackman |
-?artist__mary_blair Mary Blair |
-?artist__john_blanche John Blanche |
-?artist__don_blanding Don Blanding |
-?artist__albert_bloch Albert Bloch |
-?artist__hyman_bloom Hyman Bloom |
-?artist__peter_blume Peter Blume |
-?artist__don_bluth Don Bluth |
-?artist__umberto_boccioni Umberto Boccioni |
-?artist__anna_bocek Anna Bocek |
-?artist__lee_bogle Lee Bogle |
-?artist__louis_leopold_boily Louis-Léopold Boily |
-?artist__giovanni_boldini Giovanni Boldini |
-?artist__enoch_bolles Enoch Bolles |
-?artist__david_bomberg David Bomberg |
-?artist__chesley_bonestell Chesley Bonestell |
-?artist__lee_bontecou Lee Bontecou |
-?artist__michael_borremans Michael Borremans |
-?artist__matt_bors Matt Bors |
-?artist__flora_borsi Flora Borsi |
-?artist__hieronymus_bosch Hieronymus Bosch |
-?artist__sam_bosma Sam Bosma |
-?artist__johfra_bosschart Johfra Bosschart |
-?artist__fernando_botero Fernando Botero |
-?artist__sandro_botticelli Sandro Botticelli |
-?artist__william_adolphe_bouguereau William-Adolphe Bouguereau |
-?artist__susan_seddon_boulet Susan Seddon Boulet |
-?artist__louise_bourgeois Louise Bourgeois |
-?artist__annick_bouvattier Annick Bouvattier |
-?artist__david_michael_bowers David Michael Bowers |
-?artist__noah_bradley Noah Bradley |
-?artist__aleksi_briclot Aleksi Briclot |
-?artist__frederick_arthur_bridgman Frederick Arthur Bridgman |
-?artist__renie_britenbucher Renie Britenbucher |
-?artist__romero_britto Romero Britto |
-?artist__gerald_brom Gerald Brom |
-?artist__bronzino Bronzino |
-?artist__herman_brood Herman Brood |
-?artist__mark_brooks Mark Brooks |
-?artist__romaine_brooks Romaine Brooks |
-?artist__troy_brooks Troy Brooks |
-?artist__broom_lee Broom Lee |
-?artist__allie_brosh Allie Brosh |
-?artist__ford_madox_brown Ford Madox Brown |
-?artist__charles_le_brun Charles Le Brun |
-?artist__elisabeth_vigee_le_brun Élisabeth Vigée Le Brun |
-?artist__james_bullough James Bullough |
-?artist__laurel_burch Laurel Burch |
-?artist__alejandro_burdisio Alejandro Burdisio |
-?artist__daniel_buren Daniel Buren |
-?artist__jon_burgerman Jon BurGerman |
-?artist__richard_burlet Richard Burlet |
-?artist__jim_burns Jim Burns |
-?artist__stasia_burrington Stasia Burrington |
-?artist__kaethe_butcher Kaethe Butcher |
-?artist__saturno_butto Saturno Butto |
-?artist__paul_cadmus Paul Cadmus |
-?artist__zhichao_cai Zhichao Cai |
-?artist__randolph_caldecott Randolph Caldecott |
-?artist__alexander_calder_milne Alexander Calder Milne |
-?artist__clyde_caldwell Clyde Caldwell |
-?artist__vincent_callebaut Vincent Callebaut |
-?artist__fred_calleri Fred Calleri |
-?artist__charles_camoin Charles Camoin |
-?artist__mike_campau Mike Campau |
-?artist__eric_canete Eric Canete |
-?artist__josef_capek Josef Capek |
-?artist__leonetto_cappiello Leonetto Cappiello |
-?artist__eric_carle Eric Carle |
-?artist__larry_carlson Larry Carlson |
-?artist__bill_carman Bill Carman |
-?artist__jean_baptiste_carpeaux Jean-Baptiste Carpeaux |
-?artist__rosalba_carriera Rosalba Carriera |
-?artist__michael_carson Michael Carson |
-?artist__felice_casorati Felice Casorati |
-?artist__mary_cassatt Mary Cassatt |
-?artist__a_j_casson A. J. Casson |
-?artist__giorgio_barbarelli_da_castelfranco Giorgio Barbarelli da Castelfranco |
-?artist__paul_catherall Paul Catherall |
-?artist__george_catlin George Catlin |
-?artist__patrick_caulfield Patrick Caulfield |
-?artist__nicoletta_ceccoli Nicoletta Ceccoli |
-?artist__agnes_cecile Agnes Cecile |
-?artist__paul_cezanne Paul Cézanne |
-?artist__paul_chabas Paul Chabas |
-?artist__marc_chagall Marc Chagall |
-?artist__tom_chambers Tom Chambers |
-?artist__katia_chausheva Katia Chausheva |
-?artist__hsiao_ron_cheng Hsiao-Ron Cheng |
-?artist__yanjun_cheng Yanjun Cheng |
-?artist__sandra_chevrier Sandra Chevrier |
-?artist__judy_chicago Judy Chicago |
-?artist__dale_chihuly Dale Chihuly |
-?artist__frank_cho Frank Cho |
-?artist__james_c_christensen James C. Christensen |
-?artist__mikalojus_konstantinas_ciurlionis Mikalojus Konstantinas Ciurlionis |
-?artist__alson_skinner_clark Alson Skinner Clark |
-?artist__amanda_clark Amanda Clark |
-?artist__harry_clarke Harry Clarke |
-?artist__george_clausen George Clausen |
-?artist__francesco_clemente Francesco Clemente |
-?artist__alvin_langdon_coburn Alvin Langdon Coburn |
-?artist__clifford_coffin Clifford Coffin |
-?artist__vince_colletta Vince Colletta |
-?artist__beth_conklin Beth Conklin |
-?artist__john_constable John Constable |
-?artist__darwyn_cooke Darwyn Cooke |
-?artist__richard_corben Richard Corben |
-?artist__vittorio_matteo_corcos Vittorio Matteo Corcos |
-?artist__paul_corfield Paul Corfield |
-?artist__fernand_cormon Fernand Cormon |
-?artist__norman_cornish Norman Cornish |
-?artist__camille_corot Camille Corot |
-?artist__gemma_correll Gemma Correll |
-?artist__petra_cortright Petra Cortright |
-?artist__lorenzo_costa_the_elder Lorenzo Costa the Elder |
-?artist__olive_cotton Olive Cotton |
-?artist__peter_coulson Peter Coulson |
-?artist__gustave_courbet Gustave Courbet |
-?artist__frank_cadogan_cowper Frank Cadogan Cowper |
-?artist__kinuko_y_craft Kinuko Y. Craft |
-?artist__clayton_crain Clayton Crain |
-?artist__lucas_cranach_the_elder Lucas Cranach the Elder |
-?artist__lucas_cranach_the_younger Lucas Cranach the Younger |
-?artist__walter_crane Walter Crane |
-?artist__martin_creed Martin Creed |
-?artist__gregory_crewdson Gregory Crewdson |
-?artist__debbie_criswell Debbie Criswell |
-?artist__victoria_crowe Victoria Crowe |
-?artist__etam_cru Etam Cru |
-?artist__robert_crumb Robert Crumb |
-?artist__carlos_cruz_diez Carlos Cruz-Diez |
-?artist__john_currin John Currin |
-?artist__krenz_cushart Krenz Cushart |
-?artist__camilla_derrico Camilla d'Errico |
-?artist__pino_daeni Pino Daeni |
-?artist__salvador_dali Salvador Dalí |
-?artist__sunil_das Sunil Das |
-?artist__ian_davenport Ian Davenport |
-?artist__stuart_davis Stuart Davis |
-?artist__roger_dean Roger Dean |
-?artist__michael_deforge Michael Deforge |
-?artist__edgar_degas Edgar Degas |
-?artist__eugene_delacroix Eugene Delacroix |
-?artist__robert_delaunay Robert Delaunay |
-?artist__sonia_delaunay Sonia Delaunay |
-?artist__gabriele_dellotto Gabriele Dell'otto |
-?artist__nicolas_delort Nicolas Delort |
-?artist__jean_delville Jean Delville |
-?artist__posuka_demizu Posuka Demizu |
-?artist__guy_denning Guy Denning |
-?artist__monsu_desiderio Monsù Desiderio |
-?artist__charles_maurice_detmold Charles Maurice Detmold |
-?artist__edward_julius_detmold Edward Julius Detmold |
-?artist__anne_dewailly Anne Dewailly |
-?artist__walt_disney Walt Disney |
-?artist__tony_diterlizzi Tony DiTerlizzi |
-?artist__anna_dittmann Anna Dittmann |
-?artist__dima_dmitriev Dima Dmitriev |
-?artist__peter_doig Peter Doig |
-?artist__kees_van_dongen Kees van Dongen |
-?artist__gustave_dore Gustave Doré |
-?artist__dave_dorman Dave Dorman |
-?artist__emilio_giuseppe_dossena Emilio Giuseppe Dossena |
-?artist__david_downton David Downton |
-?artist__jessica_drossin Jessica Drossin |
-?artist__philippe_druillet Philippe Druillet |
-?artist__tj_drysdale TJ Drysdale |
-?artist__ton_dubbeldam Ton Dubbeldam |
-?artist__marcel_duchamp Marcel Duchamp |
-?artist__joseph_ducreux Joseph Ducreux |
-?artist__edmund_dulac Edmund Dulac |
-?artist__marlene_dumas Marlene Dumas |
-?artist__charles_dwyer Charles Dwyer |
-?artist__william_dyce William Dyce |
-?artist__chris_dyer Chris Dyer |
-?artist__eyvind_earle Eyvind Earle |
-?artist__amy_earles Amy Earles |
-?artist__lori_earley Lori Earley |
-?artist__jeff_easley Jeff Easley |
-?artist__tristan_eaton Tristan Eaton |
-?artist__jason_edmiston Jason Edmiston |
-?artist__alfred_eisenstaedt Alfred Eisenstaedt |
-?artist__jesper_ejsing Jesper Ejsing |
-?artist__olafur_eliasson Olafur Eliasson |
-?artist__harrison_ellenshaw Harrison Ellenshaw |
-?artist__christine_ellger Christine Ellger |
-?artist__larry_elmore Larry Elmore |
-?artist__joseba_elorza Joseba Elorza |
-?artist__peter_elson Peter Elson |
-?artist__gil_elvgren Gil Elvgren |
-?artist__ed_emshwiller Ed Emshwiller |
-?artist__kilian_eng Kilian Eng |
-?artist__jason_a_engle Jason A. Engle |
-?artist__max_ernst Max Ernst |
-?artist__romain_de_tirtoff_erte Romain de Tirtoff Erté |
-?artist__m_c_escher M. C. Escher |
-?artist__tim_etchells Tim Etchells |
-?artist__walker_evans Walker Evans |
-?artist__jan_van_eyck Jan van Eyck |
-?artist__glenn_fabry Glenn Fabry |
-?artist__ludwig_fahrenkrog Ludwig Fahrenkrog |
-?artist__shepard_fairey Shepard Fairey |
-?artist__andy_fairhurst Andy Fairhurst |
-?artist__luis_ricardo_falero Luis Ricardo Falero |
-?artist__jean_fautrier Jean Fautrier |
-?artist__andrew_ferez Andrew Ferez |
-?artist__hugh_ferriss Hugh Ferriss |
-?artist__david_finch David Finch |
-?artist__callie_fink Callie Fink |
-?artist__virgil_finlay Virgil Finlay |
-?artist__anato_finnstark Anato Finnstark |
-?artist__howard_finster Howard Finster |
-?artist__oskar_fischinger Oskar Fischinger |
-?artist__samuel_melton_fisher Samuel Melton Fisher |
-?artist__john_anster_fitzgerald John Anster Fitzgerald |
-?artist__tony_fitzpatrick Tony Fitzpatrick |
-?artist__hippolyte_flandrin Hippolyte Flandrin |
-?artist__dan_flavin Dan Flavin |
-?artist__max_fleischer Max Fleischer |
-?artist__govaert_flinck Govaert Flinck |
-?artist__alex_russell_flint Alex Russell Flint |
-?artist__lucio_fontana Lucio Fontana |
-?artist__chris_foss Chris Foss |
-?artist__jon_foster Jon Foster |
-?artist__jean_fouquet Jean Fouquet |
-?artist__toby_fox Toby Fox |
-?artist__art_frahm Art Frahm |
-?artist__lisa_frank Lisa Frank |
-?artist__helen_frankenthaler Helen Frankenthaler |
-?artist__frank_frazetta Frank Frazetta |
-?artist__kelly_freas Kelly Freas |
-?artist__lucian_freud Lucian Freud |
-?artist__brian_froud Brian Froud |
-?artist__wendy_froud Wendy Froud |
-?artist__tom_fruin Tom Fruin |
-?artist__john_wayne_gacy John Wayne Gacy |
-?artist__justin_gaffrey Justin Gaffrey |
-?artist__hashimoto_gaho Hashimoto Gahō |
-?artist__neil_gaiman Neil Gaiman |
-?artist__stephen_gammell Stephen Gammell |
-?artist__hope_gangloff Hope Gangloff |
-?artist__alex_garant Alex Garant |
-?artist__gilbert_garcin Gilbert Garcin |
-?artist__michael_and_inessa_garmash Michael and Inessa Garmash |
-?artist__antoni_gaudi Antoni Gaudi |
-3 ?artist__jack_gaughan Jack Gaughan |
-?artist__paul_gauguin Paul Gauguin |
-?artist__giovanni_battista_gaulli Giovanni Battista Gaulli |
-?artist__anne_geddes Anne Geddes |
-?artist__bill_gekas Bill Gekas |
-?artist__artemisia_gentileschi Artemisia Gentileschi |
-?artist__orazio_gentileschi Orazio Gentileschi |
-?artist__daniel_f_gerhartz Daniel F. Gerhartz |
-?artist__theodore_gericault Théodore Géricault |
-?artist__jean_leon_gerome Jean-Léon Gérôme |
-?artist__mark_gertler Mark Gertler |
-?artist__atey_ghailan Atey Ghailan |
-?artist__alberto_giacometti Alberto Giacometti |
-?artist__donato_giancola Donato Giancola |
-?artist__hr_giger H.R. Giger |
-?artist__james_gilleard James Gilleard |
-?artist__harold_gilman Harold Gilman |
-?artist__charles_ginner Charles Ginner |
-?artist__jean_giraud Jean Giraud |
-?artist__anne_louis_girodet Anne-Louis Girodet |
-?artist__milton_glaser Milton Glaser |
-?artist__warwick_goble Warwick Goble |
-?artist__john_william_godward John William Godward |
-?artist__sacha_goldberger Sacha Goldberger |
-?artist__nan_goldin Nan Goldin |
-?artist__josan_gonzalez Josan Gonzalez |
-?artist__felix_gonzalez_torres Felix Gonzalez-Torres |
-?artist__derek_gores Derek Gores |
-?artist__edward_gorey Edward Gorey |
-?artist__arshile_gorky Arshile Gorky |
-?artist__alessandro_gottardo Alessandro Gottardo |
-?artist__adolph_gottlieb Adolph Gottlieb |
-?artist__francisco_goya Francisco Goya |
-?artist__laurent_grasso Laurent Grasso |
-?artist__mab_graves Mab Graves |
-?artist__eileen_gray Eileen Gray |
-?artist__kate_greenaway Kate Greenaway |
-?artist__alex_grey Alex Grey |
-?artist__carne_griffiths Carne Griffiths |
-?artist__gris_grimly Gris Grimly |
-?artist__brothers_grimm Brothers Grimm |
-?artist__tracie_grimwood Tracie Grimwood |
-?artist__matt_groening Matt Groening |
-?artist__alex_gross Alex Gross |
-?artist__tom_grummett Tom Grummett |
-?artist__huang_guangjian Huang Guangjian |
-?artist__wu_guanzhong Wu Guanzhong |
-?artist__rebecca_guay Rebecca Guay |
-?artist__guercino Guercino |
-?artist__jeannette_guichard_bunel Jeannette Guichard-Bunel |
-?artist__scott_gustafson Scott Gustafson |
-?artist__wade_guyton Wade Guyton |
-?artist__hans_haacke Hans Haacke |
-?artist__robert_hagan Robert Hagan |
-?artist__philippe_halsman Philippe Halsman |
-?artist__maggi_hambling Maggi Hambling |
-?artist__richard_hamilton Richard Hamilton |
-?artist__bess_hamiti Bess Hamiti |
-?artist__tom_hammick Tom Hammick |
-?artist__david_hammons David Hammons |
-?artist__ren_hang Ren Hang |
-?artist__erin_hanson Erin Hanson |
-?artist__keith_haring Keith Haring |
-?artist__alexei_harlamoff Alexei Harlamoff |
-?artist__charley_harper Charley Harper |
-?artist__john_harris John Harris |
-?artist__florence_harrison Florence Harrison |
-?artist__marsden_hartley Marsden Hartley |
-?artist__ryohei_hase Ryohei Hase |
-?artist__childe_hassam Childe Hassam |
-?artist__ben_hatke Ben Hatke |
-?artist__mona_hatoum Mona Hatoum |
-?artist__pam_hawkes Pam Hawkes |
-?artist__jamie_hawkesworth Jamie Hawkesworth |
-?artist__stuart_haygarth Stuart Haygarth |
-?artist__erich_heckel Erich Heckel |
-?artist__valerie_hegarty Valerie Hegarty |
-?artist__mary_heilmann Mary Heilmann |
-?artist__michael_heizer Michael Heizer |
-?artist__gottfried_helnwein Gottfried Helnwein |
-?artist__barkley_l_hendricks Barkley L. Hendricks |
-?artist__bill_henson Bill Henson |
-?artist__barbara_hepworth Barbara Hepworth |
-?artist__herge Hergé |
-?artist__carolina_herrera Carolina Herrera |
-?artist__george_herriman George Herriman |
-?artist__don_hertzfeldt Don Hertzfeldt |
-?artist__prudence_heward Prudence Heward |
-?artist__ryan_hewett Ryan Hewett |
-?artist__nora_heysen Nora Heysen |
-?artist__george_elgar_hicks George Elgar Hicks |
-?artist__lorenz_hideyoshi Lorenz Hideyoshi |
-?artist__brothers_hildebrandt Brothers Hildebrandt |
-?artist__dan_hillier Dan Hillier |
-?artist__lewis_hine Lewis Hine |
-?artist__miho_hirano Miho Hirano |
-?artist__harumi_hironaka Harumi Hironaka |
-?artist__hiroshige Hiroshige |
-?artist__morris_hirshfield Morris Hirshfield |
-?artist__damien_hirst Damien Hirst |
-?artist__fan_ho Fan Ho |
-?artist__meindert_hobbema Meindert Hobbema |
-?artist__david_hockney David Hockney |
-?artist__filip_hodas Filip Hodas |
-?artist__howard_hodgkin Howard Hodgkin |
-?artist__ferdinand_hodler Ferdinand Hodler |
-?artist__tiago_hoisel Tiago Hoisel |
-?artist__katsushika_hokusai Katsushika Hokusai |
-?artist__hans_holbein_the_younger Hans Holbein the Younger |
-?artist__frank_holl Frank Holl |
-?artist__carsten_holler Carsten Holler |
-?artist__zena_holloway Zena Holloway |
-?artist__edward_hopper Edward Hopper |
-?artist__aaron_horkey Aaron Horkey |
-?artist__alex_horley Alex Horley |
-?artist__roni_horn Roni Horn |
-?artist__john_howe John Howe |
-?artist__alex_howitt Alex Howitt |
-?artist__meghan_howland Meghan Howland |
-?artist__john_hoyland John Hoyland |
-?artist__shilin_huang Shilin Huang |
-?artist__arthur_hughes Arthur Hughes |
-?artist__edward_robert_hughes Edward Robert Hughes |
-?artist__jack_hughes Jack Hughes |
-?artist__talbot_hughes Talbot Hughes |
-?artist__pieter_hugo Pieter Hugo |
-?artist__gary_hume Gary Hume |
-?artist__friedensreich_hundertwasser Friedensreich Hundertwasser |
-?artist__william_holman_hunt William Holman Hunt |
-?artist__george_hurrell George Hurrell |
-?artist__fabio_hurtado Fabio Hurtado |
-?artist__hush HUSH |
-?artist__michael_hutter Michael Hutter |
-?artist__pierre_huyghe Pierre Huyghe |
-?artist__doug_hyde Doug Hyde |
-?artist__louis_icart Louis Icart |
-?artist__robert_indiana Robert Indiana |
-?artist__jean_auguste_dominique_ingres Jean Auguste Dominique Ingres |
-?artist__robert_irwin Robert Irwin |
-?artist__gabriel_isak Gabriel Isak |
-?artist__junji_ito Junji Ito |
-?artist__christophe_jacrot Christophe Jacrot |
-?artist__louis_janmot Louis Janmot |
-?artist__frieke_janssens Frieke Janssens |
-?artist__alexander_jansson Alexander Jansson |
-?artist__tove_jansson Tove Jansson |
-?artist__aaron_jasinski Aaron Jasinski |
-?artist__alexej_von_jawlensky Alexej von Jawlensky |
-?artist__james_jean James Jean |
-?artist__oliver_jeffers Oliver Jeffers |
-?artist__lee_jeffries Lee Jeffries |
-?artist__georg_jensen Georg Jensen |
-?artist__ellen_jewett Ellen Jewett |
-?artist__he_jiaying He Jiaying |
-?artist__chantal_joffe Chantal Joffe |
-?artist__martine_johanna Martine Johanna |
-?artist__augustus_john Augustus John |
-?artist__gwen_john Gwen John |
-?artist__jasper_johns Jasper Johns |
-?artist__eastman_johnson Eastman Johnson |
-?artist__alfred_cheney_johnston Alfred Cheney Johnston |
-?artist__dorothy_johnstone Dorothy Johnstone |
-?artist__android_jones Android Jones |
-?artist__erik_jones Erik Jones |
-?artist__jeffrey_catherine_jones Jeffrey Catherine Jones |
-?artist__peter_andrew_jones Peter Andrew Jones |
-?artist__loui_jover Loui Jover |
-?artist__amy_judd Amy Judd |
-?artist__donald_judd Donald Judd |
-?artist__jean_jullien Jean Jullien |
-?artist__matthias_jung Matthias Jung |
-?artist__joe_jusko Joe Jusko |
-?artist__frida_kahlo Frida Kahlo |
-?artist__hayv_kahraman Hayv Kahraman |
-?artist__mw_kaluta M.W. Kaluta |
-?artist__nadav_kander Nadav Kander |
-?artist__wassily_kandinsky Wassily Kandinsky |
-?artist__jun_kaneko Jun Kaneko |
-?artist__titus_kaphar Titus Kaphar |
-?artist__michal_karcz Michal Karcz |
-?artist__gertrude_kasebier Gertrude Käsebier |
-?artist__terada_katsuya Terada Katsuya |
-?artist__audrey_kawasaki Audrey Kawasaki |
-?artist__hasui_kawase Hasui Kawase |
-?artist__glen_keane Glen Keane |
-?artist__margaret_keane Margaret Keane |
-?artist__ellsworth_kelly Ellsworth Kelly |
-?artist__michael_kenna Michael Kenna |
-?artist__thomas_benjamin_kennington Thomas Benjamin Kennington |
-?artist__william_kentridge William Kentridge |
-?artist__hendrik_kerstens Hendrik Kerstens |
-?artist__jeremiah_ketner Jeremiah Ketner |
-?artist__fernand_khnopff Fernand Khnopff |
-?artist__hideyuki_kikuchi Hideyuki Kikuchi |
-?artist__tom_killion Tom Killion |
-?artist__thomas_kinkade Thomas Kinkade |
-?artist__jack_kirby Jack Kirby |
-?artist__ernst_ludwig_kirchner Ernst Ludwig Kirchner |
-?artist__tatsuro_kiuchi Tatsuro Kiuchi |
-?artist__jon_klassen Jon Klassen |
-?artist__paul_klee Paul Klee |
-?artist__william_klein William Klein |
-?artist__yves_klein Yves Klein |
-?artist__carl_kleiner Carl Kleiner |
-?artist__gustav_klimt Gustav Klimt |
-?artist__godfrey_kneller Godfrey Kneller |
-?artist__emily_kame_kngwarreye Emily Kame Kngwarreye |
-?artist__chad_knight Chad Knight |
-?artist__nick_knight Nick Knight |
-?artist__helene_knoop Helene Knoop |
-?artist__phil_koch Phil Koch |
-?artist__kazuo_koike Kazuo Koike |
-?artist__oskar_kokoschka Oskar Kokoschka |
-?artist__kathe_kollwitz Käthe Kollwitz |
-?artist__michael_komarck Michael Komarck |
-?artist__satoshi_kon Satoshi Kon |
-?artist__jeff_koons Jeff Koons |
-?artist__caia_koopman Caia Koopman |
-?artist__konstantin_korovin Konstantin Korovin |
-?artist__mark_kostabi Mark Kostabi |
-?artist__bella_kotak Bella Kotak |
-?artist__andrea_kowch Andrea Kowch |
-?artist__lee_krasner Lee Krasner |
-?artist__barbara_kruger Barbara Kruger |
-?artist__brad_kunkle Brad Kunkle |
-?artist__yayoi_kusama Yayoi Kusama |
-?artist__michael_k_kutsche Michael K Kutsche |
-?artist__ilya_kuvshinov Ilya Kuvshinov |
-?artist__david_lachapelle David LaChapelle |
-?artist__raphael_lacoste Raphael Lacoste |
-?artist__lev_lagorio Lev Lagorio |
-?artist__rene_lalique René Lalique |
-?artist__abigail_larson Abigail Larson |
-?artist__gary_larson Gary Larson |
-?artist__denys_lasdun Denys Lasdun |
-?artist__maria_lassnig Maria Lassnig |
-?artist__dorothy_lathrop Dorothy Lathrop |
-?artist__melissa_launay Melissa Launay |
-?artist__john_lavery John Lavery |
-?artist__jacob_lawrence Jacob Lawrence |
-?artist__thomas_lawrence Thomas Lawrence |
-?artist__ernest_lawson Ernest Lawson |
-?artist__bastien_lecouffe_deharme Bastien Lecouffe-Deharme |
-?artist__alan_lee Alan Lee |
-?artist__minjae_lee Minjae Lee |
-?artist__nina_leen Nina Leen |
-?artist__fernand_leger Fernand Leger |
-?artist__paul_lehr Paul Lehr |
-?artist__frederic_leighton Frederic Leighton |
-?artist__alayna_lemmer Alayna Lemmer |
-?artist__tamara_de_lempicka Tamara de Lempicka |
-?artist__sol_lewitt Sol LeWitt |
-?artist__jc_leyendecker J.C. Leyendecker |
-?artist__andre_lhote André Lhote |
-?artist__roy_lichtenstein Roy Lichtenstein |
-?artist__rob_liefeld Rob Liefeld |
-?artist__fang_lijun Fang Lijun |
-?artist__maya_lin Maya Lin |
-?artist__filippino_lippi Filippino Lippi |
-?artist__herbert_list Herbert List |
-?artist__richard_long Richard Long |
-?artist__yoann_lossel Yoann Lossel |
-?artist__morris_louis Morris Louis |
-?artist__sarah_lucas Sarah Lucas |
-?artist__maximilien_luce Maximilien Luce |
-?artist__loretta_lux Loretta Lux |
-?artist__george_platt_lynes George Platt Lynes |
-?artist__frances_macdonald Frances MacDonald |
-?artist__august_macke August Macke |
-?artist__stephen_mackey Stephen Mackey |
-?artist__rachel_maclean Rachel Maclean |
-?artist__raimundo_de_madrazo_y_garreta Raimundo de Madrazo y Garreta |
-?artist__joe_madureira Joe Madureira |
-?artist__rene_magritte Rene Magritte |
-?artist__jim_mahfood Jim Mahfood |
-?artist__vivian_maier Vivian Maier |
-?artist__aristide_maillol Aristide Maillol |
-?artist__don_maitz Don Maitz |
-?artist__laura_makabresku Laura Makabresku |
-?artist__alex_maleev Alex Maleev |
-?artist__keith_mallett Keith Mallett |
-?artist__johji_manabe Johji Manabe |
-?artist__milo_manara Milo Manara |
-?artist__edouard_manet Édouard Manet |
-?artist__henri_manguin Henri Manguin |
-?artist__jeremy_mann Jeremy Mann |
-?artist__sally_mann Sally Mann |
-?artist__andrea_mantegna Andrea Mantegna |
-?artist__antonio_j_manzanedo Antonio J. Manzanedo |
-?artist__robert_mapplethorpe Robert Mapplethorpe |
-?artist__franz_marc Franz Marc |
-?artist__ivan_marchuk Ivan Marchuk |
-?artist__brice_marden Brice Marden |
-?artist__andrei_markin Andrei Markin |
-?artist__kerry_james_marshall Kerry James Marshall |
-?artist__serge_marshennikov Serge Marshennikov |
-?artist__agnes_martin Agnes Martin |
-?artist__adam_martinakis Adam Martinakis |
-?artist__stephan_martiniere Stephan Martinière |
-?artist__ilya_mashkov Ilya Mashkov |
-?artist__henri_matisse Henri Matisse |
-?artist__rodney_matthews Rodney Matthews |
-?artist__anton_mauve Anton Mauve |
-?artist__peter_max Peter Max |
-?artist__mike_mayhew Mike Mayhew |
-?artist__angus_mcbride Angus McBride |
-?artist__anne_mccaffrey Anne McCaffrey |
-?artist__robert_mccall Robert McCall |
-?artist__scott_mccloud Scott McCloud |
-?artist__steve_mccurry Steve McCurry |
-?artist__todd_mcfarlane Todd McFarlane |
-?artist__barry_mcgee Barry McGee |
-?artist__ryan_mcginley Ryan McGinley |
-?artist__robert_mcginnis Robert McGinnis |
-?artist__richard_mcguire Richard McGuire |
-?artist__patrick_mchale Patrick McHale |
-?artist__kelly_mckernan Kelly McKernan |
-?artist__angus_mckie Angus McKie |
-?artist__alasdair_mclellan Alasdair McLellan |
-?artist__jon_mcnaught Jon McNaught |
-?artist__dan_mcpharlin Dan McPharlin |
-?artist__tara_mcpherson Tara McPherson |
-?artist__ralph_mcquarrie Ralph McQuarrie |
-?artist__ian_mcque Ian McQue |
-?artist__syd_mead Syd Mead |
-?artist__richard_meier Richard Meier |
-?artist__maria_sibylla_merian Maria Sibylla Merian |
-?artist__willard_metcalf Willard Metcalf |
-?artist__gabriel_metsu Gabriel Metsu |
-?artist__jean_metzinger Jean Metzinger |
-?artist__michelangelo Michelangelo |
-?artist__nicolas_mignard Nicolas Mignard |
-?artist__mike_mignola Mike Mignola |
-?artist__dimitra_milan Dimitra Milan |
-?artist__john_everett_millais John Everett Millais |
-?artist__marilyn_minter Marilyn Minter |
-?artist__januz_miralles Januz Miralles |
-?artist__joan_miro Joan Miró |
-?artist__joan_mitchell Joan Mitchell |
-?artist__hayao_miyazaki Hayao Miyazaki |
-?artist__paula_modersohn_becker Paula Modersohn-Becker |
-?artist__amedeo_modigliani Amedeo Modigliani |
-?artist__moebius Moebius |
-?artist__peter_mohrbacher Peter Mohrbacher |
-?artist__piet_mondrian Piet Mondrian |
-?artist__claude_monet Claude Monet |
-?artist__jean_baptiste_monge Jean-Baptiste Monge |
-?artist__alyssa_monks Alyssa Monks |
-?artist__alan_moore Alan Moore |
-?artist__antonio_mora Antonio Mora |
-?artist__edward_moran Edward Moran |
-?artist__koji_morimoto Kōji Morimoto |
-?artist__berthe_morisot Berthe Morisot |
-?artist__daido_moriyama Daido Moriyama |
-?artist__james_wilson_morrice James Wilson Morrice |
-?artist__sarah_morris Sarah Morris |
-?artist__john_lowrie_morrison John Lowrie Morrison |
-?artist__igor_morski Igor Morski |
-?artist__john_kenn_mortensen John Kenn Mortensen |
-?artist__victor_moscoso Victor Moscoso |
-?artist__inna_mosina Inna Mosina |
-?artist__richard_mosse Richard Mosse |
-?artist__thomas_edwin_mostyn Thomas Edwin Mostyn |
-?artist__marcel_mouly Marcel Mouly |
-?artist__emmanuelle_moureaux Emmanuelle Moureaux |
-?artist__alphonse_mucha Alphonse Mucha |
-?artist__craig_mullins Craig Mullins |
-?artist__augustus_edwin_mulready Augustus Edwin Mulready |
-?artist__dan_mumford Dan Mumford |
-?artist__edvard_munch Edvard Munch |
-?artist__alfred_munnings Alfred Munnings |
-?artist__gabriele_munter Gabriele Münter |
-?artist__takashi_murakami Takashi Murakami |
-?artist__patrice_murciano Patrice Murciano |
-?artist__scott_musgrove Scott Musgrove |
-?artist__wangechi_mutu Wangechi Mutu |
-?artist__go_nagai Go Nagai |
-?artist__hiroshi_nagai Hiroshi Nagai |
-?artist__patrick_nagel Patrick Nagel |
-?artist__tibor_nagy Tibor Nagy |
-?artist__scott_naismith Scott Naismith |
-?artist__juliana_nan Juliana Nan |
-?artist__ted_nasmith Ted Nasmith |
-?artist__todd_nauck Todd Nauck |
-?artist__bruce_nauman Bruce Nauman |
-?artist__ernst_wilhelm_nay Ernst Wilhelm Nay |
-?artist__alice_neel Alice Neel |
-?artist__keith_negley Keith Negley |
-?artist__leroy_neiman LeRoy Neiman |
-?artist__kadir_nelson Kadir Nelson |
-?artist__odd_nerdrum Odd Nerdrum |
-?artist__shirin_neshat Shirin Neshat |
-?artist__mikhail_nesterov Mikhail Nesterov |
-?artist__jane_newland Jane Newland |
-?artist__victo_ngai Victo Ngai |
-?artist__william_nicholson William Nicholson |
-?artist__florian_nicolle Florian Nicolle |
-?artist__kay_nielsen Kay Nielsen |
-?artist__tsutomu_nihei Tsutomu Nihei |
-?artist__victor_nizovtsev Victor Nizovtsev |
-?artist__isamu_noguchi Isamu Noguchi |
-?artist__catherine_nolin Catherine Nolin |
-?artist__francois_de_nome François De Nomé |
-?artist__earl_norem Earl Norem |
-?artist__phil_noto Phil Noto |
-?artist__georgia_okeeffe Georgia O'Keeffe |
-?artist__terry_oakes Terry Oakes |
-?artist__chris_ofili Chris Ofili |
-?artist__jack_ohman Jack Ohman |
-?artist__noriyoshi_ohrai Noriyoshi Ohrai |
-?artist__helio_oiticica Helio Oiticica |
-?artist__taro_okamoto Tarō Okamoto |
-?artist__tim_okamura Tim Okamura |
-?artist__naomi_okubo Naomi Okubo |
-?artist__atelier_olschinsky Atelier Olschinsky |
-?artist__greg_olsen Greg Olsen |
-?artist__oleg_oprisco Oleg Oprisco |
-?artist__tony_orrico Tony Orrico |
-?artist__mamoru_oshii Mamoru Oshii |
-?artist__ida_rentoul_outhwaite Ida Rentoul Outhwaite |
-?artist__yigal_ozeri Yigal Ozeri |
-?artist__gabriel_pacheco Gabriel Pacheco |
-?artist__michael_page Michael Page |
-?artist__rui_palha Rui Palha |
-?artist__polixeni_papapetrou Polixeni Papapetrou |
-?artist__julio_le_parc Julio Le Parc |
-?artist__michael_parkes Michael Parkes |
-?artist__philippe_parreno Philippe Parreno |
-?artist__maxfield_parrish Maxfield Parrish |
-?artist__alice_pasquini Alice Pasquini |
-?artist__james_mcintosh_patrick James McIntosh Patrick |
-?artist__john_pawson John Pawson |
-?artist__max_pechstein Max Pechstein |
-?artist__agnes_lawrence_pelton Agnes Lawrence Pelton |
-?artist__irving_penn Irving Penn |
-?artist__bruce_pennington Bruce Pennington |
-?artist__john_perceval John Perceval |
-?artist__george_perez George Perez |
-?artist__constant_permeke Constant Permeke |
-?artist__lilla_cabot_perry Lilla Cabot Perry |
-?artist__gaetano_pesce Gaetano Pesce |
-?artist__cleon_peterson Cleon Peterson |
-?artist__daria_petrilli Daria Petrilli |
-?artist__raymond_pettibon Raymond Pettibon |
-?artist__coles_phillips Coles Phillips |
-?artist__francis_picabia Francis Picabia |
-?artist__pablo_picasso Pablo Picasso |
-?artist__sopheap_pich Sopheap Pich |
-?artist__otto_piene Otto Piene |
-?artist__jerry_pinkney Jerry Pinkney |
-?artist__pinturicchio Pinturicchio |
-?artist__sebastiano_del_piombo Sebastiano del Piombo |
-?artist__camille_pissarro Camille Pissarro |
-?artist__ferris_plock Ferris Plock |
-?artist__bill_plympton Bill Plympton |
-?artist__willy_pogany Willy Pogany |
-?artist__patricia_polacco Patricia Polacco |
-?artist__jackson_pollock Jackson Pollock |
-?artist__beatrix_potter Beatrix Potter |
-?artist__edward_henry_potthast Edward Henry Potthast |
-?artist__simon_prades Simon Prades |
-?artist__maurice_prendergast Maurice Prendergast |
-?artist__dod_procter Dod Procter |
-?artist__leo_putz Leo Putz |
-?artist__howard_pyle Howard Pyle |
-?artist__arthur_rackham Arthur Rackham |
-?artist__natalia_rak Natalia Rak |
-?artist__paul_ranson Paul Ranson |
-?artist__raphael Raphael |
-?artist__abraham_rattner Abraham Rattner |
-?artist__jan_van_ravesteyn Jan van Ravesteyn |
-?artist__aliza_razell Aliza Razell |
-?artist__paula_rego Paula Rego |
-?artist__lotte_reiniger Lotte Reiniger |
-?artist__valentin_rekunenko Valentin Rekunenko |
-?artist__christoffer_relander Christoffer Relander |
-?artist__andrey_remnev Andrey Remnev |
-?artist__pierre_auguste_renoir Pierre-Auguste Renoir |
-?artist__ilya_repin Ilya Repin |
-?artist__joshua_reynolds Joshua Reynolds |
-?artist__rhads RHADS |
-?artist__bettina_rheims Bettina Rheims |
-?artist__jason_rhoades Jason Rhoades |
-?artist__georges_ribemont_dessaignes Georges Ribemont-Dessaignes |
-?artist__jusepe_de_ribera Jusepe de Ribera |
-?artist__gerhard_richter Gerhard Richter |
-?artist__chris_riddell Chris Riddell |
-?artist__hyacinthe_rigaud Hyacinthe Rigaud |
-?artist__rembrandt_van_rijn Rembrandt van Rijn |
-?artist__faith_ringgold Faith Ringgold |
-?artist__jozsef_rippl_ronai József Rippl-Rónai |
-?artist__pipilotti_rist Pipilotti Rist |
-?artist__charles_robinson Charles Robinson |
-?artist__theodore_robinson Theodore Robinson |
-?artist__kenneth_rocafort Kenneth Rocafort |
-?artist__andreas_rocha Andreas Rocha |
-?artist__norman_rockwell Norman Rockwell |
-?artist__ludwig_mies_van_der_rohe Ludwig Mies van der Rohe |
-?artist__fatima_ronquillo Fatima Ronquillo |
-?artist__salvator_rosa Salvator Rosa |
-?artist__kerby_rosanes Kerby Rosanes |
-?artist__conrad_roset Conrad Roset |
-?artist__bob_ross Bob Ross |
-?artist__dante_gabriel_rossetti Dante Gabriel Rossetti |
-?artist__jessica_rossier Jessica Rossier |
-?artist__marianna_rothen Marianna Rothen |
-?artist__mark_rothko Mark Rothko |
-?artist__eva_rothschild Eva Rothschild |
-?artist__georges_rousse Georges Rousse |
-?artist__luis_royo Luis Royo |
-?artist__joao_ruas Joao Ruas |
-?artist__peter_paul_rubens Peter Paul Rubens |
-?artist__rachel_ruysch Rachel Ruysch |
-?artist__albert_pinkham_ryder Albert Pinkham Ryder |
-?artist__mark_ryden Mark Ryden |
-?artist__ursula_von_rydingsvard Ursula von Rydingsvard |
-?artist__theo_van_rysselberghe Theo van Rysselberghe |
-?artist__eero_saarinen Eero Saarinen |
-?artist__wlad_safronow Wlad Safronow |
-?artist__amanda_sage Amanda Sage |
-?artist__antoine_de_saint_exupery Antoine de Saint-Exupery |
-?artist__nicola_samori Nicola Samori |
-?artist__rebeca_saray Rebeca Saray |
-?artist__john_singer_sargent John Singer Sargent |
-?artist__martiros_saryan Martiros Saryan |
-?artist__viviane_sassen Viviane Sassen |
-?artist__nike_savvas Nike Savvas |
-?artist__richard_scarry Richard Scarry |
-?artist__godfried_schalcken Godfried Schalcken |
-?artist__miriam_schapiro Miriam Schapiro |
-?artist__kenny_scharf Kenny Scharf |
-?artist__jerry_schatzberg Jerry Schatzberg |
-?artist__ary_scheffer Ary Scheffer |
-?artist__kees_scherer Kees Scherer |
-?artist__helene_schjerfbeck Helene Schjerfbeck |
-?artist__christian_schloe Christian Schloe |
-?artist__karl_schmidt_rottluff Karl Schmidt-Rottluff |
-?artist__julian_schnabel Julian Schnabel |
-?artist__fritz_scholder Fritz Scholder |
-?artist__charles_schulz Charles Schulz |
-?artist__sean_scully Sean Scully |
-?artist__ronald_searle Ronald Searle |
-?artist__mark_seliger Mark Seliger |
-?artist__anton_semenov Anton Semenov |
-?artist__edmondo_senatore Edmondo Senatore |
-?artist__maurice_sendak Maurice Sendak |
-?artist__richard_serra Richard Serra |
-?artist__georges_seurat Georges Seurat |
-?artist__dr_seuss Dr. Seuss |
-?artist__tanya_shatseva Tanya Shatseva |
-?artist__natalie_shau Natalie Shau |
-?artist__barclay_shaw Barclay Shaw |
-?artist__e_h_shepard E. H. Shepard |
-?artist__amrita_sher_gil Amrita Sher-Gil |
-?artist__irene_sheri Irene Sheri |
-?artist__duffy_sheridan Duffy Sheridan |
-?artist__cindy_sherman Cindy Sherman |
-?artist__shozo_shimamoto Shozo Shimamoto |
-?artist__hikari_shimoda Hikari Shimoda |
-?artist__makoto_shinkai Makoto Shinkai |
-?artist__chiharu_shiota Chiharu Shiota |
-?artist__elizabeth_shippen_green Elizabeth Shippen Green |
-?artist__masamune_shirow Masamune Shirow |
-?artist__tim_shumate Tim Shumate |
-?artist__yuri_shwedoff Yuri Shwedoff |
-?artist__malick_sidibe Malick Sidibé |
-?artist__jeanloup_sieff Jeanloup Sieff |
-?artist__bill_sienkiewicz Bill Sienkiewicz |
-?artist__marc_simonetti Marc Simonetti |
-?artist__david_sims David Sims |
-?artist__andy_singer Andy Singer |
-?artist__alfred_sisley Alfred Sisley |
-?artist__sandy_skoglund Sandy Skoglund |
-?artist__jeffrey_smart Jeffrey Smart |
-?artist__berndnaut_smilde Berndnaut Smilde |
-?artist__rodney_smith Rodney Smith |
-?artist__samantha_keely_smith Samantha Keely Smith |
-?artist__robert_smithson Robert Smithson |
-?artist__barbara_stauffacher_solomon Barbara Stauffacher Solomon |
-?artist__simeon_solomon Simeon Solomon |
-?artist__hajime_sorayama Hajime Sorayama |
-?artist__joaquin_sorolla Joaquín Sorolla |
-?artist__ettore_sottsass Ettore Sottsass |
-?artist__amadeo_de_souza_cardoso Amadeo de Souza-Cardoso |
-?artist__millicent_sowerby Millicent Sowerby |
-?artist__moses_soyer Moses Soyer |
-?artist__sparth Sparth |
-?artist__jack_spencer Jack Spencer |
-?artist__art_spiegelman Art Spiegelman |
-?artist__simon_stalenhag Simon Stålenhag |
-?artist__ralph_steadman Ralph Steadman |
-?artist__philip_wilson_steer Philip Wilson Steer |
-?artist__william_steig William Steig |
-?artist__fred_stein Fred Stein |
-?artist__theophile_steinlen Théophile Steinlen |
-?artist__brian_stelfreeze Brian Stelfreeze |
-?artist__frank_stella Frank Stella |
-?artist__joseph_stella Joseph Stella |
-?artist__irma_stern Irma Stern |
-?artist__alfred_stevens Alfred Stevens |
-?artist__marie_spartali_stillman Marie Spartali Stillman |
-?artist__stinkfish Stinkfish |
-?artist__anne_stokes Anne Stokes |
-?artist__william_stout William Stout |
-?artist__paul_strand Paul Strand |
-?artist__linnea_strid Linnea Strid |
-?artist__john_melhuish_strudwick John Melhuish Strudwick |
-?artist__drew_struzan Drew Struzan |
-?artist__tatiana_suarez Tatiana Suarez |
-?artist__eustache_le_sueur Eustache Le Sueur |
-?artist__rebecca_sugar Rebecca Sugar |
-?artist__hiroshi_sugimoto Hiroshi Sugimoto |
-?artist__graham_sutherland Graham Sutherland |
-?artist__jan_svankmajer Jan Svankmajer |
-?artist__raymond_swanland Raymond Swanland |
-?artist__annie_swynnerton Annie Swynnerton |
-?artist__stanislaw_szukalski Stanisław Szukalski |
-?artist__philip_taaffe Philip Taaffe |
-?artist__hiroyuki_mitsume_takahashi Hiroyuki-Mitsume Takahashi |
-?artist__dorothea_tanning Dorothea Tanning |
-?artist__margaret_tarrant Margaret Tarrant |
-?artist__genndy_tartakovsky Genndy Tartakovsky |
-?artist__teamlab teamLab |
-?artist__raina_telgemeier Raina Telgemeier |
-?artist__john_tenniel John Tenniel |
-?artist__sir_john_tenniel Sir John Tenniel |
-?artist__howard_terpning Howard Terpning |
-?artist__osamu_tezuka Osamu Tezuka |
-?artist__abbott_handerson_thayer Abbott Handerson Thayer |
-?artist__heather_theurer Heather Theurer |
-?artist__mickalene_thomas Mickalene Thomas |
-?artist__tom_thomson Tom Thomson |
-?artist__titian Titian |
-?artist__mark_tobey Mark Tobey |
-?artist__greg_tocchini Greg Tocchini |
-?artist__roland_topor Roland Topor |
-?artist__sergio_toppi Sergio Toppi |
-?artist__alex_toth Alex Toth |
-?artist__henri_de_toulouse_lautrec Henri de Toulouse-Lautrec |
-?artist__ross_tran Ross Tran |
-?artist__philip_treacy Philip Treacy |
-?artist__anne_truitt Anne Truitt |
-?artist__henry_scott_tuke Henry Scott Tuke |
-?artist__jmw_turner J.M.W. Turner |
-?artist__james_turrell James Turrell |
-?artist__john_henry_twachtman John Henry Twachtman |
-?artist__naomi_tydeman Naomi Tydeman |
-?artist__euan_uglow Euan Uglow |
-?artist__daniela_uhlig Daniela Uhlig |
-?artist__kitagawa_utamaro Kitagawa Utamaro |
-?artist__christophe_vacher Christophe Vacher |
-?artist__suzanne_valadon Suzanne Valadon |
-?artist__thiago_valdi Thiago Valdi |
-?artist__chris_van_allsburg Chris van Allsburg |
-?artist__francine_van_hove Francine Van Hove |
-?artist__jan_van_kessel_the_elder Jan van Kessel the Elder |
-?artist__remedios_varo Remedios Varo |
-?artist__nick_veasey Nick Veasey |
-?artist__diego_velazquez Diego Velázquez |
-?artist__eve_ventrue Eve Ventrue |
-?artist__johannes_vermeer Johannes Vermeer |
-?artist__charles_vess Charles Vess |
-?artist__roman_vishniac Roman Vishniac |
-?artist__kelly_vivanco Kelly Vivanco |
-?artist__brian_m_viveros Brian M. Viveros |
-?artist__elke_vogelsang Elke Vogelsang |
-?artist__vladimir_volegov Vladimir Volegov |
-?artist__robert_vonnoh Robert Vonnoh |
-?artist__mikhail_vrubel Mikhail Vrubel |
-?artist__louis_wain Louis Wain |
-?artist__kara_walker Kara Walker |
-?artist__josephine_wall Josephine Wall |
-?artist__bruno_walpoth Bruno Walpoth |
-?artist__chris_ware Chris Ware |
-?artist__andy_warhol Andy Warhol |
-?artist__john_william_waterhouse John William Waterhouse |
-?artist__bill_watterson Bill Watterson |
-?artist__george_frederic_watts George Frederic Watts |
-?artist__walter_ernest_webster Walter Ernest Webster |
-?artist__hendrik_weissenbruch Hendrik Weissenbruch |
-?artist__neil_welliver Neil Welliver |
-?artist__catrin_welz_stein Catrin Welz-Stein |
-?artist__vivienne_westwood Vivienne Westwood |
-?artist__michael_whelan Michael Whelan |
-?artist__james_abbott_mcneill_whistler James Abbott McNeill Whistler |
-?artist__william_whitaker William Whitaker |
-?artist__tim_white Tim White |
-?artist__coby_whitmore Coby Whitmore |
-?artist__david_wiesner David Wiesner |
-?artist__kehinde_wiley Kehinde Wiley |
-?artist__cathy_wilkes Cathy Wilkes |
-?artist__jessie_willcox_smith Jessie Willcox Smith |
-?artist__gilbert_williams Gilbert Williams |
-?artist__kyffin_williams Kyffin Williams |
-?artist__al_williamson Al Williamson |
-?artist__wes_wilson Wes Wilson |
-?artist__mike_winkelmann Mike Winkelmann |
-?artist__bec_winnel Bec Winnel |
-?artist__franz_xaver_winterhalter Franz Xaver Winterhalter |
-?artist__nathan_wirth Nathan Wirth |
-?artist__wlop WLOP |
-?artist__brandon_woelfel Brandon Woelfel |
-?artist__liam_wong Liam Wong |
-?artist__francesca_woodman Francesca Woodman |
-?artist__jim_woodring Jim Woodring |
-?artist__patrick_woodroffe Patrick Woodroffe |
-?artist__frank_lloyd_wright Frank Lloyd Wright |
-?artist__sulamith_wulfing Sulamith Wulfing |
-?artist__nc_wyeth N.C. Wyeth |
-?artist__rose_wylie Rose Wylie |
-?artist__stanislaw_wyspianski Stanisław Wyspiański |
-?artist__takato_yamamoto Takato Yamamoto |
-?artist__gene_luen_yang Gene Luen Yang |
-?artist__ikenaga_yasunari Ikenaga Yasunari |
-?artist__kozo_yokai Kozo Yokai |
-?artist__sean_yoro Sean Yoro |
-?artist__chie_yoshii Chie Yoshii |
-?artist__skottie_young Skottie Young |
-?artist__masaaki_yuasa Masaaki Yuasa |
-?artist__konstantin_yuon Konstantin Yuon |
-?artist__yuumei Yuumei |
-?artist__william_zorach William Zorach |
-?artist__ander_zorn Ander Zorn |
+@wizards_artists := { @__set_wizards_artists_artist_if_unset {
+?wizards_artist.zacharias_martin_aagaard Zacharias Martin Aagaard |
+?wizards_artist.slim_aarons Slim Aarons |
+?wizards_artist.elenore_abbott Elenore Abbott |
+?wizards_artist.tomma_abts Tomma Abts |
+?wizards_artist.vito_acconci Vito Acconci |
+?wizards_artist.andreas_achenbach Andreas Achenbach |
+?wizards_artist.ansel_adams Ansel Adams |
+?wizards_artist.josh_adamski Josh Adamski |
+?wizards_artist.charles_addams Charles Addams |
+?wizards_artist.etel_adnan Etel Adnan |
+?wizards_artist.alena_aenami Alena Aenami |
+?wizards_artist.leonid_afremov Leonid Afremov |
+?wizards_artist.petros_afshar Petros Afshar |
+?wizards_artist.yaacov_agam Yaacov Agam |
+?wizards_artist.eileen_agar Eileen Agar |
+?wizards_artist.craigie_aitchison Craigie Aitchison |
+?wizards_artist.ivan_aivazovsky Ivan Aivazovsky |
+?wizards_artist.francesco_albani Francesco Albani |
+?wizards_artist.alessio_albi Alessio Albi |
+?wizards_artist.miles_aldridge Miles Aldridge |
+?wizards_artist.john_white_alexander John White Alexander |
+?wizards_artist.alessandro_allori Alessandro Allori |
+?wizards_artist.mike_allred Mike Allred |
+?wizards_artist.lawrence_alma_tadema Lawrence Alma-Tadema |
+?wizards_artist.lilia_alvarado Lilia Alvarado |
+?wizards_artist.tarsila_do_amaral Tarsila do Amaral |
+?wizards_artist.ghada_amer Ghada Amer |
+?wizards_artist.cuno_amiet Cuno Amiet |
+?wizards_artist.el_anatsui El Anatsui |
+?wizards_artist.helga_ancher Helga Ancher |
+?wizards_artist.sarah_andersen Sarah Andersen |
+?wizards_artist.richard_anderson Richard Anderson |
+?wizards_artist.sophie_gengembre_anderson Sophie Gengembre Anderson |
+?wizards_artist.wes_anderson Wes Anderson |
+?wizards_artist.alex_andreev Alex Andreev |
+?wizards_artist.sofonisba_anguissola Sofonisba Anguissola |
+?wizards_artist.louis_anquetin Louis Anquetin |
+?wizards_artist.mary_jane_ansell Mary Jane Ansell |
+?wizards_artist.chiho_aoshima Chiho Aoshima |
+?wizards_artist.sabbas_apterus Sabbas Apterus |
+?wizards_artist.hirohiko_araki Hirohiko Araki |
+?wizards_artist.howard_arkley Howard Arkley |
+?wizards_artist.rolf_armstrong Rolf Armstrong |
+?wizards_artist.gerd_arntz Gerd Arntz |
+?wizards_artist.guy_aroch Guy Aroch |
+?wizards_artist.miki_asai Miki Asai |
+?wizards_artist.clemens_ascher Clemens Ascher |
+?wizards_artist.henry_asencio Henry Asencio |
+?wizards_artist.andrew_atroshenko Andrew Atroshenko |
+?wizards_artist.deborah_azzopardi Deborah Azzopardi |
+?wizards_artist.lois_van_baarle Lois van Baarle |
+?wizards_artist.ingrid_baars Ingrid Baars |
+?wizards_artist.anne_bachelier Anne Bachelier |
+?wizards_artist.francis_bacon Francis Bacon |
+?wizards_artist.firmin_baes Firmin Baes |
+?wizards_artist.tom_bagshaw Tom Bagshaw |
+?wizards_artist.karol_bak Karol Bak |
+?wizards_artist.christopher_balaskas Christopher Balaskas |
+?wizards_artist.benedick_bana Benedick Bana |
+?wizards_artist.banksy Banksy |
+?wizards_artist.george_barbier George Barbier |
+?wizards_artist.cicely_mary_barker Cicely Mary Barker |
+?wizards_artist.wayne_barlowe Wayne Barlowe |
+?wizards_artist.will_barnet Will Barnet |
+?wizards_artist.matthew_barney Matthew Barney |
+?wizards_artist.angela_barrett Angela Barrett |
+?wizards_artist.jean_michel_basquiat Jean-Michel Basquiat |
+?wizards_artist.lillian_bassman Lillian Bassman |
+?wizards_artist.pompeo_batoni Pompeo Batoni |
+?wizards_artist.casey_baugh Casey Baugh |
+?wizards_artist.chiara_bautista Chiara Bautista |
+?wizards_artist.herbert_bayer Herbert Bayer |
+?wizards_artist.mary_beale Mary Beale |
+?wizards_artist.alan_bean Alan Bean |
+?wizards_artist.romare_bearden Romare Bearden |
+?wizards_artist.cecil_beaton Cecil Beaton |
+?wizards_artist.cecilia_beaux Cecilia Beaux |
+?wizards_artist.jasmine_becket_griffith Jasmine Becket-Griffith |
+?wizards_artist.vanessa_beecroft Vanessa Beecroft |
+?wizards_artist.beeple Beeple |
+?wizards_artist.zdzislaw_beksinski Zdzisław Beksiński |
+?wizards_artist.katerina_belkina Katerina Belkina |
+?wizards_artist.julie_bell Julie Bell |
+?wizards_artist.vanessa_bell Vanessa Bell |
+?wizards_artist.bernardo_bellotto Bernardo Bellotto |
+?wizards_artist.ambrosius_benson Ambrosius Benson |
+?wizards_artist.stan_berenstain Stan Berenstain |
+?wizards_artist.laura_berger Laura Berger |
+?wizards_artist.jody_bergsma Jody Bergsma |
+?wizards_artist.john_berkey John Berkey |
+?wizards_artist.gian_lorenzo_bernini Gian Lorenzo Bernini |
+?wizards_artist.marta_bevacqua Marta Bevacqua |
+?wizards_artist.john_t_biggers John T. Biggers |
+?wizards_artist.enki_bilal Enki Bilal |
+?wizards_artist.ivan_bilibin Ivan Bilibin |
+?wizards_artist.butcher_billy Butcher Billy |
+?wizards_artist.george_caleb_bingham George Caleb Bingham |
+?wizards_artist.ed_binkley Ed Binkley |
+?wizards_artist.george_birrell George Birrell |
+?wizards_artist.robert_bissell Robert Bissell |
+?wizards_artist.charles_blackman Charles Blackman |
+?wizards_artist.mary_blair Mary Blair |
+?wizards_artist.john_blanche John Blanche |
+?wizards_artist.don_blanding Don Blanding |
+?wizards_artist.albert_bloch Albert Bloch |
+?wizards_artist.hyman_bloom Hyman Bloom |
+?wizards_artist.peter_blume Peter Blume |
+?wizards_artist.don_bluth Don Bluth |
+?wizards_artist.umberto_boccioni Umberto Boccioni |
+?wizards_artist.anna_bocek Anna Bocek |
+?wizards_artist.lee_bogle Lee Bogle |
+?wizards_artist.louis_leopold_boily Louis-Léopold Boily |
+?wizards_artist.giovanni_boldini Giovanni Boldini |
+?wizards_artist.enoch_bolles Enoch Bolles |
+?wizards_artist.david_bomberg David Bomberg |
+?wizards_artist.chesley_bonestell Chesley Bonestell |
+?wizards_artist.lee_bontecou Lee Bontecou |
+?wizards_artist.michael_borremans Michael Borremans |
+?wizards_artist.matt_bors Matt Bors |
+?wizards_artist.flora_borsi Flora Borsi |
+?wizards_artist.hieronymus_bosch Hieronymus Bosch |
+?wizards_artist.sam_bosma Sam Bosma |
+?wizards_artist.johfra_bosschart Johfra Bosschart |
+?wizards_artist.fernando_botero Fernando Botero |
+?wizards_artist.sandro_botticelli Sandro Botticelli |
+?wizards_artist.william_adolphe_bouguereau William-Adolphe Bouguereau |
+?wizards_artist.susan_seddon_boulet Susan Seddon Boulet |
+?wizards_artist.louise_bourgeois Louise Bourgeois |
+?wizards_artist.annick_bouvattier Annick Bouvattier |
+?wizards_artist.david_michael_bowers David Michael Bowers |
+?wizards_artist.noah_bradley Noah Bradley |
+?wizards_artist.aleksi_briclot Aleksi Briclot |
+?wizards_artist.frederick_arthur_bridgman Frederick Arthur Bridgman |
+?wizards_artist.renie_britenbucher Renie Britenbucher |
+?wizards_artist.romero_britto Romero Britto |
+?wizards_artist.gerald_brom Gerald Brom |
+?wizards_artist.bronzino Bronzino |
+?wizards_artist.herman_brood Herman Brood |
+?wizards_artist.mark_brooks Mark Brooks |
+?wizards_artist.romaine_brooks Romaine Brooks |
+?wizards_artist.troy_brooks Troy Brooks |
+?wizards_artist.broom_lee Broom Lee |
+?wizards_artist.allie_brosh Allie Brosh |
+?wizards_artist.ford_madox_brown Ford Madox Brown |
+?wizards_artist.charles_le_brun Charles Le Brun |
+?wizards_artist.elisabeth_vigee_le_brun Élisabeth Vigée Le Brun |
+?wizards_artist.james_bullough James Bullough |
+?wizards_artist.laurel_burch Laurel Burch |
+?wizards_artist.alejandro_burdisio Alejandro Burdisio |
+?wizards_artist.daniel_buren Daniel Buren |
+?wizards_artist.jon_burgerman Jon BurGerman |
+?wizards_artist.richard_burlet Richard Burlet |
+?wizards_artist.jim_burns Jim Burns |
+?wizards_artist.stasia_burrington Stasia Burrington |
+?wizards_artist.kaethe_butcher Kaethe Butcher |
+?wizards_artist.saturno_butto Saturno Butto |
+?wizards_artist.paul_cadmus Paul Cadmus |
+?wizards_artist.zhichao_cai Zhichao Cai |
+?wizards_artist.randolph_caldecott Randolph Caldecott |
+?wizards_artist.alexander_calder_milne Alexander Calder Milne |
+?wizards_artist.clyde_caldwell Clyde Caldwell |
+?wizards_artist.vincent_callebaut Vincent Callebaut |
+?wizards_artist.fred_calleri Fred Calleri |
+?wizards_artist.charles_camoin Charles Camoin |
+?wizards_artist.mike_campau Mike Campau |
+?wizards_artist.eric_canete Eric Canete |
+?wizards_artist.josef_capek Josef Capek |
+?wizards_artist.leonetto_cappiello Leonetto Cappiello |
+?wizards_artist.eric_carle Eric Carle |
+?wizards_artist.larry_carlson Larry Carlson |
+?wizards_artist.bill_carman Bill Carman |
+?wizards_artist.jean_baptiste_carpeaux Jean-Baptiste Carpeaux |
+?wizards_artist.rosalba_carriera Rosalba Carriera |
+?wizards_artist.michael_carson Michael Carson |
+?wizards_artist.felice_casorati Felice Casorati |
+?wizards_artist.mary_cassatt Mary Cassatt |
+?wizards_artist.a_j_casson A. J. Casson |
+?wizards_artist.giorgio_barbarelli_da_castelfranco Giorgio Barbarelli da Castelfranco |
+?wizards_artist.paul_catherall Paul Catherall |
+?wizards_artist.george_catlin George Catlin |
+?wizards_artist.patrick_caulfield Patrick Caulfield |
+?wizards_artist.nicoletta_ceccoli Nicoletta Ceccoli |
+?wizards_artist.agnes_cecile Agnes Cecile |
+?wizards_artist.paul_cezanne Paul Cézanne |
+?wizards_artist.paul_chabas Paul Chabas |
+?wizards_artist.marc_chagall Marc Chagall |
+?wizards_artist.tom_chambers Tom Chambers |
+?wizards_artist.katia_chausheva Katia Chausheva |
+?wizards_artist.hsiao_ron_cheng Hsiao-Ron Cheng |
+?wizards_artist.yanjun_cheng Yanjun Cheng |
+?wizards_artist.sandra_chevrier Sandra Chevrier |
+?wizards_artist.judy_chicago Judy Chicago |
+?wizards_artist.dale_chihuly Dale Chihuly |
+?wizards_artist.frank_cho Frank Cho |
+?wizards_artist.james_c_christensen James C. Christensen |
+?wizards_artist.mikalojus_konstantinas_ciurlionis Mikalojus Konstantinas Ciurlionis |
+?wizards_artist.alson_skinner_clark Alson Skinner Clark |
+?wizards_artist.amanda_clark Amanda Clark |
+?wizards_artist.harry_clarke Harry Clarke |
+?wizards_artist.george_clausen George Clausen |
+?wizards_artist.francesco_clemente Francesco Clemente |
+?wizards_artist.alvin_langdon_coburn Alvin Langdon Coburn |
+?wizards_artist.clifford_coffin Clifford Coffin |
+?wizards_artist.vince_colletta Vince Colletta |
+?wizards_artist.beth_conklin Beth Conklin |
+?wizards_artist.john_constable John Constable |
+?wizards_artist.darwyn_cooke Darwyn Cooke |
+?wizards_artist.richard_corben Richard Corben |
+?wizards_artist.vittorio_matteo_corcos Vittorio Matteo Corcos |
+?wizards_artist.paul_corfield Paul Corfield |
+?wizards_artist.fernand_cormon Fernand Cormon |
+?wizards_artist.norman_cornish Norman Cornish |
+?wizards_artist.camille_corot Camille Corot |
+?wizards_artist.gemma_correll Gemma Correll |
+?wizards_artist.petra_cortright Petra Cortright |
+?wizards_artist.lorenzo_costa_the_elder Lorenzo Costa the Elder |
+?wizards_artist.olive_cotton Olive Cotton |
+?wizards_artist.peter_coulson Peter Coulson |
+?wizards_artist.gustave_courbet Gustave Courbet |
+?wizards_artist.frank_cadogan_cowper Frank Cadogan Cowper |
+?wizards_artist.kinuko_y_craft Kinuko Y. Craft |
+?wizards_artist.clayton_crain Clayton Crain |
+?wizards_artist.lucas_cranach_the_elder Lucas Cranach the Elder |
+?wizards_artist.lucas_cranach_the_younger Lucas Cranach the Younger |
+?wizards_artist.walter_crane Walter Crane |
+?wizards_artist.martin_creed Martin Creed |
+?wizards_artist.gregory_crewdson Gregory Crewdson |
+?wizards_artist.debbie_criswell Debbie Criswell |
+?wizards_artist.victoria_crowe Victoria Crowe |
+?wizards_artist.etam_cru Etam Cru |
+?wizards_artist.robert_crumb Robert Crumb |
+?wizards_artist.carlos_cruz_diez Carlos Cruz-Diez |
+?wizards_artist.john_currin John Currin |
+?wizards_artist.krenz_cushart Krenz Cushart |
+?wizards_artist.camilla_derrico Camilla d'Errico |
+?wizards_artist.pino_daeni Pino Daeni |
+?wizards_artist.salvador_dali Salvador Dalí |
+?wizards_artist.sunil_das Sunil Das |
+?wizards_artist.ian_davenport Ian Davenport |
+?wizards_artist.stuart_davis Stuart Davis |
+?wizards_artist.roger_dean Roger Dean |
+?wizards_artist.michael_deforge Michael Deforge |
+?wizards_artist.edgar_degas Edgar Degas |
+?wizards_artist.eugene_delacroix Eugene Delacroix |
+?wizards_artist.robert_delaunay Robert Delaunay |
+?wizards_artist.sonia_delaunay Sonia Delaunay |
+?wizards_artist.gabriele_dellotto Gabriele Dell'otto |
+?wizards_artist.nicolas_delort Nicolas Delort |
+?wizards_artist.jean_delville Jean Delville |
+?wizards_artist.posuka_demizu Posuka Demizu |
+?wizards_artist.guy_denning Guy Denning |
+?wizards_artist.monsu_desiderio Monsù Desiderio |
+?wizards_artist.charles_maurice_detmold Charles Maurice Detmold |
+?wizards_artist.edward_julius_detmold Edward Julius Detmold |
+?wizards_artist.anne_dewailly Anne Dewailly |
+?wizards_artist.walt_disney Walt Disney |
+?wizards_artist.tony_diterlizzi Tony DiTerlizzi |
+?wizards_artist.anna_dittmann Anna Dittmann |
+?wizards_artist.dima_dmitriev Dima Dmitriev |
+?wizards_artist.peter_doig Peter Doig |
+?wizards_artist.kees_van_dongen Kees van Dongen |
+?wizards_artist.gustave_dore Gustave Doré |
+?wizards_artist.dave_dorman Dave Dorman |
+?wizards_artist.emilio_giuseppe_dossena Emilio Giuseppe Dossena |
+?wizards_artist.david_downton David Downton |
+?wizards_artist.jessica_drossin Jessica Drossin |
+?wizards_artist.philippe_druillet Philippe Druillet |
+?wizards_artist.tj_drysdale TJ Drysdale |
+?wizards_artist.ton_dubbeldam Ton Dubbeldam |
+?wizards_artist.marcel_duchamp Marcel Duchamp |
+?wizards_artist.joseph_ducreux Joseph Ducreux |
+?wizards_artist.edmund_dulac Edmund Dulac |
+?wizards_artist.marlene_dumas Marlene Dumas |
+?wizards_artist.charles_dwyer Charles Dwyer |
+?wizards_artist.william_dyce William Dyce |
+?wizards_artist.chris_dyer Chris Dyer |
+?wizards_artist.eyvind_earle Eyvind Earle |
+?wizards_artist.amy_earles Amy Earles |
+?wizards_artist.lori_earley Lori Earley |
+?wizards_artist.jeff_easley Jeff Easley |
+?wizards_artist.tristan_eaton Tristan Eaton |
+?wizards_artist.jason_edmiston Jason Edmiston |
+?wizards_artist.alfred_eisenstaedt Alfred Eisenstaedt |
+?wizards_artist.jesper_ejsing Jesper Ejsing |
+?wizards_artist.olafur_eliasson Olafur Eliasson |
+?wizards_artist.harrison_ellenshaw Harrison Ellenshaw |
+?wizards_artist.christine_ellger Christine Ellger |
+?wizards_artist.larry_elmore Larry Elmore |
+?wizards_artist.joseba_elorza Joseba Elorza |
+?wizards_artist.peter_elson Peter Elson |
+?wizards_artist.gil_elvgren Gil Elvgren |
+?wizards_artist.ed_emshwiller Ed Emshwiller |
+?wizards_artist.kilian_eng Kilian Eng |
+?wizards_artist.jason_a_engle Jason A. Engle |
+?wizards_artist.max_ernst Max Ernst |
+?wizards_artist.romain_de_tirtoff_erte Romain de Tirtoff Erté |
+?wizards_artist.m_c_escher M. C. Escher |
+?wizards_artist.tim_etchells Tim Etchells |
+?wizards_artist.walker_evans Walker Evans |
+?wizards_artist.jan_van_eyck Jan van Eyck |
+?wizards_artist.glenn_fabry Glenn Fabry |
+?wizards_artist.ludwig_fahrenkrog Ludwig Fahrenkrog |
+?wizards_artist.shepard_fairey Shepard Fairey |
+?wizards_artist.andy_fairhurst Andy Fairhurst |
+?wizards_artist.luis_ricardo_falero Luis Ricardo Falero |
+?wizards_artist.jean_fautrier Jean Fautrier |
+?wizards_artist.andrew_ferez Andrew Ferez |
+?wizards_artist.hugh_ferriss Hugh Ferriss |
+?wizards_artist.david_finch David Finch |
+?wizards_artist.callie_fink Callie Fink |
+?wizards_artist.virgil_finlay Virgil Finlay |
+?wizards_artist.anato_finnstark Anato Finnstark |
+?wizards_artist.howard_finster Howard Finster |
+?wizards_artist.oskar_fischinger Oskar Fischinger |
+?wizards_artist.samuel_melton_fisher Samuel Melton Fisher |
+?wizards_artist.john_anster_fitzgerald John Anster Fitzgerald |
+?wizards_artist.tony_fitzpatrick Tony Fitzpatrick |
+?wizards_artist.hippolyte_flandrin Hippolyte Flandrin |
+?wizards_artist.dan_flavin Dan Flavin |
+?wizards_artist.max_fleischer Max Fleischer |
+?wizards_artist.govaert_flinck Govaert Flinck |
+?wizards_artist.alex_russell_flint Alex Russell Flint |
+?wizards_artist.lucio_fontana Lucio Fontana |
+?wizards_artist.chris_foss Chris Foss |
+?wizards_artist.jon_foster Jon Foster |
+?wizards_artist.jean_fouquet Jean Fouquet |
+?wizards_artist.toby_fox Toby Fox |
+?wizards_artist.art_frahm Art Frahm |
+?wizards_artist.lisa_frank Lisa Frank |
+?wizards_artist.helen_frankenthaler Helen Frankenthaler |
+?wizards_artist.frank_frazetta Frank Frazetta |
+?wizards_artist.kelly_freas Kelly Freas |
+?wizards_artist.lucian_freud Lucian Freud |
+?wizards_artist.brian_froud Brian Froud |
+?wizards_artist.wendy_froud Wendy Froud |
+?wizards_artist.tom_fruin Tom Fruin |
+?wizards_artist.john_wayne_gacy John Wayne Gacy |
+?wizards_artist.justin_gaffrey Justin Gaffrey |
+?wizards_artist.hashimoto_gaho Hashimoto Gahō |
+?wizards_artist.neil_gaiman Neil Gaiman |
+?wizards_artist.stephen_gammell Stephen Gammell |
+?wizards_artist.hope_gangloff Hope Gangloff |
+?wizards_artist.alex_garant Alex Garant |
+?wizards_artist.gilbert_garcin Gilbert Garcin |
+?wizards_artist.michael_and_inessa_garmash Michael and Inessa Garmash |
+?wizards_artist.antoni_gaudi Antoni Gaudi |
+3 ?wizards_artist.jack_gaughan Jack Gaughan |
+?wizards_artist.paul_gauguin Paul Gauguin |
+?wizards_artist.giovanni_battista_gaulli Giovanni Battista Gaulli |
+?wizards_artist.anne_geddes Anne Geddes |
+?wizards_artist.bill_gekas Bill Gekas |
+?wizards_artist.artemisia_gentileschi Artemisia Gentileschi |
+?wizards_artist.orazio_gentileschi Orazio Gentileschi |
+?wizards_artist.daniel_f_gerhartz Daniel F. Gerhartz |
+?wizards_artist.theodore_gericault Théodore Géricault |
+?wizards_artist.jean_leon_gerome Jean-Léon Gérôme |
+?wizards_artist.mark_gertler Mark Gertler |
+?wizards_artist.atey_ghailan Atey Ghailan |
+?wizards_artist.alberto_giacometti Alberto Giacometti |
+?wizards_artist.donato_giancola Donato Giancola |
+?wizards_artist.hr_giger H.R. Giger |
+?wizards_artist.james_gilleard James Gilleard |
+?wizards_artist.harold_gilman Harold Gilman |
+?wizards_artist.charles_ginner Charles Ginner |
+?wizards_artist.jean_giraud Jean Giraud |
+?wizards_artist.anne_louis_girodet Anne-Louis Girodet |
+?wizards_artist.milton_glaser Milton Glaser |
+?wizards_artist.warwick_goble Warwick Goble |
+?wizards_artist.john_william_godward John William Godward |
+?wizards_artist.sacha_goldberger Sacha Goldberger |
+?wizards_artist.nan_goldin Nan Goldin |
+?wizards_artist.josan_gonzalez Josan Gonzalez |
+?wizards_artist.felix_gonzalez_torres Felix Gonzalez-Torres |
+?wizards_artist.derek_gores Derek Gores |
+?wizards_artist.edward_gorey Edward Gorey |
+?wizards_artist.arshile_gorky Arshile Gorky |
+?wizards_artist.alessandro_gottardo Alessandro Gottardo |
+?wizards_artist.adolph_gottlieb Adolph Gottlieb |
+?wizards_artist.francisco_goya Francisco Goya |
+?wizards_artist.laurent_grasso Laurent Grasso |
+?wizards_artist.mab_graves Mab Graves |
+?wizards_artist.eileen_gray Eileen Gray |
+?wizards_artist.kate_greenaway Kate Greenaway |
+?wizards_artist.alex_grey Alex Grey |
+?wizards_artist.carne_griffiths Carne Griffiths |
+?wizards_artist.gris_grimly Gris Grimly |
+?wizards_artist.brothers_grimm Brothers Grimm |
+?wizards_artist.tracie_grimwood Tracie Grimwood |
+?wizards_artist.matt_groening Matt Groening |
+?wizards_artist.alex_gross Alex Gross |
+?wizards_artist.tom_grummett Tom Grummett |
+?wizards_artist.huang_guangjian Huang Guangjian |
+?wizards_artist.wu_guanzhong Wu Guanzhong |
+?wizards_artist.rebecca_guay Rebecca Guay |
+?wizards_artist.guercino Guercino |
+?wizards_artist.jeannette_guichard_bunel Jeannette Guichard-Bunel |
+?wizards_artist.scott_gustafson Scott Gustafson |
+?wizards_artist.wade_guyton Wade Guyton |
+?wizards_artist.hans_haacke Hans Haacke |
+?wizards_artist.robert_hagan Robert Hagan |
+?wizards_artist.philippe_halsman Philippe Halsman |
+?wizards_artist.maggi_hambling Maggi Hambling |
+?wizards_artist.richard_hamilton Richard Hamilton |
+?wizards_artist.bess_hamiti Bess Hamiti |
+?wizards_artist.tom_hammick Tom Hammick |
+?wizards_artist.david_hammons David Hammons |
+?wizards_artist.ren_hang Ren Hang |
+?wizards_artist.erin_hanson Erin Hanson |
+?wizards_artist.keith_haring Keith Haring |
+?wizards_artist.alexei_harlamoff Alexei Harlamoff |
+?wizards_artist.charley_harper Charley Harper |
+?wizards_artist.john_harris John Harris |
+?wizards_artist.florence_harrison Florence Harrison |
+?wizards_artist.marsden_hartley Marsden Hartley |
+?wizards_artist.ryohei_hase Ryohei Hase |
+?wizards_artist.childe_hassam Childe Hassam |
+?wizards_artist.ben_hatke Ben Hatke |
+?wizards_artist.mona_hatoum Mona Hatoum |
+?wizards_artist.pam_hawkes Pam Hawkes |
+?wizards_artist.jamie_hawkesworth Jamie Hawkesworth |
+?wizards_artist.stuart_haygarth Stuart Haygarth |
+?wizards_artist.erich_heckel Erich Heckel |
+?wizards_artist.valerie_hegarty Valerie Hegarty |
+?wizards_artist.mary_heilmann Mary Heilmann |
+?wizards_artist.michael_heizer Michael Heizer |
+?wizards_artist.gottfried_helnwein Gottfried Helnwein |
+?wizards_artist.barkley_l_hendricks Barkley L. Hendricks |
+?wizards_artist.bill_henson Bill Henson |
+?wizards_artist.barbara_hepworth Barbara Hepworth |
+?wizards_artist.herge Hergé |
+?wizards_artist.carolina_herrera Carolina Herrera |
+?wizards_artist.george_herriman George Herriman |
+?wizards_artist.don_hertzfeldt Don Hertzfeldt |
+?wizards_artist.prudence_heward Prudence Heward |
+?wizards_artist.ryan_hewett Ryan Hewett |
+?wizards_artist.nora_heysen Nora Heysen |
+?wizards_artist.george_elgar_hicks George Elgar Hicks |
+?wizards_artist.lorenz_hideyoshi Lorenz Hideyoshi |
+?wizards_artist.brothers_hildebrandt Brothers Hildebrandt |
+?wizards_artist.dan_hillier Dan Hillier |
+?wizards_artist.lewis_hine Lewis Hine |
+?wizards_artist.miho_hirano Miho Hirano |
+?wizards_artist.harumi_hironaka Harumi Hironaka |
+?wizards_artist.hiroshige Hiroshige |
+?wizards_artist.morris_hirshfield Morris Hirshfield |
+?wizards_artist.damien_hirst Damien Hirst |
+?wizards_artist.fan_ho Fan Ho |
+?wizards_artist.meindert_hobbema Meindert Hobbema |
+?wizards_artist.david_hockney David Hockney |
+?wizards_artist.filip_hodas Filip Hodas |
+?wizards_artist.howard_hodgkin Howard Hodgkin |
+?wizards_artist.ferdinand_hodler Ferdinand Hodler |
+?wizards_artist.tiago_hoisel Tiago Hoisel |
+?wizards_artist.katsushika_hokusai Katsushika Hokusai |
+?wizards_artist.hans_holbein_the_younger Hans Holbein the Younger |
+?wizards_artist.frank_holl Frank Holl |
+?wizards_artist.carsten_holler Carsten Holler |
+?wizards_artist.zena_holloway Zena Holloway |
+?wizards_artist.edward_hopper Edward Hopper |
+?wizards_artist.aaron_horkey Aaron Horkey |
+?wizards_artist.alex_horley Alex Horley |
+?wizards_artist.roni_horn Roni Horn |
+?wizards_artist.john_howe John Howe |
+?wizards_artist.alex_howitt Alex Howitt |
+?wizards_artist.meghan_howland Meghan Howland |
+?wizards_artist.john_hoyland John Hoyland |
+?wizards_artist.shilin_huang Shilin Huang |
+?wizards_artist.arthur_hughes Arthur Hughes |
+?wizards_artist.edward_robert_hughes Edward Robert Hughes |
+?wizards_artist.jack_hughes Jack Hughes |
+?wizards_artist.talbot_hughes Talbot Hughes |
+?wizards_artist.pieter_hugo Pieter Hugo |
+?wizards_artist.gary_hume Gary Hume |
+?wizards_artist.friedensreich_hundertwasser Friedensreich Hundertwasser |
+?wizards_artist.william_holman_hunt William Holman Hunt |
+?wizards_artist.george_hurrell George Hurrell |
+?wizards_artist.fabio_hurtado Fabio Hurtado |
+?wizards_artist.hush HUSH |
+?wizards_artist.michael_hutter Michael Hutter |
+?wizards_artist.pierre_huyghe Pierre Huyghe |
+?wizards_artist.doug_hyde Doug Hyde |
+?wizards_artist.louis_icart Louis Icart |
+?wizards_artist.robert_indiana Robert Indiana |
+?wizards_artist.jean_auguste_dominique_ingres Jean Auguste Dominique Ingres |
+?wizards_artist.robert_irwin Robert Irwin |
+?wizards_artist.gabriel_isak Gabriel Isak |
+?wizards_artist.junji_ito Junji Ito |
+?wizards_artist.christophe_jacrot Christophe Jacrot |
+?wizards_artist.louis_janmot Louis Janmot |
+?wizards_artist.frieke_janssens Frieke Janssens |
+?wizards_artist.alexander_jansson Alexander Jansson |
+?wizards_artist.tove_jansson Tove Jansson |
+?wizards_artist.aaron_jasinski Aaron Jasinski |
+?wizards_artist.alexej_von_jawlensky Alexej von Jawlensky |
+?wizards_artist.james_jean James Jean |
+?wizards_artist.oliver_jeffers Oliver Jeffers |
+?wizards_artist.lee_jeffries Lee Jeffries |
+?wizards_artist.georg_jensen Georg Jensen |
+?wizards_artist.ellen_jewett Ellen Jewett |
+?wizards_artist.he_jiaying He Jiaying |
+?wizards_artist.chantal_joffe Chantal Joffe |
+?wizards_artist.martine_johanna Martine Johanna |
+?wizards_artist.augustus_john Augustus John |
+?wizards_artist.gwen_john Gwen John |
+?wizards_artist.jasper_johns Jasper Johns |
+?wizards_artist.eastman_johnson Eastman Johnson |
+?wizards_artist.alfred_cheney_johnston Alfred Cheney Johnston |
+?wizards_artist.dorothy_johnstone Dorothy Johnstone |
+?wizards_artist.android_jones Android Jones |
+?wizards_artist.erik_jones Erik Jones |
+?wizards_artist.jeffrey_catherine_jones Jeffrey Catherine Jones |
+?wizards_artist.peter_andrew_jones Peter Andrew Jones |
+?wizards_artist.loui_jover Loui Jover |
+?wizards_artist.amy_judd Amy Judd |
+?wizards_artist.donald_judd Donald Judd |
+?wizards_artist.jean_jullien Jean Jullien |
+?wizards_artist.matthias_jung Matthias Jung |
+?wizards_artist.joe_jusko Joe Jusko |
+?wizards_artist.frida_kahlo Frida Kahlo |
+?wizards_artist.hayv_kahraman Hayv Kahraman |
+?wizards_artist.mw_kaluta M.W. Kaluta |
+?wizards_artist.nadav_kander Nadav Kander |
+?wizards_artist.wassily_kandinsky Wassily Kandinsky |
+?wizards_artist.jun_kaneko Jun Kaneko |
+?wizards_artist.titus_kaphar Titus Kaphar |
+?wizards_artist.michal_karcz Michal Karcz |
+?wizards_artist.gertrude_kasebier Gertrude Käsebier |
+?wizards_artist.terada_katsuya Terada Katsuya |
+?wizards_artist.audrey_kawasaki Audrey Kawasaki |
+?wizards_artist.hasui_kawase Hasui Kawase |
+?wizards_artist.glen_keane Glen Keane |
+?wizards_artist.margaret_keane Margaret Keane |
+?wizards_artist.ellsworth_kelly Ellsworth Kelly |
+?wizards_artist.michael_kenna Michael Kenna |
+?wizards_artist.thomas_benjamin_kennington Thomas Benjamin Kennington |
+?wizards_artist.william_kentridge William Kentridge |
+?wizards_artist.hendrik_kerstens Hendrik Kerstens |
+?wizards_artist.jeremiah_ketner Jeremiah Ketner |
+?wizards_artist.fernand_khnopff Fernand Khnopff |
+?wizards_artist.hideyuki_kikuchi Hideyuki Kikuchi |
+?wizards_artist.tom_killion Tom Killion |
+?wizards_artist.thomas_kinkade Thomas Kinkade |
+?wizards_artist.jack_kirby Jack Kirby |
+?wizards_artist.ernst_ludwig_kirchner Ernst Ludwig Kirchner |
+?wizards_artist.tatsuro_kiuchi Tatsuro Kiuchi |
+?wizards_artist.jon_klassen Jon Klassen |
+?wizards_artist.paul_klee Paul Klee |
+?wizards_artist.william_klein William Klein |
+?wizards_artist.yves_klein Yves Klein |
+?wizards_artist.carl_kleiner Carl Kleiner |
+?wizards_artist.gustav_klimt Gustav Klimt |
+?wizards_artist.godfrey_kneller Godfrey Kneller |
+?wizards_artist.emily_kame_kngwarreye Emily Kame Kngwarreye |
+?wizards_artist.chad_knight Chad Knight |
+?wizards_artist.nick_knight Nick Knight |
+?wizards_artist.helene_knoop Helene Knoop |
+?wizards_artist.phil_koch Phil Koch |
+?wizards_artist.kazuo_koike Kazuo Koike |
+?wizards_artist.oskar_kokoschka Oskar Kokoschka |
+?wizards_artist.kathe_kollwitz Käthe Kollwitz |
+?wizards_artist.michael_komarck Michael Komarck |
+?wizards_artist.satoshi_kon Satoshi Kon |
+?wizards_artist.jeff_koons Jeff Koons |
+?wizards_artist.caia_koopman Caia Koopman |
+?wizards_artist.konstantin_korovin Konstantin Korovin |
+?wizards_artist.mark_kostabi Mark Kostabi |
+?wizards_artist.bella_kotak Bella Kotak |
+?wizards_artist.andrea_kowch Andrea Kowch |
+?wizards_artist.lee_krasner Lee Krasner |
+?wizards_artist.barbara_kruger Barbara Kruger |
+?wizards_artist.brad_kunkle Brad Kunkle |
+?wizards_artist.yayoi_kusama Yayoi Kusama |
+?wizards_artist.michael_k_kutsche Michael K Kutsche |
+?wizards_artist.ilya_kuvshinov Ilya Kuvshinov |
+?wizards_artist.david_lachapelle David LaChapelle |
+?wizards_artist.raphael_lacoste Raphael Lacoste |
+?wizards_artist.lev_lagorio Lev Lagorio |
+?wizards_artist.rene_lalique René Lalique |
+?wizards_artist.abigail_larson Abigail Larson |
+?wizards_artist.gary_larson Gary Larson |
+?wizards_artist.denys_lasdun Denys Lasdun |
+?wizards_artist.maria_lassnig Maria Lassnig |
+?wizards_artist.dorothy_lathrop Dorothy Lathrop |
+?wizards_artist.melissa_launay Melissa Launay |
+?wizards_artist.john_lavery John Lavery |
+?wizards_artist.jacob_lawrence Jacob Lawrence |
+?wizards_artist.thomas_lawrence Thomas Lawrence |
+?wizards_artist.ernest_lawson Ernest Lawson |
+?wizards_artist.bastien_lecouffe_deharme Bastien Lecouffe-Deharme |
+?wizards_artist.alan_lee Alan Lee |
+?wizards_artist.minjae_lee Minjae Lee |
+?wizards_artist.nina_leen Nina Leen |
+?wizards_artist.fernand_leger Fernand Leger |
+?wizards_artist.paul_lehr Paul Lehr |
+?wizards_artist.frederic_leighton Frederic Leighton |
+?wizards_artist.alayna_lemmer Alayna Lemmer |
+?wizards_artist.tamara_de_lempicka Tamara de Lempicka |
+?wizards_artist.sol_lewitt Sol LeWitt |
+?wizards_artist.jc_leyendecker J.C. Leyendecker |
+?wizards_artist.andre_lhote André Lhote |
+?wizards_artist.roy_lichtenstein Roy Lichtenstein |
+?wizards_artist.rob_liefeld Rob Liefeld |
+?wizards_artist.fang_lijun Fang Lijun |
+?wizards_artist.maya_lin Maya Lin |
+?wizards_artist.filippino_lippi Filippino Lippi |
+?wizards_artist.herbert_list Herbert List |
+?wizards_artist.richard_long Richard Long |
+?wizards_artist.yoann_lossel Yoann Lossel |
+?wizards_artist.morris_louis Morris Louis |
+?wizards_artist.sarah_lucas Sarah Lucas |
+?wizards_artist.maximilien_luce Maximilien Luce |
+?wizards_artist.loretta_lux Loretta Lux |
+?wizards_artist.george_platt_lynes George Platt Lynes |
+?wizards_artist.frances_macdonald Frances MacDonald |
+?wizards_artist.august_macke August Macke |
+?wizards_artist.stephen_mackey Stephen Mackey |
+?wizards_artist.rachel_maclean Rachel Maclean |
+?wizards_artist.raimundo_de_madrazo_y_garreta Raimundo de Madrazo y Garreta |
+?wizards_artist.joe_madureira Joe Madureira |
+?wizards_artist.rene_magritte Rene Magritte |
+?wizards_artist.jim_mahfood Jim Mahfood |
+?wizards_artist.vivian_maier Vivian Maier |
+?wizards_artist.aristide_maillol Aristide Maillol |
+?wizards_artist.don_maitz Don Maitz |
+?wizards_artist.laura_makabresku Laura Makabresku |
+?wizards_artist.alex_maleev Alex Maleev |
+?wizards_artist.keith_mallett Keith Mallett |
+?wizards_artist.johji_manabe Johji Manabe |
+?wizards_artist.milo_manara Milo Manara |
+?wizards_artist.edouard_manet Édouard Manet |
+?wizards_artist.henri_manguin Henri Manguin |
+?wizards_artist.jeremy_mann Jeremy Mann |
+?wizards_artist.sally_mann Sally Mann |
+?wizards_artist.andrea_mantegna Andrea Mantegna |
+?wizards_artist.antonio_j_manzanedo Antonio J. Manzanedo |
+?wizards_artist.robert_mapplethorpe Robert Mapplethorpe |
+?wizards_artist.franz_marc Franz Marc |
+?wizards_artist.ivan_marchuk Ivan Marchuk |
+?wizards_artist.brice_marden Brice Marden |
+?wizards_artist.andrei_markin Andrei Markin |
+?wizards_artist.kerry_james_marshall Kerry James Marshall |
+?wizards_artist.serge_marshennikov Serge Marshennikov |
+?wizards_artist.agnes_martin Agnes Martin |
+?wizards_artist.adam_martinakis Adam Martinakis |
+?wizards_artist.stephan_martiniere Stephan Martinière |
+?wizards_artist.ilya_mashkov Ilya Mashkov |
+?wizards_artist.henri_matisse Henri Matisse |
+?wizards_artist.rodney_matthews Rodney Matthews |
+?wizards_artist.anton_mauve Anton Mauve |
+?wizards_artist.peter_max Peter Max |
+?wizards_artist.mike_mayhew Mike Mayhew |
+?wizards_artist.angus_mcbride Angus McBride |
+?wizards_artist.anne_mccaffrey Anne McCaffrey |
+?wizards_artist.robert_mccall Robert McCall |
+?wizards_artist.scott_mccloud Scott McCloud |
+?wizards_artist.steve_mccurry Steve McCurry |
+?wizards_artist.todd_mcfarlane Todd McFarlane |
+?wizards_artist.barry_mcgee Barry McGee |
+?wizards_artist.ryan_mcginley Ryan McGinley |
+?wizards_artist.robert_mcginnis Robert McGinnis |
+?wizards_artist.richard_mcguire Richard McGuire |
+?wizards_artist.patrick_mchale Patrick McHale |
+?wizards_artist.kelly_mckernan Kelly McKernan |
+?wizards_artist.angus_mckie Angus McKie |
+?wizards_artist.alasdair_mclellan Alasdair McLellan |
+?wizards_artist.jon_mcnaught Jon McNaught |
+?wizards_artist.dan_mcpharlin Dan McPharlin |
+?wizards_artist.tara_mcpherson Tara McPherson |
+?wizards_artist.ralph_mcquarrie Ralph McQuarrie |
+?wizards_artist.ian_mcque Ian McQue |
+?wizards_artist.syd_mead Syd Mead |
+?wizards_artist.richard_meier Richard Meier |
+?wizards_artist.maria_sibylla_merian Maria Sibylla Merian |
+?wizards_artist.willard_metcalf Willard Metcalf |
+?wizards_artist.gabriel_metsu Gabriel Metsu |
+?wizards_artist.jean_metzinger Jean Metzinger |
+?wizards_artist.michelangelo Michelangelo |
+?wizards_artist.nicolas_mignard Nicolas Mignard |
+?wizards_artist.mike_mignola Mike Mignola |
+?wizards_artist.dimitra_milan Dimitra Milan |
+?wizards_artist.john_everett_millais John Everett Millais |
+?wizards_artist.marilyn_minter Marilyn Minter |
+?wizards_artist.januz_miralles Januz Miralles |
+?wizards_artist.joan_miro Joan Miró |
+?wizards_artist.joan_mitchell Joan Mitchell |
+?wizards_artist.hayao_miyazaki Hayao Miyazaki |
+?wizards_artist.paula_modersohn_becker Paula Modersohn-Becker |
+?wizards_artist.amedeo_modigliani Amedeo Modigliani |
+?wizards_artist.moebius Moebius |
+?wizards_artist.peter_mohrbacher Peter Mohrbacher |
+?wizards_artist.piet_mondrian Piet Mondrian |
+?wizards_artist.claude_monet Claude Monet |
+?wizards_artist.jean_baptiste_monge Jean-Baptiste Monge |
+?wizards_artist.alyssa_monks Alyssa Monks |
+?wizards_artist.alan_moore Alan Moore |
+?wizards_artist.antonio_mora Antonio Mora |
+?wizards_artist.edward_moran Edward Moran |
+?wizards_artist.koji_morimoto Kōji Morimoto |
+?wizards_artist.berthe_morisot Berthe Morisot |
+?wizards_artist.daido_moriyama Daido Moriyama |
+?wizards_artist.james_wilson_morrice James Wilson Morrice |
+?wizards_artist.sarah_morris Sarah Morris |
+?wizards_artist.john_lowrie_morrison John Lowrie Morrison |
+?wizards_artist.igor_morski Igor Morski |
+?wizards_artist.john_kenn_mortensen John Kenn Mortensen |
+?wizards_artist.victor_moscoso Victor Moscoso |
+?wizards_artist.inna_mosina Inna Mosina |
+?wizards_artist.richard_mosse Richard Mosse |
+?wizards_artist.thomas_edwin_mostyn Thomas Edwin Mostyn |
+?wizards_artist.marcel_mouly Marcel Mouly |
+?wizards_artist.emmanuelle_moureaux Emmanuelle Moureaux |
+?wizards_artist.alphonse_mucha Alphonse Mucha |
+?wizards_artist.craig_mullins Craig Mullins |
+?wizards_artist.augustus_edwin_mulready Augustus Edwin Mulready |
+?wizards_artist.dan_mumford Dan Mumford |
+?wizards_artist.edvard_munch Edvard Munch |
+?wizards_artist.alfred_munnings Alfred Munnings |
+?wizards_artist.gabriele_munter Gabriele Münter |
+?wizards_artist.takashi_murakami Takashi Murakami |
+?wizards_artist.patrice_murciano Patrice Murciano |
+?wizards_artist.scott_musgrove Scott Musgrove |
+?wizards_artist.wangechi_mutu Wangechi Mutu |
+?wizards_artist.go_nagai Go Nagai |
+?wizards_artist.hiroshi_nagai Hiroshi Nagai |
+?wizards_artist.patrick_nagel Patrick Nagel |
+?wizards_artist.tibor_nagy Tibor Nagy |
+?wizards_artist.scott_naismith Scott Naismith |
+?wizards_artist.juliana_nan Juliana Nan |
+?wizards_artist.ted_nasmith Ted Nasmith |
+?wizards_artist.todd_nauck Todd Nauck |
+?wizards_artist.bruce_nauman Bruce Nauman |
+?wizards_artist.ernst_wilhelm_nay Ernst Wilhelm Nay |
+?wizards_artist.alice_neel Alice Neel |
+?wizards_artist.keith_negley Keith Negley |
+?wizards_artist.leroy_neiman LeRoy Neiman |
+?wizards_artist.kadir_nelson Kadir Nelson |
+?wizards_artist.odd_nerdrum Odd Nerdrum |
+?wizards_artist.shirin_neshat Shirin Neshat |
+?wizards_artist.mikhail_nesterov Mikhail Nesterov |
+?wizards_artist.jane_newland Jane Newland |
+?wizards_artist.victo_ngai Victo Ngai |
+?wizards_artist.william_nicholson William Nicholson |
+?wizards_artist.florian_nicolle Florian Nicolle |
+?wizards_artist.kay_nielsen Kay Nielsen |
+?wizards_artist.tsutomu_nihei Tsutomu Nihei |
+?wizards_artist.victor_nizovtsev Victor Nizovtsev |
+?wizards_artist.isamu_noguchi Isamu Noguchi |
+?wizards_artist.catherine_nolin Catherine Nolin |
+?wizards_artist.francois_de_nome François De Nomé |
+?wizards_artist.earl_norem Earl Norem |
+?wizards_artist.phil_noto Phil Noto |
+?wizards_artist.georgia_okeeffe Georgia O'Keeffe |
+?wizards_artist.terry_oakes Terry Oakes |
+?wizards_artist.chris_ofili Chris Ofili |
+?wizards_artist.jack_ohman Jack Ohman |
+?wizards_artist.noriyoshi_ohrai Noriyoshi Ohrai |
+?wizards_artist.helio_oiticica Helio Oiticica |
+?wizards_artist.taro_okamoto Tarō Okamoto |
+?wizards_artist.tim_okamura Tim Okamura |
+?wizards_artist.naomi_okubo Naomi Okubo |
+?wizards_artist.atelier_olschinsky Atelier Olschinsky |
+?wizards_artist.greg_olsen Greg Olsen |
+?wizards_artist.oleg_oprisco Oleg Oprisco |
+?wizards_artist.tony_orrico Tony Orrico |
+?wizards_artist.mamoru_oshii Mamoru Oshii |
+?wizards_artist.ida_rentoul_outhwaite Ida Rentoul Outhwaite |
+?wizards_artist.yigal_ozeri Yigal Ozeri |
+?wizards_artist.gabriel_pacheco Gabriel Pacheco |
+?wizards_artist.michael_page Michael Page |
+?wizards_artist.rui_palha Rui Palha |
+?wizards_artist.polixeni_papapetrou Polixeni Papapetrou |
+?wizards_artist.julio_le_parc Julio Le Parc |
+?wizards_artist.michael_parkes Michael Parkes |
+?wizards_artist.philippe_parreno Philippe Parreno |
+?wizards_artist.maxfield_parrish Maxfield Parrish |
+?wizards_artist.alice_pasquini Alice Pasquini |
+?wizards_artist.james_mcintosh_patrick James McIntosh Patrick |
+?wizards_artist.john_pawson John Pawson |
+?wizards_artist.max_pechstein Max Pechstein |
+?wizards_artist.agnes_lawrence_pelton Agnes Lawrence Pelton |
+?wizards_artist.irving_penn Irving Penn |
+?wizards_artist.bruce_pennington Bruce Pennington |
+?wizards_artist.john_perceval John Perceval |
+?wizards_artist.george_perez George Perez |
+?wizards_artist.constant_permeke Constant Permeke |
+?wizards_artist.lilla_cabot_perry Lilla Cabot Perry |
+?wizards_artist.gaetano_pesce Gaetano Pesce |
+?wizards_artist.cleon_peterson Cleon Peterson |
+?wizards_artist.daria_petrilli Daria Petrilli |
+?wizards_artist.raymond_pettibon Raymond Pettibon |
+?wizards_artist.coles_phillips Coles Phillips |
+?wizards_artist.francis_picabia Francis Picabia |
+?wizards_artist.pablo_picasso Pablo Picasso |
+?wizards_artist.sopheap_pich Sopheap Pich |
+?wizards_artist.otto_piene Otto Piene |
+?wizards_artist.jerry_pinkney Jerry Pinkney |
+?wizards_artist.pinturicchio Pinturicchio |
+?wizards_artist.sebastiano_del_piombo Sebastiano del Piombo |
+?wizards_artist.camille_pissarro Camille Pissarro |
+?wizards_artist.ferris_plock Ferris Plock |
+?wizards_artist.bill_plympton Bill Plympton |
+?wizards_artist.willy_pogany Willy Pogany |
+?wizards_artist.patricia_polacco Patricia Polacco |
+?wizards_artist.jackson_pollock Jackson Pollock |
+?wizards_artist.beatrix_potter Beatrix Potter |
+?wizards_artist.edward_henry_potthast Edward Henry Potthast |
+?wizards_artist.simon_prades Simon Prades |
+?wizards_artist.maurice_prendergast Maurice Prendergast |
+?wizards_artist.dod_procter Dod Procter |
+?wizards_artist.leo_putz Leo Putz |
+?wizards_artist.howard_pyle Howard Pyle |
+?wizards_artist.arthur_rackham Arthur Rackham |
+?wizards_artist.natalia_rak Natalia Rak |
+?wizards_artist.paul_ranson Paul Ranson |
+?wizards_artist.raphael Raphael |
+?wizards_artist.abraham_rattner Abraham Rattner |
+?wizards_artist.jan_van_ravesteyn Jan van Ravesteyn |
+?wizards_artist.aliza_razell Aliza Razell |
+?wizards_artist.paula_rego Paula Rego |
+?wizards_artist.lotte_reiniger Lotte Reiniger |
+?wizards_artist.valentin_rekunenko Valentin Rekunenko |
+?wizards_artist.christoffer_relander Christoffer Relander |
+?wizards_artist.andrey_remnev Andrey Remnev |
+?wizards_artist.pierre_auguste_renoir Pierre-Auguste Renoir |
+?wizards_artist.ilya_repin Ilya Repin |
+?wizards_artist.joshua_reynolds Joshua Reynolds |
+?wizards_artist.rhads RHADS |
+?wizards_artist.bettina_rheims Bettina Rheims |
+?wizards_artist.jason_rhoades Jason Rhoades |
+?wizards_artist.georges_ribemont_dessaignes Georges Ribemont-Dessaignes |
+?wizards_artist.jusepe_de_ribera Jusepe de Ribera |
+?wizards_artist.gerhard_richter Gerhard Richter |
+?wizards_artist.chris_riddell Chris Riddell |
+?wizards_artist.hyacinthe_rigaud Hyacinthe Rigaud |
+?wizards_artist.rembrandt_van_rijn Rembrandt van Rijn |
+?wizards_artist.faith_ringgold Faith Ringgold |
+?wizards_artist.jozsef_rippl_ronai József Rippl-Rónai |
+?wizards_artist.pipilotti_rist Pipilotti Rist |
+?wizards_artist.charles_robinson Charles Robinson |
+?wizards_artist.theodore_robinson Theodore Robinson |
+?wizards_artist.kenneth_rocafort Kenneth Rocafort |
+?wizards_artist.andreas_rocha Andreas Rocha |
+?wizards_artist.norman_rockwell Norman Rockwell |
+?wizards_artist.ludwig_mies_van_der_rohe Ludwig Mies van der Rohe |
+?wizards_artist.fatima_ronquillo Fatima Ronquillo |
+?wizards_artist.salvator_rosa Salvator Rosa |
+?wizards_artist.kerby_rosanes Kerby Rosanes |
+?wizards_artist.conrad_roset Conrad Roset |
+?wizards_artist.bob_ross Bob Ross |
+?wizards_artist.dante_gabriel_rossetti Dante Gabriel Rossetti |
+?wizards_artist.jessica_rossier Jessica Rossier |
+?wizards_artist.marianna_rothen Marianna Rothen |
+?wizards_artist.mark_rothko Mark Rothko |
+?wizards_artist.eva_rothschild Eva Rothschild |
+?wizards_artist.georges_rousse Georges Rousse |
+?wizards_artist.luis_royo Luis Royo |
+?wizards_artist.joao_ruas Joao Ruas |
+?wizards_artist.peter_paul_rubens Peter Paul Rubens |
+?wizards_artist.rachel_ruysch Rachel Ruysch |
+?wizards_artist.albert_pinkham_ryder Albert Pinkham Ryder |
+?wizards_artist.mark_ryden Mark Ryden |
+?wizards_artist.ursula_von_rydingsvard Ursula von Rydingsvard |
+?wizards_artist.theo_van_rysselberghe Theo van Rysselberghe |
+?wizards_artist.eero_saarinen Eero Saarinen |
+?wizards_artist.wlad_safronow Wlad Safronow |
+?wizards_artist.amanda_sage Amanda Sage |
+?wizards_artist.antoine_de_saint_exupery Antoine de Saint-Exupery |
+?wizards_artist.nicola_samori Nicola Samori |
+?wizards_artist.rebeca_saray Rebeca Saray |
+?wizards_artist.john_singer_sargent John Singer Sargent |
+?wizards_artist.martiros_saryan Martiros Saryan |
+?wizards_artist.viviane_sassen Viviane Sassen |
+?wizards_artist.nike_savvas Nike Savvas |
+?wizards_artist.richard_scarry Richard Scarry |
+?wizards_artist.godfried_schalcken Godfried Schalcken |
+?wizards_artist.miriam_schapiro Miriam Schapiro |
+?wizards_artist.kenny_scharf Kenny Scharf |
+?wizards_artist.jerry_schatzberg Jerry Schatzberg |
+?wizards_artist.ary_scheffer Ary Scheffer |
+?wizards_artist.kees_scherer Kees Scherer |
+?wizards_artist.helene_schjerfbeck Helene Schjerfbeck |
+?wizards_artist.christian_schloe Christian Schloe |
+?wizards_artist.karl_schmidt_rottluff Karl Schmidt-Rottluff |
+?wizards_artist.julian_schnabel Julian Schnabel |
+?wizards_artist.fritz_scholder Fritz Scholder |
+?wizards_artist.charles_schulz Charles Schulz |
+?wizards_artist.sean_scully Sean Scully |
+?wizards_artist.ronald_searle Ronald Searle |
+?wizards_artist.mark_seliger Mark Seliger |
+?wizards_artist.anton_semenov Anton Semenov |
+?wizards_artist.edmondo_senatore Edmondo Senatore |
+?wizards_artist.maurice_sendak Maurice Sendak |
+?wizards_artist.richard_serra Richard Serra |
+?wizards_artist.georges_seurat Georges Seurat |
+?wizards_artist.dr_seuss Dr. Seuss |
+?wizards_artist.tanya_shatseva Tanya Shatseva |
+?wizards_artist.natalie_shau Natalie Shau |
+?wizards_artist.barclay_shaw Barclay Shaw |
+?wizards_artist.e_h_shepard E. H. Shepard |
+?wizards_artist.amrita_sher_gil Amrita Sher-Gil |
+?wizards_artist.irene_sheri Irene Sheri |
+?wizards_artist.duffy_sheridan Duffy Sheridan |
+?wizards_artist.cindy_sherman Cindy Sherman |
+?wizards_artist.shozo_shimamoto Shozo Shimamoto |
+?wizards_artist.hikari_shimoda Hikari Shimoda |
+?wizards_artist.makoto_shinkai Makoto Shinkai |
+?wizards_artist.chiharu_shiota Chiharu Shiota |
+?wizards_artist.elizabeth_shippen_green Elizabeth Shippen Green |
+?wizards_artist.masamune_shirow Masamune Shirow |
+?wizards_artist.tim_shumate Tim Shumate |
+?wizards_artist.yuri_shwedoff Yuri Shwedoff |
+?wizards_artist.malick_sidibe Malick Sidibé |
+?wizards_artist.jeanloup_sieff Jeanloup Sieff |
+?wizards_artist.bill_sienkiewicz Bill Sienkiewicz |
+?wizards_artist.marc_simonetti Marc Simonetti |
+?wizards_artist.david_sims David Sims |
+?wizards_artist.andy_singer Andy Singer |
+?wizards_artist.alfred_sisley Alfred Sisley |
+?wizards_artist.sandy_skoglund Sandy Skoglund |
+?wizards_artist.jeffrey_smart Jeffrey Smart |
+?wizards_artist.berndnaut_smilde Berndnaut Smilde |
+?wizards_artist.rodney_smith Rodney Smith |
+?wizards_artist.samantha_keely_smith Samantha Keely Smith |
+?wizards_artist.robert_smithson Robert Smithson |
+?wizards_artist.barbara_stauffacher_solomon Barbara Stauffacher Solomon |
+?wizards_artist.simeon_solomon Simeon Solomon |
+?wizards_artist.hajime_sorayama Hajime Sorayama |
+?wizards_artist.joaquin_sorolla Joaquín Sorolla |
+?wizards_artist.ettore_sottsass Ettore Sottsass |
+?wizards_artist.amadeo_de_souza_cardoso Amadeo de Souza-Cardoso |
+?wizards_artist.millicent_sowerby Millicent Sowerby |
+?wizards_artist.moses_soyer Moses Soyer |
+?wizards_artist.sparth Sparth |
+?wizards_artist.jack_spencer Jack Spencer |
+?wizards_artist.art_spiegelman Art Spiegelman |
+?wizards_artist.simon_stalenhag Simon Stålenhag |
+?wizards_artist.ralph_steadman Ralph Steadman |
+?wizards_artist.philip_wilson_steer Philip Wilson Steer |
+?wizards_artist.william_steig William Steig |
+?wizards_artist.fred_stein Fred Stein |
+?wizards_artist.theophile_steinlen Théophile Steinlen |
+?wizards_artist.brian_stelfreeze Brian Stelfreeze |
+?wizards_artist.frank_stella Frank Stella |
+?wizards_artist.joseph_stella Joseph Stella |
+?wizards_artist.irma_stern Irma Stern |
+?wizards_artist.alfred_stevens Alfred Stevens |
+?wizards_artist.marie_spartali_stillman Marie Spartali Stillman |
+?wizards_artist.stinkfish Stinkfish |
+?wizards_artist.anne_stokes Anne Stokes |
+?wizards_artist.william_stout William Stout |
+?wizards_artist.paul_strand Paul Strand |
+?wizards_artist.linnea_strid Linnea Strid |
+?wizards_artist.john_melhuish_strudwick John Melhuish Strudwick |
+?wizards_artist.drew_struzan Drew Struzan |
+?wizards_artist.tatiana_suarez Tatiana Suarez |
+?wizards_artist.eustache_le_sueur Eustache Le Sueur |
+?wizards_artist.rebecca_sugar Rebecca Sugar |
+?wizards_artist.hiroshi_sugimoto Hiroshi Sugimoto |
+?wizards_artist.graham_sutherland Graham Sutherland |
+?wizards_artist.jan_svankmajer Jan Svankmajer |
+?wizards_artist.raymond_swanland Raymond Swanland |
+?wizards_artist.annie_swynnerton Annie Swynnerton |
+?wizards_artist.stanislaw_szukalski Stanisław Szukalski |
+?wizards_artist.philip_taaffe Philip Taaffe |
+?wizards_artist.hiroyuki_mitsume_takahashi Hiroyuki-Mitsume Takahashi |
+?wizards_artist.dorothea_tanning Dorothea Tanning |
+?wizards_artist.margaret_tarrant Margaret Tarrant |
+?wizards_artist.genndy_tartakovsky Genndy Tartakovsky |
+?wizards_artist.teamlab teamLab |
+?wizards_artist.raina_telgemeier Raina Telgemeier |
+?wizards_artist.john_tenniel John Tenniel |
+?wizards_artist.sir_john_tenniel Sir John Tenniel |
+?wizards_artist.howard_terpning Howard Terpning |
+?wizards_artist.osamu_tezuka Osamu Tezuka |
+?wizards_artist.abbott_handerson_thayer Abbott Handerson Thayer |
+?wizards_artist.heather_theurer Heather Theurer |
+?wizards_artist.mickalene_thomas Mickalene Thomas |
+?wizards_artist.tom_thomson Tom Thomson |
+?wizards_artist.titian Titian |
+?wizards_artist.mark_tobey Mark Tobey |
+?wizards_artist.greg_tocchini Greg Tocchini |
+?wizards_artist.roland_topor Roland Topor |
+?wizards_artist.sergio_toppi Sergio Toppi |
+?wizards_artist.alex_toth Alex Toth |
+?wizards_artist.henri_de_toulouse_lautrec Henri de Toulouse-Lautrec |
+?wizards_artist.ross_tran Ross Tran |
+?wizards_artist.philip_treacy Philip Treacy |
+?wizards_artist.anne_truitt Anne Truitt |
+?wizards_artist.henry_scott_tuke Henry Scott Tuke |
+?wizards_artist.jmw_turner J.M.W. Turner |
+?wizards_artist.james_turrell James Turrell |
+?wizards_artist.john_henry_twachtman John Henry Twachtman |
+?wizards_artist.naomi_tydeman Naomi Tydeman |
+?wizards_artist.euan_uglow Euan Uglow |
+?wizards_artist.daniela_uhlig Daniela Uhlig |
+?wizards_artist.kitagawa_utamaro Kitagawa Utamaro |
+?wizards_artist.christophe_vacher Christophe Vacher |
+?wizards_artist.suzanne_valadon Suzanne Valadon |
+?wizards_artist.thiago_valdi Thiago Valdi |
+?wizards_artist.chris_van_allsburg Chris van Allsburg |
+?wizards_artist.francine_van_hove Francine Van Hove |
+?wizards_artist.jan_van_kessel_the_elder Jan van Kessel the Elder |
+?wizards_artist.remedios_varo Remedios Varo |
+?wizards_artist.nick_veasey Nick Veasey |
+?wizards_artist.diego_velazquez Diego Velázquez |
+?wizards_artist.eve_ventrue Eve Ventrue |
+?wizards_artist.johannes_vermeer Johannes Vermeer |
+?wizards_artist.charles_vess Charles Vess |
+?wizards_artist.roman_vishniac Roman Vishniac |
+?wizards_artist.kelly_vivanco Kelly Vivanco |
+?wizards_artist.brian_m_viveros Brian M. Viveros |
+?wizards_artist.elke_vogelsang Elke Vogelsang |
+?wizards_artist.vladimir_volegov Vladimir Volegov |
+?wizards_artist.robert_vonnoh Robert Vonnoh |
+?wizards_artist.mikhail_vrubel Mikhail Vrubel |
+?wizards_artist.louis_wain Louis Wain |
+?wizards_artist.kara_walker Kara Walker |
+?wizards_artist.josephine_wall Josephine Wall |
+?wizards_artist.bruno_walpoth Bruno Walpoth |
+?wizards_artist.chris_ware Chris Ware |
+?wizards_artist.andy_warhol Andy Warhol |
+?wizards_artist.john_william_waterhouse John William Waterhouse |
+?wizards_artist.bill_watterson Bill Watterson |
+?wizards_artist.george_frederic_watts George Frederic Watts |
+?wizards_artist.walter_ernest_webster Walter Ernest Webster |
+?wizards_artist.hendrik_weissenbruch Hendrik Weissenbruch |
+?wizards_artist.neil_welliver Neil Welliver |
+?wizards_artist.catrin_welz_stein Catrin Welz-Stein |
+?wizards_artist.vivienne_westwood Vivienne Westwood |
+?wizards_artist.michael_whelan Michael Whelan |
+?wizards_artist.james_abbott_mcneill_whistler James Abbott McNeill Whistler |
+?wizards_artist.william_whitaker William Whitaker |
+?wizards_artist.tim_white Tim White |
+?wizards_artist.coby_whitmore Coby Whitmore |
+?wizards_artist.david_wiesner David Wiesner |
+?wizards_artist.kehinde_wiley Kehinde Wiley |
+?wizards_artist.cathy_wilkes Cathy Wilkes |
+?wizards_artist.jessie_willcox_smith Jessie Willcox Smith |
+?wizards_artist.gilbert_williams Gilbert Williams |
+?wizards_artist.kyffin_williams Kyffin Williams |
+?wizards_artist.al_williamson Al Williamson |
+?wizards_artist.wes_wilson Wes Wilson |
+?wizards_artist.mike_winkelmann Mike Winkelmann |
+?wizards_artist.bec_winnel Bec Winnel |
+?wizards_artist.franz_xaver_winterhalter Franz Xaver Winterhalter |
+?wizards_artist.nathan_wirth Nathan Wirth |
+?wizards_artist.wlop WLOP |
+?wizards_artist.brandon_woelfel Brandon Woelfel |
+?wizards_artist.liam_wong Liam Wong |
+?wizards_artist.francesca_woodman Francesca Woodman |
+?wizards_artist.jim_woodring Jim Woodring |
+?wizards_artist.patrick_woodroffe Patrick Woodroffe |
+?wizards_artist.frank_lloyd_wright Frank Lloyd Wright |
+?wizards_artist.sulamith_wulfing Sulamith Wulfing |
+?wizards_artist.nc_wyeth N.C. Wyeth |
+?wizards_artist.rose_wylie Rose Wylie |
+?wizards_artist.stanislaw_wyspianski Stanisław Wyspiański |
+?wizards_artist.takato_yamamoto Takato Yamamoto |
+?wizards_artist.gene_luen_yang Gene Luen Yang |
+?wizards_artist.ikenaga_yasunari Ikenaga Yasunari |
+?wizards_artist.kozo_yokai Kozo Yokai |
+?wizards_artist.sean_yoro Sean Yoro |
+?wizards_artist.chie_yoshii Chie Yoshii |
+?wizards_artist.skottie_young Skottie Young |
+?wizards_artist.masaaki_yuasa Masaaki Yuasa |
+?wizards_artist.konstantin_yuon Konstantin Yuon |
+?wizards_artist.yuumei Yuumei |
+?wizards_artist.william_zorach William Zorach |
+?wizards_artist.ander_zorn Ander Zorn |
 // artists added by me (ariane-emory):
-3 ?artist__ian_miller Ian Miller |
-3 ?artist__john_zeleznik John Zeleznik |
-3 ?artist__keith_parkinson Keith Parkinson |
-3 ?artist__kevin_fales Kevin Fales |
-3 ?artist__boris_vallejo
-}
+?wizards_artist.ian_miller Ian Miller |
+?wizards_artist.john_zeleznik John Zeleznik |
+?wizards_artist.keith_parkinson Keith Parkinson |
+?wizards_artist.kevin_fales Kevin Fales |
+?wizards_artist.boris_vallejo Boris Vallejo
+}}
 
 // The matching list of styles:
-@wizards_artist_styles   := {
-   @__set_wizards_artists_artist_if_unset @__wizards_artist_styles
-}
-
-@__wizards_artist_styles := {
-?artist__zacharias_martin_aagaard landscapes, Observational, painting, Romanticism, Slice-of-life |
-?artist__slim_aarons fashion, luxury, nostalgia, pastel-colors, photography, photography-color, social-commentary |
-?artist__elenore_abbott art-nouveau, dream-like, ethereal, femininity, mythology, pastel-colors, romanticism, watercolor |
-?artist__tomma_abts abstract, angular, color-field, contemporary, geometric, minimalism, modern |
-?artist__vito_acconci architecture, conceptual, dark, installation, performance, sculpture |
-?artist__andreas_achenbach landscapes, Observational, painting, Plein-air, Romanticism |
-?artist__ansel_adams American, high-contrast, landscapes, monochromatic, nature, photography, photography-bw |
-?artist__josh_adamski atmospheric, colorful, contemporary, high-contrast, impressionism, landscapes, nature, photography, photography-color, serenity |
-?artist__charles_addams cartoon, contemporary, Illustration, Social-commentary |
-?artist__etel_adnan abstract, color-field, colorful, landscapes, nature, serenity, vibrant |
-?artist__alena_aenami atmospheric, digital, dream-like, fantasy, landscapes, serenity, surreal, vibrant |
-?artist__leonid_afremov atmospheric, cityscapes, colorful, impressionism, nature, vibrant |
-?artist__petros_afshar abstract, contemporary, mixed-media, multimedia |
-?artist__yaacov_agam abstract, angular, colorful, illusion, interactive, kinetic, vibrant |
-?artist__eileen_agar abstract, collage, femininity, nature, vibrant |
-?artist__craigie_aitchison expressionism, figurativism, nature, primitivism, vibrant |
-?artist__ivan_aivazovsky Armenian, battle-scenes, dark, landscapes, painting, portraits, romanticism, Russian, seascapes |
-?artist__francesco_albani impressionism, landscapes |
-?artist__alessio_albi american, expressionism, landscapes, photography, photography-color, portraits |
-?artist__miles_aldridge British, Consumerism, fashion, Femininity, Illustration, photography, photography-color, pop-culture |
-?artist__john_white_alexander american, art-nouveau, contemporary, expressionism, landscapes, portraits |
-?artist__alessandro_allori american, expressionism, landscapes, portraits, renaissance |
-?artist__mike_allred comics, illustration, pop-art, superheroes, whimsical |
-?artist__lawrence_alma_tadema ancient, flowers, history, opulent, romanticism, Victorian |
-?artist__lilia_alvarado american, colorful, contemporary, landscapes, photography, photography-color, portraits |
-?artist__tarsila_do_amaral abstract, contemporary, cubism, modern, surreal, vibrant |
-?artist__ghada_amer abstract, contemporary, messy, portraits |
-?artist__cuno_amiet impressionism, landscapes, portraits |
-?artist__el_anatsui abstract, African, contemporary, Ghanaian, recycled-materials, sculpture, textiles |
-?artist__helga_ancher impressionism, Observational, painting, Realism, Slice-of-life |
-?artist__sarah_andersen cartoon, collage, comics, contemporary, fashion, femininity, mixed-media |
-?artist__richard_anderson dark, digital, fantasy, gothic, grungy, horror, messy, psychedelic, surreal |
-?artist__sophie_gengembre_anderson childhood, femininity, painting, portraits, rural-life, Victorian |
-?artist__wes_anderson colorful, film, nostalgia, pastel-colors, photography, photography-color, surreal, whimsical |
-?artist__alex_andreev contemporary, Death, Displacement, illustration, surreal |
-?artist__sofonisba_anguissola dark, portraits, renaissance |
-?artist__louis_anquetin impressionism, portraits |
-?artist__mary_jane_ansell contemporary, photorealism, portraits, still-life |
-?artist__chiho_aoshima colorful, digital, fantasy, Japanese, pop-art, whimsical |
-?artist__sabbas_apterus conceptual, dark, digital, dream-like, surreal |
-?artist__hirohiko_araki characters, graphic-novel, illustration, Japanese, manga-anime, pop-culture, surreal |
-?artist__howard_arkley architecture, colorful, contemporary, futuristic, playful, pop-art, vibrant, whimsical |
-?artist__rolf_armstrong art-deco, art-nouveau, characters, fashion, illustration, modern, posters |
-?artist__gerd_arntz flat-colors, geometric, graphic-design, high-contrast, minimalism |
-?artist__guy_aroch contemporary, fashion, photography, photography-color, portraits |
-?artist__miki_asai contemporary, flowers, insects, landscapes, macro-world, minimalism, nature, photography, photography-color, shallow-depth-of-field, vibrant |
-?artist__clemens_ascher architecture, contemporary, geometric, minimalism, photography, photography-color, vibrant |
-?artist__henry_asencio contemporary, expressionism, figurativism, impressionism, messy, portraits |
-?artist__andrew_atroshenko contemporary, figurativism, impressionism, portraits |
-?artist__deborah_azzopardi cartoon, colorful, comics, fashion, femininity, pop-art, whimsical |
-?artist__lois_van_baarle characters, digital, fantasy, femininity, illustration, pastel-colors, whimsical |
-?artist__ingrid_baars american, contemporary, dark, photography, photography-color, portraits |
-?artist__anne_bachelier contemporary, dark, dream-like, portraits |
-?artist__francis_bacon abstract, British, dark, distortion, expressionism, figurative, portraits, surreal |
-?artist__firmin_baes contemporary, impressionism, landscapes, portraits, still-life |
-?artist__tom_bagshaw characters, dark, eerie, fantasy, horror, melancholy, surreal |
-?artist__karol_bak Conceptual, contemporary, Impressionism, Metamorphosis, painting |
-?artist__christopher_balaskas digital, eerie, futuristic, landscapes, outer-space, science-fiction, vibrant |
-?artist__benedick_bana 3D-rendering, characters, cyberpunk, dystopia, grungy, industrial, messy, science-fiction |
-?artist__banksy anonymous, graffiti, high-contrast, politics, social-commentary, street-art, urban-life |
-?artist__george_barbier art-deco, art-nouveau, costumes, fashion, illustration, romanticism, theater |
-?artist__cicely_mary_barker characters, childhood, fairies, flowers, folklore, magic, nostalgia, Victorian, whimsical |
-?artist__wayne_barlowe alien-worlds, creatures, dark, dystopia, eerie, fantasy, mythology, science-fiction |
-?artist__will_barnet activism, contemporary, painting, Social-commentary |
-?artist__matthew_barney conceptual, creatures, film, multimedia, performance, photography, photography-color, sculpture, surreal, video-art |
-?artist__angela_barrett animals, fantasy, kids-book, playful, whimsical |
-?artist__jean_michel_basquiat African-American, contemporary, expressionism, graffiti, messy, neo-expressionism, punk, street-art |
-?artist__lillian_bassman characters, contemporary, fashion, monochromatic, photography, photography-bw, portraits |
-?artist__pompeo_batoni baroque, dark, portraits |
-?artist__casey_baugh contemporary, dark, drawing, expressionism, portraits |
-?artist__chiara_bautista dark, dream-like, fantasy, illusion, magic, mysterious, surreal, whimsical |
-?artist__herbert_bayer angular, Bauhaus, colorful, contemporary, flat-colors, graphic-design, typography |
-?artist__mary_beale baroque, portraits |
-?artist__alan_bean astronauts, metaphysics, outer-space, painting, science-fiction |
-?artist__romare_bearden African-American, collage, cubism, expressionism, history, urban-life, vibrant |
-?artist__cecil_beaton contemporary, fashion, monochromatic, photography, photography-bw, portraits |
-?artist__cecilia_beaux American, elegant, femininity, impressionism, portraits |
-?artist__jasmine_becket_griffith big-eyes, childhood, colorful, fairies, fantasy, gothic, magic, portraits, romanticism, whimsical |
-?artist__vanessa_beecroft contemporary, expressionism, fashion, feminism, nudes, photography, photography-color, surreal |
-?artist__beeple 3D-rendering, conceptual, cyberpunk, digital, futuristic, pastel-colors, science-fiction |
-?artist__zdzislaw_beksinski contemporary, dark, dream-like, expressionism, fantasy, horror, illustration, surreal |
-?artist__katerina_belkina contemporary, Femininity, identity, painting, Photography, photography-color, portraits |
-?artist__julie_bell dragons, fantasy, magic, mythology, nature, wilderness |
-?artist__vanessa_bell fauvism, portraits |
-?artist__bernardo_bellotto landscapes, Observational, painting, Plein-air, Rococo |
-?artist__ambrosius_benson animals, dark, portraits, renaissance |
-?artist__stan_berenstain animals, cartoon, family, kids-book, playful, whimsical |
-?artist__laura_berger contemporary, flat-colors, geometric, identity, muted-colors |
-?artist__jody_bergsma dream-like, ethereal, fairies, fantasy, magic-realism, mythology, watercolor, whimsical |
-?artist__john_berkey eerie, fantasy, futuristic, outer-space, science-fiction |
-?artist__gian_lorenzo_bernini Allegory, Baroque, Religion, Sculpture |
-?artist__marta_bevacqua contemporary, dark, photography, photography-color, portraits |
-?artist__john_t_biggers African-American, contemporary, harlem-renaissance, modern, mural-painting, social-commentary |
-?artist__enki_bilal comics, cyberpunk, dystopia, futuristic, grungy, science-fiction, surreal, urban-life |
-?artist__ivan_bilibin art-nouveau, folklore, horses, illustration, kids-book, mythology, ornate, royalty, Russian, theater |
-?artist__butcher_billy characters, colorful, comics, contemporary, feminism, graphic-design, pop-art, vibrant |
-?artist__george_caleb_bingham american, hudson-river-school, landscapes, realism |
-?artist__ed_binkley dream-like, ethereal, fantasy, magic, mythology, whimsical |
-?artist__george_birrell cityscapes, colorful, contemporary, urban-life, vibrant |
-?artist__robert_bissell animals, contemporary, fantasy, impressionism, kids-book, mysterious, nature, painting, Plein-air, whimsical, wildlife |
-?artist__charles_blackman colorful, painting, portraits |
-?artist__mary_blair , animation, characters, childhood, illustration, nature, vibrant, whimsical |
-?artist__john_blanche elegant, fantasy, French, portraits, science-fiction |
-?artist__don_blanding architecture, art-deco, high-contrast, minimalism |
-?artist__albert_bloch Engraving, Impressionism, painting, Realism, Satire, Social-commentary |
-?artist__hyman_bloom contemporary, expressionism |
-?artist__peter_blume conceptual, dark, fantasy, surreal |
-?artist__don_bluth animation, cartoon, colorful, contemporary, fantasy, film, whimsical |
-?artist__umberto_boccioni colorful, cubism, futurism, muted-colors |
-?artist__anna_bocek colorful, figurativism, messy, portraits |
-?artist__lee_bogle dream-like, eerie, ethereal, fantasy, portraits |
-?artist__louis_leopold_boily contemporary, French, landscapes, nature, painting |
-?artist__giovanni_boldini impressionism, portraits |
-?artist__enoch_bolles art-nouveau, characters, contemporary, portraits |
-?artist__david_bomberg abstract, battle-scenes, cubism, expressionism, muted-colors |
-?artist__chesley_bonestell alien-worlds, futuristic, outer-space, science-fiction |
-?artist__lee_bontecou abstract, contemporary, mixed-media, sculpture |
-?artist__michael_borremans contemporary, low-contrast, portraits, still-life |
-?artist__matt_bors comics, flat-colors, graphic-design, satire, social-commentary |
-?artist__flora_borsi animals, contemporary, dream-like, photography, photography-color, portraits |
-?artist__hieronymus_bosch allegory, fantasy, mysticism, religion, renaissance, surreal, whimsical |
-?artist__sam_bosma animation, cartoon, characters, comics, fantasy, playful, whimsical |
-?artist__johfra_bosschart dream-like, ethereal, fantasy, magic, mythology, surreal, whimsical |
-?artist__fernando_botero animals, contemporary, dream-like, figurativism, portraits, surreal |
-?artist__sandro_botticelli dream-like, femininity, figurative, Italian, mythology, religion, renaissance |
-?artist__william_adolphe_bouguereau female-figures, French, muted-colors, mythology, nudes, painting, realism |
-?artist__susan_seddon_boulet dream-like, ethereal, fantasy, femininity, magic, magic-realism, nature, whimsical |
-?artist__louise_bourgeois expressionism, feminism, horror, insects, kinetic, sculpture, surreal |
-?artist__annick_bouvattier colorful, contemporary, female-figures, photography, photography-color, portraits |
-?artist__david_michael_bowers animals, contemporary, dream-like, magic-realism, portraits |
-?artist__noah_bradley dark, eerie, fantasy, landscapes |
-?artist__aleksi_briclot dark, dystopia, fantasy, gothic, grungy, horror |
-?artist__frederick_arthur_bridgman orientalism, portraits |
-?artist__renie_britenbucher contemporary, Fleeting-moments, painting, Portraits |
-?artist__romero_britto colorful, contemporary, playful, pop-art, stained-glass, vibrant, whimsical |
-?artist__gerald_brom dark, eerie, fantasy, gothic, horror, pulp |
-?artist__bronzino dark, portraits, renaissance |
-?artist__herman_brood characters, childhood, pop-art, sports |
-?artist__mark_brooks comics, fantasy, science-fiction |
-?artist__romaine_brooks contemporary, dream-like, low-contrast, portraits |
-?artist__troy_brooks contemporary, dark, dream-like, impressionism, oil-painting, portraits, surreal, vibrant |
-?artist__broom_lee furniture, not-a-person, sculpture, contemporary |
-?artist__allie_brosh autobiographical, comics, flat-colors, whimsical |
-?artist__ford_madox_brown portraits, romanticism |
-?artist__charles_le_brun baroque, portraits |
-?artist__elisabeth_vigee_le_brun baroque, fashion, femininity, portraits |
-?artist__james_bullough contemporary, dream-like, portraits, street-art |
-?artist__laurel_burch femininity, illustration, nature, vibrant, whimsical |
-?artist__alejandro_burdisio atmospheric, dark, digital, eerie, fantasy, landscapes, magic, science-fiction |
-?artist__daniel_buren conceptual, contemporary, installation, minimalism, sculpture, vibrant |
-?artist__jon_burgerman colorful, contemporary, illustration, playful, pop-art, vibrant |
-?artist__richard_burlet art-nouveau, characters, cityscapes, figurative, French, impressionism, urban-life |
-?artist__jim_burns characters, cyberpunk, dark, dystopia, futuristic, noir, science-fiction, urban-life |
-?artist__stasia_burrington animals, contemporary, portraits, watercolor, whimsical |
-?artist__kaethe_butcher contemporary, messy, portraits |
-?artist__saturno_butto contemporary, dream-like, figurativism, portraits |
-?artist__paul_cadmus contemporary, nudes, portraits |
-?artist__zhichao_cai digital, dream-like, ethereal, fantasy, magic, surreal |
-?artist__randolph_caldecott animals, British, illustration, kids-book, nature, playful |
-?artist__alexander_calder_milne abstract, geometric, interactive, kinetic, metalwork, minimalism, modern, sculpture |
-?artist__clyde_caldwell fantasy, female-figures, mythology, pulp, science-fiction |
-?artist__vincent_callebaut 3D-rendering, architecture, cyberpunk, dystopia, fantasy, futuristic, science-fiction, surreal, utopia |
-?artist__fred_calleri colorful, expressionism, mixed-media, portraits, sculpture, whimsical |
-?artist__charles_camoin colorful, fauvism, landscapes, portraits |
-?artist__mike_campau 3D-rendering, conceptual, contemporary, digital, landscapes, urban-life |
-?artist__eric_canete characters, comics, fantasy, superheroes |
-?artist__josef_capek expressionism, fauvism, portraits |
-?artist__leonetto_cappiello art-nouveau, color-field, colorful, graphic-design, mixed-media, muted-colors, posters |
-?artist__eric_carle animals, colorful, interactive, kids-book, playful |
-?artist__larry_carlson colorful, digital, dream-like, nature, psychedelic, surreal, vibrant |
-?artist__bill_carman playful, pop-art, psychedelic, surreal, whimsical |
-?artist__jean_baptiste_carpeaux French, portraits, romanticism, sculpture |
-?artist__rosalba_carriera baroque, portraits |
-?artist__michael_carson characters, contemporary, figurativism, impressionism, portraits |
-?artist__felice_casorati expressionism, impressionism, portraits, still-life |
-?artist__mary_cassatt characters, impressionism, pastel, portraits |
-?artist__a_j_casson contemporary, landscapes, Mathematics, painting, Punk |
-?artist__giorgio_barbarelli_da_castelfranco painting, Renaissance, Rococo |
-?artist__paul_catherall architecture, flat-colors, geometric, graphic-design, minimalism, urban-life |
-?artist__george_catlin animals, contemporary, portraits |
-?artist__patrick_caulfield colorful, contemporary, geometric, minimalism, pop-art, vibrant |
-?artist__nicoletta_ceccoli animals, big-eyes, childhood, contemporary, dark, dream-like, portraits, surreal, whimsical |
-?artist__agnes_cecile contemporary, messy, portraits, watercolor |
-?artist__paul_cezanne cubism, geometric, impressionism, landscapes, post-impressionism, romanticism, still-life |
-?artist__paul_chabas figurativism, impressionism, nudes, portraits |
-?artist__marc_chagall colorful, dream-like, fauvism, folklore, French, impressionism, Jewish, romanticism, Russian |
-?artist__tom_chambers contemporary, Fleeting-moments, Illustration, Observational |
-?artist__katia_chausheva contemporary, dark, photography, photography-color, portraits |
-?artist__hsiao_ron_cheng digital, fashion, femininity, minimalism, mixed-media, pastel-colors, pop-art, portraits |
-?artist__yanjun_cheng contemporary, digital, dream-like, eerie, femininity, illustration, portraits, whimsical |
-?artist__sandra_chevrier animals, comics, contemporary, dream-like, portraits |
-?artist__judy_chicago abstract, activism, empowerment, femininity, feminism, installation, psychedelic, sculpture, vibrant |
-?artist__dale_chihuly abstract, contemporary, organic, sculpture, vibrant |
-?artist__frank_cho colorful, comics, drawing, fantasy, superheroes |
-?artist__james_c_christensen American, dream-like, ethereal, illustration, kids-book, magic, mysterious, mythology, religion, whimsical |
-?artist__mikalojus_konstantinas_ciurlionis art-nouveau, dark, Lithuanian, mysticism, spirituality, symbolist |
-?artist__alson_skinner_clark atmospheric, impressionism, landscapes, seascapes |
-?artist__amanda_clark characters, dream-like, ethereal, landscapes, magic, watercolor, whimsical |
-?artist__harry_clarke dark, folklore, illustration, Irish, stained-glass |
-?artist__george_clausen Observational, painting, Plein-air, Realism |
-?artist__francesco_clemente contemporary, dream-like, figurativism, Italian, portraits |
-?artist__alvin_langdon_coburn architecture, atmospheric, photography, photography-bw |
-?artist__clifford_coffin colorful, fashion, photography, photography-color, pop-art, portraits, urban-life |
-?artist__vince_colletta American, comics, superheroes |
-?artist__beth_conklin childhood, contemporary, dream-like, fashion, nature, photography, photography-color, portraits, urban-life |
-?artist__john_constable British, dark, landscapes, nature, oil-painting, romanticism, skies |
-?artist__darwyn_cooke cartoon, comics, contemporary, illustration |
-?artist__richard_corben comics, dark, eerie, horror, science-fiction |
-?artist__vittorio_matteo_corcos colorful, fantasy, impressionism, portraits, romanticism |
-?artist__paul_corfield cartoon, landscapes, nature, playful, satire, vibrant, whimsical |
-?artist__fernand_cormon impressionism, Observational, painting, Realism |
-?artist__norman_cornish portraits, realism, watercolor, whimsical |
-?artist__camille_corot color-field, femininity, impressionism, landscapes, nature, portraits, romanticism |
-?artist__gemma_correll cartoon, flat-colors, graphic-design, high-contrast, playful, whimsical |
-?artist__petra_cortright digital, expressionism, impressionism, messy, nature, vibrant |
-?artist__lorenzo_costa_the_elder Allegory, painting, Religion, religion, Renaissance |
-?artist__olive_cotton Australian, Modern, monochromatic, nature, photography, photography-bw |
-?artist__peter_coulson minimalism, monochromatic, nudes, photography, photography-bw, portraits, street-art, urban-life |
-?artist__gustave_courbet environmentalism, impressionism, nature, portraits, realism, romanticism, social-commentary, watercolor |
-?artist__frank_cadogan_cowper British, history, opulent, romanticism, Victorian |
-?artist__kinuko_y_craft American, colorful, dream-like, fantasy, folklore, illustration, kids-book, royalty |
-?artist__clayton_crain characters, comics, digital, fantasy, illustration, science-fiction |
-?artist__lucas_cranach_the_elder Allegory, painting, Religion, religion, Renaissance |
-?artist__lucas_cranach_the_younger femininity, german, history, mythology, portraits, religion, renaissance |
-?artist__walter_crane British, engraving, folklore, illustration, kids-book, nostalgia |
-?artist__martin_creed abstract, British, conceptual, expressionism, installation, interactive, minimalism, playful |
-?artist__gregory_crewdson American, dark, eerie, photography, photography-color, suburbia, surreal |
-?artist__debbie_criswell landscapes, playful, surreal, whimsical |
-?artist__victoria_crowe figurativism, impressionism, landscapes, nature, portraits, romanticism, whimsical |
-?artist__etam_cru colorful, contemporary, graffiti, large-scale, portraits, social-commentary, street-art, urban-life |
-?artist__robert_crumb American, characters, comics, counter-culture, satire, underground |
-?artist__carlos_cruz_diez Conceptual, illusion, Kinetic, Light-art |
-?artist__john_currin characters, conceptual, fashion, femininity, figurativism, portraits, whimsical |
-?artist__krenz_cushart characters, digital, fantasy, illustration, manga-anime, portraits, whimsical |
-?artist__camilla_derrico big-eyes, childhood, contemporary, fantasy, nature, portraits, vibrant, watercolor, whimsical |
-?artist__pino_daeni femininity, figurative, nostalgia, painting, romanticism |
-?artist__salvador_dali dark, dream-like, dreams, illusion, metaphysics, oil-painting, Spanish, surreal |
-?artist__sunil_das contemporary, figurative, identity, portraits |
-?artist__ian_davenport abstract, colorful, contemporary, geometric, modern, vibrant |
-?artist__stuart_davis abstract, American, cubism, rural-life, social-realism |
-?artist__roger_dean dream-like, eerie, ethereal, fantasy, landscapes, magic, posters, science-fiction |
-?artist__michael_deforge cartoon, pop-art, satire, surreal, whimsical |
-?artist__edgar_degas ballet, dancers, femininity, French, impressionism, pastel, portraits |
-?artist__eugene_delacroix French, history, muted-colors, oil-painting, orientalism, romanticism, sketching |
-?artist__robert_delaunay abstract, contemporary, cubism, geometric, modern, vibrant |
-?artist__sonia_delaunay abstract, cubism, fashion, fauvism, female-figures, French, geometric, modern |
-?artist__gabriele_dellotto comics, fantasy |
-?artist__nicolas_delort dark, eerie, fantasy, gothic, horror, labyrinths, monochromatic |
-?artist__jean_delville dream-like, fantasy, magic, metaphysics, surreal |
-?artist__posuka_demizu adventure, contemporary, fantasy, illustration, manga-anime, playful, whimsical |
-?artist__guy_denning colorful, conceptual, expressionism, messy, portraits, social-commentary |
-?artist__monsu_desiderio contemporary, figurative, surreal |
-?artist__charles_maurice_detmold animals, art-nouveau, botanical, British, delicate, ethereal, illustration, kids-book, nature, opulent, Victorian, watercolor |
-?artist__edward_julius_detmold animals, art-nouveau, botanical, British, delicate, illustration, kids-book, nature, opulent, Victorian, watercolor |
-?artist__anne_dewailly characters, fashion, figurativism, identity, multimedia, photorealism, portraits, whimsical |
-?artist__walt_disney Adventure, Animation, cartoon, characters, contemporary, folklore, whimsical |
-?artist__tony_diterlizzi creatures, fantasy, magic, playful, whimsical |
-?artist__anna_dittmann digital, dream-like, ethereal, fantasy, mysterious, pastel-colors, portraits |
-?artist__dima_dmitriev figure-studies, impressionism, landscapes, nature, oil-painting, romanticism |
-?artist__peter_doig British, Canadian, dream-like, figurativism, landscapes, large-scale, nature |
-?artist__kees_van_dongen colorful, expressionism, fauvism, femininity, japanese, portraits, urban-life |
-?artist__gustave_dore engraving, fantasy, gothic, monochromatic, mythology |
-?artist__dave_dorman dark, fantasy, horror, photorealism, science-fiction |
-?artist__emilio_giuseppe_dossena Conceptual, contemporary, metaphysics, Sculpture |
-?artist__david_downton conceptual, expressionism, high-contrast, minimalism, portraits, whimsical |
-?artist__jessica_drossin fantasy, femininity, impressionism, magic-realism, photography, photography-color, portraits, whimsical |
-?artist__philippe_druillet comics, contemporary, fantasy, French, science-fiction |
-?artist__tj_drysdale dream-like, eerie, ethereal, landscapes, magic, photography, photography-color, shallow-depth-of-field |
-?artist__ton_dubbeldam architecture, colorful, conceptual, contemporary, Dutch, geometric, landscapes, pointillism |
-?artist__marcel_duchamp conceptual, cubism, dadaism, expressionism, fauvism, impressionism, surreal |
-?artist__joseph_ducreux French, portraits, self-portraits, whimsical |
-?artist__edmund_dulac dream-like, folklore, French, illustration, kids-book, magic, orientalism, romanticism |
-?artist__marlene_dumas African-American, contemporary, expressionism, femininity, impressionism, nature, portraits, watercolor |
-?artist__charles_dwyer impressionism, messy, nature, portraits, watercolor, whimsical |
-?artist__william_dyce baroque, impressionism, portraits, realism, renaissance, romanticism |
-?artist__chris_dyer colorful, contemporary, expressionism, pop-art, psychedelic, surreal, vibrant |
-?artist__eyvind_earle colorful, dream-like, high-contrast, magic-realism, surreal, whimsical |
-?artist__amy_earles abstract-expressionism, American, characters, dark, gestural, watercolor, whimsical |
-?artist__lori_earley big-eyes, contemporary, dream-like, expressionism, figurativism, nature, portraits, whimsical |
-?artist__jeff_easley fantasy |
-?artist__tristan_eaton characters, collage, colorful, graphic-design, pop-art, street-art, vibrant |
-?artist__jason_edmiston characters, dark, eerie, ethereal, fantasy, horror, illustration, portraits |
-?artist__alfred_eisenstaedt conceptual, fashion, high-contrast, monochromatic, photography, photography-bw, portraits, whimsical |
-?artist__jesper_ejsing adventure, characters, fantasy, illustration, magic, mythology, whimsical |
-?artist__olafur_eliasson contemporary, environmentalism, immersive, installation, nature |
-?artist__harrison_ellenshaw landscapes, painting, realism |
-?artist__christine_ellger dream-like, ethereal, fantasy, folklore, illustration, magic-realism, surreal |
-?artist__larry_elmore battle-scenes, fantasy, illustration, medieval, superheroes |
-?artist__joseba_elorza collage, dream-like, outer-space, photography, photography-color, science-fiction, surreal |
-?artist__peter_elson futuristic, illustration, outer-space, robots-cyborgs, science-fiction, space-ships |
-?artist__gil_elvgren American, female-figures, femininity, illustration, pulp |
-?artist__ed_emshwiller aliens, colorful, illustration, outer-space, pulp, science-fiction |
-?artist__kilian_eng atmospheric, digital, fantasy, illustration, landscapes, science-fiction |
-?artist__jason_a_engle creatures, dark, fantasy, illustration |
-?artist__max_ernst automatism, collage, Dadaism, expressionism, German, mythology, oil-painting, surreal |
-?artist__romain_de_tirtoff_erte art-deco, fashion, luxury, masks, Russian, silhouettes, theater |
-?artist__m_c_escher angular, Dutch, geometric, illusion, lithography, mathematics, surreal, woodblock |
-?artist__tim_etchells Conceptual, conceptual, contemporary, neon, text-based |
-?artist__walker_evans American, documentary, great-depression, monochromatic, photography, photography-bw, portraits, social-commentary |
-?artist__jan_van_eyck painting, renaissance |
-?artist__glenn_fabry comics, fantasy, illustration, science-fiction, violence |
-?artist__ludwig_fahrenkrog eerie, expressionism, German, mysticism, symbolist |
-?artist__shepard_fairey flat-colors, graphic-design, high-contrast, politics, social-commentary, street-art |
-?artist__andy_fairhurst digital, eerie, fantasy, horror, illustration, science-fiction |
-?artist__luis_ricardo_falero dream-like, erotica, fantasy, figurativism, nudes, painting, romanticism |
-?artist__jean_fautrier abstract-expressionism, Metaphysics, painting, Sculpture |
-?artist__andrew_ferez dream-like, eerie, fantasy, fragmentation, illustration, surreal |
-?artist__hugh_ferriss architecture, art-deco, cityscapes, futuristic, geometric, nightlife, urban-life |
-?artist__david_finch comics, fantasy, illustration, noir, superheroes |
-?artist__callie_fink colorful, contemporary, expressionism, pop-art, portraits, psychedelic, surreal, vibrant |
-?artist__virgil_finlay comics, dark, eerie, fantasy, high-contrast, horror, pulp, science-fiction |
-?artist__anato_finnstark colorful, digital, fantasy, illustration, magic, playful, whimsical |
-?artist__howard_finster colorful, contemporary, dream-like, folk-art, portraits, primitivism, religion, spirituality |
-?artist__oskar_fischinger abstract, avant-garde, colorful, contemporary, spirituality, vibrant |
-?artist__samuel_melton_fisher flowers, impressionism, nature, portraits, realism, romanticism, whimsical |
-?artist__john_anster_fitzgerald fantasy, folklore, illustration, magic, pastel, whimsical |
-?artist__tony_fitzpatrick collage, colorful, contemporary, mixed-media, playful, pop-art, vibrant, whimsical |
-?artist__hippolyte_flandrin baroque, portraits, realism, religion, renaissance, romanticism |
-?artist__dan_flavin conceptual, contemporary, installation, light-art, minimalism, sculpture |
-?artist__max_fleischer Animation, comics, contemporary, dark |
-?artist__govaert_flinck baroque, expressionism, impressionism, portraits, realism, renaissance, whimsical |
-?artist__alex_russell_flint Environmentalism, Illustration, painting, Social-commentary |
-?artist__lucio_fontana abstract, conceptual, installation, large-scale, minimalism, modern, sculpture |
-?artist__chris_foss alien-worlds, colorful, illustration, outer-space, psychedelic, science-fiction |
-?artist__jon_foster contemporary, digital, figurativism, minimalism, modern, portraits |
-?artist__jean_fouquet Allegory, painting, Religion, Renaissance, renaissance |
-?artist__toby_fox animals, cartoon, childhood, comics, digital, fantasy, nature, whimsical |
-?artist__art_frahm femininity, pin-up, portraits |
-?artist__lisa_frank childhood, colorful, illustration, playful, vibrant, whimsical |
-?artist__helen_frankenthaler abstract, abstract-expressionism, color-field, contemporary, expressionism, feminism, painting, printmaking, watercolor |
-?artist__frank_frazetta barbarians, dark, erotica, fantasy, illustration, muscles, pulp |
-?artist__kelly_freas adventure, eerie, fantasy, illustration, science-fiction |
-?artist__lucian_freud British, expressionism, figurative, flesh, oil-painting, portraits, realism |
-?artist__brian_froud dark, fairies, fantasy, illustration, magic, mythology, whimsical |
-?artist__wendy_froud dark, fairies, fantasy, illustration, magic, mythology, whimsical |
-?artist__tom_fruin architecture, colorful, contemporary, geometric, installation, multimedia, sculpture, stained-glass, vibrant |
-?artist__john_wayne_gacy clowns, dark, death, horror, portraits, vibrant |
-?artist__justin_gaffrey environmentalism, installation, landscapes, large-scale, minimalism, nature, sculpture |
-?artist__hashimoto_gaho Kitsch, Politics, Printmaking, ukiyo-e |
-?artist__neil_gaiman comics, conceptual, dream-like, fantasy, portraits, whimsical |
-?artist__stephen_gammell dark, eerie, high-contrast, horror, kids-book |
-?artist__hope_gangloff colorful, contemporary, expressionism, portraits |
-?artist__alex_garant conceptual, contemporary, dream-like, figurativism, impressionism, portraits, surreal, vibrant |
-?artist__gilbert_garcin abstract, Conceptual, contemporary, Installation, Sculpture, Surreal |
-?artist__michael_and_inessa_garmash conceptual, impressionism, nature, portraits, realism, romanticism, whimsical |
-?artist__antoni_gaudi architecture, art-nouveau, mosaic, organic, Spanish |
-?artist__jack_gaughan alien-worlds, aliens, colorful, illustration, outer-space, science-fiction |
-?artist__paul_gauguin colorful, exoticism, French, impressionism, oil-painting, primitivism, spirituality, tropics |
-?artist__giovanni_battista_gaulli baroque, expressionism, impressionism, portraits, realism, renaissance |
-?artist__anne_geddes childhood, nature, photography, photography-color, portraits, whimsical |
-?artist__bill_gekas childhood, conceptual, expressionism, fashion, photography, photography-color, portraits, whimsical |
-?artist__artemisia_gentileschi baroque, expressionism, portraits, realism, religion, renaissance, romanticism |
-?artist__orazio_gentileschi baroque, expressionism, portraits, realism, renaissance, romanticism, whimsical |
-?artist__daniel_f_gerhartz expressionism, femininity, impressionism, nature, portraits, realism, romanticism, whimsical |
-?artist__theodore_gericault conceptual, dark, expressionism, impressionism, portraits, realism, romanticism |
-?artist__jean_leon_gerome architecture, figure-studies, French, mythology, Orientalism, painting, romanticism |
-?artist__mark_gertler expressionism, figurativism, figure-studies, impressionism, portraits, realism, still-life |
-?artist__atey_ghailan characters, digital, dream-like, fantasy, illustration, manga-anime, surreal |
-?artist__alberto_giacometti bronze, emaciation, expressionism, figurative, portraits, sculpture, Swiss |
-?artist__donato_giancola fantasy, illustration, mythology, science-fiction |
-?artist__hr_giger cyberpunk, dark, horror, monochromatic, painting, robots-cyborgs, science-fiction, surreal |
-?artist__james_gilleard architecture, colorful, digital, environmentalism, fantasy, flat-colors, futuristic, landscapes, vibrant |
-?artist__harold_gilman impressionism, landscapes, nature, portraits, romanticism, whimsical |
-?artist__charles_ginner cityscapes, colorful, impressionism, landscapes, urban-life |
-?artist__jean_giraud comics, dream-like, fantasy, illustration, psychedelic, science-fiction, surreal |
-?artist__anne_louis_girodet expressionism, impressionism, portraits, realism, renaissance, romanticism |
-?artist__milton_glaser colorful, contemporary, graphic-design, pop-art, vibrant, whimsical |
-?artist__warwick_goble art-nouveau, folklore, kids-book, muted-colors, nature, whimsical |
-?artist__john_william_godward characters, impressionism, portraits, realism, renaissance, romanticism |
-?artist__sacha_goldberger characters, contemporary, identity, immigrants, mixed-media, photography, photography-color, portraits |
-?artist__nan_goldin conceptual, contemporary, expressionism, photography, photography-color, portraits, realism, whimsical |
-?artist__josan_gonzalez atmospheric, cyberpunk, futuristic, illustration, science-fiction, technology |
-?artist__felix_gonzalez_torres conceptual, contemporary, installation, LGBTQ, minimalism |
-?artist__derek_gores colorful, contemporary, expressionism, portraits |
-?artist__edward_gorey dark, eerie, gothic, horror, kids-book, monochromatic, mysterious |
-?artist__arshile_gorky abstract-Expressionism, painting |
-?artist__alessandro_gottardo characters, dream-like, flat-colors, illustration, playful, whimsical |
-?artist__adolph_gottlieb abstract, abstract-expressionism, color-field, contemporary, geometric |
-?artist__francisco_goya dark, etching, horror, oil-painting, politics, portraits, romanticism, satire, social-commentary, Spanish |
-?artist__laurent_grasso Conceptual, contemporary, Sculpture, Surreal, surreal |
-?artist__mab_graves big-eyes, conceptual, contemporary, dream-like, expressionism, magic-realism, portraits, whimsical |
-?artist__eileen_gray abstract, architecture, Friendship, Loneliness, modern, painting |
-?artist__kate_greenaway British, childhood, fashion, illustration, kids-book, romanticism, Victorian |
-?artist__alex_grey abstract-expressionism, colorful, contemporary, dream-like, psychedelic, surreal, vibrant |
-?artist__carne_griffiths conceptual, contemporary, expressionism, messy, portraits, whimsical |
-?artist__gris_grimly comics, dark, eerie, fantasy, gothic, illustration, kids-book, surreal, whimsical |
-?artist__brothers_grimm characters, dark, folklore, kids-book, magic |
-?artist__tracie_grimwood colorful, dream-like, fantasy, kids-book, playful, whimsical |
-?artist__matt_groening cartoon, colorful, pop-culture, satire, whimsical |
-?artist__alex_gross contemporary, portraits, surreal, whimsical |
-?artist__tom_grummett comics, contemporary, illustration, superheroes |
-?artist__huang_guangjian contemporary, impressionism, landscapes, oil-painting |
-?artist__wu_guanzhong contemporary, Feminism, Homo-eroticism, Illustration, landscapes |
-?artist__rebecca_guay digital, dream-like, ethereal, fantasy, illustration, magic, watercolor |
-?artist__guercino baroque, italian, painting, religion |
-?artist__jeannette_guichard_bunel conceptual, contemporary, expressionism, figurativism, portraits, whimsical |
-?artist__scott_gustafson fantasy, illustration, kids-book, magic-realism, playful, whimsical |
-?artist__wade_guyton contemporary, mixed-media, pop-art |
-?artist__hans_haacke conceptual, contemporary, environmentalism, installation, politics, sculpture |
-?artist__robert_hagan colorful, dream-like, impressionism, landscapes, nature, romanticism, vibrant |
-?artist__philippe_halsman conceptual, monochromatic, photography, photography-bw, portraits, whimsical |
-?artist__maggi_hambling american, conceptual, contemporary, expressionism, installation, portraits, vibrant |
-?artist__richard_hamilton Consumerism, Mixed-media, Pop-art, Pop-Art |
-?artist__bess_hamiti contemporary, dream-like, impressionism, landscapes, magic-realism, surreal, vibrant, whimsical |
-?artist__tom_hammick dream-like, figurativism, flat-colors, landscapes, multimedia, nature, vibrant |
-?artist__david_hammons abstract, African-American, conceptual, contemporary, installation, social-commentary |
-?artist__ren_hang characters, contemporary, impressionism, nudes, photography, photography-color, portraits |
-?artist__erin_hanson atmospheric, colorful, dream-like, impressionism, landscapes, nature, serenity, vibrant |
-?artist__keith_haring activism, expressionism, flat-colors, graffiti, high-contrast, LGBTQ, pop-art, street-art, vibrant |
-?artist__alexei_harlamoff childhood, impressionism, portraits, realism |
-?artist__charley_harper animals, flat-colors, folk-art, illustration, muted-colors, nature, playful, whimsical |
-?artist__john_harris dark, dystopia, illustration, outer-space, science-fiction |
-?artist__florence_harrison art-nouveau, delicate, dream-like, kids-book, romanticism, whimsical |
-?artist__marsden_hartley abstract, American, expressionism, landscapes, modern, portraits, primitivism |
-?artist__ryohei_hase creatures, digital, dream-like, ethereal, fantasy, illustration, magic-realism, mysterious, surreal |
-?artist__childe_hassam American, cityscapes, impressionism, landscapes |
-?artist__ben_hatke adventure, cartoon, characters, kids-book, playful, whimsical |
-?artist__mona_hatoum body-art, conceptual, contemporary, displacement, installation, sculpture |
-?artist__pam_hawkes ceramics, contemporary, delicate, figurative, figurativism, nature, organic, portraits |
-?artist__jamie_hawkesworth contemporary, nature, photography, photography-color, portraits, street-art, urban-life, vibrant |
-?artist__stuart_haygarth angular, colorful, conceptual, contemporary, installation, vibrant |
-?artist__erich_heckel expressionism, german, landscapes, modern, portraits |
-?artist__valerie_hegarty metamorphosis, painting, sculpture, Social-commentary |
-?artist__mary_heilmann abstract, colorful, contemporary, geometric, minimalism, vibrant |
-?artist__michael_heizer angular, earthworks, installation, land-art, landscapes, large-scale, nature |
-?artist__gottfried_helnwein childhood, contemporary, dark, horror, photography, photography-color, portraits, social-commentary |
-?artist__barkley_l_hendricks african-american, contemporary, expressionism, femininity, figurativism, identity, portraits |
-?artist__bill_henson conceptual, contemporary, dark, landscapes, photography, photography-color, portraits, whimsical |
-?artist__barbara_hepworth abstract, modern, nature, organic, sculpture |
-?artist__herge belgian, comics, contemporary |
-?artist__carolina_herrera characters, contemporary, fashion, femininity, celebrity |
-?artist__george_herriman comics, contemporary, Illustration, politics, Satire |
-?artist__don_hertzfeldt animation, dark, drawing, surreal, whimsical |
-?artist__prudence_heward colorful, expressionism, feminism, nature, portraits |
-?artist__ryan_hewett cubism, mysticism, portraits |
-?artist__nora_heysen Consumerism, contemporary, Femininity, landscapes, painting |
-?artist__george_elgar_hicks impressionism, landscapes |
-?artist__lorenz_hideyoshi cyberpunk, dark, digital, dystopia, futuristic, illustration, science-fiction |
-?artist__brothers_hildebrandt fantasy, illustration, painting, superheroes, vibrant |
-?artist__dan_hillier contemporary, graffiti, monochromatic, portraits, street-art, urban-life |
-?artist__lewis_hine activism, documentary, monochromatic, photography, photography-bw, social-commentary, social-realism |
-?artist__miho_hirano characters, contemporary, fantasy, japanese, magic-realism, portraits, whimsical |
-?artist__harumi_hironaka dream-like, femininity, manga-anime, pastel-colors, portraits, serenity, watercolor |
-?artist__hiroshige Edo-period, Japanese, landscapes, nature, printmaking, ukiyo-e, woodblock |
-?artist__morris_hirshfield animals, contemporary, illustration, minimalism, whimsical |
-?artist__damien_hirst animals, British, conceptual, contemporary, death, installation, mixed-media, sculpture, shock-art |
-?artist__fan_ho Chinese, contemporary, film, high-contrast, monochromatic, photography, photography-bw |
-?artist__meindert_hobbema Dutch-Golden-Age, landscapes, Observational, painting, Plein-air |
-?artist__david_hockney British, colorful, cubism, pools, pop-art, portraits |
-?artist__filip_hodas , 3D-rendering, contemporary, dark, digital, dream-like, pop-culture, science-fiction, surreal |
-?artist__howard_hodgkin abstract, color-field, contemporary, modern, nature, vibrant |
-?artist__ferdinand_hodler characters, contemporary, impressionism, landscapes, nature, portraits, swiss |
-?artist__tiago_hoisel characters, contemporary, illustration, whimsical |
-?artist__katsushika_hokusai Edo-period, high-contrast, Japanese, japanese, nature, ukiyo-e, waves, woodblock |
-?artist__hans_holbein_the_younger anthropomorphism, painting, portraits, Renaissance |
-?artist__frank_holl colorful, impressionism, portraits, street-art, urban-life |
-?artist__carsten_holler contemporary, experiential, immersive, interactive, playful |
-?artist__zena_holloway animals, British, fashion, female-figures, Photography, photography-color, portraits, underwater |
-?artist__edward_hopper American, architecture, impressionism, landscapes, loneliness, nostalgia, oil-painting, realism, solitude, urban-life |
-?artist__aaron_horkey comics, etching, fantasy, illustration |
-?artist__alex_horley characters, dark, fantasy, grungy, horror, illustration |
-?artist__roni_horn American, conceptual, environmentalism, installation, LGBTQ, minimalism, nature, photography, photography-color, sculpture |
-?artist__john_howe characters, dark, eerie, fantasy, landscapes, nature, portraits |
-?artist__alex_howitt contemporary, Fleeting-moments, Illustration, monochromatic, painting, Slice-of-life |
-?artist__meghan_howland contemporary, dream-like, figurativism, identity, portraits |
-?artist__john_hoyland abstract, color-field, contemporary, geometric, messy, modern, vibrant |
-?artist__shilin_huang characters, dream-like, fantasy, magic, mysterious, mythology |
-?artist__arthur_hughes impressionism, landscapes, nature, portraits, romanticism |
-?artist__edward_robert_hughes characters, dream-like, ethereal, fantasy, impressionism, nostalgia, romanticism, whimsical |
-?artist__jack_hughes contemporary, expressionism, flat-colors, portraits, vibrant |
-?artist__talbot_hughes impressionism, landscapes, nature, portraits, romanticism |
-?artist__pieter_hugo contemporary, dutch, environmentalism, landscapes, photography, photography-color, portraits, social-commentary |
-?artist__gary_hume abstract, flat-colors, geometric, minimalism, modern, painting |
-?artist__friedensreich_hundertwasser abstract, colorful, contemporary, expressionism, organic, vibrant, whimsical |
-?artist__william_holman_hunt impressionism, landscapes, nature, portraits, romanticism |
-?artist__george_hurrell contemporary, fashion, high-contrast, luxury, photography, photography-bw, portraits |
-?artist__fabio_hurtado contemporary, cubism, figurativism, modern, multimedia, portraits |
-?artist__hush Activism, messy, painting, Street-art |
-?artist__michael_hutter dream-like, eerie, fantasy, horror, science-fiction, surreal |
-?artist__pierre_huyghe conceptual, contemporary, multimedia, surreal |
-?artist__doug_hyde contemporary, illustration, kids-book, playful, whimsical |
-?artist__louis_icart art-deco, dancers, femininity, impressionism, low-contrast, romanticism, urban-life |
-?artist__robert_indiana contemporary, flat-colors, graphic-design, pop-art, typography, vibrant |
-?artist__jean_auguste_dominique_ingres french, portraits, realism, romanticism |
-?artist__robert_irwin angular, contemporary, environmentalism, installation, minimalism |
-?artist__gabriel_isak contemporary, melancholy, surreal, Swedish |
-?artist__junji_ito contemporary, dark, fantasy, horror, manga-anime, monochromatic, portraits, surreal |
-?artist__christophe_jacrot architecture, atmospheric, cityscapes, photography, photography-color, urban-life |
-?artist__louis_janmot characters, french, impressionism, portraits, romanticism |
-?artist__frieke_janssens conceptual, contemporary, photography, photography-color, portraits |
-?artist__alexander_jansson dark, dream-like, fantasy, mythology, surreal, whimsical |
-?artist__tove_jansson adventure, cartoon, kids-book, playful, whimsical |
-?artist__aaron_jasinski characters, colorful, comics, contemporary, pop-art, portraits, whimsical |
-?artist__alexej_von_jawlensky colorful, expressionism, german, modern, portraits, spirituality, vibrant |
-?artist__james_jean fantasy, muted-colors, mysterious, mythology, pastel-colors |
-?artist__oliver_jeffers cartoon, colorful, kids-book, playful, whimsical |
-?artist__lee_jeffries conceptual, contemporary, high-contrast, monochromatic, portraits, social-commentary |
-?artist__georg_jensen jewelry, sculpture |
-?artist__ellen_jewett digital, expressionism, installation, nature, sculpture, surreal, whimsical |
-?artist__he_jiaying contemporary, Femininity, identity, painting, Realism |
-?artist__chantal_joffe contemporary, expressionism, figurativism, portraits, social-commentary |
-?artist__martine_johanna colorful, contemporary, femininity, figurativism, identity, portraits |
-?artist__augustus_john British, color-field, impressionism, landscapes, nature, portraits |
-?artist__gwen_john contemporary, femininity, impressionism, nature, portraits, watercolor, whimsical |
-?artist__jasper_johns abstract-Expressionism, Mysticism, painting |
-?artist__eastman_johnson american, contemporary, impressionism, landscapes, nature, portraits, urban-life |
-?artist__alfred_cheney_johnston conceptual, contemporary, minimalism, monochromatic, photography, photography-bw, portraits |
-?artist__dorothy_johnstone contemporary, femininity, figurativism, impressionism, landscapes, nature, portraits |
-?artist__android_jones colorful, conceptual, digital, dream-like, geometric, psychedelic, surreal |
-?artist__erik_jones collage, colorful, cubism, portraits, vibrant |
-?artist__jeffrey_catherine_jones fantasy, figurativism, posters, pulp, realism |
-?artist__peter_andrew_jones alien-worlds, eerie, fantasy, futuristic, outer-space, science-fiction |
-?artist__loui_jover contemporary, eerie, Illustration, satire |
-?artist__amy_judd contemporary, fantasy, nature, photorealism, portraits, surreal |
-?artist__donald_judd angular, contemporary, installation, metalwork, minimalism, sculpture |
-?artist__jean_jullien cartoon, flat-colors, graphic-design, high-contrast, minimalism, playful |
-?artist__matthias_jung architecture, conceptual, digital, dream-like, environmentalism, futuristic, minimalism, surreal |
-?artist__joe_jusko comics, fantasy |
-?artist__frida_kahlo dream-like, feminism, Mexican, portraits, self-portraits, vibrant |
-?artist__hayv_kahraman contemporary, fantasy, femininity, figurativism, portraits, whimsical |
-?artist__mw_kaluta dream-like, ethereal, fantasy, nostalgia, romanticism, victorian, whimsical |
-?artist__nadav_kander conceptual, contemporary, landscapes, minimalism, photography, photography-color, portraits, street-art, urban-life |
-?artist__wassily_kandinsky abstract, Bauhaus, expressionism, modern, Russian, spirituality, vibrant |
-?artist__jun_kaneko abstract, contemporary, geometric, organic, sculpture, vibrant |
-?artist__titus_kaphar African-American, conceptual, contemporary, figurativism, portraits, social-commentary |
-?artist__michal_karcz digital, eerie, fantasy, futuristic, landscapes, photorealism, science-fiction, surreal |
-?artist__gertrude_kasebier American, family, female-figures, monochromatic, photography, photography-bw, portraits, rural-life |
-?artist__terada_katsuya fantasy, magic, manga-anime, portraits |
-?artist__audrey_kawasaki art-nouveau, contemporary, fantasy, japanese, magic-realism, manga-anime, portraits, whimsical |
-?artist__hasui_kawase landscapes, Plein-air, Printmaking, Slice-of-life, ukiyo-e |
-?artist__glen_keane adventure, cartoon, characters, drawing, kids-book, playful, whimsical |
-?artist__margaret_keane big-eyes, cartoon, childhood, colorful, contemporary, femininity, pop-art, portraits, whimsical |
-?artist__ellsworth_kelly abstract, color-field, contemporary, flat-colors, geometric, minimalism |
-?artist__michael_kenna British, contemporary, high-contrast, landscapes, minimalism, monochromatic, photography, photography-bw |
-?artist__thomas_benjamin_kennington figurativism, impressionism, portraits, realism |
-?artist__william_kentridge African, animation, contemporary, drawing, messy, monochromatic, politics, printmaking |
-?artist__hendrik_kerstens conceptual, contemporary, fashion, photography, photography-color, portraits, whimsical |
-?artist__jeremiah_ketner activism, big-eyes, contemporary, female-figures, femininity, illustration, Social-commentary |
-?artist__fernand_khnopff metaphysics, painting, Sculpture, Symbolist |
-?artist__hideyuki_kikuchi dark, eerie, fantasy, horror, manga-anime |
-?artist__tom_killion contemporary, landscapes, Observational, Plein-air, Printmaking |
-?artist__thomas_kinkade color-field, contemporary, impressionism, landscapes, nature, portraits |
-?artist__jack_kirby comics, science-fiction, superheroes |
-?artist__ernst_ludwig_kirchner expressionism, german, landscapes, modern, portraits |
-?artist__tatsuro_kiuchi colorful, digital, flat-colors, landscapes, nature, street-art, urban-life, whimsical |
-?artist__jon_klassen animals, dream-like, kids-book, nature, playful, watercolor, whimsical |
-?artist__paul_klee abstract, Bauhaus, expressionism, German, playful |
-?artist__william_klein American, fashion, minimalism, monochromatic, photography, photography-bw, urban-life |
-?artist__yves_klein abstract, color-field, expressionism, fashion, French, modern, monochromatic, performance |
-?artist__carl_kleiner abstract, American, collage, digital, graphic-design, pop-art, portraits |
-?artist__gustav_klimt art-nouveau, Austrian, erotica, female-figures, golden, mosaic, portraits |
-?artist__godfrey_kneller baroque, impressionism, portraits, realism |
-?artist__emily_kame_kngwarreye Aboriginal, abstract, australian, colorful, dream-like, expressionism, landscapes, nature |
-?artist__chad_knight collage, colorful, digital, playful, pop-art, surreal |
-?artist__nick_knight Adventure, Fantasy, fashion, pastel-colors, photography, photography-color, Pop-art, surreal |
-?artist__helene_knoop characters, conceptual, contemporary, feminism, figurativism, minimalism, portraits |
-?artist__phil_koch atmospheric, colorful, contemporary, landscapes, nature, photography, photography-color, serenity, vibrant |
-?artist__kazuo_koike comics, fantasy, manga-anime |
-?artist__oskar_kokoschka Austrian, expressionism, german, landscapes, modern, portraits |
-?artist__kathe_kollwitz contemporary, expressionism, high-contrast, monochromatic, portraits, social-commentary |
-?artist__michael_komarck battle-scenes, contemporary, fantasy, illustration, painting |
-?artist__satoshi_kon dream-like, fantasy, manga-anime, surreal, whimsical |
-?artist__jeff_koons colorful, consumerism, contemporary, kitsch, pop-art, post-modern, sculpture |
-?artist__caia_koopman big-eyes, colorful, conceptual, contemporary, femininity, pop-art, portraits, surreal, whimsical |
-?artist__konstantin_korovin impressionism, Impressionism, painting, Plein-air |
-?artist__mark_kostabi figurative, modern, politics |
-?artist__bella_kotak conceptual, contemporary, fashion, photography, photography-color, portraits, urban-life |
-?artist__andrea_kowch contemporary, dark, fantasy, magic-realism, portraits, whimsical |
-?artist__lee_krasner abstract, abstract-expressionism, color-field, expressionism, feminism, gestural, improvisation |
-?artist__barbara_kruger advertising, conceptual, contemporary, feminism, graphic-design, high-contrast, montage, text-based |
-?artist__brad_kunkle conceptual, contemporary, dream-like, photography, photography-color, portraits |
-?artist__yayoi_kusama contemporary, fashion, feminism, infinity-rooms, installation, polka-dots, pop-art, vibrant |
-?artist__michael_k_kutsche characters, dark, dream-like, fantasy, mysterious, mythology |
-?artist__ilya_kuvshinov digital, dream-like, ethereal, fantasy, manga-anime, romanticism, surreal, vibrant |
-?artist__david_lachapelle conceptual, contemporary, luxury, photography, photography-color, pop-art, vibrant |
-?artist__raphael_lacoste atmospheric, dark, dream-like, eerie, fantasy, landscapes, mysterious |
-?artist__lev_lagorio landscapes, Observational, painting, Plein-air, Realism |
-?artist__rene_lalique art-deco, art-nouveau, French, glasswork, jewelry, luxury, nature, sculpture |
-?artist__abigail_larson dark, eerie, fantasy, kids-book, whimsical |
-?artist__gary_larson American, animals, cartoon, comics, newspaper, pop-culture, satire, slice-of-life |
-?artist__denys_lasdun Architecture, contemporary, metaphysics |
-?artist__maria_lassnig expressionism, figurative, self-portraits |
-?artist__dorothy_lathrop art-nouveau, delicate, dream-like, kids-book, romanticism, whimsical |
-?artist__melissa_launay contemporary, painting |
-?artist__john_lavery contemporary, impressionism, irish, landscapes, nature, portraits |
-?artist__jacob_lawrence African-American, angular, contemporary, cubism, harlem-renaissance, modern, social-realism |
-?artist__thomas_lawrence characters, femininity, impressionism, portraits, realism, romanticism |
-?artist__ernest_lawson American, everyday-life, impressionism, landscapes |
-?artist__bastien_lecouffe_deharme characters, dark, digital, ethereal, fantasy, magic, surreal |
-?artist__alan_lee dream-like, ethereal, fantasy, mythology, nostalgia, romanticism |
-?artist__minjae_lee contemporary, expressionism, fantasy, messy, portraits, South-Korean, whimsical |
-?artist__nina_leen conceptual, contemporary, monochromatic, photography, photography-bw, portraits, street-art, urban-life |
-?artist__fernand_leger abstract, colorful, cubism, geometric, modern |
-?artist__paul_lehr colorful, eerie, fantasy, futuristic, science-fiction, surreal |
-?artist__frederic_leighton expressionism, landscapes, portraits, romanticism |
-?artist__alayna_lemmer contemporary, expressionism, mixed-media |
-?artist__tamara_de_lempicka art-deco, cubism, fashion, luxury, portraits, romanticism |
-?artist__sol_lewitt abstract, conceptual, contemporary, geometric, minimalism, sculpture, serial-art, wall-drawings |
-?artist__jc_leyendecker American, illustration, nostalgia, pop-culture, portraits, posters |
-?artist__andre_lhote Cubism, impressionism, painting |
-?artist__roy_lichtenstein American, comics, expressionism, flat-colors, pop-art, portraits |
-?artist__rob_liefeld comics, fantasy, science-fiction, superheroes |
-?artist__fang_lijun contemporary, dutch, figurativism, portraits, realism, vibrant |
-?artist__maya_lin architecture, contemporary, environmentalism, identity, installation, land-art |
-?artist__filippino_lippi expressionism, landscapes, portraits, renaissance |
-?artist__herbert_list German, monochromatic, photography, photography-bw, portraits |
-?artist__richard_long British, contemporary, land-art, sculpture |
-?artist__yoann_lossel animals, fantasy, golden, illustration, realism |
-?artist__morris_louis abstract-expressionism, color-field, minimalism, painting |
-?artist__sarah_lucas contemporary, Femininity, feminism, sculpture, surreal |
-?artist__maximilien_luce , french, impressionism, landscapes, nature, oil-painting, plein-air, romanticism, vibrant |
-?artist__loretta_lux american, childhood, contemporary, impressionism, installation, photography, photography-color, portraits |
-?artist__george_platt_lynes fashion, figure-studies, homo-eroticism, LGBTQ, monochromatic, nudes, photography, photography-bw |
-?artist__frances_macdonald Allegory, impressionism, landscapes, Nostalgia, painting |
-?artist__august_macke abstract, colorful, expressionism, impressionism, modern, serenity, vibrant |
-?artist__stephen_mackey contemporary, dark, dream-like, expressionism, landscapes, surreal |
-?artist__rachel_maclean colorful, contemporary, photography, photography-color, portraits, Scottish, whimsical |
-?artist__raimundo_de_madrazo_y_garreta expressionism, impressionism, landscapes, portraits |
-?artist__joe_madureira comics, fantasy, superheroes |
-?artist__rene_magritte Belgian, cloudscapes, cubism, illusion, impressionism, surreal |
-?artist__jim_mahfood comics, graffiti, pop-art, street-art |
-?artist__vivian_maier contemporary, expressionism, landscapes, monochromatic, photography, photography-bw, portraits |
-?artist__aristide_maillol female-figures, modern, painting, Sculpture |
-?artist__don_maitz eerie, fantasy, futuristic, science-fiction, surreal |
-?artist__laura_makabresku contemporary, dark, Femininity, muted-colors, photography, photography-color, portraits, shallow-depth-of-field, surreal |
-?artist__alex_maleev comics, dark, fantasy, noir |
-?artist__keith_mallett dark, figurativism, minimalism, modern, muted-colors, sculpture, urban-life |
-?artist__johji_manabe comics, contemporary, Illustration, manga-anime, Metamorphosis, Science-fiction |
-?artist__milo_manara Comics, Controversy, erotica, Femininity, Illustration |
-?artist__edouard_manet controversy, femininity, French, impressionism, modern-life, portraits, realism, still-life |
-?artist__henri_manguin colorful, fauvism, impressionism, painting |
-?artist__jeremy_mann contemporary, dark, expressionism, grungy, messy, portraits, urban-life |
-?artist__sally_mann childhood, family, monochromatic, photography, photography-bw, social-commentary, suburbia |
-?artist__andrea_mantegna mythology, painting, religion, renaissance, spanish |
-?artist__antonio_j_manzanedo characters, dark, fantasy, mysterious |
-?artist__robert_mapplethorpe BDSM, figure-studies, homo-eroticism, LGBTQ, monochromatic, nudes, photography, photography-bw, portraits |
-?artist__franz_marc animals, colorful, cubism, expressionism, spirituality, vibrant |
-?artist__ivan_marchuk contemporary, expressionism, painting |
-?artist__brice_marden abstract, contemporary, minimalism |
-?artist__andrei_markin contemporary, expressionism, figurativism, impressionism, portraits |
-?artist__kerry_james_marshall collage, contemporary, expressionism, landscapes, portraits |
-?artist__serge_marshennikov contemporary, expressionism, impressionism, landscapes, portraits |
-?artist__agnes_martin abstract-expressionism, color-field, contemporary, grids, minimalism, spirituality |
-?artist__adam_martinakis 3D-rendering, conceptual, digital, dream-like, futuristic, multimedia, sculpture, virtual-reality |
-?artist__stephan_martiniere atmospheric, dark, fantasy, futuristic, landscapes, science-fiction, surreal |
-?artist__ilya_mashkov expressionism, painting, russian, Symbolist |
-?artist__henri_matisse collage, color-field, colorful, cut-outs, fauvism, French, impressionism, sculpture |
-?artist__rodney_matthews colorful, eerie, fantasy, futuristic, science-fiction |
-?artist__anton_mauve impressionism, landscapes, painting |
-?artist__peter_max colorful, contemporary, pop-art, surreal, vibrant |
-?artist__mike_mayhew comics, fantasy, portraits |
-?artist__angus_mcbride battle-scenes, British, fantasy, history, horses, illustration |
-?artist__anne_mccaffrey adventure, dragons, fantasy, magic, mythology, science-fiction |
-?artist__robert_mccall futuristic, outer-space, science-fiction |
-?artist__scott_mccloud comics, contemporary, pop-art |
-?artist__steve_mccurry documentary, photography, photography-color, portraits, rural-life, shallow-depth-of-field, social-commentary |
-?artist__todd_mcfarlane comics, dark, fantasy |
-?artist__barry_mcgee contemporary, painting, street-art, urban-life |
-?artist__ryan_mcginley colorful, contemporary, dream-like, nudes, photography, photography-color, portraits, vibrant |
-?artist__robert_mcginnis dream-like, erotica, figurative, illustration, pulp, romanticism |
-?artist__richard_mcguire colorful, conceptual, flat-colors, illustration, whimsical |
-?artist__patrick_mchale cartoon, contemporary, drawing |
-?artist__kelly_mckernan contemporary, expressionism, magic-realism, portraits, watercolor, whimsical |
-?artist__angus_mckie fantasy, futuristic, science-fiction |
-?artist__alasdair_mclellan american, contemporary, fashion, impressionism, installation, photography, photography-bw, photography-color, portraits |
-?artist__jon_mcnaught cartoon, flat-colors, illustration, playful |
-?artist__dan_mcpharlin dream-like, ethereal, magic, science-fiction, surreal |
-?artist__tara_mcpherson american, contemporary, impressionism, installation, pop-art, portraits, surreal |
-?artist__ralph_mcquarrie eerie, futuristic, landscapes, science-fiction |
-?artist__ian_mcque dark, fantasy, grungy, messy, science-fiction, surreal |
-?artist__syd_mead angular, flat-colors, futuristic, minimalism, modern, science-fiction, technology |
-?artist__richard_meier architecture, conceptual, geometric, minimalism, sculpture |
-?artist__maria_sibylla_merian biological, botanical, insects, naturalist, nature, observational |
-?artist__willard_metcalf American, landscapes, muted-colors, tonalism |
-?artist__gabriel_metsu baroque, expressionism, portraits, still-life |
-?artist__jean_metzinger cubism, geometric, modern, vibrant |
-?artist__michelangelo ceiling-painting, figurative, frescoes, Italian, religion, renaissance, sculpture |
-?artist__nicolas_mignard baroque, expressionism, landscapes, portraits |
-?artist__mike_mignola comics, dark, high-contrast, high-contrast |
-?artist__dimitra_milan contemporary, expressionism, messy, portraits, whimsical |
-?artist__john_everett_millais expressionism, impressionism, landscapes, portraits |
-?artist__marilyn_minter erotica, messy, painting, photography, photography-color, photorealism, portraits |
-?artist__januz_miralles contemporary, low-contrast, monochromatic, portraits, watercolor |
-?artist__joan_miro abstract, color-field, colorful, modern, playful, sculpture, Spanish |
-?artist__joan_mitchell abstract, expressionism, large-scale, messy |
-?artist__hayao_miyazaki adventure, animation, fantasy, film, Japanese, kids-book, manga-anime, whimsical |
-?artist__paula_modersohn_becker expressionism, family, female-figures, femininity, German, painting, portraits, self-portraits |
-?artist__amedeo_modigliani expressionism, fauvism, Italian, modern, portraits, romanticism, sculpture |
-?artist__moebius comics, dream-like, fantasy, psychedelic, science-fiction, surreal |
-?artist__peter_mohrbacher dark, dream-like, ethereal, fantasy, mythology, surreal, whimsical |
-?artist__piet_mondrian abstract, angular, Dutch, geometric, primary-colors, vibrant |
-?artist__claude_monet color-field, French, impressionism, landscapes, plein-air, seascapes, water-lilies |
-?artist__jean_baptiste_monge dark, eerie, fantasy, mysterious, surreal |
-?artist__alyssa_monks contemporary, expressionism, figurativism, messy, photorealism, portraits |
-?artist__alan_moore comics, dark, dystopia, fantasy, graphic-novel, grungy, horror, noir, science-fiction |
-?artist__antonio_mora american, contemporary, landscapes, monochromatic, photography, photography-bw, portraits, surreal |
-?artist__edward_moran american, hudson-river-school, landscapes, painting, seascapes |
-?artist__koji_morimoto contemporary, cute, illustration, Japanese, monsters, surreal |
-?artist__berthe_morisot domestic-scenes, feminism, fleeting-moments, French, impressionism, landscapes, portraits, still-life |
-?artist__daido_moriyama documentary, grungy, Japanese, monochromatic, photography, photography-bw, post-war, urban-life |
-?artist__james_wilson_morrice impressionism, landscapes, painting, plein-air |
-?artist__sarah_morris abstract, contemporary, Femininity, identity, painting |
-?artist__john_lowrie_morrison contemporary, impressionism, landscapes, vibrant |
-?artist__igor_morski american, contemporary, portraits, surreal |
-?artist__john_kenn_mortensen dark, eerie, horror, kids-book, monochromatic |
-?artist__victor_moscoso colorful, pop-art, psychedelic, typography, vibrant |
-?artist__inna_mosina Ballet, contemporary, Femininity, identity, Photography, photography-color, Sculpture, shallow-depth-of-field |
-?artist__richard_mosse battle-scenes, colorful, documentary, landscapes, photography, photography-color, surreal, vibrant |
-?artist__thomas_edwin_mostyn British, landscapes, mysticism, portraits, pre-raphaelite, romanticism, still-life |
-?artist__marcel_mouly abstract, colorful, contemporary, fauvism, French, modern, vibrant |
-?artist__emmanuelle_moureaux abstract, colorful, contemporary, environmentalism, installation, multimedia, sculpture, vibrant |
-?artist__alphonse_mucha art-nouveau, commercial-art, Czech, femininity, portraits, posters, stained-glass |
-?artist__craig_mullins dark, dream-like, fantasy, horror, mythology, surreal |
-?artist__augustus_edwin_mulready Commercial-art, painting, Realism, Romanticism, Symbolist |
-?artist__dan_mumford colorful, digital, dreams, fantasy, psychedelic, surreal, vibrant |
-?artist__edvard_munch anxiety, dark, expressionism, impressionism, melancholy, Norwegian, oil-painting |
-?artist__alfred_munnings horses, modern, painting |
-?artist__gabriele_munter expressionism, Expressionism, painting, Symbolist |
-?artist__takashi_murakami contemporary, cute, flat-colors, Japanese, manga-anime, pop-art |
-?artist__patrice_murciano colorful, contemporary, expressionism, messy, pop-art, portraits, surreal, vibrant |
-?artist__scott_musgrove Adventure, Advertising, contemporary, Illustration, landscapes |
-?artist__wangechi_mutu Collage, contemporary, Feminism, identity, Mixed-media |
-?artist__go_nagai childhood, manga-anime, portraits |
-?artist__hiroshi_nagai cityscapes, flat-colors, japanese, landscapes, minimalism, urban-life |
-?artist__patrick_nagel contemporary, flat-colors, high-contrast, pop-art, portraits |
-?artist__tibor_nagy contemporary, metaphysics, Sculpture, Symbolist |
-?artist__scott_naismith colorful, impressionism, landscapes, messy, seascapes, serenity, vibrant |
-?artist__juliana_nan contemporary, macro-world, photography, photography-color |
-?artist__ted_nasmith atmospheric, ethereal, fantasy, landscapes, magic, mythology |
-?artist__todd_nauck adventure, characters, comics, science-fiction, superheroes |
-?artist__bruce_nauman conceptual, contemporary, neon, performance, sculpture |
-?artist__ernst_wilhelm_nay abstract, colorful, expressionism, figurativism, german, modern, vibrant |
-?artist__alice_neel contemporary, expressionism, feminism, figurative, portraits, social-realism |
-?artist__keith_negley collage, colorful, graphic-design, illustration, mixed-media, pop-art |
-?artist__leroy_neiman colorful, contemporary, messy, painting, sports |
-?artist__kadir_nelson African-American, contemporary, expressionism, impressionism, landscapes, portraits |
-?artist__odd_nerdrum characters, dark, fantasy, figurative, melancholy |
-?artist__shirin_neshat contemporary, feminism, identity, Iranian, photography, photography-bw, video-art |
-?artist__mikhail_nesterov Figurative, painting, Religion, religion, Romanticism, spirituality |
-?artist__jane_newland botanical, colorful, nature, serenity, watercolor |
-?artist__victo_ngai colorful, dream-like, illustration, kids-book, playful, surreal |
-?artist__william_nicholson Modern, Observational, painting, Slice-of-life |
-?artist__florian_nicolle contemporary, expressionism, messy, portraits, watercolor |
-?artist__kay_nielsen American, Danish, elegant, exoticism, Fantasy, fantasy, illustration, kids-book, orientalism, painting, whimsical |
-?artist__tsutomu_nihei alien-worlds, cyberpunk, dark, dystopia, industrial, manga-anime, monochromatic, science-fiction |
-?artist__victor_nizovtsev colorful, dream-like, fantasy, magic, magic-realism, mysterious, surreal, whimsical |
-?artist__isamu_noguchi Japanese, landscape-architecture, organic, sculpture |
-?artist__catherine_nolin conceptual, contemporary, feminism, portraits |
-?artist__francois_de_nome baroque, expressionism, mixed-media |
-?artist__earl_norem battle-scenes, dark, fantasy, mythology |
-?artist__phil_noto american, characters, comics, contemporary, impressionism, installation, portraits |
-?artist__georgia_okeeffe abstract, American, figurativism, flowers, landscapes, modern, precisionism, southwest |
-?artist__terry_oakes adventure, fantasy, magic, outer-space, science-fiction |
-?artist__chris_ofili afro-futurism, contemporary, expressionism, figurative, mixed-media, painting, post-colonialism, watercolor |
-?artist__jack_ohman comics, contemporary, Illustration, politics, Satire |
-?artist__noriyoshi_ohrai fantasy, futuristic, posters, science-fiction, vibrant |
-?artist__helio_oiticica abstract, angular, contemporary, installation, interactive, multimedia |
-?artist__taro_okamoto avant-garde, gutai, Japanese, performance, sculpture, surreal |
-?artist__tim_okamura African-American, contemporary, expressionism, graffiti, landscapes, portraits, street-art |
-?artist__naomi_okubo collage, colorful, empowerment, feminism, identity, politics |
-?artist__atelier_olschinsky abstract, cityscapes, digital, geometric, minimalism, modern |
-?artist__greg_olsen contemporary, outer-space, painting, spirituality, Wildlife |
-?artist__oleg_oprisco american, contemporary, flowers, impressionism, photography, photography-color, portraits |
-?artist__tony_orrico contemporary, installation, minimalism, sculpture |
-?artist__mamoru_oshii Animation, contemporary, manga-anime, Metaphysics, Science-fiction |
-?artist__ida_rentoul_outhwaite art-nouveau, dream-like, fantasy, femininity, folklore, kids-book, nature, watercolor, whimsical |
-?artist__yigal_ozeri contemporary, Observational, painting, Realism, Slice-of-life |
-?artist__gabriel_pacheco contemporary, dark, figurative, painting, surreal |
-?artist__michael_page colorful, contemporary, expressionism, playful, pop-art, vibrant, whimsical |
-?artist__rui_palha conceptual, contemporary, installation, monochromatic, photography, photography-bw |
-?artist__polixeni_papapetrou contemporary, photography, photography-color, portraits, surreal |
-?artist__julio_le_parc abstract, colorful, graphic-design, playful, pop-art, vibrant |
-?artist__michael_parkes dream-like, ethereal, fantasy, magic-realism, spirituality |
-?artist__philippe_parreno conceptual, contemporary, film, installation, multimedia, post-modern |
-?artist__maxfield_parrish Art-Nouveau, Fantasy, Nostalgia, painting |
-?artist__alice_pasquini contemporary, Documentary, Mural-painting, Public-Art, Social-realism, Street-art |
-?artist__james_mcintosh_patrick contemporary, mixed-media, painting |
-?artist__john_pawson abstract, architecture, British, contemporary, minimalism |
-?artist__max_pechstein colorful, expressionism, modern, vibrant |
-?artist__agnes_lawrence_pelton abstract, color-field, contemporary, ethereal, modern, serenity, spirituality |
-?artist__irving_penn characters, contemporary, expressionism, monochromatic, photography, photography-bw, portraits |
-?artist__bruce_pennington colorful, fantasy, futuristic, landscapes, outer-space, science-fiction |
-?artist__john_perceval abstract, expressionism, messy |
-?artist__george_perez contemporary, mixed-media, street-art |
-?artist__constant_permeke expressionism, Expressionism, painting, Sculpture, Symbolist |
-?artist__lilla_cabot_perry American, gardens, impressionism, interiors |
-?artist__gaetano_pesce architecture, contemporary, organic, vibrant |
-?artist__cleon_peterson characters, contemporary, flat-colors, geometric, graphic-design, social-commentary |
-?artist__daria_petrilli american, contemporary, impressionism, low-contrast, portraits, whimsical |
-?artist__raymond_pettibon comics, contemporary, drawing, high-contrast |
-?artist__coles_phillips advertising, art-deco, fashion, femininity, illustration, nostalgia |
-?artist__francis_picabia avant-garde, Dadaism, French, painting, surreal |
-?artist__pablo_picasso collage, cubism, impressionism, modern, sculpture, Spanish, surreal |
-?artist__sopheap_pich contemporary, installation, sculpture |
-?artist__otto_piene contemporary, installation, kinetic |
-?artist__jerry_pinkney characters, fantasy, illustration, kids-book |
-?artist__pinturicchio Allegory, painting, Religion, Renaissance |
-?artist__sebastiano_del_piombo expressionism, landscapes, portraits, renaissance, sculpture |
-?artist__camille_pissarro impressionism, Impressionism, Observational, painting, Printmaking |
-?artist__ferris_plock contemporary, illustration, whimsical |
-?artist__bill_plympton animation, cartoon, sketching, whimsical |
-?artist__willy_pogany American, fantasy, Hungarian, illustration, kids-book, ornate, whimsical |
-?artist__patricia_polacco animals, colorful, family, illustration, kids-book, nostalgia |
-?artist__jackson_pollock abstract, action-painting, American, drip-painting, expressionism, messy |
-?artist__beatrix_potter animals, book-illustration, British, kids-book, nature, watercolor, whimsical |
-?artist__edward_henry_potthast impressionism, landscapes, painting |
-?artist__simon_prades conceptual, contemporary, digital, dream-like, magic-realism, pop-art, surreal |
-?artist__maurice_prendergast impressionism, Impressionism, Observational, painting |
-?artist__dod_procter expressionism, impressionism, landscapes, portraits |
-?artist__leo_putz art-Nouveau, expressionism, impressionism, mixed-media |
-?artist__howard_pyle adventure, American, history, illustration, kids-book, posters |
-?artist__arthur_rackham British, creatures, fantasy, illustration, kids-book, magic |
-?artist__natalia_rak childhood, colorful, contemporary, expressionism, portraits, street-art, whimsical |
-?artist__paul_ranson abstract, art-nouveau, dream-like, nature, vibrant, whimsical |
-?artist__raphael painting, Renaissance |
-?artist__abraham_rattner expressionism, Expressionism, painting, Sculpture, Symbolist |
-?artist__jan_van_ravesteyn Architecture, Baroque, Observational, Plein-air, Sculpture |
-?artist__aliza_razell conceptual, dream-like, eerie, ethereal, fantasy, photography, photography-color, surreal |
-?artist__paula_rego contemporary, expressionism, impressionism, landscapes, portraits |
-?artist__lotte_reiniger animation, folklore, German, nostalgia, puppets, silhouettes |
-?artist__valentin_rekunenko dream-like, fantasy, surreal, whimsical |
-?artist__christoffer_relander american, contemporary, impressionism, monochromatic, nature, photography, photography-bw, portraits |
-?artist__andrey_remnev baroque, characters, contemporary, expressionism, portraits, renaissance |
-?artist__pierre_auguste_renoir female-figures, femininity, French, impressionism, landscapes, outdoor-scenes, pastel, plein-air, portraits |
-?artist__ilya_repin expressionism, impressionism, landscapes, portraits |
-?artist__joshua_reynolds expressionism, landscapes, portraits, romanticism |
-?artist__rhads digital, landscapes, magic-realism, mixed-media, surreal, vibrant |
-?artist__bettina_rheims celebrity, contemporary, fashion, identity, photography, photography-bw, portraits |
-?artist__jason_rhoades conceptual, contemporary, installation, sculpture |
-?artist__georges_ribemont_dessaignes avant-garde, Dadaism, French |
-?artist__jusepe_de_ribera baroque, dark, expressionism, portraits |
-?artist__gerhard_richter abstract, blurry, contemporary, German, multimedia, oil-painting, photorealism |
-?artist__chris_riddell cartoon, creatures, fantasy, illustration, kids-book, watercolor, whimsical |
-?artist__hyacinthe_rigaud baroque, expressionism, landscapes, portraits |
-?artist__rembrandt_van_rijn baroque, Dutch, etching, history, portraits, religion, self-portraits |
-?artist__faith_ringgold activism, African-American, contemporary, expressionism, feminism, pop-art, quilting |
-?artist__jozsef_rippl_ronai hungarian, landscapes, post-impressionism, realism |
-?artist__pipilotti_rist colorful, dream-like, female-figures, immersive, installation, playful, Swiss, vibrant, video-art |
-?artist__charles_robinson painting, politics, Realism, Satire |
-?artist__theodore_robinson contemporary, mixed-media |
-?artist__kenneth_rocafort comics, contemporary, Fantasy, Graphic-novel, illustration, Illustration, Science-fiction, superheroes |
-?artist__andreas_rocha atmospheric, dark, digital, fantasy, landscapes |
-?artist__norman_rockwell American, illustration, nostalgia, painting, pop-culture, realism, slice-of-life |
-?artist__ludwig_mies_van_der_rohe architecture, modern |
-?artist__fatima_ronquillo contemporary, expressionism, landscapes, portraits, whimsical |
-?artist__salvator_rosa baroque, painting, renaissance, sculpture |
-?artist__kerby_rosanes contemporary, illustration, whimsical |
-?artist__conrad_roset contemporary, expressionism, impressionism, pastel-colors, portraits, watercolor |
-?artist__bob_ross Commercial-art, Consumerism, contemporary, landscapes, painting |
-?artist__dante_gabriel_rossetti contemporary, expressionism, landscapes, portraits, romanticism |
-?artist__jessica_rossier conceptual, dark, digital, landscapes, outer-space, spirituality, surreal, whimsical |
-?artist__marianna_rothen conceptual, contemporary, femininity, identity, muted-colors, photography, photography-color |
-?artist__mark_rothko abstract, American, color-field, expressionism, large-scale, minimalism, spirituality |
-?artist__eva_rothschild contemporary, Irish, sculpture |
-?artist__georges_rousse Femininity, Impressionism, Mysticism, Neo-Impressionism, painting, Post-Impressionism |
-?artist__luis_royo contemporary, fantasy, landscapes, messy, portraits |
-?artist__joao_ruas characters, comics, dark, fantasy, gothic, horror, noir |
-?artist__peter_paul_rubens baroque, Flemish, history, mythology, nudes, oil-painting, painting, renaissance, romanticism |
-?artist__rachel_ruysch baroque, painting, still-life |
-?artist__albert_pinkham_ryder dream-like, impressionism, painting, seascapes |
-?artist__mark_ryden big-eyes, childhood, contemporary, creatures, dark, dream-like, illustration, surreal |
-?artist__ursula_von_rydingsvard abstract, Metamorphosis, Minimalism, Sculpture |
-?artist__theo_van_rysselberghe expressionism, impressionism, landscapes, portraits |
-?artist__eero_saarinen Architecture, metaphysics, modern, Modern |
-?artist__wlad_safronow angular, colorful, contemporary, expressionism, portraits |
-?artist__amanda_sage contemporary, expressionism, playful, psychedelic, surreal, whimsical |
-?artist__antoine_de_saint_exupery adventure, French, illustration, kids-book, spirituality, whimsical |
-?artist__nicola_samori contemporary, dark, expressionism, landscapes, portraits |
-?artist__rebeca_saray conceptual, contemporary, digital, fashion, femininity, identity, photography, photography-color, portraits |
-?artist__john_singer_sargent expressionism, impressionism, landscapes, portraits |
-?artist__martiros_saryan colorful, impressionism, landscapes, nature, serenity, vibrant, wildlife |
-?artist__viviane_sassen conceptual, contemporary, geometric, photography, photography-color, surreal, vibrant |
-?artist__nike_savvas abstract, contemporary, large-scale, painting |
-?artist__richard_scarry animals, anthropomorphism, colorful, contemporary, illustration, kids-book, playful, whimsical |
-?artist__godfried_schalcken American, contemporary, Dutch, muscles, portraits |
-?artist__miriam_schapiro abstract, contemporary, expressionism, feminism, politics, vibrant |
-?artist__kenny_scharf colorful, playful, pop-art, psychedelic, surreal, vibrant, whimsical |
-?artist__jerry_schatzberg characters, monochromatic, noir, nostalgia, photography, photography-bw, portraits, urban-life |
-?artist__ary_scheffer dutch, mythology, neo-classicism, portraits, religion, romanticism |
-?artist__kees_scherer color-field, contemporary, impressionism, landscapes |
-?artist__helene_schjerfbeck expressionism, finnish, identity, portraits, self-portraits |
-?artist__christian_schloe dream-like, fantasy, mysterious, portraits, romanticism, surreal |
-?artist__karl_schmidt_rottluff abstract, colorful, expressionism, figurativism, german, japanese, landscapes, vibrant, woodblock |
-?artist__julian_schnabel figurative, messy, neo-expressionism, painting |
-?artist__fritz_scholder color-field, expressionism, identity, native-american, portraits, spirituality |
-?artist__charles_schulz American, cartoon, characters, childhood, comics, nostalgia, social-commentary |
-?artist__sean_scully abstract, angular, grids, minimalism |
-?artist__ronald_searle cartoon, comics, illustration, whimsical |
-?artist__mark_seliger American, Anxiety, celebrity, contemporary, monochromatic, Photography, photography-bw, Portraits |
-?artist__anton_semenov contemporary, dark, digital, horror, illustration, painting, shock-art, surreal |
-?artist__edmondo_senatore atmospheric, monochromatic, photography, photography-bw, portraits |
-?artist__maurice_sendak American, fantasy, illustration, kids-book, whimsical, wilderness |
-?artist__richard_serra contemporary, installation, large-scale, minimalism, sculpture |
-?artist__georges_seurat color-field, impressionism, landscapes, nature, painting, pointillism |
-?artist__dr_seuss cartoon, characters, colorful, kids-book, playful, whimsical |
-?artist__tanya_shatseva contemporary, eerie, painting, Russian, surreal |
-?artist__natalie_shau characters, digital, dream-like, fantasy, femininity, mixed-media, pastel-colors, photorealism, surreal, whimsical |
-?artist__barclay_shaw angular, cyberpunk, dark, futuristic, industrial, science-fiction |
-?artist__e_h_shepard animals, drawing, illustration, kids-book, nature, nostalgia, watercolor, whimsical |
-?artist__amrita_sher_gil female-figures, folklore, Indian, modern, painting, portraits, social-commentary |
-?artist__irene_sheri femininity, flowers, impressionism, nature, pastel, portraits, romanticism, serenity |
-?artist__duffy_sheridan interiors, photorealism, pop-culture, portraits |
-?artist__cindy_sherman conceptual, contemporary, feminism, identity, photography, photography-color, portraits, post-modern, self-portraits |
-?artist__shozo_shimamoto abstract, action-painting, collaborative, gutai, Japanese, messy, mixed-media, performance, post-war |
-?artist__hikari_shimoda big-eyes, childhood, colorful, digital, fantasy, japanese, manga-anime, portraits, vibrant |
-?artist__makoto_shinkai contemporary, Film, Fleeting-moments, manga-anime, Slice-of-life |
-?artist__chiharu_shiota conceptual, environmentalism, immersive, installation, low-contrast, messy, vibrant |
-?artist__elizabeth_shippen_green American, dream-like, fairies, illustration, kids-book |
-?artist__masamune_shirow cartoon, characters, comics, fantasy, manga-anime, robots-cyborgs, science-fiction |
-?artist__tim_shumate animals, big-eyes, cartoon, childhood, dreams, portraits, whimsical |
-?artist__yuri_shwedoff contemporary, Fantasy, Illustration, Surreal |
-?artist__malick_sidibe African-American, Documentary, Harlem-Renaissance, monochromatic, Photography, photography-bw, Slice-of-life |
-?artist__jeanloup_sieff erotica, fashion, landscapes, monochromatic, nudes, photography, photography-bw, portraits |
-?artist__bill_sienkiewicz comics, dark, expressionism, figurativism, grungy, messy, pop-art, superheroes, watercolor |
-?artist__marc_simonetti dark, digital, dream-like, fantasy, landscapes, surreal |
-?artist__david_sims British, contemporary, fashion, photography, photography-bw, photography-color |
-?artist__andy_singer American, celebrity, consumerism, pop-art |
-?artist__alfred_sisley french, impressionism, landscapes, nature, plein-air, portraits |
-?artist__sandy_skoglund conceptual, contemporary, installation, still-life, surreal, vibrant, whimsical |
-?artist__jeffrey_smart dream-like, Scottish, surreal |
-?artist__berndnaut_smilde cloudscapes, Dutch, installation, Metamorphosis, Photography, photography-color, Surreal |
-?artist__rodney_smith fashion, monochromatic, photography, photography-bw, portraits |
-?artist__samantha_keely_smith abstract, abstract-Expressionism, contemporary, Dream-like, Loneliness, painting |
-?artist__robert_smithson conceptual, earthworks, environmentalism, land-art, post-minimalism, sculpture |
-?artist__barbara_stauffacher_solomon Commercial-art, contemporary, Graphic-Design, Graphic-design, Pop-art |
-?artist__simeon_solomon Jewish, LGBTQ, Metaphysics, painting, pre-raphaelite, Symbolist |
-?artist__hajime_sorayama characters, erotica, futuristic, robots-cyborgs, science-fiction, technology |
-?artist__joaquin_sorolla beach-scenes, impressionism, landscapes, portraits, seascapes, spanish |
-?artist__ettore_sottsass architecture, art-deco, colorful, furniture, playful, sculpture |
-?artist__amadeo_de_souza_cardoso cubism, futurism, modern, painting, Portuguese |
-?artist__millicent_sowerby botanical, British, flowers, illustration, kids-book, nature |
-?artist__moses_soyer figurative, painting, portraits, realism |
-?artist__sparth digital, fantasy, futuristic, landscapes, minimalism, science-fiction, surreal |
-?artist__jack_spencer contemporary, muted-colors, photography, photography-color |
-?artist__art_spiegelman American, animals, autobiographical, cartoon, comics, graphic-novel, history, Holocaust |
-?artist__simon_stalenhag digital, eerie, futurism, landscapes, nostalgia, rural-life, science-fiction, suburbia |
-?artist__ralph_steadman cartoon, dark, grungy, illustration, messy, satire, surreal, whimsical |
-?artist__philip_wilson_steer atmospheric, british, impressionism, landscapes, portraits, seascapes |
-?artist__william_steig colorful, illustration, kids-book, playful, watercolor |
-?artist__fred_stein contemporary, impressionism, landscapes, realism |
-?artist__theophile_steinlen Allegory, Art-Nouveau, Observational, Printmaking |
-?artist__brian_stelfreeze Activism, comics, contemporary, digital, Illustration, Social-realism |
-?artist__frank_stella abstract, angular, colorful, cubism, expressionism, geometric, modern, vibrant |
-?artist__joseph_stella angular, colorful, cubism, expressionism, geometric, minimalism, modern |
-?artist__irma_stern expressionism, figurativism, portraits |
-?artist__alfred_stevens fashion, femininity, impressionism, luxury, portraits |
-?artist__marie_spartali_stillman femininity, medieval, mythology, portraits, pre-raphaelite, romanticism, vibrant |
-?artist__stinkfish Colombian, colorful, graffiti, portraits, street-art, surreal, urban-life, vibrant |
-?artist__anne_stokes characters, dark, eerie, fantasy, gothic, mysterious, whimsical |
-?artist__william_stout dark, fantasy, gothic, mythology |
-?artist__paul_strand American, landscapes, minimalism, monochromatic, photography, photography-bw, portraits, still-life, urban-life |
-?artist__linnea_strid childhood, femininity, nostalgia, photography, photography-color, portraits |
-?artist__john_melhuish_strudwick mythology, pre-raphaelite, romanticism, victorian |
-?artist__drew_struzan fantasy, nostalgia, portraits, posters, science-fiction |
-?artist__tatiana_suarez collage, colorful, pop-art, pop-culture, portraits |
-?artist__eustache_le_sueur Baroque, Fleeting-moments, impressionism, painting, portraits |
-?artist__rebecca_sugar contemporary, feminism, installation, mixed-media |
-?artist__hiroshi_sugimoto architecture, conceptual, geometric, Japanese, long-exposure, monochromatic, photography, photography-bw, seascapes |
-?artist__graham_sutherland battle-scenes, British, distortion, eerie, expressionism, landscapes, messy, portraits |
-?artist__jan_svankmajer animation, dark, horror, puppets, sculpture, surreal |
-?artist__raymond_swanland atmospheric, dark, digital, eerie, fantasy |
-?artist__annie_swynnerton femininity, feminism, mythology, portraits, spirituality |
-?artist__stanislaw_szukalski Metaphysics, Mysticism, primitivism, Sculpture, surreal |
-?artist__philip_taaffe abstract, contemporary, painting, Symbolist |
-?artist__hiroyuki_mitsume_takahashi childhood, colorful, comics, contemporary, japanese, manga-anime, portraits, social-commentary |
-?artist__dorothea_tanning dream-like, eerie, figure-studies, metamorphosis, surreal |
-?artist__margaret_tarrant British, colorful, dream-like, folklore, illustration, kids-book, whimsical |
-?artist__genndy_tartakovsky animation, cartoon, characters, contemporary, playful, whimsical |
-?artist__teamlab colorful, digital, immersive, installation, interactive, light-art, technology, vibrant |
-?artist__raina_telgemeier autobiographical, comics, contemporary, graphic-novel, Graphic-novel, Slice-of-life |
-?artist__john_tenniel drawing, fantasy, kids-book, whimsical |
-?artist__sir_john_tenniel British, fantasy, illustration, kids-book, Victorian, whimsical |
-?artist__howard_terpning contemporary, landscapes, realism |
-?artist__osamu_tezuka animation, cartoon, characters, Japanese, manga-anime, robots-cyborgs, science-fiction |
-?artist__abbott_handerson_thayer american, atmospheric, landscapes, portraits, romanticism, serenity, tonalism |
-?artist__heather_theurer baroque, dream-like, erotica, ethereal, fantasy, mythology, renaissance, romanticism |
-?artist__mickalene_thomas African-American, Collage, contemporary, Femininity, identity, painting, Portraits |
-?artist__tom_thomson art-nouveau, Canadian, expressionism, impressionism, landscapes, nature, wilderness |
-?artist__titian dark, Italian, mythology, oil-painting, painting, portraits, religion, renaissance |
-?artist__mark_tobey abstract, modern, painting, spirituality |
-?artist__greg_tocchini contemporary, expressionism, sculpture |
-?artist__roland_topor animation, dark, eerie, horror, satire, surreal |
-?artist__sergio_toppi fantasy, illustration, whimsical |
-?artist__alex_toth animals, bronze, cartoon, comics, figurative, wildlife |
-?artist__henri_de_toulouse_lautrec art-nouveau, cabaret, French, impressionism, lithography, nightlife, portraits, posters |
-?artist__ross_tran conceptual, digital, femininity, figurativism, manga-anime, minimalism, pastel-colors, portraits, realism |
-?artist__philip_treacy avant-garde, fashion, hats, luxury, opulent, photography, photography-color, portraits |
-?artist__anne_truitt Conceptual, minimalism, Minimalism, Sculpture |
-?artist__henry_scott_tuke figure-studies, impressionism, landscapes, realism |
-?artist__jmw_turner atmospheric, British, landscapes, painting, romanticism, seascapes |
-?artist__james_turrell architecture, colorful, contemporary, geometric, installation, light-art, minimalism, sculpture, vibrant |
-?artist__john_henry_twachtman American, impressionism, landscapes, nature, pastel-colors |
-?artist__naomi_tydeman contemporary, impressionism, landscapes, watercolor |
-?artist__euan_uglow british, figurativism, interiors, portraits, still-life |
-?artist__daniela_uhlig characters, contemporary, digital, dream-like, ethereal, German, landscapes, portraits, surreal |
-?artist__kitagawa_utamaro Edo-period, fashion, female-figures, genre-scenes, Japanese, nature, portraits, ukiyo-e, woodblock |
-?artist__christophe_vacher cloudscapes, dream-like, ethereal, fantasy, landscapes, magic-realism |
-?artist__suzanne_valadon mysterious, nudes, post-impressionism |
-?artist__thiago_valdi Brazilian, colorful, contemporary, street-art, urban-life |
-?artist__chris_van_allsburg adventure, American, illustration, kids-book, mysterious, psychedelic |
-?artist__francine_van_hove drawing, expressionism, female-figures, nudes, portraits, slice-of-life |
-?artist__jan_van_kessel_the_elder Allegory, Baroque, Nature, Observational, painting, Still-Life |
-?artist__remedios_varo low-contrast, magic-realism, Spanish, surreal |
-?artist__nick_veasey contemporary, monochromatic, photography, photography-bw, urban-life |
-?artist__diego_velazquez baroque, history, oil-painting, portraits, realism, religion, royalty, Spanish |
-?artist__eve_ventrue characters, costumes, dark, digital, fantasy, femininity, gothic, illustration |
-?artist__johannes_vermeer baroque, domestic-scenes, Dutch, genre-scenes, illusion, interiors, portraits |
-?artist__charles_vess comics, dream-like, fantasy, magic, mythology, romanticism, watercolor, whimsical |
-?artist__roman_vishniac documentary, jewish, photography, photography-bw |
-?artist__kelly_vivanco big-eyes, consumerism, contemporary, femininity, sculpture |
-?artist__brian_m_viveros contemporary, digital, dream-like, fantasy, femininity, gothic, portraits, surreal |
-?artist__elke_vogelsang animals, contemporary, painting |
-?artist__vladimir_volegov femininity, impressionism, landscapes, portraits, romanticism, russian |
-?artist__robert_vonnoh American, bronze, impressionism, sculpture |
-?artist__mikhail_vrubel painting, Religion, Sculpture, Symbolist |
-?artist__louis_wain animals, colorful, creatures, fantasy, kids-book, playful, psychedelic, whimsical |
-?artist__kara_walker African-American, contemporary, identity, silhouettes |
-?artist__josephine_wall colorful, digital, femininity, pop-art, portraits, psychedelic, whimsical |
-?artist__bruno_walpoth figurative, photorealism, sculpture |
-?artist__chris_ware American, cartoon, characters, comics, graphic-novel, modern-life, slice-of-life |
-?artist__andy_warhol celebrity, contemporary, pop-art, portraits, vibrant |
-?artist__john_william_waterhouse fantasy, femininity, mythology, portraits, pre-raphaelite, romanticism |
-?artist__bill_watterson American, characters, childhood, friendship, loneliness, melancholy, nostalgia |
-?artist__george_frederic_watts mysticism, portraits, spirituality |
-?artist__walter_ernest_webster expressionism, painting, portraits |
-?artist__hendrik_weissenbruch landscapes, Observational, painting, Plein-air |
-?artist__neil_welliver contemporary, environmentalism, landscapes, realism |
-?artist__catrin_welz_stein digital, fantasy, magic, portraits, surreal, whimsical |
-?artist__vivienne_westwood contemporary, fashion, feminism, messy |
-?artist__michael_whelan alien-worlds, dream-like, eerie, fantasy, outer-space, science-fiction, surreal |
-?artist__james_abbott_mcneill_whistler American, drawing, etching, interiors, low-contrast, portraits, tonalism, whimsical |
-?artist__william_whitaker contemporary, Documentary, landscapes, painting, Social-realism |
-?artist__tim_white atmospheric, fantasy, immersive, landscapes, science-fiction |
-?artist__coby_whitmore childhood, figure-studies, nostalgia, portraits |
-?artist__david_wiesner cartoon, kids-book, playful, whimsical |
-?artist__kehinde_wiley African-American, baroque, colorful, contemporary, identity, photorealism, portraits, vibrant |
-?artist__cathy_wilkes Activism, contemporary, Photography, photography-color, Social-commentary, surreal |
-?artist__jessie_willcox_smith American, childhood, folklore, illustration, kids-book, nostalgia, whimsical |
-?artist__gilbert_williams fantasy, landscapes, magic, nostalgia, whimsical |
-?artist__kyffin_williams contemporary, landscapes, painting |
-?artist__al_williamson adventure, comics, fantasy, mythology, science-fiction |
-?artist__wes_wilson contemporary, psychedelic |
-?artist__mike_winkelmann color-field, conceptual, contemporary, digital, geometric, minimalism |
-?artist__bec_winnel ethereal, femininity, flowers, pastel, portraits, romanticism, serenity |
-?artist__franz_xaver_winterhalter fashion, luxury, portraits, romanticism, royalty |
-?artist__nathan_wirth atmospheric, contemporary, landscapes, monochromatic, nature, photography, photography-bw |
-?artist__wlop characters, digital, fantasy, femininity, manga-anime, portraits |
-?artist__brandon_woelfel cityscapes, neon, nightlife, photography, photography-color, shallow-depth-of-field, urban-life |
-?artist__liam_wong colorful, dystopia, futuristic, photography, photography-color, science-fiction, urban-life, vibrant |
-?artist__francesca_woodman American, contemporary, female-figures, feminism, monochromatic, nudes, photography, photography-bw, self-portraits |
-?artist__jim_woodring aliens, American, characters, comics, creatures, dream-like, fantasy, pen-and-ink, psychedelic, surreal |
-?artist__patrick_woodroffe dream-like, eerie, illusion, science-fiction, surreal |
-?artist__frank_lloyd_wright angular, architecture, art-deco, environmentalism, furniture, nature, organic |
-?artist__sulamith_wulfing dream-like, ethereal, fantasy, German, illustration, kids-book, spirituality, whimsical |
-?artist__nc_wyeth American, illustration, kids-book, nature, nostalgia, realism, rural-life |
-?artist__rose_wylie contemporary, figurative, observational, painting, portraits |
-?artist__stanislaw_wyspianski painting, polish, romanticism |
-?artist__takato_yamamoto dreams, fantasy, mysterious, portraits |
-?artist__gene_luen_yang contemporary, graphic-novel, illustration, manga-anime |
-?artist__ikenaga_yasunari contemporary, femininity, japanese, portraits |
-?artist__kozo_yokai colorful, folklore, illustration, Japanese, kids-book, magic, monsters, playful |
-?artist__sean_yoro activism, identity, portraits, public-art, social-commentary, street-art, urban-life |
-?artist__chie_yoshii characters, childhood, colorful, illustration, manga-anime, pop-culture, portraits, whimsical |
-?artist__skottie_young cartoon, comics, contemporary, illustration, playful, whimsical |
-?artist__masaaki_yuasa animation, colorful, eerie, fantasy, Japanese, surreal |
-?artist__konstantin_yuon color-field, impressionism, landscapes |
-?artist__yuumei characters, digital, dream-like, environmentalism, fantasy, femininity, manga-anime, whimsical |
-?artist__william_zorach cubism, expressionism, folk-art, modern, sculpture |
-?artist__ander_zorn etching, nudes, painting, portraits, Swedish |
+@wizards_artist_styles := { @__set_wizards_artists_artist_if_unset {
+?wizards_artist.zacharias_martin_aagaard landscapes, Observational, painting, Romanticism, Slice-of-life |
+?wizards_artist.slim_aarons fashion, luxury, nostalgia, pastel-colors, photography, photography-color, social-commentary |
+?wizards_artist.elenore_abbott art-nouveau, dream-like, ethereal, femininity, mythology, pastel-colors, romanticism, watercolor |
+?wizards_artist.tomma_abts abstract, angular, color-field, contemporary, geometric, minimalism, modern |
+?wizards_artist.vito_acconci architecture, conceptual, dark, installation, performance, sculpture |
+?wizards_artist.andreas_achenbach landscapes, Observational, painting, Plein-air, Romanticism |
+?wizards_artist.ansel_adams American, high-contrast, landscapes, monochromatic, nature, photography, photography-bw |
+?wizards_artist.josh_adamski atmospheric, colorful, contemporary, high-contrast, impressionism, landscapes, nature, photography, photography-color, serenity |
+?wizards_artist.charles_addams cartoon, contemporary, Illustration, Social-commentary |
+?wizards_artist.etel_adnan abstract, color-field, colorful, landscapes, nature, serenity, vibrant |
+?wizards_artist.alena_aenami atmospheric, digital, dream-like, fantasy, landscapes, serenity, surreal, vibrant |
+?wizards_artist.leonid_afremov atmospheric, cityscapes, colorful, impressionism, nature, vibrant |
+?wizards_artist.petros_afshar abstract, contemporary, mixed-media, multimedia |
+?wizards_artist.yaacov_agam abstract, angular, colorful, illusion, interactive, kinetic, vibrant |
+?wizards_artist.eileen_agar abstract, collage, femininity, nature, vibrant |
+?wizards_artist.craigie_aitchison expressionism, figurativism, nature, primitivism, vibrant |
+?wizards_artist.ivan_aivazovsky Armenian, battle-scenes, dark, landscapes, painting, portraits, romanticism, Russian, seascapes |
+?wizards_artist.francesco_albani impressionism, landscapes |
+?wizards_artist.alessio_albi american, expressionism, landscapes, photography, photography-color, portraits |
+?wizards_artist.miles_aldridge British, Consumerism, fashion, Femininity, Illustration, photography, photography-color, pop-culture |
+?wizards_artist.john_white_alexander american, art-nouveau, contemporary, expressionism, landscapes, portraits |
+?wizards_artist.alessandro_allori american, expressionism, landscapes, portraits, renaissance |
+?wizards_artist.mike_allred comics, illustration, pop-art, superheroes, whimsical |
+?wizards_artist.lawrence_alma_tadema ancient, flowers, history, opulent, romanticism, Victorian |
+?wizards_artist.lilia_alvarado american, colorful, contemporary, landscapes, photography, photography-color, portraits |
+?wizards_artist.tarsila_do_amaral abstract, contemporary, cubism, modern, surreal, vibrant |
+?wizards_artist.ghada_amer abstract, contemporary, messy, portraits |
+?wizards_artist.cuno_amiet impressionism, landscapes, portraits |
+?wizards_artist.el_anatsui abstract, African, contemporary, Ghanaian, recycled-materials, sculpture, textiles |
+?wizards_artist.helga_ancher impressionism, Observational, painting, Realism, Slice-of-life |
+?wizards_artist.sarah_andersen cartoon, collage, comics, contemporary, fashion, femininity, mixed-media |
+?wizards_artist.richard_anderson dark, digital, fantasy, gothic, grungy, horror, messy, psychedelic, surreal |
+?wizards_artist.sophie_gengembre_anderson childhood, femininity, painting, portraits, rural-life, Victorian |
+?wizards_artist.wes_anderson colorful, film, nostalgia, pastel-colors, photography, photography-color, surreal, whimsical |
+?wizards_artist.alex_andreev contemporary, Death, Displacement, illustration, surreal |
+?wizards_artist.sofonisba_anguissola dark, portraits, renaissance |
+?wizards_artist.louis_anquetin impressionism, portraits |
+?wizards_artist.mary_jane_ansell contemporary, photorealism, portraits, still-life |
+?wizards_artist.chiho_aoshima colorful, digital, fantasy, Japanese, pop-art, whimsical |
+?wizards_artist.sabbas_apterus conceptual, dark, digital, dream-like, surreal |
+?wizards_artist.hirohiko_araki characters, graphic-novel, illustration, Japanese, manga-anime, pop-culture, surreal |
+?wizards_artist.howard_arkley architecture, colorful, contemporary, futuristic, playful, pop-art, vibrant, whimsical |
+?wizards_artist.rolf_armstrong art-deco, art-nouveau, characters, fashion, illustration, modern, posters |
+?wizards_artist.gerd_arntz flat-colors, geometric, graphic-design, high-contrast, minimalism |
+?wizards_artist.guy_aroch contemporary, fashion, photography, photography-color, portraits |
+?wizards_artist.miki_asai contemporary, flowers, insects, landscapes, macro-world, minimalism, nature, photography, photography-color, shallow-depth-of-field, vibrant |
+?wizards_artist.clemens_ascher architecture, contemporary, geometric, minimalism, photography, photography-color, vibrant |
+?wizards_artist.henry_asencio contemporary, expressionism, figurativism, impressionism, messy, portraits |
+?wizards_artist.andrew_atroshenko contemporary, figurativism, impressionism, portraits |
+?wizards_artist.deborah_azzopardi cartoon, colorful, comics, fashion, femininity, pop-art, whimsical |
+?wizards_artist.lois_van_baarle characters, digital, fantasy, femininity, illustration, pastel-colors, whimsical |
+?wizards_artist.ingrid_baars american, contemporary, dark, photography, photography-color, portraits |
+?wizards_artist.anne_bachelier contemporary, dark, dream-like, portraits |
+?wizards_artist.francis_bacon abstract, British, dark, distortion, expressionism, figurative, portraits, surreal |
+?wizards_artist.firmin_baes contemporary, impressionism, landscapes, portraits, still-life |
+?wizards_artist.tom_bagshaw characters, dark, eerie, fantasy, horror, melancholy, surreal |
+?wizards_artist.karol_bak Conceptual, contemporary, Impressionism, Metamorphosis, painting |
+?wizards_artist.christopher_balaskas digital, eerie, futuristic, landscapes, outer-space, science-fiction, vibrant |
+?wizards_artist.benedick_bana 3D-rendering, characters, cyberpunk, dystopia, grungy, industrial, messy, science-fiction |
+?wizards_artist.banksy anonymous, graffiti, high-contrast, politics, social-commentary, street-art, urban-life |
+?wizards_artist.george_barbier art-deco, art-nouveau, costumes, fashion, illustration, romanticism, theater |
+?wizards_artist.cicely_mary_barker characters, childhood, fairies, flowers, folklore, magic, nostalgia, Victorian, whimsical |
+?wizards_artist.wayne_barlowe alien-worlds, creatures, dark, dystopia, eerie, fantasy, mythology, science-fiction |
+?wizards_artist.will_barnet activism, contemporary, painting, Social-commentary |
+?wizards_artist.matthew_barney conceptual, creatures, film, multimedia, performance, photography, photography-color, sculpture, surreal, video-art |
+?wizards_artist.angela_barrett animals, fantasy, kids-book, playful, whimsical |
+?wizards_artist.jean_michel_basquiat African-American, contemporary, expressionism, graffiti, messy, neo-expressionism, punk, street-art |
+?wizards_artist.lillian_bassman characters, contemporary, fashion, monochromatic, photography, photography-bw, portraits |
+?wizards_artist.pompeo_batoni baroque, dark, portraits |
+?wizards_artist.casey_baugh contemporary, dark, drawing, expressionism, portraits |
+?wizards_artist.chiara_bautista dark, dream-like, fantasy, illusion, magic, mysterious, surreal, whimsical |
+?wizards_artist.herbert_bayer angular, Bauhaus, colorful, contemporary, flat-colors, graphic-design, typography |
+?wizards_artist.mary_beale baroque, portraits |
+?wizards_artist.alan_bean astronauts, metaphysics, outer-space, painting, science-fiction |
+?wizards_artist.romare_bearden African-American, collage, cubism, expressionism, history, urban-life, vibrant |
+?wizards_artist.cecil_beaton contemporary, fashion, monochromatic, photography, photography-bw, portraits |
+?wizards_artist.cecilia_beaux American, elegant, femininity, impressionism, portraits |
+?wizards_artist.jasmine_becket_griffith big-eyes, childhood, colorful, fairies, fantasy, gothic, magic, portraits, romanticism, whimsical |
+?wizards_artist.vanessa_beecroft contemporary, expressionism, fashion, feminism, nudes, photography, photography-color, surreal |
+?wizards_artist.beeple 3D-rendering, conceptual, cyberpunk, digital, futuristic, pastel-colors, science-fiction |
+?wizards_artist.zdzislaw_beksinski contemporary, dark, dream-like, expressionism, fantasy, horror, illustration, surreal |
+?wizards_artist.katerina_belkina contemporary, Femininity, identity, painting, Photography, photography-color, portraits |
+?wizards_artist.julie_bell dragons, fantasy, magic, mythology, nature, wilderness |
+?wizards_artist.vanessa_bell fauvism, portraits |
+?wizards_artist.bernardo_bellotto landscapes, Observational, painting, Plein-air, Rococo |
+?wizards_artist.ambrosius_benson animals, dark, portraits, renaissance |
+?wizards_artist.stan_berenstain animals, cartoon, family, kids-book, playful, whimsical |
+?wizards_artist.laura_berger contemporary, flat-colors, geometric, identity, muted-colors |
+?wizards_artist.jody_bergsma dream-like, ethereal, fairies, fantasy, magic-realism, mythology, watercolor, whimsical |
+?wizards_artist.john_berkey eerie, fantasy, futuristic, outer-space, science-fiction |
+?wizards_artist.gian_lorenzo_bernini Allegory, Baroque, Religion, Sculpture |
+?wizards_artist.marta_bevacqua contemporary, dark, photography, photography-color, portraits |
+?wizards_artist.john_t_biggers African-American, contemporary, harlem-renaissance, modern, mural-painting, social-commentary |
+?wizards_artist.enki_bilal comics, cyberpunk, dystopia, futuristic, grungy, science-fiction, surreal, urban-life |
+?wizards_artist.ivan_bilibin art-nouveau, folklore, horses, illustration, kids-book, mythology, ornate, royalty, Russian, theater |
+?wizards_artist.butcher_billy characters, colorful, comics, contemporary, feminism, graphic-design, pop-art, vibrant |
+?wizards_artist.george_caleb_bingham american, hudson-river-school, landscapes, realism |
+?wizards_artist.ed_binkley dream-like, ethereal, fantasy, magic, mythology, whimsical |
+?wizards_artist.george_birrell cityscapes, colorful, contemporary, urban-life, vibrant |
+?wizards_artist.robert_bissell animals, contemporary, fantasy, impressionism, kids-book, mysterious, nature, painting, Plein-air, whimsical, wildlife |
+?wizards_artist.charles_blackman colorful, painting, portraits |
+?wizards_artist.mary_blair , animation, characters, childhood, illustration, nature, vibrant, whimsical |
+?wizards_artist.john_blanche elegant, fantasy, French, portraits, science-fiction |
+?wizards_artist.don_blanding architecture, art-deco, high-contrast, minimalism |
+?wizards_artist.albert_bloch Engraving, Impressionism, painting, Realism, Satire, Social-commentary |
+?wizards_artist.hyman_bloom contemporary, expressionism |
+?wizards_artist.peter_blume conceptual, dark, fantasy, surreal |
+?wizards_artist.don_bluth animation, cartoon, colorful, contemporary, fantasy, film, whimsical |
+?wizards_artist.umberto_boccioni colorful, cubism, futurism, muted-colors |
+?wizards_artist.anna_bocek colorful, figurativism, messy, portraits |
+?wizards_artist.lee_bogle dream-like, eerie, ethereal, fantasy, portraits |
+?wizards_artist.louis_leopold_boily contemporary, French, landscapes, nature, painting |
+?wizards_artist.giovanni_boldini impressionism, portraits |
+?wizards_artist.enoch_bolles art-nouveau, characters, contemporary, portraits |
+?wizards_artist.david_bomberg abstract, battle-scenes, cubism, expressionism, muted-colors |
+?wizards_artist.chesley_bonestell alien-worlds, futuristic, outer-space, science-fiction |
+?wizards_artist.lee_bontecou abstract, contemporary, mixed-media, sculpture |
+?wizards_artist.michael_borremans contemporary, low-contrast, portraits, still-life |
+?wizards_artist.matt_bors comics, flat-colors, graphic-design, satire, social-commentary |
+?wizards_artist.flora_borsi animals, contemporary, dream-like, photography, photography-color, portraits |
+?wizards_artist.hieronymus_bosch allegory, fantasy, mysticism, religion, renaissance, surreal, whimsical |
+?wizards_artist.sam_bosma animation, cartoon, characters, comics, fantasy, playful, whimsical |
+?wizards_artist.johfra_bosschart dream-like, ethereal, fantasy, magic, mythology, surreal, whimsical |
+?wizards_artist.fernando_botero animals, contemporary, dream-like, figurativism, portraits, surreal |
+?wizards_artist.sandro_botticelli dream-like, femininity, figurative, Italian, mythology, religion, renaissance |
+?wizards_artist.william_adolphe_bouguereau female-figures, French, muted-colors, mythology, nudes, painting, realism |
+?wizards_artist.susan_seddon_boulet dream-like, ethereal, fantasy, femininity, magic, magic-realism, nature, whimsical |
+?wizards_artist.louise_bourgeois expressionism, feminism, horror, insects, kinetic, sculpture, surreal |
+?wizards_artist.annick_bouvattier colorful, contemporary, female-figures, photography, photography-color, portraits |
+?wizards_artist.david_michael_bowers animals, contemporary, dream-like, magic-realism, portraits |
+?wizards_artist.noah_bradley dark, eerie, fantasy, landscapes |
+?wizards_artist.aleksi_briclot dark, dystopia, fantasy, gothic, grungy, horror |
+?wizards_artist.frederick_arthur_bridgman orientalism, portraits |
+?wizards_artist.renie_britenbucher contemporary, Fleeting-moments, painting, Portraits |
+?wizards_artist.romero_britto colorful, contemporary, playful, pop-art, stained-glass, vibrant, whimsical |
+?wizards_artist.gerald_brom dark, eerie, fantasy, gothic, horror, pulp |
+?wizards_artist.bronzino dark, portraits, renaissance |
+?wizards_artist.herman_brood characters, childhood, pop-art, sports |
+?wizards_artist.mark_brooks comics, fantasy, science-fiction |
+?wizards_artist.romaine_brooks contemporary, dream-like, low-contrast, portraits |
+?wizards_artist.troy_brooks contemporary, dark, dream-like, impressionism, oil-painting, portraits, surreal, vibrant |
+?wizards_artist.broom_lee furniture, not-a-person, sculpture, contemporary |
+?wizards_artist.allie_brosh autobiographical, comics, flat-colors, whimsical |
+?wizards_artist.ford_madox_brown portraits, romanticism |
+?wizards_artist.charles_le_brun baroque, portraits |
+?wizards_artist.elisabeth_vigee_le_brun baroque, fashion, femininity, portraits |
+?wizards_artist.james_bullough contemporary, dream-like, portraits, street-art |
+?wizards_artist.laurel_burch femininity, illustration, nature, vibrant, whimsical |
+?wizards_artist.alejandro_burdisio atmospheric, dark, digital, eerie, fantasy, landscapes, magic, science-fiction |
+?wizards_artist.daniel_buren conceptual, contemporary, installation, minimalism, sculpture, vibrant |
+?wizards_artist.jon_burgerman colorful, contemporary, illustration, playful, pop-art, vibrant |
+?wizards_artist.richard_burlet art-nouveau, characters, cityscapes, figurative, French, impressionism, urban-life |
+?wizards_artist.jim_burns characters, cyberpunk, dark, dystopia, futuristic, noir, science-fiction, urban-life |
+?wizards_artist.stasia_burrington animals, contemporary, portraits, watercolor, whimsical |
+?wizards_artist.kaethe_butcher contemporary, messy, portraits |
+?wizards_artist.saturno_butto contemporary, dream-like, figurativism, portraits |
+?wizards_artist.paul_cadmus contemporary, nudes, portraits |
+?wizards_artist.zhichao_cai digital, dream-like, ethereal, fantasy, magic, surreal |
+?wizards_artist.randolph_caldecott animals, British, illustration, kids-book, nature, playful |
+?wizards_artist.alexander_calder_milne abstract, geometric, interactive, kinetic, metalwork, minimalism, modern, sculpture |
+?wizards_artist.clyde_caldwell fantasy, female-figures, mythology, pulp, science-fiction |
+?wizards_artist.vincent_callebaut 3D-rendering, architecture, cyberpunk, dystopia, fantasy, futuristic, science-fiction, surreal, utopia |
+?wizards_artist.fred_calleri colorful, expressionism, mixed-media, portraits, sculpture, whimsical |
+?wizards_artist.charles_camoin colorful, fauvism, landscapes, portraits |
+?wizards_artist.mike_campau 3D-rendering, conceptual, contemporary, digital, landscapes, urban-life |
+?wizards_artist.eric_canete characters, comics, fantasy, superheroes |
+?wizards_artist.josef_capek expressionism, fauvism, portraits |
+?wizards_artist.leonetto_cappiello art-nouveau, color-field, colorful, graphic-design, mixed-media, muted-colors, posters |
+?wizards_artist.eric_carle animals, colorful, interactive, kids-book, playful |
+?wizards_artist.larry_carlson colorful, digital, dream-like, nature, psychedelic, surreal, vibrant |
+?wizards_artist.bill_carman playful, pop-art, psychedelic, surreal, whimsical |
+?wizards_artist.jean_baptiste_carpeaux French, portraits, romanticism, sculpture |
+?wizards_artist.rosalba_carriera baroque, portraits |
+?wizards_artist.michael_carson characters, contemporary, figurativism, impressionism, portraits |
+?wizards_artist.felice_casorati expressionism, impressionism, portraits, still-life |
+?wizards_artist.mary_cassatt characters, impressionism, pastel, portraits |
+?wizards_artist.a_j_casson contemporary, landscapes, Mathematics, painting, Punk |
+?wizards_artist.giorgio_barbarelli_da_castelfranco painting, Renaissance, Rococo |
+?wizards_artist.paul_catherall architecture, flat-colors, geometric, graphic-design, minimalism, urban-life |
+?wizards_artist.george_catlin animals, contemporary, portraits |
+?wizards_artist.patrick_caulfield colorful, contemporary, geometric, minimalism, pop-art, vibrant |
+?wizards_artist.nicoletta_ceccoli animals, big-eyes, childhood, contemporary, dark, dream-like, portraits, surreal, whimsical |
+?wizards_artist.agnes_cecile contemporary, messy, portraits, watercolor |
+?wizards_artist.paul_cezanne cubism, geometric, impressionism, landscapes, post-impressionism, romanticism, still-life |
+?wizards_artist.paul_chabas figurativism, impressionism, nudes, portraits |
+?wizards_artist.marc_chagall colorful, dream-like, fauvism, folklore, French, impressionism, Jewish, romanticism, Russian |
+?wizards_artist.tom_chambers contemporary, Fleeting-moments, Illustration, Observational |
+?wizards_artist.katia_chausheva contemporary, dark, photography, photography-color, portraits |
+?wizards_artist.hsiao_ron_cheng digital, fashion, femininity, minimalism, mixed-media, pastel-colors, pop-art, portraits |
+?wizards_artist.yanjun_cheng contemporary, digital, dream-like, eerie, femininity, illustration, portraits, whimsical |
+?wizards_artist.sandra_chevrier animals, comics, contemporary, dream-like, portraits |
+?wizards_artist.judy_chicago abstract, activism, empowerment, femininity, feminism, installation, psychedelic, sculpture, vibrant |
+?wizards_artist.dale_chihuly abstract, contemporary, organic, sculpture, vibrant |
+?wizards_artist.frank_cho colorful, comics, drawing, fantasy, superheroes |
+?wizards_artist.james_c_christensen American, dream-like, ethereal, illustration, kids-book, magic, mysterious, mythology, religion, whimsical |
+?wizards_artist.mikalojus_konstantinas_ciurlionis art-nouveau, dark, Lithuanian, mysticism, spirituality, symbolist |
+?wizards_artist.alson_skinner_clark atmospheric, impressionism, landscapes, seascapes |
+?wizards_artist.amanda_clark characters, dream-like, ethereal, landscapes, magic, watercolor, whimsical |
+?wizards_artist.harry_clarke dark, folklore, illustration, Irish, stained-glass |
+?wizards_artist.george_clausen Observational, painting, Plein-air, Realism |
+?wizards_artist.francesco_clemente contemporary, dream-like, figurativism, Italian, portraits |
+?wizards_artist.alvin_langdon_coburn architecture, atmospheric, photography, photography-bw |
+?wizards_artist.clifford_coffin colorful, fashion, photography, photography-color, pop-art, portraits, urban-life |
+?wizards_artist.vince_colletta American, comics, superheroes |
+?wizards_artist.beth_conklin childhood, contemporary, dream-like, fashion, nature, photography, photography-color, portraits, urban-life |
+?wizards_artist.john_constable British, dark, landscapes, nature, oil-painting, romanticism, skies |
+?wizards_artist.darwyn_cooke cartoon, comics, contemporary, illustration |
+?wizards_artist.richard_corben comics, dark, eerie, horror, science-fiction |
+?wizards_artist.vittorio_matteo_corcos colorful, fantasy, impressionism, portraits, romanticism |
+?wizards_artist.paul_corfield cartoon, landscapes, nature, playful, satire, vibrant, whimsical |
+?wizards_artist.fernand_cormon impressionism, Observational, painting, Realism |
+?wizards_artist.norman_cornish portraits, realism, watercolor, whimsical |
+?wizards_artist.camille_corot color-field, femininity, impressionism, landscapes, nature, portraits, romanticism |
+?wizards_artist.gemma_correll cartoon, flat-colors, graphic-design, high-contrast, playful, whimsical |
+?wizards_artist.petra_cortright digital, expressionism, impressionism, messy, nature, vibrant |
+?wizards_artist.lorenzo_costa_the_elder Allegory, painting, Religion, religion, Renaissance |
+?wizards_artist.olive_cotton Australian, Modern, monochromatic, nature, photography, photography-bw |
+?wizards_artist.peter_coulson minimalism, monochromatic, nudes, photography, photography-bw, portraits, street-art, urban-life |
+?wizards_artist.gustave_courbet environmentalism, impressionism, nature, portraits, realism, romanticism, social-commentary, watercolor |
+?wizards_artist.frank_cadogan_cowper British, history, opulent, romanticism, Victorian |
+?wizards_artist.kinuko_y_craft American, colorful, dream-like, fantasy, folklore, illustration, kids-book, royalty |
+?wizards_artist.clayton_crain characters, comics, digital, fantasy, illustration, science-fiction |
+?wizards_artist.lucas_cranach_the_elder Allegory, painting, Religion, religion, Renaissance |
+?wizards_artist.lucas_cranach_the_younger femininity, german, history, mythology, portraits, religion, renaissance |
+?wizards_artist.walter_crane British, engraving, folklore, illustration, kids-book, nostalgia |
+?wizards_artist.martin_creed abstract, British, conceptual, expressionism, installation, interactive, minimalism, playful |
+?wizards_artist.gregory_crewdson American, dark, eerie, photography, photography-color, suburbia, surreal |
+?wizards_artist.debbie_criswell landscapes, playful, surreal, whimsical |
+?wizards_artist.victoria_crowe figurativism, impressionism, landscapes, nature, portraits, romanticism, whimsical |
+?wizards_artist.etam_cru colorful, contemporary, graffiti, large-scale, portraits, social-commentary, street-art, urban-life |
+?wizards_artist.robert_crumb American, characters, comics, counter-culture, satire, underground |
+?wizards_artist.carlos_cruz_diez Conceptual, illusion, Kinetic, Light-art |
+?wizards_artist.john_currin characters, conceptual, fashion, femininity, figurativism, portraits, whimsical |
+?wizards_artist.krenz_cushart characters, digital, fantasy, illustration, manga-anime, portraits, whimsical |
+?wizards_artist.camilla_derrico big-eyes, childhood, contemporary, fantasy, nature, portraits, vibrant, watercolor, whimsical |
+?wizards_artist.pino_daeni femininity, figurative, nostalgia, painting, romanticism |
+?wizards_artist.salvador_dali dark, dream-like, dreams, illusion, metaphysics, oil-painting, Spanish, surreal |
+?wizards_artist.sunil_das contemporary, figurative, identity, portraits |
+?wizards_artist.ian_davenport abstract, colorful, contemporary, geometric, modern, vibrant |
+?wizards_artist.stuart_davis abstract, American, cubism, rural-life, social-realism |
+?wizards_artist.roger_dean dream-like, eerie, ethereal, fantasy, landscapes, magic, posters, science-fiction |
+?wizards_artist.michael_deforge cartoon, pop-art, satire, surreal, whimsical |
+?wizards_artist.edgar_degas ballet, dancers, femininity, French, impressionism, pastel, portraits |
+?wizards_artist.eugene_delacroix French, history, muted-colors, oil-painting, orientalism, romanticism, sketching |
+?wizards_artist.robert_delaunay abstract, contemporary, cubism, geometric, modern, vibrant |
+?wizards_artist.sonia_delaunay abstract, cubism, fashion, fauvism, female-figures, French, geometric, modern |
+?wizards_artist.gabriele_dellotto comics, fantasy |
+?wizards_artist.nicolas_delort dark, eerie, fantasy, gothic, horror, labyrinths, monochromatic |
+?wizards_artist.jean_delville dream-like, fantasy, magic, metaphysics, surreal |
+?wizards_artist.posuka_demizu adventure, contemporary, fantasy, illustration, manga-anime, playful, whimsical |
+?wizards_artist.guy_denning colorful, conceptual, expressionism, messy, portraits, social-commentary |
+?wizards_artist.monsu_desiderio contemporary, figurative, surreal |
+?wizards_artist.charles_maurice_detmold animals, art-nouveau, botanical, British, delicate, ethereal, illustration, kids-book, nature, opulent, Victorian, watercolor |
+?wizards_artist.edward_julius_detmold animals, art-nouveau, botanical, British, delicate, illustration, kids-book, nature, opulent, Victorian, watercolor |
+?wizards_artist.anne_dewailly characters, fashion, figurativism, identity, multimedia, photorealism, portraits, whimsical |
+?wizards_artist.walt_disney Adventure, Animation, cartoon, characters, contemporary, folklore, whimsical |
+?wizards_artist.tony_diterlizzi creatures, fantasy, magic, playful, whimsical |
+?wizards_artist.anna_dittmann digital, dream-like, ethereal, fantasy, mysterious, pastel-colors, portraits |
+?wizards_artist.dima_dmitriev figure-studies, impressionism, landscapes, nature, oil-painting, romanticism |
+?wizards_artist.peter_doig British, Canadian, dream-like, figurativism, landscapes, large-scale, nature |
+?wizards_artist.kees_van_dongen colorful, expressionism, fauvism, femininity, japanese, portraits, urban-life |
+?wizards_artist.gustave_dore engraving, fantasy, gothic, monochromatic, mythology |
+?wizards_artist.dave_dorman dark, fantasy, horror, photorealism, science-fiction |
+?wizards_artist.emilio_giuseppe_dossena Conceptual, contemporary, metaphysics, Sculpture |
+?wizards_artist.david_downton conceptual, expressionism, high-contrast, minimalism, portraits, whimsical |
+?wizards_artist.jessica_drossin fantasy, femininity, impressionism, magic-realism, photography, photography-color, portraits, whimsical |
+?wizards_artist.philippe_druillet comics, contemporary, fantasy, French, science-fiction |
+?wizards_artist.tj_drysdale dream-like, eerie, ethereal, landscapes, magic, photography, photography-color, shallow-depth-of-field |
+?wizards_artist.ton_dubbeldam architecture, colorful, conceptual, contemporary, Dutch, geometric, landscapes, pointillism |
+?wizards_artist.marcel_duchamp conceptual, cubism, dadaism, expressionism, fauvism, impressionism, surreal |
+?wizards_artist.joseph_ducreux French, portraits, self-portraits, whimsical |
+?wizards_artist.edmund_dulac dream-like, folklore, French, illustration, kids-book, magic, orientalism, romanticism |
+?wizards_artist.marlene_dumas African-American, contemporary, expressionism, femininity, impressionism, nature, portraits, watercolor |
+?wizards_artist.charles_dwyer impressionism, messy, nature, portraits, watercolor, whimsical |
+?wizards_artist.william_dyce baroque, impressionism, portraits, realism, renaissance, romanticism |
+?wizards_artist.chris_dyer colorful, contemporary, expressionism, pop-art, psychedelic, surreal, vibrant |
+?wizards_artist.eyvind_earle colorful, dream-like, high-contrast, magic-realism, surreal, whimsical |
+?wizards_artist.amy_earles abstract-expressionism, American, characters, dark, gestural, watercolor, whimsical |
+?wizards_artist.lori_earley big-eyes, contemporary, dream-like, expressionism, figurativism, nature, portraits, whimsical |
+?wizards_artist.jeff_easley fantasy |
+?wizards_artist.tristan_eaton characters, collage, colorful, graphic-design, pop-art, street-art, vibrant |
+?wizards_artist.jason_edmiston characters, dark, eerie, ethereal, fantasy, horror, illustration, portraits |
+?wizards_artist.alfred_eisenstaedt conceptual, fashion, high-contrast, monochromatic, photography, photography-bw, portraits, whimsical |
+?wizards_artist.jesper_ejsing adventure, characters, fantasy, illustration, magic, mythology, whimsical |
+?wizards_artist.olafur_eliasson contemporary, environmentalism, immersive, installation, nature |
+?wizards_artist.harrison_ellenshaw landscapes, painting, realism |
+?wizards_artist.christine_ellger dream-like, ethereal, fantasy, folklore, illustration, magic-realism, surreal |
+?wizards_artist.larry_elmore battle-scenes, fantasy, illustration, medieval, superheroes |
+?wizards_artist.joseba_elorza collage, dream-like, outer-space, photography, photography-color, science-fiction, surreal |
+?wizards_artist.peter_elson futuristic, illustration, outer-space, robots-cyborgs, science-fiction, space-ships |
+?wizards_artist.gil_elvgren American, female-figures, femininity, illustration, pulp |
+?wizards_artist.ed_emshwiller aliens, colorful, illustration, outer-space, pulp, science-fiction |
+?wizards_artist.kilian_eng atmospheric, digital, fantasy, illustration, landscapes, science-fiction |
+?wizards_artist.jason_a_engle creatures, dark, fantasy, illustration |
+?wizards_artist.max_ernst automatism, collage, Dadaism, expressionism, German, mythology, oil-painting, surreal |
+?wizards_artist.romain_de_tirtoff_erte art-deco, fashion, luxury, masks, Russian, silhouettes, theater |
+?wizards_artist.m_c_escher angular, Dutch, geometric, illusion, lithography, mathematics, surreal, woodblock |
+?wizards_artist.tim_etchells Conceptual, conceptual, contemporary, neon, text-based |
+?wizards_artist.walker_evans American, documentary, great-depression, monochromatic, photography, photography-bw, portraits, social-commentary |
+?wizards_artist.jan_van_eyck painting, renaissance |
+?wizards_artist.glenn_fabry comics, fantasy, illustration, science-fiction, violence |
+?wizards_artist.ludwig_fahrenkrog eerie, expressionism, German, mysticism, symbolist |
+?wizards_artist.shepard_fairey flat-colors, graphic-design, high-contrast, politics, social-commentary, street-art |
+?wizards_artist.andy_fairhurst digital, eerie, fantasy, horror, illustration, science-fiction |
+?wizards_artist.luis_ricardo_falero dream-like, erotica, fantasy, figurativism, nudes, painting, romanticism |
+?wizards_artist.jean_fautrier abstract-expressionism, Metaphysics, painting, Sculpture |
+?wizards_artist.andrew_ferez dream-like, eerie, fantasy, fragmentation, illustration, surreal |
+?wizards_artist.hugh_ferriss architecture, art-deco, cityscapes, futuristic, geometric, nightlife, urban-life |
+?wizards_artist.david_finch comics, fantasy, illustration, noir, superheroes |
+?wizards_artist.callie_fink colorful, contemporary, expressionism, pop-art, portraits, psychedelic, surreal, vibrant |
+?wizards_artist.virgil_finlay comics, dark, eerie, fantasy, high-contrast, horror, pulp, science-fiction |
+?wizards_artist.anato_finnstark colorful, digital, fantasy, illustration, magic, playful, whimsical |
+?wizards_artist.howard_finster colorful, contemporary, dream-like, folk-art, portraits, primitivism, religion, spirituality |
+?wizards_artist.oskar_fischinger abstract, avant-garde, colorful, contemporary, spirituality, vibrant |
+?wizards_artist.samuel_melton_fisher flowers, impressionism, nature, portraits, realism, romanticism, whimsical |
+?wizards_artist.john_anster_fitzgerald fantasy, folklore, illustration, magic, pastel, whimsical |
+?wizards_artist.tony_fitzpatrick collage, colorful, contemporary, mixed-media, playful, pop-art, vibrant, whimsical |
+?wizards_artist.hippolyte_flandrin baroque, portraits, realism, religion, renaissance, romanticism |
+?wizards_artist.dan_flavin conceptual, contemporary, installation, light-art, minimalism, sculpture |
+?wizards_artist.max_fleischer Animation, comics, contemporary, dark |
+?wizards_artist.govaert_flinck baroque, expressionism, impressionism, portraits, realism, renaissance, whimsical |
+?wizards_artist.alex_russell_flint Environmentalism, Illustration, painting, Social-commentary |
+?wizards_artist.lucio_fontana abstract, conceptual, installation, large-scale, minimalism, modern, sculpture |
+?wizards_artist.chris_foss alien-worlds, colorful, illustration, outer-space, psychedelic, science-fiction |
+?wizards_artist.jon_foster contemporary, digital, figurativism, minimalism, modern, portraits |
+?wizards_artist.jean_fouquet Allegory, painting, Religion, Renaissance, renaissance |
+?wizards_artist.toby_fox animals, cartoon, childhood, comics, digital, fantasy, nature, whimsical |
+?wizards_artist.art_frahm femininity, pin-up, portraits |
+?wizards_artist.lisa_frank childhood, colorful, illustration, playful, vibrant, whimsical |
+?wizards_artist.helen_frankenthaler abstract, abstract-expressionism, color-field, contemporary, expressionism, feminism, painting, printmaking, watercolor |
+?wizards_artist.frank_frazetta barbarians, dark, erotica, fantasy, illustration, muscles, pulp |
+?wizards_artist.kelly_freas adventure, eerie, fantasy, illustration, science-fiction |
+?wizards_artist.lucian_freud British, expressionism, figurative, flesh, oil-painting, portraits, realism |
+?wizards_artist.brian_froud dark, fairies, fantasy, illustration, magic, mythology, whimsical |
+?wizards_artist.wendy_froud dark, fairies, fantasy, illustration, magic, mythology, whimsical |
+?wizards_artist.tom_fruin architecture, colorful, contemporary, geometric, installation, multimedia, sculpture, stained-glass, vibrant |
+?wizards_artist.john_wayne_gacy clowns, dark, death, horror, portraits, vibrant |
+?wizards_artist.justin_gaffrey environmentalism, installation, landscapes, large-scale, minimalism, nature, sculpture |
+?wizards_artist.hashimoto_gaho Kitsch, Politics, Printmaking, ukiyo-e |
+?wizards_artist.neil_gaiman comics, conceptual, dream-like, fantasy, portraits, whimsical |
+?wizards_artist.stephen_gammell dark, eerie, high-contrast, horror, kids-book |
+?wizards_artist.hope_gangloff colorful, contemporary, expressionism, portraits |
+?wizards_artist.alex_garant conceptual, contemporary, dream-like, figurativism, impressionism, portraits, surreal, vibrant |
+?wizards_artist.gilbert_garcin abstract, Conceptual, contemporary, Installation, Sculpture, Surreal |
+?wizards_artist.michael_and_inessa_garmash conceptual, impressionism, nature, portraits, realism, romanticism, whimsical |
+?wizards_artist.antoni_gaudi architecture, art-nouveau, mosaic, organic, Spanish |
+?wizards_artist.jack_gaughan alien-worlds, aliens, colorful, illustration, outer-space, science-fiction |
+?wizards_artist.paul_gauguin colorful, exoticism, French, impressionism, oil-painting, primitivism, spirituality, tropics |
+?wizards_artist.giovanni_battista_gaulli baroque, expressionism, impressionism, portraits, realism, renaissance |
+?wizards_artist.anne_geddes childhood, nature, photography, photography-color, portraits, whimsical |
+?wizards_artist.bill_gekas childhood, conceptual, expressionism, fashion, photography, photography-color, portraits, whimsical |
+?wizards_artist.artemisia_gentileschi baroque, expressionism, portraits, realism, religion, renaissance, romanticism |
+?wizards_artist.orazio_gentileschi baroque, expressionism, portraits, realism, renaissance, romanticism, whimsical |
+?wizards_artist.daniel_f_gerhartz expressionism, femininity, impressionism, nature, portraits, realism, romanticism, whimsical |
+?wizards_artist.theodore_gericault conceptual, dark, expressionism, impressionism, portraits, realism, romanticism |
+?wizards_artist.jean_leon_gerome architecture, figure-studies, French, mythology, Orientalism, painting, romanticism |
+?wizards_artist.mark_gertler expressionism, figurativism, figure-studies, impressionism, portraits, realism, still-life |
+?wizards_artist.atey_ghailan characters, digital, dream-like, fantasy, illustration, manga-anime, surreal |
+?wizards_artist.alberto_giacometti bronze, emaciation, expressionism, figurative, portraits, sculpture, Swiss |
+?wizards_artist.donato_giancola fantasy, illustration, mythology, science-fiction |
+?wizards_artist.hr_giger cyberpunk, dark, horror, monochromatic, painting, robots-cyborgs, science-fiction, surreal |
+?wizards_artist.james_gilleard architecture, colorful, digital, environmentalism, fantasy, flat-colors, futuristic, landscapes, vibrant |
+?wizards_artist.harold_gilman impressionism, landscapes, nature, portraits, romanticism, whimsical |
+?wizards_artist.charles_ginner cityscapes, colorful, impressionism, landscapes, urban-life |
+?wizards_artist.jean_giraud comics, dream-like, fantasy, illustration, psychedelic, science-fiction, surreal |
+?wizards_artist.anne_louis_girodet expressionism, impressionism, portraits, realism, renaissance, romanticism |
+?wizards_artist.milton_glaser colorful, contemporary, graphic-design, pop-art, vibrant, whimsical |
+?wizards_artist.warwick_goble art-nouveau, folklore, kids-book, muted-colors, nature, whimsical |
+?wizards_artist.john_william_godward characters, impressionism, portraits, realism, renaissance, romanticism |
+?wizards_artist.sacha_goldberger characters, contemporary, identity, immigrants, mixed-media, photography, photography-color, portraits |
+?wizards_artist.nan_goldin conceptual, contemporary, expressionism, photography, photography-color, portraits, realism, whimsical |
+?wizards_artist.josan_gonzalez atmospheric, cyberpunk, futuristic, illustration, science-fiction, technology |
+?wizards_artist.felix_gonzalez_torres conceptual, contemporary, installation, LGBTQ, minimalism |
+?wizards_artist.derek_gores colorful, contemporary, expressionism, portraits |
+?wizards_artist.edward_gorey dark, eerie, gothic, horror, kids-book, monochromatic, mysterious |
+?wizards_artist.arshile_gorky abstract-Expressionism, painting |
+?wizards_artist.alessandro_gottardo characters, dream-like, flat-colors, illustration, playful, whimsical |
+?wizards_artist.adolph_gottlieb abstract, abstract-expressionism, color-field, contemporary, geometric |
+?wizards_artist.francisco_goya dark, etching, horror, oil-painting, politics, portraits, romanticism, satire, social-commentary, Spanish |
+?wizards_artist.laurent_grasso Conceptual, contemporary, Sculpture, Surreal, surreal |
+?wizards_artist.mab_graves big-eyes, conceptual, contemporary, dream-like, expressionism, magic-realism, portraits, whimsical |
+?wizards_artist.eileen_gray abstract, architecture, Friendship, Loneliness, modern, painting |
+?wizards_artist.kate_greenaway British, childhood, fashion, illustration, kids-book, romanticism, Victorian |
+?wizards_artist.alex_grey abstract-expressionism, colorful, contemporary, dream-like, psychedelic, surreal, vibrant |
+?wizards_artist.carne_griffiths conceptual, contemporary, expressionism, messy, portraits, whimsical |
+?wizards_artist.gris_grimly comics, dark, eerie, fantasy, gothic, illustration, kids-book, surreal, whimsical |
+?wizards_artist.brothers_grimm characters, dark, folklore, kids-book, magic |
+?wizards_artist.tracie_grimwood colorful, dream-like, fantasy, kids-book, playful, whimsical |
+?wizards_artist.matt_groening cartoon, colorful, pop-culture, satire, whimsical |
+?wizards_artist.alex_gross contemporary, portraits, surreal, whimsical |
+?wizards_artist.tom_grummett comics, contemporary, illustration, superheroes |
+?wizards_artist.huang_guangjian contemporary, impressionism, landscapes, oil-painting |
+?wizards_artist.wu_guanzhong contemporary, Feminism, Homo-eroticism, Illustration, landscapes |
+?wizards_artist.rebecca_guay digital, dream-like, ethereal, fantasy, illustration, magic, watercolor |
+?wizards_artist.guercino baroque, italian, painting, religion |
+?wizards_artist.jeannette_guichard_bunel conceptual, contemporary, expressionism, figurativism, portraits, whimsical |
+?wizards_artist.scott_gustafson fantasy, illustration, kids-book, magic-realism, playful, whimsical |
+?wizards_artist.wade_guyton contemporary, mixed-media, pop-art |
+?wizards_artist.hans_haacke conceptual, contemporary, environmentalism, installation, politics, sculpture |
+?wizards_artist.robert_hagan colorful, dream-like, impressionism, landscapes, nature, romanticism, vibrant |
+?wizards_artist.philippe_halsman conceptual, monochromatic, photography, photography-bw, portraits, whimsical |
+?wizards_artist.maggi_hambling american, conceptual, contemporary, expressionism, installation, portraits, vibrant |
+?wizards_artist.richard_hamilton Consumerism, Mixed-media, Pop-art, Pop-Art |
+?wizards_artist.bess_hamiti contemporary, dream-like, impressionism, landscapes, magic-realism, surreal, vibrant, whimsical |
+?wizards_artist.tom_hammick dream-like, figurativism, flat-colors, landscapes, multimedia, nature, vibrant |
+?wizards_artist.david_hammons abstract, African-American, conceptual, contemporary, installation, social-commentary |
+?wizards_artist.ren_hang characters, contemporary, impressionism, nudes, photography, photography-color, portraits |
+?wizards_artist.erin_hanson atmospheric, colorful, dream-like, impressionism, landscapes, nature, serenity, vibrant |
+?wizards_artist.keith_haring activism, expressionism, flat-colors, graffiti, high-contrast, LGBTQ, pop-art, street-art, vibrant |
+?wizards_artist.alexei_harlamoff childhood, impressionism, portraits, realism |
+?wizards_artist.charley_harper animals, flat-colors, folk-art, illustration, muted-colors, nature, playful, whimsical |
+?wizards_artist.john_harris dark, dystopia, illustration, outer-space, science-fiction |
+?wizards_artist.florence_harrison art-nouveau, delicate, dream-like, kids-book, romanticism, whimsical |
+?wizards_artist.marsden_hartley abstract, American, expressionism, landscapes, modern, portraits, primitivism |
+?wizards_artist.ryohei_hase creatures, digital, dream-like, ethereal, fantasy, illustration, magic-realism, mysterious, surreal |
+?wizards_artist.childe_hassam American, cityscapes, impressionism, landscapes |
+?wizards_artist.ben_hatke adventure, cartoon, characters, kids-book, playful, whimsical |
+?wizards_artist.mona_hatoum body-art, conceptual, contemporary, displacement, installation, sculpture |
+?wizards_artist.pam_hawkes ceramics, contemporary, delicate, figurative, figurativism, nature, organic, portraits |
+?wizards_artist.jamie_hawkesworth contemporary, nature, photography, photography-color, portraits, street-art, urban-life, vibrant |
+?wizards_artist.stuart_haygarth angular, colorful, conceptual, contemporary, installation, vibrant |
+?wizards_artist.erich_heckel expressionism, german, landscapes, modern, portraits |
+?wizards_artist.valerie_hegarty metamorphosis, painting, sculpture, Social-commentary |
+?wizards_artist.mary_heilmann abstract, colorful, contemporary, geometric, minimalism, vibrant |
+?wizards_artist.michael_heizer angular, earthworks, installation, land-art, landscapes, large-scale, nature |
+?wizards_artist.gottfried_helnwein childhood, contemporary, dark, horror, photography, photography-color, portraits, social-commentary |
+?wizards_artist.barkley_l_hendricks african-american, contemporary, expressionism, femininity, figurativism, identity, portraits |
+?wizards_artist.bill_henson conceptual, contemporary, dark, landscapes, photography, photography-color, portraits, whimsical |
+?wizards_artist.barbara_hepworth abstract, modern, nature, organic, sculpture |
+?wizards_artist.herge belgian, comics, contemporary |
+?wizards_artist.carolina_herrera characters, contemporary, fashion, femininity, celebrity |
+?wizards_artist.george_herriman comics, contemporary, Illustration, politics, Satire |
+?wizards_artist.don_hertzfeldt animation, dark, drawing, surreal, whimsical |
+?wizards_artist.prudence_heward colorful, expressionism, feminism, nature, portraits |
+?wizards_artist.ryan_hewett cubism, mysticism, portraits |
+?wizards_artist.nora_heysen Consumerism, contemporary, Femininity, landscapes, painting |
+?wizards_artist.george_elgar_hicks impressionism, landscapes |
+?wizards_artist.lorenz_hideyoshi cyberpunk, dark, digital, dystopia, futuristic, illustration, science-fiction |
+?wizards_artist.brothers_hildebrandt fantasy, illustration, painting, superheroes, vibrant |
+?wizards_artist.dan_hillier contemporary, graffiti, monochromatic, portraits, street-art, urban-life |
+?wizards_artist.lewis_hine activism, documentary, monochromatic, photography, photography-bw, social-commentary, social-realism |
+?wizards_artist.miho_hirano characters, contemporary, fantasy, japanese, magic-realism, portraits, whimsical |
+?wizards_artist.harumi_hironaka dream-like, femininity, manga-anime, pastel-colors, portraits, serenity, watercolor |
+?wizards_artist.hiroshige Edo-period, Japanese, landscapes, nature, printmaking, ukiyo-e, woodblock |
+?wizards_artist.morris_hirshfield animals, contemporary, illustration, minimalism, whimsical |
+?wizards_artist.damien_hirst animals, British, conceptual, contemporary, death, installation, mixed-media, sculpture, shock-art |
+?wizards_artist.fan_ho Chinese, contemporary, film, high-contrast, monochromatic, photography, photography-bw |
+?wizards_artist.meindert_hobbema Dutch-Golden-Age, landscapes, Observational, painting, Plein-air |
+?wizards_artist.david_hockney British, colorful, cubism, pools, pop-art, portraits |
+?wizards_artist.filip_hodas , 3D-rendering, contemporary, dark, digital, dream-like, pop-culture, science-fiction, surreal |
+?wizards_artist.howard_hodgkin abstract, color-field, contemporary, modern, nature, vibrant |
+?wizards_artist.ferdinand_hodler characters, contemporary, impressionism, landscapes, nature, portraits, swiss |
+?wizards_artist.tiago_hoisel characters, contemporary, illustration, whimsical |
+?wizards_artist.katsushika_hokusai Edo-period, high-contrast, Japanese, japanese, nature, ukiyo-e, waves, woodblock |
+?wizards_artist.hans_holbein_the_younger anthropomorphism, painting, portraits, Renaissance |
+?wizards_artist.frank_holl colorful, impressionism, portraits, street-art, urban-life |
+?wizards_artist.carsten_holler contemporary, experiential, immersive, interactive, playful |
+?wizards_artist.zena_holloway animals, British, fashion, female-figures, Photography, photography-color, portraits, underwater |
+?wizards_artist.edward_hopper American, architecture, impressionism, landscapes, loneliness, nostalgia, oil-painting, realism, solitude, urban-life |
+?wizards_artist.aaron_horkey comics, etching, fantasy, illustration |
+?wizards_artist.alex_horley characters, dark, fantasy, grungy, horror, illustration |
+?wizards_artist.roni_horn American, conceptual, environmentalism, installation, LGBTQ, minimalism, nature, photography, photography-color, sculpture |
+?wizards_artist.john_howe characters, dark, eerie, fantasy, landscapes, nature, portraits |
+?wizards_artist.alex_howitt contemporary, Fleeting-moments, Illustration, monochromatic, painting, Slice-of-life |
+?wizards_artist.meghan_howland contemporary, dream-like, figurativism, identity, portraits |
+?wizards_artist.john_hoyland abstract, color-field, contemporary, geometric, messy, modern, vibrant |
+?wizards_artist.shilin_huang characters, dream-like, fantasy, magic, mysterious, mythology |
+?wizards_artist.arthur_hughes impressionism, landscapes, nature, portraits, romanticism |
+?wizards_artist.edward_robert_hughes characters, dream-like, ethereal, fantasy, impressionism, nostalgia, romanticism, whimsical |
+?wizards_artist.jack_hughes contemporary, expressionism, flat-colors, portraits, vibrant |
+?wizards_artist.talbot_hughes impressionism, landscapes, nature, portraits, romanticism |
+?wizards_artist.pieter_hugo contemporary, dutch, environmentalism, landscapes, photography, photography-color, portraits, social-commentary |
+?wizards_artist.gary_hume abstract, flat-colors, geometric, minimalism, modern, painting |
+?wizards_artist.friedensreich_hundertwasser abstract, colorful, contemporary, expressionism, organic, vibrant, whimsical |
+?wizards_artist.william_holman_hunt impressionism, landscapes, nature, portraits, romanticism |
+?wizards_artist.george_hurrell contemporary, fashion, high-contrast, luxury, photography, photography-bw, portraits |
+?wizards_artist.fabio_hurtado contemporary, cubism, figurativism, modern, multimedia, portraits |
+?wizards_artist.hush Activism, messy, painting, Street-art |
+?wizards_artist.michael_hutter dream-like, eerie, fantasy, horror, science-fiction, surreal |
+?wizards_artist.pierre_huyghe conceptual, contemporary, multimedia, surreal |
+?wizards_artist.doug_hyde contemporary, illustration, kids-book, playful, whimsical |
+?wizards_artist.louis_icart art-deco, dancers, femininity, impressionism, low-contrast, romanticism, urban-life |
+?wizards_artist.robert_indiana contemporary, flat-colors, graphic-design, pop-art, typography, vibrant |
+?wizards_artist.jean_auguste_dominique_ingres french, portraits, realism, romanticism |
+?wizards_artist.robert_irwin angular, contemporary, environmentalism, installation, minimalism |
+?wizards_artist.gabriel_isak contemporary, melancholy, surreal, Swedish |
+?wizards_artist.junji_ito contemporary, dark, fantasy, horror, manga-anime, monochromatic, portraits, surreal |
+?wizards_artist.christophe_jacrot architecture, atmospheric, cityscapes, photography, photography-color, urban-life |
+?wizards_artist.louis_janmot characters, french, impressionism, portraits, romanticism |
+?wizards_artist.frieke_janssens conceptual, contemporary, photography, photography-color, portraits |
+?wizards_artist.alexander_jansson dark, dream-like, fantasy, mythology, surreal, whimsical |
+?wizards_artist.tove_jansson adventure, cartoon, kids-book, playful, whimsical |
+?wizards_artist.aaron_jasinski characters, colorful, comics, contemporary, pop-art, portraits, whimsical |
+?wizards_artist.alexej_von_jawlensky colorful, expressionism, german, modern, portraits, spirituality, vibrant |
+?wizards_artist.james_jean fantasy, muted-colors, mysterious, mythology, pastel-colors |
+?wizards_artist.oliver_jeffers cartoon, colorful, kids-book, playful, whimsical |
+?wizards_artist.lee_jeffries conceptual, contemporary, high-contrast, monochromatic, portraits, social-commentary |
+?wizards_artist.georg_jensen jewelry, sculpture |
+?wizards_artist.ellen_jewett digital, expressionism, installation, nature, sculpture, surreal, whimsical |
+?wizards_artist.he_jiaying contemporary, Femininity, identity, painting, Realism |
+?wizards_artist.chantal_joffe contemporary, expressionism, figurativism, portraits, social-commentary |
+?wizards_artist.martine_johanna colorful, contemporary, femininity, figurativism, identity, portraits |
+?wizards_artist.augustus_john British, color-field, impressionism, landscapes, nature, portraits |
+?wizards_artist.gwen_john contemporary, femininity, impressionism, nature, portraits, watercolor, whimsical |
+?wizards_artist.jasper_johns abstract-Expressionism, Mysticism, painting |
+?wizards_artist.eastman_johnson american, contemporary, impressionism, landscapes, nature, portraits, urban-life |
+?wizards_artist.alfred_cheney_johnston conceptual, contemporary, minimalism, monochromatic, photography, photography-bw, portraits |
+?wizards_artist.dorothy_johnstone contemporary, femininity, figurativism, impressionism, landscapes, nature, portraits |
+?wizards_artist.android_jones colorful, conceptual, digital, dream-like, geometric, psychedelic, surreal |
+?wizards_artist.erik_jones collage, colorful, cubism, portraits, vibrant |
+?wizards_artist.jeffrey_catherine_jones fantasy, figurativism, posters, pulp, realism |
+?wizards_artist.peter_andrew_jones alien-worlds, eerie, fantasy, futuristic, outer-space, science-fiction |
+?wizards_artist.loui_jover contemporary, eerie, Illustration, satire |
+?wizards_artist.amy_judd contemporary, fantasy, nature, photorealism, portraits, surreal |
+?wizards_artist.donald_judd angular, contemporary, installation, metalwork, minimalism, sculpture |
+?wizards_artist.jean_jullien cartoon, flat-colors, graphic-design, high-contrast, minimalism, playful |
+?wizards_artist.matthias_jung architecture, conceptual, digital, dream-like, environmentalism, futuristic, minimalism, surreal |
+?wizards_artist.joe_jusko comics, fantasy |
+?wizards_artist.frida_kahlo dream-like, feminism, Mexican, portraits, self-portraits, vibrant |
+?wizards_artist.hayv_kahraman contemporary, fantasy, femininity, figurativism, portraits, whimsical |
+?wizards_artist.mw_kaluta dream-like, ethereal, fantasy, nostalgia, romanticism, victorian, whimsical |
+?wizards_artist.nadav_kander conceptual, contemporary, landscapes, minimalism, photography, photography-color, portraits, street-art, urban-life |
+?wizards_artist.wassily_kandinsky abstract, Bauhaus, expressionism, modern, Russian, spirituality, vibrant |
+?wizards_artist.jun_kaneko abstract, contemporary, geometric, organic, sculpture, vibrant |
+?wizards_artist.titus_kaphar African-American, conceptual, contemporary, figurativism, portraits, social-commentary |
+?wizards_artist.michal_karcz digital, eerie, fantasy, futuristic, landscapes, photorealism, science-fiction, surreal |
+?wizards_artist.gertrude_kasebier American, family, female-figures, monochromatic, photography, photography-bw, portraits, rural-life |
+?wizards_artist.terada_katsuya fantasy, magic, manga-anime, portraits |
+?wizards_artist.audrey_kawasaki art-nouveau, contemporary, fantasy, japanese, magic-realism, manga-anime, portraits, whimsical |
+?wizards_artist.hasui_kawase landscapes, Plein-air, Printmaking, Slice-of-life, ukiyo-e |
+?wizards_artist.glen_keane adventure, cartoon, characters, drawing, kids-book, playful, whimsical |
+?wizards_artist.margaret_keane big-eyes, cartoon, childhood, colorful, contemporary, femininity, pop-art, portraits, whimsical |
+?wizards_artist.ellsworth_kelly abstract, color-field, contemporary, flat-colors, geometric, minimalism |
+?wizards_artist.michael_kenna British, contemporary, high-contrast, landscapes, minimalism, monochromatic, photography, photography-bw |
+?wizards_artist.thomas_benjamin_kennington figurativism, impressionism, portraits, realism |
+?wizards_artist.william_kentridge African, animation, contemporary, drawing, messy, monochromatic, politics, printmaking |
+?wizards_artist.hendrik_kerstens conceptual, contemporary, fashion, photography, photography-color, portraits, whimsical |
+?wizards_artist.jeremiah_ketner activism, big-eyes, contemporary, female-figures, femininity, illustration, Social-commentary |
+?wizards_artist.fernand_khnopff metaphysics, painting, Sculpture, Symbolist |
+?wizards_artist.hideyuki_kikuchi dark, eerie, fantasy, horror, manga-anime |
+?wizards_artist.tom_killion contemporary, landscapes, Observational, Plein-air, Printmaking |
+?wizards_artist.thomas_kinkade color-field, contemporary, impressionism, landscapes, nature, portraits |
+?wizards_artist.jack_kirby comics, science-fiction, superheroes |
+?wizards_artist.ernst_ludwig_kirchner expressionism, german, landscapes, modern, portraits |
+?wizards_artist.tatsuro_kiuchi colorful, digital, flat-colors, landscapes, nature, street-art, urban-life, whimsical |
+?wizards_artist.jon_klassen animals, dream-like, kids-book, nature, playful, watercolor, whimsical |
+?wizards_artist.paul_klee abstract, Bauhaus, expressionism, German, playful |
+?wizards_artist.william_klein American, fashion, minimalism, monochromatic, photography, photography-bw, urban-life |
+?wizards_artist.yves_klein abstract, color-field, expressionism, fashion, French, modern, monochromatic, performance |
+?wizards_artist.carl_kleiner abstract, American, collage, digital, graphic-design, pop-art, portraits |
+?wizards_artist.gustav_klimt art-nouveau, Austrian, erotica, female-figures, golden, mosaic, portraits |
+?wizards_artist.godfrey_kneller baroque, impressionism, portraits, realism |
+?wizards_artist.emily_kame_kngwarreye Aboriginal, abstract, australian, colorful, dream-like, expressionism, landscapes, nature |
+?wizards_artist.chad_knight collage, colorful, digital, playful, pop-art, surreal |
+?wizards_artist.nick_knight Adventure, Fantasy, fashion, pastel-colors, photography, photography-color, Pop-art, surreal |
+?wizards_artist.helene_knoop characters, conceptual, contemporary, feminism, figurativism, minimalism, portraits |
+?wizards_artist.phil_koch atmospheric, colorful, contemporary, landscapes, nature, photography, photography-color, serenity, vibrant |
+?wizards_artist.kazuo_koike comics, fantasy, manga-anime |
+?wizards_artist.oskar_kokoschka Austrian, expressionism, german, landscapes, modern, portraits |
+?wizards_artist.kathe_kollwitz contemporary, expressionism, high-contrast, monochromatic, portraits, social-commentary |
+?wizards_artist.michael_komarck battle-scenes, contemporary, fantasy, illustration, painting |
+?wizards_artist.satoshi_kon dream-like, fantasy, manga-anime, surreal, whimsical |
+?wizards_artist.jeff_koons colorful, consumerism, contemporary, kitsch, pop-art, post-modern, sculpture |
+?wizards_artist.caia_koopman big-eyes, colorful, conceptual, contemporary, femininity, pop-art, portraits, surreal, whimsical |
+?wizards_artist.konstantin_korovin impressionism, Impressionism, painting, Plein-air |
+?wizards_artist.mark_kostabi figurative, modern, politics |
+?wizards_artist.bella_kotak conceptual, contemporary, fashion, photography, photography-color, portraits, urban-life |
+?wizards_artist.andrea_kowch contemporary, dark, fantasy, magic-realism, portraits, whimsical |
+?wizards_artist.lee_krasner abstract, abstract-expressionism, color-field, expressionism, feminism, gestural, improvisation |
+?wizards_artist.barbara_kruger advertising, conceptual, contemporary, feminism, graphic-design, high-contrast, montage, text-based |
+?wizards_artist.brad_kunkle conceptual, contemporary, dream-like, photography, photography-color, portraits |
+?wizards_artist.yayoi_kusama contemporary, fashion, feminism, infinity-rooms, installation, polka-dots, pop-art, vibrant |
+?wizards_artist.michael_k_kutsche characters, dark, dream-like, fantasy, mysterious, mythology |
+?wizards_artist.ilya_kuvshinov digital, dream-like, ethereal, fantasy, manga-anime, romanticism, surreal, vibrant |
+?wizards_artist.david_lachapelle conceptual, contemporary, luxury, photography, photography-color, pop-art, vibrant |
+?wizards_artist.raphael_lacoste atmospheric, dark, dream-like, eerie, fantasy, landscapes, mysterious |
+?wizards_artist.lev_lagorio landscapes, Observational, painting, Plein-air, Realism |
+?wizards_artist.rene_lalique art-deco, art-nouveau, French, glasswork, jewelry, luxury, nature, sculpture |
+?wizards_artist.abigail_larson dark, eerie, fantasy, kids-book, whimsical |
+?wizards_artist.gary_larson American, animals, cartoon, comics, newspaper, pop-culture, satire, slice-of-life |
+?wizards_artist.denys_lasdun Architecture, contemporary, metaphysics |
+?wizards_artist.maria_lassnig expressionism, figurative, self-portraits |
+?wizards_artist.dorothy_lathrop art-nouveau, delicate, dream-like, kids-book, romanticism, whimsical |
+?wizards_artist.melissa_launay contemporary, painting |
+?wizards_artist.john_lavery contemporary, impressionism, irish, landscapes, nature, portraits |
+?wizards_artist.jacob_lawrence African-American, angular, contemporary, cubism, harlem-renaissance, modern, social-realism |
+?wizards_artist.thomas_lawrence characters, femininity, impressionism, portraits, realism, romanticism |
+?wizards_artist.ernest_lawson American, everyday-life, impressionism, landscapes |
+?wizards_artist.bastien_lecouffe_deharme characters, dark, digital, ethereal, fantasy, magic, surreal |
+?wizards_artist.alan_lee dream-like, ethereal, fantasy, mythology, nostalgia, romanticism |
+?wizards_artist.minjae_lee contemporary, expressionism, fantasy, messy, portraits, South-Korean, whimsical |
+?wizards_artist.nina_leen conceptual, contemporary, monochromatic, photography, photography-bw, portraits, street-art, urban-life |
+?wizards_artist.fernand_leger abstract, colorful, cubism, geometric, modern |
+?wizards_artist.paul_lehr colorful, eerie, fantasy, futuristic, science-fiction, surreal |
+?wizards_artist.frederic_leighton expressionism, landscapes, portraits, romanticism |
+?wizards_artist.alayna_lemmer contemporary, expressionism, mixed-media |
+?wizards_artist.tamara_de_lempicka art-deco, cubism, fashion, luxury, portraits, romanticism |
+?wizards_artist.sol_lewitt abstract, conceptual, contemporary, geometric, minimalism, sculpture, serial-art, wall-drawings |
+?wizards_artist.jc_leyendecker American, illustration, nostalgia, pop-culture, portraits, posters |
+?wizards_artist.andre_lhote Cubism, impressionism, painting |
+?wizards_artist.roy_lichtenstein American, comics, expressionism, flat-colors, pop-art, portraits |
+?wizards_artist.rob_liefeld comics, fantasy, science-fiction, superheroes |
+?wizards_artist.fang_lijun contemporary, dutch, figurativism, portraits, realism, vibrant |
+?wizards_artist.maya_lin architecture, contemporary, environmentalism, identity, installation, land-art |
+?wizards_artist.filippino_lippi expressionism, landscapes, portraits, renaissance |
+?wizards_artist.herbert_list German, monochromatic, photography, photography-bw, portraits |
+?wizards_artist.richard_long British, contemporary, land-art, sculpture |
+?wizards_artist.yoann_lossel animals, fantasy, golden, illustration, realism |
+?wizards_artist.morris_louis abstract-expressionism, color-field, minimalism, painting |
+?wizards_artist.sarah_lucas contemporary, Femininity, feminism, sculpture, surreal |
+?wizards_artist.maximilien_luce , french, impressionism, landscapes, nature, oil-painting, plein-air, romanticism, vibrant |
+?wizards_artist.loretta_lux american, childhood, contemporary, impressionism, installation, photography, photography-color, portraits |
+?wizards_artist.george_platt_lynes fashion, figure-studies, homo-eroticism, LGBTQ, monochromatic, nudes, photography, photography-bw |
+?wizards_artist.frances_macdonald Allegory, impressionism, landscapes, Nostalgia, painting |
+?wizards_artist.august_macke abstract, colorful, expressionism, impressionism, modern, serenity, vibrant |
+?wizards_artist.stephen_mackey contemporary, dark, dream-like, expressionism, landscapes, surreal |
+?wizards_artist.rachel_maclean colorful, contemporary, photography, photography-color, portraits, Scottish, whimsical |
+?wizards_artist.raimundo_de_madrazo_y_garreta expressionism, impressionism, landscapes, portraits |
+?wizards_artist.joe_madureira comics, fantasy, superheroes |
+?wizards_artist.rene_magritte Belgian, cloudscapes, cubism, illusion, impressionism, surreal |
+?wizards_artist.jim_mahfood comics, graffiti, pop-art, street-art |
+?wizards_artist.vivian_maier contemporary, expressionism, landscapes, monochromatic, photography, photography-bw, portraits |
+?wizards_artist.aristide_maillol female-figures, modern, painting, Sculpture |
+?wizards_artist.don_maitz eerie, fantasy, futuristic, science-fiction, surreal |
+?wizards_artist.laura_makabresku contemporary, dark, Femininity, muted-colors, photography, photography-color, portraits, shallow-depth-of-field, surreal |
+?wizards_artist.alex_maleev comics, dark, fantasy, noir |
+?wizards_artist.keith_mallett dark, figurativism, minimalism, modern, muted-colors, sculpture, urban-life |
+?wizards_artist.johji_manabe comics, contemporary, Illustration, manga-anime, Metamorphosis, Science-fiction |
+?wizards_artist.milo_manara Comics, Controversy, erotica, Femininity, Illustration |
+?wizards_artist.edouard_manet controversy, femininity, French, impressionism, modern-life, portraits, realism, still-life |
+?wizards_artist.henri_manguin colorful, fauvism, impressionism, painting |
+?wizards_artist.jeremy_mann contemporary, dark, expressionism, grungy, messy, portraits, urban-life |
+?wizards_artist.sally_mann childhood, family, monochromatic, photography, photography-bw, social-commentary, suburbia |
+?wizards_artist.andrea_mantegna mythology, painting, religion, renaissance, spanish |
+?wizards_artist.antonio_j_manzanedo characters, dark, fantasy, mysterious |
+?wizards_artist.robert_mapplethorpe BDSM, figure-studies, homo-eroticism, LGBTQ, monochromatic, nudes, photography, photography-bw, portraits |
+?wizards_artist.franz_marc animals, colorful, cubism, expressionism, spirituality, vibrant |
+?wizards_artist.ivan_marchuk contemporary, expressionism, painting |
+?wizards_artist.brice_marden abstract, contemporary, minimalism |
+?wizards_artist.andrei_markin contemporary, expressionism, figurativism, impressionism, portraits |
+?wizards_artist.kerry_james_marshall collage, contemporary, expressionism, landscapes, portraits |
+?wizards_artist.serge_marshennikov contemporary, expressionism, impressionism, landscapes, portraits |
+?wizards_artist.agnes_martin abstract-expressionism, color-field, contemporary, grids, minimalism, spirituality |
+?wizards_artist.adam_martinakis 3D-rendering, conceptual, digital, dream-like, futuristic, multimedia, sculpture, virtual-reality |
+?wizards_artist.stephan_martiniere atmospheric, dark, fantasy, futuristic, landscapes, science-fiction, surreal |
+?wizards_artist.ilya_mashkov expressionism, painting, russian, Symbolist |
+?wizards_artist.henri_matisse collage, color-field, colorful, cut-outs, fauvism, French, impressionism, sculpture |
+?wizards_artist.rodney_matthews colorful, eerie, fantasy, futuristic, science-fiction |
+?wizards_artist.anton_mauve impressionism, landscapes, painting |
+?wizards_artist.peter_max colorful, contemporary, pop-art, surreal, vibrant |
+?wizards_artist.mike_mayhew comics, fantasy, portraits |
+?wizards_artist.angus_mcbride battle-scenes, British, fantasy, history, horses, illustration |
+?wizards_artist.anne_mccaffrey adventure, dragons, fantasy, magic, mythology, science-fiction |
+?wizards_artist.robert_mccall futuristic, outer-space, science-fiction |
+?wizards_artist.scott_mccloud comics, contemporary, pop-art |
+?wizards_artist.steve_mccurry documentary, photography, photography-color, portraits, rural-life, shallow-depth-of-field, social-commentary |
+?wizards_artist.todd_mcfarlane comics, dark, fantasy |
+?wizards_artist.barry_mcgee contemporary, painting, street-art, urban-life |
+?wizards_artist.ryan_mcginley colorful, contemporary, dream-like, nudes, photography, photography-color, portraits, vibrant |
+?wizards_artist.robert_mcginnis dream-like, erotica, figurative, illustration, pulp, romanticism |
+?wizards_artist.richard_mcguire colorful, conceptual, flat-colors, illustration, whimsical |
+?wizards_artist.patrick_mchale cartoon, contemporary, drawing |
+?wizards_artist.kelly_mckernan contemporary, expressionism, magic-realism, portraits, watercolor, whimsical |
+?wizards_artist.angus_mckie fantasy, futuristic, science-fiction |
+?wizards_artist.alasdair_mclellan american, contemporary, fashion, impressionism, installation, photography, photography-bw, photography-color, portraits |
+?wizards_artist.jon_mcnaught cartoon, flat-colors, illustration, playful |
+?wizards_artist.dan_mcpharlin dream-like, ethereal, magic, science-fiction, surreal |
+?wizards_artist.tara_mcpherson american, contemporary, impressionism, installation, pop-art, portraits, surreal |
+?wizards_artist.ralph_mcquarrie eerie, futuristic, landscapes, science-fiction |
+?wizards_artist.ian_mcque dark, fantasy, grungy, messy, science-fiction, surreal |
+?wizards_artist.syd_mead angular, flat-colors, futuristic, minimalism, modern, science-fiction, technology |
+?wizards_artist.richard_meier architecture, conceptual, geometric, minimalism, sculpture |
+?wizards_artist.maria_sibylla_merian biological, botanical, insects, naturalist, nature, observational |
+?wizards_artist.willard_metcalf American, landscapes, muted-colors, tonalism |
+?wizards_artist.gabriel_metsu baroque, expressionism, portraits, still-life |
+?wizards_artist.jean_metzinger cubism, geometric, modern, vibrant |
+?wizards_artist.michelangelo ceiling-painting, figurative, frescoes, Italian, religion, renaissance, sculpture |
+?wizards_artist.nicolas_mignard baroque, expressionism, landscapes, portraits |
+?wizards_artist.mike_mignola comics, dark, high-contrast, high-contrast |
+?wizards_artist.dimitra_milan contemporary, expressionism, messy, portraits, whimsical |
+?wizards_artist.john_everett_millais expressionism, impressionism, landscapes, portraits |
+?wizards_artist.marilyn_minter erotica, messy, painting, photography, photography-color, photorealism, portraits |
+?wizards_artist.januz_miralles contemporary, low-contrast, monochromatic, portraits, watercolor |
+?wizards_artist.joan_miro abstract, color-field, colorful, modern, playful, sculpture, Spanish |
+?wizards_artist.joan_mitchell abstract, expressionism, large-scale, messy |
+?wizards_artist.hayao_miyazaki adventure, animation, fantasy, film, Japanese, kids-book, manga-anime, whimsical |
+?wizards_artist.paula_modersohn_becker expressionism, family, female-figures, femininity, German, painting, portraits, self-portraits |
+?wizards_artist.amedeo_modigliani expressionism, fauvism, Italian, modern, portraits, romanticism, sculpture |
+?wizards_artist.moebius comics, dream-like, fantasy, psychedelic, science-fiction, surreal |
+?wizards_artist.peter_mohrbacher dark, dream-like, ethereal, fantasy, mythology, surreal, whimsical |
+?wizards_artist.piet_mondrian abstract, angular, Dutch, geometric, primary-colors, vibrant |
+?wizards_artist.claude_monet color-field, French, impressionism, landscapes, plein-air, seascapes, water-lilies |
+?wizards_artist.jean_baptiste_monge dark, eerie, fantasy, mysterious, surreal |
+?wizards_artist.alyssa_monks contemporary, expressionism, figurativism, messy, photorealism, portraits |
+?wizards_artist.alan_moore comics, dark, dystopia, fantasy, graphic-novel, grungy, horror, noir, science-fiction |
+?wizards_artist.antonio_mora american, contemporary, landscapes, monochromatic, photography, photography-bw, portraits, surreal |
+?wizards_artist.edward_moran american, hudson-river-school, landscapes, painting, seascapes |
+?wizards_artist.koji_morimoto contemporary, cute, illustration, Japanese, monsters, surreal |
+?wizards_artist.berthe_morisot domestic-scenes, feminism, fleeting-moments, French, impressionism, landscapes, portraits, still-life |
+?wizards_artist.daido_moriyama documentary, grungy, Japanese, monochromatic, photography, photography-bw, post-war, urban-life |
+?wizards_artist.james_wilson_morrice impressionism, landscapes, painting, plein-air |
+?wizards_artist.sarah_morris abstract, contemporary, Femininity, identity, painting |
+?wizards_artist.john_lowrie_morrison contemporary, impressionism, landscapes, vibrant |
+?wizards_artist.igor_morski american, contemporary, portraits, surreal |
+?wizards_artist.john_kenn_mortensen dark, eerie, horror, kids-book, monochromatic |
+?wizards_artist.victor_moscoso colorful, pop-art, psychedelic, typography, vibrant |
+?wizards_artist.inna_mosina Ballet, contemporary, Femininity, identity, Photography, photography-color, Sculpture, shallow-depth-of-field |
+?wizards_artist.richard_mosse battle-scenes, colorful, documentary, landscapes, photography, photography-color, surreal, vibrant |
+?wizards_artist.thomas_edwin_mostyn British, landscapes, mysticism, portraits, pre-raphaelite, romanticism, still-life |
+?wizards_artist.marcel_mouly abstract, colorful, contemporary, fauvism, French, modern, vibrant |
+?wizards_artist.emmanuelle_moureaux abstract, colorful, contemporary, environmentalism, installation, multimedia, sculpture, vibrant |
+?wizards_artist.alphonse_mucha art-nouveau, commercial-art, Czech, femininity, portraits, posters, stained-glass |
+?wizards_artist.craig_mullins dark, dream-like, fantasy, horror, mythology, surreal |
+?wizards_artist.augustus_edwin_mulready Commercial-art, painting, Realism, Romanticism, Symbolist |
+?wizards_artist.dan_mumford colorful, digital, dreams, fantasy, psychedelic, surreal, vibrant |
+?wizards_artist.edvard_munch anxiety, dark, expressionism, impressionism, melancholy, Norwegian, oil-painting |
+?wizards_artist.alfred_munnings horses, modern, painting |
+?wizards_artist.gabriele_munter expressionism, Expressionism, painting, Symbolist |
+?wizards_artist.takashi_murakami contemporary, cute, flat-colors, Japanese, manga-anime, pop-art |
+?wizards_artist.patrice_murciano colorful, contemporary, expressionism, messy, pop-art, portraits, surreal, vibrant |
+?wizards_artist.scott_musgrove Adventure, Advertising, contemporary, Illustration, landscapes |
+?wizards_artist.wangechi_mutu Collage, contemporary, Feminism, identity, Mixed-media |
+?wizards_artist.go_nagai childhood, manga-anime, portraits |
+?wizards_artist.hiroshi_nagai cityscapes, flat-colors, japanese, landscapes, minimalism, urban-life |
+?wizards_artist.patrick_nagel contemporary, flat-colors, high-contrast, pop-art, portraits |
+?wizards_artist.tibor_nagy contemporary, metaphysics, Sculpture, Symbolist |
+?wizards_artist.scott_naismith colorful, impressionism, landscapes, messy, seascapes, serenity, vibrant |
+?wizards_artist.juliana_nan contemporary, macro-world, photography, photography-color |
+?wizards_artist.ted_nasmith atmospheric, ethereal, fantasy, landscapes, magic, mythology |
+?wizards_artist.todd_nauck adventure, characters, comics, science-fiction, superheroes |
+?wizards_artist.bruce_nauman conceptual, contemporary, neon, performance, sculpture |
+?wizards_artist.ernst_wilhelm_nay abstract, colorful, expressionism, figurativism, german, modern, vibrant |
+?wizards_artist.alice_neel contemporary, expressionism, feminism, figurative, portraits, social-realism |
+?wizards_artist.keith_negley collage, colorful, graphic-design, illustration, mixed-media, pop-art |
+?wizards_artist.leroy_neiman colorful, contemporary, messy, painting, sports |
+?wizards_artist.kadir_nelson African-American, contemporary, expressionism, impressionism, landscapes, portraits |
+?wizards_artist.odd_nerdrum characters, dark, fantasy, figurative, melancholy |
+?wizards_artist.shirin_neshat contemporary, feminism, identity, Iranian, photography, photography-bw, video-art |
+?wizards_artist.mikhail_nesterov Figurative, painting, Religion, religion, Romanticism, spirituality |
+?wizards_artist.jane_newland botanical, colorful, nature, serenity, watercolor |
+?wizards_artist.victo_ngai colorful, dream-like, illustration, kids-book, playful, surreal |
+?wizards_artist.william_nicholson Modern, Observational, painting, Slice-of-life |
+?wizards_artist.florian_nicolle contemporary, expressionism, messy, portraits, watercolor |
+?wizards_artist.kay_nielsen American, Danish, elegant, exoticism, Fantasy, fantasy, illustration, kids-book, orientalism, painting, whimsical |
+?wizards_artist.tsutomu_nihei alien-worlds, cyberpunk, dark, dystopia, industrial, manga-anime, monochromatic, science-fiction |
+?wizards_artist.victor_nizovtsev colorful, dream-like, fantasy, magic, magic-realism, mysterious, surreal, whimsical |
+?wizards_artist.isamu_noguchi Japanese, landscape-architecture, organic, sculpture |
+?wizards_artist.catherine_nolin conceptual, contemporary, feminism, portraits |
+?wizards_artist.francois_de_nome baroque, expressionism, mixed-media |
+?wizards_artist.earl_norem battle-scenes, dark, fantasy, mythology |
+?wizards_artist.phil_noto american, characters, comics, contemporary, impressionism, installation, portraits |
+?wizards_artist.georgia_okeeffe abstract, American, figurativism, flowers, landscapes, modern, precisionism, southwest |
+?wizards_artist.terry_oakes adventure, fantasy, magic, outer-space, science-fiction |
+?wizards_artist.chris_ofili afro-futurism, contemporary, expressionism, figurative, mixed-media, painting, post-colonialism, watercolor |
+?wizards_artist.jack_ohman comics, contemporary, Illustration, politics, Satire |
+?wizards_artist.noriyoshi_ohrai fantasy, futuristic, posters, science-fiction, vibrant |
+?wizards_artist.helio_oiticica abstract, angular, contemporary, installation, interactive, multimedia |
+?wizards_artist.taro_okamoto avant-garde, gutai, Japanese, performance, sculpture, surreal |
+?wizards_artist.tim_okamura African-American, contemporary, expressionism, graffiti, landscapes, portraits, street-art |
+?wizards_artist.naomi_okubo collage, colorful, empowerment, feminism, identity, politics |
+?wizards_artist.atelier_olschinsky abstract, cityscapes, digital, geometric, minimalism, modern |
+?wizards_artist.greg_olsen contemporary, outer-space, painting, spirituality, Wildlife |
+?wizards_artist.oleg_oprisco american, contemporary, flowers, impressionism, photography, photography-color, portraits |
+?wizards_artist.tony_orrico contemporary, installation, minimalism, sculpture |
+?wizards_artist.mamoru_oshii Animation, contemporary, manga-anime, Metaphysics, Science-fiction |
+?wizards_artist.ida_rentoul_outhwaite art-nouveau, dream-like, fantasy, femininity, folklore, kids-book, nature, watercolor, whimsical |
+?wizards_artist.yigal_ozeri contemporary, Observational, painting, Realism, Slice-of-life |
+?wizards_artist.gabriel_pacheco contemporary, dark, figurative, painting, surreal |
+?wizards_artist.michael_page colorful, contemporary, expressionism, playful, pop-art, vibrant, whimsical |
+?wizards_artist.rui_palha conceptual, contemporary, installation, monochromatic, photography, photography-bw |
+?wizards_artist.polixeni_papapetrou contemporary, photography, photography-color, portraits, surreal |
+?wizards_artist.julio_le_parc abstract, colorful, graphic-design, playful, pop-art, vibrant |
+?wizards_artist.michael_parkes dream-like, ethereal, fantasy, magic-realism, spirituality |
+?wizards_artist.philippe_parreno conceptual, contemporary, film, installation, multimedia, post-modern |
+?wizards_artist.maxfield_parrish Art-Nouveau, Fantasy, Nostalgia, painting |
+?wizards_artist.alice_pasquini contemporary, Documentary, Mural-painting, Public-Art, Social-realism, Street-art |
+?wizards_artist.james_mcintosh_patrick contemporary, mixed-media, painting |
+?wizards_artist.john_pawson abstract, architecture, British, contemporary, minimalism |
+?wizards_artist.max_pechstein colorful, expressionism, modern, vibrant |
+?wizards_artist.agnes_lawrence_pelton abstract, color-field, contemporary, ethereal, modern, serenity, spirituality |
+?wizards_artist.irving_penn characters, contemporary, expressionism, monochromatic, photography, photography-bw, portraits |
+?wizards_artist.bruce_pennington colorful, fantasy, futuristic, landscapes, outer-space, science-fiction |
+?wizards_artist.john_perceval abstract, expressionism, messy |
+?wizards_artist.george_perez contemporary, mixed-media, street-art |
+?wizards_artist.constant_permeke expressionism, Expressionism, painting, Sculpture, Symbolist |
+?wizards_artist.lilla_cabot_perry American, gardens, impressionism, interiors |
+?wizards_artist.gaetano_pesce architecture, contemporary, organic, vibrant |
+?wizards_artist.cleon_peterson characters, contemporary, flat-colors, geometric, graphic-design, social-commentary |
+?wizards_artist.daria_petrilli american, contemporary, impressionism, low-contrast, portraits, whimsical |
+?wizards_artist.raymond_pettibon comics, contemporary, drawing, high-contrast |
+?wizards_artist.coles_phillips advertising, art-deco, fashion, femininity, illustration, nostalgia |
+?wizards_artist.francis_picabia avant-garde, Dadaism, French, painting, surreal |
+?wizards_artist.pablo_picasso collage, cubism, impressionism, modern, sculpture, Spanish, surreal |
+?wizards_artist.sopheap_pich contemporary, installation, sculpture |
+?wizards_artist.otto_piene contemporary, installation, kinetic |
+?wizards_artist.jerry_pinkney characters, fantasy, illustration, kids-book |
+?wizards_artist.pinturicchio Allegory, painting, Religion, Renaissance |
+?wizards_artist.sebastiano_del_piombo expressionism, landscapes, portraits, renaissance, sculpture |
+?wizards_artist.camille_pissarro impressionism, Impressionism, Observational, painting, Printmaking |
+?wizards_artist.ferris_plock contemporary, illustration, whimsical |
+?wizards_artist.bill_plympton animation, cartoon, sketching, whimsical |
+?wizards_artist.willy_pogany American, fantasy, Hungarian, illustration, kids-book, ornate, whimsical |
+?wizards_artist.patricia_polacco animals, colorful, family, illustration, kids-book, nostalgia |
+?wizards_artist.jackson_pollock abstract, action-painting, American, drip-painting, expressionism, messy |
+?wizards_artist.beatrix_potter animals, book-illustration, British, kids-book, nature, watercolor, whimsical |
+?wizards_artist.edward_henry_potthast impressionism, landscapes, painting |
+?wizards_artist.simon_prades conceptual, contemporary, digital, dream-like, magic-realism, pop-art, surreal |
+?wizards_artist.maurice_prendergast impressionism, Impressionism, Observational, painting |
+?wizards_artist.dod_procter expressionism, impressionism, landscapes, portraits |
+?wizards_artist.leo_putz art-Nouveau, expressionism, impressionism, mixed-media |
+?wizards_artist.howard_pyle adventure, American, history, illustration, kids-book, posters |
+?wizards_artist.arthur_rackham British, creatures, fantasy, illustration, kids-book, magic |
+?wizards_artist.natalia_rak childhood, colorful, contemporary, expressionism, portraits, street-art, whimsical |
+?wizards_artist.paul_ranson abstract, art-nouveau, dream-like, nature, vibrant, whimsical |
+?wizards_artist.raphael painting, Renaissance |
+?wizards_artist.abraham_rattner expressionism, Expressionism, painting, Sculpture, Symbolist |
+?wizards_artist.jan_van_ravesteyn Architecture, Baroque, Observational, Plein-air, Sculpture |
+?wizards_artist.aliza_razell conceptual, dream-like, eerie, ethereal, fantasy, photography, photography-color, surreal |
+?wizards_artist.paula_rego contemporary, expressionism, impressionism, landscapes, portraits |
+?wizards_artist.lotte_reiniger animation, folklore, German, nostalgia, puppets, silhouettes |
+?wizards_artist.valentin_rekunenko dream-like, fantasy, surreal, whimsical |
+?wizards_artist.christoffer_relander american, contemporary, impressionism, monochromatic, nature, photography, photography-bw, portraits |
+?wizards_artist.andrey_remnev baroque, characters, contemporary, expressionism, portraits, renaissance |
+?wizards_artist.pierre_auguste_renoir female-figures, femininity, French, impressionism, landscapes, outdoor-scenes, pastel, plein-air, portraits |
+?wizards_artist.ilya_repin expressionism, impressionism, landscapes, portraits |
+?wizards_artist.joshua_reynolds expressionism, landscapes, portraits, romanticism |
+?wizards_artist.rhads digital, landscapes, magic-realism, mixed-media, surreal, vibrant |
+?wizards_artist.bettina_rheims celebrity, contemporary, fashion, identity, photography, photography-bw, portraits |
+?wizards_artist.jason_rhoades conceptual, contemporary, installation, sculpture |
+?wizards_artist.georges_ribemont_dessaignes avant-garde, Dadaism, French |
+?wizards_artist.jusepe_de_ribera baroque, dark, expressionism, portraits |
+?wizards_artist.gerhard_richter abstract, blurry, contemporary, German, multimedia, oil-painting, photorealism |
+?wizards_artist.chris_riddell cartoon, creatures, fantasy, illustration, kids-book, watercolor, whimsical |
+?wizards_artist.hyacinthe_rigaud baroque, expressionism, landscapes, portraits |
+?wizards_artist.rembrandt_van_rijn baroque, Dutch, etching, history, portraits, religion, self-portraits |
+?wizards_artist.faith_ringgold activism, African-American, contemporary, expressionism, feminism, pop-art, quilting |
+?wizards_artist.jozsef_rippl_ronai hungarian, landscapes, post-impressionism, realism |
+?wizards_artist.pipilotti_rist colorful, dream-like, female-figures, immersive, installation, playful, Swiss, vibrant, video-art |
+?wizards_artist.charles_robinson painting, politics, Realism, Satire |
+?wizards_artist.theodore_robinson contemporary, mixed-media |
+?wizards_artist.kenneth_rocafort comics, contemporary, Fantasy, Graphic-novel, illustration, Illustration, Science-fiction, superheroes |
+?wizards_artist.andreas_rocha atmospheric, dark, digital, fantasy, landscapes |
+?wizards_artist.norman_rockwell American, illustration, nostalgia, painting, pop-culture, realism, slice-of-life |
+?wizards_artist.ludwig_mies_van_der_rohe architecture, modern |
+?wizards_artist.fatima_ronquillo contemporary, expressionism, landscapes, portraits, whimsical |
+?wizards_artist.salvator_rosa baroque, painting, renaissance, sculpture |
+?wizards_artist.kerby_rosanes contemporary, illustration, whimsical |
+?wizards_artist.conrad_roset contemporary, expressionism, impressionism, pastel-colors, portraits, watercolor |
+?wizards_artist.bob_ross Commercial-art, Consumerism, contemporary, landscapes, painting |
+?wizards_artist.dante_gabriel_rossetti contemporary, expressionism, landscapes, portraits, romanticism |
+?wizards_artist.jessica_rossier conceptual, dark, digital, landscapes, outer-space, spirituality, surreal, whimsical |
+?wizards_artist.marianna_rothen conceptual, contemporary, femininity, identity, muted-colors, photography, photography-color |
+?wizards_artist.mark_rothko abstract, American, color-field, expressionism, large-scale, minimalism, spirituality |
+?wizards_artist.eva_rothschild contemporary, Irish, sculpture |
+?wizards_artist.georges_rousse Femininity, Impressionism, Mysticism, Neo-Impressionism, painting, Post-Impressionism |
+?wizards_artist.luis_royo contemporary, fantasy, landscapes, messy, portraits |
+?wizards_artist.joao_ruas characters, comics, dark, fantasy, gothic, horror, noir |
+?wizards_artist.peter_paul_rubens baroque, Flemish, history, mythology, nudes, oil-painting, painting, renaissance, romanticism |
+?wizards_artist.rachel_ruysch baroque, painting, still-life |
+?wizards_artist.albert_pinkham_ryder dream-like, impressionism, painting, seascapes |
+?wizards_artist.mark_ryden big-eyes, childhood, contemporary, creatures, dark, dream-like, illustration, surreal |
+?wizards_artist.ursula_von_rydingsvard abstract, Metamorphosis, Minimalism, Sculpture |
+?wizards_artist.theo_van_rysselberghe expressionism, impressionism, landscapes, portraits |
+?wizards_artist.eero_saarinen Architecture, metaphysics, modern, Modern |
+?wizards_artist.wlad_safronow angular, colorful, contemporary, expressionism, portraits |
+?wizards_artist.amanda_sage contemporary, expressionism, playful, psychedelic, surreal, whimsical |
+?wizards_artist.antoine_de_saint_exupery adventure, French, illustration, kids-book, spirituality, whimsical |
+?wizards_artist.nicola_samori contemporary, dark, expressionism, landscapes, portraits |
+?wizards_artist.rebeca_saray conceptual, contemporary, digital, fashion, femininity, identity, photography, photography-color, portraits |
+?wizards_artist.john_singer_sargent expressionism, impressionism, landscapes, portraits |
+?wizards_artist.martiros_saryan colorful, impressionism, landscapes, nature, serenity, vibrant, wildlife |
+?wizards_artist.viviane_sassen conceptual, contemporary, geometric, photography, photography-color, surreal, vibrant |
+?wizards_artist.nike_savvas abstract, contemporary, large-scale, painting |
+?wizards_artist.richard_scarry animals, anthropomorphism, colorful, contemporary, illustration, kids-book, playful, whimsical |
+?wizards_artist.godfried_schalcken American, contemporary, Dutch, muscles, portraits |
+?wizards_artist.miriam_schapiro abstract, contemporary, expressionism, feminism, politics, vibrant |
+?wizards_artist.kenny_scharf colorful, playful, pop-art, psychedelic, surreal, vibrant, whimsical |
+?wizards_artist.jerry_schatzberg characters, monochromatic, noir, nostalgia, photography, photography-bw, portraits, urban-life |
+?wizards_artist.ary_scheffer dutch, mythology, neo-classicism, portraits, religion, romanticism |
+?wizards_artist.kees_scherer color-field, contemporary, impressionism, landscapes |
+?wizards_artist.helene_schjerfbeck expressionism, finnish, identity, portraits, self-portraits |
+?wizards_artist.christian_schloe dream-like, fantasy, mysterious, portraits, romanticism, surreal |
+?wizards_artist.karl_schmidt_rottluff abstract, colorful, expressionism, figurativism, german, japanese, landscapes, vibrant, woodblock |
+?wizards_artist.julian_schnabel figurative, messy, neo-expressionism, painting |
+?wizards_artist.fritz_scholder color-field, expressionism, identity, native-american, portraits, spirituality |
+?wizards_artist.charles_schulz American, cartoon, characters, childhood, comics, nostalgia, social-commentary |
+?wizards_artist.sean_scully abstract, angular, grids, minimalism |
+?wizards_artist.ronald_searle cartoon, comics, illustration, whimsical |
+?wizards_artist.mark_seliger American, Anxiety, celebrity, contemporary, monochromatic, Photography, photography-bw, Portraits |
+?wizards_artist.anton_semenov contemporary, dark, digital, horror, illustration, painting, shock-art, surreal |
+?wizards_artist.edmondo_senatore atmospheric, monochromatic, photography, photography-bw, portraits |
+?wizards_artist.maurice_sendak American, fantasy, illustration, kids-book, whimsical, wilderness |
+?wizards_artist.richard_serra contemporary, installation, large-scale, minimalism, sculpture |
+?wizards_artist.georges_seurat color-field, impressionism, landscapes, nature, painting, pointillism |
+?wizards_artist.dr_seuss cartoon, characters, colorful, kids-book, playful, whimsical |
+?wizards_artist.tanya_shatseva contemporary, eerie, painting, Russian, surreal |
+?wizards_artist.natalie_shau characters, digital, dream-like, fantasy, femininity, mixed-media, pastel-colors, photorealism, surreal, whimsical |
+?wizards_artist.barclay_shaw angular, cyberpunk, dark, futuristic, industrial, science-fiction |
+?wizards_artist.e_h_shepard animals, drawing, illustration, kids-book, nature, nostalgia, watercolor, whimsical |
+?wizards_artist.amrita_sher_gil female-figures, folklore, Indian, modern, painting, portraits, social-commentary |
+?wizards_artist.irene_sheri femininity, flowers, impressionism, nature, pastel, portraits, romanticism, serenity |
+?wizards_artist.duffy_sheridan interiors, photorealism, pop-culture, portraits |
+?wizards_artist.cindy_sherman conceptual, contemporary, feminism, identity, photography, photography-color, portraits, post-modern, self-portraits |
+?wizards_artist.shozo_shimamoto abstract, action-painting, collaborative, gutai, Japanese, messy, mixed-media, performance, post-war |
+?wizards_artist.hikari_shimoda big-eyes, childhood, colorful, digital, fantasy, japanese, manga-anime, portraits, vibrant |
+?wizards_artist.makoto_shinkai contemporary, Film, Fleeting-moments, manga-anime, Slice-of-life |
+?wizards_artist.chiharu_shiota conceptual, environmentalism, immersive, installation, low-contrast, messy, vibrant |
+?wizards_artist.elizabeth_shippen_green American, dream-like, fairies, illustration, kids-book |
+?wizards_artist.masamune_shirow cartoon, characters, comics, fantasy, manga-anime, robots-cyborgs, science-fiction |
+?wizards_artist.tim_shumate animals, big-eyes, cartoon, childhood, dreams, portraits, whimsical |
+?wizards_artist.yuri_shwedoff contemporary, Fantasy, Illustration, Surreal |
+?wizards_artist.malick_sidibe African-American, Documentary, Harlem-Renaissance, monochromatic, Photography, photography-bw, Slice-of-life |
+?wizards_artist.jeanloup_sieff erotica, fashion, landscapes, monochromatic, nudes, photography, photography-bw, portraits |
+?wizards_artist.bill_sienkiewicz comics, dark, expressionism, figurativism, grungy, messy, pop-art, superheroes, watercolor |
+?wizards_artist.marc_simonetti dark, digital, dream-like, fantasy, landscapes, surreal |
+?wizards_artist.david_sims British, contemporary, fashion, photography, photography-bw, photography-color |
+?wizards_artist.andy_singer American, celebrity, consumerism, pop-art |
+?wizards_artist.alfred_sisley french, impressionism, landscapes, nature, plein-air, portraits |
+?wizards_artist.sandy_skoglund conceptual, contemporary, installation, still-life, surreal, vibrant, whimsical |
+?wizards_artist.jeffrey_smart dream-like, Scottish, surreal |
+?wizards_artist.berndnaut_smilde cloudscapes, Dutch, installation, Metamorphosis, Photography, photography-color, Surreal |
+?wizards_artist.rodney_smith fashion, monochromatic, photography, photography-bw, portraits |
+?wizards_artist.samantha_keely_smith abstract, abstract-Expressionism, contemporary, Dream-like, Loneliness, painting |
+?wizards_artist.robert_smithson conceptual, earthworks, environmentalism, land-art, post-minimalism, sculpture |
+?wizards_artist.barbara_stauffacher_solomon Commercial-art, contemporary, Graphic-Design, Graphic-design, Pop-art |
+?wizards_artist.simeon_solomon Jewish, LGBTQ, Metaphysics, painting, pre-raphaelite, Symbolist |
+?wizards_artist.hajime_sorayama characters, erotica, futuristic, robots-cyborgs, science-fiction, technology |
+?wizards_artist.joaquin_sorolla beach-scenes, impressionism, landscapes, portraits, seascapes, spanish |
+?wizards_artist.ettore_sottsass architecture, art-deco, colorful, furniture, playful, sculpture |
+?wizards_artist.amadeo_de_souza_cardoso cubism, futurism, modern, painting, Portuguese |
+?wizards_artist.millicent_sowerby botanical, British, flowers, illustration, kids-book, nature |
+?wizards_artist.moses_soyer figurative, painting, portraits, realism |
+?wizards_artist.sparth digital, fantasy, futuristic, landscapes, minimalism, science-fiction, surreal |
+?wizards_artist.jack_spencer contemporary, muted-colors, photography, photography-color |
+?wizards_artist.art_spiegelman American, animals, autobiographical, cartoon, comics, graphic-novel, history, Holocaust |
+?wizards_artist.simon_stalenhag digital, eerie, futurism, landscapes, nostalgia, rural-life, science-fiction, suburbia |
+?wizards_artist.ralph_steadman cartoon, dark, grungy, illustration, messy, satire, surreal, whimsical |
+?wizards_artist.philip_wilson_steer atmospheric, british, impressionism, landscapes, portraits, seascapes |
+?wizards_artist.william_steig colorful, illustration, kids-book, playful, watercolor |
+?wizards_artist.fred_stein contemporary, impressionism, landscapes, realism |
+?wizards_artist.theophile_steinlen Allegory, Art-Nouveau, Observational, Printmaking |
+?wizards_artist.brian_stelfreeze Activism, comics, contemporary, digital, Illustration, Social-realism |
+?wizards_artist.frank_stella abstract, angular, colorful, cubism, expressionism, geometric, modern, vibrant |
+?wizards_artist.joseph_stella angular, colorful, cubism, expressionism, geometric, minimalism, modern |
+?wizards_artist.irma_stern expressionism, figurativism, portraits |
+?wizards_artist.alfred_stevens fashion, femininity, impressionism, luxury, portraits |
+?wizards_artist.marie_spartali_stillman femininity, medieval, mythology, portraits, pre-raphaelite, romanticism, vibrant |
+?wizards_artist.stinkfish Colombian, colorful, graffiti, portraits, street-art, surreal, urban-life, vibrant |
+?wizards_artist.anne_stokes characters, dark, eerie, fantasy, gothic, mysterious, whimsical |
+?wizards_artist.william_stout dark, fantasy, gothic, mythology |
+?wizards_artist.paul_strand American, landscapes, minimalism, monochromatic, photography, photography-bw, portraits, still-life, urban-life |
+?wizards_artist.linnea_strid childhood, femininity, nostalgia, photography, photography-color, portraits |
+?wizards_artist.john_melhuish_strudwick mythology, pre-raphaelite, romanticism, victorian |
+?wizards_artist.drew_struzan fantasy, nostalgia, portraits, posters, science-fiction |
+?wizards_artist.tatiana_suarez collage, colorful, pop-art, pop-culture, portraits |
+?wizards_artist.eustache_le_sueur Baroque, Fleeting-moments, impressionism, painting, portraits |
+?wizards_artist.rebecca_sugar contemporary, feminism, installation, mixed-media |
+?wizards_artist.hiroshi_sugimoto architecture, conceptual, geometric, Japanese, long-exposure, monochromatic, photography, photography-bw, seascapes |
+?wizards_artist.graham_sutherland battle-scenes, British, distortion, eerie, expressionism, landscapes, messy, portraits |
+?wizards_artist.jan_svankmajer animation, dark, horror, puppets, sculpture, surreal |
+?wizards_artist.raymond_swanland atmospheric, dark, digital, eerie, fantasy |
+?wizards_artist.annie_swynnerton femininity, feminism, mythology, portraits, spirituality |
+?wizards_artist.stanislaw_szukalski Metaphysics, Mysticism, primitivism, Sculpture, surreal |
+?wizards_artist.philip_taaffe abstract, contemporary, painting, Symbolist |
+?wizards_artist.hiroyuki_mitsume_takahashi childhood, colorful, comics, contemporary, japanese, manga-anime, portraits, social-commentary |
+?wizards_artist.dorothea_tanning dream-like, eerie, figure-studies, metamorphosis, surreal |
+?wizards_artist.margaret_tarrant British, colorful, dream-like, folklore, illustration, kids-book, whimsical |
+?wizards_artist.genndy_tartakovsky animation, cartoon, characters, contemporary, playful, whimsical |
+?wizards_artist.teamlab colorful, digital, immersive, installation, interactive, light-art, technology, vibrant |
+?wizards_artist.raina_telgemeier autobiographical, comics, contemporary, graphic-novel, Graphic-novel, Slice-of-life |
+?wizards_artist.john_tenniel drawing, fantasy, kids-book, whimsical |
+?wizards_artist.sir_john_tenniel British, fantasy, illustration, kids-book, Victorian, whimsical |
+?wizards_artist.howard_terpning contemporary, landscapes, realism |
+?wizards_artist.osamu_tezuka animation, cartoon, characters, Japanese, manga-anime, robots-cyborgs, science-fiction |
+?wizards_artist.abbott_handerson_thayer american, atmospheric, landscapes, portraits, romanticism, serenity, tonalism |
+?wizards_artist.heather_theurer baroque, dream-like, erotica, ethereal, fantasy, mythology, renaissance, romanticism |
+?wizards_artist.mickalene_thomas African-American, Collage, contemporary, Femininity, identity, painting, Portraits |
+?wizards_artist.tom_thomson art-nouveau, Canadian, expressionism, impressionism, landscapes, nature, wilderness |
+?wizards_artist.titian dark, Italian, mythology, oil-painting, painting, portraits, religion, renaissance |
+?wizards_artist.mark_tobey abstract, modern, painting, spirituality |
+?wizards_artist.greg_tocchini contemporary, expressionism, sculpture |
+?wizards_artist.roland_topor animation, dark, eerie, horror, satire, surreal |
+?wizards_artist.sergio_toppi fantasy, illustration, whimsical |
+?wizards_artist.alex_toth animals, bronze, cartoon, comics, figurative, wildlife |
+?wizards_artist.henri_de_toulouse_lautrec art-nouveau, cabaret, French, impressionism, lithography, nightlife, portraits, posters |
+?wizards_artist.ross_tran conceptual, digital, femininity, figurativism, manga-anime, minimalism, pastel-colors, portraits, realism |
+?wizards_artist.philip_treacy avant-garde, fashion, hats, luxury, opulent, photography, photography-color, portraits |
+?wizards_artist.anne_truitt Conceptual, minimalism, Minimalism, Sculpture |
+?wizards_artist.henry_scott_tuke figure-studies, impressionism, landscapes, realism |
+?wizards_artist.jmw_turner atmospheric, British, landscapes, painting, romanticism, seascapes |
+?wizards_artist.james_turrell architecture, colorful, contemporary, geometric, installation, light-art, minimalism, sculpture, vibrant |
+?wizards_artist.john_henry_twachtman American, impressionism, landscapes, nature, pastel-colors |
+?wizards_artist.naomi_tydeman contemporary, impressionism, landscapes, watercolor |
+?wizards_artist.euan_uglow british, figurativism, interiors, portraits, still-life |
+?wizards_artist.daniela_uhlig characters, contemporary, digital, dream-like, ethereal, German, landscapes, portraits, surreal |
+?wizards_artist.kitagawa_utamaro Edo-period, fashion, female-figures, genre-scenes, Japanese, nature, portraits, ukiyo-e, woodblock |
+?wizards_artist.christophe_vacher cloudscapes, dream-like, ethereal, fantasy, landscapes, magic-realism |
+?wizards_artist.suzanne_valadon mysterious, nudes, post-impressionism |
+?wizards_artist.thiago_valdi Brazilian, colorful, contemporary, street-art, urban-life |
+?wizards_artist.chris_van_allsburg adventure, American, illustration, kids-book, mysterious, psychedelic |
+?wizards_artist.francine_van_hove drawing, expressionism, female-figures, nudes, portraits, slice-of-life |
+?wizards_artist.jan_van_kessel_the_elder Allegory, Baroque, Nature, Observational, painting, Still-Life |
+?wizards_artist.remedios_varo low-contrast, magic-realism, Spanish, surreal |
+?wizards_artist.nick_veasey contemporary, monochromatic, photography, photography-bw, urban-life |
+?wizards_artist.diego_velazquez baroque, history, oil-painting, portraits, realism, religion, royalty, Spanish |
+?wizards_artist.eve_ventrue characters, costumes, dark, digital, fantasy, femininity, gothic, illustration |
+?wizards_artist.johannes_vermeer baroque, domestic-scenes, Dutch, genre-scenes, illusion, interiors, portraits |
+?wizards_artist.charles_vess comics, dream-like, fantasy, magic, mythology, romanticism, watercolor, whimsical |
+?wizards_artist.roman_vishniac documentary, jewish, photography, photography-bw |
+?wizards_artist.kelly_vivanco big-eyes, consumerism, contemporary, femininity, sculpture |
+?wizards_artist.brian_m_viveros contemporary, digital, dream-like, fantasy, femininity, gothic, portraits, surreal |
+?wizards_artist.elke_vogelsang animals, contemporary, painting |
+?wizards_artist.vladimir_volegov femininity, impressionism, landscapes, portraits, romanticism, russian |
+?wizards_artist.robert_vonnoh American, bronze, impressionism, sculpture |
+?wizards_artist.mikhail_vrubel painting, Religion, Sculpture, Symbolist |
+?wizards_artist.louis_wain animals, colorful, creatures, fantasy, kids-book, playful, psychedelic, whimsical |
+?wizards_artist.kara_walker African-American, contemporary, identity, silhouettes |
+?wizards_artist.josephine_wall colorful, digital, femininity, pop-art, portraits, psychedelic, whimsical |
+?wizards_artist.bruno_walpoth figurative, photorealism, sculpture |
+?wizards_artist.chris_ware American, cartoon, characters, comics, graphic-novel, modern-life, slice-of-life |
+?wizards_artist.andy_warhol celebrity, contemporary, pop-art, portraits, vibrant |
+?wizards_artist.john_william_waterhouse fantasy, femininity, mythology, portraits, pre-raphaelite, romanticism |
+?wizards_artist.bill_watterson American, characters, childhood, friendship, loneliness, melancholy, nostalgia |
+?wizards_artist.george_frederic_watts mysticism, portraits, spirituality |
+?wizards_artist.walter_ernest_webster expressionism, painting, portraits |
+?wizards_artist.hendrik_weissenbruch landscapes, Observational, painting, Plein-air |
+?wizards_artist.neil_welliver contemporary, environmentalism, landscapes, realism |
+?wizards_artist.catrin_welz_stein digital, fantasy, magic, portraits, surreal, whimsical |
+?wizards_artist.vivienne_westwood contemporary, fashion, feminism, messy |
+?wizards_artist.michael_whelan alien-worlds, dream-like, eerie, fantasy, outer-space, science-fiction, surreal |
+?wizards_artist.james_abbott_mcneill_whistler American, drawing, etching, interiors, low-contrast, portraits, tonalism, whimsical |
+?wizards_artist.william_whitaker contemporary, Documentary, landscapes, painting, Social-realism |
+?wizards_artist.tim_white atmospheric, fantasy, immersive, landscapes, science-fiction |
+?wizards_artist.coby_whitmore childhood, figure-studies, nostalgia, portraits |
+?wizards_artist.david_wiesner cartoon, kids-book, playful, whimsical |
+?wizards_artist.kehinde_wiley African-American, baroque, colorful, contemporary, identity, photorealism, portraits, vibrant |
+?wizards_artist.cathy_wilkes Activism, contemporary, Photography, photography-color, Social-commentary, surreal |
+?wizards_artist.jessie_willcox_smith American, childhood, folklore, illustration, kids-book, nostalgia, whimsical |
+?wizards_artist.gilbert_williams fantasy, landscapes, magic, nostalgia, whimsical |
+?wizards_artist.kyffin_williams contemporary, landscapes, painting |
+?wizards_artist.al_williamson adventure, comics, fantasy, mythology, science-fiction |
+?wizards_artist.wes_wilson contemporary, psychedelic |
+?wizards_artist.mike_winkelmann color-field, conceptual, contemporary, digital, geometric, minimalism |
+?wizards_artist.bec_winnel ethereal, femininity, flowers, pastel, portraits, romanticism, serenity |
+?wizards_artist.franz_xaver_winterhalter fashion, luxury, portraits, romanticism, royalty |
+?wizards_artist.nathan_wirth atmospheric, contemporary, landscapes, monochromatic, nature, photography, photography-bw |
+?wizards_artist.wlop characters, digital, fantasy, femininity, manga-anime, portraits |
+?wizards_artist.brandon_woelfel cityscapes, neon, nightlife, photography, photography-color, shallow-depth-of-field, urban-life |
+?wizards_artist.liam_wong colorful, dystopia, futuristic, photography, photography-color, science-fiction, urban-life, vibrant |
+?wizards_artist.francesca_woodman American, contemporary, female-figures, feminism, monochromatic, nudes, photography, photography-bw, self-portraits |
+?wizards_artist.jim_woodring aliens, American, characters, comics, creatures, dream-like, fantasy, pen-and-ink, psychedelic, surreal |
+?wizards_artist.patrick_woodroffe dream-like, eerie, illusion, science-fiction, surreal |
+?wizards_artist.frank_lloyd_wright angular, architecture, art-deco, environmentalism, furniture, nature, organic |
+?wizards_artist.sulamith_wulfing dream-like, ethereal, fantasy, German, illustration, kids-book, spirituality, whimsical |
+?wizards_artist.nc_wyeth American, illustration, kids-book, nature, nostalgia, realism, rural-life |
+?wizards_artist.rose_wylie contemporary, figurative, observational, painting, portraits |
+?wizards_artist.stanislaw_wyspianski painting, polish, romanticism |
+?wizards_artist.takato_yamamoto dreams, fantasy, mysterious, portraits |
+?wizards_artist.gene_luen_yang contemporary, graphic-novel, illustration, manga-anime |
+?wizards_artist.ikenaga_yasunari contemporary, femininity, japanese, portraits |
+?wizards_artist.kozo_yokai colorful, folklore, illustration, Japanese, kids-book, magic, monsters, playful |
+?wizards_artist.sean_yoro activism, identity, portraits, public-art, social-commentary, street-art, urban-life |
+?wizards_artist.chie_yoshii characters, childhood, colorful, illustration, manga-anime, pop-culture, portraits, whimsical |
+?wizards_artist.skottie_young cartoon, comics, contemporary, illustration, playful, whimsical |
+?wizards_artist.masaaki_yuasa animation, colorful, eerie, fantasy, Japanese, surreal |
+?wizards_artist.konstantin_yuon color-field, impressionism, landscapes |
+?wizards_artist.yuumei characters, digital, dream-like, environmentalism, fantasy, femininity, manga-anime, whimsical |
+?wizards_artist.william_zorach cubism, expressionism, folk-art, modern, sculpture |
+?wizards_artist.ander_zorn etching, nudes, painting, portraits, Swedish |
 // artists added by me (ariane-emory):
-?artist__ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
-?artist__john_zeleznik science-fiction, Rifts, palladium-books, painting |
-?artist__keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
-?artist__kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books |
-?artist__boris_vallejo fantasy, science fiction, magic, nature, muscles, femininity
-}
+?wizards_artist.ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
+?wizards_artist.john_zeleznik science-fiction, Rifts, palladium-books, painting |
+?wizards_artist.keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
+?wizards_artist.kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books |
+?wizards_artist.boris_vallejo fantasy, science fiction, magic, nature, muscles, femininity
+}}
 `;
 // -------------------------------------------------------------------------------------------------
 let prelude_parse_result = null;
@@ -5683,6 +5792,9 @@ function load_prelude(into_context = new Context()) {
   
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
+  if (ignored === undefined)
+    throw new Error("crap");
+  
   return into_context;
 }
 // =================================================================================================
@@ -5697,7 +5809,7 @@ function expand_wildcards(thing, context = new Context()) {
   // ---------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
-      if (context.flags.has(not_flag.name))
+      if (context.flag_is_set(not_flag.flag))
         return true;
     return false;
   };
@@ -5708,8 +5820,8 @@ function expand_wildcards(thing, context = new Context()) {
     for (const check_flag of option.check_flags) {
       let found = false;
       
-      for (const name of check_flag.names) {
-        if (context.flags.has(name)) {
+      for (const flag of check_flag.flags) {
+        if (context.flag_is_set(flag)) {
           found = true;
           break;
         }
@@ -5754,16 +5866,16 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTSetFlag) {
       // console.log(`SET FLAG '${thing.name}'.`);
       
-      context.flags.add(thing.name);
+      context.set_flag(thing.flag);
 
       return ''; // produce nothing
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUnsetFlag) {
-      // console.log(`UNSET FLAG '${thing.name}'.`);
-      // console.log(`FLAGS BEFORE '${inspect_fun(context.flags)}'.`);
-      context.flags = new Set(Array.from(context.flags).filter(f => f !== thing.name));
-      // console.log(`FLAGS AFTER '${inspect_fun(context.flags)}'.`);
+      if (log_flags_enabled)
+        console.log(`UNSETTING FLAG '${thing.flag}'.`);
+
+      context.unset_flag(thing.flag);
       
       return ''; // produce nothing
     }
@@ -5780,7 +5892,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(walk(got));        
+          res.push(expand_wildcards(got, context)); // not walk!
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
@@ -5791,7 +5903,7 @@ function expand_wildcards(thing, context = new Context()) {
                                allow_fun, forbid_fun,
                                priority);
         
-        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context)));
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context))); // not walk!
       }
       
       res = res.filter(s => s !== '');
@@ -5883,7 +5995,7 @@ function expand_wildcards(thing, context = new Context()) {
                     `TO '${thing.destination.name}'`);
       }
 
-      const val = expand_wildcards(thing.source, context);
+      const val = walk(thing.source);
 
       context.scalar_variables.set(thing.destination.name, val);
 
@@ -5904,7 +6016,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
       
-      return expand_wildcards(pick, context);
+      return walk(pick);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
@@ -5914,7 +6026,7 @@ function expand_wildcards(thing, context = new Context()) {
       if (thing.value instanceof ASTNode) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
-        const expanded_value = expand_wildcards(thing.value, context);
+        const expanded_value = expand_wildcards(thing.value, context); // not walk!
         
         const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
                                               ? JsoncObject
@@ -6011,7 +6123,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTLora) {
       // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
-      let walked_file = expand_wildcards(thing.file, context);
+      let walked_file = walk(thing.file);
 
       // console.log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
@@ -6021,7 +6133,7 @@ function expand_wildcards(thing, context = new Context()) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = expand_wildcards(thing.weight, context);
+      let walked_weight = walk(thing.weight);
 
       // console.log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
@@ -6037,7 +6149,7 @@ function expand_wildcards(thing, context = new Context()) {
         throw new Error(`LoRA weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
 
-      let file    = walked_file.toLowerCase();
+      let file = walked_file.toLowerCase();
 
       // if (file.endsWith('_lora_f16.ckpt')) {
       if (file.endsWith('.ckpt')) {
@@ -6071,10 +6183,16 @@ function expand_wildcards(thing, context = new Context()) {
                       inspect_fun(thing));
     }
   }
+  
+  const ret = unescape(smart_join(walk(thing)));
 
-  const ret = walk(thing);
-  // console.log(`EXPAND_WILDCARDS PRE-RET: ${inspect_fun(ret.filter(r => r))}`);
-  return unescape(smart_join(ret))
+  // if (ret === undefined)
+  //   throw new Error("what");
+  
+  // if (ret.match(/^\s+$/))
+  //   throw "bombλ";
+  
+  return ret;
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -6089,31 +6207,48 @@ class ASTNode {}
 // Flags:
 // -------------------------------------------------------------------------------------------------
 class ASTSetFlag extends ASTNode {
-  constructor(name) {
+  constructor(flag_arr) {
+    // if (! Array.isArray(flag_arr))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+
     super();
-    this.name = name;
+    this.flag = flag_arr;
+    
+    // if (this.flag === undefined)
+    //   throw new Error("stop after constructing ASTSetFlag");
   }
 }
 // --------------------------------------------------------------------------------------------------
 class ASTUnsetFlag extends ASTNode {
-  constructor(name) {
+  constructor(flag_arr) {
+    // if (! Array.isArray(flag_arr))
+    //   throw new Error(`$this.constructor.name} ` +
+    //                   `ARG NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+
     super();
-    this.name = name;
+    this.flag = flag_arr;
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTCheckFlag extends ASTNode {
-  constructor(names) {
+class ASTCheckFlags extends ASTNode {
+  constructor(flag_arrs) {
+    // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
+    //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
+
     super();
-    this.names = names;
+    this.flags = flag_arrs;
   }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTNotFlag extends ASTNode  {
-  constructor(name, set_immediately) {
+  constructor(flag_arr, set_immediately) {
+    // if (! Array.isArray(flag_arr))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+
     super();
-    this.name = name;
+    this.flag = flag_arr;
     this.set_immediately = set_immediately;
+
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
@@ -6316,11 +6451,7 @@ const unarySpecialFunction = (prefix, rule, xform_func) =>
                             rule,                          // [1]
                             DiscardedComments,             // -
                             ')'),                          // [2]
-            arr => {
-              // console.log(`THIS ARR: ${inspect_fun(arr)}`);
-              // console.log(`THIS ARR[1]: ${inspect_fun(arr[1])}`);
-              return xform_func(arr[1]);
-            });
+            arr => xform_func(arr[1]));
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
@@ -6328,11 +6459,11 @@ const make__ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
-  const check_flags        = flags.filter(f => f instanceof ASTCheckFlag);
+  const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_immediately_not_flags = not_flags
         .filter(f => f.set_immediately)
-        .map(f => new ASTSetFlag(f.name)) ;
+        .map(f => new ASTSetFlag(f.flag));
   
   return new ASTAnonWildcardAlternative(
     arr[1][0],
@@ -6361,17 +6492,41 @@ const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag              = xform(ident => new ASTSetFlag(ident),
-                                   second(seq('#', ident, word_break)));
-const UnsetFlag            = xform(ident => new ASTUnsetFlag(ident),
-                                   second(seq('#!', ident, word_break)));
-// const UnsetFlag = unexpected('#!');
-const CheckFlag            = xform(ident => new ASTCheckFlag(ident),
-                                   second(seq('?', plus(ident, ','),
+const SetFlag              = xform(arr => {
+  // arr = [arr];
+  if (log_flags_enabled)
+    if (arr.length > 1)
+      console.log(`CONSTRUCTING SETFLAG WITH ${inspect_fun(arr)}`);
+
+  return new ASTSetFlag(arr);
+},
+                                   second(seq('#', plus(ident, '.'), word_break)));
+const CheckFlag            = xform(arr => {
+  if (log_flags_enabled)
+    if (arr.some(e => e.length > 1))
+      console.log(`CONSTRUCTING CHECKFLAG WITH ${inspect_fun(arr)}`);
+
+  return new ASTCheckFlags(arr);
+},
+                                   second(seq('?', plus(plus(ident, '.'), ','),
                                               word_break)))
-const NotFlag              = xform(arr => new ASTNotFlag(arr[2], arr[1][0]),
+const NotFlag              = xform(arr => {
+  if (log_flags_enabled)
+    if (arr[2].length > 1)
+      console.log(`CONSTRUCTING NOTFLAG WITH ${inspect_fun(arr[2])}`);
+
+  return new ASTNotFlag(arr[2], arr[1][0]);
+},
                                    seq('!', optional('#'),
-                                       ident, word_break));
+                                       plus(ident, '.'), word_break));
+const UnsetFlag            = xform(arr => {
+  if (log_flags_enabled)
+    if (arr.length > 1)
+      console.log(`CONSTRUCTING UNSETFLAG WITH ${inspect_fun(arr)}`);
+
+  return new ASTUnsetFlag(arr);
+},
+                                   second(seq('#!', plus(ident, '.'), word_break)));
 const TestFlag             = choice(CheckFlag, NotFlag);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
@@ -6603,13 +6758,13 @@ if (! parse_result.is_finished)
 const AST              = parse_result.value;
 // -------------------------------------------------------------------------------------------------
 
-console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`pipeline.configuration is:`);
-console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
-console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`The wildcards-plus prompt is:`);
-console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`${prompt_string}`);
 
 const base_context = load_prelude();
@@ -6622,9 +6777,9 @@ base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 for (let ix = 0; ix < batch_count; ix++) {
   const start_date = new Date();
 
-  console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
-  console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
 
   // expand the wildcards using a cloned context and generate a new configuration:
   
@@ -6644,7 +6799,7 @@ for (let ix = 0; ix < batch_count; ix++) {
 
   if (add_loras.length > 0) {
     if (log_config_enabled && add_loras.length !== 0) {
-      console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+      console.log(`-----------------------------------------------------------------------------------------------------------------`);
       console.log(`Found add_loras in Context: ${inspect_fun(add_loras)} in Context.`);
     }
 
@@ -6673,14 +6828,14 @@ for (let ix = 0; ix < batch_count; ix++) {
     }
   }
 
-  console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`GENERATED CONFIGURATION:`);
   console.log(`${JSON.stringify(generated_configuration, null, 2)}`);
-  console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`The expanded prompt is:`);
-  console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`${generated_prompt}`);
-  console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`Generating image #${ix+1} out of ${batch_count}...`);
 
   // -----------------------------------------------------------------------------------------------
@@ -6720,7 +6875,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   // }
   
   // console.log(`END PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
-  console.log(`---------------------------------------------------------------------------------------------------------------------------`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------`);
 }
 
 console.log('Job complete. Open Console to see job report.');
