@@ -44,9 +44,9 @@
 %config.n_iter   (1)
 %config.seed     (-1)
 
-{ %config({ "width": 1024,  "height": 1024, "steps": 50  })
-| %config({ "width": 1152,  "height": 960,  "steps": 50  }) // confirmed x2
-| %config({ "width": 1280,  "height": 640,  "steps": 50  })
+{ 1 %config({ "width": 1024,  "height": 1024, "steps": 50  }) 
+// | 2 %config({ "width": 1152,  "height": 960,  "steps": 50  }) // confirmed x2
+// | 2 %config({ "width": 1280,  "height": 640,  "steps": 50  }) // confirmed x1
 }
 
 
@@ -63,9 +63,9 @@
 %config.n_iter   (1)
 %config.seed     (-1)  
 
-{ %config({ "width": 960,   "height": 960, "steps": 40  })
-| %config({ "width": 1152,  "height": 768, "steps": 40  })
-| %config({ "width": 1280,  "height": 640, "steps": 45  })
+{ 1 %config({ "width": 960,   "height": 960, "steps": 40  })
+| 2 %config({ "width": 1152,  "height": 768, "steps": 40  })
+| 2 %config({ "width": 1280,  "height": 640, "steps": 45  })
 }
 }
 
