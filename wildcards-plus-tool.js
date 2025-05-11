@@ -281,6 +281,7 @@ let log_match_enabled         = false;
 let disable_prelude           = false;
 let print_before_ast_enabled  = false;
 let print_after_ast_enabled   = false;
+let save_post_requests_enable = true;
 // -------------------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // -------------------------------------------------------------------------------------------------
