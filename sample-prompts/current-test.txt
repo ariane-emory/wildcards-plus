@@ -127,7 +127,6 @@
   | 0 %config.model("cyberrealisticpony_v10") {@pony_score_7_up|@pony_score_8_up}
   | 0 %config.model("cyberrealisticpony_v90alt1")
   | 0 %config.model("cyberrealisticxl_v57")
-  | 4 %config.model("ultrarealisticby_v10fp16")
   | 4 %config.model("nightvisionxl_v900")
   | 8 %config.model("oldmaster_v30")
   | 4 %config.model("zavychromaxl_v100")
