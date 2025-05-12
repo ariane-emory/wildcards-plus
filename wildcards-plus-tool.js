@@ -6806,7 +6806,7 @@ const SpecialFunctionSetPickSingle =
       unarySpecialFunction('single-pick-prioritizes', choice(() => LimitedContent, /[a-z_]+/),
                            arg => new ASTSpecialFunctionSetPickSingle(arg));
 const SpecialFunctionSetPickMultiple =
-      unarySpecialFunction('multi-pick-prioritizes', () => choice(() => LimitedContent, /[a-z_]+/),
+      unarySpecialFunction('multi-pick-prioritizes',  choice(() => LimitedContent, /[a-z_]+/),
                            arg => new ASTSpecialFunctionSetPickMultiple(arg));
 const SpecialFunctionRevertPickSingle =
       xform('%revert-single-pick-prioritizes', 
