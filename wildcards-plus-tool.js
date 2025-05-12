@@ -6782,7 +6782,7 @@ let   SpecialFunctionUpdateConfigurationBinary =
           arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 const SpecialFunctionAddToNegativePrompt =
       unarySpecialFunction('neg',
-                           () => LimitedContent,
+                           wst_star(() => LimitedContent),
                            arr => {
                              console.log(`NEG: ${inspect_fun(arr)}`);
                              return arr;
