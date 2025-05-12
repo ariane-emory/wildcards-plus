@@ -6805,12 +6805,12 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
 const SpecialFunctionSetPickSingle =
       xform(wst_cutting_seq(wst_seq('%single-pick-prioritizes', 
                                     assignment_operator),
-                            choice(() => ScalarAssignmentSource, /[a-z_]+/)),
+                            choice(() => LimitedContent, /[a-z_]+/)),
             arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
 const SpecialFunctionSetPickMultiple =
       xform(wst_cutting_seq(wst_seq('%multi-pick-prioritizes', 
                                     assignment_operator),
-                            choice(() => ScalarAssignmentSource, /[a-z_]+/)),
+                            choice(() => LimitedContent, /[a-z_]+/)),
             arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
 const SpecialFunctionRevertPickSingle =
       xform('%revert-single-pick-prioritizes', 
