@@ -67,7 +67,8 @@ function post_prompt(prompt, config = {}, { hostname = '127.0.0.1', port = 7860,
                                             negative_prompt = undefined } = {}) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
-  let data = { prompt: prompt, ...config, negativePrompt: negative_prompt };
+  let data = { prompt: prompt, ...config,
+               negativePrompt: negative_prompt || negative_prompt === '' ? negative_prompt : undefined };
 
   // doing this seems convenient?
   if (data.n_iter && (typeof data.n_iter === 'number') && data.n_iter > 1) { 
@@ -7047,8 +7048,8 @@ async function main() {
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
-  let expanded       = null;
-  let negative_prompt = null;
+  let expanded        = null;
+  let negative_prompt = undefined; // not null
   let config          = null;
   
   const stash_prior = () => {
@@ -7070,7 +7071,6 @@ async function main() {
     const context    = base_context.clone();
     expanded         = expand_wildcards(AST, context);
     negative_prompt  = context.negative_prompt;
-    
     config           = munge_config(context.config);
     const add_loras  = context.add_loras;
     const have_loras = add_loras && add_loras.length > 0;
