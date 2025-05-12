@@ -6688,16 +6688,17 @@ class ASTSpecialFunctionSetNegativePrompt extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-const word_break              = /(?=\s|[{|}]|$)/;
-const plaintext               = /[^{|}\s]+/;
-const plaintext_no_parens     = /[^{|}\s()]+/;
-const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
-const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
-const comment                 = discard(choice(c_block_comment, c_line_comment));
-const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
-const escaped_brc             = second(choice('\\{', '\\}'));
-const filename                = /[A-Za-z0-9 ._\-()]+/;
+const word_break               = /(?=\s|[{|}]|$)/;
+const plaintext                = /[^{|}\s]+/;
+const plaintext_no_parens      = /[^{|}\s()]+/;
+const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
+const comment                  = discard(choice(c_block_comment, c_line_comment));
+const assignment_operator      = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+const incr_assignment_operator = discard(seq(wst_star(comment), '+=', wst_star(comment)));
+const escaped_brc              = second(choice('\\{', '\\}'));
+const filename                 = /[A-Za-z0-9 ._\-()]+/;
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // combinators:
