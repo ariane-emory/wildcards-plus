@@ -6943,9 +6943,6 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
 const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
-// const ContentNoLorasOrParens  = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
-//                                        escaped_brc, AnonWildcard, comment, ScalarReference,
-//                                        SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext_no_parens);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(AnySpecialFunction,
