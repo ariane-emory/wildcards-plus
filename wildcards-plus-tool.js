@@ -6337,13 +6337,13 @@ function expand_wildcards(thing, context = new Context()) {
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val })}`);
       
-      context[cur_key]   = prior_val;
-      context[prior_key] = cur_val;
-
       if (log_config_enabled)
-        console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
                     `${inspect_fun(prior_val)}` /* +
                                                    `${inspect_fun(context)}` */);
+
+      context[cur_key]   = prior_val;
+      context[prior_key] = cur_val;
 
       return '';
     }
