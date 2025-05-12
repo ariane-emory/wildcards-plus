@@ -6765,6 +6765,10 @@ console.log(`pipeline.configuration is:`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
+console.log(`pipeline.prompts is:`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
+console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
+console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`The wildcards-plus prompt is:`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`${prompt_string}`);
@@ -6846,7 +6850,9 @@ for (let ix = 0; ix < batch_count; ix++) {
   canvas.clear();
   pipeline.run({
     configuration: generated_configuration,
-    prompt: generated_prompt
+    prompt: generated_prompt,
+    negative_prompt: "this string",
+    negativePrompt: "THIS STRING"
   });
 
   const end_time     = new Date().getTime();
