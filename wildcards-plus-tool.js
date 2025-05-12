@@ -6922,15 +6922,16 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                       });
 const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
                                       arr => new ASTScalarReference(arr[1], arr[0][0]));
-const ScalarAssignmentSource  = choice(ScalarReference, NamedWildcardReference,
-                                       AnonWildcard);
 const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
-                                              ScalarAssignmentSource));
-const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
-                                             NamedWildcardDesignator),
-                                       /* escaped_brc, */ AnonWildcardNoLoras, ScalarReference);
+                                              () => ScalarAssignmentSource));
+const ScalarAssignmentSource  = choice(NamedWildcardReference,
+                                       AnonWildcard,
+                                       ScalarReference,);
+const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name), NamedWildcardDesignator),
+                                       AnonWildcardNoLoras,
+                                       ScalarReference,);
 const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
                                        A1111StyleLora,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
