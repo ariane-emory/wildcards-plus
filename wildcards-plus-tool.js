@@ -2603,12 +2603,11 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   add_negative_prompt_content(str) {
-    this.negative_prompt_content ||= [];
-
     if (typeof str !== 'string')
       throw new Error(`not a string: ${typeof str} ${inspect_fun(str)}}`);
-    
-    this.negative_prompt_content.push(str);
+
+    this.negative_prompt_content ||= '';
+    this.negative_prompt_content += str;
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
