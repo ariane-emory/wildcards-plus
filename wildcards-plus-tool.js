@@ -2582,7 +2582,7 @@ class Context {
     pick_multiple_priority = picker_priority.avoid_repetition,
     prior_pick_one_priority = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
-    negative_prompt = null,
+    negative_prompt_content = null,
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
@@ -2596,15 +2596,19 @@ class Context {
     this.prior_pick_one_priority = prior_pick_one_priority;
     this.pick_multiple_priority = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-    this.negative_prompt = negative_prompt;
+    this.negative_prompt_content = negative_prompt_content;
 
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
   }
   // -----------------------------------------------------------------------------------------------
-  add_negative(thing) {
-    this.negative_prompt ||= [];
-    this.negative_prompt.push(thing);
+  add_negative_prompt_content(str) {
+    this.negative_prompt_content ||= [];
+
+    if (typeof str !== 'string')
+      throw new Error(`not a string: ${typeof str} ${inspect_fun(str)}}`);
+    
+    this.negative_prompt_content.push(str);
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
@@ -2691,7 +2695,7 @@ class Context {
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,      
       prior_pick_multiple_priority: this.pick_multiple_priority,
-      negative_prompt:              this.negative_prompt ? [ ...this.negative_prompt ] : null,
+      negative_prompt_content:      this.negative_prompt_content ? [ ...this.negative_prompt_content ] : null,
     });
   }
   // -----------------------------------------------------------------------------------------------
@@ -2709,7 +2713,7 @@ class Context {
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,
       prior_pick_multiple_priority: this.pick_multiple_priority,      
-      negative_prompt:              this.negative_prompt ? [ ...this.negative_prompt ] : null,
+      negative_prompt_content:      this.negative_prompt_content ? [ ...this.negative_prompt_content ] : null,
     });
   }
 }
@@ -6389,6 +6393,10 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTSpecialFunctioAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctioAddToNegativePrompt) {
+      context.add_negative_prompt_content(thing.negative_prompt_content);
+      console.log(`NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt_content)}`);
+      
+      return '';
     }
     // ---------------------------------------------------------------------------------------------
     else {
