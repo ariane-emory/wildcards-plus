@@ -502,7 +502,7 @@ science fiction,
 
 \n\n
 
-A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
+A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
 {2|@early_alien_feature_sentence}
 {2|@early_cyborg_feature_sentence}
@@ -516,4 +516,4 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {|6 @alien_feature_sentence}
 {|8 @sky_sentence}
 
-{?artsy By @wizards_artists, @wizards_artist_styles. }
+{?wizards_artist By @wizards_artists, @wizards_artist_styles. }
