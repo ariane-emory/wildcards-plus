@@ -6944,9 +6944,17 @@ const Content                 = choice(
 );
 const ContentNoLoras          = choice(
   ScalarAssignment,
-  NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
-  escaped_brc, AnonWildcard, comment, ScalarReference,
-  SpecialFunctionNotInclude, plaintext);
+  NamedWildcardReference,
+  NamedWildcardUsage,
+  SetFlag,
+  UnsetFlag,
+  escaped_brc,
+  AnonWildcard,
+  comment,
+  ScalarReference,
+  SpecialFunctionNotInclude,
+  plaintext,
+);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(AnySpecialFunction,
