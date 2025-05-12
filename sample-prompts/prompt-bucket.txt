@@ -1,7 +1,7 @@
 // This prompt faithfully emulates the user @specopx's 'Prompt Bucket' script, translated into a wildcards-plus prompt:
 
 // Cinematic terms
-@cinematicTerms :=  {
+@cinematicTerms =  {
   IMAX spectacle | cinematic composition | widescreen format | 70mm film | anamorphic lens |
   deep focus | shallow depth of field | Dutch angle | establishing shot | extreme close-up |
   golden hour lighting | lens flare | magic hour | film grain | dramatic framing |
@@ -17,7 +17,7 @@
   director's cut | silver screen quality | motion picture grade | aspect ratio 2.39:1 }
 
 // 3D rendering terms
-@renderingTerms := {
+@renderingTerms = {
   Cinema4D render | Octane render | V-Ray engine | Redshift render | Arnold renderer |
   photorealistic texturing | subsurface scattering | volumetric lighting | raytracing |
   ray tracing | global illumination | ambient occlusion | radiosity | reflection mapping |
@@ -35,7 +35,7 @@
   Unreal Engine 5 quality | Nanite technology | Lumen lighting system | render pass }
 
 // Rembrandt lighting and artistic terms
-@lightingTerms := {
+@lightingTerms = {
   Rembrandt lighting | chiaroscuro effect | dramatic shadows | 45-degree lighting |
   triangle light pattern | catch light in eyes | rim lighting | split lighting | broad lighting |
   short lighting | butterfly lighting | loop lighting | clamshell lighting | key light |
@@ -49,7 +49,7 @@
   fresnel effect | fresnel highlights | dramatic illumination | atmospheric perspective }
 
 // Subjects/scenes
-@subjects := {
+@subjects = {
   dystopian cityscape | cyberpunk street | ancient temple ruins | futuristic metropolis |
   enchanted forest | underwater civilization | space colony | desert oasis | mountain fortress |
   steampunk workshop | crystal cave | volcanic landscape | arctic research station |
@@ -70,7 +70,7 @@
   solar punk community | viking settlement | art nouveau cafe | dieselpunk airship }
 
 // Characters/entities
-@characters := {
+@characters = {
   weathered explorer | cybernetic assassin | mystic shaman | battle-hardened warrior |
   elegant aristocrat | rogue scientist | nomadic hunter | masked vigilante | royal diplomat |
   eccentric inventor | spiritual guru | mechanical automaton | ethereal spirit |
@@ -89,7 +89,7 @@
   corrupted paladin | peace negotiator | probability engineer | cosmic horror | energy being }
 
 // Moods/atmospheres
-@moods := {
+@moods = {
   foreboding | mysterious | tranquil | chaotic | melancholic | ethereal | tense | serene |
   ominous | whimsical | nostalgic | dystopian | hopeful | eerie | majestic | desolate |
   vibrant | gritty | dreamlike | romantic | oppressive | harmonious | unsettling | triumphant |
@@ -98,7 +98,7 @@
   idyllic | turbulent | apocalyptic | visionary | nightmarish | heavenly | primal | elegant }
 
 // Time periods
-@timePeriods := {
+@timePeriods = {
   prehistoric era | ancient civilizations | medieval times | renaissance period | victorian age |
   1920s art deco | 1950s retrofuturism | modern day | near future | distant future | post-apocalyptic future |
   alternate history | steampunk era | cyberpunk era | space age | prehistoric future | neo-victorian |
@@ -108,7 +108,7 @@
   parallel timeline | temporal anomaly | quantum timeline }
 
 // Color palettes
-@colorPalettes := {
+@colorPalettes = {
   vibrant neon colors | muted earth tones | monochromatic blue scheme | high contrast black and white |
   sepia tones | vibrant primary colors | pastel palette | dark gothic tones | cyberpunk neon and black |
   ethereal iridescent hues | vintage color grading | desaturated post-apocalyptic palette |
@@ -123,7 +123,7 @@
   cross-processed film look | duotone stylization | technicolor dream | acid trip psychedelia }
 
 // Artistic styles
-@artisticStyles := {
+@artisticStyles = {
   photorealistic | hyperrealistic | semi-realistic | stylized realism | impressionistic |
   expressionist | surrealist | art nouveau | art deco | cubist | baroque | renaissance |
   romantic | neoclassical | pop art | digital art | concept art | matte painting |
@@ -137,7 +137,7 @@
   psychedelic | outsider art | naive art | folk art | primitivism | brutalism | victorian illustration }
 
 // Video game graphics terms
-@gameGraphicsTerms := {
+@gameGraphicsTerms = {
   RTX ray tracing | DLSS enhancement | 4K textures | 8K resolution | physically-based rendering |
   procedural generation | dynamic lighting | real-time global illumination | tessellation |
   LOD system | anti-aliasing | anisotropic filtering | ambient occlusion | screen space reflections |
@@ -156,7 +156,7 @@
   UE5 Lumen reflections | frame generation | NVIDIA DLSS 3 | AMD FSR 3 | Intel XeSS }
 
 // Camera settings
-@cameraSettings := {
+@cameraSettings = {
   f/1.4 aperture | f/2.8 aperture | f/8 aperture | 85mm lens | 24mm wide-angle | 200mm telephoto |
   macro photography | ISO 100 | tilt-shift effect | panoramic view | long exposure | high-speed capture |
   polarizing filter | neutral density filter | fish-eye lens | anamorphic lens | prime lens |
@@ -168,7 +168,7 @@
 }
 
 // Film directors for style references
-@directors := {
+@directors = {
   Stanley Kubrick | Christopher Nolan | Denis Villeneuve | Ridley Scott | Wes Anderson |
   David Fincher | Andrei Tarkovsky | Akira Kurosawa | Steven Spielberg | James Cameron |
   Guillermo del Toro | Terrence Malick | Wong Kar-wai | Quentin Tarantino | Peter Jackson |
@@ -177,7 +177,7 @@
   Park Chan-wook | Ari Aster | Robert Eggers | Jordan Peele | Andrzej Zulawski }
 
 // Technical details to add verisimilitude
-@technicalDetails := {
+@technicalDetails = {
   rendered at 8K resolution | 1000\ samples per pixel | Redshift render engine | 64GB memory usage |
   100\ hours render time | 24-core CPU calculation | dual A6000 GPU rendering | Xeon processor |
   CUDA acceleration | OptiX denoising | AI-enhanced upscaling | super-sampling | 64-bit color depth |
@@ -191,7 +191,7 @@
   billion-triangle mesh | 16-bit floating point | photon mapping | particle simulation }
 
 // Adjectives for emphasis
-@emphasisAdjectives := {
+@emphasisAdjectives = {
   breathtaking | stunning | mesmerizing | photorealistic | hyperdetailed | intricate |
   astonishing | spectacular | extraordinary | phenomenal | unparalleled | incomparable |
   unmatched | magnificent | exquisite | impeccable | flawless | perfect | sublime |
@@ -208,7 +208,7 @@
   elegant | sophisticated | refined | polished | impeccable | pristine | immaculate }
 
 // Scene descriptions
-@sceneDescriptors := {
+@sceneDescriptors = {
   a single moment frozen in time | the aftermath of an epic battle | a tranquil scene disrupted |
   a pivotal moment of decision | an unexpected encounter | a revealing discovery |
   the calm before the storm | a fateful reunion | a desperate escape | a triumphant return |
@@ -231,7 +231,7 @@
   the revelation of truth | the shattering of illusions | the moment everything changed }
 
 // Cinematography techniques
-@cinematographyTechniques := {
+@cinematographyTechniques = {
   tracking shot | steadicam movement | dolly zoom | extreme close-up | bird's eye view |
   worm's eye view | Dutch angle | long take | slow motion | time-lapse | freeze frame |
   split screen | rack focus | deep focus | shallow focus | handheld camera | whip pan |
@@ -245,7 +245,7 @@
   hyperlapse | dynamic framing | symmetrical composition | leading lines | rule of thirds }
 
 // Weather/environment conditions
-@weather := {
+@weather = {
   golden hour sunlight | blue hour twilight | misty morning | heavy rainfall | light drizzle |
   snowfall | blizzard conditions | foggy atmosphere | hazy air | clear blue skies | stormy weather |
   thunderstorm approaching | lightning strikes | gusty winds | calm stillness | dust storm |
@@ -259,7 +259,7 @@
   dry desert air | humid jungle atmosphere | crisp mountain air | salty sea breeze }
 
 // Materials and textures
-@materialsTextures := {
+@materialsTextures = {
   brushed metal | polished chrome | burnished bronze | weathered copper | rusted iron |
   carbon fiber | smooth glass | rough stone | polished marble | textured granite |
   rough wood grain | smooth leather | woven fabric | coarse burlap | fine silk |
@@ -278,7 +278,7 @@
   fractured glass | cracked leather | weathered wood | eroded stone | corroded meta }
 
 // Special effects
-@specialEffects := {
+@specialEffects = {
   particle effects | smoke simulation | fire dynamics | water simulation | cloth physics |
   hair dynamics | explosion effects | shockwave distortion | bullet time | time dilation |
   slow motion capture | speed ramping | motion blur | lens distortion | anamorphic lens flare |

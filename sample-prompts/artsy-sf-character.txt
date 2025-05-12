@@ -18,12 +18,12 @@
 
 {#planet|#ship|#moon|#station} // where are we?
 
-@pro_pos_rand  := {2 @pro_pos_adj|a}
-@setting_word  := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
+@pro_pos_rand  = {2 @pro_pos_adj|a}
+@setting_word  = {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
 
-@ship_term     := {starship|spacecraft|space ship|shuttle}
-@ship_late_adj := {space|interstellar}
-@ship_term2    := {starship|spacecraft|@ship_late_adj ship|{|interplanetary} shuttle
+@ship_term     = {starship|spacecraft|space ship|shuttle}
+@ship_late_adj = {space|interstellar}
+@ship_term2    = {starship|spacecraft|@ship_late_adj ship|{|interplanetary} shuttle
                   |@ship_late_adj frigate
                   |@ship_late_adj battleship|@ship_late_adj destroyer
                   |{|@ship_late_adj} merchant vessel
@@ -34,9 +34,9 @@
 // ---------------------------------------------------------------------------------------
 // 'level 2' places, for phrases like 'in $place in a $largerPlace':
 // ---------------------------------------------------------------------------------------
-@l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station
+@l2_place     = {on a @l2_place_adj {?ship @ship_term2|?station space station
                  |?planet planet|?planet world|?moon moon}}
-@l2_place_adj := 
+@l2_place_adj = 
 {
 |strange
 |exotic
@@ -51,18 +51,18 @@
 |!#highly-detailed highly-detailed
 |!#greebled {|highly} greebled
 }
-@l2_orbit_obj_adj   := {dim|distant|huge|luminous|shining}
-@l2_orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship
+@l2_orbit_obj_adj   = {dim|distant|huge|luminous|shining}
+@l2_orbit_obj       = {2 !planet {|ringed} planet|!planet !moon ship
                        |!planet !moon space station|!planet !moon asteroid
                        |!planet comet|2 {|2 yellow|2 red|green} star|black hole
                        |!planet !moon satellite}
-@l2_orbit_phrase    := {@l2_orbit_obj_adj @l2_orbit_obj}
-@l2_place_phrase    := {@l2_place {|2 orbiting a @l2_orbit_phrase}}
+@l2_orbit_phrase    = {@l2_orbit_obj_adj @l2_orbit_obj}
+@l2_place_phrase    = {@l2_place {|2 orbiting a @l2_orbit_phrase}}
 
 // ---------------------------------------------------------------------------------------
 // places to be 'in' or 'at':
 // ---------------------------------------------------------------------------------------
-@place_to_be_in := 
+@place_to_be_in = 
 {2 #indoors  {2 crew cabin 
              |bar
              |control room
@@ -95,7 +95,7 @@
                           }
 }
 
-@place_to_be_at :=
+@place_to_be_at =
 {{ware|store} #indoors <house
 |?planet,moon an alien ruin
 |abandoned wreck of a @ship_term2
@@ -107,7 +107,7 @@
 |?ship,station 2 #indoors {|navigation|control|sensor|computer} console
 }
 
-@place_to_be_in_adj :=
+@place_to_be_in_adj =
 {3
 |!vehicle !#busy busy
 |!vehicle !#crowded crowded
@@ -120,13 +120,13 @@
 |?outdoors foggy
 }
 
-@place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
+@place_phrase = {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
                  |at {a|the} @#place_to_be_at @place_to_be_at}
 
 // ---------------------------------------------------------------------------------------
 // character adjectives:
 // ---------------------------------------------------------------------------------------
-@char_early_adj :=
+@char_early_adj =
 {adventurous
 |androgynous
 |?neuter 2 androgynous
@@ -148,7 +148,7 @@
 |beautiful
 }
 
-@char_late_adj :=
+@char_late_adj =
 {4
 |alien #alien
 |android
@@ -162,14 +162,14 @@
 // ---------------------------------------------------------------------------------------
 // weapons:
 // ---------------------------------------------------------------------------------------
-@weapon_phrase           := {@weapon_verb @pro_pos_rand {2 !melee @ranged_weapon|@melee_weapon}}
-@weapon_verb             := {3 holding|wielding|brandishing|displaying|presenting}
-@melee_weapon            := {{vibro|phase|energy|monomolecular|pulse}
+@weapon_phrase           = {@weapon_verb @pro_pos_rand {2 !melee @ranged_weapon|@melee_weapon}}
+@weapon_verb             = {3 holding|wielding|brandishing|displaying|presenting}
+@melee_weapon            = {{vibro|phase|energy|monomolecular|pulse}
                              {sword|blade|knife|dagger|baton}}
-@ranged_weapon_early_adj := {|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien
+@ranged_weapon_early_adj = {|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien
                             |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
-@ranged_weapon_late_adj  := {|laser|plasma|gauss|smart|pulse|combat|high-velocity|ion}
-@ranged_weapon           := {@ranged_weapon_early_adj
+@ranged_weapon_late_adj  = {|laser|plasma|gauss|smart|pulse|combat|high-velocity|ion}
+@ranged_weapon           = {@ranged_weapon_early_adj
                              @ranged_weapon_late_adj
                              {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|blaster
                              |{grenade|rocket} launcher|stunner|cannon|disintegrator}
@@ -178,10 +178,10 @@
 // ---------------------------------------------------------------------------------------
 // tools:
 // ---------------------------------------------------------------------------------------
-@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
+@tool_adj    = {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
                 |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
-@tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
-@tool :=
+@tool_phrase = {holding @pro_pos_rand @tool_adj @tool}
+@tool =
 {hydrospanner
 |2 probe
 |2 scanner
@@ -203,15 +203,15 @@
 // ---------------------------------------------------------------------------------------
 // inventory flags:
 // ---------------------------------------------------------------------------------------
-@maybe_no_equipment := {|2 #tool|#weapon}
-@tool_or_weapon     := {#tool|#weapon}
-@likely_weapon      := {#tool|2 #weapon}
-@likely_tool        := {2 #tool|#weapon}
+@maybe_no_equipment = {|2 #tool|#weapon}
+@tool_or_weapon     = {#tool|#weapon}
+@likely_weapon      = {#tool|2 #weapon}
+@likely_tool        = {2 #tool|#weapon}
 
 // ---------------------------------------------------------------------------------------
 // roles/character types:
 // ---------------------------------------------------------------------------------------
-@role :=
+@role =
 {#weapon mercenary 
 |{3|hyperdrive|@ship_term} technician          @likely_tool
 |engineer                                      @likely_tool
@@ -242,13 +242,13 @@
 // ---------------------------------------------------------------------------------------
 // clothing:
 // ---------------------------------------------------------------------------------------
-@clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
-@clothing_verb     := {2 wearing|clad in|dressed in}
-@clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|!merchant millitary
+@clothing_sentence = {@^pro_3rd_subj is @clothing_verb @clothing_type.}
+@clothing_verb     = {2 wearing|clad in|dressed in}
+@clothing_adj      = {2|1 futuristic|!#advanced advanced|tattered|dusty|!merchant millitary
                       |!#high-tech high-tech|#highly-detailed highly-detailed
                       |{|starship|space ship|spacecraft} crew members'
                       |!merchant !#greebled {|highly} greebled}
-@clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
+@clothing_type     = {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
                       |@pro_pos_rand @clothing_adj flight suit
                       |@pro_pos_rand @clothing_adj body suit
                       |@pro_pos_rand @clothing_adj uniform
@@ -260,20 +260,20 @@
 // ---------------------------------------------------------------------------------------
 // cyborg features:
 // ---------------------------------------------------------------------------------------
-@cyborg_features :=
+@cyborg_features =
 {{a|one} {bionic|mechanical} arm
 |{bionic|mechanical} arms
 |{a|one} {bionic|cyber {|<netic}} eye
 |{bionic|cyber {|<netic}} eyes
 }
 
-@cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
-@early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
+@cyborg_feature_sentence       = {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
+@early_cyborg_feature_sentence = {?cyborg #ecfs with @cyborg_features }
 
 // ---------------------------------------------------------------------------------------
 // ailen features:
 // ---------------------------------------------------------------------------------------
-@alien_features :=
+@alien_features =
 {an insectoid appearance
 |2 digitigrade legs
 |gills on @pro_pos_adj throat
@@ -296,16 +296,16 @@
 |a reptilian appearance
 }
 
-@alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
-@early_alien_feature_sentence := {?alien #eafs with @1-2&alien_features }
+@alien_feature_sentence       = {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
+@early_alien_feature_sentence = {?alien #eafs with @1-2&alien_features }
 
 // ---------------------------------------------------------------------------------------
 // things in the sky:
 // ---------------------------------------------------------------------------------------
-@late_sky_verb_frag       := {in the sky above|overhead}
-@early_sky_verb_frag      := {can be seen|hangs|looms}
-@early_sky_verb_frag_no_s := {can be seen|hang|loom}
-@sky_sentence := {?outdoors {
+@late_sky_verb_frag       = {in the sky above|overhead}
+@early_sky_verb_frag      = {can be seen|hangs|looms}
+@early_sky_verb_frag_no_s = {can be seen|hang|loom}
+@sky_sentence = {?outdoors {
 2 {Two|Three} {3 moons|suns} @early_sky_verb_frag_no_s @late_sky_verb_frag.
 |2 A {binary|trinary} { 2 star|sun} @early_sky_verb_frag @late_sky_verb_frag.
 |3 ?moon The {planet|gas giant} that this @setting_word is orbiting @early_sky_verb_frag @late_sky_verb_frag. 
@@ -324,7 +324,7 @@
 // ---------------------------------------------------------------------------------------
 // colour palette/lighting stuff:
 // ---------------------------------------------------------------------------------------
-@colour_modifiers := {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
+@colour_modifiers = {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
 
 // =======================================================================================
 // generate the prompt body:

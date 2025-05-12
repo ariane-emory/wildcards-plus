@@ -1695,7 +1695,7 @@ const factor_op          = r(/[\/\*\%]/);
 const term_op            = r(/[\+\-]/);
 // -------------------------------------------------------------------------------------------------
 // Pascal-like terminals:
-const pascal_assign_op   = l(':=');
+const pascal_assign_op   = l('=');
 // -------------------------------------------------------------------------------------------------
 // Python-like terminals:
 const python_exponent_op = l('**');

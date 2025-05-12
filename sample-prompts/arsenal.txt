@@ -1,12 +1,12 @@
 // Weapons:
-@weapon       := {spear|sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|scythe|trident|blade|kriss|stiletto|dagger|trident|harpoon}
-@weapons      := { A {2 {|2 @adjs} @weapon | 5 {2|3 @adjs} @weapon @weapons_tail } }
-@weapons_tail := {2 and a {2|3 @adjs} @weapon|3 ... a {2|3 @adjs} @weapon @weapons_tail}
+@weapon       = {spear|sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|scythe|trident|blade|kriss|stiletto|dagger|trident|harpoon}
+@weapons      = { A {2 {|2 @adjs} @weapon | 5 {2|3 @adjs} @weapon @weapons_tail } }
+@weapons_tail = {2 and a {2|3 @adjs} @weapon|3 ... a {2|3 @adjs} @weapon @weapons_tail}
 
 // Adjectives:
-@adjs         := {2 @adj |4 @adj @adjs_tail }
-@adjs_tail    := {and @adj| , @adj @adjs_tail }
-@adj          := {fierce|fearsome|cruel-edged|serrated|mighty|eldritch|otherwordly|menacing|calamitous|beastly|fiery|malevolent|adamantine|spined
+@adjs         = {2 @adj |4 @adj @adjs_tail }
+@adjs_tail    = {and @adj| , @adj @adjs_tail }
+@adj          = {fierce|fearsome|cruel-edged|serrated|mighty|eldritch|otherwordly|menacing|calamitous|beastly|fiery|malevolent|adamantine|spined
                  |antediluvian|verdigris-encrusted|pearl-inlaid|ominous|razor-edged|serpentine|viridian|sinuous|opalescent|venomous|imposing}
 
 // Expand @weapon five imes, on a fresh line each time:

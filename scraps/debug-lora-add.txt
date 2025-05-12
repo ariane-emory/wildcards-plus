@@ -1,6 +1,6 @@
 // ./wildcards-plus-tool.js scraps/debug-lora-add.txt 2 | grep -i -e "expanding" -e "adding lora"
 
-@lora_names :=
+@lora_names =
 { mj52_v2.0
 | ethereon
 | trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
@@ -10,7 +10,7 @@
 }
 
 // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
-@lora := { <lora:@lora_names: @lowish_random_weight> }
+@lora = { <lora:@lora_names: @lowish_random_weight> }
 
 foo bar baz \n
 @2lora

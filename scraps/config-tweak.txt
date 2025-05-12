@@ -7,4 +7,4 @@
 %config({ "steps": 24, "model": "devmode8stepsflux1dev_f16", "foo": "FOO" })
 %config({ \{ "steps": 12, "model": "devmode8stepsflux1dev_v03gguidancefp8_f16" \} | \{ "steps": 36, "model": "devmode8steps" \} })
 
-%config := { "steps": 20, "model": "devmode8stepsflux1dev_f16" }
+%config = { "steps": 20, "model": "devmode8stepsflux1dev_f16" }

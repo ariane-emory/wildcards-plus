@@ -2,10 +2,10 @@
 {#female|#male|#neuter}
 
 // The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pronouns:
-@pronoun_3rd_object  := {?female her |?male him |?neuter it  }
-@pronoun_3rd_subject := {?female she |?male he  |?neuter it  }
-@pronoun_pos_adj     := {?female her |?male his |?neuter its }
-@pronoun_pos         := {?female hers|?male his |?neuter its }
+@pronoun_3rd_object  = {?female her |?male him |?neuter it  }
+@pronoun_3rd_subject = {?female she |?male he  |?neuter it  }
+@pronoun_pos_adj     = {?female her |?male his |?neuter its }
+@pronoun_pos         = {?female hers|?male his |?neuter its }
 
 @^pronoun_3rd_subject {shook|swung} @pronoun_pos_adj long {blonde|red|black} hair.
 
