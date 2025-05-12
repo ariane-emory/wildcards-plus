@@ -6252,7 +6252,7 @@ function expand_wildcards(thing, context = new Context()) {
         
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
 
-        console.log(`EXPANDED: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
+        console.log(`EXPANDED VALUE: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
         
         const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
                                               ? JsoncObject
