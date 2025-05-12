@@ -2004,7 +2004,7 @@ class WeightedPicker {
   __clear_used_indices() {
     this.used_indices.clear();
     this.last_pick_index = null;
-    console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+    // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -----------------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
@@ -6256,7 +6256,7 @@ function expand_wildcards(thing, context = new Context()) {
         
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
 
-        console.log(`EXPANDED VALUE: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
+        // console.log(`EXPANDED VALUE: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
         
         const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
                                               ? JsoncObject
@@ -6365,10 +6365,10 @@ function expand_wildcards(thing, context = new Context()) {
 
       let walked_weight = expand_wildcards(thing.weight, context); // not walk!
 
-      console.log(`walked_weight is ${typeof walked_weight} ` +
-                  `${walked_weight.constructor.name} ` +
-                  `${inspect_fun(walked_weight)} ` +
-                  `${Array.isArray(walked_weight)}`);
+      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      //             `${walked_weight.constructor.name} ` +
+      //             `${inspect_fun(walked_weight)} ` +
+      //             `${Array.isArray(walked_weight)}`);
       
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
