@@ -6830,15 +6830,15 @@ let   SpecialFunctionUpdateConfigurationBinary =
 const SpecialFunctionAddToNegativePrompt =
       xform(second(wst_seq('%neg',
                            incr_assignment_operator,
-                           () => ContentNoLorasOrParens)),
+                           () => ScalarAssignmentSource)),
             lc => {
               console.log(`NEG ADD: ${inspect_fun(lc)}`);
               return new ASTSpecialFunctionAddToNegativePrompt(lc);
-            });
+                   });
 const SpecialFunctionSetNegativePrompt = 
       xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
                                     assignment_operator),               // -
-                            () => LimitedContent), // [1]
+                            () => ScalarAssignmentSource), // [1]
             arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
 const SpecialFunctionUpdateConfigurationUnary =
       unarySpecialFunction('config',
@@ -6938,9 +6938,9 @@ const Content                 = choice(NamedWildcardReference, NamedWildcardUsag
 const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
                                        escaped_brc, AnonWildcard, comment, ScalarReference,
                                        SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
-const ContentNoLorasOrParens  = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
-                                       escaped_brc, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext_no_parens);
+// const ContentNoLorasOrParens  = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
+//                                        escaped_brc, AnonWildcard, comment, ScalarReference,
+//                                        SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext_no_parens);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(AnySpecialFunction,
