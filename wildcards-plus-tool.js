@@ -6836,13 +6836,10 @@ let   SpecialFunctionUpdateConfigurationBinary =
                                   '.',                   // [0][1]
                                   DiscardedComments),    // -
                           ident,                         // [1]
-                          DiscardedComments,             // -
-                          '(',                           // [2]
-                          DiscardedComments,             // -
-                          choice(Jsonc, () => LimitedContent),   // [3]
-                          DiscardedComments,             // [4]
-                          ')'),                          // [4]
-          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+                          assignment_operator,           // -
+                          choice(Jsonc, () => LimitedContent),   // [2]
+                         ),                          // [4]
+          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2]));
 const SpecialFunctionAddToNegativePrompt =
       xform(second(wst_seq('%neg',
                            incr_assignment_operator,
@@ -6857,10 +6854,10 @@ const SpecialFunctionSetNegativePrompt =
                             () => LimitedContent), // [1]
             arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
 const SpecialFunctionUpdateConfigurationUnary =
-      unarySpecialFunction('config',
-                           choice(JsoncObject, () => LimitedContent),
-                           arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
-                                                                          false));
+      xform(second(wst_cutting_seq(wst_seq('%config', incr_assignment_operator),
+                                   choice(JsoncObject, () => LimitedContent))),
+            arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1],
+                                                           false));
 const SpecialFunctionSetConfiguration
       = xform(wst_cutting_seq(wst_seq('%config',                          // [0][0]
                                       assignment_operator),               // -
