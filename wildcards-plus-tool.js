@@ -6281,9 +6281,9 @@ function expand_wildcards(thing, context = new Context()) {
           : { ...context.config, ...value };
       } 
       
-      // if (log_config_enabled)
-      //   console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
-      //               `${JSON.stringify(context.config)}`);
+      if (log_config_enabled)
+        console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
+                    `${JSON.stringify(context.config)}`);
       
       return '';
     }
