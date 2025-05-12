@@ -88,7 +88,7 @@ function post_prompt(prompt, config = {}, { hostname = '127.0.0.1', port = 7860,
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
-        console.log(`POST data is: ${JSON.stringify(data)}`);
+    console.log(`POST data is: ${JSON.stringify(data)}`);
 
   const options = {
     hostname: hostname,
@@ -669,6 +669,8 @@ class Choice extends Rule  {
 function choice(...options) { // convenience constructor
   if (options.length == 1) {
     console.log("WARNING: unnecessary use of choice!");
+
+    throw new Error("unnecessary use of choice");
     
     return make_rule_func(options[0]);
   }
@@ -6406,6 +6408,16 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
+    // ASTSpecialFunctionSetNegativePrompt:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunctionSetNegativePrompt) {
+      context.negative_prompt = expand_wildcards(thing.negative_prompt_content, context);
+      
+      console.log(`SET NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt)}`);
+      
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
     else {
       throw new Error(`confusing thing: ` +
                       (typeof thing === 'object'
@@ -6825,7 +6837,7 @@ const SpecialFunctionAddToNegativePrompt =
 const SpecialFunctionSetNegativePrompt = 
       xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
                                     assignment_operator),               // -
-                              choice(() => LimitedContent)), // [1]
+                            () => LimitedContent), // [1]
             arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
 const SpecialFunctionUpdateConfigurationUnary =
       unarySpecialFunction('config',
