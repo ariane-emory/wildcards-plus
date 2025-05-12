@@ -6251,6 +6251,8 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
+
+        console.log(`EXPANDED: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
         
         const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
                                               ? JsoncObject
@@ -6258,7 +6260,7 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`JSCONC_PARSED_EXPANDED_VALUE: ${inspect_fun(jsconc_parsed_expanded_value)}`);
         
         if (! jsconc_parsed_expanded_value || ! jsconc_parsed_expanded_value.is_finished)
-          throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
+                      throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
                           (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
                           `, Jsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_expanded_value));
