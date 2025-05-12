@@ -63,7 +63,7 @@ function parse_file(filename) {
   return result;
 }
 // -------------------------------------------------------------------------------------------------
-function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
+function post_prompt(prompt, config = {}, { hostname = '127.0.0.1', port = 7860 } = {}) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
   let data = { prompt: prompt, ...config };
@@ -7041,17 +7041,20 @@ async function main() {
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
-  let expanded = null;
-  let config   = null;
-
+  let expanded       = null;
+  let negative_prompt = null;
+  let config          = null;
+  
   const stash_prior = () => {
     prior_expansion = expanded;
+    prior_negative_prompt = negative_prompt;
     prior_config = clone_fun(config);
   };
 
-  let posted_count    = 0;
-  let prior_expansion = null;
-  let prior_config    = null;
+  let posted_count          = 0;
+  let prior_expansion       = null;
+  let prior_negative_prompt = null;
+  let prior_config          = null;
 
   while (posted_count < count) {
     console.log('==========================================================================================');
@@ -7060,9 +7063,7 @@ async function main() {
 
     const context    = base_context.clone();
     expanded         = expand_wildcards(AST, context);
-
-    // if (context.negative_prompt)
-    //   console.log(`NEG CONTENT: ${expand_wildcards(context.negative_prompt, context)}`);
+    negative_prompt  = context.negative_prompt;
     
     config           = munge_config(context.config);
     const add_loras  = context.add_loras;
@@ -7094,7 +7095,7 @@ async function main() {
     else {
       if (!confirm) {
         console.log(`------------------------------------------------------------------------------------------`);
-        post_prompt(expanded, config);
+        post_prompt(expanded, config, { negative_prompt: negative_prompt });
 
         posted_count += 1;
       }
@@ -7115,14 +7116,13 @@ async function main() {
           if (prior_expansion) { 
             console.log(`------------------------------------------------------------------------------------------`);
             console.log(`POSTing prior prompt '${expanded}'`);
-            post_prompt(prior_expansion, prior_config);
+            post_prompt(prior_expansion, prior_config, { negative_prompt: prior_negative_prompt });
           }
           else {
             console.log(`can't rewind, no prior prompt`);
           }
         }
         else { // /^y.*/
-          console.log(`not POSTing.`);
           console.log(`------------------------------------------------------------------------------------------`);
           const parsed    = parseInt(answer);
           const gen_count = isNaN(parsed) ? 1 : parsed;  
@@ -7130,7 +7130,7 @@ async function main() {
           // console.log(`parsed = '${parsed}', count = '${count}'`);
           
           for (let iix = 0; iix < gen_count; iix++) {
-            post_prompt(expanded, config);
+            post_prompt(expanded, config, { negative_prompt: negative_prompt });
             posted_count += 1;
           }
         }
