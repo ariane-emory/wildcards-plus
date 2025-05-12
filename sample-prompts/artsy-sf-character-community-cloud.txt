@@ -3,19 +3,12 @@
 // actual textual content of the prompt:
 // =======================================================================================
 
-// %single-pick-prioritizes({ true_randomness })
-// %revert-single-pick-prioritizes
-// %multi-pick-prioritizes(true_randomness)
-// %revert-multi-pick-prioritizes
-
 // ---------------------------------------------------------------------------------------
 // template config flags to enable model families or other features:
 // ---------------------------------------------------------------------------------------
 
-%config.loras([])
-
 #flux_on
-// #hidream_full_on
+#hidream_full_on
 // #hidream_fast_on
 
 // ---------------------------------------------------------------------------------------
@@ -31,6 +24,7 @@
 }
 
 // ---------------------------------------------------------------------------------------
+%config.loras([]) // unconfigure any LoRAs that are configured in the DT UI first.
 
 { 4 ?flux_on
 // Flux Dev:
