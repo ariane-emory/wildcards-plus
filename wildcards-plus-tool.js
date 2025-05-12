@@ -6393,7 +6393,8 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTSpecialFunctioAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctioAddToNegativePrompt) {
-      context.add_negative_prompt_content(thing.negative_prompt_content);
+      context.add_negative_prompt_content(expand_wildcards(thing.negative_prompt_content, context));
+      
       console.log(`NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt_content)}`);
       
       return '';
