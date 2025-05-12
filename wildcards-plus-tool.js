@@ -2143,10 +2143,10 @@ class WeightedPicker {
     
     // Since we now avoid adding options with a weight of 0, this shouldnever be true:
     if (total_weight === 0) {
-      return '';
-      // throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-      //                 `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
-      //                 `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
+      // return '';
+      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
+                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
       if (noisy) {
         // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
@@ -6362,11 +6362,11 @@ function expand_wildcards(thing, context = new Context()) {
 
       let walked_weight = expand_wildcards(thing.weight, context); // not walk!
 
-      // console.log(`walked_weight is ${typeof walked_weight} ` +
-      //             `${walked_weight.constructor.name} ` +
-      //             `${inspect_fun(walked_weight)} ` +
-      //             `${Array.isArray(walked_weight)}`);
-
+      console.log(`walked_weight is ${typeof walked_weight} ` +
+                  `${walked_weight.constructor.name} ` +
+                  `${inspect_fun(walked_weight)} ` +
+                  `${Array.isArray(walked_weight)}`);
+      
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
       
