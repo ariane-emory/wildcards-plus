@@ -39,7 +39,7 @@
 %config.sampler  ({ "DDIM Trailing" | "Euler A" | "Euler A Trailing" })
 %config.cfg_scale({ 1.0 | 1.5 | 2.0 | 2.5| 3.0 | 3.5| 4.0 | 4.5 | 5.0 })
 %config.shift    ({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
-%config.n_iter   (1)
+%config.n_iter   (2)
 
 { 1 %config({ "width": 960,   "height": 960,  "steps": 40  }) // 12,093
 | 2 %config({ "width": 1024,  "height": 960,  "steps": 40  }) // 13,671
@@ -60,7 +60,7 @@
 %config.sampler  ({ "DDIM Trailing" | "Euler A" | "Euler A Trailing" })
 %config.cfg_scale({ 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0})
 %config.shift    ({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
-%config.n_iter   (1)
+%config.n_iter   (2)
 
 { 1 %config({ "width": 960,   "height": 960, "steps": 40  })
 | 2 %config({ "width": 1152,  "height": 768, "steps": 40  })
@@ -153,7 +153,7 @@
 
 @place_to_be_at :=
 {{ware|store} #indoors <house
-|?planet,moon an alien ruin
+|?planet,moon alien ruin
 |abandoned wreck of a @ship_term2
 |{2|holographic} computer
 |?planet,moon #outdoors colony
