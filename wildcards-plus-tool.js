@@ -73,8 +73,11 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
 
   data = { ...data, ...config };
 
-  if (ata.n_iter && data.n_iter > 1) // doing this seems convenient?
+  if (data.n_iter && data.n_iter > 1) { // doing this seems convenient?
+    console.log(`FIX SEED!`);
+    
     data.seed = -1;
+  }
   
   const string_data = JSON.stringify(data);
 
