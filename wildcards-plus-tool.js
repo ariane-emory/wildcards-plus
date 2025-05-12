@@ -6396,9 +6396,9 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    // ASTSpecialFunctioAddToNegativePrompt:
+    // ASTSpecialFunctionAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctioAddToNegativePrompt) {
+    else if (thing instanceof ASTSpecialFunctionAddToNegativePrompt) {
       context.add_to_negative_prompt(expand_wildcards(thing.negative_prompt_content, context));
       
       console.log(`NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt)}`);
@@ -6651,7 +6651,14 @@ class ASTSpecialFunctionRevertPickSingle extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctioAddToNegativePrompt extends ASTNode {
+class ASTSpecialFunctionAddToNegativePrompt extends ASTNode {
+  constructor(negative_prompt_content) {
+    super();
+    this.negative_prompt_content = negative_prompt_content
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTSpecialFunctionSetNegativePrompt extends ASTNode {
   constructor(negative_prompt_content) {
     super();
     this.negative_prompt_content = negative_prompt_content
@@ -6812,7 +6819,7 @@ const SpecialFunctionAddToNegativePrompt =
                            wst_star(() => ContentNoLorasOrParens),
                            arr => {
                              // console.log(`NEG: ${inspect_fun(arr)}`);
-                             return new ASTSpecialFunctioAddToNegativePrompt(arr);
+                             return new ASTSpecialFunctionAddToNegativePrompt(arr);
                              // return arr;
                            });
 const SpecialFunctionUpdateConfigurationUnary =
