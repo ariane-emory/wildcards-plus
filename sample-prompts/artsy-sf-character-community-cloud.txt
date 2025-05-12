@@ -12,8 +12,11 @@
 // #hidream_fast_on
 
 // ---------------------------------------------------------------------------------------
-// force an artist:
+// force an artist from this small list instead of picking from all of the 1000-plus
+// artists from Wizard Whitebeard's list:
+// ---------------------------------------------------------------------------------------
 { #wizards_artist.frank_frazetta
+| 2 #wizards_artist.tony_diterlizzi
 | 2 #wizards_artist.boris_vallejo
 | 2 #wizards_artist.gerald_brom
 | #wizards_artist.john_blanche
