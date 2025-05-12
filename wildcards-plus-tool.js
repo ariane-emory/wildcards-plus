@@ -6834,7 +6834,7 @@ let   SpecialFunctionUpdateConfigurationBinary =
 const SpecialFunctionAddToNegativePrompt =
       xform(second(wst_seq('%neg',
                            incr_assignment_operator,
-                           () => ScalarAssignmentSource)),
+                           () => LimitedContent)),
             lc => {
               console.log(`NEG ADD: ${inspect_fun(lc)}`);
               return new ASTSpecialFunctionAddToNegativePrompt(lc);
@@ -6842,7 +6842,7 @@ const SpecialFunctionAddToNegativePrompt =
 const SpecialFunctionSetNegativePrompt = 
       xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
                                     assignment_operator),               // -
-                            () => ScalarAssignmentSource), // [1]
+                            () => LimitedContent), // [1]
             arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
 const SpecialFunctionUpdateConfigurationUnary =
       unarySpecialFunction('config',
