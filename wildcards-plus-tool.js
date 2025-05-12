@@ -2582,7 +2582,7 @@ class Context {
     pick_multiple_priority = picker_priority.avoid_repetition,
     prior_pick_one_priority = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
-    negative_prompt: null,
+    negative_prompt = null,
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
@@ -2691,7 +2691,7 @@ class Context {
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,      
       prior_pick_multiple_priority: this.pick_multiple_priority,
-      negative_prompt:              [ ...this.negative_prompt ],
+      negative_prompt:              this.negative_prompt ? [ ...this.negative_prompt ] : null,
     });
   }
   // -----------------------------------------------------------------------------------------------
@@ -2709,7 +2709,7 @@ class Context {
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,
       prior_pick_multiple_priority: this.pick_multiple_priority,      
-      negative_prompt:              [ ...this.negative_prompt ],
+      negative_prompt:              this.negative_prompt ? [ ...this.negative_prompt ] : null,
     });
   }
 }
@@ -6644,6 +6644,7 @@ class ASTSpecialFunctionRevertPickSingle extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 const word_break              = /(?=\s|[{|}]|$)/;
 const plaintext               = /[^{|}\s]+/;
+const plaintext_no_parens     = /[^{|}\s()]+/;
 const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
@@ -6779,6 +6780,13 @@ let   SpecialFunctionUpdateConfigurationBinary =
                           DiscardedComments,             // [4]
                           ')'),                          // [4]
           arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+const SpecialFunctionAddToNegativePrompt =
+      unarySpecialFunction('neg',
+                           () => LimitedContent,
+                           arr => {
+                             console.log(`NEG: ${inspect_fun(arr)}`);
+                             return arr;
+                           });
 const SpecialFunctionUpdateConfigurationUnary =
       unarySpecialFunction('config',
                            choice(JsoncObject, () => LimitedContent),
@@ -6791,14 +6799,15 @@ const SpecialFunctionSetConfiguration
                                       DiscardedComments),    // -
                               choice(JsoncObject, () => LimitedContent)), // [1]
               arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true));
-const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateConfigurationUnary,
-                                                          SpecialFunctionUpdateConfigurationBinary);
+const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
+                                                  SpecialFunctionUpdateConfigurationBinary);
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetConfiguration,
                                              SpecialFunctionSetPickSingle,
                                              SpecialFunctionSetPickMultiple,
                                              SpecialFunctionRevertPickSingle,
-                                             SpecialFunctionRevertPickMultiple);
+                                             SpecialFunctionRevertPickMultiple,
+                                             SpecialFunctionAddToNegativePrompt);
 const AnySpecialFunction            = choice((dt_hosted
                                               ? UnexpectedSpecialFunctionInclude
                                               : SpecialFunctionInclude),
