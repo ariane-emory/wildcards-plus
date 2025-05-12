@@ -1931,7 +1931,7 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
-  avoid_repetition:           'Avoiding repetition',
+  avoid_repetition:              'Avoiding repetition',
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
@@ -2004,7 +2004,7 @@ class WeightedPicker {
   __clear_used_indices() {
     this.used_indices.clear();
     this.last_pick_index = null;
-    // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+    console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -----------------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
@@ -2067,7 +2067,7 @@ class WeightedPicker {
 
     // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
-    return ret;
+    return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, priority) {
@@ -2129,13 +2129,13 @@ class WeightedPicker {
     // // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
-
-    // console.log(`BEFORE TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
       // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
       // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+      console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
       total_weight += adjusted_weight;
     }
     // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
@@ -2145,7 +2145,9 @@ class WeightedPicker {
     if (total_weight === 0) {
       // return '';
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix,
+this.__effective_weight(ix, priority),
+this.options[ix]]), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
       if (noisy) {
