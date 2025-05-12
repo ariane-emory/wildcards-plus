@@ -2143,9 +2143,10 @@ class WeightedPicker {
     
     // Since we now avoid adding options with a weight of 0, this shouldnever be true:
     if (total_weight === 0) {
-      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
-                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
+      return '';
+      // throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
+      //                 `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
+      //                 `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
       if (noisy) {
         // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
