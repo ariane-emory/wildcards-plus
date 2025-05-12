@@ -520,3 +520,4 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 
 // %neg := { dog }
 // %neg += { cat }
+%single-pick-prioritizes := true_randomness

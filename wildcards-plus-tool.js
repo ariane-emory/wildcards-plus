@@ -6803,11 +6803,15 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      unarySpecialFunction('single-pick-prioritizes', choice(() => LimitedContent, /[a-z_]+/),
-                           arg => new ASTSpecialFunctionSetPickSingle(arg));
+      xform(wst_cutting_seq(wst_seq('%single-pick-prioritizes', 
+                                    assignment_operator),
+                            choice(() => LimitedContent, /[a-z_]+/)),
+            arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
 const SpecialFunctionSetPickMultiple =
-      unarySpecialFunction('multi-pick-prioritizes',  choice(() => LimitedContent, /[a-z_]+/),
-                           arg => new ASTSpecialFunctionSetPickMultiple(arg));
+      xform(wst_cutting_seq(wst_seq('%multi-pick-prioritizes', 
+                                    assignment_operator),
+                            choice(() => LimitedContent, /[a-z_]+/)),
+            arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
 const SpecialFunctionRevertPickSingle =
       xform('%revert-single-pick-prioritizes', 
             () => new ASTSpecialFunctionRevertPickSingle());
@@ -6834,7 +6838,7 @@ const SpecialFunctionAddToNegativePrompt =
             lc => {
               console.log(`NEG ADD: ${inspect_fun(lc)}`);
               return new ASTSpecialFunctionAddToNegativePrompt(lc);
-                   });
+            });
 const SpecialFunctionSetNegativePrompt = 
       xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
                                     assignment_operator),               // -
