@@ -64,10 +64,10 @@ function parse_file(filename) {
 }
 // -------------------------------------------------------------------------------------------------
 function post_prompt(prompt, config = {}, { hostname = '127.0.0.1', port = 7860,
-                                            negative_prompt = null } = {}) {
+                                            negative_prompt = undefined } = {}) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
-  let data = { prompt: prompt, ...config };
+  let data = { prompt: prompt, ...config, negativePrompt: negative_prompt };
 
   // doing this seems convenient?
   if (data.n_iter && (typeof data.n_iter === 'number') && data.n_iter > 1) { 
@@ -79,9 +79,11 @@ function post_prompt(prompt, config = {}, { hostname = '127.0.0.1', port = 7860,
     data.seed = Math.floor(Math.random() * (2 ** 32));
   }
 
-  if (negative_prompt || negative_prompt === '')
-    throw new Error(`bomb: ${negative_prompt}`);
-      
+  // if (negative_prompt || negative_prompt === '') {
+  //   // throw new Error(`bomb: ${negative_prompt}`);
+  //   th
+  // }
+  
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
