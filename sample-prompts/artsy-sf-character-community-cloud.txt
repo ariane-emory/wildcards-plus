@@ -20,10 +20,12 @@
 | 2 #wizards_artist.boris_vallejo
 | 2 #wizards_artist.gerald_brom
 | #wizards_artist.john_blanche
-| #wizards_artist.jack_gaughan 
+| #wizards_artist.jack_gaughan
+| #wizards_artist.michael_whelan
 | #wizards_artist.chris_foss
 | #wizards_artist.peter_elson
 | #wizards_artist.wayne_barlowe
+| #wizards_artist.jim_burns
 }
 
 // ---------------------------------------------------------------------------------------
