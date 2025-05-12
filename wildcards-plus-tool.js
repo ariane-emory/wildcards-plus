@@ -6834,15 +6834,15 @@ let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                   DiscardedComments,     // -
                                   '.',                   // [0][1]
-                                  DiscardedComments),    // -
-                          ident,                         // [1]
+                                  DiscardedComments,     // -
+                                  ident),                // [0][2]
                           DiscardedComments,             // -
-                          '(',                           // [2]
+                          '(',                           // [1]
                           DiscardedComments,             // -
-                          choice(Jsonc, () => LimitedContent),   // [3]
-                          DiscardedComments,             // [4]
+                          choice(Jsonc, () => LimitedContent),   // [2]
+                          DiscardedComments,             // [3]
                           ')'),                          // [4]
-          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[0][2], arr[2]));
 const SpecialFunctionAddToNegativePrompt =
       xform(second(wst_seq('%neg',
                            incr_assignment_operator,
