@@ -6822,14 +6822,19 @@ const SpecialFunctionAddToNegativePrompt =
                              return new ASTSpecialFunctionAddToNegativePrompt(arr);
                              // return arr;
                            });
+const SpecialFunctionSetNegativePrompt = 
+      xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
+                                    assignment_operator),               // -
+                              choice(JsoncObject, () => LimitedContent)), // [1]
+              arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
 const SpecialFunctionUpdateConfigurationUnary =
       unarySpecialFunction('config',
                            choice(JsoncObject, () => LimitedContent),
                            arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
                                                                           false));
 const SpecialFunctionSetConfiguration
-      = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                      assignment_operator),    // -
+      = xform(wst_cutting_seq(wst_seq('%config',                          // [0][0]
+                                      assignment_operator),               // -
                               choice(JsoncObject, () => LimitedContent)), // [1]
               arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true));
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
@@ -6840,7 +6845,8 @@ const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetPickMultiple,
                                              SpecialFunctionRevertPickSingle,
                                              SpecialFunctionRevertPickMultiple,
-                                             SpecialFunctionAddToNegativePrompt);
+                                             SpecialFunctionAddToNegativePrompt,
+                                             SpecialFunctionSetNegativePrompt);
 const AnySpecialFunction            = choice((dt_hosted
                                               ? UnexpectedSpecialFunctionInclude
                                               : SpecialFunctionInclude),
