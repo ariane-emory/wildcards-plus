@@ -63,7 +63,8 @@ function parse_file(filename) {
   return result;
 }
 // -------------------------------------------------------------------------------------------------
-function post_prompt(prompt, config = {}, { hostname = '127.0.0.1', port = 7860 } = {}) {
+function post_prompt(prompt, config = {}, { hostname = '127.0.0.1', port = 7860,
+                                            negative_prompt = null } = {}) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
   let data = { prompt: prompt, ...config };
@@ -77,11 +78,14 @@ function post_prompt(prompt, config = {}, { hostname = '127.0.0.1', port = 7860 
   else {
     data.seed = Math.floor(Math.random() * (2 ** 32));
   }
-  
+
+  if (negative_prompt || negative_prompt === '')
+    throw new Error(`bomb: ${negative_prompt}`);
+      
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
-    console.log(`POST data is: ${JSON.stringify(data)}`);
+        console.log(`POST data is: ${JSON.stringify(data)}`);
 
   const options = {
     hostname: hostname,
