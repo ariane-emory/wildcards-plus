@@ -7122,7 +7122,13 @@ async function main() {
           if (prior_expansion) { 
             console.log(`------------------------------------------------------------------------------------------`);
             console.log(`POSTing prior prompt '${expanded}'`);
-            post_prompt(prior_expansion, prior_config, { negative_prompt: prior_negative_prompt });
+
+            // untested!
+            [ expanded,        prior_expansion       ] = [ prior_expansion,       expanded        ]
+            [ config,          prior_config          ] = [ prior_config,          config          ]
+            [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ]
+            
+            post_prompt(expanded, config, { negative_prompt: negative_prompt });
           }
           else {
             console.log(`can't rewind, no prior prompt`);
