@@ -2582,6 +2582,7 @@ class Context {
     pick_multiple_priority = picker_priority.avoid_repetition,
     prior_pick_one_priority = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
+    negative_prompt: null,
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
@@ -2595,9 +2596,15 @@ class Context {
     this.prior_pick_one_priority = prior_pick_one_priority;
     this.pick_multiple_priority = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
+    this.negative_prompt = negative_prompt;
 
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
+  }
+  // -----------------------------------------------------------------------------------------------
+  add_negative(thing) {
+    this.negative_prompt ||= [];
+    this.negative_prompt.push(thing);
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
@@ -2665,7 +2672,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
-    this.flags = new Set();
+    this.flags = [];
     this.scalar_variables = new Map();
   }
   // -----------------------------------------------------------------------------------------------
@@ -2683,7 +2690,8 @@ class Context {
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,      
-      prior_pick_multiple_priority: this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.pick_multiple_priority,
+      negative_prompt:              [ ...this.negative_prompt ],
     });
   }
   // -----------------------------------------------------------------------------------------------
@@ -2701,6 +2709,7 @@ class Context {
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,
       prior_pick_multiple_priority: this.pick_multiple_priority,      
+      negative_prompt:              [ ...this.negative_prompt ],
     });
   }
 }

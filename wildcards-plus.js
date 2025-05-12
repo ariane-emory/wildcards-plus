@@ -6851,8 +6851,8 @@ for (let ix = 0; ix < batch_count; ix++) {
   pipeline.run({
     configuration: generated_configuration,
     prompt: generated_prompt,
-    negative_prompt: "this string",
-    negativePrompt: "THIS STRING"
+    // negative_prompt: "this string",
+    // negativePrompt: "THIS STRING",
   });
 
   const end_time     = new Date().getTime();
