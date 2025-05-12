@@ -7116,6 +7116,13 @@ async function main() {
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(expanded);
 
+    if (negative_prompt || negative_prompt === '') {
+      console.log(`------------------------------------------------------------------------------------------`);
+      console.log(`Expanded negative prompt:`);
+      console.log(`------------------------------------------------------------------------------------------`);
+      console.log(negative_prompt);
+    }
+
     if (!post) {
       posted_count += 1; // a lie to make the counter correct.
     }
