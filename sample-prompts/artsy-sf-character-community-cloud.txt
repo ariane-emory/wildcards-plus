@@ -419,4 +419,4 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
 
-%neg({ foo bar baz } quux {corge | grault})
+%neg(this is negative { foo bar baz } quux {corge | grault})

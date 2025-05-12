@@ -77,11 +77,11 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   else {
     data.seed = Math.floor(Math.random() * (2 ** 32));
   }
-    
+  
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
-        console.log(`POST data is: ${JSON.stringify(data)}`);
+    console.log(`POST data is: ${JSON.stringify(data)}`);
 
   const options = {
     hostname: hostname,
@@ -6386,6 +6386,11 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
+    // ASTSpecialFunctioAddToNegativePrompt:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunctioAddToNegativePrompt) {
+    }
+    // ---------------------------------------------------------------------------------------------
     else {
       throw new Error(`confusing thing: ` +
                       (typeof thing === 'object'
@@ -6630,6 +6635,13 @@ class ASTSpecialFunctionRevertPickSingle extends ASTNode {
     super();
   }
 }
+// -------------------------------------------------------------------------------------------------
+class ASTSpecialFunctioAddToNegativePrompt extends ASTNode {
+  constructor(negative_prompt_content) {
+    super();
+    this.negative_prompt_content = negative_prompt_content
+  }
+}
 // =================================================================================================
 // END OF SD PROMPT AST CLASSES SECTION.
 // =================================================================================================
@@ -6785,7 +6797,8 @@ const SpecialFunctionAddToNegativePrompt =
                            wst_star(() => ContentNoLorasOrParens),
                            arr => {
                              console.log(`NEG: ${inspect_fun(arr)}`);
-                             return arr;
+                             return new ASTSpecialFunctioAddToNegativePrompt(arr);
+                             // return arr;
                            });
 const SpecialFunctionUpdateConfigurationUnary =
       unarySpecialFunction('config',
@@ -7039,6 +7052,10 @@ async function main() {
 
     const context    = base_context.clone();
     expanded         = expand_wildcards(AST, context);
+
+    // if (context.negative_prompt)
+    //   console.log(`NEG CONTENT: ${expand_wildcards(context.negative_prompt, context)}`);
+    
     config           = munge_config(context.config);
     const add_loras  = context.add_loras;
     const have_loras = add_loras && add_loras.length > 0;
