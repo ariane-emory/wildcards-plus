@@ -2126,22 +2126,23 @@ class WeightedPicker {
       return this.options[legal_option_indices[0]].value;
     }
 
-    // // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
-    console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
+
+    // console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
       // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
       // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
-      console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+      // console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
       total_weight += adjusted_weight;
     }
     // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
     // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
     
-    // Since we now avoid adding options with a weight of 0, this shouldnever be true:
+    // Since we now avoid adding options with a weight of 0, this shoul dnever be true:
     if (total_weight === 0) {
       // return '';
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
