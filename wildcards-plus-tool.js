@@ -6825,8 +6825,8 @@ const SpecialFunctionAddToNegativePrompt =
 const SpecialFunctionSetNegativePrompt = 
       xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
                                     assignment_operator),               // -
-                              choice(JsoncObject, () => LimitedContent)), // [1]
-              arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
+                              choice(() => LimitedContent)), // [1]
+            arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
 const SpecialFunctionUpdateConfigurationUnary =
       unarySpecialFunction('config',
                            choice(JsoncObject, () => LimitedContent),
