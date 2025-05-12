@@ -19,6 +19,7 @@
 | 2 #wizards_artist.tony_diterlizzi
 | 2 #wizards_artist.boris_vallejo
 | 2 #wizards_artist.gerald_brom
+| #wizards_artist.ian_miller
 | #wizards_artist.john_blanche
 | #wizards_artist.jack_gaughan
 | #wizards_artist.michael_whelan

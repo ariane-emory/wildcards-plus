@@ -3818,7 +3818,7 @@ const prelude_text = disable_prelude ? '' : `
  #wizards_artist.william_zorach |
  #wizards_artist.ander_zorn |
 // artists added by me (ariane-emory):
- 3 #wizards_artist.ian_miller  |
+ 3 #wizards_artist.ian_miller |
  3 #wizards_artist.john_zeleznik |
  3 #wizards_artist.keith_parkinson |
  3 #wizards_artist.kevin_fales |
@@ -5975,7 +5975,7 @@ const prelude_text = disable_prelude ? '' : `
 ?wizards_artist.william_zorach cubism, expressionism, folk-art, modern, sculpture |
 ?wizards_artist.ander_zorn etching, nudes, painting, portraits, Swedish |
 // artists added by me (ariane-emory):
-?wizards_artist.ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen | 
+?wizards_artist.ian_miller fantasy, Warhammer, pen and ink, Rapidograph, technical pen, pen and ink, illustration | 
 ?wizards_artist.john_zeleznik science-fiction, Rifts, palladium-books, painting |
 ?wizards_artist.keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
 ?wizards_artist.kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books |
@@ -7076,6 +7076,7 @@ async function main() {
           }
         }
         else { // /^y.*/
+          console.log(`not POSTing.`);
           console.log(`------------------------------------------------------------------------------------------`);
           const parsed    = parseInt(answer);
           const gen_count = isNaN(parsed) ? 1 : parsed;  
