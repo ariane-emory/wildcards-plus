@@ -317,7 +317,7 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
-let print_ast_enabled         = false;
+let print_ast_enabled         = true;
 let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
@@ -6264,7 +6264,7 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`JSCONC_PARSED_EXPANDED_VALUE: ${inspect_fun(jsconc_parsed_expanded_value)}`);
         
         if (! jsconc_parsed_expanded_value || ! jsconc_parsed_expanded_value.is_finished)
-                      throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
+          throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
                           (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
                           `, Jsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_expanded_value));
@@ -6313,10 +6313,12 @@ function expand_wildcards(thing, context = new Context()) {
       context[cur_key]   = walked;
 
       if (log_config_enabled)
+        // console.log(
+        //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
         console.log(
           `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(walked)}: ` /*+
-                                         `${inspect_fun(context)}` */);
+            `${inspect_fun(walked)}.`);
       
       return '';
     }
@@ -6338,10 +6340,11 @@ function expand_wildcards(thing, context = new Context()) {
       //                               cur_val: cur_val, prior_val: prior_val })}`);
       
       if (log_config_enabled)
+        // console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
         console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                    `${inspect_fun(prior_val)}` /* +
-                                                   `${inspect_fun(context)}` */);
-
+                    `${inspect_fun(prior_val)}.`);
+      
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
 
@@ -6820,7 +6823,7 @@ const SpecialFunctionSetPickMultiple =
       xform(wst_cutting_seq(wst_seq('%multi-pick-priority', 
                                     assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)),
-            arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
+            arr => new ASTSpecialFunctionSetPickMultiple(arr[1]));
 const SpecialFunctionRevertPickSingle =
       xform('%revert-single-pick-priority', 
             () => new ASTSpecialFunctionRevertPickSingle());
