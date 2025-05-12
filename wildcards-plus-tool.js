@@ -6803,20 +6803,20 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      xform(wst_cutting_seq(wst_seq('%single-pick-prioritizes', 
+      xform(wst_cutting_seq(wst_seq('%single-pick-priority', 
                                     assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)),
             arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
 const SpecialFunctionSetPickMultiple =
-      xform(wst_cutting_seq(wst_seq('%multi-pick-prioritizes', 
+      xform(wst_cutting_seq(wst_seq('%multi-pick-priority', 
                                     assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)),
             arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
 const SpecialFunctionRevertPickSingle =
-      xform('%revert-single-pick-prioritizes', 
+      xform('%revert-single-pick-priority', 
             () => new ASTSpecialFunctionRevertPickSingle());
 const SpecialFunctionRevertPickMultiple =
-      xform('%revert-multi-pick-prioritizes', 
+      xform('%revert-multi-pick-priority', 
             () => new ASTSpecialFunctionRevertPickMultiple());
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
