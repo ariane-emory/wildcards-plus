@@ -6822,9 +6822,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                                                                           false));
 const SpecialFunctionSetConfiguration
       = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                      DiscardedComments,     // -
-                                      assignment_operator,   // _
-                                      DiscardedComments),    // -
+                                      assignment_operator),    // -
                               choice(JsoncObject, () => LimitedContent)), // [1]
               arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true));
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
@@ -6877,9 +6875,7 @@ const NamedWildcardReference        = xform(seq(discard('@'),
 const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
                                       wst_seq(NamedWildcardDesignator,                    // [0]
-                                              DiscardedComments,                          // -
                                               assignment_operator,                        // -
-                                              DiscardedComments,                          // -
                                               AnonWildcard));                             // [1]
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
