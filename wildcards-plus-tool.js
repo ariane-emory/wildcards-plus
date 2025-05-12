@@ -2616,7 +2616,7 @@ class Context {
       throw new Error(`not a string: ${typeof str} ${inspect_fun(str)}}`);
 
     this.negative_prompt ||= '';
-    this.negative_prompt += smart_join([this.negative_prompt, str]);
+    this.negative_prompt = smart_join([this.negative_prompt, str]);
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
@@ -6828,13 +6828,13 @@ let   SpecialFunctionUpdateConfigurationBinary =
                           ')'),                          // [4]
           arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
 const SpecialFunctionAddToNegativePrompt =
-      unarySpecialFunction('neg',
-                           wst_star(() => ContentNoLorasOrParens),
-                           arr => {
-                             // console.log(`NEG: ${inspect_fun(arr)}`);
-                             return new ASTSpecialFunctionAddToNegativePrompt(arr);
-                             // return arr;
-                           });
+      xform(second(wst_seq('%neg',
+                           incr_assignment_operator,
+                           () => ContentNoLorasOrParens)),
+            lc => {
+              console.log(`NEG ADD: ${inspect_fun(lc)}`);
+              return new ASTSpecialFunctionAddToNegativePrompt(lc);
+            });
 const SpecialFunctionSetNegativePrompt = 
       xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
                                     assignment_operator),               // -
