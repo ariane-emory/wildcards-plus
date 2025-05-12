@@ -6933,18 +6933,20 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
 const ScalarAssignmentSource  = choice(NamedWildcardReference,
                                        AnonWildcard,
                                        ScalarReference,);
-const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name), NamedWildcardDesignator),
-                                       AnonWildcardNoLoras,
-                                       ScalarReference,);
-const Content                 = choice(ScalarAssignment,
-                                       NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
-                                       A1111StyleLora,
-                                       escaped_brc, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
-const ContentNoLoras          = choice(ScalarAssignment,
-                                       NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
-                                       escaped_brc, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
+const LimitedContent          = choice(
+  xform(name => new ASTNamedWildcardReference(name), NamedWildcardDesignator),
+  AnonWildcardNoLoras,
+  ScalarReference,
+);
+const Content                 = choice(
+  A1111StyleLora,
+  () => ContentNoLoras,
+);
+const ContentNoLoras          = choice(
+  ScalarAssignment,
+  NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
+  escaped_brc, AnonWildcard, comment, ScalarReference,
+  SpecialFunctionNotInclude, plaintext);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(AnySpecialFunction,
