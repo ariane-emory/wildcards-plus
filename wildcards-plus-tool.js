@@ -72,10 +72,14 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   };
 
   data = { ...data, ...config };
+
+  if (ata.n_iter && data.n_iter > 1) // doing this seems convenient?
+    data.seed = -1;
+  
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
-    console.log(`POST data is: ${JSON.stringify(data)}`);
+        console.log(`POST data is: ${JSON.stringify(data)}`);
 
   const options = {
     hostname: hostname,
