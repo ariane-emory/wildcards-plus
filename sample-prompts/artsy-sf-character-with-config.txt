@@ -517,3 +517,5 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 {|8 @sky_sentence}
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
+
+%neg(this is negative { foo bar baz } quux {corge | grault})
