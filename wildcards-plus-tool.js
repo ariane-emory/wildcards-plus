@@ -317,7 +317,7 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
-let print_ast_enabled         = true;
+let print_ast_enabled         = false;
 let print_ast_json_enabled    = false;
 let string_input_mode_enabled = true;
 let log_enabled               = true;
