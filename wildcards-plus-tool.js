@@ -66,19 +66,17 @@ function parse_file(filename) {
 function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
-  let data = {
-    prompt: prompt,
-    seed: Math.floor(Math.random() * (2 ** 32)),
-  };
-
-  data = { ...data, ...config };
+  let data = { prompt: prompt, ...config };
 
   if (data.n_iter && data.n_iter > 1) { // doing this seems convenient?
     console.log(`FIX SEED!`);
     
     data.seed = -1;
   }
-  
+  else {
+    data.seed = Math.floor(Math.random() * (2 ** 32));
+  }
+    
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
