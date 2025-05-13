@@ -6840,9 +6840,7 @@ let   SpecialFunctionUpdateConfigurationBinary =
     xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2][0]),
           cutting_seq('%config.',                                     // [0]
                       ident,                                          // [1]
-                      wst_seq(DiscardedComments,                      // -
-                              assignment_operator,                    // [2][0]
-                              DiscardedComments,                      // -
+                      wst_seq(assignment_operator,                    // [2][0]
                               choice(Jsonc, () => LimitedContent)))); // [2][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], false),
