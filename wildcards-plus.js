@@ -6574,15 +6574,16 @@ const CheckFlag            = xform(arr => {
 },
                                    second(seq('?', plus(plus(ident, '.'), ','),
                                               word_break)))
-const NotFlag              = xform(arr => {
-  if (log_flags_enabled)
-    if (arr[2].length > 1)
-      console.log(`CONSTRUCTING NOTFLAG WITH ${inspect_fun(arr[2])}`);
+const NotFlag              = xform(seq('!', optional('#'),
+                                       plus(ident, '.'), word_break),
+                                   arr => {
+                                     if (log_flags_enabled)
+                                       if (arr[2].length > 1)
+                                         console.log(`CONSTRUCTING NOTFLAG WITH ` +
+                                                     `${inspect_fun(arr[2])}`);
 
-  return new ASTNotFlag(arr[2], arr[1][0]);
-},
-                                   seq('!', optional('#'),
-                                       plus(ident, '.'), word_break));
+                                     return new ASTNotFlag(arr[2], arr[1][0]);
+                                   });
 const UnsetFlag            = xform(second(seq('#!', plus(ident, '.'), word_break)),
                                    arr => {
                                      if (log_flags_enabled)
