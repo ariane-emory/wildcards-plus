@@ -2583,33 +2583,33 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 // =================================================================================================
 class Context {
   constructor({ 
-    flags = [], // new Set(),
-    scalar_variables = new Map(),
-    named_wildcards = new Map(),
-    noisy = false,
-    files = [],
-    config = {},
-    add_loras = [],
-    top_file = true,
-    pick_one_priority = picker_priority.ensure_weighted_distribution,
-    pick_multiple_priority = picker_priority.avoid_repetition,
-    prior_pick_one_priority = pick_one_priority,
+    flags                        = [], 
+    scalar_variables             = new Map(),
+    named_wildcards              = new Map(),
+    noisy                        = false,
+    files                        = [],
+    config                       = {},
+    add_loras                    = [],
+    top_file                     = true,
+    pick_one_priority            = picker_priority.ensure_weighted_distribution,
+    pick_multiple_priority       = picker_priority.avoid_repetition,
+    prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
-    negative_prompt = null,
+    negative_prompt              = null,
   } = {}) {
-    this.flags = flags;
-    this.scalar_variables = scalar_variables;
-    this.named_wildcards = named_wildcards;
-    this.noisy = noisy;
-    this.files = files;
-    this.config = config;
-    this.add_loras = add_loras;
-    this.top_file = top_file;
-    this.pick_one_priority = pick_one_priority;
-    this.prior_pick_one_priority = prior_pick_one_priority;
-    this.pick_multiple_priority = pick_multiple_priority;
+    this.flags                        = flags;
+    this.scalar_variables             = scalar_variables;
+    this.named_wildcards              = named_wildcards;
+    this.noisy                        = noisy;
+    this.files                        = files;
+    this.config                       = config;
+    this.add_loras                    = add_loras;
+    this.top_file                     = top_file;
+    this.pick_one_priority            = pick_one_priority;
+    this.prior_pick_one_priority      = prior_pick_one_priority;
+    this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-    this.negative_prompt = negative_prompt;
+    this.negative_prompt              = negative_prompt;
 
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
