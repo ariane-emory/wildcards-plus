@@ -6826,16 +6826,6 @@ const SpecialFunctionRevertPickSingle =
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTSpecialFunctionRevertPickMultiple(),
             '%revert-multi-pick-priority');
-let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2]),
-          wst_cutting_seq(wst_seq('%config',                   // [0][0]
-                                  DiscardedComments,           // -
-                                  '.',                         // [0][1]
-                                  DiscardedComments),          // -
-                          ident,                               // [1]
-                          assignment_operator,                 // -
-                          choice(Jsonc, () => LimitedContent), // [2]
-                         ));                                   // [4]
 const SpecialFunctionAddToNegativePrompt =
       xform(arr => new ASTSpecialFunctionAddToNegativePrompt(arr[1]),
             wst_cutting_seq(wst_seq('%neg',
@@ -6846,6 +6836,14 @@ const SpecialFunctionSetNegativePrompt =
             wst_cutting_seq(wst_seq('%neg',                             // [0][0]
                                     assignment_operator),               // -
                             () => LimitedContent)); // [1]
+let   SpecialFunctionUpdateConfigurationBinary =
+    xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2][0]),
+          cutting_seq('%config.',                                     // [0]
+                      ident,                                          // [1]
+                      wst_seq(DiscardedComments,                      // -
+                              assignment_operator,                    // [2][0]
+                              DiscardedComments,                      // -
+                              choice(Jsonc, () => LimitedContent)))); // [2][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], false),
             wst_cutting_seq(wst_seq('%config', incr_assignment_operator),
