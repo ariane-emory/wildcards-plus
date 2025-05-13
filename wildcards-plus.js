@@ -6887,6 +6887,7 @@ for (let ix = 0; ix < batch_count; ix++) {
                                     seed: -1,
                                     ...munge_config(context.config) };
   const add_loras               = context.add_loras;
+  const negative_prompt         = context.negative_prompt;
   // const added_loras_files       = [];
 
   if (add_loras.length > 0) {
@@ -6938,7 +6939,7 @@ for (let ix = 0; ix < batch_count; ix++) {
     configuration: generated_configuration,
     prompt: generated_prompt,
     // negative_prompt: "this string",
-    // negativePrompt: "THIS STRING",
+    negativePrompt: negative_prompt,
   });
 
   const end_time     = new Date().getTime();
