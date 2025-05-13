@@ -6628,12 +6628,12 @@ const SpecialFunctionAddToNegativePrompt =
       xform(arr => new ASTSpecialFunctionAddToNegativePrompt(arr[1]),
             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
                                     incr_assignment_operator),        // -     
-                            () => LimitedContent));                   // [1]   
+                            () => ScalarAssignmentSource));           // [1]   
 const SpecialFunctionSetNegativePrompt = 
       xform(arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]),
             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
                                     assignment_operator),             // -
-                            () => LimitedContent));                   // [1]
+                            () => ScalarAssignmentSource));           // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2][0]),
           cutting_seq('%config.',                                     // [0]
