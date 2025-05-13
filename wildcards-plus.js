@@ -6892,7 +6892,7 @@ The wildcards-plus script adds a variety of useful features above and beyond sim
 
 The full documentation would be too large to fit in this tiny box, please see the README.md file for detailed descriptions of these features!`;
 
-const user_selection = requestFromUser('Wildcards', '', function() {
+const user_selection = requestFromUser('Wildcards Plus', '', function() {
   return [
 	  this.section('Prompt', ui_hint,
                  [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
