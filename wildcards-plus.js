@@ -2288,7 +2288,7 @@ const dt_samplers = [   // order is significant, do not rearrange!
 ];
 const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
 // -------------------------------------------------------------------------------------------------
-const key_names = [
+const config_key_names = [
   // [ automatic1111's name,  Draw Things' name ],
   [ 'cfg_scale',                          'guidanceScale'                  ],
   [ 'model',                              'model'                          ],
@@ -2427,7 +2427,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers.indexOf(config.sampler);
     }
 
-    for (const [automatic1111_name, dt_name] of key_names) {
+    for (const [automatic1111_name, dt_name] of config_key_names) {
       if (automatic1111_name === dt_name)
         continue;
       
@@ -2447,7 +2447,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers[config.sampler];
     }
 
-    for (const [automatic1111_name, dt_name] of key_names) {
+    for (const [automatic1111_name, dt_name] of config_key_names) {
       if (automatic1111_name === dt_name)
         continue;
       
