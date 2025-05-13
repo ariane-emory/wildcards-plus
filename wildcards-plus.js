@@ -6623,23 +6623,20 @@ const SpecialFunctionRevertPickMultiple =
       xform('%revert-multi-pick-priority', 
             () => new ASTSpecialFunctionRevertPickMultiple());
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                  DiscardedComments,     // -
-                                  '.',                   // [0][1]
-                                  DiscardedComments),    // -
-                          ident,                         // [1]
-                          assignment_operator,           // -
-                          choice(Jsonc, () => LimitedContent),   // [2]
-                         ),                          // [4]
-          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2]));
+    xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2]),
+          wst_cutting_seq(wst_seq('%config',                   // [0][0]
+                                  DiscardedComments,           // -
+                                  '.',                         // [0][1]
+                                  DiscardedComments),          // -
+                          ident,                               // [1]
+                          assignment_operator,                 // -
+                          choice(Jsonc, () => LimitedContent), // [2]
+                         ));                                   // [4]
 const SpecialFunctionAddToNegativePrompt =
-      xform(wst_cutting_seq(wst_seq('%neg',
+      xform(arr => new ASTSpecialFunctionAddToNegativePrompt(arr[1]),
+            wst_cutting_seq(wst_seq('%neg',
                                     incr_assignment_operator),
-                            () => LimitedContent),
-            arr => {
-              console.log(`NEG ADD: ${inspect_fun(arr)}`);
-              return new ASTSpecialFunctionAddToNegativePrompt(arr[1]);
-            });
+                            () => LimitedContent));
 const SpecialFunctionSetNegativePrompt = 
       xform(arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]),
             wst_cutting_seq(wst_seq('%neg',                             // [0][0]
