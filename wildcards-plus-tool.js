@@ -6848,8 +6848,8 @@ const SpecialFunctionSetNegativePrompt =
                             () => LimitedContent)); // [1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], false),
-            second(wst_cutting_seq(wst_seq('%config', incr_assignment_operator),
-                                   choice(JsoncObject, () => LimitedContent))));
+            wst_cutting_seq(wst_seq('%config', incr_assignment_operator),
+                            choice(JsoncObject, () => LimitedContent)));
 const SpecialFunctionSetConfiguration
       = xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true),
               wst_cutting_seq(wst_seq('%config',                          // [0][0]
