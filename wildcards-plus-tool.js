@@ -6415,7 +6415,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTSpecialFunctionAddToNegativePrompt) {
       context.add_to_negative_prompt(expand_wildcards(thing.negative_prompt_content, context));
       
-      console.log(`NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt)}`);
+      console.log(`Added to negative prompt: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
@@ -6425,7 +6425,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTSpecialFunctionSetNegativePrompt) {
       context.negative_prompt = expand_wildcards(thing.negative_prompt_content, context);
       
-      console.log(`SET NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt)}`);
+      console.log(`Set negative prompt:      ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
@@ -6751,57 +6751,58 @@ const make__ASTAnonWildcardAlternative = arr => {
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
-const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
-                                   wst_seq('<',                                    // [0]
-                                           'lora',                                 // [1]
-                                           ':',                                    // [2]
-                                           choice(filename, () => LimitedContent), // [3]
-                                           optional(second(wst_seq(':',
-                                                                   choice(A1111StyleLoraWeight,
-                                                                          () => LimitedContent))),
-                                                    "1.0"), // [4][0]
-                                           '>'));
+const A1111StyleLora       =
+      xform(arr => new ASTLora(arr[3], arr[4][0]),
+            wst_seq('<',                                    // [0]
+                    'lora',                                 // [1]
+                    ':',                                    // [2]
+                    choice(filename, () => LimitedContent), // [3]
+                    optional(second(wst_seq(':',
+                                            choice(A1111StyleLoraWeight,
+                                                   () => LimitedContent))),
+                             "1.0"), // [4][0]
+                    '>'));
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag              = xform(arr => {
-  // arr = [arr];
-  if (log_flags_enabled)
-    if (arr.length > 1)
-      console.log(`CONSTRUCTING SETFLAG WITH ${inspect_fun(arr)}`);
-
-  return new ASTSetFlag(arr);
-},
-                                   second(seq('#', plus(ident, '.'), word_break)));
-const CheckFlag            = xform(arr => {
-  if (log_flags_enabled)
-    if (arr.some(e => e.length > 1))
-      console.log(`CONSTRUCTING CHECKFLAG WITH ${inspect_fun(arr)}`);
-
-  return new ASTCheckFlags(arr);
-},
-                                   second(seq('?', plus(plus(ident, '.'), ','),
-                                              word_break)))
-const NotFlag              = xform(arr => {
-  if (log_flags_enabled)
-    if (arr[2].length > 1)
-      console.log(`CONSTRUCTING NOTFLAG WITH ${inspect_fun(arr[2])}`);
-
-  return new ASTNotFlag(arr[2], arr[1][0]);
-},
-                                   seq('!', optional('#'),
-                                       plus(ident, '.'), word_break));
-const UnsetFlag            = xform(arr => {
-  if (log_flags_enabled)
-    if (arr.length > 1)
-      console.log(`CONSTRUCTING UNSETFLAG WITH ${inspect_fun(arr)}`);
-
-  return new ASTUnsetFlag(arr);
-},
-                                   second(seq('#!', plus(ident, '.'), word_break)));
-const TestFlag             = choice(CheckFlag, NotFlag);
+const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
+                         arr => {
+                           // arr = [arr];
+                           if (log_flags_enabled)
+                             if (arr.length > 1)
+                               console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                           `${inspect_fun(arr)}`);
+                           return new ASTSetFlag(arr);
+                         });
+const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','),
+                                    word_break)),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr.some(e => e.length > 1))
+                               console.log(`CONSTRUCTING CHECKFLAG WITH ` +
+                                           `${inspect_fun(arr)}`);
+                           return new ASTCheckFlags(arr);
+                         });
+const NotFlag    = xform(seq('!', optional('#'),
+                             plus(ident, '.'), word_break),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr[2].length > 1)
+                               console.log(`CONSTRUCTING NOTFLAG WITH ` +
+                                           `${inspect_fun(arr[2])}`);
+                           return new ASTNotFlag(arr[2], arr[1][0]);
+                         });
+const UnsetFlag  = xform(second(seq('#!', plus(ident, '.'), word_break)),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr.length > 1)
+                               console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                           ` ${inspect_fun(arr)}`);
+                           return new ASTUnsetFlag(arr);
+                         });
+const TestFlag   = choice(CheckFlag, NotFlag);
 // -------------------------------------------------------------------------------------------------
-// other non-terminals:
+// non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments                = discard(wst_star(comment));
 const SpecialFunctionInclude           = xform(arr => new ASTSpecialFunctionInclude(arr[1]),
@@ -6815,54 +6816,48 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      xform(wst_cutting_seq(wst_seq('%single-pick-priority', 
-                                    assignment_operator),
-                            choice(() => LimitedContent, /[a-z_]+/)),
-            arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
+      xform(arr => new ASTSpecialFunctionSetPickSingle(arr[1]),
+            wst_cutting_seq(wst_seq('%single-pick-priority', assignment_operator),
+                            choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionSetPickMultiple =
-      xform(wst_cutting_seq(wst_seq('%multi-pick-priority', 
-                                    assignment_operator),
-                            choice(() => LimitedContent, /[a-z_]+/)),
-            arr => new ASTSpecialFunctionSetPickMultiple(arr[1]));
+      xform(arr => new ASTSpecialFunctionSetPickMultiple(arr[1]),
+            wst_cutting_seq(wst_seq('%multi-pick-priority', assignment_operator),
+                            choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionRevertPickSingle =
-      xform('%revert-single-pick-priority', 
-            () => new ASTSpecialFunctionRevertPickSingle());
+      xform(() => new ASTSpecialFunctionRevertPickSingle(),
+            '%revert-single-pick-priority');
 const SpecialFunctionRevertPickMultiple =
-      xform('%revert-multi-pick-priority', 
-            () => new ASTSpecialFunctionRevertPickMultiple());
+      xform(() => new ASTSpecialFunctionRevertPickMultiple(),
+            '%revert-multi-pick-priority');
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                  DiscardedComments,     // -
-                                  '.',                   // [0][1]
-                                  DiscardedComments),    // -
-                          ident,                         // [1]
-                          assignment_operator,           // -
-                          choice(Jsonc, () => LimitedContent),   // [2]
-                         ),                          // [4]
-          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2]));
+    xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2]),
+          wst_cutting_seq(wst_seq('%config',                   // [0][0]
+                                  DiscardedComments,           // -
+                                  '.',                         // [0][1]
+                                  DiscardedComments),          // -
+                          ident,                               // [1]
+                          assignment_operator,                 // -
+                          choice(Jsonc, () => LimitedContent), // [2]
+                         ));                                   // [4]
 const SpecialFunctionAddToNegativePrompt =
-      xform(second(wst_seq('%neg',
-                           incr_assignment_operator,
-                           () => LimitedContent)),
-            lc => {
-              console.log(`NEG ADD: ${inspect_fun(lc)}`);
-              return new ASTSpecialFunctionAddToNegativePrompt(lc);
-            });
+      xform(arr => new ASTSpecialFunctionAddToNegativePrompt(arr[1]),
+            wst_cutting_seq(wst_seq('%neg',
+                                    incr_assignment_operator),
+                            () => LimitedContent));
 const SpecialFunctionSetNegativePrompt = 
-      xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
+      xform(arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]),
+            wst_cutting_seq(wst_seq('%neg',                             // [0][0]
                                     assignment_operator),               // -
-                            () => LimitedContent), // [1]
-            arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
+                            () => LimitedContent)); // [1]
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(second(wst_cutting_seq(wst_seq('%config', incr_assignment_operator),
-                                   choice(JsoncObject, () => LimitedContent))),
-            arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1],
-                                                           false));
+      xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], false),
+            second(wst_cutting_seq(wst_seq('%config', incr_assignment_operator),
+                                   choice(JsoncObject, () => LimitedContent))));
 const SpecialFunctionSetConfiguration
-      = xform(wst_cutting_seq(wst_seq('%config',                          // [0][0]
+      = xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true),
+              wst_cutting_seq(wst_seq('%config',                          // [0][0]
                                       assignment_operator),               // -
-                              choice(JsoncObject, () => LimitedContent)), // [1]
-              arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true));
+                              choice(JsoncObject, () => LimitedContent))); // [1]
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary);
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
@@ -6877,6 +6872,9 @@ const AnySpecialFunction            = choice((dt_hosted
                                               ? UnexpectedSpecialFunctionInclude
                                               : SpecialFunctionInclude),
                                              SpecialFunctionNotInclude);
+// -------------------------------------------------------------------------------------------------
+// other non-terminals:
+// -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative       = xform(make__ASTAnonWildcardAlternative,
                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                 optional(wb_uint, 1),
@@ -6912,10 +6910,10 @@ const NamedWildcardReference        = xform(seq(discard('@'),
                                                                                    max_ct);
                                             });
 const NamedWildcardDesignator = second(seq('@', ident)); 
-const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
-                                      wst_seq(NamedWildcardDesignator,                    // [0]
-                                              assignment_operator,                        // -
-                                              AnonWildcard));                             // [1]
+const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
+                                      wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
+                                                              assignment_operator),    // -
+                                                      AnonWildcard));                  // [1]
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
@@ -6935,10 +6933,10 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                       });
 const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
                                       arr => new ASTScalarReference(arr[1], arr[0][0]));
-const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
-                                      wst_seq(ScalarReference,
-                                              assignment_operator,
-                                              () => ScalarAssignmentSource));
+const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0][0], arr[1]),
+                                      wst_cutting_seq(wst_seq(ScalarReference,        // [0][0]
+                                                              assignment_operator),   // -
+                                                      () => ScalarAssignmentSource)); // [1]
 const ScalarAssignmentSource  = choice(NamedWildcardReference,
                                        AnonWildcard,
                                        ScalarReference,);

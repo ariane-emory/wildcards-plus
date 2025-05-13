@@ -6207,7 +6207,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTSpecialFunctionAddToNegativePrompt) {
       context.add_to_negative_prompt(expand_wildcards(thing.negative_prompt_content, context));
       
-      console.log(`NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt)}`);
+      console.log(`Added to negative prompt: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
@@ -6217,7 +6217,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTSpecialFunctionSetNegativePrompt) {
       context.negative_prompt = expand_wildcards(thing.negative_prompt_content, context);
       
-      console.log(`SET NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt)}`);
+      console.log(`Set negative prompt:      ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
@@ -6619,7 +6619,7 @@ const SpecialFunctionRevertPickSingle =
       xform(() => new ASTSpecialFunctionRevertPickSingle(),
             '%revert-single-pick-priority');
 const SpecialFunctionRevertPickMultiple =
-      xform(() => new ASTSpecialFunctionRevertPickMultiple()
+      xform(() => new ASTSpecialFunctionRevertPickMultiple(),
             '%revert-multi-pick-priority');
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2]),
@@ -6726,7 +6726,7 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
 const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
                                       arr => new ASTScalarReference(arr[1], arr[0][0]));
 const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0][0], arr[1]),
-                                      wst_curring_seq(wst_seq(ScalarReference,        // [0][0]
+                                      wst_cutting_seq(wst_seq(ScalarReference,        // [0][0]
                                                               assignment_operator),   // -
                                                       () => ScalarAssignmentSource)); // [1]
 const ScalarAssignmentSource  = choice(NamedWildcardReference,
