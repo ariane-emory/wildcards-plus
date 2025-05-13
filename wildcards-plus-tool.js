@@ -70,19 +70,14 @@ function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860,
   let data = { prompt: prompt, ...config,
                negative_prompt: negative_prompt || negative_prompt === '' ? negative_prompt : undefined };
 
-  // doing this seems convenient?
-  if (data.n_iter && (typeof data.n_iter === 'number') && data.n_iter > 1) { 
-    console.log(`FIX SEED!`);
-    
-    data.seed = -1;
-  }
-  else {
-    data.seed = Math.floor(Math.random() * (2 ** 32));
-  }
-
-  // if (negative_prompt || negative_prompt === '') {
-  //   // throw new Error(`bomb: ${negative_prompt}`);
-  //   th
+  // // doing this seems convenient?
+  // if (data.n_iter && (typeof data.n_iter === 'number') && data.n_iter > 1) { 
+  //   console.log(`FIX SEED!`);
+  
+  //   data.seed = -1;
+  // }
+  // else {
+  //   data.seed = Math.floor(Math.random() * (2 ** 32));
   // }
   
   const string_data = JSON.stringify(data);
@@ -2499,7 +2494,6 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 const key_names = [
   // [ automatic1111's name,  Draw Things' name ],
   [ 'cfg_scale',                          'guidanceScale'                  ],
-  [ 'n_iter',                             'batchCount'                     ],
   [ 'model',                              'model'                          ],
   [ 'upscaler',                           'upscaler'                       ],
   [ 'upscaler_scale_factor',              'upscalerScaleFactor'            ],
@@ -2508,6 +2502,7 @@ const key_names = [
   [ 'seed',                               'seed'                           ],
   [ 'guidance',                           'guidanceScale'                  ],
   [ 'seed_mode',                          'seedMode'                       ],
+  [ 'n_iter',                             'batchCount'                     ],
   [ 'batch_count',                        'batchCount'                     ],
   [ 'batch_size',                         'batchSize'                      ],
   [ 'sampler',                            'sampler'                        ],
@@ -2586,6 +2581,20 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   if (is_empty_object(config))
     return config;
 
+  // 'fix' seed if n_iter > 1, doing this seems convenient?
+  if ((config.n_iter      &&
+       (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
+      (config.batch_count &&
+       (typeof config.batch_count === 'number') && config.batch_count > 1) ||
+      (config.batchCount  &&
+       (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+    console.log(`Fix seed, using -1 due to n_iter > 1.`);
+    config.seed = -1;
+  }
+  else {
+    config.seed = Math.floor(Math.random() * (2 ** 32));
+  }
+  
   if (config.model) {
     config.model = config.model.toLowerCase();
     
