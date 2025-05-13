@@ -1762,7 +1762,8 @@ class WeightedPicker {
     if (! priority)
       throw new Error("no priority");
 
-    if (priority === picker_priority.avoid_repetition_short)
+    if ((min_count > 1 || max_count > 1) && 
+        priority === picker_priority.avoid_repetition_short)
       this.__clear_used_indices();
     
     // console.log(`PICK ${min_count}-${max_count}`);
