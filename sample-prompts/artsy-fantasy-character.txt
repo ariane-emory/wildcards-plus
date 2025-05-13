@@ -121,7 +121,7 @@ a
 {|#outdoors}
 {|?outdoors #mounted}
 
-{?maleounted {sitting on|mounted on|riding on|astride|leading}
+{?mounted {sitting on|mounted on|riding on|astride|leading}
           @pro_pos_rand
           {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
           {3 beast|wolf|2 lizard|reptile|snake|serpent|insect|2 steed|2 destrier
@@ -191,15 +191,15 @@ the viewer
 // unless flagged as #alone, warriors always have #many_minions, but wizards may have a
 // single minion sometimes: 
 {?warrior #many_minions|?wizard {|3 #many_minions}}
-@pluralize_minions = { ?maleany_minions <s }
+@pluralize_minions = { ?many_minions <s }
 
 // Companions: don't always mention the companions, because of the empty alternative at
 // the start:
 {|!alone {,|2 while}
-         {accompanied by|?maleany_minions surrounded by|?maleany_minions encircled by
+         {accompanied by|?many_minions surrounded by|?many_minions encircled by
          |guarded by|leading|commanding|directing|guiding|rallying|alongside}
          @pro_pos_rand
-         {?maleany_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang
+         {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang
                         |?warrior squad|army|?wizard coterie|?wizard circle|?wizard coven
                         |?wizard variety|?wizard menagerie}
                         of
