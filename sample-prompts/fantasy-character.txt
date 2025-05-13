@@ -12,7 +12,7 @@ wide shot,
 // character type flag, make 'wizards' 60% of the time:
 {3 #wizard|2 #warrior} 
 
-@weapon  := {2 spear|2 {|short|two-handed|bastard|curved} sword|axe|halbard|scimitar
+@weapon  = {2 spear|2 {|short|two-handed|bastard|curved} sword|axe|halbard|scimitar
             |falchion|kukri|rapier|sabre|cutlass|mace|dagger|torch|dirk|stiletto|blade
             |trident|harpoon|cleaver|hammer|warhammer|flail|whip|scourge|lash|morningstar
             }
@@ -25,9 +25,9 @@ wide shot,
 // in the mean time, this just picks an item from @wepon and stashes it in a 
 // variable called $weapon:
 
-$weapon  := @weapon 
+$weapon  = @weapon 
 
-@character_adjectives := {?wizard  {#scary inhuman|#scary alien|#scary evil|#scary ominous
+@character_adjectives = {?wizard  {#scary inhuman|#scary alien|#scary evil|#scary ominous
                                    |#scary sinister|#scary infernal|#alone lonesome
                                    |erudite|wise|ancient|immortal|antediluvian
                                    |?female seductive|?female beautiful|?female alluring|?male dashing
@@ -40,7 +40,7 @@ $weapon  := @weapon
                                    |?male !scary charming|!scary brave|!scary daring}
                          }
 
-@roles := {?wizard  {{?male wizard|?female wizardress}|2 {?male sorcerer|?female sorceress}|2 {?male enchanter
+@roles = {?wizard  {{?male wizard|?female wizardress}|2 {?male sorcerer|?female sorceress}|2 {?male enchanter
                     |?female enchantress}|druid|alchemist|{?male priest|?female priestess}|adept|cultist
                     |vampire|lich|2 necromancer|?male warlock|?female witch|arcanist|sage|seer}
           |?warrior {2 warrior|!scary paladin|knight|barbarian|conqueror|rogue|2 gladiator
@@ -53,10 +53,10 @@ $weapon  := @weapon
 // available, forcing the script to pick that alternative. we'll deliberately use that to
 // pick appropriately gendered pronouns for our character:
 
-@pro_pos_rand    := {5 @pro_pos_adj|4 a|1 their}
+@pro_pos_rand    = {5 @pro_pos_adj|4 a|1 their}
 
-@video_game_descriptor := {highly anticipated|blockbuster|award winning}
-@video_game_origin     := {|3 from {Japan's FROM Software|2 Hidetaka Miyazaki}|, the
+@video_game_descriptor = {highly anticipated|blockbuster|award winning}
+@video_game_origin     = {|3 from {Japan's FROM Software|2 Hidetaka Miyazaki}|, the
                             sequel to Bloodborne}
 {3 A {|oil} painting for the cover of a fantasy novel published in the
  {3 1970s|2 1980s|1990s|early 2000s}
@@ -72,7 +72,7 @@ $weapon  := @weapon
 
 , {which depicts|depicting}
 
-@world_adjective := {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten
+@world_adjective = {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten
                     |primitive|frightening|hellish|alien|{haunted|{ghost|demon}-haunted}
                     |ruined|abandoned|lonely|chaotic|crowded|mythical|fantastical
                     }
@@ -83,9 +83,9 @@ a
 
 @1-2&character_adjectives @roles
 
-@wizard_clothing_adjs := {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
+@wizard_clothing_adjs = {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
                          |ornate|silken|brightly colored|occult|embroidered}
-@pluralize_clothing   := {!used_pro <s}
+@pluralize_clothing   = {!used_pro <s}
 
 // Clothing: only reference any clothing half the time, because of the empty alternative
 // at the start:
@@ -168,7 +168,7 @@ in {3|the heart of|the depths of} a
 
 {,|and}
 
-@look_aim := {past|towards|2 {|up|down} {at|towards}}
+@look_aim = {past|towards|2 {|up|down} {at|towards}}
 
 // Expression/looking at:
 {2 looking @look_aim
@@ -192,7 +192,7 @@ the viewer
 |!scary victoriously
 }
 
-@minion_adjectives := {
+@minion_adjectives = {
  ?wizard   {?scary {demonic #demonic|fearsome|slavering|3 undead|eldrich
                    |loathsome|squamous|chtonian|repulsive|chitinous|ghoulish}
            |       {2 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
@@ -206,7 +206,7 @@ the viewer
 // unless flagged as #alone, warriors always have #many_minions, but wizards may have a
 // single minion sometimes: 
 {?warrior #many_minions|?wizard {|3 #many_minions}}
-@pluralize_minions := { ?maleany_minions <s }
+@pluralize_minions = { ?maleany_minions <s }
 
 // Companions: don't always mention the companions, because of the empty alternative at
 // the start:

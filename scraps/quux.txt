@@ -1,1 +1,1 @@
-@quux := { quux one | quux two | quux three | quux four }
+@quux = { quux one | quux two | quux three | quux four }

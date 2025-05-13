@@ -1,4 +1,4 @@
-@fruit := { 3 apple | orange }
+@fruit = { 3 apple | orange }
 // @12&fruit \n
 // \n
 @fruit \n

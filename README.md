@@ -77,14 +77,14 @@ Prompts may include comments, which work in essentially the same way as they wor
 
 **Named wildcards - the basics:**
  
-Named wildcards may be defined may be defined by employing the `:=` device. Defining a named wildcard produces no output immediately, but references the named wildcard found further on in the promp will pick a result from that named wildcard. The characters permitted in the names of named wildcards are almost the same as those permitted in identifiers in C, but also permitting dashes after the first character (so, the characters A-Z, a-Z, 0-9, `_` and `-`, but may not begin with a number). Examples of valid names for named wildcards include `foo`, `fo0`, `_foo` and `foo_bar`. Ordinarily, references to named wildcards a prefixed with a `@` (later on in 'Named wildcards - getting multiple items at once', we'll cover more complex prefixes, but you don't have to worry about those yet).
+Named wildcards may be defined may be defined by employing the `=` device. Defining a named wildcard produces no output immediately, but references the named wildcard found further on in the promp will pick a result from that named wildcard. The characters permitted in the names of named wildcards are almost the same as those permitted in identifiers in C, but also permitting dashes after the first character (so, the characters A-Z, a-Z, 0-9, `_` and `-`, but may not begin with a number). Examples of valid names for named wildcards include `foo`, `fo0`, `_foo` and `foo_bar`. Ordinarily, references to named wildcards a prefixed with a `@` (later on in 'Named wildcards - getting multiple items at once', we'll cover more complex prefixes, but you don't have to worry about those yet).
 
 Named prompt definitions must be at the 'top level' of the prompt: they can't themselves be nested within a wildcard's curly braces.
  
 Example prompt:
 ```
 // define a named wildcard named '@weapon':
-@weapon := {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger}
+@weapon = {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger}
 
 // use that named wildcard in our prompt here to get a randoom weapon:
 A {man|woman} {holding|swinging|2 wielding|3 brandishing} a @weapon.
@@ -104,7 +104,7 @@ A named wildcard may be 'latched' using by using an expression preceding the wil
 
 A silly example:
 ```
-@bird := {duck|goose}
+@bird = {duck|goose}
 
 // set the latch on the @bird named wildcard:
 @#bird 
@@ -127,7 +127,7 @@ If you want to, you can unlatch and immediately re-latch a wildcard's value usin
 
 You've got something like this...
 
-`@weapon := {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger}`
+`@weapon = {2 spear|2 sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger}`
 
 ... and you want more than one result? You can expand more results at once from a named wildcard by supplying a positive integer after the `@` character, or supplying an  using two such integers separated by a `-`. Ordinarily they're separated by a space, but if you add a `,` after the number you can get a comma separated list, or get a nice plain-english list with the word 'and' in the appropriate spot by using an `&` instead. 
 
@@ -152,14 +152,14 @@ So, what can we do with this? Well, how about an example. Want an imposing arsen
 Example prompt:
 ```
 // Weapons:
-@weapon       := {spear|sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|scythe|trident|blade|kriss|stiletto|dagger|trident|harpoon}
-@weapons      := { A {2 {|2 @adjs} @weapon | 5 {2|3 @adjs} @weapon @weapons_tail } }
-@weapons_tail := {2 and a {2|3 @adjs} @weapon|3 ... a {2|3 @adjs} @weapon @weapons_tail}
+@weapon       = {spear|sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|scythe|trident|blade|kriss|stiletto|dagger|trident|harpoon}
+@weapons      = { A {2 {|2 @adjs} @weapon | 5 {2|3 @adjs} @weapon @weapons_tail } }
+@weapons_tail = {2 and a {2|3 @adjs} @weapon|3 ... a {2|3 @adjs} @weapon @weapons_tail}
 
 // Adjectives:
-@adjs         := {2 @adj |4 @adj @adjs_tail }
-@adjs_tail    := {and @adj| , @adj @adjs_tail }
-@adj          := {fierce|fearsome|cruel-edged|serrated|mighty|eldritch|otherwordly|menacing|calamitous|beastly|fiery|malevolent|adamantine|spined
+@adjs         = {2 @adj |4 @adj @adjs_tail }
+@adjs_tail    = {and @adj| , @adj @adjs_tail }
+@adj          = {fierce|fearsome|cruel-edged|serrated|mighty|eldritch|otherwordly|menacing|calamitous|beastly|fiery|malevolent|adamantine|spined
                  |antediluvian|verdigris-encrusted|pearl-inlaid|ominous|razor-edged|serpentine|viridian|sinuous|opalescent|venomous|imposing}
  
 // Expand @weapon five imes, on a fresh line each time:
@@ -189,7 +189,7 @@ Wanna print the name ot the `@weapon` wildcard, without actually picking an item
 
 Example prompt:
 ```
-@weapon := {spear|sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|scythe|trident|blade|kriss|stiletto|dagger}
+@weapon = {spear|sword|axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|scythe|trident|blade|kriss|stiletto|dagger}
 
 An \i\t\e\m from the \@weapon wildcard: @weapon // only one item will actually be picked from @weapon!
 ```
@@ -280,7 +280,7 @@ A knight holding a spear.
 One pattern I've found myself using frequently are alternatives like this: `!some_flag #some_flag some content`, which basically means "don't pick this alternative if `some_flag` is already set but, if this alternative is picked, set `some_flag` and yield the text `some content`. For example, consider this wildcard:
 
 ```
-@ingredients := { !used_meat #used_meat chicken | !used_meat #used_meat beef | vegetables | bread | rice }
+@ingredients = { !used_meat #used_meat chicken | !used_meat #used_meat beef | vegetables | bread | rice }
 ```
 
 If you get multiple items from this wildcard, you'll only get one meat item since the alternatives containing meat items both set the `used_meat` flag, preventing the selection of a second meat item.
@@ -288,7 +288,7 @@ If you get multiple items from this wildcard, you'll only get one meat item sinc
 To make this pattern more convenient, a `!#` sequence can be used: `!#used_meat` means the same thing as `!used_meat #used_meat`, allowing the previous example to be simplified into:
 
 ```
-@ingredients := { !#used_meat chicken | !#used_meat beef | vegetables | bread | rice }
+@ingredients = { !#used_meat chicken | !#used_meat beef | vegetables | bread | rice }
 ```
 
 *Tip*: If you're clever, you could intentionally  create situations where guards leave only a single alternative available, depending on the particular flags that are set. This can let be used  steer named wildcards into producing particular results when certain flags are set. In the next section, you'll see an example where I use (or maybe abuse) this technique to give a character the correct pronouns for their gender.
@@ -298,19 +298,19 @@ To make this pattern more convenient, a `!#` sequence can be used: `!#used_meat`
 Let's have a little fun and make a fancier prompt that makes use of most (not quite all) o the features that w've covered thus far. This prompt will be a little longer, but don't worry, it's not using any features that I haven't already explained, it should all make sense if you take the time to read through it. Here we go:
 
 ```
-@quality      := { rusty | masterwork | fine | bejeweled | glowing | magical |}
-@weapon       := {2 spear|2 {two-handed|bastard|short} sword|3 axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger|blade}
-@friend       := {father|mother|mentor|teacher|lover}
+@quality      = { rusty | masterwork | fine | bejeweled | glowing | magical |}
+@weapon       = {2 spear|2 {two-handed|bastard|short} sword|3 axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger|blade}
+@friend       = {father|mother|mentor|teacher|lover}
 
 @#weapon                // Set a latch on the @weapon wildcard, since we're going to make several references to the same weapon.
 @#friend                // Set a latch on the @friend wildcard, since we're going two references to the same friend.
 {#female|#male|#neuter} // Randomly pick one of these three alternatives and set a gender flag.
 
 // The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pronouns:
-@pronoun_3rd_object  := {?female her |?male him | ?neuter it  }
-@pronoun_3rd_subject := {?female she |?male he  | ?neuter it  }
-@pronoun_pos_adj     := {?female her |?male his | ?neuter its }
-@pronoun_pos         := {?female hers|?male his | ?neuter its }
+@pronoun_3rd_object  = {?female her |?male him | ?neuter it  }
+@pronoun_3rd_subject = {?female she |?male he  | ?neuter it  }
+@pronoun_pos_adj     = {?female her |?male his | ?neuter its }
+@pronoun_pos         = {?female hers|?male his | ?neuter its }
 
 @^pronoun_3rd_subject { swung | brandished | presented } @pronoun_pos_adj @quality @weapon, that very same @weapon @pronoun_pos_adj
 {beloved|dear|long lost|} @friend had
@@ -356,24 +356,24 @@ For user convenient, `wildcards-plus` now includes some helpful built in named w
 
 **Named wildcards to generate consistent pronouns**:
 ```
-@set_gender_if_unset := {!female !male !neuter {3 #female|2 #male|#neuter}}
-@gender              := {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
-@pro_3rd_subj        := {@set_gender_if_unset {?female she |?male he  |?neuter it }}
-@pro_3rd_obj         := {@set_gender_if_unset {?female her |?male him |?neuter it }}
-@pro_pos_adj         := {@set_gender_if_unset {?female her |?male his |?neuter its}}
-@pro_pos             := {@set_gender_if_unset {?female hers|?male his |?neuter its}}
+@set_gender_if_unset = {!female !male !neuter {3 #female|2 #male|#neuter}}
+@gender              = {@set_gender_if_unset {?female woman |?male man |?neuter androgyne }}
+@pro_3rd_subj        = {@set_gender_if_unset {?female she |?male he  |?neuter it }}
+@pro_3rd_obj         = {@set_gender_if_unset {?female her |?male him |?neuter it }}
+@pro_pos_adj         = {@set_gender_if_unset {?female her |?male his |?neuter its}}
+@pro_pos             = {@set_gender_if_unset {?female hers|?male his |?neuter its}}
 ```
 
 You may use these wildcards to generate pronouns for a character. Since they all expand `@set_gender_if_unset` first, the generated pronouns will be consistent. It will select female a bit more frequently than male, due to my own preferences (I'm usually more interested in drawing women than men), but if your preferences differ you can either set a gender flag yourself or redefine `@set_gender_if_unset` to align with your own preferences.
 
 **Named wildcards that generate Pony score strings**:
 ```
-@pony_score_9        := {score_9}
-@pony_score_8_up     := {score_9, score_8_up}
-@pony_score_7_up     := {score_9, score_8_up, score_7_up}
-@pony_score_6_up     := {score_9, score_8_up, score_7_up, score_6_up}
-@pony_score_5_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up}
-@pony_score_4_up     := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up}
+@pony_score_9        = {score_9}
+@pony_score_8_up     = {score_9, score_8_up}
+@pony_score_7_up     = {score_9, score_8_up, score_7_up}
+@pony_score_6_up     = {score_9, score_8_up, score_7_up, score_6_up}
+@pony_score_5_up     = {score_9, score_8_up, score_7_up, score_6_up, score_5_up}
+@pony_score_4_up     = {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up}
 ```
 
 For the convenience of Pony users, these wildcards will generate commonly used Pony 'score' strings.

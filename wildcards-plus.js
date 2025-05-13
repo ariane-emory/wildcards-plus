@@ -1487,7 +1487,7 @@ const factor_op          = r(/[\/\*\%]/);
 const term_op            = r(/[\+\-]/);
 // -------------------------------------------------------------------------------------------------
 // Pascal-like terminals:
-const pascal_assign_op   = l(':=');
+const pascal_assign_op   = l('=');
 // -------------------------------------------------------------------------------------------------
 // Python-like terminals:
 const python_exponent_op = l('**');
@@ -1723,7 +1723,8 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
-  avoid_repetition:           'Avoiding repetition',
+  avoid_repetition_short:        'Avoiding repetition (short term only)',
+  avoid_repetition_long:         'Avoiding repetition', 
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
@@ -1761,8 +1762,11 @@ class WeightedPicker {
     if (! priority)
       throw new Error("no priority");
 
+    if (priority === picker_priority.avoid_repetition_short)
+      this.__clear_used_indices();
+    
     // console.log(`PICK ${min_count}-${max_count}`);
-    const count =Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
     
@@ -1774,7 +1778,7 @@ class WeightedPicker {
     }
 
     // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
-    
+
     return res;
   }
   // -----------------------------------------------------------------------------------------------
@@ -1811,7 +1815,8 @@ class WeightedPicker {
 
     let exhausted_indices = null;
     
-    if (priority == picker_priority.avoid_repetition) {
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) {
       exhausted_indices = new Set(this.used_indices.keys());
     }
     else if (priority == picker_priority.ensure_weighted_distribution) {
@@ -1844,7 +1849,8 @@ class WeightedPicker {
     
     let ret = null;
     
-    if (priority === picker_priority.avoid_repetition) {
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) {
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
     }
     else if (priority === picker_priority.ensure_weighted_distribution) {
@@ -1859,7 +1865,7 @@ class WeightedPicker {
 
     // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
-    return ret;
+    return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, priority) {
@@ -1886,7 +1892,7 @@ class WeightedPicker {
     
     if (this.__indices_are_exhausted(legal_option_indices, priority)) {
       // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-      if (priority === picker_priority.avoid_repetition) {
+      if (priority === picker_priority.avoid_repetition_long) {
         if (this.last_pick_index !== null) {
           const last_pick_index = this.last_pick_index;
           this.__clear_used_indices();
@@ -1918,25 +1924,29 @@ class WeightedPicker {
       return this.options[legal_option_indices[0]].value;
     }
 
-    // // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
-    // console.log(`BEFORE TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    // console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
       // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
       // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+      // console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
       total_weight += adjusted_weight;
     }
     // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
     // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
     
-    // Since we now avoid adding options with a weight of 0, this shouldnever be true:
+    // Since we now avoid adding options with a weight of 0, this shoul dnever be true:
     if (total_weight === 0) {
+      // return '';
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix,
+this.__effective_weight(ix, priority),
+this.options[ix]]), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
       if (noisy) {
@@ -2371,33 +2381,33 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 // =================================================================================================
 class Context {
   constructor({ 
-    flags = [], // new Set(),
-    scalar_variables = new Map(),
-    named_wildcards = new Map(),
-    noisy = false,
-    files = [],
-    config = {},
-    add_loras = [],
-    top_file = true,
-    pick_one_priority = picker_priority.ensure_weighted_distribution,
-    pick_multiple_priority = picker_priority.avoid_repetition,
-    prior_pick_one_priority = pick_one_priority,
+    flags                        = [], 
+    scalar_variables             = new Map(),
+    named_wildcards              = new Map(),
+    noisy                        = false,
+    files                        = [],
+    config                       = {},
+    add_loras                    = [],
+    top_file                     = true,
+    pick_one_priority            = picker_priority.ensure_weighted_distribution,
+    pick_multiple_priority       = picker_priority.avoid_repetition_short,
+    prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
-    negative_prompt = null,
+    negative_prompt              = null,
   } = {}) {
-    this.flags = flags;
-    this.scalar_variables = scalar_variables;
-    this.named_wildcards = named_wildcards;
-    this.noisy = noisy;
-    this.files = files;
-    this.config = config;
-    this.add_loras = add_loras;
-    this.top_file = top_file;
-    this.pick_one_priority = pick_one_priority;
-    this.prior_pick_one_priority = prior_pick_one_priority;
-    this.pick_multiple_priority = pick_multiple_priority;
+    this.flags                        = flags;
+    this.scalar_variables             = scalar_variables;
+    this.named_wildcards              = named_wildcards;
+    this.noisy                        = noisy;
+    this.files                        = files;
+    this.config                       = config;
+    this.add_loras                    = add_loras;
+    this.top_file                     = top_file;
+    this.pick_one_priority            = pick_one_priority;
+    this.prior_pick_one_priority      = prior_pick_one_priority;
+    this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-    this.negative_prompt = negative_prompt;
+    this.negative_prompt              = negative_prompt;
 
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
@@ -2519,49 +2529,49 @@ class Context {
 }
 // -------------------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
-@__set_gender_if_unset    := {!gender {3 #gender.female #female
-                                      |2 #gender.male   #male
-                                      |1 #gender.neuter #neuter}}
-@gender                 := {@__set_gender_if_unset {?gender.female woman
+@__set_gender_if_unset  = {!gender {3 #gender.female #female
+                                   |2 #gender.male   #male
+                                   |1 #gender.neuter #neuter}}
+@gender                 = {@__set_gender_if_unset {?gender.female woman
                                                    |?gender.male   man
                                                    |?gender.neuter androgyne }}
-@pro_3rd_subj           := {@__set_gender_if_unset {?gender.female she
+@pro_3rd_subj           = {@__set_gender_if_unset {?gender.female she
                                                    |?gender.male   he
                                                    |?gender.neuter it        }}
-@pro_3rd_obj            := {@__set_gender_if_unset {?gender.female her
+@pro_3rd_obj            = {@__set_gender_if_unset {?gender.female her
                                                    |?gender.male   him
                                                    |?gender.neuter it        }}
-@pro_pos_adj            := {@__set_gender_if_unset {?gender.female her
+@pro_pos_adj            = {@__set_gender_if_unset {?gender.female her
                                                    |?gender.male his
                                                    |?gender.neuter its       }}
-@pro_pos                := {@__set_gender_if_unset {?gender.female hers
+@pro_pos                = {@__set_gender_if_unset {?gender.female hers
                                                    |?gender.male his
                                                    |?gender.neuter its       }}
 
-@__digit                := {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
-@__low_digit            := {<1|<2|<3|<4|<5}
-@__high_digit           := {<5|<6|<7|<8|<9}
-@low_random_weight      := { 0. @__low_digit }
-@lt1_random_weight      := { 0. @__digit     } 
-@lowish_random_weight   := { 0. @__high_digit}
-@random_weight          := {{1. @__high_digit}|{1. @__low_digit}}
-@highish_random_weight  := { 1. @__low_digit }
-@gt1_random_weight      := { 1. @__digit     }
-@high_random_weight     := { 1. @__high_digit}
-@pony_score_9           := {score_9,}
-@pony_score_8_up        := {score_9, score_8_up,}
-@pony_score_7_up        := {score_9, score_8_up, score_7_up,}
-@pony_score_6_up        := {score_9, score_8_up, score_7_up, score_6_up,}
-@pony_score_5_up        := {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
-@pony_score_4_up        := {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
-@aris_defaults          := {masterpiece, best quality, absurdres, aesthetic, 8k,
-                            high depth of field, ultra high resolution, detailed background,
-                            wide shot,}
+@__digit                = {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
+@__low_digit            = {<1|<2|<3|<4|<5}
+@__high_digit           = {<5|<6|<7|<8|<9}
+@low_random_weight      = { 0. @__low_digit }
+@lt1_random_weight      = { 0. @__digit     } 
+@lowish_random_weight   = { 0. @__high_digit}
+@random_weight          = {{1. @__high_digit}|{1. @__low_digit}}
+@highish_random_weight  = { 1. @__low_digit }
+@gt1_random_weight      = { 1. @__digit     }
+@high_random_weight     = { 1. @__high_digit}
+@pony_score_9           = {score_9,}
+@pony_score_8_up        = {score_9, score_8_up,}
+@pony_score_7_up        = {score_9, score_8_up, score_7_up,}
+@pony_score_6_up        = {score_9, score_8_up, score_7_up, score_6_up,}
+@pony_score_5_up        = {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
+@pony_score_4_up        = {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
+@aris_defaults          = {masterpiece, best quality, absurdres, aesthetic, 8k,
+                           high depth of field, ultra high resolution, detailed background,
+                           wide shot,}
 
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
 
-@__set_wizards_artists_artist_if_unset := { !wizards_artist {
+@__set_wizards_artists_artist_if_unset = { !wizards_artist {
  #wizards_artist.zacharias_martin_aagaard |
  #wizards_artist.slim_aarons |
  #wizards_artist.elenore_abbott |
@@ -3638,7 +3648,7 @@ const prelude_text = disable_prelude ? '' : `
  3 #wizards_artist.boris_vallejo
 }}
 
-@wizards_artists := { @__set_wizards_artists_artist_if_unset {
+@wizards_artists = { @__set_wizards_artists_artist_if_unset {
 ?wizards_artist.zacharias_martin_aagaard Zacharias Martin Aagaard |
 ?wizards_artist.slim_aarons Slim Aarons |
 ?wizards_artist.elenore_abbott Elenore Abbott |
@@ -4717,7 +4727,7 @@ const prelude_text = disable_prelude ? '' : `
 }}
 
 // The matching list of styles:
-@wizards_artist_styles := { @__set_wizards_artists_artist_if_unset {
+@wizards_artist_styles = { @__set_wizards_artists_artist_if_unset {
 ?wizards_artist.zacharias_martin_aagaard landscapes, Observational, painting, Romanticism, Slice-of-life |
 ?wizards_artist.slim_aarons fashion, luxury, nostalgia, pastel-colors, photography, photography-color, social-commentary |
 ?wizards_artist.elenore_abbott art-nouveau, dream-like, ethereal, femininity, mythology, pastel-colors, romanticism, watercolor |
@@ -6043,6 +6053,8 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
+
+        // console.log(`EXPANDED VALUE: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
         
         const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
                                               ? JsoncObject
@@ -6067,16 +6079,16 @@ function expand_wildcards(thing, context = new Context()) {
           : { ...context.config, ...value };
       } 
       
-      // if (log_config_enabled)
-      //   console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
-      //               `${JSON.stringify(context.config)}`);
+      if (log_config_enabled)
+        console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
+                    `${JSON.stringify(context.config)}`);
       
       return '';
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionSetPickSingle || 
              thing instanceof ASTSpecialFunctionSetPickMultiple) {
-      const walked = picker_priority[walk(thing.limited_content)];
+      const walked = picker_priority[expand_wildcards(thing.limited_content, context)];
       const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -6099,10 +6111,12 @@ function expand_wildcards(thing, context = new Context()) {
       context[cur_key]   = walked;
 
       if (log_config_enabled)
+        // console.log(
+        //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
         console.log(
           `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(walked)}: ` /*+
-                                         `${inspect_fun(context)}` */);
+            `${inspect_fun(walked)}.`);
       
       return '';
     }
@@ -6123,13 +6137,14 @@ function expand_wildcards(thing, context = new Context()) {
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val })}`);
       
+      if (log_config_enabled)
+        // console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
+        console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                    `${inspect_fun(prior_val)}.`);
+      
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
-
-      if (log_config_enabled)
-        console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                    `${inspect_fun(prior_val)}` /* +
-                                                   `${inspect_fun(context)}` */);
 
       return '';
     }
@@ -6139,7 +6154,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTLora) {
       // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
-      let walked_file = walk(thing.file);
+      let walked_file = expand_wildcards(thing.file, context); // not walk!
 
       // console.log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
@@ -6149,13 +6164,13 @@ function expand_wildcards(thing, context = new Context()) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = walk(thing.weight);
+      let walked_weight = expand_wildcards(thing.weight, context); // not walk!
 
       // console.log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
       //             `${inspect_fun(walked_weight)} ` +
       //             `${Array.isArray(walked_weight)}`);
-
+      
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
       
@@ -6167,6 +6182,9 @@ function expand_wildcards(thing, context = new Context()) {
 
       let file = walked_file.toLowerCase();
 
+      if (file === '')
+        throw new Error(`LoRA file name is empty!`);
+      
       // if (file.endsWith('_lora_f16.ckpt')) {
       if (file.endsWith('.ckpt')) {
         // do nothing 
@@ -6195,7 +6213,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTSpecialFunctionAddToNegativePrompt) {
       context.add_to_negative_prompt(expand_wildcards(thing.negative_prompt_content, context));
       
-      console.log(`NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt)}`);
+      console.log(`Added to negative prompt: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
@@ -6205,7 +6223,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTSpecialFunctionSetNegativePrompt) {
       context.negative_prompt = expand_wildcards(thing.negative_prompt_content, context);
       
-      console.log(`SET NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt)}`);
+      console.log(`Set negative prompt:      ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
@@ -6482,12 +6500,12 @@ class ASTSpecialFunctionSetNegativePrompt extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 const word_break               = /(?=\s|[{|}]|$)/;
 const plaintext                = /[^{|}\s]+/;
-const plaintext_no_parens      = /[^{|}\s()]+/;
+// const plaintext_no_parens      = /[^{|}\s()]+/;
 const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                  = discard(choice(c_block_comment, c_line_comment));
-const assignment_operator      = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+const assignment_operator      = discard(seq(wst_star(comment), '=', wst_star(comment)));
 const incr_assignment_operator = discard(seq(wst_star(comment), '+=', wst_star(comment)));
 const escaped_brc              = second(choice('\\{', '\\}'));
 const filename                 = /[A-Za-z0-9 ._\-()]+/;
@@ -6495,15 +6513,15 @@ const filename                 = /[A-Za-z0-9 ._\-()]+/;
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
-const unarySpecialFunction = (prefix, rule, xform_func) =>
-      xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
-                                    DiscardedComments,     // -
-                                    '(',                   // [0][1]
-                                    DiscardedComments),    // -
-                            rule,                          // [1]
-                            DiscardedComments,             // -
-                            ')'),                          // [2]
-            arr => xform_func(arr[1]));
+// const unarySpecialFunction = (prefix, rule, xform_func) =>
+//       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
+//                                     DiscardedComments,     // -
+//                                     '(',                   // [0][1]
+//                                     DiscardedComments),    // -
+//                             rule,                          // [1]
+//                             DiscardedComments,             // -
+//                             ')'),                          // [2]
+//             arr => xform_func(arr[1]));
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
@@ -6531,57 +6549,55 @@ const make__ASTAnonWildcardAlternative = arr => {
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
-const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
-                                   wst_seq('<',                                    // [0]
-                                           'lora',                                 // [1]
-                                           ':',                                    // [2]
-                                           choice(filename, () => LimitedContent), // [3]
-                                           optional(second(wst_seq(':',
-                                                                   choice(A1111StyleLoraWeight,
-                                                                          () => LimitedContent))),
-                                                    "1.0"), // [4][0]
-                                           '>'));
+const A1111StyleLora       =
+      xform(arr => new ASTLora(arr[3], arr[4][0]),
+            wst_seq('<',                                    // [0]
+                    'lora',                                 // [1]
+                    ':',                                    // [2]
+                    choice(filename, () => LimitedContent), // [3]
+                    optional(second(wst_seq(':',
+                                            choice(A1111StyleLoraWeight,
+                                                   () => LimitedContent))),
+                             "1.0"), // [4][0]
+                    '>'));
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag              = xform(arr => {
-  // arr = [arr];
-  if (log_flags_enabled)
-    if (arr.length > 1)
-      console.log(`CONSTRUCTING SETFLAG WITH ${inspect_fun(arr)}`);
-
-  return new ASTSetFlag(arr);
-},
-                                   second(seq('#', plus(ident, '.'), word_break)));
-const CheckFlag            = xform(arr => {
-  if (log_flags_enabled)
-    if (arr.some(e => e.length > 1))
-      console.log(`CONSTRUCTING CHECKFLAG WITH ${inspect_fun(arr)}`);
-
-  return new ASTCheckFlags(arr);
-},
-                                   second(seq('?', plus(plus(ident, '.'), ','),
-                                              word_break)))
-const NotFlag              = xform(arr => {
-  if (log_flags_enabled)
-    if (arr[2].length > 1)
-      console.log(`CONSTRUCTING NOTFLAG WITH ${inspect_fun(arr[2])}`);
-
-  return new ASTNotFlag(arr[2], arr[1][0]);
-},
-                                   seq('!', optional('#'),
-                                       plus(ident, '.'), word_break));
-const UnsetFlag            = xform(arr => {
-  if (log_flags_enabled)
-    if (arr.length > 1)
-      console.log(`CONSTRUCTING UNSETFLAG WITH ${inspect_fun(arr)}`);
-
-  return new ASTUnsetFlag(arr);
-},
-                                   second(seq('#!', plus(ident, '.'), word_break)));
-const TestFlag             = choice(CheckFlag, NotFlag);
+const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr.length > 1)
+                               console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                           `${inspect_fun(arr)}`);
+                           return new ASTSetFlag(arr);
+                         });
+const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr.some(e => e.length > 1))
+                               console.log(`CONSTRUCTING CHECKFLAG WITH ` +
+                                           `${inspect_fun(arr)}`);
+                           return new ASTCheckFlags(arr);
+                         });
+const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr[2].length > 1)
+                               console.log(`CONSTRUCTING NOTFLAG WITH ` +
+                                           `${inspect_fun(arr[2])}`);
+                           return new ASTNotFlag(arr[2], arr[1][0]);
+                         });
+const UnsetFlag  = xform(second(seq('#!', plus(ident, '.'), word_break)),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr.length > 1)
+                               console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                           ` ${inspect_fun(arr)}`);
+                           return new ASTUnsetFlag(arr);
+                         });
+const TestFlag   = choice(CheckFlag, NotFlag);
 // -------------------------------------------------------------------------------------------------
-// other non-terminals:
+// non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments                = discard(wst_star(comment));
 const SpecialFunctionInclude           = xform(arr => new ASTSpecialFunctionInclude(arr[1]),
@@ -6595,110 +6611,100 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      xform(wst_cutting_seq(wst_seq('%single-pick-prioritizes', 
-                                    assignment_operator),
-                            choice(() => ScalarAssignmentSource, /[a-z_]+/)),
-            arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
+      xform(arr => new ASTSpecialFunctionSetPickSingle(arr[1]),
+            wst_cutting_seq(wst_seq('%single-pick-priority', assignment_operator),
+                            choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionSetPickMultiple =
-      xform(wst_cutting_seq(wst_seq('%multi-pick-prioritizes', 
-                                    assignment_operator),
-                            choice(() => ScalarAssignmentSource, /[a-z_]+/)),
-            arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
+      xform(arr => new ASTSpecialFunctionSetPickMultiple(arr[1]),
+            wst_cutting_seq(wst_seq('%multi-pick-priority', assignment_operator),
+                            choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionRevertPickSingle =
-      xform('%revert-single-pick-prioritizes', 
-            () => new ASTSpecialFunctionRevertPickSingle());
+      xform(() => new ASTSpecialFunctionRevertPickSingle(),
+            '%revert-single-pick-priority');
 const SpecialFunctionRevertPickMultiple =
-      xform('%revert-multi-pick-prioritizes', 
-            () => new ASTSpecialFunctionRevertPickMultiple());
-let   SpecialFunctionUpdateConfigurationBinary =
-    xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                  DiscardedComments,     // -
-                                  '.',                   // [0][1]
-                                  DiscardedComments),    // -
-                          ident,                         // [1]
-                          DiscardedComments,             // -
-                          '(',                           // [2]
-                          DiscardedComments,             // -
-                          choice(Jsonc, () => LimitedContent),   // [3]
-                          DiscardedComments,             // [4]
-                          ')'),                          // [4]
-          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+      xform(() => new ASTSpecialFunctionRevertPickMultiple(),
+            '%revert-multi-pick-priority');
 const SpecialFunctionAddToNegativePrompt =
-      xform(second(wst_seq('%neg',
-                           incr_assignment_operator,
-                           () => LimitedContent)),
-            lc => {
-              console.log(`NEG ADD: ${inspect_fun(lc)}`);
-              return new ASTSpecialFunctionAddToNegativePrompt(lc);
-            });
+      xform(arr => new ASTSpecialFunctionAddToNegativePrompt(arr[1]),
+            wst_cutting_seq(wst_seq('%neg',                           // [0][0]
+                                    incr_assignment_operator),        // -     
+                            () => ScalarAssignmentSource));           // [1]   
 const SpecialFunctionSetNegativePrompt = 
-      xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
-                                    assignment_operator),               // -
-                            () => LimitedContent), // [1]
-            arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
+      xform(arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]),
+            wst_cutting_seq(wst_seq('%neg',                           // [0][0]
+                                    assignment_operator),             // -
+                            () => LimitedContent));                   // [1]
+let   SpecialFunctionUpdateConfigurationBinary =
+    xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2][0]),
+          cutting_seq('%config.',                                     // [0]
+                      ident,                                          // [1]
+                      wst_seq(assignment_operator,                    // [2][0]
+                              choice(Jsonc, () => LimitedContent)))); // [2][1]
 const SpecialFunctionUpdateConfigurationUnary =
-      unarySpecialFunction('config',
-                           choice(JsoncObject, () => LimitedContent),
-                           arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
-                                                                          false));
+      xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], false),
+            wst_cutting_seq(wst_seq('%config', incr_assignment_operator),
+                            choice(JsoncObject, () => LimitedContent)));
 const SpecialFunctionSetConfiguration
-      = xform(wst_cutting_seq(wst_seq('%config',                          // [0][0]
-                                      assignment_operator),               // -
-                              choice(JsoncObject, () => LimitedContent)), // [1]
-              arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true));
+      = xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true),
+              wst_cutting_seq(wst_seq('%config',                           // [0][0]
+                                      assignment_operator),                // -
+                              choice(JsoncObject, () => LimitedContent))); // [1]
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary);
-const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
-                                             SpecialFunctionSetConfiguration,
-                                             SpecialFunctionSetPickSingle,
-                                             SpecialFunctionSetPickMultiple,
-                                             SpecialFunctionRevertPickSingle,
-                                             SpecialFunctionRevertPickMultiple,
-                                             SpecialFunctionAddToNegativePrompt,
-                                             SpecialFunctionSetNegativePrompt);
-const AnySpecialFunction            = choice((dt_hosted
-                                              ? UnexpectedSpecialFunctionInclude
-                                              : SpecialFunctionInclude),
-                                             SpecialFunctionNotInclude);
-const AnonWildcardAlternative       = xform(make__ASTAnonWildcardAlternative,
-                                            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                                                optional(wb_uint, 1),
-                                                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                                                () => ContentStar));
+const SpecialFunctionNotInclude          = choice(SpecialFunctionUpdateConfiguration,
+                                                  SpecialFunctionSetConfiguration,
+                                                  SpecialFunctionSetPickSingle,
+                                                  SpecialFunctionSetPickMultiple,
+                                                  SpecialFunctionRevertPickSingle,
+                                                  SpecialFunctionRevertPickMultiple,
+                                                  SpecialFunctionAddToNegativePrompt,
+                                                  SpecialFunctionSetNegativePrompt);
+const AnySpecialFunction                  = choice((dt_hosted
+                                                    ? UnexpectedSpecialFunctionInclude
+                                                    : SpecialFunctionInclude),
+                                                   SpecialFunctionNotInclude);
+// -------------------------------------------------------------------------------------------------
+// other non-terminals:
+// -------------------------------------------------------------------------------------------------
+const AnonWildcardAlternative        = xform(make__ASTAnonWildcardAlternative,
+                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                                 optional(wb_uint, 1),
+                                                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                                 () => ContentStar));
 const AnonWildcardAlternativeNoLoras = xform(make__ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
                                                  wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  () => ContentStarNoLoras));
-const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
-                                            brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const AnonWildcardNoLoras           = xform(arr => new ASTAnonWildcard(arr),
-                                            brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-const NamedWildcardReference        = xform(seq(discard('@'),
-                                                optional('^'),                             // [0]
-                                                optional(xform(parseInt, /\d+/)),          // [1]
-                                                optional(xform(parseInt,
-                                                               second(seq('-', /\d+/)))),  // [2]
-                                                optional(/[,&]/),                          // [3]
-                                                ident),                                    // [4]
-                                            arr => {
-                                              const ident  = arr[4];
-                                              const min_ct = arr[1][0] ?? 1;
-                                              const max_ct = arr[2][0] ?? min_ct;
-                                              const join   = arr[3][0] ?? '';
-                                              const caret  = arr[0][0];
-                                              
-                                              return new ASTNamedWildcardReference(ident,
-                                                                                   join,
-                                                                                   caret,
-                                                                                   min_ct,
-                                                                                   max_ct);
-                                            });
+const AnonWildcard                   = xform(arr => new ASTAnonWildcard(arr),
+                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const AnonWildcardNoLoras            = xform(arr => new ASTAnonWildcard(arr),
+                                             brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+const NamedWildcardReference         = xform(seq(discard('@'),
+                                                 optional('^'),                             // [0]
+                                                 optional(xform(parseInt, /\d+/)),          // [1]
+                                                 optional(xform(parseInt,
+                                                                second(seq('-', /\d+/)))),  // [2]
+                                                 optional(/[,&]/),                          // [3]
+                                                 ident),                                    // [4]
+                                             arr => {
+                                               const ident  = arr[4];
+                                               const min_ct = arr[1][0] ?? 1;
+                                               const max_ct = arr[2][0] ?? min_ct;
+                                               const join   = arr[3][0] ?? '';
+                                               const caret  = arr[0][0];
+                                               
+                                               return new ASTNamedWildcardReference(ident,
+                                                                                    join,
+                                                                                    caret,
+                                                                                    min_ct,
+                                                                                    max_ct);
+                                             });
 const NamedWildcardDesignator = second(seq('@', ident)); 
-const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
-                                      wst_seq(NamedWildcardDesignator,                    // [0]
-                                              assignment_operator,                        // -
-                                              AnonWildcard));                             // [1]
+const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
+                                      wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
+                                                              assignment_operator),    // -
+                                                      AnonWildcard));                  // [1]
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
@@ -6718,22 +6724,20 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                       });
 const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
                                       arr => new ASTScalarReference(arr[1], arr[0][0]));
-const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
-                                      wst_seq(ScalarReference,
-                                              assignment_operator,
-                                              () => ScalarAssignmentSource));
+const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0][0], arr[1]),
+                                      wst_cutting_seq(wst_seq(ScalarReference,        // [0][0]
+                                                              assignment_operator),   // -
+                                                      () => ScalarAssignmentSource)); // [1]
 const ScalarAssignmentSource  = choice(NamedWildcardReference,
                                        AnonWildcard,
                                        ScalarReference,);
 const LimitedContent          = choice(
-  xform(name => new ASTNamedWildcardReference(name), NamedWildcardDesignator),
+  // xform(name => new ASTNamedWildcardReference(name), NamedWildcardDesignator),
   AnonWildcardNoLoras,
-  ScalarReference,
-);
+  ScalarReference,);
 const Content                 = choice(
   A1111StyleLora,
-  () => ContentNoLoras,
-);
+  () => ContentNoLoras,);
 const ContentNoLoras          = choice(
   ScalarAssignment,
   NamedWildcardReference,
@@ -6745,8 +6749,7 @@ const ContentNoLoras          = choice(
   comment,
   ScalarReference,
   SpecialFunctionNotInclude,
-  plaintext,
-);
+  plaintext,);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(AnySpecialFunction,
@@ -6878,6 +6881,7 @@ for (let ix = 0; ix < batch_count; ix++) {
                                     seed: -1,
                                     ...munge_config(context.config) };
   const add_loras               = context.add_loras;
+  const negative_prompt         = context.negative_prompt;
   // const added_loras_files       = [];
 
   if (add_loras.length > 0) {
@@ -6929,7 +6933,7 @@ for (let ix = 0; ix < batch_count; ix++) {
     configuration: generated_configuration,
     prompt: generated_prompt,
     // negative_prompt: "this string",
-    // negativePrompt: "THIS STRING",
+    negativePrompt: negative_prompt,
   });
 
   const end_time     = new Date().getTime();

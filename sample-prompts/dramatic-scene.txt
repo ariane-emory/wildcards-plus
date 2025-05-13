@@ -1,6 +1,6 @@
-@quality      := { rusty | masterwork | fine | bejeweled | glowing | magical |}
-@weapon       := {2 spear|2 {two-handed|bastard|short} sword|3 axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger|blade}
-@friend       := {father|mother|mentor|teacher|lover}
+@quality      = { rusty | masterwork | fine | bejeweled | glowing | magical |}
+@weapon       = {2 spear|2 {two-handed|bastard|short} sword|3 axe|halberd|scimitar|kukri|rapier|sabre|cutlass|mace|dagger|blade}
+@friend       = {father|mother|mentor|teacher|lover}
 
 @#weapon                // Set a latch on the @weapon wildcard, since we're going to make several references to the same weapon.
 @#friend                // Set a latch on the @friend wildcard, since we're going two references to the same friend.
@@ -8,10 +8,10 @@
 
 // Commented out because these named wildcards are in the built-in prelude now and thus are always defined.
 // // The gender flag and the guards here will ensure that only one alternative is available, we'll use that to pick appropriately gendered pronouns:
-// @pro_3rd_obj  := {?female her |?male him | ?neuter it  }
-// @pro_3rd_subj := {?female she |?male he  | ?neuter it  }
-// @pro_pos_adj     := {?female her |?male his | ?neuter its }
-// @pro_pos         := {?female hers|?male his | ?neuter its }
+// @pro_3rd_obj  = {?female her |?male him | ?neuter it  }
+// @pro_3rd_subj = {?female she |?male he  | ?neuter it  }
+// @pro_pos_adj     = {?female her |?male his | ?neuter its }
+// @pro_pos         = {?female hers|?male his | ?neuter its }
 
 @^pro_3rd_subj { swung | brandished | presented } @pro_pos_adj @quality @weapon, that very same @weapon @pro_pos_adj
 {beloved|dear|long lost|} @friend had
