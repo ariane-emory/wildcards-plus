@@ -6641,20 +6641,19 @@ const SpecialFunctionAddToNegativePrompt =
               return new ASTSpecialFunctionAddToNegativePrompt(lc);
             });
 const SpecialFunctionSetNegativePrompt = 
-      xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
+      xform(arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]),
+            wst_cutting_seq(wst_seq('%neg',                             // [0][0]
                                     assignment_operator),               // -
-                            () => LimitedContent), // [1]
-            arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
+                            () => LimitedContent)); // [1]
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(second(wst_cutting_seq(wst_seq('%config', incr_assignment_operator),
-                                   choice(JsoncObject, () => LimitedContent))),
-            arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1],
-                                                           false));
+      xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], false),
+            second(wst_cutting_seq(wst_seq('%config', incr_assignment_operator),
+                                   choice(JsoncObject, () => LimitedContent))));
 const SpecialFunctionSetConfiguration
-      = xform(wst_cutting_seq(wst_seq('%config',                          // [0][0]
+      = xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true),
+              wst_cutting_seq(wst_seq('%config',                          // [0][0]
                                       assignment_operator),               // -
-                              choice(JsoncObject, () => LimitedContent)), // [1]
-              arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true));
+                              choice(JsoncObject, () => LimitedContent))); // [1]
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary);
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
@@ -6727,10 +6726,10 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                       });
 const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
                                       arr => new ASTScalarReference(arr[1], arr[0][0]));
-const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
-                                      wst_seq(ScalarReference,
-                                              assignment_operator,
-                                              () => ScalarAssignmentSource));
+const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0][0], arr[1]),
+                                      wst_curring_seq(wst_seq(ScalarReference,        // [0][0]
+                                                              assignment_operator),   // -
+                                                      () => ScalarAssignmentSource)); // [1]
 const ScalarAssignmentSource  = choice(NamedWildcardReference,
                                        AnonWildcard,
                                        ScalarReference,);
