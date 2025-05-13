@@ -6848,8 +6848,8 @@ const SpecialFunctionUpdateConfigurationUnary =
                             choice(JsoncObject, () => LimitedContent)));
 const SpecialFunctionSetConfiguration
       = xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true),
-              wst_cutting_seq(wst_seq('%config',                          // [0][0]
-                                      assignment_operator),               // -
+              wst_cutting_seq(wst_seq('%config',                           // [0][0]
+                                      assignment_operator),                // -
                               choice(JsoncObject, () => LimitedContent))); // [1]
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary);
