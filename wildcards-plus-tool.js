@@ -30,11 +30,11 @@
 // epic fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, 
 // A promotional poster for an award winning video game, which depicts a heroic, strong and athletic paladin wearing blood-smeared wargear holding his bejeweled flail while standing in an eerily lit lair, smiling towards the viewer victoriously.
 // =================================================================================================
-import * as util from 'util';
-import * as http from 'http';
-import * as fs   from 'fs';
+import * as util     from 'util';
+import * as http     from 'http';
+import * as fs       from 'fs';
 import * as readline from 'readline';
-import path from 'path';
+import path          from 'path';
 import { stdin as input, stdout as output } from 'process';
 // -------------------------------------------------------------------------------------------------
 
