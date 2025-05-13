@@ -2497,6 +2497,7 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 // -------------------------------------------------------------------------------------------------
 const key_names = [
   // [ automatic1111's name,  Draw Things' name ],
+  [ 'cfg_scale',                          'guidanceScale'                  ],
   [ 'model',                              'model'                          ],
   [ 'upscaler',                           'upscaler'                       ],
   [ 'upscaler_scale_factor',              'upscalerScaleFactor'            ],
