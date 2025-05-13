@@ -1723,7 +1723,7 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
-  avoid_repetition:           'Avoiding repetition',
+  avoid_repetition:              'Avoiding repetition',
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
@@ -1859,7 +1859,7 @@ class WeightedPicker {
 
     // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
-    return ret;
+    return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, priority) {
@@ -1918,25 +1918,29 @@ class WeightedPicker {
       return this.options[legal_option_indices[0]].value;
     }
 
-    // // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
-    // console.log(`BEFORE TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    // console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
       // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
       // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+      // console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
       total_weight += adjusted_weight;
     }
     // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
     // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
     
-    // Since we now avoid adding options with a weight of 0, this shouldnever be true:
+    // Since we now avoid adding options with a weight of 0, this shoul dnever be true:
     if (total_weight === 0) {
+      // return '';
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix,
+this.__effective_weight(ix, priority),
+this.options[ix]]), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
       if (noisy) {
@@ -2519,9 +2523,9 @@ class Context {
 }
 // -------------------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
-@__set_gender_if_unset    = {!gender {3 #gender.female #female
-                                      |2 #gender.male   #male
-                                      |1 #gender.neuter #neuter}}
+@__set_gender_if_unset  = {!gender {3 #gender.female #female
+                                   |2 #gender.male   #male
+                                   |1 #gender.neuter #neuter}}
 @gender                 = {@__set_gender_if_unset {?gender.female woman
                                                    |?gender.male   man
                                                    |?gender.neuter androgyne }}
@@ -2555,8 +2559,8 @@ const prelude_text = disable_prelude ? '' : `
 @pony_score_5_up        = {score_9, score_8_up, score_7_up, score_6_up, score_5_up,}
 @pony_score_4_up        = {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
 @aris_defaults          = {masterpiece, best quality, absurdres, aesthetic, 8k,
-                            high depth of field, ultra high resolution, detailed background,
-                            wide shot,}
+                           high depth of field, ultra high resolution, detailed background,
+                           wide shot,}
 
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
@@ -6043,6 +6047,8 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
+
+        // console.log(`EXPANDED VALUE: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
         
         const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
                                               ? JsoncObject
@@ -6067,16 +6073,16 @@ function expand_wildcards(thing, context = new Context()) {
           : { ...context.config, ...value };
       } 
       
-      // if (log_config_enabled)
-      //   console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
-      //               `${JSON.stringify(context.config)}`);
+      if (log_config_enabled)
+        console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
+                    `${JSON.stringify(context.config)}`);
       
       return '';
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionSetPickSingle || 
              thing instanceof ASTSpecialFunctionSetPickMultiple) {
-      const walked = picker_priority[walk(thing.limited_content)];
+      const walked = picker_priority[expand_wildcards(thing.limited_content, context)];
       const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -6099,10 +6105,12 @@ function expand_wildcards(thing, context = new Context()) {
       context[cur_key]   = walked;
 
       if (log_config_enabled)
+        // console.log(
+        //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
         console.log(
           `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(walked)}: ` /*+
-                                         `${inspect_fun(context)}` */);
+            `${inspect_fun(walked)}.`);
       
       return '';
     }
@@ -6123,13 +6131,14 @@ function expand_wildcards(thing, context = new Context()) {
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val })}`);
       
+      if (log_config_enabled)
+        // console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
+        console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                    `${inspect_fun(prior_val)}.`);
+      
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
-
-      if (log_config_enabled)
-        console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                    `${inspect_fun(prior_val)}` /* +
-                                                   `${inspect_fun(context)}` */);
 
       return '';
     }
@@ -6139,7 +6148,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTLora) {
       // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
-      let walked_file = walk(thing.file);
+      let walked_file = expand_wildcards(thing.file, context); // not walk!
 
       // console.log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
@@ -6149,13 +6158,13 @@ function expand_wildcards(thing, context = new Context()) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = walk(thing.weight);
+      let walked_weight = expand_wildcards(thing.weight, context); // not walk!
 
       // console.log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
       //             `${inspect_fun(walked_weight)} ` +
       //             `${Array.isArray(walked_weight)}`);
-
+      
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
       
@@ -6167,6 +6176,9 @@ function expand_wildcards(thing, context = new Context()) {
 
       let file = walked_file.toLowerCase();
 
+      if (file === '')
+        throw new Error(`LoRA file name is empty!`);
+      
       // if (file.endsWith('_lora_f16.ckpt')) {
       if (file.endsWith('.ckpt')) {
         // do nothing 
@@ -6482,7 +6494,7 @@ class ASTSpecialFunctionSetNegativePrompt extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 const word_break               = /(?=\s|[{|}]|$)/;
 const plaintext                = /[^{|}\s]+/;
-const plaintext_no_parens      = /[^{|}\s()]+/;
+// const plaintext_no_parens      = /[^{|}\s()]+/;
 const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
@@ -6595,20 +6607,20 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      xform(wst_cutting_seq(wst_seq('%single-pick-prioritizes', 
+      xform(wst_cutting_seq(wst_seq('%single-pick-priority', 
                                     assignment_operator),
-                            choice(() => ScalarAssignmentSource, /[a-z_]+/)),
+                            choice(() => LimitedContent, /[a-z_]+/)),
             arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
 const SpecialFunctionSetPickMultiple =
-      xform(wst_cutting_seq(wst_seq('%multi-pick-prioritizes', 
+      xform(wst_cutting_seq(wst_seq('%multi-pick-priority', 
                                     assignment_operator),
-                            choice(() => ScalarAssignmentSource, /[a-z_]+/)),
-            arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
+                            choice(() => LimitedContent, /[a-z_]+/)),
+            arr => new ASTSpecialFunctionSetPickMultiple(arr[1]));
 const SpecialFunctionRevertPickSingle =
-      xform('%revert-single-pick-prioritizes', 
+      xform('%revert-single-pick-priority', 
             () => new ASTSpecialFunctionRevertPickSingle());
 const SpecialFunctionRevertPickMultiple =
-      xform('%revert-multi-pick-prioritizes', 
+      xform('%revert-multi-pick-priority', 
             () => new ASTSpecialFunctionRevertPickMultiple());
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
@@ -6616,13 +6628,10 @@ let   SpecialFunctionUpdateConfigurationBinary =
                                   '.',                   // [0][1]
                                   DiscardedComments),    // -
                           ident,                         // [1]
-                          DiscardedComments,             // -
-                          '(',                           // [2]
-                          DiscardedComments,             // -
-                          choice(Jsonc, () => LimitedContent),   // [3]
-                          DiscardedComments,             // [4]
-                          ')'),                          // [4]
-          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+                          assignment_operator,           // -
+                          choice(Jsonc, () => LimitedContent),   // [2]
+                         ),                          // [4]
+          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2]));
 const SpecialFunctionAddToNegativePrompt =
       xform(second(wst_seq('%neg',
                            incr_assignment_operator,
@@ -6637,10 +6646,10 @@ const SpecialFunctionSetNegativePrompt =
                             () => LimitedContent), // [1]
             arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
 const SpecialFunctionUpdateConfigurationUnary =
-      unarySpecialFunction('config',
-                           choice(JsoncObject, () => LimitedContent),
-                           arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
-                                                                          false));
+      xform(second(wst_cutting_seq(wst_seq('%config', incr_assignment_operator),
+                                   choice(JsoncObject, () => LimitedContent))),
+            arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1],
+                                                           false));
 const SpecialFunctionSetConfiguration
       = xform(wst_cutting_seq(wst_seq('%config',                          // [0][0]
                                       assignment_operator),               // -
