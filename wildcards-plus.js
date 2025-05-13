@@ -6543,58 +6543,58 @@ const make__ASTAnonWildcardAlternative = arr => {
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
-const A1111StyleLora       = xform(arr => new ASTLora(arr[3], arr[4][0]),
-                                   wst_seq('<',                                    // [0]
-                                           'lora',                                 // [1]
-                                           ':',                                    // [2]
-                                           choice(filename, () => LimitedContent), // [3]
-                                           optional(second(wst_seq(':',
-                                                                   choice(A1111StyleLoraWeight,
-                                                                          () => LimitedContent))),
-                                                    "1.0"), // [4][0]
-                                           '>'));
+const A1111StyleLora       =
+      xform(arr => new ASTLora(arr[3], arr[4][0]),
+            wst_seq('<',                                    // [0]
+                    'lora',                                 // [1]
+                    ':',                                    // [2]
+                    choice(filename, () => LimitedContent), // [3]
+                    optional(second(wst_seq(':',
+                                            choice(A1111StyleLoraWeight,
+                                                   () => LimitedContent))),
+                             "1.0"), // [4][0]
+                    '>'));
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag              = xform(arr => {
-  // arr = [arr];
-  if (log_flags_enabled)
-    if (arr.length > 1)
-      console.log(`CONSTRUCTING SETFLAG WITH ${inspect_fun(arr)}`);
-
-  return new ASTSetFlag(arr);
-},
-                                   second(seq('#', plus(ident, '.'), word_break)));
-const CheckFlag            = xform(arr => {
-  if (log_flags_enabled)
-    if (arr.some(e => e.length > 1))
-      console.log(`CONSTRUCTING CHECKFLAG WITH ${inspect_fun(arr)}`);
-
-  return new ASTCheckFlags(arr);
-},
-                                   second(seq('?', plus(plus(ident, '.'), ','),
-                                              word_break)))
-const NotFlag              = xform(seq('!', optional('#'),
-                                       plus(ident, '.'), word_break),
-                                   arr => {
-                                     if (log_flags_enabled)
-                                       if (arr[2].length > 1)
-                                         console.log(`CONSTRUCTING NOTFLAG WITH ` +
-                                                     `${inspect_fun(arr[2])}`);
-
-                                     return new ASTNotFlag(arr[2], arr[1][0]);
-                                   });
-const UnsetFlag            = xform(second(seq('#!', plus(ident, '.'), word_break)),
-                                   arr => {
-                                     if (log_flags_enabled)
-                                       if (arr.length > 1)
-                                         console.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                                     ` ${inspect_fun(arr)}`);
-                                     return new ASTUnsetFlag(arr);
-                                   });
-const TestFlag             = choice(CheckFlag, NotFlag);
+const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
+                         arr => {
+                           // arr = [arr];
+                           if (log_flags_enabled)
+                             if (arr.length > 1)
+                               console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                           `${inspect_fun(arr)}`);
+                           return new ASTSetFlag(arr);
+                         });
+const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','),
+                                    word_break)),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr.some(e => e.length > 1))
+                               console.log(`CONSTRUCTING CHECKFLAG WITH ` +
+                                           `${inspect_fun(arr)}`);
+                           return new ASTCheckFlags(arr);
+                         });
+const NotFlag    = xform(seq('!', optional('#'),
+                             plus(ident, '.'), word_break),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr[2].length > 1)
+                               console.log(`CONSTRUCTING NOTFLAG WITH ` +
+                                           `${inspect_fun(arr[2])}`);
+                           return new ASTNotFlag(arr[2], arr[1][0]);
+                         });
+const UnsetFlag  = xform(second(seq('#!', plus(ident, '.'), word_break)),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr.length > 1)
+                               console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                           ` ${inspect_fun(arr)}`);
+                           return new ASTUnsetFlag(arr);
+                         });
+const TestFlag   = choice(CheckFlag, NotFlag);
 // -------------------------------------------------------------------------------------------------
-// other non-terminals:
+// non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments                = discard(wst_star(comment));
 const SpecialFunctionInclude           = xform(arr => new ASTSpecialFunctionInclude(arr[1]),
@@ -6664,6 +6664,9 @@ const AnySpecialFunction            = choice((dt_hosted
                                               ? UnexpectedSpecialFunctionInclude
                                               : SpecialFunctionInclude),
                                              SpecialFunctionNotInclude);
+// -------------------------------------------------------------------------------------------------
+// other non-terminals:
+// -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative       = xform(make__ASTAnonWildcardAlternative,
                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                 optional(wb_uint, 1),
