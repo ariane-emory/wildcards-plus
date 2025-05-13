@@ -6633,12 +6633,12 @@ let   SpecialFunctionUpdateConfigurationBinary =
                          ),                          // [4]
           arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2]));
 const SpecialFunctionAddToNegativePrompt =
-      xform(second(wst_seq('%neg',
-                           incr_assignment_operator,
-                           () => LimitedContent)),
-            lc => {
-              console.log(`NEG ADD: ${inspect_fun(lc)}`);
-              return new ASTSpecialFunctionAddToNegativePrompt(lc);
+      xform(wst_cutting_seq(wst_seq('%neg',
+                                    incr_assignment_operator),
+                            () => LimitedContent),
+            arr => {
+              console.log(`NEG ADD: ${inspect_fun(arr)}`);
+              return new ASTSpecialFunctionAddToNegativePrompt(arr[1]);
             });
 const SpecialFunctionSetNegativePrompt = 
       xform(arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]),
