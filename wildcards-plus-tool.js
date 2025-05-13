@@ -7023,12 +7023,11 @@ async function main() {
   // -----------------------------------------------------------------------------------------------
   // read prompt input:
   // -----------------------------------------------------------------------------------------------
-  let prompt_input = '';
   let result = null;
   
   if (from_stdin) {
     // Read all stdin into a string
-    prompt_input = await new Promise((resolve, reject) => {
+    let prompt_input = await new Promise((resolve, reject) => {
       let data = '';
       input.setEncoding('utf8');
       input.on('data', chunk => data += chunk);
@@ -7094,14 +7093,25 @@ async function main() {
   let negative_prompt = undefined; // not null
   let config          = null;
   
-  const stash_prior = () => {
-    prior_expansion = positive_prompt;
+  const stash_priors = () => {
+    prior_positive_prompt = positive_prompt;
     prior_negative_prompt = negative_prompt;
     prior_config = clone_fun(config);
   };
 
+  const restore_priors = () => {
+    [ positive_prompt, prior_positive_prompt ] = [ prior_positive_prompt, positive_prompt ];
+    [ config,          prior_config          ] = [ prior_config,          config          ];
+    [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ];
+  };
+
+  const do_post = () => {
+    post_prompt(positive_prompt, config, { negative_prompt: negative_prompt });
+    posted_count += 1; 
+  };
+
   let posted_count          = 0;
-  let prior_expansion       = null;
+  let prior_positive_prompt = null;
   let prior_negative_prompt = null;
   let prior_config          = null;
 
@@ -7150,8 +7160,7 @@ async function main() {
     else {
       if (!confirm) {
         console.log(`------------------------------------------------------------------------------------------`);
-        post_prompt(positive_prompt, config, { negative_prompt: negative_prompt });
-
+        do_post();
         posted_count += 1;
       }
       else  {
@@ -7163,22 +7172,20 @@ async function main() {
         const answer = await ask(question);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
-          stash_prior();
+          stash_priors();
           continue;
         }
 
         if (answer.match(/^p.*/i)) {
-          if (prior_expansion) { 
+          if (prior_positive_prompt) { 
             console.log(`------------------------------------------------------------------------------------------`);
             // untested!
-            [ positive_prompt, prior_expansion       ] = [ prior_expansion,       positive_prompt ]
-            [ config,          prior_config          ] = [ prior_config,          config          ]
-            [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ]
+            restore_priors();
             
             console.log(`POSTing prior prompt '${positive_prompt}'`);
-            
-            post_prompt(positive_prompt, config, { negative_prompt: negative_prompt });
 
+            do_post();
+            
             continue;
           }
           else {
@@ -7192,15 +7199,13 @@ async function main() {
           
           // console.log(`parsed = '${parsed}', count = '${count}'`);
           
-          for (let iix = 0; iix < gen_count; iix++) {
-            post_prompt(positive_prompt, config, { negative_prompt: negative_prompt });
-            posted_count += 1;
-          }
+          for (let iix = 0; iix < gen_count; iix++)
+            do_post();
         }
       }
     }
     
-    stash_prior();
+    stash_priors();
   }
 
   console.log('==========================================================================================');
