@@ -6940,7 +6940,7 @@ const ScalarAssignmentSource  = choice(NamedWildcardReference,
                                        AnonWildcard,
                                        ScalarReference,);
 const LimitedContent          = choice(
-  xform(name => new ASTNamedWildcardReference(name), NamedWildcardDesignator),
+  NamedWildcardReference, // xform(name => new ASTNamedWildcardReference(name), NamedWildcardDesignator),
   AnonWildcardNoLoras,
   ScalarReference,
 );
