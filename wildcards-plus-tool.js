@@ -63,8 +63,8 @@ function parse_file(filename) {
   return result;
 }
 // -------------------------------------------------------------------------------------------------
-function post_prompt(prompt, config = {}, { hostname = '127.0.0.1', port = 7860,
-                                            negative_prompt = undefined } = {}) {
+function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860,
+                               negative_prompt = undefined } = {}) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
   let data = { prompt: prompt, ...config,
@@ -7086,10 +7086,14 @@ async function main() {
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
-  let positive_prompt = null;
-  let negative_prompt = undefined; // not null
-  let config          = null;
-  
+  let posted_count          = 0;
+  let positive_prompt       = null;
+  let negative_prompt       = undefined; // not null
+  let config                = null;
+  let prior_positive_prompt = null;
+  let prior_negative_prompt = null;
+  let prior_config          = null;
+
   const stash_priors = () => {
     prior_positive_prompt = positive_prompt;
     prior_negative_prompt = negative_prompt;
@@ -7103,14 +7107,9 @@ async function main() {
   };
 
   const do_post = () => {
-    post_prompt(positive_prompt, config, { negative_prompt: negative_prompt });
+    post_prompt(positive_prompt, { config: config, negative_prompt: negative_prompt });
     posted_count += 1; 
   };
-
-  let posted_count          = 0;
-  let prior_positive_prompt = null;
-  let prior_negative_prompt = null;
-  let prior_config          = null;
 
   while (posted_count < count) {
     console.log('==========================================================================================');
