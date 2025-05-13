@@ -15,18 +15,18 @@
 // force an artist from this small list instead of picking from all of the 1000-plus
 // artists from Wizard Whitebeard's list:
 // ---------------------------------------------------------------------------------------
-{ #wizards_artist.frank_frazetta
+{   #wizards_artist.frank_frazetta
 | 2 #wizards_artist.tony_diterlizzi
 | 2 #wizards_artist.boris_vallejo
 | 2 #wizards_artist.gerald_brom
-| #wizards_artist.ian_miller
-| #wizards_artist.john_blanche
-| #wizards_artist.jack_gaughan
-| #wizards_artist.michael_whelan
-| #wizards_artist.chris_foss
-| #wizards_artist.peter_elson
-| #wizards_artist.wayne_barlowe
-| #wizards_artist.jim_burns
+|   #wizards_artist.ian_miller
+|   #wizards_artist.john_blanche
+|   #wizards_artist.jack_gaughan
+|   #wizards_artist.michael_whelan
+|   #wizards_artist.chris_foss
+|   #wizards_artist.peter_elson
+|   #wizards_artist.wayne_barlowe
+|   #wizards_artist.jim_burns
 }
 
 // ---------------------------------------------------------------------------------------
@@ -48,7 +48,6 @@
 | 2 %config += { "width": 960,   "height": 896,  "steps": 50  } // 13,260
 | 2 %config += { "width": 1280,  "height": 640,  "steps": 50  } // 12,086
 }
-
 
 | 2 ?hidream_fast_on,hidream_full_on
 // Hidream with some basic settings that seem to work alright:
