@@ -7092,12 +7092,12 @@ async function main() {
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
-  let expanded        = null;
+  let positive_prompt = null;
   let negative_prompt = undefined; // not null
   let config          = null;
   
   const stash_prior = () => {
-    prior_expansion = expanded;
+    prior_expansion = positive_prompt;
     prior_negative_prompt = negative_prompt;
     prior_config = clone_fun(config);
   };
@@ -7113,7 +7113,7 @@ async function main() {
     console.log('==========================================================================================');
 
     const context    = base_context.clone();
-    expanded         = expand_wildcards(AST, context);
+    positive_prompt  = expand_wildcards(AST, context);
     negative_prompt  = context.negative_prompt;
     config           = munge_config(context.config);
     const add_loras  = context.add_loras;
@@ -7137,7 +7137,7 @@ async function main() {
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
     console.log(`------------------------------------------------------------------------------------------`);
-    console.log(expanded);
+    console.log(positive_prompt);
 
     if (negative_prompt || negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
@@ -7152,7 +7152,7 @@ async function main() {
     else {
       if (!confirm) {
         console.log(`------------------------------------------------------------------------------------------`);
-        post_prompt(expanded, config, { negative_prompt: negative_prompt });
+        post_prompt(positive_prompt, config, { negative_prompt: negative_prompt });
 
         posted_count += 1;
       }
@@ -7172,14 +7172,14 @@ async function main() {
         if (answer.match(/^p.*/i)) {
           if (prior_expansion) { 
             console.log(`------------------------------------------------------------------------------------------`);
-            console.log(`POSTing prior prompt '${expanded}'`);
-
             // untested!
-            [ expanded,        prior_expansion       ] = [ prior_expansion,       expanded        ]
+            [ positive_prompt, prior_expansion       ] = [ prior_expansion,       positive_prompt ]
             [ config,          prior_config          ] = [ prior_config,          config          ]
             [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ]
             
-            post_prompt(expanded, config, { negative_prompt: negative_prompt });
+            console.log(`POSTing prior prompt '${positive_prompt}'`);
+            
+            post_prompt(positive_prompt, config, { negative_prompt: negative_prompt });
 
             continue;
           }
@@ -7195,7 +7195,7 @@ async function main() {
           // console.log(`parsed = '${parsed}', count = '${count}'`);
           
           for (let iix = 0; iix < gen_count; iix++) {
-            post_prompt(expanded, config, { negative_prompt: negative_prompt });
+            post_prompt(positive_prompt, config, { negative_prompt: negative_prompt });
             posted_count += 1;
           }
         }
