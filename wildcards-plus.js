@@ -1723,7 +1723,8 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
-  avoid_repetition:              'Avoiding repetition',
+  avoid_repetition_short:        'Avoiding repetition (short term only)',
+  avoid_repetition_long:         'Avoiding repetition', 
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
@@ -1761,8 +1762,11 @@ class WeightedPicker {
     if (! priority)
       throw new Error("no priority");
 
+    if (priority === picker_priority.avoid_repetition_short)
+      this.__clear_used_indices();
+    
     // console.log(`PICK ${min_count}-${max_count}`);
-    const count =Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
     
@@ -1774,7 +1778,7 @@ class WeightedPicker {
     }
 
     // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
-    
+
     return res;
   }
   // -----------------------------------------------------------------------------------------------
@@ -1811,7 +1815,8 @@ class WeightedPicker {
 
     let exhausted_indices = null;
     
-    if (priority == picker_priority.avoid_repetition) {
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) {
       exhausted_indices = new Set(this.used_indices.keys());
     }
     else if (priority == picker_priority.ensure_weighted_distribution) {
@@ -1844,7 +1849,8 @@ class WeightedPicker {
     
     let ret = null;
     
-    if (priority === picker_priority.avoid_repetition) {
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) {
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
     }
     else if (priority === picker_priority.ensure_weighted_distribution) {
@@ -1886,7 +1892,7 @@ class WeightedPicker {
     
     if (this.__indices_are_exhausted(legal_option_indices, priority)) {
       // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-      if (priority === picker_priority.avoid_repetition) {
+      if (priority === picker_priority.avoid_repetition_long) {
         if (this.last_pick_index !== null) {
           const last_pick_index = this.last_pick_index;
           this.__clear_used_indices();
@@ -2384,7 +2390,7 @@ class Context {
     add_loras                    = [],
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
-    pick_multiple_priority       = picker_priority.avoid_repetition,
+    pick_multiple_priority       = picker_priority.avoid_repetition_short,
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
     negative_prompt              = null,

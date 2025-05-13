@@ -1970,8 +1970,11 @@ class WeightedPicker {
     if (! priority)
       throw new Error("no priority");
 
+    if (priority === picker_priority.avoid_repetition_short)
+      this.__clear_used_indices();
+    
     // console.log(`PICK ${min_count}-${max_count}`);
-    const count =Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
     const res = [];
     
@@ -1984,9 +1987,6 @@ class WeightedPicker {
 
     // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
 
-    if (priority === picker_priority.avoid_repetition_short)
-      this.__clear_used_indices();
-      
     return res;
   }
   // -----------------------------------------------------------------------------------------------
