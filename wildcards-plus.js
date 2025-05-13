@@ -6583,14 +6583,14 @@ const NotFlag              = xform(arr => {
 },
                                    seq('!', optional('#'),
                                        plus(ident, '.'), word_break));
-const UnsetFlag            = xform(arr => {
-  if (log_flags_enabled)
-    if (arr.length > 1)
-      console.log(`CONSTRUCTING UNSETFLAG WITH ${inspect_fun(arr)}`);
-
-  return new ASTUnsetFlag(arr);
-},
-                                   second(seq('#!', plus(ident, '.'), word_break)));
+const UnsetFlag            = xform(second(seq('#!', plus(ident, '.'), word_break)),
+                                   arr => {
+                                     if (log_flags_enabled)
+                                       if (arr.length > 1)
+                                         console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                                     ` ${inspect_fun(arr)}`);
+                                     return new ASTUnsetFlag(arr);
+                                   });
 const TestFlag             = choice(CheckFlag, NotFlag);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
@@ -6607,21 +6607,19 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      xform(wst_cutting_seq(wst_seq('%single-pick-priority', 
-                                    assignment_operator),
-                            choice(() => LimitedContent, /[a-z_]+/)),
-            arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
+      xform(arr => new ASTSpecialFunctionSetPickSingle(arr[1]),
+            wst_cutting_seq(wst_seq('%single-pick-priority', assignment_operator),
+                            choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionSetPickMultiple =
-      xform(wst_cutting_seq(wst_seq('%multi-pick-priority', 
-                                    assignment_operator),
-                            choice(() => LimitedContent, /[a-z_]+/)),
-            arr => new ASTSpecialFunctionSetPickMultiple(arr[1]));
+      xform(arr => new ASTSpecialFunctionSetPickMultiple(arr[1]),
+            wst_cutting_seq(wst_seq('%multi-pick-priority', assignment_operator),
+                            choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionRevertPickSingle =
-      xform('%revert-single-pick-priority', 
-            () => new ASTSpecialFunctionRevertPickSingle());
+      xform(() => new ASTSpecialFunctionRevertPickSingle(),
+            '%revert-single-pick-priority');
 const SpecialFunctionRevertPickMultiple =
-      xform('%revert-multi-pick-priority', 
-            () => new ASTSpecialFunctionRevertPickMultiple());
+      xform(() => new ASTSpecialFunctionRevertPickMultiple()
+            '%revert-multi-pick-priority');
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2]),
           wst_cutting_seq(wst_seq('%config',                   // [0][0]
