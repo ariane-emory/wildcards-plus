@@ -6715,15 +6715,15 @@ const filename                 = /[A-Za-z0-9 ._\-()]+/;
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
-const unarySpecialFunction = (prefix, rule, xform_func) =>
-      xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
-                                    DiscardedComments,     // -
-                                    '(',                   // [0][1]
-                                    DiscardedComments),    // -
-                            rule,                          // [1]
-                            DiscardedComments,             // -
-                            ')'),                          // [2]
-            arr => xform_func(arr[1]));
+// const unarySpecialFunction = (prefix, rule, xform_func) =>
+//       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
+//                                     DiscardedComments,     // -
+//                                     '(',                   // [0][1]
+//                                     DiscardedComments),    // -
+//                             rule,                          // [1]
+//                             DiscardedComments,             // -
+//                             ')'),                          // [2]
+//             arr => xform_func(arr[1]));
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
@@ -6767,15 +6767,13 @@ const A1111StyleLora       =
 // -------------------------------------------------------------------------------------------------
 const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
                          arr => {
-                           // arr = [arr];
                            if (log_flags_enabled)
                              if (arr.length > 1)
                                console.log(`CONSTRUCTING SETFLAG WITH ` +
                                            `${inspect_fun(arr)}`);
                            return new ASTSetFlag(arr);
                          });
-const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','),
-                                    word_break)),
+const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
                          arr => {
                            if (log_flags_enabled)
                              if (arr.some(e => e.length > 1))
@@ -6783,8 +6781,7 @@ const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','),
                                            `${inspect_fun(arr)}`);
                            return new ASTCheckFlags(arr);
                          });
-const NotFlag    = xform(seq('!', optional('#'),
-                             plus(ident, '.'), word_break),
+const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                          arr => {
                            if (log_flags_enabled)
                              if (arr[2].length > 1)
@@ -6860,55 +6857,55 @@ const SpecialFunctionSetConfiguration
                               choice(JsoncObject, () => LimitedContent))); // [1]
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary);
-const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
-                                             SpecialFunctionSetConfiguration,
-                                             SpecialFunctionSetPickSingle,
-                                             SpecialFunctionSetPickMultiple,
-                                             SpecialFunctionRevertPickSingle,
-                                             SpecialFunctionRevertPickMultiple,
-                                             SpecialFunctionAddToNegativePrompt,
-                                             SpecialFunctionSetNegativePrompt);
-const AnySpecialFunction            = choice((dt_hosted
-                                              ? UnexpectedSpecialFunctionInclude
-                                              : SpecialFunctionInclude),
-                                             SpecialFunctionNotInclude);
+const SpecialFunctionNotInclude          = choice(SpecialFunctionUpdateConfiguration,
+                                                  SpecialFunctionSetConfiguration,
+                                                  SpecialFunctionSetPickSingle,
+                                                  SpecialFunctionSetPickMultiple,
+                                                  SpecialFunctionRevertPickSingle,
+                                                  SpecialFunctionRevertPickMultiple,
+                                                  SpecialFunctionAddToNegativePrompt,
+                                                  SpecialFunctionSetNegativePrompt);
+const AnySpecialFunction                  = choice((dt_hosted
+                                                    ? UnexpectedSpecialFunctionInclude
+                                                    : SpecialFunctionInclude),
+                                                   SpecialFunctionNotInclude);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative       = xform(make__ASTAnonWildcardAlternative,
-                                            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                                                optional(wb_uint, 1),
-                                                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                                                () => ContentStar));
+const AnonWildcardAlternative        = xform(make__ASTAnonWildcardAlternative,
+                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                                 optional(wb_uint, 1),
+                                                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                                 () => ContentStar));
 const AnonWildcardAlternativeNoLoras = xform(make__ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
                                                  wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  () => ContentStarNoLoras));
-const AnonWildcard                  = xform(arr => new ASTAnonWildcard(arr),
-                                            brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const AnonWildcardNoLoras           = xform(arr => new ASTAnonWildcard(arr),
-                                            brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-const NamedWildcardReference        = xform(seq(discard('@'),
-                                                optional('^'),                             // [0]
-                                                optional(xform(parseInt, /\d+/)),          // [1]
-                                                optional(xform(parseInt,
-                                                               second(seq('-', /\d+/)))),  // [2]
-                                                optional(/[,&]/),                          // [3]
-                                                ident),                                    // [4]
-                                            arr => {
-                                              const ident  = arr[4];
-                                              const min_ct = arr[1][0] ?? 1;
-                                              const max_ct = arr[2][0] ?? min_ct;
-                                              const join   = arr[3][0] ?? '';
-                                              const caret  = arr[0][0];
-                                              
-                                              return new ASTNamedWildcardReference(ident,
-                                                                                   join,
-                                                                                   caret,
-                                                                                   min_ct,
-                                                                                   max_ct);
-                                            });
+const AnonWildcard                   = xform(arr => new ASTAnonWildcard(arr),
+                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const AnonWildcardNoLoras            = xform(arr => new ASTAnonWildcard(arr),
+                                             brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+const NamedWildcardReference         = xform(seq(discard('@'),
+                                                 optional('^'),                             // [0]
+                                                 optional(xform(parseInt, /\d+/)),          // [1]
+                                                 optional(xform(parseInt,
+                                                                second(seq('-', /\d+/)))),  // [2]
+                                                 optional(/[,&]/),                          // [3]
+                                                 ident),                                    // [4]
+                                             arr => {
+                                               const ident  = arr[4];
+                                               const min_ct = arr[1][0] ?? 1;
+                                               const max_ct = arr[2][0] ?? min_ct;
+                                               const join   = arr[3][0] ?? '';
+                                               const caret  = arr[0][0];
+                                               
+                                               return new ASTNamedWildcardReference(ident,
+                                                                                    join,
+                                                                                    caret,
+                                                                                    min_ct,
+                                                                                    max_ct);
+                                             });
 const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
                                       wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
