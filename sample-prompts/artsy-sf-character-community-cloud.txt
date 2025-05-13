@@ -30,7 +30,7 @@
 }
 
 // ---------------------------------------------------------------------------------------
-%config.loras = [] // unconfigure any LoRAs that are configured in the DT UI first.
+%config.loras     = [] // unconfigure any LoRAs that are configured in the DT UI first.
 
 { 4 ?flux_on
 // Flux Dev:
