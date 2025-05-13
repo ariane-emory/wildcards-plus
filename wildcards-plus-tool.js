@@ -63,10 +63,12 @@ function parse_file(filename) {
   return result;
 }
 // -------------------------------------------------------------------------------------------------
-function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
+function post_prompt(prompt, config = {}, { hostname = '127.0.0.1', port = 7860,
+                                            negative_prompt = undefined } = {}) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
-  let data = { prompt: prompt, ...config };
+  let data = { prompt: prompt, ...config,
+               negative_prompt: negative_prompt || negative_prompt === '' ? negative_prompt : undefined };
 
   // doing this seems convenient?
   if (data.n_iter && (typeof data.n_iter === 'number') && data.n_iter > 1) { 
@@ -77,11 +79,16 @@ function post_prompt(prompt, config = {}, hostname = '127.0.0.1', port = 7860) {
   else {
     data.seed = Math.floor(Math.random() * (2 ** 32));
   }
-    
+
+  // if (negative_prompt || negative_prompt === '') {
+  //   // throw new Error(`bomb: ${negative_prompt}`);
+  //   th
+  // }
+  
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
-        console.log(`POST data is: ${JSON.stringify(data)}`);
+    console.log(`POST data is: ${JSON.stringify(data)}`);
 
   const options = {
     hostname: hostname,
@@ -662,6 +669,8 @@ class Choice extends Rule  {
 function choice(...options) { // convenience constructor
   if (options.length == 1) {
     console.log("WARNING: unnecessary use of choice!");
+
+    throw new Error("unnecessary use of choice");
     
     return make_rule_func(options[0]);
   }
@@ -1922,7 +1931,7 @@ Jsonc.finalize();
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
-  avoid_repetition:           'Avoiding repetition',
+  avoid_repetition:              'Avoiding repetition',
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
@@ -2058,7 +2067,7 @@ class WeightedPicker {
 
     // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
-    return ret;
+    return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, priority) {
@@ -2117,25 +2126,29 @@ class WeightedPicker {
       return this.options[legal_option_indices[0]].value;
     }
 
-    // // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
-    // console.log(`BEFORE TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    // console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
       // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
       // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+      // console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
       total_weight += adjusted_weight;
     }
     // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
     // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
     
-    // Since we now avoid adding options with a weight of 0, this shouldnever be true:
+    // Since we now avoid adding options with a weight of 0, this shoul dnever be true:
     if (total_weight === 0) {
+      // return '';
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix, this.options[ix]]), null, 2)}, ` +
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix,
+this.__effective_weight(ix, priority),
+this.options[ix]]), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
       if (noisy) {
@@ -2582,6 +2595,7 @@ class Context {
     pick_multiple_priority = picker_priority.avoid_repetition,
     prior_pick_one_priority = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
+    negative_prompt = null,
   } = {}) {
     this.flags = flags;
     this.scalar_variables = scalar_variables;
@@ -2595,9 +2609,18 @@ class Context {
     this.prior_pick_one_priority = prior_pick_one_priority;
     this.pick_multiple_priority = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
+    this.negative_prompt = negative_prompt;
 
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
+  }
+  // -----------------------------------------------------------------------------------------------
+  add_to_negative_prompt(str) {
+    if (typeof str !== 'string')
+      throw new Error(`not a string: ${typeof str} ${inspect_fun(str)}}`);
+
+    this.negative_prompt ||= '';
+    this.negative_prompt = smart_join([this.negative_prompt, str]);
   }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
@@ -2665,7 +2688,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
-    this.flags = new Set();
+    this.flags = [];
     this.scalar_variables = new Map();
   }
   // -----------------------------------------------------------------------------------------------
@@ -2683,7 +2706,8 @@ class Context {
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,      
-      prior_pick_multiple_priority: this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.pick_multiple_priority,
+      negative_prompt:              this.negative_prompt,
     });
   }
   // -----------------------------------------------------------------------------------------------
@@ -2701,6 +2725,7 @@ class Context {
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,
       prior_pick_multiple_priority: this.pick_multiple_priority,      
+      negative_prompt:              this.negative_prompt,
     });
   }
 }
@@ -6230,6 +6255,8 @@ function expand_wildcards(thing, context = new Context()) {
         // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
         
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
+
+        // console.log(`EXPANDED VALUE: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
         
         const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
                                               ? JsoncObject
@@ -6263,7 +6290,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionSetPickSingle || 
              thing instanceof ASTSpecialFunctionSetPickMultiple) {
-      const walked = picker_priority[walk(thing.limited_content)];
+      const walked = picker_priority[expand_wildcards(thing.limited_content, context)];
       const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -6286,10 +6313,12 @@ function expand_wildcards(thing, context = new Context()) {
       context[cur_key]   = walked;
 
       if (log_config_enabled)
+        // console.log(
+        //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
         console.log(
           `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(walked)}: ` /*+
-                                         `${inspect_fun(context)}` */);
+            `${inspect_fun(walked)}.`);
       
       return '';
     }
@@ -6310,13 +6339,14 @@ function expand_wildcards(thing, context = new Context()) {
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val })}`);
       
+      if (log_config_enabled)
+        // console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
+        console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                    `${inspect_fun(prior_val)}.`);
+      
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
-
-      if (log_config_enabled)
-        console.log(`Revert ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                    `${inspect_fun(prior_val)}` /* +
-                                                   `${inspect_fun(context)}` */);
 
       return '';
     }
@@ -6326,7 +6356,7 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTLora) {
       // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
       
-      let walked_file = walk(thing.file);
+      let walked_file = expand_wildcards(thing.file, context); // not walk!
 
       // console.log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
@@ -6336,13 +6366,13 @@ function expand_wildcards(thing, context = new Context()) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = walk(thing.weight);
+      let walked_weight = expand_wildcards(thing.weight, context); // not walk!
 
       // console.log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
       //             `${inspect_fun(walked_weight)} ` +
       //             `${Array.isArray(walked_weight)}`);
-
+      
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
       
@@ -6354,6 +6384,9 @@ function expand_wildcards(thing, context = new Context()) {
 
       let file = walked_file.toLowerCase();
 
+      if (file === '')
+        throw new Error(`LoRA file name is empty!`);
+      
       // if (file.endsWith('_lora_f16.ckpt')) {
       if (file.endsWith('.ckpt')) {
         // do nothing 
@@ -6373,6 +6406,26 @@ function expand_wildcards(thing, context = new Context()) {
       add_lora_to_array({ file: file, weight: weight },
                         context.add_loras,
                         "context.add_loras");
+      
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    // ASTSpecialFunctionAddToNegativePrompt:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunctionAddToNegativePrompt) {
+      context.add_to_negative_prompt(expand_wildcards(thing.negative_prompt_content, context));
+      
+      console.log(`NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt)}`);
+      
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    // ASTSpecialFunctionSetNegativePrompt:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTSpecialFunctionSetNegativePrompt) {
+      context.negative_prompt = expand_wildcards(thing.negative_prompt_content, context);
+      
+      console.log(`SET NEGATIVE CONTENT: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
@@ -6621,6 +6674,20 @@ class ASTSpecialFunctionRevertPickSingle extends ASTNode {
     super();
   }
 }
+// -------------------------------------------------------------------------------------------------
+class ASTSpecialFunctionAddToNegativePrompt extends ASTNode {
+  constructor(negative_prompt_content) {
+    super();
+    this.negative_prompt_content = negative_prompt_content
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTSpecialFunctionSetNegativePrompt extends ASTNode {
+  constructor(negative_prompt_content) {
+    super();
+    this.negative_prompt_content = negative_prompt_content
+  }
+}
 // =================================================================================================
 // END OF SD PROMPT AST CLASSES SECTION.
 // =================================================================================================
@@ -6633,15 +6700,17 @@ class ASTSpecialFunctionRevertPickSingle extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-const word_break              = /(?=\s|[{|}]|$)/;
-const plaintext               = /[^{|}\s]+/;
-const low_pri_text            = /[\(\)\[\]\,\.\?\!\:\;]+/;
-const wb_uint                 = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const ident                   = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
-const comment                 = discard(choice(c_block_comment, c_line_comment));
-const assignment_operator     = discard(seq(wst_star(comment), ':=', wst_star(comment)));
-const escaped_brc             = second(choice('\\{', '\\}'));
-const filename                = /[A-Za-z0-9 ._\-()]+/;
+const word_break               = /(?=\s|[{|}]|$)/;
+const plaintext                = /[^{|}\s]+/;
+// const plaintext_no_parens      = /[^{|}\s()]+/;
+const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
+const comment                  = discard(choice(c_block_comment, c_line_comment));
+const assignment_operator      = discard(seq(wst_star(comment), ':=', wst_star(comment)));
+const incr_assignment_operator = discard(seq(wst_star(comment), '+=', wst_star(comment)));
+const escaped_brc              = second(choice('\\{', '\\}'));
+const filename                 = /[A-Za-z0-9 ._\-()]+/;
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // combinators:
@@ -6746,50 +6815,67 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      unarySpecialFunction('single-pick-prioritizes', choice(() => LimitedContent, /[a-z_]+/),
-                           arg => new ASTSpecialFunctionSetPickSingle(arg));
+      xform(wst_cutting_seq(wst_seq('%single-pick-priority', 
+                                    assignment_operator),
+                            choice(() => LimitedContent, /[a-z_]+/)),
+            arr => new ASTSpecialFunctionSetPickSingle(arr[1]));
 const SpecialFunctionSetPickMultiple =
-      unarySpecialFunction('multi-pick-prioritizes', () => choice(() => LimitedContent, /[a-z_]+/),
-                           arg => new ASTSpecialFunctionSetPickMultiple(arg));
+      xform(wst_cutting_seq(wst_seq('%multi-pick-priority', 
+                                    assignment_operator),
+                            choice(() => LimitedContent, /[a-z_]+/)),
+            arr => new ASTSpecialFunctionSetPickMultiple(arr[1]));
 const SpecialFunctionRevertPickSingle =
-      xform('%revert-single-pick-prioritizes', 
+      xform('%revert-single-pick-priority', 
             () => new ASTSpecialFunctionRevertPickSingle());
 const SpecialFunctionRevertPickMultiple =
-      xform('%revert-multi-pick-prioritizes', 
+      xform('%revert-multi-pick-priority', 
             () => new ASTSpecialFunctionRevertPickMultiple());
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
                                   DiscardedComments,     // -
                                   '.',                   // [0][1]
-                                  DiscardedComments),    // -
-                          ident,                         // [1]
+                                  DiscardedComments,     // -
+                                  ident),                // [0][2]
                           DiscardedComments,             // -
-                          '(',                           // [2]
+                          '(',                           // [1]
                           DiscardedComments,             // -
-                          choice(Jsonc, () => LimitedContent),   // [3]
-                          DiscardedComments,             // [4]
+                          choice(Jsonc, () => LimitedContent),   // [2]
+                          DiscardedComments,             // [3]
                           ')'),                          // [4]
-          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[3]));
+          arr => new ASTSpecialFunctionUpdateConfigBinary(arr[0][2], arr[2]));
+const SpecialFunctionAddToNegativePrompt =
+      xform(second(wst_seq('%neg',
+                           incr_assignment_operator,
+                           () => LimitedContent)),
+            lc => {
+              console.log(`NEG ADD: ${inspect_fun(lc)}`);
+              return new ASTSpecialFunctionAddToNegativePrompt(lc);
+            });
+const SpecialFunctionSetNegativePrompt = 
+      xform(wst_cutting_seq(wst_seq('%neg',                             // [0][0]
+                                    assignment_operator),               // -
+                            () => LimitedContent), // [1]
+            arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]));
 const SpecialFunctionUpdateConfigurationUnary =
       unarySpecialFunction('config',
                            choice(JsoncObject, () => LimitedContent),
                            arg => new ASTSpecialFunctionUpdateConfigUnary(arg,
                                                                           false));
 const SpecialFunctionSetConfiguration
-      = xform(wst_cutting_seq(wst_seq('%config',             // [0][0]
-                                      DiscardedComments,     // -
-                                      assignment_operator,   // _
-                                      DiscardedComments),    // -
+      = xform(wst_cutting_seq(wst_seq('%config',                          // [0][0]
+                                      assignment_operator),               // -
                               choice(JsoncObject, () => LimitedContent)), // [1]
               arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true));
-const SpecialFunctionUpdateConfiguration         = choice(SpecialFunctionUpdateConfigurationUnary,
-                                                          SpecialFunctionUpdateConfigurationBinary);
+const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
+                                                  SpecialFunctionUpdateConfigurationBinary);
 const SpecialFunctionNotInclude     = choice(SpecialFunctionUpdateConfiguration,
                                              SpecialFunctionSetConfiguration,
                                              SpecialFunctionSetPickSingle,
                                              SpecialFunctionSetPickMultiple,
                                              SpecialFunctionRevertPickSingle,
-                                             SpecialFunctionRevertPickMultiple);
+                                             SpecialFunctionRevertPickMultiple,
+                                             SpecialFunctionAddToNegativePrompt,
+                                             SpecialFunctionSetNegativePrompt);
 const AnySpecialFunction            = choice((dt_hosted
                                               ? UnexpectedSpecialFunctionInclude
                                               : SpecialFunctionInclude),
@@ -6831,9 +6917,7 @@ const NamedWildcardReference        = xform(seq(discard('@'),
 const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(...arr),
                                       wst_seq(NamedWildcardDesignator,                    // [0]
-                                              DiscardedComments,                          // -
                                               assignment_operator,                        // -
-                                              DiscardedComments,                          // -
                                               AnonWildcard));                             // [1]
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
@@ -6854,27 +6938,39 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                       });
 const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
                                       arr => new ASTScalarReference(arr[1], arr[0][0]));
-const ScalarAssignmentSource  = choice(ScalarReference, NamedWildcardReference,
-                                       AnonWildcard);
 const ScalarAssignment        = xform(arr => new ASTScalarAssignment(...arr),
                                       wst_seq(ScalarReference,
                                               assignment_operator,
-                                              ScalarAssignmentSource));
-const LimitedContent          = choice(xform(name => new ASTNamedWildcardReference(name),
-                                             NamedWildcardDesignator),
-                                       /* escaped_brc, */ AnonWildcardNoLoras, ScalarReference);
-const Content                 = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
-                                       A1111StyleLora,
-                                       escaped_brc, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
-const ContentNoLoras          = choice(NamedWildcardReference, NamedWildcardUsage, SetFlag, UnsetFlag,
-                                       escaped_brc, AnonWildcard, comment, ScalarReference,
-                                       SpecialFunctionNotInclude, /*low_pri_text,*/ plaintext);
+                                              () => ScalarAssignmentSource));
+const ScalarAssignmentSource  = choice(NamedWildcardReference,
+                                       AnonWildcard,
+                                       ScalarReference,);
+const LimitedContent          = choice(
+  xform(name => new ASTNamedWildcardReference(name), NamedWildcardDesignator),
+  AnonWildcardNoLoras,
+  ScalarReference,
+);
+const Content                 = choice(
+  A1111StyleLora,
+  () => ContentNoLoras,
+);
+const ContentNoLoras          = choice(
+  ScalarAssignment,
+  NamedWildcardReference,
+  NamedWildcardUsage,
+  SetFlag,
+  UnsetFlag,
+  escaped_brc,
+  AnonWildcard,
+  comment,
+  ScalarReference,
+  SpecialFunctionNotInclude,
+  plaintext,
+);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
 const PromptBody              = wst_star(choice(AnySpecialFunction,
                                                 NamedWildcardDefinition,
-                                                ScalarAssignment,
                                                 Content));
 const Prompt                  = PromptBody;
 // -------------------------------------------------------------------------------------------------
@@ -6999,17 +7095,20 @@ async function main() {
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
-  let expanded = null;
-  let config   = null;
-
+  let expanded        = null;
+  let negative_prompt = undefined; // not null
+  let config          = null;
+  
   const stash_prior = () => {
     prior_expansion = expanded;
+    prior_negative_prompt = negative_prompt;
     prior_config = clone_fun(config);
   };
 
-  let posted_count    = 0;
-  let prior_expansion = null;
-  let prior_config    = null;
+  let posted_count          = 0;
+  let prior_expansion       = null;
+  let prior_negative_prompt = null;
+  let prior_config          = null;
 
   while (posted_count < count) {
     console.log('==========================================================================================');
@@ -7018,6 +7117,7 @@ async function main() {
 
     const context    = base_context.clone();
     expanded         = expand_wildcards(AST, context);
+    negative_prompt  = context.negative_prompt;
     config           = munge_config(context.config);
     const add_loras  = context.add_loras;
     const have_loras = add_loras && add_loras.length > 0;
@@ -7042,13 +7142,20 @@ async function main() {
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(expanded);
 
+    if (negative_prompt || negative_prompt === '') {
+      console.log(`------------------------------------------------------------------------------------------`);
+      console.log(`Expanded negative prompt:`);
+      console.log(`------------------------------------------------------------------------------------------`);
+      console.log(negative_prompt);
+    }
+
     if (!post) {
       posted_count += 1; // a lie to make the counter correct.
     }
     else {
       if (!confirm) {
         console.log(`------------------------------------------------------------------------------------------`);
-        post_prompt(expanded, config);
+        post_prompt(expanded, config, { negative_prompt: negative_prompt });
 
         posted_count += 1;
       }
@@ -7069,14 +7176,21 @@ async function main() {
           if (prior_expansion) { 
             console.log(`------------------------------------------------------------------------------------------`);
             console.log(`POSTing prior prompt '${expanded}'`);
-            post_prompt(prior_expansion, prior_config);
+
+            // untested!
+            [ expanded,        prior_expansion       ] = [ prior_expansion,       expanded        ]
+            [ config,          prior_config          ] = [ prior_config,          config          ]
+            [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ]
+            
+            post_prompt(expanded, config, { negative_prompt: negative_prompt });
+
+            continue;
           }
           else {
             console.log(`can't rewind, no prior prompt`);
           }
         }
         else { // /^y.*/
-          console.log(`not POSTing.`);
           console.log(`------------------------------------------------------------------------------------------`);
           const parsed    = parseInt(answer);
           const gen_count = isNaN(parsed) ? 1 : parsed;  
@@ -7084,7 +7198,7 @@ async function main() {
           // console.log(`parsed = '${parsed}', count = '${count}'`);
           
           for (let iix = 0; iix < gen_count; iix++) {
-            post_prompt(expanded, config);
+            post_prompt(expanded, config, { negative_prompt: negative_prompt });
             posted_count += 1;
           }
         }

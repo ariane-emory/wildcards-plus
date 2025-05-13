@@ -373,11 +373,11 @@
 |engineer                                      @likely_tool
 |communications officer                        @maybe_no_equipment
 |scientist                                     #tool
-|explorer                                      @likely_tool
 |scout                                         @tool_or_weapon
-|wanderer                                      @tool_or_weapon
-|traveller                                     @tool_or_weapon
-|vagabond                                      @tool_or_weapon
+|{2|interstellar} explorer                     @likely_tool
+|{2|interstellar} wanderer                     @tool_or_weapon
+|{2|interstellar} traveller                    @tool_or_weapon
+|{2|interstellar} vagabond                     @tool_or_weapon
 |{2|interstellar} bounty hunter                #weapon
 |soldier                                       #weapon
 |2 space pirate                                #weapon
@@ -517,3 +517,8 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 {|8 @sky_sentence}
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
+
+%neg := { dog  }
+%neg += { cat  }
+%neg := { bird }
+
