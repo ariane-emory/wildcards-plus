@@ -210,7 +210,7 @@
 |android
 |cyborg #cyborg
 |human #human
-|?traveller Vargr
+// |?traveller Vargr // unrecognized!
 |?traveller Vilani
 |?traveller Zhodani
 }
