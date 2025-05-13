@@ -43,10 +43,10 @@
 
 { 1 %config += { "width": 960,   "height": 960,  "steps": 40  } // 12,093
 | 2 %config += { "width": 1024,  "height": 960,  "steps": 40  } // 13,671
-| 2 %config += { "width": 1408,  "height": 704,  "steps": 40  } // 13,888
+| 8 %config += { "width": 1408,  "height": 704,  "steps": 40  } // 13,888
 | 1 %config += { "width": 896,   "height": 896,  "steps": 50  } // 11,631
 | 2 %config += { "width": 960,   "height": 896,  "steps": 50  } // 13,260
-| 2 %config += { "width": 1280,  "height": 640,  "steps": 50  } // 12,086
+| 8 %config += { "width": 1280,  "height": 640,  "steps": 50  } // 12,086
 }
 
 | 2 ?hidream_fast_on,hidream_full_on
@@ -63,7 +63,7 @@
 
 { 1 %config += { "width": 960,   "height": 960, "steps": 40  }
 | 2 %config += { "width": 1152,  "height": 768, "steps": 40  }
-| 2 %config += { "width": 1280,  "height": 640, "steps": 45  }
+| 6 %config += { "width": 1280,  "height": 640, "steps": 45  }
 }
 }
 
