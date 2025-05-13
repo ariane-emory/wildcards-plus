@@ -1,87 +1,181 @@
+{ #wizards_artist.helen_frankenthaler
+| #wizards_artist.frank_frazetta
+| #wizards_artist.boris_vallejo
+| #wizards_artist.gerald_brom
+| #wizards_artist.jack_gaughan 
+| #wizards_artist.chris_foss
+| #wizards_artist.peter_elson
+| #wizards_artist.john_blanche
+| #wizards_artist.wayne_barlowe
+}
+
+#artsy
+
 // =======================================================================================
 // use wildcards to randomize some parts of the configuration before we get on with the
 // actual textual content of the prompt:
 // =======================================================================================
 
-{ 0
-  // devMODE
-  %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
-  %config.steps(8)
-  { %config.sampler("DDIM Trailing") | %config.sampler("Euler A") | %config.sampler("Euler A Trailing") }
-  { %config.cfg_scale(1.0) | %config.cfg_scale(1.5) | %config.cfg_scale(2.0) | %config.cfg_scale(2.5) }
+// %single-pick-prioritizes({ true_randomness })
+// %revert-single-pick-prioritizes
+// %multi-pick-prioritizes(true_randomness)
+// %revert-multi-pick-prioritizes
 
-  // three possible resolutions:
-  { 3 %config({ "width": 768, "height": 512 })
-  | 2 %config({ "width": 768, "height": 384 })
-  | 1 %config({ "width": 640, "height": 640 })
+// ---------------------------------------------------------------------------------------
+// template config flags to enable model families or other features:
+// ---------------------------------------------------------------------------------------
+
+%config.loras([])
+
+#sdxl_on
+#flux_on
+#hidream_fast_on
+#hidream_full_on
+
+// #hidream_high_steps
+// #flux_high_steps
+
+// #sdxl_always_lightning
+// #sdxl_always_lightning_off
+
+{ !sdxl_always_lightning
+| !sdxl_always_lightning_off #sdxl_lightning_on }  // enable lightning 4-step in SDXL models.
+
+#square_on                                         // enable square aspect ratios
+// #sdxl_hires                                     // enable higher resolutions
+
+// ---------------------------------------------------------------------------------------
+
+@lora_names :=
+{ ?sdxl_selected { mj52_v2.0
+                 | ethereon
+                 | trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
+                 | add_detail_xl
+                 | detailed_notrigger
+                 | xl_more_art_full_v1
+                 }
+| ?flux_selected { the_dark_side_of_the_future
+                 | blue_future
+                 | ck_spaceships_000011
+                 | fulltechnicalladyarmorstylemk1
+                 | gerald_brom
+                 | nistyle_test2_000013
+                 | ck_metalgearsolid_000019
+                 | anime_v1.3
+                 }
+}
+
+// named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
+@lora := { <lora:@lora_names: @low_random_weight> }
+
+
+// =================================================================================================
+// Flux config:
+// =================================================================================================
+{ 2 ?flux_on #flux_selected
+  { %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
+  | %config.model("devmode8stepsflux1dev_v03fp8_f16.ckpt")
+  }
+  
+  { @1-2lora | @1-3lora }
+  
+  %config.steps({ { \8 | \9 | \10 }
+                | ?flux_high_steps { \11 | \12 | \13 } })
+  
+  // don't worry, capitalization will be automatically fixed to "Euler A":
+  %config.sampler({ "DDIM Trailing" | 3 "Euler A" | "Euler A Trailing" })
+  %config.cfg_scale({ \1.0 | \1.5 | \2.0 | \2.5 })
+
+  // possible resolutions:
+  { // 3 %config({ "width": 1024, "height": 512 })
+  | 3 %config({ "width": 768,  "height": 384 })
+  | 3 %config({ "width": 640,  "height": 320 })
+  | 3 ?square_on %config({ "width": 768,  "height": 768 })
+  | 3 ?square_on %config({ "width": 640,  "height": 640 })
+  | 3 ?square_on %config({ "width": 512,  "height": 512 })
   }
 
-| // Hidream with some basic settings that seem to work alright:
-  %config({ "model": "hidream_i1_fast_q5p.ckpt", "sampler": "DDIM Trailing", "shift": 1.50 })
+// =================================================================================================
+// HiDream config:
+// =================================================================================================
+| 3 ?hidream_fast_on,hidream_full_on #hidream_selected
+  %config.model({ ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
+                | ?hidream_full_on "hidream_i1_full_q5p.ckpt" })
+  
+  %config.shift({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
+  %config.sampler({ 2 "DDIM Trailing" | "Euler A" | 2 "Euler A Trailing" })
+  %config.cfg_scale({ 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0})
 
-  { 8 %config.cfg_scale(5.0 ) | 7 %config.cfg_scale(10.0) | 6 %config.cfg_scale(15.0) | 5 %config.cfg_scale(20.0)
-  | 4 %config.cfg_scale(25.0) | 3 %config.cfg_scale(30.0) | 2 %config.cfg_scale(35.0) | 1 %config.cfg_scale(40.0)
+  // 9-18 steps, equally likely:
+  %config.steps({ { \9 | \10 | \11 | \12 | \13 }
+                | ?hidream_high_steps { \14 | \15 | \16 | \17 | \18 } })
+
+  // possible resolutions:
+  { // 3 %config({ "width": 1024, "height": 512 })
+  | 3 %config({ "width": 768,  "height": 384 })
+  | 3 %config({ "width": 640,  "height": 320 })
+  // | 3 ?square_on %config({ "width": 768,  "height": 768 })
+  | 3 ?square_on %config({ "width": 640,  "height": 640 })
+  | 3 ?square_on %config({ "width": 512,  "height": 512 })
   }
 
-  // crappy low step count for a moment:
-  %config.steps(4)
+// =================================================================================================
+// SDXL config:
+// =================================================================================================
+| 8 ?sdxl_on #sdxl_selected
+  { ?sdxl_lightning_on {   <lora:sdxl_lightning_4step_lora:1.0> %config.steps(4)
+                  | 2 <lora:sdxl_lightning_8step_lora:1.0> %config.steps(8) } }
 
-  // // 9-13 steps, equally likely:
-  // { %config.steps(9) | %config.steps(10) | %config.steps(11) | %config.steps(12) | %config.steps(13) }
+  { @1-2lora | @1-3lora }
 
-  // three possible resolutions:
-  { 3 %config({ "width": 768, "height": 512 })
-  | 2 %config({ "width": 768, "height": 384 })
-  | 1 %config({ "width": 640, "height": 640 })
-  }
-
-| // various SDXL models:
-
-  // crappy low step count for a moment:
-  %config.steps(15)
-
-  // // 35, 40 or 45 steps, equally likely:
-  // { 3 %config.steps(35) | 2 %config.steps(40) | 1 %config.steps(45) }
-
-  // three possible resolutions:
-  { 2 %config({"width": 960, "height":512})
-  | 2 %config({"width": 768, "height":512}) 
-  | %config({"width": 768, "height":768})
+  { !sdxl_lightning_on %config.steps({ \25 | \30 | \35 }) }
+  // { !sdxl_lightning_on %config.steps(30) }   
+  
+  // possible resolutions:
+  { // 3 ?sdxl_hires %config({ "width": 1280, "height": 640 })
+  // | 3 ?sdxl_hires %config({ "width": 1152, "height": 576 })
+  | 3 ?sdxl_hires %config({ "width": 1024, "height": 512 })
+  | 3 %config({ "width": 768,  "height": 384 })
+  | 3 %config({ "width": 640,  "height": 320 })
+  | 3 ?square_on ?sdxl_hires %config({ "width": 1024,  "height": 1024 })
+  // | 3 ?square_on %config({ "width": 768,  "height": 768 })
+  | 3 ?square_on %config({ "width": 640,  "height": 640 })
+  | 3 ?square_on %config({ "width": 512,  "height": 512 })
   }
 
   // three possible 'shift' values:
-  { %config.shift(1.00) | %config.shift(1.10) | %config.shift(1.20) }
+  %config.shift({ \1.00 | \1.10 | \1.20 })
 
   // two sampler possibilities:
-  { %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler a") }
+  { ?sdxl_lightning_on %config.sampler("LCM") }
+  { !sdxl_lightning_on { %config.sampler("DPM++ SDE Karras") | %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") } }
 
   // eight possible CFG values:
-  { %config.cfg_scale(3.0) | %config.cfg_scale(4.0) | %config.cfg_scale(5.0) | %config.cfg_scale(6.0) 
-  | %config.cfg_scale(7.0) | %config.cfg_scale(8.0) | %config.cfg_scale(9.0) | %config.cfg_scale(10.0) }
+  %config.cfg_scale({ \3.0 | \4.0 | \5.0 | \6.0 | \7.0 | \8.0 | \9.0 | \10.0 })
 
   // lots of models pick from:
-  { 2 %config.model("bookIllustrationChar_v10_f16.ckpt")
-  | 2 %config.model("challengexlv10yoursecret_v10_f16.ckpt")
-  |   %config.model("cyberrealisticpony_v10_f16.ckpt") {@pony_score_7_up|@pony_score_8_up}              // same.
-  |   %config.model("cyberrealisticxl_v56_f16.ckpt")
-  | 2 %config.model("nightvisionxl_v900_f16.ckpt")
-  | 2 %config.model("oldmaster_v30_f16.ckpt")
-  | 2 %config.model("zavychromaxl_v100_f16.ckpt")
+  { 4 %config.model("bookIllustrationChar_v10")
+  | 4 %config.model("challengexlv10yoursecret_v10")
+  | 0 %config.model("cyberrealisticpony_v10") {@pony_score_7_up|@pony_score_8_up}
+  | 0 %config.model("cyberrealisticpony_v90alt1")
+  | 0 %config.model("cyberrealisticxl_v57")
+  | 4 %config.model("nightvisionxl_v900")
+  | 8 %config.model("oldmaster_v30")
+  | 4 %config.model("zavychromaxl_v100")
+  | 4 %config.model("comicbookxl_v10")
+  | 4 %config.model("plantmilkmodelsuite_hempii")
+  | 4 %config.model("juggernautxl_ragnarokby")
   }
 }
-
-// Chance of 'artsy' mode:
-{| #artsy}
 
 // =======================================================================================
 // make random sci-fi characters:
 // =======================================================================================
 
-@pro_pos_rand := {2 @pro_pos_adj|a}
+{#planet|#ship|#moon|#station} // where are we?
 
-{3 #female|2 #male|#neuter}
-{#planet|#ship|#moon|#station}
-@setting_word := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
+@pro_pos_rand  := {2 @pro_pos_adj|a}
+@setting_word  := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
 
 @ship_term     := {starship|spacecraft|space ship|shuttle}
 @ship_late_adj := {space|interstellar}
@@ -89,6 +183,8 @@
                   |@ship_late_adj frigate
                   |@ship_late_adj battleship|@ship_late_adj destroyer
                   |{|@ship_late_adj} merchant vessel
+                  |{|@ship_late_adj} freighter
+                  |{|@ship_late_adj} liner
                   |{|@ship_late_adj} vessel}
 
 // ---------------------------------------------------------------------------------------
@@ -148,16 +244,17 @@
              |{access|maintenance} tunnel
              }
 |4 ?planet,moon #outdoors {alley
-                        |{|2 hive city|2 megacity} street
-                        |crater
-                        |bazaar
-                        |market
-                        }
+                          |{|2 hive city|2 megacity|2 arcology} street
+                          |crater
+                          |bazaar
+                          |market
+                          }
 }
+
 @place_to_be_at :=
 {{ware|store} #indoors <house
 |?planet,moon an alien ruin
-|the abandoned wreck of a @ship_term2
+|abandoned wreck of a @ship_term2
 |{2|holographic} computer
 |?planet,moon #outdoors colony
 |holographic #indoors projector
@@ -165,6 +262,7 @@
 |?ship,station #indoors helm
 |?ship,station 2 #indoors {|navigation|control|sensor|computer} console
 }
+
 @place_to_be_in_adj :=
 {3
 |!vehicle !#busy busy
@@ -177,6 +275,7 @@
 |?outdoors 2 smoky
 |?outdoors foggy
 }
+
 @place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
                  |at {a|the} @#place_to_be_at @place_to_be_at}
 
@@ -204,12 +303,16 @@
 |youthful
 |beautiful
 }
+
 @char_late_adj :=
-{3
+{4
 |alien #alien
 |android
 |cyborg #cyborg
 |human #human
+|?traveller Vargr
+|?traveller Vilani
+|?traveller Zhodani
 }
 
 // ---------------------------------------------------------------------------------------
@@ -266,24 +369,30 @@
 // ---------------------------------------------------------------------------------------
 @role :=
 {#weapon mercenary 
-|{3|hyperdrive|@ship_term} technician        @likely_tool
-|engineer                                    @likely_tool
-|communications officer                      @maybe_no_equipment
-|scientist                                   #tool
-|explorer                                    @likely_tool
-|scout                                       @tool_or_weapon
-|wanderer                                    @tool_or_weapon
-|{2|interstellar} bounty hunter              #weapon
-|soldier                                     #weapon
-|prize fighter                               #weapon #melee
-|assassin                                    @likely_weapon
-|medic                                       #tool
-|worker                                      #tool
-|{space|star|interstellar} {trader|merchant} @maybe_no_equipment
-|{space|star} marine                         #weapon
-|@ship_term captain                          @maybe_no_equipment
-|@ship_term pilot                            @maybe_no_equipment
-|{|@ship_term} {navigator|astrogator}        @maybe_no_equipment
+|{3|hyperdrive|@ship_term} technician          @likely_tool
+|engineer                                      @likely_tool
+|communications officer                        @maybe_no_equipment
+|scientist                                     #tool
+|explorer                                      @likely_tool
+|scout                                         @tool_or_weapon
+|wanderer                                      @tool_or_weapon
+|traveller                                     @tool_or_weapon
+|vagabond                                      @tool_or_weapon
+|{2|interstellar} bounty hunter                #weapon
+|soldier                                       #weapon
+|2 space pirate                                #weapon
+|trooper                                       #weapon
+|prize fighter                                 #weapon #melee
+|assassin                                      @likely_weapon
+|medic                                         #tool
+|cyberdoc                                      #tool
+|worker                                        #tool
+|{?traveller psion}                            @maybe_no_equipment
+|2 {space|star|interstellar} {trader|merchant} @maybe_no_equipment #merchant
+|{space|star} marine                           #weapon
+|@ship_term captain                            @maybe_no_equipment
+|@ship_term pilot                              @maybe_no_equipment
+|{|@ship_term} {navigator|astrogator}          @maybe_no_equipment
 }
 
 // ---------------------------------------------------------------------------------------
@@ -291,14 +400,15 @@
 // ---------------------------------------------------------------------------------------
 @clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_verb     := {2 wearing|clad in|dressed in}
-@clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|millitary
+@clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|!merchant millitary
                       |!#high-tech high-tech|#highly-detailed highly-detailed
                       |{|starship|space ship|spacecraft} crew members'
-                      |!#greebled {|highly} greebled}
+                      |!merchant !#greebled {|highly} greebled}
 @clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
                       |@pro_pos_rand @clothing_adj flight suit
                       |@pro_pos_rand @clothing_adj body suit
                       |@pro_pos_rand @clothing_adj uniform
+                      |3 ?merchant @pro_pos_rand @clothing_adj rich attire
                       |@pro_pos_rand @clothing_adj {|helmetless}
                                      {space|vacuum|hazardous environment} suit
                       |@pro_pos_rand @clothing_adj exoskeleton}
@@ -306,38 +416,42 @@
 // ---------------------------------------------------------------------------------------
 // cyborg features:
 // ---------------------------------------------------------------------------------------
-@cyborg_features := {{a|one} {bionic|mechanical} arm
-                    |{bionic|mechanical} arms
-                    |{a|one} {bionic|cyber {|<netic}} eye
-                    |{bionic|cyber {|<netic}} eyes
-                    }
+@cyborg_features :=
+{{a|one} {bionic|mechanical} arm
+|{bionic|mechanical} arms
+|{a|one} {bionic|cyber {|<netic}} eye
+|{bionic|cyber {|<netic}} eyes
+}
+
 @cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
 @early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
 
 // ---------------------------------------------------------------------------------------
 // ailen features:
 // ---------------------------------------------------------------------------------------
-@alien_features := {an insectoid appearance
-                   |2 digitigrade legs
-                   |gills on @pro_pos_adj throat
-                   |!#alien_claws {{|razor} sharp|retractable} claws
-                   |hooved feet
-                   |!#alien_wings {|diaphanous|batlike} wings
-                   |!#alien_horns {curling|back-curved} horns
-                   |!#alien_skin chitinous armored plates on @pro_pos_adj skin
-                   |!#alien_skin scaled skin
-                   |!#alien_tail a {|2 prehensile|spined} tail
-                   |!#alien_skin skin like an amphibian
-                   |!#alien_eyes {two|three|four|six} eyes
-                   |vicious fangs
-                   |a slitted nose
-                   |!#alien_eyes slitted eyes
-                   |!#alien_eyes compound eyes
-                   |four arms
-                   |!#alien_skin {smooth|shiny} fur
-                   |!#alien_quills quill {<-like|<s instead of} hair
-                   |a reptilian appearance
-                   }                   
+@alien_features :=
+{an insectoid appearance
+|2 digitigrade legs
+|gills on @pro_pos_adj throat
+|!#alien_claws {{|razor} sharp|retractable} claws
+|hooved feet
+|!#alien_wings {|diaphanous|batlike} wings
+|!#alien_horns {curling|back-curved} horns
+|!#alien_skin chitinous armored plates on @pro_pos_adj skin
+|!#alien_skin scaled skin
+|!#alien_tail a {|2 prehensile|spined} tail
+|!#alien_skin skin like an amphibian
+|!#alien_eyes {two|three|four|six} eyes
+|vicious fangs
+|a slitted nose
+|!#alien_eyes slitted eyes
+|!#alien_eyes compound eyes
+|four arms
+|!#alien_skin {smooth|shiny} fur
+|!#alien_quills quill {<-like|<s instead of} hair
+|a reptilian appearance
+}
+
 @alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
 @early_alien_feature_sentence := {?alien #eafs with @1-2&alien_features }
 
@@ -368,20 +482,27 @@
 // ---------------------------------------------------------------------------------------
 @colour_modifiers := {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
 
-
 // =======================================================================================
-// prompt body:
+// generate the prompt body:
 // =======================================================================================
 
-@aris_defaults, science fiction, {|futuristic,} {|greebling,}
-hyperrealistic, photorealistic, infinite focus, extremely detailed, 100-hour render time,
-@0-2,colour_modifiers
+{2|@aris_defaults,}
+science fiction,
+{3|greebles,|greeblies,}
+{|#traveller Traveller RPG,}
+{|?traveller GDW,}
+{|?traveller Third Imperium,}
+{|futuristic,}
+{2|hyperrealistic,}
+{2|infinite focus,}
+{|extremely detailed,}
+{2|100-hour render time,}
+{2|@0-2,colour_modifiers}
 .
 
 \n\n
 
-
-A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
+A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
 {2|@early_alien_feature_sentence}
 {2|@early_cyborg_feature_sentence}
@@ -394,6 +515,5 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {|6 @cyborg_feature_sentence}
 {|6 @alien_feature_sentence}
 {|8 @sky_sentence}
-\n
 
-{?artsy By @wizards_artists, @wizards_artist_styles. }
+{?wizards_artist By @wizards_artists, @wizards_artist_styles. }

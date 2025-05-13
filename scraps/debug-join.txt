@@ -1,0 +1,55 @@
+// =======================================================================================
+// make random sci-fi characters:
+// =======================================================================================
+
+// ---------------------------------------------------------------------------------------
+// character adjectives:
+// ---------------------------------------------------------------------------------------
+@char_early_adj :=
+{adventurous
+|androgynous
+|?neuter 2 androgynous
+|inscrutable
+|independant #solo
+|inhuman
+|intimidating
+|exotic
+|otherworldly
+|athletic
+}
+
+// ---------------------------------------------------------------------------------------
+// roles/character types:
+// ---------------------------------------------------------------------------------------
+@role :=
+{#weapon mercenary 
+|{3|hyperdrive} technician          
+|engineer                                      
+|communications officer                        
+|scientist                                     
+|explorer                                      
+|scout                                         
+|wanderer                                      
+|{2|interstellar} bounty hunter                
+|soldier                                       
+|2 space pirate                                
+|trooper                                       
+|prize fighter                                 
+|assassin                                      
+|medic                                         
+|cyberdoc                                      
+|worker                                        
+|{?traveller psion}                            
+|2 {space|star|interstellar} {trader|merchant} 
+|{space|star} marine                           
+|captain                            
+|pilot                              
+|{navigator|astrogator}          
+}
+
+// =======================================================================================
+// generate the prompt body:
+// =======================================================================================
+
+A { {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
+@2&char_early_adj @role
