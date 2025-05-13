@@ -2,7 +2,7 @@
 //@api-1.0
 // wildcards-plus
 // author ariane-emory (includes some code from wetcircuit's original wildcards.js)
-// v0.8
+// v0.9
 // Draw Things 1.20240502.2
 // =================================================================================================
 
@@ -6884,7 +6884,7 @@ const default_batch_count         = 5;
 // -------------------------------------------------------------------------------------------------
 // UI:
 // -------------------------------------------------------------------------------------------------
-const doc_string = `Wildcards Plus v0.8 by ariane-emory (based on @wetcircuit's original wildcard.js script)
+const doc_string = `Wildcards Plus v0.9 by ariane-emory (originally based on @wetcircuit's original wildcard.js script)
 
 Generate a batch of images using inline wildcards to randomize elements within the prompt.
 
