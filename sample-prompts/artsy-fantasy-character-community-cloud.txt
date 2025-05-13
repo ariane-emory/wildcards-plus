@@ -1,0 +1,296 @@
+// =======================================================================================
+// use wildcards to randomize some parts of the configuration before we get on with the
+// actual textual content of the prompt:
+// =======================================================================================
+
+// ---------------------------------------------------------------------------------------
+// template config flags to enable model families or other features:
+// ---------------------------------------------------------------------------------------
+
+#flux_on
+#hidream_full_on
+// #hidream_fast_on
+
+// ---------------------------------------------------------------------------------------
+// force an artist from this small list instead of picking from all of the 1000-plus
+// artists from Wizard Whitebeard's list:
+// ---------------------------------------------------------------------------------------
+// {   #wizards_artist.frank_frazetta
+// | 2 #wizards_artist.tony_diterlizzi
+// | 2 #wizards_artist.boris_vallejo
+// | 2 #wizards_artist.gerald_brom
+// |   #wizards_artist.ian_miller
+// |   #wizards_artist.john_blanche
+// |   #wizards_artist.jack_gaughan
+// |   #wizards_artist.michael_whelan
+// |   #wizards_artist.chris_foss
+// |   #wizards_artist.peter_elson
+// |   #wizards_artist.wayne_barlowe
+// |   #wizards_artist.jim_burns
+// }
+
+// ---------------------------------------------------------------------------------------
+%config.loras     = [] // unconfigure any LoRAs that are configured in the DT UI first.
+
+{ 4 ?flux_on
+// Flux Dev:
+
+%config.model     = "flux_1_dev_q8p.ckpt"
+%config.sampler   = { "DDIM Trailing" | "Euler A" | "Euler A Trailing" }
+%config.cfg_scale = { 1.0 | 1.5 | 2.0 | 2.5| 3.0 | 3.5| 4.0 | 4.5 | 5.0 }
+%config.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+%config.n_iter    = 2
+
+{ 1 %config += { "width": 960,   "height": 960,  "steps": 40  } // 12,093
+| 2 %config += { "width": 1024,  "height": 960,  "steps": 40  } // 13,671
+| 8 %config += { "width": 1408,  "height": 704,  "steps": 40  } // 13,888
+| 1 %config += { "width": 896,   "height": 896,  "steps": 50  } // 11,631
+| 2 %config += { "width": 960,   "height": 896,  "steps": 50  } // 13,260
+| 8 %config += { "width": 1280,  "height": 640,  "steps": 50  } // 12,086
+}
+
+| 2 ?hidream_fast_on,hidream_full_on
+// Hidream with some basic settings that seem to work alright:
+
+%config.model    = { ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
+| ?hidream_full_on "hidream_i1_full_q5p.ckpt"
+// | ?hidream_full_on "hidream_i1_full_q8p.ckpt"
+}  
+%config.sampler   = { "DDIM Trailing" | "Euler A" | "Euler A Trailing" }
+%config.cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
+%config.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+%config.n_iter    = 2
+
+{ 1 %config += { "width": 960,   "height": 960, "steps": 40  }
+| 2 %config += { "width": 1152,  "height": 768, "steps": 40  }
+| 6 %config += { "width": 1280,  "height": 640, "steps": 45  }
+}
+}
+
+// =======================================================================================
+// make random fantasy characters:
+// =======================================================================================
+
+// set an 'm' or 'f' gender flag that will help guide the selection of picks later on.
+{!male !female !neuter {#male|#female}}
+
+// character type flag, make 'wizards' 60% of the time:
+{3 #wizard|2 #warrior} 
+
+@weapon  = {2 spear|2 {|short|two-handed|bastard|curved} sword|axe|halbard|scimitar
+            |falchion|kukri|rapier|sabre|cutlass|mace|dagger|torch|dirk|stiletto|blade
+            |trident|harpoon|cleaver|hammer|warhammer|flail|whip|scourge|lash|morningstar
+            }
+
+// oh no, an accidental Easter egg! I completely forgot to document scalar string
+// variables in the README.md file.
+//
+// TODO: document this properly!
+//
+// in the mean time, this just picks an item from @wepon and stashes it in a 
+// variable called $weapon:
+
+$weapon  = @weapon 
+
+@character_adjectives = {?wizard  {#scary inhuman|#scary alien|#scary evil|#scary ominous
+                                   |#scary sinister|#scary infernal|#alone lonesome
+                                   |erudite|wise|ancient|immortal|antediluvian
+                                   |?female seductive|?female beautiful|?female alluring|?male dashing
+                                   |?female enchanting|?male !scary charming|?female beguiling
+                                   |?female captivating|powerful|godlike|!scary holy}
+                         |?warrior {!scary heroic|mighty|?male handsome|?male musclebound
+                                   |#scary fearsome|resolute|2 proud|noble|tattooed
+                                   |solitary #alone|athletic|steadfast|?male humongous|strong
+                                   |?female beautiful|?male handsome|?female alluring|?male musclebound
+                                   |?male !scary charming|!scary brave|!scary daring}
+                         }
+
+@roles = {?wizard  {{?male wizard|?female wizardress}|2 {?male sorcerer|?female sorceress}|2 {?male enchanter
+                    |?female enchantress}|druid|alchemist|{?male priest|?female priestess}|adept|cultist
+                    |vampire|lich|2 necromancer|?male warlock|?female witch|arcanist|sage|seer}
+          |?warrior {2 warrior|!scary paladin|knight|barbarian|conqueror|rogue|2 gladiator
+                    |?male swordsman|?female swordswoman|?female amazon|dervish|blademaster|deulist
+                    |{?male hunter|?female huntress}|?female valkyrie|mercenary|#scary {brigand|bandit}
+                    |!scary hero|#scary raider|myrmidon|cataphract|hoplite|legionnaire}
+          }
+
+// The gender flag and the guards here will ensure that only one alternative remain
+// available, forcing the script to pick that alternative. we'll deliberately use that to
+// pick appropriately gendered pronouns for our character:
+
+@pro_pos_rand    = {5 @pro_pos_adj|4 a|1 their}
+
+@world_adjective = {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten
+                    |primitive|frightening|hellish|alien|{haunted|{ghost|demon}-haunted}
+                    |ruined|abandoned|lonely|chaotic|crowded|mythical|fantastical
+                    }
+
+@wizard_clothing_adjs = {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
+                         |ornate|silken|brightly colored|occult|embroidered}
+@pluralize_clothing   = {!used_pro <s}
+
+@look_aim = {past|towards|2 {|up|down} {at|towards}}
+
+// =======================================================================================
+// generate the prompt body:
+// =======================================================================================
+
+{|2 epic|3 dark} fantasy, masterpiece, ultra high resolution, 8k, detailed background,
+wide shot,
+\n
+
+A {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting}
+
+{|2 a scene in a @world_adjective world {showing|featuring|focused on|centered on}}
+
+a
+
+@1-2&character_adjectives @roles
+
+// Clothing: only reference any clothing half the time, because of the empty alternative
+// at the start:
+{|{clad in|wearing|dressed in} 
+ {?wizard  {|@pro_pos_rand #used_pro}
+           @0-2&wizard_clothing_adjs
+           {3 robe @pluralize_clothing
+           |garb
+           |attire
+           |raiment @pluralize_clothing
+           |vestment @pluralize_clothing
+           |?female ?used_pro dress
+           |?female ?used_pro gown
+           },
+ |?warrior {3 {|battered|blood-smeared|2 leather|spiked|chainmail|rusted|ornate|golden}
+           {3 armor|{|@pro_pos_rand #used_pro} helmet|pauldrons|wargear|gauntlets}
+           |{hides|furs|leather}
+           }
+ }
+}
+
+{2|{in the {|early} morning|2 at mid-day|3 in mid-evening|3 at midnight|3 in the dead of
+   night|3 on a {moonlit|starlit} night} ,
+}
+
+// A weapon or item: don't mention a weapon/item one time in six, because of the empty
+// alternative at the start:
+{|5 {presenting|brandishing|holding
+    |?warrior wielding|?warrior swinging|?wizard with @pro_pos_adj hands held over
+    |?wizard cradling |?wizard waving|?wizard gesturing with}
+
+    @pro_pos_rand
+
+    {?wizard  {jewel-encrusted|enchanted|magical|glowing|ancient|3}
+              {2 staff|2 wand|scroll|tome|map|crystal ball|amulet|artifact
+              |skull|spell book|dagger|2 candle|brazier|bell
+              |2 {| glowing|?scary fiery} orb
+              |potion|cauldron
+              }
+    |?warrior {2 bloody|2 ornate|bejeweled|fiery|}
+              $weapon
+    }
+    // {|,}
+}
+
+{|while}
+
+{|#outdoors}
+{|?outdoors #mounted}
+
+{?mounted {sitting on|mounted on|riding on|astride|leading}
+          @pro_pos_rand
+          {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
+          {3 beast|wolf|2 lizard|reptile|snake|serpent|insect|2 steed|2 destrier
+          |2 horse|2 dragon}
+          ,
+}
+
+{!outdoors {|standing|crouching|lurking
+            |?wizard {standing|seated} {at|behind|before} @pro_pos_rand
+                     {lectern|obelisk|monolith|podium|altar|desk|grimoire|idol
+                     |crystal ball|{|bubbling} alchemical equipment}
+            |3 {lounging on|laying on|sitting on} @pro_pos_rand {throne|sofa|couch|chair}
+           }
+}
+
+in {3|the heart of|the depths of} a
+
+{!outdoors {|shadowy|cyclopean|smoky|hidden|crumbling|abandoned
+            |ruined|foggy|dimly lit|dusty|{candle|torch} <lit| eerily lit}
+           {temple|shrine|palace|crypt|cave|tavern|church|lair|cave|cavern|tomb
+           |{|arcane|wizard's} library|castle|throne room|tunnel|dungeon|tower}
+}
+
+{?outdoors {|ancient|shadowy|smoky|foggy|dimly lit|stormy|wintry|icy|snowy
+            |rainy|starlit|moonlit|secluded|lonely|burnt|lightning-{lit|blasted}}
+           {swamp|forest|desert|wasteland|ruin|alleyway|canal|field|battlefield
+           |slum|courtyard|garden|crater|canyon|thicket|scrubland|boat|ship}
+}
+
+{,|and}
+
+// Expression/looking at:
+{2 looking @look_aim
+|#angry glaring @look_aim
+|staring @look_aim
+|gazing @look_aim
+|beckoning {|@look_aim}
+|inviting // no @look_aim on this one!
+|leering @look_aim
+|#scary glowering @look_aim
+|2 !scary smiling @look_aim
+|grinning @look_aim
+|scowling @look_aim
+}
+
+the viewer
+
+{5|2 ?scary menacingly|pridefully|cunningly|drunkenly|!scary !angry jovially
+|!scary !angry fondly|!angry gleefully|blankly|despondently|madly|?scary angrily|angrily
+|mockingly|?female seductively|?male roguishly|?male rakishly|2 ?scary threateningly
+|!scary victoriously
+}
+
+@minion_adjectives = {
+ ?wizard   {?scary {demonic #demonic|fearsome|slavering|3 undead|eldrich
+                   |loathsome|squamous|chtonian|repulsive|chitinous|ghoulish}
+           |       {2 arcane|cowering|bewitched|hypnotized|2 ensorceled|reptilian
+                   |otherwordldly|mysterious|exotic|obedient|worshipping|2 dancing
+                   |swarming}
+           }
+|?warrior  {fellow|loyal|brave|steadfast|armored|mighty
+           |heavily armed|raucous|warlike|belligerant}
+}
+
+// unless flagged as #alone, warriors always have #many_minions, but wizards may have a
+// single minion sometimes: 
+{?warrior #many_minions|?wizard {|3 #many_minions}}
+@pluralize_minions = { ?many_minions <s }
+
+// Companions: don't always mention the companions, because of the empty alternative at
+// the start:
+{|!alone {,|2 while}
+         {accompanied by|?many_minions surrounded by|?many_minions encircled by
+         |guarded by|leading|commanding|directing|guiding|rallying|alongside}
+         @pro_pos_rand
+         {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang
+                        |?warrior squad|army|?wizard coterie|?wizard circle|?wizard coven
+                        |?wizard variety|?wizard menagerie}
+                        of
+         }
+         {?warrior @0-2&minion_adjectives
+                   {soldiers|warriors|companions|men at arms|compatriots}
+         |?wizard  {@1-3&minion_adjectives|@2minion_adjectives}
+                   {familiar|2 minion|slave|cultist|devil|!demonic demon|spirit
+                   |apprentice|follower}
+                   @pluralize_minions
+         }
+}
+
+{4 
+|and basking in {|2 @pro_pos_adj} {worship|glory}
+|and {reveling in|enjoying} the {chaos|destruction|din|silence|darkness|?alone solitude
+                                |?warrior violence}
+}
+. \n
+
+By @wizards_artists, @wizards_artist_styles.
