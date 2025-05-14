@@ -6909,8 +6909,8 @@ const make__ASTAnonWildcardAlternative = arr => {
     check_flags,
     not_flags,
     [
-      ...ASTSetFlags_for_set_immediately_ASTNotFlags,
       ...ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails,
+      ...ASTSetFlags_for_set_immediately_ASTNotFlags,
       ...set_or_unset_flags,
       ...arr[3]
     ]);
