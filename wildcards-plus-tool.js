@@ -6900,14 +6900,6 @@ const A1111StyleLora       =
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
-                         arr => {
-                           if (log_flags_enabled)
-                             if (arr.length > 1)
-                               console.log(`CONSTRUCTING SETFLAG WITH ` +
-                                           `${inspect_fun(arr)}`);
-                           return new ASTSetFlag(arr);
-                         });
 const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
                          arr => {
                            if (log_flags_enabled)
@@ -6923,6 +6915,14 @@ const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                                console.log(`CONSTRUCTING NOTFLAG WITH ` +
                                            `${inspect_fun(arr[2])}`);
                            return new ASTNotFlag(arr[2], arr[1][0]);
+                         });
+const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
+                         arr => {
+                           if (log_flags_enabled)
+                             if (arr.length > 1)
+                               console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                           `${inspect_fun(arr)}`);
+                           return new ASTSetFlag(arr);
                          });
 const UnsetFlag  = xform(second(seq('#!', plus(ident, '.'), word_break)),
                          arr => {
