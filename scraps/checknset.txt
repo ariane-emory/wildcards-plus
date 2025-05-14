@@ -1,3 +1,5 @@
 #foo
  
 { ?foo.#bar.baz FOO! }
+
+{ ?foo FOO 2! }
