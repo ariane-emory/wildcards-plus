@@ -2,4 +2,4 @@
  
 { ?foo FOO 1! } \n
 
-{ ?foo.#bar.baz FOO 2! } \n
+// { ?foo.#bar.baz FOO 2! } \n

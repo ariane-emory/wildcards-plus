@@ -6625,16 +6625,16 @@ class ASTUnsetFlag extends ASTNode {
 }
 // --------------------------------------------------------------------------------------------------
 class ASTCheckFlags extends ASTNode {
-  constructor(flag_arrs, consequent_set) {
+  constructor(flag_arrs, consequently_set_flag_tail) {
     // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
     //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
     super();
 
-    if (flag_arrs.length != 1 && consequent_set) 
-      throw new Error(`don't supply consequent_set when flag_arrs.length != 1`);
+    if (flag_arrs.length != 1 && consequently_set_flag_tail) 
+      throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
 
     this.flags = flag_arrs;
-    this.consequent_seq = consequent_set;
+    this.consequently_set_flag_tail = consequently_set_flag_tail;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6895,6 +6895,10 @@ const make__ASTAnonWildcardAlternative = arr => {
   const ASTSetFlags_for_set_immediately_ASTNotFlags = not_flags
         .filter(f => f.set_immediately)
         .map(f => new ASTSetFlag(f.flag));
+
+  const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails = check_flags
+        .filter(f => f.consequently_set_flag_tail)
+        .map(f => new ASTSetFlag([ f.flag, ...f.consequently_set_flag_tail ]));
   
   return new ASTAnonWildcardAlternative(
     arr[1][0],
@@ -6902,6 +6906,7 @@ const make__ASTAnonWildcardAlternative = arr => {
     not_flags,
     [
       ...ASTSetFlags_for_set_immediately_ASTNotFlags,
+      ...ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails,
       ...set_or_unset_flags,
       ...arr[3]
     ]);
