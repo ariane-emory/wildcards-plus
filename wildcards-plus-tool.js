@@ -6930,6 +6930,7 @@ const CheckFlag  = choice(
   CheckFlagWithOrAlternatives,
   CheckFlagWithSetConsequent,
 );
+
 const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                          arr => {
                            if (log_flags_enabled)
