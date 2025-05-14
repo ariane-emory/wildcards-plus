@@ -6651,8 +6651,8 @@ class ASTNotFlag extends ASTNode  {
     if (set_immediately && consequently_set_flag_tail)
       throw new Error(`don't supply both set_immediately and consequently_set_flag_tail`);
 
-    this.flag = flag_arr;
-    this.set_immediately = set_immediately;
+    this.flag                       = flag_arr;
+    this.set_immediately            = set_immediately;
     this.consequently_set_flag_tail = consequently_set_flag_tail
 
     // if (this.set_immediately)
