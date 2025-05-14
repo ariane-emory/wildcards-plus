@@ -6902,7 +6902,7 @@ const make__ASTAnonWildcardAlternative = arr => {
 
   const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails = check_flags
         .filter(f => f.consequently_set_flag_tail)
-        .map(f => new ASTSetFlag([ f.flags[0], ...f.consequently_set_flag_tail ]));
+        .map(f => new ASTSetFlag([ ...f.flags[0], ...f.consequently_set_flag_tail ]));
   
   return new ASTAnonWildcardAlternative(
     arr[1][0],
