@@ -6918,7 +6918,7 @@ const CheckFlagWithOrAlternatives = xform(second(seq('?', plus(plus(ident, '.'),
                                             return new ASTCheckFlags(arr);
                                           });
 
-const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), word_break),
+const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', word_break),
                                           arr => {
                                             // throw new Error("bomb");
                                             
@@ -6937,7 +6937,7 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), word_break)
 
 const CheckFlag  = choice(
   CheckFlagWithSetConsequent,
-  CheckFlagWithOrAlternatives,
+  // CheckFlagWithOrAlternatives,
 );
 
 
