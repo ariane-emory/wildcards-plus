@@ -2339,10 +2339,10 @@ function smart_join(arr) {
   if (log_join_enabled)
     console.log(`JOINING ${inspect_fun(arr)}`);
   
-  const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
+  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-  const linkingp     = (ch)  => ch === "_" || ch === "-";
-  const whitep       = (ch)  => ch === ' ' || ch === '\n';
+  const linkingp     = (ch)  => "_-".includes(ch);
+  const whitep       = (ch)  => " \n".includes(ch);
   
   let left_word = arr[0]; // ?.toString() ?? "";
   let str       = left_word;
@@ -2392,11 +2392,11 @@ function smart_join(arr) {
       shift_left(1);
     
     // if (log_join_enabled)
-      console.log(`str = '${str}', ` +
-                  `left_word = '${left_word}', ` +
-                  `right_word = '${right_word}', ` +
-                  `prev_char = '${prev_char}', ` +
-                  `next_char = '${next_char}'`);
+    console.log(`str = '${str}', ` +
+                `left_word = '${left_word}', ` +
+                `right_word = '${right_word}', ` +
+                `prev_char = '${prev_char}', ` +
+                `next_char = '${next_char}'`);
 
     // handle "a" → "an" if necessary:
     const articleCorrection = (originalArticle, nextWord) => {
@@ -2436,7 +2436,7 @@ function smart_join(arr) {
         (str && right_word && 
          !whitep(prev_char) &&
          !whitep(next_char) &&
-         !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
+         !((linkingp(prev_char) || '(['.includes(prev_char)) /* && !prev_char_is_escaped */) &&
          !(linkingp(next_char) || ')]'.includes(next_char)) &&
          prev_char !== '<' && 
          ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped))) &&
@@ -2447,13 +2447,13 @@ function smart_join(arr) {
       str += ' ';
     }
 
-    if (right_word !== '<') {
-      if (next_char === '<' && right_word !== '<') {
-        // console.log(`CHOMP RIGHT!`);
+    if (right_word !== '<' && !str.endsWith(' <')) {
+      if (next_char === '<') {
+        console.log(`CHOMP RIGHT!`);
         right_word = right_word.substring(1);
       }
       if (prev_char === '<' && !prev_char_is_escaped) {
-        // console.log(`CHOMP LEFT!`);
+        console.log(`CHOMP LEFT!`);
         str = str.slice(0, -1);
       }
     }
