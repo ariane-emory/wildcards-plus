@@ -2442,12 +2442,10 @@ function smart_join(arr) {
       chomp_left_side();
       chomp_right_word();
     }
-    else if (prev_char === '<') {
+    else if (prev_char === '<')
       chomp_left_side();
-    }
-    else if (right_word.startsWith('<')) {
+    else if (right_word.startsWith('<'))
       chomp_right_word();
-    }
     else if ((prev_char_is_escaped && !' n'.includes(prev_char)) || 
              (!(prev_char_is_escaped && ' n'.includes(prev_char))  &&
               !punctuationp(next_char)  && 
@@ -2458,19 +2456,9 @@ function smart_join(arr) {
               // prev_char !== '<'         && 
               // ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped)))
              )
-            ) {
+            ) 
       add_a_space();
-    }
-    // if (right_word !== '<' && !str.endsWith(' <')) {
-    //   if (next_char === '<') {
-    //     console.log(`CHOMP RIGHT WORD!`);
-    //     right_word = right_word.substring(1);
-    //   }
-    //   if (prev_char === '<' && !prev_char_is_escaped) {
-    //     console.log(`CHOMP STR!`);
-    //     str = str.slice(0, -1);
-    //   }
-    // }
+    
 
     consume_right_word();
   }
