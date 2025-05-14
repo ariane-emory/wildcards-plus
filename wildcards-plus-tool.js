@@ -2427,7 +2427,14 @@ function smart_join(arr) {
     //   }
     // }
     
-    if (!(!str || !right_word) && 
+    const dangling_quote_on_left = str.match(/^"$|.*?\s+"$/);
+
+    if (dangling_quote_on_left)
+      console.log(`DANGLING QUOTE: ${inspect_fun(str)}`);
+    
+    if (! dangling_quote_on_left &&
+        str && right_word &&
+        right_word !== '"' && 
         !whitep(prev_char) &&
         !whitep(next_char) &&
         !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
