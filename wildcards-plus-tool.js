@@ -2344,6 +2344,15 @@ function smart_join(arr) {
   const linkingp     = (ch)  => "_-".includes(ch);
   const whitep       = (ch)  => " \n".includes(ch);
   
+  // handle "a" → "an" if necessary:
+  const articleCorrection = (originalArticle, nextWord) => {
+    const expected = choose_indefinite_article(nextWord);
+    if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
+      return originalArticle === 'A' ? 'An' : 'an';
+    }
+    return originalArticle;
+  };
+
   let left_word = arr[0]; // ?.toString() ?? "";
   let str       = left_word;
 
@@ -2403,22 +2412,16 @@ function smart_join(arr) {
                 `left_word = '${left_word}', ` +
                 `right_word = '${right_word}', ` +
                 `prev_char = '${prev_char}', ` +
-                `next_char = '${next_char}'`);
-
-    // handle "a" → "an" if necessary:
-    const articleCorrection = (originalArticle, nextWord) => {
-      const expected = choose_indefinite_article(nextWord);
-      if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-        return originalArticle === 'A' ? 'An' : 'an';
-      }
-      return originalArticle;
-    };
+                `next_char = '${next_char}'` + 
+                `prev_char_is_escaped = '${prev_char_is_escaped}', `);
 
     // Normalize article if needed:
     const article_match = str.match(/(?:^|\s)([Aa])$/);
+
     if (article_match) {
       const originalArticle = article_match[1];
       const updatedArticle = articleCorrection(originalArticle, right_word);
+
       if (updatedArticle !== originalArticle) {
         str = str.slice(0, -originalArticle.length) + updatedArticle;
       }
