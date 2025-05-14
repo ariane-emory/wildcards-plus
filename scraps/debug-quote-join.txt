@@ -1,5 +1,5 @@
-// bar "\< quux \<" corge \n
-// bar "< quux <" corge \n
+bar "\< quux \<" corge \n
+bar "< quux <" corge \n
 
 one   \< foo< bar <baz \n
 two   \< foo< bar< baz \n 
