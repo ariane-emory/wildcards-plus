@@ -6630,9 +6630,8 @@ class ASTCheckFlags extends ASTNode {
     //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
     super();
 
-    if (consequently_set_flag_tail) 
-      if (flag_arrs.length != 1 )
-        throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
+    if (consequently_set_flag_tail &&  flag_arrs.length != 1 )
+      throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
 
 
     this.flags = flag_arrs;
