@@ -2362,7 +2362,11 @@ function smart_join(arr) {
     let prev_char_is_escaped = null;
     let next_char            = null;
 
-    const chomp_str =        () => str = str.slice(0, -1);
+    const chomp_left_side        = () => {
+      str = str.slice(0, -1);
+      left_word = left_word.slice(0, -1);
+    };
+    
     const chomp_right_word = () => right_word = right_word.slice(1);
 
     const add_a_space = () => {
@@ -2434,12 +2438,12 @@ function smart_join(arr) {
         str = str.slice(0, -originalArticle.length) + updatedArticle;
     }
 
-    if (left_word.endsWith('<') && right_word.startsWith('<')) {
-      chomp_str();
+    if (prev_char === '<' && right_word.startsWith('<')) {
+      chomp_left_side();
       chomp_right_word();
     }
-    else if (left_word.endsWith('<')) {
-      chomp_str();
+    else if (prev_char === '<') {
+      chomp_left_side();
     }
     else if (right_word.startsWith('<')) {
       chomp_right_word();
