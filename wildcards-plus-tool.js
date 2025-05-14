@@ -2427,17 +2427,17 @@ function smart_join(arr) {
     }
     
     if ((prev_char_is_escaped && !' n'.includes(prev_char)) || 
-        (str && right_word && 
-         !linkingp(prev_char) &&
+        (str && right_word  &&  
+         !punctuationp(next_char))&& 
+        !linkingp(prev_char) &&
          !linkingp(next_char) &&
          !'(['.includes(prev_char) &&
          !')]'.includes(next_char) &&
          prev_char !== '<' && 
          ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped))) &&
          !str.endsWith('\\n') &&
-         !str.endsWith('\\ ')) &&  
-        !punctuationp(next_char))) {
-      console.log(`SPACE!`);
+         !str.endsWith('\\ ')) {
+          console.log(`SPACE!`);
       prev_char = ' ';
       str += ' ';
     }
