@@ -2427,21 +2427,6 @@ function smart_join(arr) {
       }
     }
     
-    // if (left_word === "a" || left_word.endsWith(" a") ||
-    //     left_word === "A" || left_word.endsWith(" A")) {
-    //   const nextWord = right_word;
-    //   const updatedArticle = articleCorrection(left_word.trim(), nextWord);
-    //   if (updatedArticle !== left_word.trim()) {
-    //     if (left_word === "a" || left_word === "A") {
-    //       str = str.slice(0, -1) + updatedArticle;
-    //       left_word = updatedArticle;
-    //     } else {
-    //       str = str.slice(0, -2) + " " + updatedArticle;
-    //       left_word = updatedArticle;
-    //     }
-    //   }
-    // }
-    
     if ((prev_char_is_escaped && !' n'.includes(prev_char)) || 
         (str && right_word && 
          // !whitep(next_char) &&
