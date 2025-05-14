@@ -2437,23 +2437,25 @@ function smart_join(arr) {
          !linkingp(prev_char)      &&
          !linkingp(next_char)      &&
          !'(['.includes(prev_char) &&
-         !')]'.includes(next_char) &&
-         prev_char !== '<'         && 
-         ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped)))))
+         !')]'.includes(next_char) // &&
+         // prev_char !== '<'         && 
+         // ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped)))
+        )
+       )
       add_a_space();
 
-      if (right_word !== '<' && !str.endsWith(' <')) {
-        if (next_char === '<') {
-          console.log(`CHOMP RIGHT WORD!`);
-          right_word = right_word.substring(1);
-        }
-        if (prev_char === '<' && !prev_char_is_escaped) {
-          console.log(`CHOMP STR!`);
-          str = str.slice(0, -1);
-        }
-      }
+    // if (right_word !== '<' && !str.endsWith(' <')) {
+    //   if (next_char === '<') {
+    //     console.log(`CHOMP RIGHT WORD!`);
+    //     right_word = right_word.substring(1);
+    //   }
+    //   if (prev_char === '<' && !prev_char_is_escaped) {
+    //     console.log(`CHOMP STR!`);
+    //     str = str.slice(0, -1);
+    //   }
+    // }
 
-      consume_right_word();
+    consume_right_word();
   }
 
   if (log_join_enabled)
