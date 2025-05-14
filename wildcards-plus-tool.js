@@ -2466,7 +2466,7 @@ function smart_join(arr) {
     if (!chomped &&
         (prev_char_is_escaped && !' n'.includes(prev_char) || 
          (!(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-          !(next_char_is_escaped && ",.!?".includes(right_word[1])) && 
+          // !(next_char_is_escaped && ",.!?".includes(right_word[1])) && 
           !right_word.startsWith('\\n') &&
           !right_word.startsWith('\\ ') && 
           !punctuationp (next_char)     && 
