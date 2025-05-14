@@ -6921,14 +6921,20 @@ const CheckFlagWithSetConsequent  = xform(second(seq('?', plus(ident, '.'), word
                                           arr => {
                                             // if (log_flags_enabled)
                                             // if (arr.some(e => e.length > 1))
-                                            console.log(`CONSTRUCTING CHECKFLAG (2) WITH ` +
+                                            console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
                                                         `${inspect_fun(arr)}`);
-                                            return new ASTCheckFlags([arr]);
+
+                                            const args = [arr];
+
+                                            console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
+                                                        `${inspect_fun(args)}`);
+
+                                            return new ASTCheckFlags(...args);
                                           });
 
 const CheckFlag  = choice(
-  CheckFlagWithOrAlternatives,
   CheckFlagWithSetConsequent,
+  CheckFlagWithOrAlternatives,
 );
 
 const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
