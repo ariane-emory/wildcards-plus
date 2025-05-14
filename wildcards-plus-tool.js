@@ -2362,6 +2362,9 @@ function smart_join(arr) {
     let prev_char_is_escaped = null;
     let next_char            = null;
 
+    const chomp_str =        () => str = str.slice(0, -1);
+    const chomp_right_word = () => right_word = right_word.slice(1);
+
     const add_a_space = () => {
       console.log(`SPACE!`);
       prev_char = ' ';
@@ -2397,7 +2400,7 @@ function smart_join(arr) {
     }
 
     if (prev_char === ',' && right_word === ',') {
-       console.log(`JUMP COMMA!`);
+      console.log(`JUMP COMMA!`);
       continue;
     }
 
@@ -2430,20 +2433,30 @@ function smart_join(arr) {
       if (updatedArticle !== originalArticle) 
         str = str.slice(0, -originalArticle.length) + updatedArticle;
     }
-    
-    if ((prev_char_is_escaped && !' n'.includes(prev_char)) || 
-        (!(prev_char_is_escaped && ' n'.includes(prev_char))  &&
-         !punctuationp(next_char)  && 
-         !linkingp(prev_char)      &&
-         !linkingp(next_char)      &&
-         !'(['.includes(prev_char) &&
-         !')]'.includes(next_char) // &&
-         // prev_char !== '<'         && 
-         // ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped)))
-        )
-       )
-      add_a_space();
 
+    if (left_word.endsWith('<') && right_word.startsWith('<')) {
+      chomp_str();
+      chomp_right_word();
+    }
+    else if (left_word.endsWith('<')) {
+      chomp_str();
+    }
+    else if (right_word.startsWith('<')) {
+      chomp_right_word();
+    }
+    else if ((prev_char_is_escaped && !' n'.includes(prev_char)) || 
+             (!(prev_char_is_escaped && ' n'.includes(prev_char))  &&
+              !punctuationp(next_char)  && 
+              !linkingp(prev_char)      &&
+              !linkingp(next_char)      &&
+              !'(['.includes(prev_char) &&
+              !')]'.includes(next_char) // &&
+              // prev_char !== '<'         && 
+              // ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped)))
+             )
+            ) {
+      add_a_space();
+    }
     // if (right_word !== '<' && !str.endsWith(' <')) {
     //   if (next_char === '<') {
     //     console.log(`CHOMP RIGHT WORD!`);
