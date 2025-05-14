@@ -6630,15 +6630,15 @@ class ASTCheckFlags extends ASTNode {
     //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
     super();
 
-    if (consequently_set_flag_tail) {
+    if (consequently_set_flag_tail) 
       if (flag_arrs.length != 1 )
         throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
-      else
-        console.log(`constructed with tail ${inspect_fun(consequently_set_flag_tail)}`)
-    }
+
 
     this.flags = flag_arrs;
     this.consequently_set_flag_tail = consequently_set_flag_tail;
+
+    console.log(`constructed ${inspect_fun(this)}`)
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6943,7 +6943,7 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(
                                             console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
                                                         `${inspect_fun(arr)}`);
 
-                                            const args = [arr[1], arr[3]];
+                                            const args = [[ arr[1] ], arr[3]];
 
                                             console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
                                                         `${inspect_fun(args)}`);
