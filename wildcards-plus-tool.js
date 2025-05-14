@@ -2353,6 +2353,12 @@ function smart_join(arr) {
     let prev_char_is_escaped = null;
     let next_char            = null;
 
+
+    const consume_right_word = () => {
+      left_word = right_word;
+      str += left_word;
+    }
+
     const update_pos_vars = () => {
       right_word           = arr[ix]; // ?.toString() ?? "";
       prev_char            = left_word[left_word.length - 1] ?? "";
@@ -2360,14 +2366,15 @@ function smart_join(arr) {
       next_char            = right_word[0] ?? '';
     };
     
-    const shift_left = (n) => {
+    const move_chars_left = (n) => {
       const shifted_str = right_word.substring(0, n);
+      arr[ix] = right_word.substring(n);
+
       str = str.substring(0, str.length -1) + shifted_str;
       left_word = left_word.substring(0, left_word.length - 1) + shifted_str;
-      arr[ix] = right_word.substring(n);
       update_pos_vars();
     };
-
+      
     update_pos_vars();
     
     if (right_word === '') {
@@ -2380,16 +2387,16 @@ function smart_join(arr) {
       continue;
     }
 
-    if (prev_char === '<' && right_word === '<') {
-      // console.log(`JUMP <!`);
-      continue;
-    }
+    // if (prev_char === '<' && right_word === '<') {
+    //   // console.log(`JUMP <!`);
+    //   continue;
+    // }
 
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
-      shift_left(3);
+      move_chars_left(3);
     
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
-      shift_left(1);
+      move_chars_left(1);
     
     // if (log_join_enabled)
     console.log(`str = '${str}', ` +
@@ -2449,17 +2456,16 @@ function smart_join(arr) {
 
     if (right_word !== '<' && !str.endsWith(' <')) {
       if (next_char === '<') {
-        console.log(`CHOMP RIGHT!`);
+        console.log(`CHOMP RIGHT WORD!`);
         right_word = right_word.substring(1);
       }
       if (prev_char === '<' && !prev_char_is_escaped) {
-        console.log(`CHOMP LEFT!`);
+        console.log(`CHOMP STR!`);
         str = str.slice(0, -1);
       }
     }
 
-    left_word = right_word;
-    str += left_word;
+    consume_right_word();
   }
 
   if (log_join_enabled)
