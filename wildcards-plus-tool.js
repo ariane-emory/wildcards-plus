@@ -6876,7 +6876,7 @@ const make__ASTAnonWildcardAlternative = arr => {
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
-  const set_immediately_not_flags = not_flags
+  const ASTSetFlags_for_set_immediately_ASTNotFlags = not_flags
         .filter(f => f.set_immediately)
         .map(f => new ASTSetFlag(f.flag));
   
@@ -6885,7 +6885,7 @@ const make__ASTAnonWildcardAlternative = arr => {
     check_flags,
     not_flags,
     [
-      ...set_immediately_not_flags,
+      ...ASTSetFlags_for_set_immediately_ASTNotFlags,
       ...set_or_unset_flags,
       ...arr[3]
     ]);
