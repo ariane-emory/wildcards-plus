@@ -2161,13 +2161,16 @@ function smart_join(arr) {
     let next_char            = null;
 
     const add_a_space = () => {
-      console.log(`SPACE!`);
+      if (log_join_enabled)
+        console.log(`SPACE!`);
+
       prev_char  = ' ';
       str       += ' ';
     }
 
     const chomp_left_side = () => {
-      console.log(`CHOMP LEFT!`);
+      if (log_join_enabled)
+        console.log(`CHOMP LEFT!`);
       
       str      = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
@@ -2176,7 +2179,8 @@ function smart_join(arr) {
     };
     
     const chomp_right_side = () => {
-      console.log(`CHOMP RIGHT!`);
+      if (log_join_enabled)
+        console.log(`CHOMP RIGHT!`);
 
       arr[ix] = arr[ix].slice(1);
 
@@ -2184,13 +2188,16 @@ function smart_join(arr) {
     }
 
     const consume_right_word = () => {
-      console.log(`CONSUME ${inspect_fun(right_word)}!`);
+      if (log_join_enabled)
+        console.log(`CONSUME ${inspect_fun(right_word)}!`);
+
       left_word  = right_word;
       str       += left_word;
     }
 
     const move_chars_left = (n) => {
-      console.log(`SHIFT ${n} CHARACTERS!`);
+      if (log_join_enabled)
+        console.log(`SHIFT ${n} CHARACTERS!`);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
       const shifted_str = right_word.substring(0, n);
@@ -2209,20 +2216,23 @@ function smart_join(arr) {
       next_char            = right_word[0] ?? '';
       next_char_is_escaped = right_word[0] === '\\';
 
-      console.log(`ix = ${inspect_fun(ix)}, ` +
-                  `str = ${inspect_fun(str)}, ` +
-                  `left_word = ${inspect_fun(left_word)}, ` +         
-                  `right_word = ${inspect_fun(right_word)}, ` +       
-                  `prev_char = ${inspect_fun(prev_char)}, ` +         
-                  `next_char = ${inspect_fun(next_char)}, ` + 
-                  `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-                  `next_char_is_escaped = ${next_char_is_escaped}`);
+      if (log_join_enabled)
+        console.log(`ix = ${inspect_fun(ix)}, ` +
+                    `str = ${inspect_fun(str)}, ` +
+                    `left_word = ${inspect_fun(left_word)}, ` +         
+                    `right_word = ${inspect_fun(right_word)}, ` +       
+                    `prev_char = ${inspect_fun(prev_char)}, ` +         
+                    `next_char = ${inspect_fun(next_char)}, ` + 
+                    `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+                    `next_char_is_escaped = ${next_char_is_escaped}`);
     };
     
     update_pos_vars();
     
     if (right_word === '') {
-      console.log(`JUMP EMPTY!`);
+      if (log_join_enabled)
+        console.log(`JUMP EMPTY!`);
+
       continue;
     }
 
@@ -2256,7 +2266,9 @@ function smart_join(arr) {
     }
 
     if (right_word === '') {
-      console.log(`JUMP EMPTY (LATE)!`);
+      if (log_join_enabled)
+        console.log(`JUMP EMPTY (LATE)!`);
+
       continue;
     }
 
