@@ -6642,24 +6642,6 @@ class ASTCheckFlags extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTCheckFlags extends ASTNode {
-  constructor(flag_arrs, consequently_set_flag_tail) {
-    // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
-    //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
-    super();
-
-    if (consequently_set_flag_tail) {
-      if (flag_arrs.length != 1 )
-        throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
-      else
-        console.log(`constructed with tail ${inspect_fun(consequently_set_flag_tail)}`)
-    }
-
-    this.flags = flag_arrs;
-    this.consequently_set_flag_tail = consequently_set_flag_tail;
-  }
-}
-// -------------------------------------------------------------------------------------------------
 // NamedWildcard references:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardReference extends ASTNode {
@@ -6934,7 +6916,7 @@ const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), 
                                             console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
                                                         `${inspect_fun(args)}`);
 
-        return new ASTCheckFlags(...args);
+                                            return new ASTCheckFlags(...args);
                                           });
 
 const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(ident, '.'), word_break ),
