@@ -319,7 +319,7 @@ let log_enabled               = true;
 let log_flags_enabled         = false;
 let log_config_enabled        = true;
 let log_post_enabled          = true;
-let log_join_enabled          = false;
+let log_join_enabled          = true;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
 let disable_prelude           = false;
@@ -2363,7 +2363,8 @@ function smart_join(arr) {
     let next_char            = null;
 
     const chomp_left_side = () => {
-      console.log(`CHOMP LEFT!`);
+      if (log_join_enabled)
+        console.log(`CHOMP LEFT!`);
       
       str      = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
@@ -2372,7 +2373,8 @@ function smart_join(arr) {
     };
     
     const chomp_right_side = () => {
-      console.log(`CHOMP RIGHT!`);
+      if (log_join_enabled)
+        console.log(`CHOMP RIGHT!`);
 
       arr[ix] = arr[ix].slice(1);
 
@@ -2380,13 +2382,16 @@ function smart_join(arr) {
     }
 
     const add_a_space = () => {
-      console.log(`SPACE!`);
+      if (log_join_enabled)
+        console.log(`SPACE!`);
+
       prev_char  = ' ';
       str       += ' ';
     }
 
     const consume_right_word = () => {
-      console.log(`CONSUME ${inspect_fun(right_word)}!`);
+      if (log_join_enabled)
+        console.log(`CONSUME ${inspect_fun(right_word)}!`);
       left_word  = right_word;
       str       += left_word;
     }
@@ -2397,8 +2402,9 @@ function smart_join(arr) {
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
 
-      console.log(`ix = ${inspect_fun(ix)}, ` +
-                  `str = ${inspect_fun(str)}, ` +
+      if (log_join_enabled)
+        console.log(`ix = ${inspect_fun(ix)}, ` +
+                    `str = ${inspect_fun(str)}, ` +
                   `left_word = ${inspect_fun(left_word)}, ` +         
                   `right_word = ${inspect_fun(right_word)}, ` +       
                   `prev_char = ${inspect_fun(prev_char)}, ` +         
@@ -2407,7 +2413,8 @@ function smart_join(arr) {
     };
     
     const move_chars_left = (n) => {
-      console.log(`SHIFT ${n} CHARACTERS!`);
+      if (log_join_enabled)
+        console.log(`SHIFT ${n} CHARACTERS!`);
       
       const shifted_str = right_word.substring(0, n);
 
@@ -2421,12 +2428,16 @@ function smart_join(arr) {
     update_pos_vars();
     
     if (right_word === '') {
-      console.log(`JUMP EMPTY!`);
+      if (log_join_enabled)
+        console.log(`JUMP EMPTY!`);
+
       continue;
     }
 
     if (prev_char === ',' && right_word === ',') {
-      console.log(`JUMP COMMA!`);
+      if (log_join_enabled)
+        console.log(`JUMP COMMA!`);
+
       continue;
     }
 
@@ -2456,18 +2467,20 @@ function smart_join(arr) {
 
     let chomped = false;
 
-    while (!prev_char_is_escaped && prev_char === '<') {
+    while (!left_word.match(/^<+$/) && prev_char === '<' && !prev_char_is_escaped) {
       chomp_left_side();
       chomped = true;
     }
     
-    while (right_word.startsWith('<')) {
+    while (right_word.match(/^<+$/) && right_word.startsWith('<')) {
       chomp_right_side();
       chomped = true;
     }
 
     if (right_word === '') {
-      console.log(`JUMP EMPTY (LATE)!`);
+      if (log_join_enabled)
+        console.log(`JUMP EMPTY (LATE)!`);
+      
       continue;
     }
 

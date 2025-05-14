@@ -15,3 +15,5 @@ one   < foo< bar <baz \n
 two   < foo< bar< baz \n 
 three < foo< <bar< <baz \n
 four  < foo \n
+
+four  \<\< foo \n
