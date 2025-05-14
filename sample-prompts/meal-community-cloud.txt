@@ -66,24 +66,24 @@
                        |omelette #used_eggs
                        }
                        
-@meats              = {4 bacon
-                       |2 {|fried|grilled|roasted} chicken
-                       |2 Spam
-                       |{2|fried|grilled} fish
-                       |{|fried|roasted} turkey
-                       |brisket
-                       |corned beef
-                       |crab
-                       |ham
-                       |lobster
-                       |{|grilled|roasted} lamb
-                       |mititei              
-                       |oysters
-                       |pastrami
-                       |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
-                       |2 steak
-                       |3 {3|2 grilled|ground|roast} beef
-                       |{|garlic|fried|coconut|tiger|popcorn} shrimp}
+@meats              = {12 bacon
+                      |2 {|fried|grilled|roasted} chicken
+                      |2 Spam
+                      |{2|fried|grilled} fish
+                      |{|fried|roasted} turkey
+                      |brisket
+                      |corned beef
+                      |crab
+                      |ham
+                      |lobster
+                      |{|grilled|roasted} lamb
+                      |mititei              
+                      |oysters
+                      |pastrami
+                      |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
+                      |2 steak
+                      |3 {3|2 grilled|ground|roast} beef
+                      |{|garlic|fried|coconut|tiger|popcorn} shrimp}
 
 @toppings           = {4 !#cheese
                          {|melted}
