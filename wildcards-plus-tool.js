@@ -6903,14 +6903,37 @@ const make__ASTAnonWildcardAlternative = arr => {
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
 
-const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
-                         arr => {
-                           if (log_flags_enabled)
-                             if (arr.some(e => e.length > 1))
-                               console.log(`CONSTRUCTING CHECKFLAG WITH ` +
-                                           `${inspect_fun(arr)}`);
-                           return new ASTCheckFlags(arr);
-                         });
+const CheckFlagWithOrAlternatives  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
+                                           arr => {
+                                             if (log_flags_enabled)
+                                               if (arr.some(e => e.length > 1))
+                                                 console.log(`CONSTRUCTING CHECKFLAG WITH ` +
+                                                             `${inspect_fun(arr)}`);
+                                             return new ASTCheckFlags(arr);
+                                           });
+
+const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(ident, '.'), word_break ),
+                                          arr => {
+                                            // throw new Error("bomb");
+                                            
+                                            // if (log_flags_enabled)
+                                            // if (arr.some(e => e.length > 1))
+                                            console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
+                                                        `${inspect_fun(arr)}`);
+
+                                            const args = [arr[1], arr[3]];
+
+                                            console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
+                                                        `${inspect_fun(args)}`);
+
+                                            return new ASTCheckFlags(...args);
+                                          });
+
+const CheckFlag  = choice(
+  CheckFlagWithSetConsequent,
+  CheckFlagWithOrAlternatives,
+);
+
 
 const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                          arr => {
