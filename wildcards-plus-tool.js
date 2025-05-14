@@ -2367,7 +2367,10 @@ function smart_join(arr) {
       left_word = left_word.slice(0, -1);
     };
     
-    const chomp_right_word = () => right_word = right_word.slice(1);
+    const chomp_right_side = () => {
+      arr[ix] = arr[ix].slice(1);
+      right_word = right_word.slice(1);
+    }
 
     const add_a_space = () => {
       console.log(`SPACE!`);
@@ -2438,14 +2441,14 @@ function smart_join(arr) {
         str = str.slice(0, -originalArticle.length) + updatedArticle;
     }
 
-    if (prev_char === '<' && !prev_char_is_escaped && right_word.startsWith('<')) {
+    if (!prev_char_is_escaped && prev_char === '<' && right_word.startsWith('<')) {
       chomp_left_side();
-      chomp_right_word();
+      chomp_right_side();
     }
-    else if (prev_char === '<' && !prev_char_is_escaped)
+    else if (!prev_char_is_escaped && prev_char === '<')
       chomp_left_side();
     else if (right_word.startsWith('<'))
-      chomp_right_word();
+      chomp_right_side();
     else if ((prev_char_is_escaped && !' n'.includes(prev_char)) || 
              (!(prev_char_is_escaped && ' n'.includes(prev_char))  &&
               !punctuationp(next_char)  && 
