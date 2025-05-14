@@ -6621,12 +6621,16 @@ class ASTUnsetFlag extends ASTNode {
 }
 // --------------------------------------------------------------------------------------------------
 class ASTCheckFlags extends ASTNode {
-  constructor(flag_arrs) {
+  constructor(flag_arrs, consequently_set_flag_tail) {
     // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
     //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
-
     super();
+
+    if (flag_arrs.length != 1 && consequently_set_flag_tail) 
+      throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
+
     this.flags = flag_arrs;
+    this.consequently_set_flag_tail = consequently_set_flag_tail;
   }
 }
 // -------------------------------------------------------------------------------------------------
