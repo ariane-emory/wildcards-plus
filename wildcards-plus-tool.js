@@ -2380,13 +2380,18 @@ function smart_join(arr) {
       continue;
     }
 
+    if (prev_char === '<' && right_word === '<') {
+      // console.log(`JUMP COMMA!`);
+      continue;
+    }
+
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
       shift_left(3);
     
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       shift_left(1);
     
-    if (log_join_enabled)
+    // if (log_join_enabled)
       console.log(`str = '${str}', ` +
                   `left_word = '${left_word}', ` +
                   `right_word = '${right_word}', ` +
