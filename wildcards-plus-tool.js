@@ -6923,7 +6923,7 @@ const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), 
                                           arr => {
                                             // if (log_flags_enabled)
                                             //  if (arr.some(e => e.length > 1))
-                                            console.log(`\nCONSTRUCTING CHECKFLAG (1) WITH ` +
+                                            console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
                                                         `${inspect_fun(arr)}`);
                                             const args = arr[1];
 
