@@ -6927,7 +6927,7 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(
                                             console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
                                                         `${inspect_fun(arr)}`);
 
-                                            const args = [arr[1]];
+                                            const args = [arr[1], arr[3]];
 
                                             console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
                                                         `${inspect_fun(args)}`);
