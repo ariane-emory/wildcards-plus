@@ -2436,7 +2436,7 @@ function smart_join(arr) {
          !str.endsWith('\\n') &&
          !str.endsWith('\\ ')&&
          prev_char !== '<' && 
-         ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped))) )) {
+         ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped))))) {
       console.log(`SPACE!`);
       prev_char = ' ';
       str += ' ';
