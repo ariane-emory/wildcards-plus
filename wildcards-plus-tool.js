@@ -2338,7 +2338,7 @@ function smart_join(arr) {
   
   if (log_join_enabled)
     console.log(`JOINING ${inspect_fun(arr)}`);
-  
+
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => "_-".includes(ch);
@@ -2352,16 +2352,20 @@ function smart_join(arr) {
     }
     return originalArticle;
   };
-
+  
   let left_word = arr[0]; // ?.toString() ?? "";
   let str       = left_word;
-
+  
   for (let ix = 1; ix < arr.length; ix++)  {
     let right_word           = null;
     let prev_char            = null;
     let prev_char_is_escaped = null;
     let next_char            = null;
 
+    const add_a_space = () => {
+      prev_char = ' ';
+      str += ' ';
+    }
 
     const consume_right_word = () => {
       left_word = right_word;
@@ -2436,8 +2440,7 @@ function smart_join(arr) {
          prev_char !== '<'         && 
          ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped))))) {
       console.log(`SPACE!`);
-      prev_char = ' ';
-      str += ' ';
+      add_a_space();
     }
 
     if (right_word !== '<' && !str.endsWith(' <')) {
