@@ -2438,11 +2438,11 @@ function smart_join(arr) {
         str = str.slice(0, -originalArticle.length) + updatedArticle;
     }
 
-    if (prev_char === '<' && right_word.startsWith('<')) {
+    if (prev_char === '<' && !prev_char_is_escaped && right_word.startsWith('<')) {
       chomp_left_side();
       chomp_right_word();
     }
-    else if (prev_char === '<')
+    else if (prev_char === '<' && !prev_char_is_escaped)
       chomp_left_side();
     else if (right_word.startsWith('<'))
       chomp_right_word();
