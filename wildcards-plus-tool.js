@@ -6194,8 +6194,7 @@ class Context {
     // -----------------------------------------------------------------------------------------------
     function allow_fun(option) {
       let allowed = true;
-      
-      
+
       for (const check_flag of option.check_flags) {
         console.log(`allow_fun: CHECKING IF ${check_flag.constructor.name} ${JSON.stringify(check_flag, null, 2)} IS SET IN ${inspect_fun(context.flags)}`);
         let found = false;
