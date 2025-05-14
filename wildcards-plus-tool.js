@@ -6916,6 +6916,7 @@ const CheckFlagWithOrAlternatives = xform(second(seq('?', plus(plus(ident, '.'),
                                                           `${inspect_fun(arr)}`);
                                             return new ASTCheckFlags(arr);
                                           });
+
 const CheckFlagWithSetConsequent  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
                                           arr => {
                                             // if (log_flags_enabled)
