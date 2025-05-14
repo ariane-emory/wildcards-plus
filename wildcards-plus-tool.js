@@ -2409,6 +2409,13 @@ function smart_join(arr) {
                   `next_char_is_escaped = '${next_char_is_escaped}'`);
     };
     
+    update_pos_vars();
+    
+    if (right_word === '') {
+      console.log(`JUMP EMPTY!`);
+      continue;
+    }
+
     const move_chars_left = (n) => {
       console.log(`SHIFT ${n} CHARACTERS!`);
       
@@ -2421,13 +2428,6 @@ function smart_join(arr) {
       update_pos_vars();
     };
     
-    update_pos_vars();
-    
-    if (right_word === '') {
-      console.log(`JUMP EMPTY!`);
-      continue;
-    }
-
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
       move_chars_left(3);
     
