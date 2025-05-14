@@ -663,10 +663,11 @@ class Choice extends Rule  {
 }
 // -------------------------------------------------------------------------------------------------
 function choice(...options) { // convenience constructor
-  if (unnecessary_choice_is_error && options.length == 1) {
+  if (options.length == 1) {
     console.log("WARNING: unnecessary use of choice!");
 
-    throw new Error("unnecessary use of choice");
+    if (unnecessary_choice_is_error)
+      throw new Error("unnecessary use of choice");
     
     return make_rule_func(options[0]);
   }
