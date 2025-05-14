@@ -7303,6 +7303,8 @@ async function main() {
     config           = munge_config(context.config);
     const add_loras  = context.add_loras;
     const have_loras = add_loras && add_loras.length > 0;
+
+    console.log(`FLAGS AFTER: ${inspect_fun(contex.flags)}`);
     
     if (have_loras) {
       console.log('-----------------------------------------------------------------------------------------');
