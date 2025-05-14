@@ -2148,9 +2148,13 @@ class WeightedPicker {
     if (total_weight === 0) {
       // return '';
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix,
-this.__effective_weight(ix, priority),
-this.options[ix]]), null, 2)}, ` +
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
+  [
+    ix,
+    this.__effective_weight(ix, priority),
+    this.options[ix]
+  ]
+), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
       if (noisy) {
@@ -6619,12 +6623,16 @@ class ASTUnsetFlag extends ASTNode {
 }
 // --------------------------------------------------------------------------------------------------
 class ASTCheckFlags extends ASTNode {
-  constructor(flag_arrs) {
+  constructor(flag_arrs, consequent_set) {
     // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
     //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
-
     super();
+
+    if (flag_arrs.length != 1 && consequent_set) 
+      throw new Error(`don't supply consequent_set when flag_arrs.length != 1`);
+
     this.flags = flag_arrs;
+    this.consequent_seq = consequent_set;
   }
 }
 // -------------------------------------------------------------------------------------------------
