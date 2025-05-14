@@ -2408,12 +2408,12 @@ function smart_join(arr) {
       move_chars_left(1);
     
     // if (log_join_enabled)
-    console.log(`str = '${str}', ` +
-                `left_word = '${left_word}', ` +
-                `right_word = '${right_word}', ` +
-                `prev_char = '${prev_char}', ` +
-                `next_char = '${next_char}'` + 
-                `prev_char_is_escaped = '${prev_char_is_escaped}', `);
+    console.log(`str = ${inspect_fun(str)}, ` +                     
+                `left_word = ${inspect_fun(left_word)}, ` +         
+                `right_word = ${inspect_fun(right_word)}, ` +       
+                `prev_char = ${inspect_fun(prev_char)}, ` +         
+                `next_char = ${inspect_fun(next_char)}, ` +         
+                `prev_char_is_escaped = '${prev_char_is_escaped}'`);
 
     // Normalize article if needed:
     const article_match = str.match(/(?:^|\s)([Aa])$/);
