@@ -6640,8 +6640,9 @@ class ASTCheckFlags extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTNotFlag extends ASTNode  {
-  constructor(flag_arr, { set_immediately = false, consequently_set_flag_tail = undefined } = {}) {
+class ASTNotFlag extends ASTNode  { 
+  constructor(flag_arr, { set_immediately = undefined,
+                          consequently_set_flag_tail = undefined } = {}) {
     // if (! Array.isArray(flag_arr))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
 
@@ -6652,6 +6653,7 @@ class ASTNotFlag extends ASTNode  {
 
     this.flag = flag_arr;
     this.set_immediately = set_immediately;
+    this.consequently_set_flag_tail = consequently_set_flag_tail
 
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
