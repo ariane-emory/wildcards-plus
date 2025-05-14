@@ -1,5 +1,5 @@
 #foo
  
-{ ?foo FOO 2! } \n
+{ ?foo FOO 1! } \n
 
-{ ?foo.#bar.baz FOO! } \n
+// { ?foo.#bar.baz FOO 2! } \n
