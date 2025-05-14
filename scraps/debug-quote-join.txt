@@ -1,7 +1,7 @@
 // bar "\< quux \<" corge \n
 // bar "< quux <" corge \n
 
-one < foo< bar <baz \n
-one < foo< bar< baz \n 
-one < foo< <bar< <baz \n
-one < foo \n
+one   < foo< bar <baz \n
+two   < foo< bar< baz \n 
+three < foo< <bar< <baz \n
+four  < foo \n
