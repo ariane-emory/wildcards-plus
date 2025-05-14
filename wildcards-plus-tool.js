@@ -2434,7 +2434,7 @@ function smart_join(arr) {
     
     if (! dangling_quote_on_left &&
         str && right_word &&
-        right_word !== '"' && 
+        //right_word !== '"' && 
         !whitep(prev_char) &&
         !whitep(next_char) &&
         !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&

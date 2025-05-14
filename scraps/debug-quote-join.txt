@@ -1,1 +1,1 @@
-foo \" test \" bar
+bar " quux " corge "grault" fred
