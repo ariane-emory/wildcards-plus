@@ -2362,25 +2362,28 @@ function smart_join(arr) {
     let prev_char_is_escaped = null;
     let next_char            = null;
 
-    const chomp_left_side        = () => {
-      str = str.slice(0, -1);
+    const chomp_left_side = () => {
+      str      = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
+      
+      update_pos_vars();
     };
     
     const chomp_right_side = () => {
       arr[ix] = arr[ix].slice(1);
-      right_word = right_word.slice(1);
+
+      update_pos_vars();
     }
 
     const add_a_space = () => {
       console.log(`SPACE!`);
-      prev_char = ' ';
-      str += ' ';
+      prev_char  = ' ';
+      str       += ' ';
     }
 
     const consume_right_word = () => {
-      left_word = right_word;
-      str += left_word;
+      left_word  = right_word;
+      str       += left_word;
     }
 
     const update_pos_vars = () => {
@@ -2392,10 +2395,11 @@ function smart_join(arr) {
     
     const move_chars_left = (n) => {
       const shifted_str = right_word.substring(0, n);
-      arr[ix] = right_word.substring(n);
 
-      str = str.substring(0, str.length -1) + shifted_str;
+      arr[ix]   = right_word.substring(n);
+      str       = str.substring(0, str.length -1) + shifted_str;
       left_word = left_word.substring(0, left_word.length - 1) + shifted_str;
+      
       update_pos_vars();
     };
     
@@ -2451,17 +2455,12 @@ function smart_join(arr) {
       chomp_right_side();
     else if ((prev_char_is_escaped && !' n'.includes(prev_char)) || 
              (!(prev_char_is_escaped && ' n'.includes(prev_char))  &&
-              !punctuationp(next_char)  && 
-              !linkingp(prev_char)      &&
-              !linkingp(next_char)      &&
+              !punctuationp (next_char) && 
+              !linkingp     (prev_char) &&
+              !linkingp     (next_char) &&
               !'(['.includes(prev_char) &&
-              !')]'.includes(next_char) // &&
-              // prev_char !== '<'         && 
-              // ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped)))
-             )
-            ) 
+              !')]'.includes(next_char))) 
       add_a_space();
-    
 
     consume_right_word();
   }
