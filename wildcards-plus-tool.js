@@ -2447,7 +2447,7 @@ function smart_join(arr) {
         // console.log(`CHOMP RIGHT!`);
         right_word = right_word.substring(1);
       }
-      else if (prev_char === '<' && !prev_char_is_escaped) {
+      if (prev_char === '<' && !prev_char_is_escaped) {
         // console.log(`CHOMP LEFT!`);
         str = str.slice(0, -1);
       }
