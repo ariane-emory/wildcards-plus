@@ -2422,15 +2422,12 @@ function smart_join(arr) {
       const originalArticle = article_match[1];
       const updatedArticle = articleCorrection(originalArticle, right_word);
 
-      if (updatedArticle !== originalArticle) {
+      if (updatedArticle !== originalArticle) 
         str = str.slice(0, -originalArticle.length) + updatedArticle;
-      }
     }
     
     if ((prev_char_is_escaped && !' n'.includes(prev_char)) || 
         (str && right_word && 
-         // !whitep(next_char) &&
-         // !whitep(prev_char) &&
          !linkingp(prev_char) &&
          !linkingp(next_char) &&
          !'(['.includes(prev_char) &&
