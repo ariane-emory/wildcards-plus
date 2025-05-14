@@ -6936,7 +6936,7 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(
                                           });
 
 const CheckFlag  = choice(
-  CheckFlagWithSetConsequent,
+  // CheckFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
 );
 
