@@ -6911,9 +6911,9 @@ const A1111StyleLora       =
 
 const CheckFlagWithOrAlternatives = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
                                           arr => {
-                                            if (log_flags_enabled)
-                                              if (arr.some(e => e.length > 1))
-                                              console.log(`CONSTRUCTING CHECKFLAG (1) WITH ` +
+                                            // if (log_flags_enabled)
+                                            //  if (arr.some(e => e.length > 1))
+                                            console.log(`CONSTRUCTING CHECKFLAG (1) WITH ` +
                                                           `${inspect_fun(arr)}`);
                                             return new ASTCheckFlags(arr);
                                           });
@@ -6936,7 +6936,7 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(
                                           });
 
 const CheckFlag  = choice(
-  // CheckFlagWithSetConsequent,
+  CheckFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
 );
 
