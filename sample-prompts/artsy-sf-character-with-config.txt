@@ -1,25 +1,7 @@
-{ #wizards_artist.helen_frankenthaler
-| #wizards_artist.frank_frazetta
-| #wizards_artist.boris_vallejo
-| #wizards_artist.gerald_brom
-| #wizards_artist.jack_gaughan 
-| #wizards_artist.chris_foss
-| #wizards_artist.peter_elson
-| #wizards_artist.john_blanche
-| #wizards_artist.wayne_barlowe
-}
-
-#artsy
-
 // =======================================================================================
 // use wildcards to randomize some parts of the configuration before we get on with the
 // actual textual content of the prompt:
 // =======================================================================================
-
-// %single-pick-prioritizes({ true_randomness })
-// %revert-single-pick-prioritizes
-// %multi-pick-prioritizes(true_randomness)
-// %revert-multi-pick-prioritizes
 
 // ---------------------------------------------------------------------------------------
 // template config flags to enable model families or other features:
@@ -28,21 +10,38 @@
 %config.loras = []
 
 #sdxl_on
-#flux_on
-#hidream_fast_on
-#hidream_full_on
+// #flux_on
+// #hidream_fast_on
+// #hidream_full_on
 
 // #hidream_high_steps
 // #flux_high_steps
 
 // #sdxl_always_lightning
-// #sdxl_always_lightning_off
+#sdxl_always_lightning_off
 
 { !sdxl_always_lightning
 | !sdxl_always_lightning_off #sdxl_lightning_on }  // enable lightning 4-step in SDXL models.
 
 #square_on                                         // enable square aspect ratios
-// #sdxl_hires                                     // enable higher resolutions
+
+// ---------------------------------------------------------------------------------------
+// force an artist from this small list instead of picking from all of the 1000-plus
+// artists from Wizard Whitebeard's list:
+// ---------------------------------------------------------------------------------------
+{   #wizards_artist.frank_frazetta
+| 2 #wizards_artist.tony_diterlizzi
+| 2 #wizards_artist.boris_vallejo
+| 2 #wizards_artist.gerald_brom
+|   #wizards_artist.ian_miller
+|   #wizards_artist.john_blanche
+|   #wizards_artist.jack_gaughan
+|   #wizards_artist.michael_whelan
+|   #wizards_artist.chris_foss
+|   #wizards_artist.peter_elson
+|   #wizards_artist.wayne_barlowe
+|   #wizards_artist.jim_burns
+}
 
 // ---------------------------------------------------------------------------------------
 
@@ -72,13 +71,14 @@
 // =================================================================================================
 // Flux config:
 // =================================================================================================
-{ 2 ?flux_on #flux_selected
+{ 4 ?flux_on #flux_selected
   { %config.model = "devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt"
   | %config.model = "devmode8stepsflux1dev_v03fp8_f16.ckpt"
   }
-  
+
   { @1-2lora | @1-3lora }
   
+  %config.n_iter    = 2
   %config.steps = { { \8 | \9 | \10 }
                    | ?flux_high_steps { \11 | \12 | \13 } }
   
@@ -98,10 +98,11 @@
 // =================================================================================================
 // HiDream config:
 // =================================================================================================
-| 3 ?hidream_fast_on,hidream_full_on #hidream_selected
+| 4 ?hidream_fast_on,hidream_full_on #hidream_selected
   %config.model = { ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
                 | ?hidream_full_on "hidream_i1_full_q5p.ckpt" }
   
+  %config.n_iter = 2
   %config.shift = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
   %config.sampler = { 2 "DDIM Trailing" | "Euler A" | 2 "Euler A Trailing" }
   %config.cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
@@ -122,26 +123,25 @@
 // =================================================================================================
 // SDXL config:
 // =================================================================================================
-| 8 ?sdxl_on #sdxl_selected
-  { ?sdxl_lightning_on {   <lora:sdxl_lightning_4step_lora:1.0> %config.steps = 4
-                  | 2 <lora:sdxl_lightning_8step_lora:1.0> %config.steps = 8 } }
+| 4 ?sdxl_on #sdxl_selected
+  { ?sdxl_lightning_on { 1 <lora:sdxl_lightning_4step_lora:1.0> %config.steps = 4
+                       | 2 <lora:sdxl_lightning_8step_lora:1.0> %config.steps = 8 } }
 
   { @1-2lora | @1-3lora }
 
-  { !sdxl_lightning_on %config.steps = { \25 | \30 | \35 } }
+  { !sdxl_lightning_on %config.steps = { \35 | \40 | \45 } }
   // { !sdxl_lightning_on %config.steps = 30 }   
   
   // possible resolutions:
-  { // 3 ?sdxl_hires %config += { "width": 1280, "height": 640 }
-  // | 3 ?sdxl_hires %config += { "width": 1152, "height": 576 }
-  | 3 ?sdxl_hires %config += { "width": 1024, "height": 512 }
-  | 3 %config += { "width": 768,  "height": 384 }
-  | 3 %config += { "width": 640,  "height": 320 }
-  | 3 ?square_on ?sdxl_hires %config += { "width": 1024,  "height": 1024 }
-  // | 3 ?square_on %config += { "width": 768,  "height": 768 }
-  | 3 ?square_on %config += { "width": 640,  "height": 640 }
-  | 3 ?square_on %config += { "width": 512,  "height": 512 }
+  { 4            %config += { "width": 1280, "height": 640  }
+  | 4            %config += { "width": 1152, "height": 576  }
+  | 4            %config += { "width": 1024, "height": 512  }
+  | 3 ?square_on %config += { "width": 1024, "height": 1024 }
+  | 3 ?square_on %config += { "width": 768,  "height": 768  }
+  | 3 ?square_on %config += { "width": 640,  "height": 640  }
   }
+
+  %config.n_iter    = 2
 
   // three possible 'shift' values:
   %config.shift = { \1.00 | \1.10 | \1.20 }
@@ -253,7 +253,7 @@
 
 @place_to_be_at =
 {{ware|store} #indoors <house
-|?planet,moon an alien ruin
+|?planet,moon alien ruin
 |abandoned wreck of a @ship_term2
 |{2|holographic} computer
 |?planet,moon #outdoors colony
@@ -287,6 +287,7 @@
 |androgynous
 |?neuter 2 androgynous
 |mysterious
+|enigmatic
 |solitary #solo
 |inscrutable
 |independant #solo
@@ -310,7 +311,7 @@
 |android
 |cyborg #cyborg
 |human #human
-|?traveller Vargr
+// |?traveller Vargr // unrecognized!
 |?traveller Vilani
 |?traveller Zhodani
 }
@@ -335,7 +336,7 @@
 // tools:
 // ---------------------------------------------------------------------------------------
 @tool_adj    = {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
-                |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
+|!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
 @tool_phrase = {holding @pro_pos_rand @tool_adj @tool}
 @tool =
 {hydrospanner
@@ -412,7 +413,7 @@
                       |@pro_pos_rand @clothing_adj {|helmetless}
                                      {space|vacuum|hazardous environment} suit
                       |@pro_pos_rand @clothing_adj exoskeleton}
- 
+
 // ---------------------------------------------------------------------------------------
 // cyborg features:
 // ---------------------------------------------------------------------------------------
@@ -427,7 +428,7 @@
 @early_cyborg_feature_sentence = {?cyborg #ecfs with @cyborg_features }
 
 // ---------------------------------------------------------------------------------------
-// ailen features:
+// alien features:
 // ---------------------------------------------------------------------------------------
 @alien_features =
 {an insectoid appearance
@@ -450,7 +451,7 @@
 |!#alien_skin {smooth|shiny} fur
 |!#alien_quills quill {<-like|<s instead of} hair
 |a reptilian appearance
-}
+}                   
 
 @alien_feature_sentence       = {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
 @early_alien_feature_sentence = {?alien #eafs with @1-2&alien_features }
@@ -517,8 +518,3 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 {|8 @sky_sentence}
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
-
-%neg = { dog  }
-%neg += { cat  }
-%neg = { bird }
-

@@ -2338,128 +2338,157 @@ function smart_join(arr) {
   
   if (log_join_enabled)
     console.log(`JOINING ${inspect_fun(arr)}`);
-  
-  const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
+
+  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-  const linkingp     = (ch)  => ch === "_" || ch === "-";
-  const whitep       = (ch)  => ch === ' ' || ch === '\n';
+  const linkingp     = (ch)  => "_-".includes(ch);
+  // const whitep       = (ch)  => " \n".includes(ch);
+  
+  // handle "a" → "an" if necessary:
+  const articleCorrection = (originalArticle, nextWord) => {
+    const expected = choose_indefinite_article(nextWord);
+    if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
+      return originalArticle === 'A' ? 'An' : 'an';
+    }
+    return originalArticle;
+  };
   
   let left_word = arr[0]; // ?.toString() ?? "";
   let str       = left_word;
-
+  
   for (let ix = 1; ix < arr.length; ix++)  {
     let right_word           = null;
     let prev_char            = null;
     let prev_char_is_escaped = null;
+    let next_char_is_escaped = null;
     let next_char            = null;
 
+    const add_a_space = () => {
+      if (log_join_enabled)
+        console.log(`SPACE!`);
+
+      prev_char  = ' ';
+      str       += ' ';
+    }
+
+    const chomp_left_side = () => {
+      if (log_join_enabled)
+        console.log(`CHOMP LEFT!`);
+      
+      str      = str.slice(0, -1);
+      left_word = left_word.slice(0, -1);
+      
+      update_pos_vars();
+    };
+    
+    const chomp_right_side = () => {
+      if (log_join_enabled)
+        console.log(`CHOMP RIGHT!`);
+
+      arr[ix] = arr[ix].slice(1);
+
+      update_pos_vars();
+    }
+
+    const consume_right_word = () => {
+      if (log_join_enabled)
+        console.log(`CONSUME ${inspect_fun(right_word)}!`);
+
+      left_word  = right_word;
+      str       += left_word;
+    }
+
+    const move_chars_left = (n) => {
+      if (log_join_enabled)
+        console.log(`SHIFT ${n} CHARACTERS!`);
+
+      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+      const shifted_str = right_word.substring(0, n);
+
+      arr[ix]   = right_word.substring(n);
+      str       = str.substring(0, str.length - overcut) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
+      
+      update_pos_vars();
+    };
+    
     const update_pos_vars = () => {
       right_word           = arr[ix]; // ?.toString() ?? "";
       prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
+      next_char_is_escaped = right_word[0] === '\\';
+
+      if (log_join_enabled)
+        console.log(`ix = ${inspect_fun(ix)}, ` +
+                    `str = ${inspect_fun(str)}, ` +
+                    `left_word = ${inspect_fun(left_word)}, ` +         
+                    `right_word = ${inspect_fun(right_word)}, ` +       
+                    `prev_char = ${inspect_fun(prev_char)}, ` +         
+                    `next_char = ${inspect_fun(next_char)}, ` + 
+                    `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+                    `next_char_is_escaped = ${next_char_is_escaped}`);
     };
     
-    const shift_left = (n) => {
-      const shifted_str = right_word.substring(0, n);
-      str = str.substring(0, str.length -1) + shifted_str;
-      left_word = left_word.substring(0, left_word.length - 1) + shifted_str;
-      arr[ix] = right_word.substring(n);
-      update_pos_vars();
-    };
-
     update_pos_vars();
     
     if (right_word === '') {
-      // console.log(`JUMP EMPTY!`);
-      continue;
-    }
+      if (log_join_enabled)
+        console.log(`JUMP EMPTY!`);
 
-    if (prev_char === ',' && right_word === ',') {
-      // console.log(`JUMP COMMA!`);
-      continue;
-    }
-
-    if (prev_char === '<' && right_word === '<') {
-      // console.log(`JUMP COMMA!`);
       continue;
     }
 
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
-      shift_left(3);
+      move_chars_left(3);
     
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
-      shift_left(1);
+      move_chars_left(1);
     
-    // if (log_join_enabled)
-      console.log(`str = '${str}', ` +
-                  `left_word = '${left_word}', ` +
-                  `right_word = '${right_word}', ` +
-                  `prev_char = '${prev_char}', ` +
-                  `next_char = '${next_char}'`);
-
-    // handle "a" → "an" if necessary:
-    const articleCorrection = (originalArticle, nextWord) => {
-      const expected = choose_indefinite_article(nextWord);
-      if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-        return originalArticle === 'A' ? 'An' : 'an';
-      }
-      return originalArticle;
-    };
-
     // Normalize article if needed:
     const article_match = str.match(/(?:^|\s)([Aa])$/);
+
     if (article_match) {
       const originalArticle = article_match[1];
       const updatedArticle = articleCorrection(originalArticle, right_word);
-      if (updatedArticle !== originalArticle) {
+
+      if (updatedArticle !== originalArticle) 
         str = str.slice(0, -originalArticle.length) + updatedArticle;
-      }
-    }
-    
-    // if (left_word === "a" || left_word.endsWith(" a") ||
-    //     left_word === "A" || left_word.endsWith(" A")) {
-    //   const nextWord = right_word;
-    //   const updatedArticle = articleCorrection(left_word.trim(), nextWord);
-    //   if (updatedArticle !== left_word.trim()) {
-    //     if (left_word === "a" || left_word === "A") {
-    //       str = str.slice(0, -1) + updatedArticle;
-    //       left_word = updatedArticle;
-    //     } else {
-    //       str = str.slice(0, -2) + " " + updatedArticle;
-    //       left_word = updatedArticle;
-    //     }
-    //   }
-    // }
-    
-    if ((prev_char_is_escaped && ! ' n'.includes(prev_char)) || 
-        (str && right_word && 
-         !whitep(prev_char) &&
-         !whitep(next_char) &&
-         !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
-         !(linkingp(next_char) || ')]'.includes(next_char)) &&
-         prev_char !== '<' && 
-         ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped))) &&
-         !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
-         !punctuationp(next_char))) {
-      // console.log(`SPACE!`);
-      prev_char = ' ';
-      str += ' ';
     }
 
-    if (right_word !== '<') {
-      if (next_char === '<' && right_word !== '<') {
-        // console.log(`CHOMP RIGHT!`);
-        right_word = right_word.substring(1);
-      }
-      if (prev_char === '<' && !prev_char_is_escaped) {
-        // console.log(`CHOMP LEFT!`);
-        str = str.slice(0, -1);
-      }
+    let chomped = false;
+
+    if (!prev_char_is_escaped && prev_char === '<') {
+      chomp_left_side();
+      chomped = true;
+    }
+    
+    if (right_word.startsWith('<')) {
+      chomp_right_side();
+      chomped = true;
     }
 
-    left_word = right_word;
-    str += left_word;
+    if (right_word === '') {
+      if (log_join_enabled)
+        console.log(`JUMP EMPTY (LATE)!`);
+
+      continue;
+    }
+
+    if (!chomped &&
+        (prev_char_is_escaped && !' n'.includes(prev_char) || 
+         (!(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+          // !(next_char_is_escaped && ",.!?".includes(right_word[1])) && 
+          !right_word.startsWith('\\n') &&
+          !right_word.startsWith('\\ ') && 
+          !punctuationp (next_char)     && 
+          !linkingp     (prev_char)     &&
+          !linkingp     (next_char)     &&
+          !'(['.includes(prev_char)     &&
+          !')]'.includes(next_char))))
+      add_a_space();
+
+    consume_right_word();
   }
 
   if (log_join_enabled)
@@ -6804,7 +6833,8 @@ class ASTSpecialFunctionSetNegativePrompt extends ASTNode {
 // terminals:
 // -------------------------------------------------------------------------------------------------
 const word_break               = /(?=\s|[{|}]|$)/;
-const plaintext                = /[^{|}\s]+/;
+const plaintext                = /(?:\\\s|[^\s{|}])+/;
+// const plaintext                = /[^{|}\s]+/;
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
