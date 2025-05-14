@@ -2,7 +2,7 @@
 //@api-1.0
 // wildcards-plus
 // author ariane-emory (includes some code from wetcircuit's original wildcards.js)
-// v0.8
+// v0.9
 // Draw Things 1.20240502.2
 // =================================================================================================
 
@@ -2287,14 +2287,97 @@ const dt_samplers = [   // order is significant, do not rearrange!
 ];
 const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
 // -------------------------------------------------------------------------------------------------
-const key_names = [
+const config_key_names = [
   // [ automatic1111's name,  Draw Things' name ],
+<<<<<<< HEAD
   [ 'cfg_scale',             'guidanceScale'       ],
   [ 'denoising_strength',    'strength'            ],
   [ 'firstphase_height',     'higresFixHeight'     ],
   [ 'firstphase_width',      'higresFixWidth'      ],
   [ 'n_iter',                'batchCount'          ],
   [ 'upscaler_scale_factor', 'upscalerScaleFactor' ],
+=======
+  [ 'aesthetic_score',                     'aestheticScore'               ],
+  [ 'batch_count',                         'batchCount'                   ],
+  [ 'n_iter',                              'batchCount'                   ],
+  [ 'batch_size',                          'batchSize'                    ],
+  [ 'separate_open_clip_g',                'clipLText'                    ],
+  [ 'clip_skip',                           'clipSkip'                     ],
+  [ 'clip_weight',                         'clipWeight'                   ],
+  [ 'controls',                            'controls'                     ],
+  [ 'crop_left',                           'cropLeft'                     ],
+  [ 'crop_top',                            'cropTop'                      ],
+  [ 'decoding_tile_height_explanation',    'decodingTileHeight'           ],
+  [ 'decoding_tile_overlap_explanation',   'decodingTileOverlap'          ],
+  [ 'decoding_tile_width_explanation',     'decodingTileWidth'            ],
+  [ 'diffusion_tile_height_explanation',   'diffusionTileHeight'          ],
+  [ 'diffusion_tile_overlap_explanation',  'diffusionTileOverlap'         ],
+  [ 'diffusion_tile_width_explanation',    'diffusionTileWidth'           ],
+  [ 'fps',                                 'fps'                          ],
+  [ 'guidance_embed',                      'guidanceEmbed'                ],
+  [ 'cfg_scale',                           'guidanceScale'                ],
+  [ 'guidance',                            'guidanceScale'                ],
+  [ 'cond_aug',                            'guidingFrameNoise'            ],
+  [ 'height',                              'height'                       ],
+  [ 'enable_hr',                           'hiresFix'                     ],
+  [ 'high_resolution_fix',                 'hiresFix'                     ],
+  [ 'firstphase_height',                   'hiresFixHeight'               ],
+  [ 'hires_first_pass_height_explanation', 'hiresFixHeight'               ],
+  [ 'hires_second_pass_strength_detail',   'hiresFixStrength'             ],
+  [ 'firstphase_width',                    'hiresFixWidth'                ],
+  [ 'hires_first_pass_width_explanation',  'hiresFixWidth'                ],
+  [ 'image_guidance',                      'imageGuidanceScale'           ],
+  [ 'image_prior_steps',                   'imagePriorSteps'              ],
+  [ 'loras',                               'loras'                        ],
+  [ 'mask_blur',                           'maskBlur'                     ],
+  [ 'mask_blur_outset',                    'maskBlurOutset'               ],
+  [ 'model',                               'model'                        ],
+  [ 'motion_scale',                        'motionScale'                  ],
+  [ 'negative_aesthetic_score',            'negativeAestheticScore'       ],
+  [ 'negative_original_height',            'negativeOriginalHeight'       ],
+  [ 'negative_original_width',             'negativeOriginalWidth'        ],
+  [ 'negative-prompt',                     'negativePrompt'               ],
+  [ 'negative_prompt_for_image_prior',     'negativePromptForImagePrior'  ],
+  [ 'speed_up_with_guidance_embed',        'openClipGText'                ],
+  [ 'original_height',                     'originalHeight'               ],
+  [ 'original_width',                      'originalWidth'                ],
+  [ 'preserve_original_after_inpaint',     'preserveOriginalAfterInpaint' ],
+  [ 'prompt',                              'prompt'                       ],
+  [ 'num_frames',                          'refinerModel'                 ],
+  [ 'refiner_start',                       'refinerStart'                 ],
+  [ 'resolution_dependent_shift',          'resolutionDependentShift'     ],
+  [ 'sampler',                             'sampler'                      ],
+  [ 'sampler_index',                       'sampler'                      ],
+  [ 'sampler_name',                        'sampler'                      ],
+  [ 'seed',                                'seed'                         ],
+  [ 'seed_mode',                           'seedMode'                     ],
+  [ 'separate_clip_l',                     'separateClipL'                ],
+  [ 'separate_t5',                         'separateT5'                   ],
+  [ 'sharpness',                           'sharpness'                    ],
+  [ 'shift',                               'shift'                        ],
+  [ 'stage_2_cfg',                         'stage2Cfg'                    ],
+  [ 'stage_2_shift',                       'stage2Shift'                  ],
+  [ 'stage_2_steps',                       'stage2Steps'                  ],
+  [ 'start_frame_guidance',                'startFrameGuidance'           ],
+  [ 'strategic_stochastic_sampling',       'stochasticSamplingGamma'      ],
+  [ 'denoising_strength',                  'strength'                     ],
+  [ 'strength',                            'strength'                     ],
+  [ 't5_text',                             't5Text'                       ],
+  [ 't5_text_encoder',                     't5TextEncoder'                ],
+  [ 'target_height',                       'targetHeight'                 ],
+  [ 'target_width',                        'targetWidth'                  ],
+  [ 'tea_cache',                           'teaCache'                     ],
+  [ 'tea_cache_end',                       'teaCacheEnd'                  ],
+  [ 'tea_cache_max_skip_steps',            'teaCacheMaxSkipSteps'         ],
+  [ 'tea_cache_start',                     'teaCacheStart'                ],
+  [ 'tea_cache_threshold',                 'teaCacheThreshold'            ],
+  [ 'tiled_decoding',                      'tiledDecoding'                ],
+  [ 'tiled_diffusion',                     'tiledDiffusion'               ],
+  [ 'upscaler',                            'upscaler'                     ],
+  [ 'upscaler_scale_factor',               'upscalerScaleFactor'          ],
+  [ 'width',                               'width'                        ],
+  [ 'zero_negative_prompt',                'zeroNegativePrompt'           ],
+>>>>>>> fix-seeds
 ];
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
@@ -2303,6 +2386,20 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   if (is_empty_object(config))
     return config;
 
+  // 'fix' seed if n_iter > 1, doing this seems convenient?
+  if ((config.n_iter      &&
+       (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
+      (config.batch_count &&
+       (typeof config.batch_count === 'number') && config.batch_count > 1) ||
+      (config.batchCount  &&
+       (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+    console.log(`Fix seed, using -1 due to n_iter > 1.`);
+    config.seed = -1;
+  }
+  else {
+    config.seed = Math.floor(Math.random() * (2 ** 32));
+  }
+  
   if (config.model) {
     config.model = config.model.toLowerCase();
     
@@ -2338,7 +2435,14 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers.indexOf(config.sampler);
     }
 
+<<<<<<< HEAD
     for (const [automatic1111_name, dt_name] of key_names) {
+=======
+    for (const [automatic1111_name, dt_name] of config_key_names) {
+      if (automatic1111_name === dt_name)
+        continue;
+      
+>>>>>>> fix-seeds
       if (config[automatic1111_name] !== undefined) {
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
@@ -2355,7 +2459,14 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers[config.sampler];
     }
 
+<<<<<<< HEAD
     for (const [automatic1111_name, dt_name] of key_names) {
+=======
+    for (const [automatic1111_name, dt_name] of config_key_names) {
+      if (automatic1111_name === dt_name)
+        continue;
+      
+>>>>>>> fix-seeds
       if (config[dt_name] !== undefined) {
         console.log(`Correcting config.${dt_name} = ` +
                     `${config[dt_name]} to ` +
@@ -6786,7 +6897,7 @@ const default_batch_count         = 5;
 // -------------------------------------------------------------------------------------------------
 // UI:
 // -------------------------------------------------------------------------------------------------
-const doc_string = `Wildcards Plus v0.8 by ariane-emory (based on @wetcircuit's original wildcard.js script)
+const doc_string = `Wildcards Plus v0.9 by ariane-emory (originally based on @wetcircuit's original wildcard.js script)
 
 Generate a batch of images using inline wildcards to randomize elements within the prompt.
 
@@ -6794,7 +6905,7 @@ The wildcards-plus script adds a variety of useful features above and beyond sim
 
 The full documentation would be too large to fit in this tiny box, please see the README.md file for detailed descriptions of these features!`;
 
-const user_selection = requestFromUser('Wildcards', '', function() {
+const user_selection = requestFromUser('Wildcards Plus', '', function() {
   return [
 	  this.section('Prompt', ui_hint,
                  [ this.textField(prompt_string, fallback_prompt, true, 240) ]),

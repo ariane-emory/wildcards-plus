@@ -30,11 +30,11 @@
 // epic fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, 
 // A promotional poster for an award winning video game, which depicts a heroic, strong and athletic paladin wearing blood-smeared wargear holding his bejeweled flail while standing in an eerily lit lair, smiling towards the viewer victoriously.
 // =================================================================================================
-import * as util from 'util';
-import * as http from 'http';
-import * as fs   from 'fs';
+import * as util     from 'util';
+import * as http     from 'http';
+import * as fs       from 'fs';
 import * as readline from 'readline';
-import path from 'path';
+import path          from 'path';
 import { stdin as input, stdout as output } from 'process';
 // -------------------------------------------------------------------------------------------------
 
@@ -70,19 +70,14 @@ function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860,
   let data = { prompt: prompt, ...config,
                negative_prompt: negative_prompt || negative_prompt === '' ? negative_prompt : undefined };
 
-  // doing this seems convenient?
-  if (data.n_iter && (typeof data.n_iter === 'number') && data.n_iter > 1) { 
-    console.log(`FIX SEED!`);
-    
-    data.seed = -1;
-  }
-  else {
-    data.seed = Math.floor(Math.random() * (2 ** 32));
-  }
-
-  // if (negative_prompt || negative_prompt === '') {
-  //   // throw new Error(`bomb: ${negative_prompt}`);
-  //   th
+  // // doing this seems convenient?
+  // if (data.n_iter && (typeof data.n_iter === 'number') && data.n_iter > 1) { 
+  //   console.log(`FIX SEED!`);
+  
+  //   data.seed = -1;
+  // }
+  // else {
+  //   data.seed = Math.floor(Math.random() * (2 ** 32));
   // }
   
   const string_data = JSON.stringify(data);
@@ -2384,13 +2379,18 @@ function smart_join(arr) {
       continue;
     }
 
+    if (prev_char === '<' && right_word === '<') {
+      // console.log(`JUMP COMMA!`);
+      continue;
+    }
+
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
       shift_left(3);
     
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       shift_left(1);
     
-    if (log_join_enabled)
+    // if (log_join_enabled)
       console.log(`str = '${str}', ` +
                   `left_word = '${left_word}', ` +
                   `right_word = '${right_word}', ` +
@@ -2431,14 +2431,16 @@ function smart_join(arr) {
     //   }
     // }
     
-    if (!(!str || !right_word) && 
-        !whitep(prev_char) &&
-        !whitep(next_char) &&
-        !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
-        !(linkingp(next_char) || ')]'.includes(next_char)) &&
-        ((right_word === '<' || next_char !== '<') && (! (prev_char === '<' && prev_char_is_escaped))) &&
-        !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
-        !punctuationp(next_char)) {
+    if ((prev_char_is_escaped && ! ' n'.includes(prev_char)) || 
+        (str && right_word && 
+         !whitep(prev_char) &&
+         !whitep(next_char) &&
+         !((linkingp(prev_char) || '(['.includes(prev_char)) && !prev_char_is_escaped) &&
+         !(linkingp(next_char) || ')]'.includes(next_char)) &&
+         prev_char !== '<' && 
+         ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped))) &&
+         !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
+         !punctuationp(next_char))) {
       // console.log(`SPACE!`);
       prev_char = ' ';
       str += ' ';
@@ -2449,7 +2451,7 @@ function smart_join(arr) {
         // console.log(`CHOMP RIGHT!`);
         right_word = right_word.substring(1);
       }
-      else if (prev_char === '<' && !prev_char_is_escaped) {
+      if (prev_char === '<' && !prev_char_is_escaped) {
         // console.log(`CHOMP LEFT!`);
         str = str.slice(0, -1);
       }
@@ -2495,14 +2497,97 @@ const dt_samplers = [   // order is significant, do not rearrange!
 ];
 const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
 // -------------------------------------------------------------------------------------------------
-const key_names = [
+const config_key_names = [
   // [ automatic1111's name,  Draw Things' name ],
+<<<<<<< HEAD
   [ 'cfg_scale',             'guidanceScale'       ],
   [ 'denoising_strength',    'strength'            ],
   [ 'firstphase_height',     'higresFixHeight'     ],
   [ 'firstphase_width',      'higresFixWidth'      ],
   [ 'n_iter',                'batchCount'          ],
   [ 'upscaler_scale_factor', 'upscalerScaleFactor' ],
+=======
+  [ 'aesthetic_score',                     'aestheticScore'               ],
+  [ 'batch_count',                         'batchCount'                   ],
+  [ 'n_iter',                              'batchCount'                   ],
+  [ 'batch_size',                          'batchSize'                    ],
+  [ 'separate_open_clip_g',                'clipLText'                    ],
+  [ 'clip_skip',                           'clipSkip'                     ],
+  [ 'clip_weight',                         'clipWeight'                   ],
+  [ 'controls',                            'controls'                     ],
+  [ 'crop_left',                           'cropLeft'                     ],
+  [ 'crop_top',                            'cropTop'                      ],
+  [ 'decoding_tile_height_explanation',    'decodingTileHeight'           ],
+  [ 'decoding_tile_overlap_explanation',   'decodingTileOverlap'          ],
+  [ 'decoding_tile_width_explanation',     'decodingTileWidth'            ],
+  [ 'diffusion_tile_height_explanation',   'diffusionTileHeight'          ],
+  [ 'diffusion_tile_overlap_explanation',  'diffusionTileOverlap'         ],
+  [ 'diffusion_tile_width_explanation',    'diffusionTileWidth'           ],
+  [ 'fps',                                 'fps'                          ],
+  [ 'guidance_embed',                      'guidanceEmbed'                ],
+  [ 'cfg_scale',                           'guidanceScale'                ],
+  [ 'guidance',                            'guidanceScale'                ],
+  [ 'cond_aug',                            'guidingFrameNoise'            ],
+  [ 'height',                              'height'                       ],
+  [ 'enable_hr',                           'hiresFix'                     ],
+  [ 'high_resolution_fix',                 'hiresFix'                     ],
+  [ 'firstphase_height',                   'hiresFixHeight'               ],
+  [ 'hires_first_pass_height_explanation', 'hiresFixHeight'               ],
+  [ 'hires_second_pass_strength_detail',   'hiresFixStrength'             ],
+  [ 'firstphase_width',                    'hiresFixWidth'                ],
+  [ 'hires_first_pass_width_explanation',  'hiresFixWidth'                ],
+  [ 'image_guidance',                      'imageGuidanceScale'           ],
+  [ 'image_prior_steps',                   'imagePriorSteps'              ],
+  [ 'loras',                               'loras'                        ],
+  [ 'mask_blur',                           'maskBlur'                     ],
+  [ 'mask_blur_outset',                    'maskBlurOutset'               ],
+  [ 'model',                               'model'                        ],
+  [ 'motion_scale',                        'motionScale'                  ],
+  [ 'negative_aesthetic_score',            'negativeAestheticScore'       ],
+  [ 'negative_original_height',            'negativeOriginalHeight'       ],
+  [ 'negative_original_width',             'negativeOriginalWidth'        ],
+  [ 'negative-prompt',                     'negativePrompt'               ],
+  [ 'negative_prompt_for_image_prior',     'negativePromptForImagePrior'  ],
+  [ 'speed_up_with_guidance_embed',        'openClipGText'                ],
+  [ 'original_height',                     'originalHeight'               ],
+  [ 'original_width',                      'originalWidth'                ],
+  [ 'preserve_original_after_inpaint',     'preserveOriginalAfterInpaint' ],
+  [ 'prompt',                              'prompt'                       ],
+  [ 'num_frames',                          'refinerModel'                 ],
+  [ 'refiner_start',                       'refinerStart'                 ],
+  [ 'resolution_dependent_shift',          'resolutionDependentShift'     ],
+  [ 'sampler',                             'sampler'                      ],
+  [ 'sampler_index',                       'sampler'                      ],
+  [ 'sampler_name',                        'sampler'                      ],
+  [ 'seed',                                'seed'                         ],
+  [ 'seed_mode',                           'seedMode'                     ],
+  [ 'separate_clip_l',                     'separateClipL'                ],
+  [ 'separate_t5',                         'separateT5'                   ],
+  [ 'sharpness',                           'sharpness'                    ],
+  [ 'shift',                               'shift'                        ],
+  [ 'stage_2_cfg',                         'stage2Cfg'                    ],
+  [ 'stage_2_shift',                       'stage2Shift'                  ],
+  [ 'stage_2_steps',                       'stage2Steps'                  ],
+  [ 'start_frame_guidance',                'startFrameGuidance'           ],
+  [ 'strategic_stochastic_sampling',       'stochasticSamplingGamma'      ],
+  [ 'denoising_strength',                  'strength'                     ],
+  [ 'strength',                            'strength'                     ],
+  [ 't5_text',                             't5Text'                       ],
+  [ 't5_text_encoder',                     't5TextEncoder'                ],
+  [ 'target_height',                       'targetHeight'                 ],
+  [ 'target_width',                        'targetWidth'                  ],
+  [ 'tea_cache',                           'teaCache'                     ],
+  [ 'tea_cache_end',                       'teaCacheEnd'                  ],
+  [ 'tea_cache_max_skip_steps',            'teaCacheMaxSkipSteps'         ],
+  [ 'tea_cache_start',                     'teaCacheStart'                ],
+  [ 'tea_cache_threshold',                 'teaCacheThreshold'            ],
+  [ 'tiled_decoding',                      'tiledDecoding'                ],
+  [ 'tiled_diffusion',                     'tiledDiffusion'               ],
+  [ 'upscaler',                            'upscaler'                     ],
+  [ 'upscaler_scale_factor',               'upscalerScaleFactor'          ],
+  [ 'width',                               'width'                        ],
+  [ 'zero_negative_prompt',                'zeroNegativePrompt'           ],
+>>>>>>> fix-seeds
 ];
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
@@ -2511,6 +2596,20 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   if (is_empty_object(config))
     return config;
 
+  // 'fix' seed if n_iter > 1, doing this seems convenient?
+  if ((config.n_iter      &&
+       (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
+      (config.batch_count &&
+       (typeof config.batch_count === 'number') && config.batch_count > 1) ||
+      (config.batchCount  &&
+       (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+    console.log(`Fix seed, using -1 due to n_iter > 1.`);
+    config.seed = -1;
+  }
+  else {
+    config.seed = Math.floor(Math.random() * (2 ** 32));
+  }
+  
   if (config.model) {
     config.model = config.model.toLowerCase();
     
@@ -2546,7 +2645,14 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers.indexOf(config.sampler);
     }
 
+<<<<<<< HEAD
     for (const [automatic1111_name, dt_name] of key_names) {
+=======
+    for (const [automatic1111_name, dt_name] of config_key_names) {
+      if (automatic1111_name === dt_name)
+        continue;
+      
+>>>>>>> fix-seeds
       if (config[automatic1111_name] !== undefined) {
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
@@ -2563,7 +2669,14 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers[config.sampler];
     }
 
+<<<<<<< HEAD
     for (const [automatic1111_name, dt_name] of key_names) {
+=======
+    for (const [automatic1111_name, dt_name] of config_key_names) {
+      if (automatic1111_name === dt_name)
+        continue;
+      
+>>>>>>> fix-seeds
       if (config[dt_name] !== undefined) {
         console.log(`Correcting config.${dt_name} = ` +
                     `${config[dt_name]} to ` +
