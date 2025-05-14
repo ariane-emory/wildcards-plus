@@ -5,3 +5,5 @@
 { ?foo.#bar FOO 2! } \n
 
 { ?foo.bar TADA! } \n
+
+{ !#quux QUUX } \n

@@ -6643,7 +6643,7 @@ class ASTCheckFlags extends ASTNode {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTNotFlag extends ASTNode  {
-  constructor(flag_arr, set_immediately) {
+  constructor(flag_arr, { set_immediately = false} = {}) {
     // if (! Array.isArray(flag_arr))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
 
@@ -6964,7 +6964,7 @@ const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                              if (arr[2].length > 1)
                                console.log(`CONSTRUCTING NOTFLAG WITH ` +
                                            `${inspect_fun(arr[2])}`);
-                           return new ASTNotFlag(arr[2], arr[1][0]);
+                           return new ASTNotFlag(arr[2], { set_immediately: !!arr[1][0]});
                          });
 const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
                          arr => {
