@@ -2392,12 +2392,12 @@ function smart_join(arr) {
     update_pos_vars();
     
     if (right_word === '') {
-      // console.log(`JUMP EMPTY!`);
+      console.log(`JUMP EMPTY!`);
       continue;
     }
 
     if (prev_char === ',' && right_word === ',') {
-      // console.log(`JUMP COMMA!`);
+       console.log(`JUMP COMMA!`);
       continue;
     }
 
