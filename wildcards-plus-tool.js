@@ -2424,7 +2424,7 @@ function smart_join(arr) {
 
       arr[ix]   = right_word.substring(n);
       str       = str.substring(0, str.length - overcut) + shifted_str;
-      left_word = left_word.substring(0, left_word.length - 1) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
       
       update_pos_vars();
     };
