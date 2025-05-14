@@ -6638,17 +6638,21 @@ class ASTCheckFlags extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTNotFlag extends ASTNode  {
-  constructor(flag_arr, set_immediately) {
-    // if (! Array.isArray(flag_arr))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
+class ASTCheckFlags extends ASTNode {
+  constructor(flag_arrs, consequently_set_flag_tail) {
+    // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
+    //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
     super();
-    this.flag = flag_arr;
-    this.set_immediately = set_immediately;
 
-    // if (this.set_immediately)
-    //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
+    if (consequently_set_flag_tail) {
+      if (flag_arrs.length != 1 )
+        throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
+      else
+        console.log(`constructed with tail ${inspect_fun(consequently_set_flag_tail)}`)
+    }
+
+    this.flags = flag_arrs;
+    this.consequently_set_flag_tail = consequently_set_flag_tail;
   }
 }
 // -------------------------------------------------------------------------------------------------
