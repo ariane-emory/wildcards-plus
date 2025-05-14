@@ -6860,8 +6860,24 @@ const filename                 = /[A-Za-z0-9 ._\-()]+/;
 //                             ')'),                          // [2]
 //             arr => xform_func(arr[1]));
 // -------------------------------------------------------------------------------------------------
+// A1111-style LoRAs:
+// -------------------------------------------------------------------------------------------------
+const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
+const A1111StyleLora       =
+      xform(arr => new ASTLora(arr[3], arr[4][0]),
+            wst_seq('<',                                    // [0]
+                    'lora',                                 // [1]
+                    ':',                                    // [2]
+                    choice(filename, () => LimitedContent), // [3]
+                    optional(second(wst_seq(':',
+                                            choice(A1111StyleLoraWeight,
+                                                   () => LimitedContent))),
+                             "1.0"), // [4][0]
+                    '>'));
+// -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
+
 const make__ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
@@ -6882,24 +6898,11 @@ const make__ASTAnonWildcardAlternative = arr => {
       ...arr[3]
     ]);
 }
-// -------------------------------------------------------------------------------------------------
-// A1111-style LoRAs:
-// -------------------------------------------------------------------------------------------------
-const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
-const A1111StyleLora       =
-      xform(arr => new ASTLora(arr[3], arr[4][0]),
-            wst_seq('<',                                    // [0]
-                    'lora',                                 // [1]
-                    ':',                                    // [2]
-                    choice(filename, () => LimitedContent), // [3]
-                    optional(second(wst_seq(':',
-                                            choice(A1111StyleLoraWeight,
-                                                   () => LimitedContent))),
-                             "1.0"), // [4][0]
-                    '>'));
+
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
+
 const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
                          arr => {
                            if (log_flags_enabled)
@@ -6908,6 +6911,7 @@ const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break
                                            `${inspect_fun(arr)}`);
                            return new ASTCheckFlags(arr);
                          });
+
 const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                          arr => {
                            if (log_flags_enabled)
