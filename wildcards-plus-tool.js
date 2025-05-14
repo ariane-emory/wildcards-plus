@@ -6920,6 +6920,8 @@ const CheckFlagWithOrAlternatives = xform(second(seq('?', plus(plus(ident, '.'),
 
 const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), word_break),
                                           arr => {
+                                            // throw new Error("bomb");
+                                            
                                             // if (log_flags_enabled)
                                             // if (arr.some(e => e.length > 1))
                                             console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
