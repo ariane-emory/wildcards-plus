@@ -6642,6 +6642,20 @@ class ASTCheckFlags extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
+class ASTNotFlag extends ASTNode  {
+  constructor(flag_arr, set_immediately) {
+    // if (! Array.isArray(flag_arr))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+
+    super();
+    this.flag = flag_arr;
+    this.set_immediately = set_immediately;
+
+    // if (this.set_immediately)
+    //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
 // NamedWildcard references:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardReference extends ASTNode {
@@ -6911,7 +6925,8 @@ const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), 
                                             //  if (arr.some(e => e.length > 1))
                                             console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
                                                         `${inspect_fun(arr)}`);
-                                            const args = arr[1];
+
+                                            const args = [arr[1]];
 
                                             console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
                                                         `${inspect_fun(args)}`);
