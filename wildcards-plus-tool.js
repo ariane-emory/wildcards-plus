@@ -322,7 +322,7 @@ let log_post_enabled          = true;
 let log_join_enabled          = false;
 let log_finalize_enabled      = false;
 let log_match_enabled         = false;
-let disable_prelude           = false;
+let disable_prelude           = true;
 let print_before_ast_enabled  = false;
 let print_after_ast_enabled   = false;
 let save_post_requests_enable = true;
@@ -2212,14 +2212,33 @@ function arr_is_prefix_of(prefix_arr, full_arr) {
 }
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_alt(prefix_arr, full_arr) {
-  if (prefix_arr.length > full_arr.length)
-    return false;
+  if (! Array.isArray(prefix_arr))
+    throw new Error(`prefix_arr not an array: ${inspect_fun(prefix_arr)}`);
 
-  for (let ix = 0; ix < prefix_arr.length; ix++)
-    if (prefix_arr[ix] !== full_arr[ix])
-      return false;
+  if (! Array.isArray(full_arr_arr))
+    throw new Error(`full_arr_arr not an array: ${inspect_fun(full_arr_arr)}`);
   
-  return true;
+  let ret = true;
+  
+  if (prefix_arr.length > full_arr.length) {
+    console.log(`LEFT!`);
+    ret = false;
+  }
+  else {
+    console.log(`RIGHT!`);
+    for (let ix = 0; ix < prefix_arr.length; ix++) {
+      console.log(`compare ${inspect_fun(prefix_arr[ix])} !== ${inspect_fun(full_arr[ix])} = ${prefix_arr[ix] !== full_arr[ix]}`);
+      
+      if (prefix_arr[ix] !== full_arr[ix]) {
+        ret = false;
+        break;
+      }
+    }
+  }
+
+  console.log(`check if ${inspect_fun(prefix_arr)} is prefix of ${inspect_fun(full_arr)} = ${ret}`)
+  
+  return ret;
 }
 // // -------------------------------------------------------------------------------------------------
 // function equal_arrs(this_arr, that_arr) {
@@ -2759,8 +2778,8 @@ class Context {
     // if (! Array.isArray(test_flag))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
 
-    // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
-    // console.log(msg);
+    const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
+    console.log(msg);
     // const ret = this.flags.includes(test_flag);
     
     let r = false;
@@ -2768,7 +2787,6 @@ class Context {
     for (const flag of this.flags) {
       // console.log(`${inspect_fun(flag)} === ` +
       //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
-      
       if (arr_is_prefix_of_alt(test_flag, flag)) {
         // console.log (`FOUND IT!`);
         r = true;
@@ -6177,17 +6195,21 @@ function expand_wildcards(thing, context = new Context()) {
   function allow_fun(option) {
     let allowed = true;
     
+    
     for (const check_flag of option.check_flags) {
+      console.log(`allow_fun: CHECKING IF ${check_flag.constructor.name} ${JSON.stringify(check_flag, null, 2)} IS SET IN ${inspect_fun(context.flags)}`);
       let found = false;
       
       for (const flag of check_flag.flags) {
         if (context.flag_is_set(flag)) {
+          console.log(`allow_fun: FOUND ${check_flag.constructor.name} ${JSON.stringify(check_flag, null, 2)}!`);
           found = true;
           break;
         }
       }
       
       if (!found) {
+        console.log(`allow_fun: DID NOT FIND ${check_flag.constructor.name} ${JSON.stringify(check_flag, null, 2)}!`);
         allowed = false;
         break;
       }
@@ -6618,13 +6640,19 @@ class ASTUnsetFlag extends ASTNode {
   }
 }
 // --------------------------------------------------------------------------------------------------
+class ASTCheckFlagsComponent {
+  constructor(flag_arr) {
+    this.flag = flag_arr;
+  }
+}
+// --------------------------------------------------------------------------------------------------
 class ASTCheckFlags extends ASTNode {
   constructor(flag_arrs) {
     // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
     //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
-
     super();
     this.flags = flag_arrs;
+    console.log(`CONSTRUCTED ${inspect_fun(this)}`);
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6908,10 +6936,11 @@ const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
                          });
 const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
                          arr => {
-                           if (log_flags_enabled)
-                             if (arr.some(e => e.length > 1))
-                               console.log(`CONSTRUCTING CHECKFLAG WITH ` +
-                                           `${inspect_fun(arr)}`);
+                           // if (log_flags_enabled)
+                           // if (arr.some(e => e.length > 1))
+                           arr = arr.map(c => new ASTCheckFlagsComponent(c));
+                           console.log(`CONSTRUCTING CHECKFLAG WITH ` +
+                                       `${inspect_fun(arr)}`);
                            return new ASTCheckFlags(arr);
                          });
 const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
