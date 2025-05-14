@@ -2363,6 +2363,12 @@ function smart_join(arr) {
     let next_char_is_escaped = null;
     let next_char            = null;
 
+    const add_a_space = () => {
+      console.log(`SPACE!`);
+      prev_char  = ' ';
+      str       += ' ';
+    }
+
     const chomp_left_side = () => {
       console.log(`CHOMP LEFT!`);
       
@@ -2380,18 +2386,25 @@ function smart_join(arr) {
       update_pos_vars();
     }
 
-    const add_a_space = () => {
-      console.log(`SPACE!`);
-      prev_char  = ' ';
-      str       += ' ';
-    }
-
     const consume_right_word = () => {
       console.log(`CONSUME ${inspect_fun(right_word)}!`);
       left_word  = right_word;
       str       += left_word;
     }
 
+    const move_chars_left = (n) => {
+      console.log(`SHIFT ${n} CHARACTERS!`);
+
+      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+      const shifted_str = right_word.substring(0, n);
+
+      arr[ix]   = right_word.substring(n);
+      str       = str.substring(0, str.length - overcut) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
+      
+      update_pos_vars();
+    };
+    
     const update_pos_vars = () => {
       right_word           = arr[ix]; // ?.toString() ?? "";
       prev_char            = left_word[left_word.length - 1] ?? "";
@@ -2416,19 +2429,6 @@ function smart_join(arr) {
       continue;
     }
 
-    const move_chars_left = (n) => {
-      console.log(`SHIFT ${n} CHARACTERS!`);
-
-      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-      const shifted_str = right_word.substring(0, n);
-
-      arr[ix]   = right_word.substring(n);
-      str       = str.substring(0, str.length - overcut) + shifted_str;
-      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
-      
-      update_pos_vars();
-    };
-    
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
       move_chars_left(3);
     
