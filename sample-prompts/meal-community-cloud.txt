@@ -12,24 +12,6 @@
 // #hidream_fast_on
 
 // ---------------------------------------------------------------------------------------
-// force an artist from this small list instead of picking from all of the 1000-plus
-// artists from Wizard Whitebeard's list:
-// ---------------------------------------------------------------------------------------
-// {   #wizards_artist.frank_frazetta
-// | 2 #wizards_artist.tony_diterlizzi
-// | 2 #wizards_artist.boris_vallejo
-// | 2 #wizards_artist.gerald_brom
-// |   #wizards_artist.ian_miller
-// |   #wizards_artist.john_blanche
-// |   #wizards_artist.jack_gaughan
-// |   #wizards_artist.michael_whelan
-// |   #wizards_artist.chris_foss
-// |   #wizards_artist.peter_elson
-// |   #wizards_artist.wayne_barlowe
-// |   #wizards_artist.jim_burns
-// }
-
-// ---------------------------------------------------------------------------------------
 %config.loras     = [] // unconfigure any LoRAs that are configured in the DT UI first.
 
 { 4 ?flux_on
@@ -84,7 +66,7 @@
                        |omelette #used_eggs
                        }
                        
-@meats              = {2 bacon
+@meats              = {4 bacon
                        |2 {|fried|grilled|roasted} chicken
                        |2 Spam
                        |{2|fried|grilled} fish
