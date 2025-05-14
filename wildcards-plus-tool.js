@@ -2397,7 +2397,7 @@ function smart_join(arr) {
       prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
-      next_char_is_escaped = left_word[left_word.length - 2] === '\\';
+      next_char_is_escaped = right_word[0] === '\\';
 
       console.log(`ix = ${inspect_fun(ix)}, ` +
                   `str = ${inspect_fun(str)}, ` +
@@ -2405,8 +2405,8 @@ function smart_join(arr) {
                   `right_word = ${inspect_fun(right_word)}, ` +       
                   `prev_char = ${inspect_fun(prev_char)}, ` +         
                   `next_char = ${inspect_fun(next_char)}, ` + 
-                  `prev_char_is_escaped = '${prev_char_is_escaped}'` + 
-                  `next_char_is_escaped = '${next_char_is_escaped}'`);
+                  `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+                  `next_char_is_escaped = ${next_char_is_escaped}`);
     };
     
     update_pos_vars();
@@ -2418,11 +2418,12 @@ function smart_join(arr) {
 
     const move_chars_left = (n) => {
       console.log(`SHIFT ${n} CHARACTERS!`);
-      
+
+      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
       const shifted_str = right_word.substring(0, n);
 
       arr[ix]   = right_word.substring(n);
-      str       = str.substring(0, str.length -1) + shifted_str;
+      str       = str.substring(0, str.length - overcut) + shifted_str;
       left_word = left_word.substring(0, left_word.length - 1) + shifted_str;
       
       update_pos_vars();
