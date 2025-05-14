@@ -2396,6 +2396,14 @@ function smart_join(arr) {
       prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
+
+      console.log(`ix = ${inspect_fun(ix)}, ` +
+                  `str = ${inspect_fun(str)}, ` +
+                  `left_word = ${inspect_fun(left_word)}, ` +         
+                  `right_word = ${inspect_fun(right_word)}, ` +       
+                  `prev_char = ${inspect_fun(prev_char)}, ` +         
+                  `next_char = ${inspect_fun(next_char)}, ` +         
+                  `prev_char_is_escaped = '${prev_char_is_escaped}'`);
     };
     
     const move_chars_left = (n) => {
@@ -2434,13 +2442,7 @@ function smart_join(arr) {
       move_chars_left(1);
     
     // if (log_join_enabled)
-    console.log(`str = ${inspect_fun(str)}, ` +                     
-                `left_word = ${inspect_fun(left_word)}, ` +         
-                `right_word = ${inspect_fun(right_word)}, ` +       
-                `prev_char = ${inspect_fun(prev_char)}, ` +         
-                `next_char = ${inspect_fun(next_char)}, ` +         
-                `prev_char_is_escaped = '${prev_char_is_escaped}'`);
-
+    
     // Normalize article if needed:
     const article_match = str.match(/(?:^|\s)([Aa])$/);
 
@@ -2462,6 +2464,11 @@ function smart_join(arr) {
     while (right_word.startsWith('<')) {
       chomp_right_side();
       chomped = true;
+    }
+
+    if (right_word === '') {
+      console.log(`JUMP EMPTY (LATE)!`);
+      continue;
     }
 
     if (!chomped &&
