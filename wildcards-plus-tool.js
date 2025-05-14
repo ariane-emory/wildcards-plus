@@ -2342,7 +2342,7 @@ function smart_join(arr) {
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => "_-".includes(ch);
-  const whitep       = (ch)  => " \n".includes(ch);
+  // const whitep       = (ch)  => " \n".includes(ch);
   
   // handle "a" → "an" if necessary:
   const articleCorrection = (originalArticle, nextWord) => {
