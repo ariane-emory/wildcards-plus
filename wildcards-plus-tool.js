@@ -2428,23 +2428,11 @@ function smart_join(arr) {
       continue;
     }
 
-    if (prev_char === ',' && right_word === ',') {
-      console.log(`JUMP COMMA!`);
-      continue;
-    }
-
-    // if (prev_char === '<' && right_word === '<') {
-    //   // console.log(`JUMP <!`);
-    //   continue;
-    // }
-
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
       move_chars_left(3);
     
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       move_chars_left(1);
-    
-    // if (log_join_enabled)
     
     // Normalize article if needed:
     const article_match = str.match(/(?:^|\s)([Aa])$/);

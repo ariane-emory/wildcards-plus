@@ -16,4 +16,4 @@
 // three < foo< <bar< <baz \n
 // four  < foo \n
 
-foo <<bar\ \ \ foo \n
+foo, \. \, \, \!  <bar\ \ \ foo \n
