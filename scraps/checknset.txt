@@ -3,3 +3,5 @@
 { ?foo FOO 1! } \n
 
 { ?foo.#bar FOO 2! } \n
+
+{ ?foo.bar TADA! } \n
