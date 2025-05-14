@@ -6916,7 +6916,6 @@ const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
                                            `${inspect_fun(arr)}`);
                            return new ASTSetFlag(arr);
                          });
-const CheckFlag  = choice(() => CheckFlagWithOrAlternatives);
 const CheckFlagWithOrAlternatives= xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
                                          arr => {
                                            if (log_flags_enabled)
@@ -6925,6 +6924,8 @@ const CheckFlagWithOrAlternatives= xform(second(seq('?', plus(plus(ident, '.'), 
                                                            `${inspect_fun(arr)}`);
                                            return new ASTCheckFlags(arr);
                                          });
+
+const CheckFlag  = choice(CheckFlagWithOrAlternatives);
 const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                          arr => {
                            if (log_flags_enabled)
