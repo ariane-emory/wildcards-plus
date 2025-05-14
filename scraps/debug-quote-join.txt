@@ -17,3 +17,4 @@ three < foo< <bar< <baz \n
 four  < foo \n
 
 foo ... ! 
+{foo,},
