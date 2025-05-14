@@ -2439,16 +2439,14 @@ function smart_join(arr) {
     //   }
     // }
     
-    if ((prev_char_is_escaped && ! ' n'.includes(prev_char)) || 
+    if ((prev_char_is_escaped && !' n'.includes(prev_char)) || 
         (str && right_word && 
-         !whitep(next_char) &&
-         !whitep(prev_char) &&
+         // !whitep(next_char) &&
+         // !whitep(prev_char) &&
          !linkingp(prev_char) &&
+         !linkingp(next_char) &&
          !'(['.includes(prev_char) &&
-         !linkingp(prev_char) &&
-         !'(['.includes(prev_char) && 
-         
-         !(linkingp(next_char) || ')]'.includes(next_char)) &&
+         !')]'.includes(next_char) &&
          prev_char !== '<' && 
          ((right_word === '<' || next_char !== '<') &&  (! (prev_char === '<' && prev_char_is_escaped))) &&
          !(str.endsWith('\\n') || str.endsWith('\\ ')) &&  
