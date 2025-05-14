@@ -2360,6 +2360,7 @@ function smart_join(arr) {
     let right_word           = null;
     let prev_char            = null;
     let prev_char_is_escaped = null;
+    let next_char_is_escaped = null;
     let next_char            = null;
 
     const chomp_left_side = () => {
@@ -2396,14 +2397,16 @@ function smart_join(arr) {
       prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
       next_char            = right_word[0] ?? '';
+      next_char_is_escaped = left_word[left_word.length - 2] === '\\';
 
       console.log(`ix = ${inspect_fun(ix)}, ` +
                   `str = ${inspect_fun(str)}, ` +
                   `left_word = ${inspect_fun(left_word)}, ` +         
                   `right_word = ${inspect_fun(right_word)}, ` +       
                   `prev_char = ${inspect_fun(prev_char)}, ` +         
-                  `next_char = ${inspect_fun(next_char)}, ` +         
-                  `prev_char_is_escaped = '${prev_char_is_escaped}'`);
+                  `next_char = ${inspect_fun(next_char)}, ` + 
+                  `prev_char_is_escaped = '${prev_char_is_escaped}'` + 
+                  `next_char_is_escaped = '${next_char_is_escaped}'`);
     };
     
     const move_chars_left = (n) => {
@@ -2456,12 +2459,12 @@ function smart_join(arr) {
 
     let chomped = false;
 
-    while (!prev_char_is_escaped && prev_char === '<') {
+    if (!prev_char_is_escaped && prev_char === '<') {
       chomp_left_side();
       chomped = true;
     }
     
-    while (right_word.startsWith('<')) {
+    if (right_word.startsWith('<')) {
       chomp_right_side();
       chomped = true;
     }
@@ -2474,10 +2477,12 @@ function smart_join(arr) {
     if (!chomped &&
         (prev_char_is_escaped && !' n'.includes(prev_char) || 
          (!(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-          !punctuationp (next_char) && 
-          !linkingp     (prev_char) &&
-          !linkingp     (next_char) &&
-          !'(['.includes(prev_char) &&
+          !right_word.startsWith('\\n') &&
+          !right_word.startsWith('\\ ') && 
+          !punctuationp (next_char)     && 
+          !linkingp     (prev_char)     &&
+          !linkingp     (next_char)     &&
+          !'(['.includes(prev_char)     &&
           !')]'.includes(next_char))))
       add_a_space();
 
