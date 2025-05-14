@@ -312,20 +312,21 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
-let print_ast_enabled         = false;
-let print_ast_json_enabled    = false;
-let string_input_mode_enabled = true;
-let log_enabled               = true;
-let log_flags_enabled         = false;
-let log_config_enabled        = true;
-let log_post_enabled          = true;
-let log_join_enabled          = false;
-let log_finalize_enabled      = false;
-let log_match_enabled         = false;
-let disable_prelude           = false;
-let print_before_ast_enabled  = false;
-let print_after_ast_enabled   = false;
-let save_post_requests_enable = true;
+let unnecessary_choice_is_error = false;
+let print_ast_enabled           = false;
+let print_ast_json_enabled      = false;
+let string_input_mode_enabled   = true;
+let log_enabled                 = true;
+let log_flags_enabled           = false;
+let log_config_enabled          = true;
+let log_post_enabled            = true;
+let log_join_enabled            = false;
+let log_finalize_enabled        = false;
+let log_match_enabled           = false;
+let disable_prelude             = false;
+let print_before_ast_enabled    = false;
+let print_after_ast_enabled     = false;
+let save_post_requests_enable   = true;
 // -------------------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // -------------------------------------------------------------------------------------------------
@@ -665,7 +666,8 @@ function choice(...options) { // convenience constructor
   if (options.length == 1) {
     console.log("WARNING: unnecessary use of choice!");
 
-    throw new Error("unnecessary use of choice");
+    if (unnecessary_choice_is_error)
+      throw new Error("unnecessary use of choice");
     
     return make_rule_func(options[0]);
   }
@@ -6914,14 +6916,15 @@ const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
                                            `${inspect_fun(arr)}`);
                            return new ASTSetFlag(arr);
                          });
-const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
-                         arr => {
-                           if (log_flags_enabled)
-                             if (arr.some(e => e.length > 1))
-                               console.log(`CONSTRUCTING CHECKFLAG WITH ` +
-                                           `${inspect_fun(arr)}`);
-                           return new ASTCheckFlags(arr);
-                         });
+const CheckFlag  = choice(() => CheckFlagWithOrAlternatives);
+const CheckFlagWithOrAlternatives= xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
+                                         arr => {
+                                           if (log_flags_enabled)
+                                             if (arr.some(e => e.length > 1))
+                                               console.log(`CONSTRUCTING CHECKFLAG WITH ` +
+                                                           `${inspect_fun(arr)}`);
+                                           return new ASTCheckFlags(arr);
+                                         });
 const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                          arr => {
                            if (log_flags_enabled)
