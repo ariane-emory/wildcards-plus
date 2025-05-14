@@ -6928,7 +6928,7 @@ const CheckFlagWithOrAlternatives  = xform(seq('?', plus(plus(ident, '.'), ','),
 
 const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(ident, '.'), word_break ),
                                           arr => {
-                                            // throw new Error("bomb");
+                                           // throw new Error("bomb");
                                             
                                             // if (log_flags_enabled)
                                             // if (arr.some(e => e.length > 1))
