@@ -6912,7 +6912,7 @@ const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitche
 // v DT's env doesn't seem to have structuredClone :(
 const pipeline_configuration      = clone_fun(pipeline.configuration);
 const ui_prompt                   = pipeline.prompts.prompt;
-const ui_hint                     = "no wildcards found in the prompt.";
+const ui_hint                     = "";
 let   prompt_string               = ui_prompt;
 const default_batch_count         = 5;
 // -------------------------------------------------------------------------------------------------
