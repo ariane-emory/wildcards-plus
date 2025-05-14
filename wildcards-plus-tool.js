@@ -6633,7 +6633,6 @@ class ASTCheckFlags extends ASTNode {
     if (consequently_set_flag_tail &&  flag_arrs.length != 1 )
       throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
 
-
     this.flags = flag_arrs;
     this.consequently_set_flag_tail = consequently_set_flag_tail;
 
