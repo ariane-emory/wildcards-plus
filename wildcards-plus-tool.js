@@ -2381,7 +2381,7 @@ function smart_join(arr) {
     }
 
     if (prev_char === '<' && right_word === '<') {
-      // console.log(`JUMP COMMA!`);
+      // console.log(`JUMP <!`);
       continue;
     }
 

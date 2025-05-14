@@ -4,4 +4,4 @@
 // one < foo< bar <baz \n
 // one < foo< bar< baz \n 
 // one < foo< <bar< <baz \n
-one< < <foo \n
+one < foo \n
