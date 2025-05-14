@@ -6908,6 +6908,7 @@ const A1111StyleLora       =
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
+
 const CheckFlagWithOrAlternatives = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
                                           arr => {
                                             if (log_flags_enabled)
@@ -6936,6 +6937,8 @@ const CheckFlag  = choice(
   CheckFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
 );
+
+
 
 const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                          arr => {
