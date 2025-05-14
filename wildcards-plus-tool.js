@@ -7304,7 +7304,7 @@ async function main() {
     const add_loras  = context.add_loras;
     const have_loras = add_loras && add_loras.length > 0;
 
-    console.log(`FLAGS AFTER: ${inspect_fun(contex.flags)}`);
+    console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
     
     if (have_loras) {
       console.log('-----------------------------------------------------------------------------------------');
