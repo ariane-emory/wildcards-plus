@@ -6932,13 +6932,13 @@ const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), 
                                           arr => {
                                             // if (log_flags_enabled)
                                             //  if (arr.some(e => e.length > 1))
-                                            console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
-                                                        `${inspect_fun(arr)}`);
+                                            // console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                            //             `${inspect_fun(arr)}`);
 
                                             const args = [arr[1]];
 
-                                            console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
-                                                        `${inspect_fun(args)}`);
+                                            // console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                            //             `${inspect_fun(args)}`);
 
                                             return new ASTCheckFlags(...args);
                                           });
@@ -6949,13 +6949,13 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(
                                             
                                             // if (log_flags_enabled)
                                             // if (arr.some(e => e.length > 1))
-                                            console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
-                                                        `${inspect_fun(arr)}`);
+                                            // console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
+                                            //             `${inspect_fun(arr)}`);
 
                                             const args = [[ arr[1] ], arr[3]];
 
-                                            console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
-                                                        `${inspect_fun(args)}`);
+                                            // console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
+                                            //             `${inspect_fun(args)}`);
 
                                             return new ASTCheckFlags(...args);
                                           });
@@ -6964,19 +6964,19 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(
 
 const NotFlagWithSetConsequent = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                                        arr => {
-                                         if (log_flags_enabled)
-                                           if (arr[2].length > 1)
-                                             console.log(`CONSTRUCTING NOTFLAG WITH ` +
-                                                         `${inspect_fun(arr[2])}`);
+                                         // if (log_flags_enabled)
+                                         //   if (arr[2].length > 1)
+                                         console.log(`CONSTRUCTING NOTFLAG (2) WITH ` +
+                                                     `${inspect_fun(arr[2])}`);
                                          return new ASTNotFlag(arr[2], { set_immediately: !!arr[1][0]});
                                        });
 
 const SimpleNotFlag            = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                                        arr => {
-                                         if (log_flags_enabled)
-                                           if (arr[2].length > 1)
-                                             console.log(`CONSTRUCTING NOTFLAG WITH ` +
-                                                         `${inspect_fun(arr[2])}`);
+                                         // if (log_flags_enabled)
+                                         //   if (arr[2].length > 1)
+                                         console.log(`CONSTRUCTING NOTFLAG (1) WITH ` +
+                                                     `${inspect_fun(arr[2])}`);
                                          return new ASTNotFlag(arr[2], { set_immediately: !!arr[1][0]});
                                        });
 

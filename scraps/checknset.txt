@@ -6,4 +6,4 @@
 
 { ?foo.bar TADA! } \n
 
-{ !#quux QUUX } \n
+{ !corge !#quux QUUX } \n
