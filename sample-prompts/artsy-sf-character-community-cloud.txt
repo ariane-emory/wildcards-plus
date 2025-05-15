@@ -99,6 +99,7 @@
 
 // ---------------------------------------------------------------------------------------
 %config.loras     = [] // unconfigure any LoRAs that are configured in the DT UI first.
+%neg              = { signature, watermmark, text, }
 
 { 4 ?flux_on
 // Flux Dev:
@@ -486,4 +487,3 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
 
-%neg = { signature, watermmark, text, i}
