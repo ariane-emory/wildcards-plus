@@ -6964,20 +6964,31 @@ const NotFlagWithSetConsequent = xform(seq('!', optional('#'), plus(ident, '.'),
                                        arr => {
                                          // if (log_flags_enabled)
                                          //   if (arr[2].length > 1)
-                                         console.log(`CONSTRUCTING NOTFLAG (2) WITH ` +
+                                         console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
                                                      `${inspect_fun(arr[2])}`);
-                                         return new ASTNotFlag(arr[2], { set_immediately: !!arr[1][0]});
+
+                                         const args_head = [arr[2]];
+
+                                         console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
+                                                     `${inspect_fun(args_head)}`);
+
+                                         return new ASTNotFlag(...args_head, { set_immediately: !!arr[1][0]});
                                        });
 
 const SimpleNotFlag            = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                                        arr => {
                                          // if (log_flags_enabled)
                                          //   if (arr[2].length > 1)
-                                         console.log(`CONSTRUCTING NOTFLAG (1) WITH ` +
+                                         console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
                                                      `${inspect_fun(arr[2])}`);
-                                         return new ASTNotFlag(arr[2], { set_immediately: !!arr[1][0]});
-                                       });
 
+                                         const args_head = [arr[2]];
+
+                                         console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
+                                                     `${inspect_fun(args_head)}`);
+
+                                         return new ASTNotFlag(...args_head, { set_immediately: !!arr[1][0]});
+                                       })
 
 const NotFlag  = choice(
   NotFlagWithSetConsequent,
