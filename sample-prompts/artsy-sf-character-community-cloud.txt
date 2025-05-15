@@ -194,7 +194,7 @@
 |resolute
 |brave
 |cunning
-|inhuman
+|#inhuman inhuman
 |intimidating
 |exotic
 |otherworldly
@@ -209,7 +209,7 @@
 |alien #alien
 |android
 |cyborg #cyborg
-|human #human
+|!inhuman human #human
 // |?traveller Vargr // unrecognized!
 |?traveller Vilani
 |?traveller Zhodani
