@@ -6959,8 +6959,6 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(
 
                                             return new ASTCheckFlags(...args);
                                           });
-const CheckFlag                   = choice(CheckFlagWithSetConsequent,
-                                           CheckFlagWithOrAlternatives);
 const NotFlagWithSetConsequent    = xform(seq('!', plus(ident, '.'), '.#', plus(ident, '.'), word_break),
                                           arr => {
                                             if (log_flags_enabled)
@@ -6991,8 +6989,10 @@ const SimpleNotFlag            = xform(seq('!', optional('#'), plus(ident, '.'),
 
                                          return new ASTNotFlag(...args);
                                        })
-const NotFlag                  = choice(NotFlagWithSetConsequent, SimpleNotFlag);
-const TestFlag                 = choice(CheckFlag, NotFlag);
+const TestFlag                 = choice(CheckFlagWithSetConsequent,
+                                        CheckFlagWithOrAlternatives,
+                                        NotFlagWithSetConsequent,
+                                        SimpleNotFlag);
 const SetFlag                  = xform(second(seq('#', plus(ident, '.'), word_break)),
                                        arr => {
                                          if (log_flags_enabled)
@@ -7168,10 +7168,9 @@ const ContentNoLoras          = choice(
 );
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
-const PromptBody              = wst_star(choice(AnySpecialFunction,
+const Prompt                  = wst_star(choice(AnySpecialFunction,
                                                 NamedWildcardDefinition,
                                                 Content));
-const Prompt                  = PromptBody;
 // -------------------------------------------------------------------------------------------------
 Prompt.finalize();
 // =================================================================================================
