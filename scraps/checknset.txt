@@ -13,5 +13,5 @@
 #foo
 #foo.bar
 #foo.bar.baz
+#!foo.bar
 #foo.bar.quux
-#!foo.bar.baz
