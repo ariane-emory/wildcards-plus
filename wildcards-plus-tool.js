@@ -2794,9 +2794,11 @@ class Context {
   set_flag(new_flag) {
     // if (! Array.isArray(new_flag))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(new_flag)}`);
-        
+
+    log_flags_enabled = true;
+    
     if (log_flags_enabled)
-      console.log(`ADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
+      console.log(`\nADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
 
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
@@ -2810,18 +2812,22 @@ class Context {
     this.flags = this.flags.filter(existing_flag => {
       if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
         if (log_flags_enabled)
-          console.log(`DISCARD ${existing_flag} BECAUSE 1`);
+          console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A PREFIX OF ` +
+                      ` ${inspect_fun(new_flag)}`);
         return false;
       }
       
       if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
         if (log_flags_enabled)
-          console.log(`DISCARD ${existing_flag} BECAUSE 2`);
+          console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A SUFFIX OF HEAD ` +
+                      `${inspect_fun(new_flag_head)}`);
         return false; 
       }
       
       return true;
     });
+
+    log_flags_enabled = false;
 
     this.flags.push(new_flag);
   }
