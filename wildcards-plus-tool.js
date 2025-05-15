@@ -5547,7 +5547,7 @@ const prelude_text = disable_prelude ? '' : `
  ?wizards_artist.fan_ho Chinese, contemporary, film, high-contrast, monochromatic, photography, photography-bw |
  ?wizards_artist.meindert_hobbema Dutch-Golden-Age, landscapes, Observational, painting, Plein-air |
  ?wizards_artist.david_hockney British, colorful, cubism, pools, pop-art, portraits |
- ?wizards_artist.filip_hodas , 3D-rendering, contemporary, dark, digital, dream-like, pop-culture, science-fiction, surreal |
+ ?wizards_artist.filip_hodas 3D-rendering, contemporary, dark, digital, dream-like, pop-culture, science-fiction, surreal |
  ?wizards_artist.howard_hodgkin abstract, color-field, contemporary, modern, nature, vibrant |
  ?wizards_artist.ferdinand_hodler characters, contemporary, impressionism, landscapes, nature, portraits, swiss |
  ?wizards_artist.tiago_hoisel characters, contemporary, illustration, whimsical |
@@ -6172,7 +6172,7 @@ const prelude_text = disable_prelude ? '' : `
  ?wizards_artist.john_zeleznik science-fiction, Rifts, palladium-books, painting |
  ?wizards_artist.keith_parkinson fantasy, medieval, TSR, magic-the-gathering, mtg, painting |
  ?wizards_artist.kevin_fales atmospheric, dark, fantasy, medieval, oil-painting, Rifts, palladium-books |
- ?wizards_artist.boris_vallejo fantasy, science -iction, magic, nature, muscles, femininity
+ ?wizards_artist.boris_vallejo fantasy, science-fiction, magic, nature, muscles, femininity
 }}
 `;
 // -------------------------------------------------------------------------------------------------
