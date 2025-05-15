@@ -6967,13 +6967,13 @@ const NotFlagWithSetConsequent = xform(seq('!', optional('#'), plus(ident, '.'),
                                          console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
                                                      `${inspect_fun(arr[2])}`);
 
-                                         const args_head = [arr[2]];
+                                         const args = [arr[2], { set_immediately: !!arr[1][0]}];
 
                                          console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
-                                                     `${inspect_fun(args_head)}`);
+                                                     `${inspect_fun(args)}`);
 
-                                         return new ASTNotFlag(...args_head, { set_immediately: !!arr[1][0]});
-                                       });
+                                         return new ASTNotFlag(...args);
+                                       })
 
 const SimpleNotFlag            = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                                        arr => {
@@ -6982,12 +6982,12 @@ const SimpleNotFlag            = xform(seq('!', optional('#'), plus(ident, '.'),
                                          console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
                                                      `${inspect_fun(arr[2])}`);
 
-                                         const args_head = [arr[2]];
+                                         const args = [arr[2], { set_immediately: !!arr[1][0]}];
 
                                          console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
-                                                     `${inspect_fun(args_head)}`);
+                                                     `${inspect_fun(args)}`);
 
-                                         return new ASTNotFlag(...args_head, { set_immediately: !!arr[1][0]});
+                                         return new ASTNotFlag(...args);
                                        })
 
 const NotFlag  = choice(
