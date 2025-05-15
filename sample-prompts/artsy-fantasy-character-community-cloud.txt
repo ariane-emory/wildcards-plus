@@ -2,7 +2,7 @@
 // use wildcards to randomize some parts of the configuration before we get on with the
 // actual textual content of the prompt:
 // =======================================================================================
-
+#neuter
 // ---------------------------------------------------------------------------------------
 // template config flags to enable model families or other features:
 // ---------------------------------------------------------------------------------------
