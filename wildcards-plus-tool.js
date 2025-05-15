@@ -6923,6 +6923,11 @@ const make__ASTAnonWildcardAlternative = arr => {
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
 
+const CheckFlag  = choice(
+  () => CheckFlagWithSetConsequent,
+  () => CheckFlagWithOrAlternatives,
+);
+
 const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), word_break),
                                           arr => {
                                             // if (log_flags_enabled)
@@ -6954,11 +6959,6 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(
 
                                             return new ASTCheckFlags(...args);
                                           });
-
-const CheckFlag  = choice(
-  CheckFlagWithSetConsequent,
-  CheckFlagWithOrAlternatives,
-);
 
 
 
