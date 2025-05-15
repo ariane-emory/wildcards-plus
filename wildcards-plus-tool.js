@@ -6962,14 +6962,31 @@ const CheckFlag  = choice(
 
 
 
-const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
-                         arr => {
-                           if (log_flags_enabled)
-                             if (arr[2].length > 1)
-                               console.log(`CONSTRUCTING NOTFLAG WITH ` +
-                                           `${inspect_fun(arr[2])}`);
-                           return new ASTNotFlag(arr[2], { set_immediately: !!arr[1][0]});
-                         });
+const SimpleNotFlag            = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
+                                       arr => {
+                                         if (log_flags_enabled)
+                                           if (arr[2].length > 1)
+                                             console.log(`CONSTRUCTING NOTFLAG WITH ` +
+                                                         `${inspect_fun(arr[2])}`);
+                                         return new ASTNotFlag(arr[2], { set_immediately: !!arr[1][0]});
+                                       });
+
+
+const NotFlagWithSetConsequent = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
+                                       arr => {
+                                         if (log_flags_enabled)
+                                           if (arr[2].length > 1)
+                                             console.log(`CONSTRUCTING NOTFLAG WITH ` +
+                                                         `${inspect_fun(arr[2])}`);
+                                         return new ASTNotFlag(arr[2], { set_immediately: !!arr[1][0]});
+                                       });
+
+
+const NotFlag  = choice(
+  NotFlagWithSetConsequent,
+  SimpleNotFlag,
+);
+
 const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
                          arr => {
                            if (log_flags_enabled)
