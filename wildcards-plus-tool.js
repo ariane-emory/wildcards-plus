@@ -2209,7 +2209,7 @@ class WeightedPicker {
 // =================================================================================================
 // HELPER FUNCTIONS SECTION:
 // =================================================================================================
-// function arr_is_prefix_of(prefix_arr, full_arr) {
+// function arr_is_prefix_of_arr(prefix_arr, full_arr) {
 //   if (prefix_arr.length > full_arr.length)
 //     return false;
 
@@ -2217,7 +2217,7 @@ class WeightedPicker {
 //   return prefix_arr.every((val, idx) => val === full_arr[idx]);
 // }
 // -------------------------------------------------------------------------------------------------
-function arr_is_prefix_of(prefix_arr, full_arr) {
+function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
 
@@ -2775,7 +2775,7 @@ class Context {
       // console.log(`${inspect_fun(flag)} === ` +
       //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
       
-      if (arr_is_prefix_of(test_flag, flag)) {
+      if (arr_is_prefix_of_arr(test_flag, flag)) {
         // console.log (`FOUND IT!`);
         r = true;
         break;
@@ -2791,20 +2791,20 @@ class Context {
     return r;
   }
   // -----------------------------------------------------------------------------------------------
-  set_flag(flag) {
-    // if (! Array.isArray(flag))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag)}`);
+  set_flag(new_flag) {
+    // if (! Array.isArray(new_flag))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(new_flag)}`);
         
     if (log_flags_enabled)
-      console.log(`ADDING ${inspect_fun(flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
+      console.log(`ADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
     
-    if (this.flags.some(f => arr_is_prefix_of(flag, f))) {
+    if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
       console.log(`BAIL`);
       return;
     }
     
-    this.flags = this.flags.filter(f => !(arr_is_prefix_of(f, flag)));
-    this.flags.push(flag);
+    this.flags = this.flags.filter(existing_flag => !(arr_is_prefix_of_arr(existing_flag, new_flag)));
+    this.flags.push(new_flag);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
@@ -2814,7 +2814,7 @@ class Context {
     if (log_flags_enabled)
       console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
-    this.flags = this.flags.filter(f => ! arr_is_prefix_of(flag, f));
+    this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
 
     if (log_flags_enabled)
       console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
