@@ -2800,9 +2800,8 @@ class Context {
 
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
-      // if (log_flags_enabled)
-      //   console.log(`SKIPPING, ALREADY SET`);
-
+      if (log_flags_enabled)
+        console.log(`SKIPPING, ALREADY SET`);
       return;
     }
 
@@ -2810,12 +2809,14 @@ class Context {
     
     this.flags = this.flags.filter(existing_flag => {
       if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
-        // console.log(`DISCARD ${existing_flag} BECAUSE 1`);
+        if (log_flags_enabled)
+          console.log(`DISCARD ${existing_flag} BECAUSE 1`);
         return false;
       }
       
       if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
-        // console.log(`DISCARD ${existing_flag} BECAUSE 2`);
+        if (log_flags_enabled)
+          console.log(`DISCARD ${existing_flag} BECAUSE 2`);
         return false; 
       }
       
