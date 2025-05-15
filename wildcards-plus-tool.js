@@ -6652,9 +6652,11 @@ class ASTNotFlag extends ASTNode  {
       throw new Error(`don't supply both set_immediately and consequently_set_flag_tail`);
 
     this.flag                       = flag_arr;
-    this.set_immediately            = set_immediately;
     this.consequently_set_flag_tail = consequently_set_flag_tail
+    this.set_immediately            = set_immediately;
 
+    console.log(`constructed ${inspect_fun(this)}`)
+    
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
