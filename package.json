@@ -1,7 +1,4 @@
 {
   "name": "wildcards-plus",
-  "type": "module",
-  "dependencies": {
-    "getopts": "^2.3.0"
-  }
+  "type": "module"
 }
