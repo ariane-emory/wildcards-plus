@@ -2809,7 +2809,7 @@ class Context {
     this.flags = this.flags.filter(f => !(arr_is_prefix_of_alt(f, flag)));
     this.flags.push(flag);
 
-                                          // if (this.flags.includes(undefined))
+    // if (this.flags.includes(undefined))
                                           //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
