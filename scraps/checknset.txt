@@ -7,3 +7,5 @@
 { ?foo.bar TADA! } \n
 
 { !corge !#quux QUUX } \n
+
+{ !corge.#grault GRAULT! } \n
