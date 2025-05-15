@@ -2919,16 +2919,16 @@ const prelude_text = disable_prelude ? '' : `
                            |?gender.male   his
                            |?gender.neuter its       }}
 
-@__digit                = {0|1|2|3|4|5|6|7|8|9}
-@__low_digit            = {1|2|3|4|5}
-@__high_digit           = {5|6|7|8|9}
-@low_random_weight      = {0.< @__low_digit }
-@lt1_random_weight      = {0.< @__digit     } 
-@lowish_random_weight   = {0.< @__high_digit}
-@random_weight          = {1.< @__digit}
-@highish_random_weight  = {1.< @__low_digit }
-@gt1_random_weight      = {1.< @__digit     }
-@high_random_weight     = {1.< @__high_digit}
+@__digit                = {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
+@__low_digit            = {<1|<2|<3|<4|<5}
+@__high_digit           = {<5|<6|<7|<8|<9}
+@low_random_weight      = {0. @__low_digit }
+@lt1_random_weight      = {0. @__digit     } 
+@lowish_random_weight   = {0. @__high_digit}
+@random_weight          = {1. @__digit}
+@highish_random_weight  = {1. @__low_digit }
+@gt1_random_weight      = {1. @__digit     }
+@high_random_weight     = {1. @__high_digit}
 @pony_score_9           = {score_9,}
 @pony_score_8_up        = {score_9, score_8_up,}
 @pony_score_7_up        = {score_9, score_8_up, score_7_up,}
