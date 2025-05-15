@@ -2633,7 +2633,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     console.log(`Fix seed, using -1 due to n_iter > 1.`);
     config.seed = -1;
   }
-  else {
+  else if (typeof config.seed !== 'number') {
     config.seed = Math.floor(Math.random() * (2 ** 32));
   }
   
