@@ -2918,8 +2918,9 @@ const prelude_text = disable_prelude ? '' : `
                            {?gender.female hers
                            |?gender.male   his
                            |?gender.neuter its       }}
-@any_digit              = {\\0|\\1|\\2|\\3|\\4|\\5|\\6|\\7|\\8|\\9}
-@low_digit              = {\\1|\\2|\\3|\\4|\\5}
+@any_digit              = {\\0|\\1|\\2|\\3|\\4
+                          |\\5|\\6|\\7|\\8|\\9}
+@low_digit              = {\\0|\\1|\\2|\\3|\\4}
 @high_digit             = {\\5|\\6|\\7|\\8|\\9}
 @low_random_weight      = {0.< @low_digit }
 @lt1_random_weight      = {0.< @any_digit } 
