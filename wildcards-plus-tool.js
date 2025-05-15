@@ -2797,9 +2797,12 @@ class Context {
         
     if (log_flags_enabled)
       console.log(`ADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
-    
+
+    // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
-      console.log(`BAIL`);
+      if (log_flags_enabled)
+        console.log(`SKIPPING, ALREADY SET`);
+
       return;
     }
     
