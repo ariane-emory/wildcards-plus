@@ -10,6 +10,7 @@
 
 // { !corge.#grault GRAULT! } \n
 
-#foo.bar.baz
-#foo.bar
 #foo
+#foo.bar
+#foo.bar.baz
+

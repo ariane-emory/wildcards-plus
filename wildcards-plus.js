@@ -109,20 +109,21 @@
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
-let print_ast_enabled         = false;
-let print_ast_json_enabled    = false;
-let string_input_mode_enabled = true;
-let log_enabled               = true;
-let log_flags_enabled         = false;
-let log_config_enabled        = true;
-let log_post_enabled          = true;
-let log_join_enabled          = false;
-let log_finalize_enabled      = false;
-let log_match_enabled         = false;
-let disable_prelude           = false;
-let print_before_ast_enabled  = false;
-let print_after_ast_enabled   = false;
-let save_post_requests_enable = true;
+let unnecessary_choice_is_error = false;
+let print_ast_enabled           = false;
+let print_ast_json_enabled      = false;
+let string_input_mode_enabled   = true;
+let log_enabled                 = true;
+let log_flags_enabled           = false;
+let log_config_enabled          = true;
+let log_post_enabled            = true;
+let log_join_enabled            = false;
+let log_finalize_enabled        = false;
+let log_match_enabled           = false;
+let disable_prelude             = false;
+let print_before_ast_enabled    = false;
+let print_after_ast_enabled     = false;
+let save_post_requests_enable   = true;
 // -------------------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // -------------------------------------------------------------------------------------------------
@@ -462,7 +463,8 @@ function choice(...options) { // convenience constructor
   if (options.length == 1) {
     console.log("WARNING: unnecessary use of choice!");
 
-    throw new Error("unnecessary use of choice");
+    if (unnecessary_choice_is_error)
+      throw new Error("unnecessary use of choice");
     
     return make_rule_func(options[0]);
   }
@@ -1945,9 +1947,13 @@ class WeightedPicker {
     if (total_weight === 0) {
       // return '';
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix => [ix,
-this.__effective_weight(ix, priority),
-this.options[ix]]), null, 2)}, ` +
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
+  [
+    ix,
+    this.__effective_weight(ix, priority),
+    this.options[ix]
+  ]
+), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
       if (noisy) {
@@ -2000,15 +2006,15 @@ this.options[ix]]), null, 2)}, ` +
 // =================================================================================================
 // HELPER FUNCTIONS SECTION:
 // =================================================================================================
-function arr_is_prefix_of(prefix_arr, full_arr) {
-  if (prefix_arr.length > full_arr.length)
-    return false;
-  
-  // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
-  return prefix_arr.every((val, idx) => val === full_arr[idx]);
-}
+// function arr_is_prefix_of(prefix_arr, full_arr) {
+//   if (prefix_arr.length > full_arr.length)
+//     return false;
+
+//   // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
+//   return prefix_arr.every((val, idx) => val === full_arr[idx]);
+// }
 // -------------------------------------------------------------------------------------------------
-function arr_is_prefix_of_alt(prefix_arr, full_arr) {
+function arr_is_prefix_of(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
 
@@ -2566,7 +2572,7 @@ class Context {
       // console.log(`${inspect_fun(flag)} === ` +
       //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
       
-      if (arr_is_prefix_of_alt(test_flag, flag)) {
+      if (arr_is_prefix_of(test_flag, flag)) {
         // console.log (`FOUND IT!`);
         r = true;
         break;
@@ -2586,14 +2592,25 @@ class Context {
     // if (! Array.isArray(flag))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag)}`);
     
-    // only if flag isn't already set!
-    if (this.flag_is_set(flag))
+    // // only if flag isn't already set!
+    // if (this.flag_is_set(flag)) {
+    //   console.log(`already set: ${inspect_fun(flag)}`);
+    
+    //   return;
+    // }
+    
+    // if (log_flags_enabled)
+    //   if (flag.length > 1)
+    //     console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
+
+    console.log(`ADDING ${inspect_fun(flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
+    
+    if (this.flags.some(f => arr_is_prefix_of(flag, f))) {
+      console.log(`BAIL`);
       return;
-
-    if (log_flags_enabled)
-      if (flag.length > 1)
-        console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
-
+    }
+    
+    this.flags = this.flags.filter(f => !(arr_is_prefix_of(f, flag)));
     this.flags.push(flag);
 
     // if (this.flags.includes(undefined))
@@ -6416,24 +6433,40 @@ class ASTUnsetFlag extends ASTNode {
 }
 // --------------------------------------------------------------------------------------------------
 class ASTCheckFlags extends ASTNode {
-  constructor(flag_arrs) {
+  constructor(flag_arrs, consequently_set_flag_tail) {
     // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
     //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
-
     super();
+
+    if (consequently_set_flag_tail && flag_arrs.length != 1 )
+      throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
+
     this.flags = flag_arrs;
+    this.consequently_set_flag_tail = consequently_set_flag_tail;
+
+    if (log_flags_enabled)
+      console.log(`constructed ${inspect_fun(this)}`)
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTNotFlag extends ASTNode  {
-  constructor(flag_arr, set_immediately) {
+class ASTNotFlag extends ASTNode  { 
+  constructor(flag_arr, { set_immediately = undefined,
+                          consequently_set_flag_tail = undefined } = {}) {
     // if (! Array.isArray(flag_arr))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
 
     super();
-    this.flag = flag_arr;
-    this.set_immediately = set_immediately;
 
+    if (set_immediately && consequently_set_flag_tail)
+      throw new Error(`don't supply both set_immediately and consequently_set_flag_tail`);
+
+    this.flag                       = flag_arr;
+    this.consequently_set_flag_tail = consequently_set_flag_tail
+    this.set_immediately            = set_immediately;
+
+    if (log_flags_enabled)
+      console.log(`constructed ${inspect_fun(this)}`)
+    
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
@@ -6655,29 +6688,6 @@ const filename                 = /[A-Za-z0-9 ._\-()]+/;
 //                             ')'),                          // [2]
 //             arr => xform_func(arr[1]));
 // -------------------------------------------------------------------------------------------------
-// helper funs used by xforms:
-// -------------------------------------------------------------------------------------------------
-const make__ASTAnonWildcardAlternative = arr => {
-  // console.log(`ARR: ${inspect_fun(arr)}`);
-  const flags = ([ ...arr[0], ...arr[2] ]);
-  const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
-  const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
-  const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
-  const set_immediately_not_flags = not_flags
-        .filter(f => f.set_immediately)
-        .map(f => new ASTSetFlag(f.flag));
-  
-  return new ASTAnonWildcardAlternative(
-    arr[1][0],
-    check_flags,
-    not_flags,
-    [
-      ...set_immediately_not_flags,
-      ...set_or_unset_flags,
-      ...arr[3]
-    ]);
-}
-// -------------------------------------------------------------------------------------------------
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
@@ -6693,41 +6703,119 @@ const A1111StyleLora       =
                              "1.0"), // [4][0]
                     '>'));
 // -------------------------------------------------------------------------------------------------
+// helper funs used by xforms:
+// -------------------------------------------------------------------------------------------------
+const make_ASTAnonWildcardAlternative = arr => {
+  // console.log(`ARR: ${inspect_fun(arr)}`);
+  const flags = ([ ...arr[0], ...arr[2] ]);
+  const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
+  const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
+  const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
+
+  const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails =
+        check_flags
+        .filter(f => f.consequently_set_flag_tail)
+        .map(f => new ASTSetFlag([ ...f.flags[0], ...f.consequently_set_flag_tail ]));
+
+  const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails =
+        not_flags
+        .filter(f => f.consequently_set_flag_tail)
+        .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
+  
+  const ASTSetFlags_for_ASTNotFlags_with_set_immediately =
+        not_flags
+        .filter(f => f.set_immediately)
+        .map(f => new ASTSetFlag(f.flag));
+
+  return new ASTAnonWildcardAlternative(
+    arr[1][0],
+    check_flags,
+    not_flags,
+    [
+      ...ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails,
+      ...ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails,
+      ...ASTSetFlags_for_ASTNotFlags_with_set_immediately,
+      ...set_or_unset_flags,
+      ...arr[3]
+    ]);
+}
+// -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SetFlag    = xform(second(seq('#', plus(ident, '.'), word_break)),
-                         arr => {
-                           if (log_flags_enabled)
-                             if (arr.length > 1)
-                               console.log(`CONSTRUCTING SETFLAG WITH ` +
-                                           `${inspect_fun(arr)}`);
-                           return new ASTSetFlag(arr);
-                         });
-const CheckFlag  = xform(second(seq('?', plus(plus(ident, '.'), ','), word_break)),
-                         arr => {
-                           if (log_flags_enabled)
-                             if (arr.some(e => e.length > 1))
-                               console.log(`CONSTRUCTING CHECKFLAG WITH ` +
-                                           `${inspect_fun(arr)}`);
-                           return new ASTCheckFlags(arr);
-                         });
-const NotFlag    = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
-                         arr => {
-                           if (log_flags_enabled)
-                             if (arr[2].length > 1)
-                               console.log(`CONSTRUCTING NOTFLAG WITH ` +
-                                           `${inspect_fun(arr[2])}`);
-                           return new ASTNotFlag(arr[2], arr[1][0]);
-                         });
-const UnsetFlag  = xform(second(seq('#!', plus(ident, '.'), word_break)),
-                         arr => {
-                           if (log_flags_enabled)
-                             if (arr.length > 1)
-                               console.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                           ` ${inspect_fun(arr)}`);
-                           return new ASTUnsetFlag(arr);
-                         });
-const TestFlag   = choice(CheckFlag, NotFlag);
+const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), word_break),
+                                          arr => {
+                                            const args = [arr[1]];
+
+                                            if (log_flags_enabled) {
+                                              console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                                          `${inspect_fun(arr)}`);
+                                              console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                                          `${inspect_fun(args)}`);
+                                            }
+
+                                            return new ASTCheckFlags(...args);
+                                          });
+const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(ident, '.'), word_break ),
+                                          arr => {
+                                            const args = [[ arr[1] ], arr[3]];
+
+                                            if (log_flags_enabled) {
+                                              console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
+                                                          `${inspect_fun(arr)}`);
+                                              console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
+                                                          `${inspect_fun(args)}`);
+                                            }
+
+                                            return new ASTCheckFlags(...args);
+                                          });
+const NotFlagWithSetConsequent    = xform(seq('!', plus(ident, '.'), '.#', plus(ident, '.'), word_break),
+                                          arr => {
+                                            const args = [arr[1],
+                                                          { consequently_set_flag_tail: arr[3] }]; 
+
+                                            if (log_flags_enabled) {
+                                              console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
+                                                          `${inspect_fun(arr)}`);
+                                              console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
+                                                          `${inspect_fun(args)}`);
+                                            }
+                                            
+                                            return new ASTNotFlag(...args);
+                                          })
+const SimpleNotFlag              = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
+                                         arr => {
+                                           const args = [arr[2],
+                                                         { set_immediately: !!arr[1][0]}];
+
+                                           if (log_flags_enabled) {
+                                             console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
+                                                         `${inspect_fun(arr)}`);
+                                             console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
+                                                         `${inspect_fun(args)}`);
+                                           }
+
+                                           return new ASTNotFlag(...args);
+                                         })
+const TestFlag                   = choice(CheckFlagWithSetConsequent,
+                                          CheckFlagWithOrAlternatives,
+                                          NotFlagWithSetConsequent,
+                                          SimpleNotFlag);
+const SetFlag                  = xform(second(seq('#', plus(ident, '.'), word_break)),
+                                       arr => {
+                                         if (log_flags_enabled)
+                                           if (arr.length > 1)
+                                             console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                                         `${inspect_fun(arr)}`);
+                                         return new ASTSetFlag(arr);
+                                       });
+const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_break)),
+                                       arr => {
+                                         if (log_flags_enabled)
+                                           if (arr.length > 1)
+                                             console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                                         ` ${inspect_fun(arr)}`);
+                                         return new ASTUnsetFlag(arr);
+                                       });
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
@@ -6798,12 +6886,12 @@ const AnySpecialFunction                  = choice((dt_hosted
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = xform(make__ASTAnonWildcardAlternative,
+const AnonWildcardAlternative        = xform(make_ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
                                                  wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  () => ContentStar));
-const AnonWildcardAlternativeNoLoras = xform(make__ASTAnonWildcardAlternative,
+const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
                                                  wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
@@ -6887,10 +6975,9 @@ const ContentNoLoras          = choice(
 );
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
-const PromptBody              = wst_star(choice(AnySpecialFunction,
+const Prompt                  = wst_star(choice(AnySpecialFunction,
                                                 NamedWildcardDefinition,
                                                 Content));
-const Prompt                  = PromptBody;
 // -------------------------------------------------------------------------------------------------
 Prompt.finalize();
 // =================================================================================================

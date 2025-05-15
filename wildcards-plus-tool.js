@@ -2209,15 +2209,15 @@ class WeightedPicker {
 // =================================================================================================
 // HELPER FUNCTIONS SECTION:
 // =================================================================================================
-function arr_is_prefix_of(prefix_arr, full_arr) {
-  if (prefix_arr.length > full_arr.length)
-    return false;
-  
-  // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
-  return prefix_arr.every((val, idx) => val === full_arr[idx]);
-}
+// function arr_is_prefix_of(prefix_arr, full_arr) {
+//   if (prefix_arr.length > full_arr.length)
+//     return false;
+
+//   // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
+//   return prefix_arr.every((val, idx) => val === full_arr[idx]);
+// }
 // -------------------------------------------------------------------------------------------------
-function arr_is_prefix_of_alt(prefix_arr, full_arr) {
+function arr_is_prefix_of(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
 
@@ -2775,7 +2775,7 @@ class Context {
       // console.log(`${inspect_fun(flag)} === ` +
       //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
       
-      if (arr_is_prefix_of_alt(test_flag, flag)) {
+      if (arr_is_prefix_of(test_flag, flag)) {
         // console.log (`FOUND IT!`);
         r = true;
         break;
@@ -2806,11 +2806,18 @@ class Context {
     //   if (flag.length > 1)
     //     console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
 
-    this.flags = this.flags.filter(f => !(arr_is_prefix_of_alt(f, flag)));
+    console.log(`ADDING ${inspect_fun(flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
+    
+    if (this.flags.some(f => arr_is_prefix_of(flag, f))) {
+      console.log(`BAIL`);
+      return;
+    }
+    
+    this.flags = this.flags.filter(f => !(arr_is_prefix_of(f, flag)));
     this.flags.push(flag);
 
     // if (this.flags.includes(undefined))
-                                          //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
@@ -6993,7 +7000,7 @@ const SimpleNotFlag              = xform(seq('!', optional('#'), plus(ident, '.'
                                            return new ASTNotFlag(...args);
                                          })
 const TestFlag                   = choice(CheckFlagWithSetConsequent,
-                                         CheckFlagWithOrAlternatives,
+                                          CheckFlagWithOrAlternatives,
                                           NotFlagWithSetConsequent,
                                           SimpleNotFlag);
 const SetFlag                  = xform(second(seq('#', plus(ident, '.'), word_break)),
@@ -7333,7 +7340,7 @@ async function main() {
     const have_loras = add_loras && add_loras.length > 0;
 
     //if (log_flags_enabled)
-      console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
+    console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
     
     if (have_loras) {
       console.log('-----------------------------------------------------------------------------------------');
