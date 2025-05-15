@@ -2796,8 +2796,11 @@ class Context {
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag)}`);
     
     // only if flag isn't already set!
-    if (this.flag_is_set(flag))
+    if (this.flag_is_set(flag)) {
+      console.log(`already set: ${inspect_fun(flag)}`);
+      
       return;
+    }
 
     if (log_flags_enabled)
       if (flag.length > 1)
@@ -6900,22 +6903,25 @@ const A1111StyleLora       =
 const make_ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
-  const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
+  const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
 
-  const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails = check_flags
+  const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails =
+        check_flags
         .filter(f => f.consequently_set_flag_tail)
         .map(f => new ASTSetFlag([ ...f.flags[0], ...f.consequently_set_flag_tail ]));
 
-  const ASTSetFlags_for_ASTNotFlags_with_set_immediately_ = not_flags
-        .filter(f => f.set_immediately)
-        .map(f => new ASTSetFlag(f.flag));
-
-  const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails = not_flags
+  const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails =
+        not_flags
         .filter(f => f.consequently_set_flag_tail)
         .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
   
+  const ASTSetFlags_for_ASTNotFlags_with_set_immediately =
+        not_flags
+        .filter(f => f.set_immediately)
+        .map(f => new ASTSetFlag(f.flag));
+
   return new ASTAnonWildcardAlternative(
     arr[1][0],
     check_flags,
@@ -6923,7 +6929,7 @@ const make_ASTAnonWildcardAlternative = arr => {
     [
       ...ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails,
       ...ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails,
-      ...ASTSetFlags_for_ASTNotFlags_with_set_immediately_,
+      ...ASTSetFlags_for_ASTNotFlags_with_set_immediately,
       ...set_or_unset_flags,
       ...arr[3]
     ]);
