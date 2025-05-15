@@ -2892,24 +2892,24 @@ class Context {
 }
 // -------------------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
-@__set_gender_if_unset  = {!gender {3 #gender.female #female
-                                    |2 #gender.male   #male
-                                    |1 #gender.neuter #neuter}}
+@__set_gender_if_unset  = {3 !gender.#female #female
+                          |2 !gender.#male   #male
+                          |1 !gender.#neuter #neuter}
 @gender                 = {@__set_gender_if_unset {?gender.female woman
-                                                   |?gender.male   man
-                                                   |?gender.neuter androgyne }}
+                                                  |?gender.male   man
+                                                  |?gender.neuter androgyne }}
 @pro_3rd_subj           = {@__set_gender_if_unset {?gender.female she
-                                                   |?gender.male   he
-                                                   |?gender.neuter it        }}
+                                                  |?gender.male   he
+                                                  |?gender.neuter it        }}
 @pro_3rd_obj            = {@__set_gender_if_unset {?gender.female her
-                                                   |?gender.male   him
-                                                   |?gender.neuter it        }}
+                                                  |?gender.male   him
+                                                  |?gender.neuter it        }}
 @pro_pos_adj            = {@__set_gender_if_unset {?gender.female her
-                                                   |?gender.male his
-                                                   |?gender.neuter its       }}
+                                                  |?gender.male his
+                                                  |?gender.neuter its       }}
 @pro_pos                = {@__set_gender_if_unset {?gender.female hers
-                                                   |?gender.male his
-                                                   |?gender.neuter its       }}
+                                                  |?gender.male his
+                                                  |?gender.neuter its       }}
 
 @__digit                = {<0|<1|<2|<3|<4|<5|<6|<7|<8|<9}
 @__low_digit            = {<1|<2|<3|<4|<5}
