@@ -6962,7 +6962,7 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(
 
 
 
-const SimpleNotFlag            = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
+const NotFlagWithSetConsequent = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                                        arr => {
                                          if (log_flags_enabled)
                                            if (arr[2].length > 1)
@@ -6971,8 +6971,7 @@ const SimpleNotFlag            = xform(seq('!', optional('#'), plus(ident, '.'),
                                          return new ASTNotFlag(arr[2], { set_immediately: !!arr[1][0]});
                                        });
 
-
-const NotFlagWithSetConsequent = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
+const SimpleNotFlag            = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
                                        arr => {
                                          if (log_flags_enabled)
                                            if (arr[2].length > 1)
