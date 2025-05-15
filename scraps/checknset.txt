@@ -19,3 +19,4 @@
 #corge
 #corge.grault
 #corge.fred
+#foo.waldo
