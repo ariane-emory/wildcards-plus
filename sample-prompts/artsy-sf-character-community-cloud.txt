@@ -27,6 +27,7 @@
 |   #wizards_artist.peter_elson
 |   #wizards_artist.wayne_barlowe
 |   #wizards_artist.jim_burns
+|   #wizards_artist.christopher_balaskas 
 }
 
 // ---------------------------------------------------------------------------------------
@@ -418,4 +419,4 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
 
-%neg = { signature, watermmark, text, }
+%neg = { signature, watermmark, text, i}
