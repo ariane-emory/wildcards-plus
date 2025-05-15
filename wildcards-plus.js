@@ -2603,7 +2603,7 @@ class Context {
     //   if (flag.length > 1)
     //     console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
 
-    console.log(`ADDING ${inspect_fun(flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
+    // console.log(`ADDING ${inspect_fun(flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
     
     if (this.flags.some(f => arr_is_prefix_of(flag, f))) {
       console.log(`BAIL`);
