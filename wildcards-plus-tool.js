@@ -11,7 +11,7 @@
 // The script takes a file name as its first argument, and an optional second argument
 // specifying how many expansions you'd like to see.
 //
-// Usage: ./wildcards-plus-tool.js [-p|-c] <input-file> [<count>]
+// Usage: ./wildcards-plus-tool.js [-p|-c] <input-file> [<counut>]
 // 
 // -p: POST the image generation requests to a local instance of Draw Things.
 // -c: as -p, but prompting for confirmation before POSTing each prompt.
@@ -2806,7 +2806,7 @@ class Context {
     //   if (flag.length > 1)
     //     console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
 
-    console.log(`ADDING ${inspect_fun(flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
+    // console.log(`ADDING ${inspect_fun(flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
     
     if (this.flags.some(f => arr_is_prefix_of(flag, f))) {
       console.log(`BAIL`);

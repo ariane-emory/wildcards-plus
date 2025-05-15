@@ -1,16 +1,17 @@
-// #foo
- 
-// { ?foo FOO 1! } \n
+#foo
 
-// { ?foo.#bar FOO 2! } \n
+{ ?foo FOO 1! } \n
 
-// { ?foo.bar TADA! } \n
+{ ?foo.#bar FOO 2! } \n
 
-// { !corge !#quux QUUX } \n
+{ ?foo.bar TADA! } \n
 
-// { !corge.#grault GRAULT! } \n
+{ !corge !#quux QUUX } \n
+
+{ !corge.#grault GRAULT! } \n
 
 #foo
 #foo.bar
 #foo.bar.baz
-
+#foo.bar.quux
+#!foo.bar.baz
