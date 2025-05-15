@@ -6897,7 +6897,7 @@ const A1111StyleLora       =
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
-const make__ASTAnonWildcardAlternative = arr => {
+const make_ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
@@ -7079,12 +7079,12 @@ const AnySpecialFunction                  = choice((dt_hosted
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = xform(make__ASTAnonWildcardAlternative,
+const AnonWildcardAlternative        = xform(make_ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
                                                  wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  () => ContentStar));
-const AnonWildcardAlternativeNoLoras = xform(make__ASTAnonWildcardAlternative,
+const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
                                                  wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
