@@ -6960,14 +6960,14 @@ const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(
 
 
 
-const NotFlagWithSetConsequent = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
+const NotFlagWithSetConsequent = xform(seq('!', plus(ident, '.'), word_break),
                                        arr => {
                                          // if (log_flags_enabled)
                                          //   if (arr[2].length > 1)
                                          console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
-                                                     `${inspect_fun(arr[2])}`);
+                                                     `${inspect_fun(arr)}`);
 
-                                         const args = [arr[2], { set_immediately: !!arr[1][0]}];
+                                         const args = [arr[1], { consequently_set_flag_tail: undefined }]; // fix it
 
                                          console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
                                                      `${inspect_fun(args)}`);
@@ -6980,7 +6980,7 @@ const SimpleNotFlag            = xform(seq('!', optional('#'), plus(ident, '.'),
                                          // if (log_flags_enabled)
                                          //   if (arr[2].length > 1)
                                          console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
-                                                     `${inspect_fun(arr[2])}`);
+                                                     `${inspect_fun(arr)}`);
 
                                          const args = [arr[2], { set_immediately: !!arr[1][0]}];
 
