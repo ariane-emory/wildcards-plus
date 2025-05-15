@@ -76,7 +76,7 @@
 |   #wizards_artist.moebius
 |   #wizards_artist.alan_moore
 |   #wizards_artist.todd_nauck
-|   #wizards_artist.tsutomu_nihei
+// |   #wizards_artist.tsutomu_nihei
 |   #wizards_artist.terry_oakes
 |   #wizards_artist.noriyoshi_ohrai
 |   #wizards_artist.mamoru_oshii
