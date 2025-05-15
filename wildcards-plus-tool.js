@@ -2794,19 +2794,9 @@ class Context {
   set_flag(flag) {
     // if (! Array.isArray(flag))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag)}`);
-    
-    // // only if flag isn't already set!
-    // if (this.flag_is_set(flag)) {
-    //   console.log(`already set: ${inspect_fun(flag)}`);
-    
-    //   return;
-    // }
-    
-    // if (log_flags_enabled)
-    //   if (flag.length > 1)
-    //     console.log(`SET COMPOUND FLAG ${inspect_fun(flag)}`);
-
-    // console.log(`ADDING ${inspect_fun(flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
+        
+    if (log_flags_enabled)
+      console.log(`ADDING ${inspect_fun(flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
     
     if (this.flags.some(f => arr_is_prefix_of(flag, f))) {
       console.log(`BAIL`);
@@ -2815,9 +2805,6 @@ class Context {
     
     this.flags = this.flags.filter(f => !(arr_is_prefix_of(f, flag)));
     this.flags.push(flag);
-
-    // if (this.flags.includes(undefined))
-    //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
