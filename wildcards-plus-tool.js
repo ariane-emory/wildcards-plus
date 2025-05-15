@@ -2647,7 +2647,8 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     //   // do nothing
     // }
     else if (config.model.endsWith('_f16')) {
-      config.model = `${config.model}.ckpt`;}
+      config.model = `${config.model}.ckpt`;
+    }
     else {
       config.model= `${config.model}_f16.ckpt`;
     }
