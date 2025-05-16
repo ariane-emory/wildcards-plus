@@ -7172,9 +7172,10 @@ const ScalarReference         = xform(seq('$', optional('^'), ident),
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
 const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0][0], arr[1], arr[0][1]),
-                                      wst_cutting_seq(wst_seq(ScalarDesignator,        // [0][0]
-                                                              choice(incr_assignment_operator, assignment_operator)),    // -
-                                                      () => ScalarAssignmentSource));  // [1]
+                                      wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
+                                                              choice(incr_assignment_operator,
+                                                                     assignment_operator)), // [0][1]
+                                                      () => ScalarAssignmentSource));       // [1]
 const ScalarAssignmentSource  = choice(NamedWildcardReference,
                                        AnonWildcard,
                                        ScalarReference,);
