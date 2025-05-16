@@ -6376,7 +6376,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     // scalar assignment:
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTScalarAssignment) {
+    else if (thing instanceof ASTScalarUpdate) {
       if (context.noisy) {
         console.log();
         console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
@@ -6716,7 +6716,7 @@ class ASTScalarReference extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Scalar assignment:
 // -------------------------------------------------------------------------------------------------
-class ASTScalarAssignment extends ASTNode  {
+class ASTScalarUpdate extends ASTNode  {
   constructor(destination, source, increment) {
     super();
     this.destination = destination;
@@ -7060,7 +7060,7 @@ const SpecialFunctionUpdateNegativePrompt =
             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),     // [0][1]
-                            () => ScalarAssignmentSource));           // [1]
+                            () => ScalarUpdateSource));           // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2][1]),
           cutting_seq('%config.',                                     // [0]
@@ -7154,13 +7154,13 @@ const ScalarReference         = xform(seq('$', optional('^'), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
-const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0][0], arr[1],
-                                                                     arr[0][1] == '+='),
+const ScalarUpdate            = xform(arr => new ASTScalarUpdate(arr[0][0], arr[1],
+                                                                 arr[0][1] == '+='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      () => ScalarAssignmentSource));       // [1]
-const ScalarAssignmentSource  = choice(NamedWildcardReference,
+                                                      () => ScalarUpdateSource));       // [1]
+const ScalarUpdateSource      = choice(NamedWildcardReference,
                                        AnonWildcard,
                                        ScalarReference,);
 const LimitedContent          = choice(
@@ -7175,7 +7175,7 @@ const ContentNoLoras          = choice(
   UnsetFlag,
   escaped_brc,
   AnonWildcard,
-  ScalarAssignment,
+  ScalarUpdate,
   ScalarReference,
   comment,
   SpecialFunctionNotInclude,
