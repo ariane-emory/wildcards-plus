@@ -7074,12 +7074,12 @@ const SpecialFunctionRevertPickMultiple =
 const SpecialFunctionAddToNegativePrompt =
       xform(arr => new ASTSpecialFunctionAddToNegativePrompt(arr[1]),
             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
-                                    incr_assignment_operator),        // -     
+                                    incr_assignment_operator),        // [0][1] 
                             () => ScalarAssignmentSource));           // [1]   
 const SpecialFunctionSetNegativePrompt = 
       xform(arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]),
             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
-                                    assignment_operator),             // -
+                                    assignment_operator),             // [0][1]
                             () => ScalarAssignmentSource));           // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2][1]),
