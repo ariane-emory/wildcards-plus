@@ -7168,6 +7168,10 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0][0], 
                                       wst_cutting_seq(wst_seq(ScalarReference,        // [0][0]
                                                               assignment_operator),   // -
                                                       () => ScalarAssignmentSource)); // [1]
+const ScalarIncrAssignment    = xform(arr => new ASTScalarAssignment(arr[0][0], arr[1]),
+                                      wst_cutting_seq(wst_seq(ScalarReference,        // [0][0]
+                                                              assignment_operator),   // -
+                                                      () => ScalarAssignmentSource)); // [1]
 const ScalarAssignmentSource  = choice(NamedWildcardReference,
                                        AnonWildcard,
                                        ScalarReference,);
@@ -7177,15 +7181,15 @@ const LimitedContent          = choice(
   ScalarReference,
 );
 const ContentNoLoras          = choice(
-  ScalarAssignment,
   NamedWildcardReference,
   NamedWildcardUsage,
   SetFlag,
   UnsetFlag,
   escaped_brc,
   AnonWildcard,
-  comment,
+  ScalarAssignment,
   ScalarReference,
+  comment,
   SpecialFunctionNotInclude,
   plaintext,
 );
