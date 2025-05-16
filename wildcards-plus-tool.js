@@ -2530,7 +2530,7 @@ const dt_samplers = [   // order is significant, do not rearrange!
 const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
 // -------------------------------------------------------------------------------------------------
 const config_key_names = [
-  // [ automatic1111's name,  Draw Things' name ],
+  // [ automatic1111_name, dt_name ],
   [ 'aesthetic_score',                     'aestheticScore'               ],
   [ 'batch_count',                         'batchCount'                   ],
   [ 'n_iter',                              'batchCount'                   ],
@@ -2541,12 +2541,12 @@ const config_key_names = [
   [ 'controls',                            'controls'                     ],
   [ 'crop_left',                           'cropLeft'                     ],
   [ 'crop_top',                            'cropTop'                      ],
-  [ 'decoding_tile_height_explanation',    'decodingTileHeight'           ],
-  [ 'decoding_tile_overlap_explanation',   'decodingTileOverlap'          ],
-  [ 'decoding_tile_width_explanation',     'decodingTileWidth'            ],
-  [ 'diffusion_tile_height_explanation',   'diffusionTileHeight'          ],
-  [ 'diffusion_tile_overlap_explanation',  'diffusionTileOverlap'         ],
-  [ 'diffusion_tile_width_explanation',    'diffusionTileWidth'           ],
+  [ 'decoding_tile_height' /* _explanation' */,    'decodingTileHeight'           ],
+  [ 'decoding_tile_overlap' /* _explanation' */,   'decodingTileOverlap'          ],
+  [ 'decoding_tile_width' /* _explanation' */,     'decodingTileWidth'            ],
+  [ 'diffusion_tile_height' /* _explanation' */,   'diffusionTileHeight'          ],
+  [ 'diffusion_tile_overlap' /* _explanation' */,  'diffusionTileOverlap'         ],
+  [ 'diffusion_tile_width' /* _explanation' */,    'diffusionTileWidth'           ],
   [ 'fps',                                 'fps'                          ],
   [ 'guidance_embed',                      'guidanceEmbed'                ],
   [ 'cfg_scale',                           'guidanceScale'                ],
@@ -2691,10 +2691,10 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 
     for (const [automatic1111_name, dt_name] of config_key_names) {
       if (automatic1111_name === dt_name)
-        continue;
+        break;
       
       if (config[dt_name] !== undefined) {
-        console.log(`Correcting 4 config.${dt_name} = ` +
+        console.log(`Correcting config.${dt_name} = ` +
                     `${inspect_fun(config[dt_name])} to ` +
                     `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
         config[automatic1111_name] = config[dt_name];
