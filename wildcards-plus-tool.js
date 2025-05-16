@@ -6586,23 +6586,27 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     // ASTSpecialFunctionAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionAddToNegativePrompt) {
-      context.add_to_negative_prompt(expand_wildcards(thing.negative_prompt_content, context));
+    else if (thing instanceof ASTSpecialFunctionUpdateNegativePrompt) {
+      if (thing.assign)
+        context.negative_prompt = expand_wildcards(thing.negative_prompt_content, context);
+      else 
+        context.add_to_negative_prompt(expand_wildcards(thing.negative_prompt_content, context));
       
-      console.log(`Added to negative prompt: ${inspect_fun(context.negative_prompt)}`);
-      
-      return '';
-    }
-    // ---------------------------------------------------------------------------------------------
-    // ASTSpecialFunctionSetNegativePrompt:
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionSetNegativePrompt) {
-      context.negative_prompt = expand_wildcards(thing.negative_prompt_content, context);
-      
-      console.log(`Set negative prompt:      ${inspect_fun(context.negative_prompt)}`);
+      console.log(`${thing.assign ? "Set" : "Updated"} ` +
+                  `negative prompt: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
+    // // ---------------------------------------------------------------------------------------------
+    // // ASTSpecialFunctionSetNegativePrompt:
+    // // ---------------------------------------------------------------------------------------------
+    // else if (thing instanceof ASTSpecialFunctionSetNegativePrompt) {
+    //   context.negative_prompt = expand_wildcards(thing.negative_prompt_content, context);
+    
+    //   console.log(`Set negative prompt:      ${inspect_fun(context.negative_prompt)}`);
+    
+    //   return '';
+    // }
     // ---------------------------------------------------------------------------------------------
     else {
       throw new Error(`confusing thing: ` +
@@ -6866,17 +6870,25 @@ class ASTSpecialFunctionRevertPickSingle extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionAddToNegativePrompt extends ASTNode {
-  constructor(negative_prompt_content) {
-    super();
-    this.negative_prompt_content = negative_prompt_content
-  }
-}
+// class ASTSpecialFunctionAddToNegativePrompt extends ASTNode {
+//   constructor(negative_prompt_content) {
+//     super();
+//     this.negative_prompt_content = negative_prompt_content
+//   }
+// }
+// // -------------------------------------------------------------------------------------------------
+// class ASTSpecialFunctionSetNegativePrompt extends ASTNode {
+//   constructor(negative_prompt_content) {
+//     super();
+//     this.negative_prompt_content = negative_prompt_content
+//   }
+// }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionSetNegativePrompt extends ASTNode {
-  constructor(negative_prompt_content) {
+class ASTSpecialFunctionUpdateNegativePrompt extends ASTNode {
+  constructor(negative_prompt_content, assign) {
     super();
     this.negative_prompt_content = negative_prompt_content
+    this.assign                  = assign;
   }
 }
 // =================================================================================================
@@ -7071,17 +7083,6 @@ const SpecialFunctionRevertPickSingle =
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTSpecialFunctionRevertPickMultiple(),
             '%revert-multi-pick-priority');
-// const SpecialFunctionAddToNegativePrompt =
-//       xform(arr => new ASTSpecialFunctionAddToNegativePrompt(arr[1]),
-//             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
-//                                     incr_assignment_operator),        // [0][1] 
-//                             () => ScalarAssignmentSource));           // [1]   
-// const SpecialFunctionSetNegativePrompt = 
-//       xform(arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]),
-//             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
-//                                     assignment_operator),             // [0][1]
-//                             () => ScalarAssignmentSource));           // [1]
-
 const SpecialFunctionUpdateNegativePrompt = 
       xform(arr => new ASTSpecialFunctionUpdateNegativePrompt(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
@@ -7113,8 +7114,7 @@ const SpecialFunctionNotInclude          = choice(SpecialFunctionUpdateConfigura
                                                   SpecialFunctionSetPickMultiple,
                                                   SpecialFunctionRevertPickSingle,
                                                   SpecialFunctionRevertPickMultiple,
-                                                  SpecialFunctionAddToNegativePrompt,
-                                                  SpecialFunctionSetNegativePrompt);
+                                                  SpecialFunctionUpdateNegativePrompt);
 const AnySpecialFunction                  = choice((dt_hosted
                                                     ? UnexpectedSpecialFunctionInclude
                                                     : SpecialFunctionInclude),

@@ -9,3 +9,7 @@ It's a $animal.
 
 // %config += { "foo" : 123 }
 // %config += { "bar" : 234 }
+
+%neg  = { this }
+%neg += { that }
+%neg  = { foo }
