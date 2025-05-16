@@ -6391,12 +6391,16 @@ function expand_wildcards(thing, context = new Context()) {
                     `TO '${thing.destination.name}'`);
       }
 
-      const val = walk(thing.source);
+      let   new_val  = walk(thing.source);
+      const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
-      context.scalar_variables.set(thing.destination.name, val);
+      if (thing.increment)
+        new_val = smart_join([ old_val, new_val ]);
+      
+      context.scalar_variables.set(thing.destination.name, new_val);
 
       if (context.noisy) {
-        console.log(`ASSIGN ${inspect_fun(val)} TO "${thing.destination.name}'`);
+        console.log(`ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
         console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
       }
       
