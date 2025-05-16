@@ -7167,8 +7167,8 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
 
                                         return objs;
                                       });
-const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
-                                      arr => new ASTScalarReference(arr[1], arr[0][0]));
+const ScalarReference         = xform(seq('$', optional('^'), ident),
+                                      arr => new ASTScalarReference(arr[2], arr[1][0]));
 const ScalarAssignment        = xform(arr => {
   console.log(`ARR: ${inspect_fun(arr)}`);
   
