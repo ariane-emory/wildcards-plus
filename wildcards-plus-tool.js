@@ -5092,7 +5092,7 @@ const prelude_text = disable_prelude ? '' : `
 | ?wizards_artist.yuumei Yuumei
 | ?wizards_artist.william_zorach William Zorach
 | ?wizards_artist.ander_zorn Ander Zorn
-// artists added by me (ariane-emory
+// artists added by me (ariane-emory)
 | ?wizards_artist.ian_miller Ian Miller
 | ?wizards_artist.john_zeleznik John Zeleznik
 | ?wizards_artist.keith_parkinson Keith Parkinson
@@ -6179,10 +6179,6 @@ const prelude_text = disable_prelude ? '' : `
 | ?wizards_artist.boris_vallejo fantasy, science-fiction, magic, nature, muscles, femininity,
 }}
 `;
-
-// broken here:
-foo(bar(baz(quux(corge(grault()))))); 
-
 // -------------------------------------------------------------------------------------------------
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
@@ -6654,7 +6650,7 @@ class ASTSetFlag extends ASTNode {
 class ASTUnsetFlag extends ASTNode {
   constructor(flag_arr) {
     // if (! Array.isArray(flag_arr))
-    //   throw new Error(`$this.constructor.name} ` +
+    //   throw new Error(`${this.constructor.name} ` +
     //                   `ARG NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
 
     super();
