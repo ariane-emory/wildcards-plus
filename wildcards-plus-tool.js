@@ -2704,7 +2704,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   }
 
   if (log_config_enabled)
-    console.log(`Munged config:    ${JSON.stringify(config)}`);
+    console.log(`Munged config is: ${JSON.stringify(config)}`);
 
   return config;
 }
