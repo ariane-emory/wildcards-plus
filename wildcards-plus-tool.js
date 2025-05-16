@@ -6413,8 +6413,6 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
              thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
-      console.log(`THING: ${inspect_fun(thing)}, %config = ${inspect_fun(context.config)}`);
-      
       let value = thing.value;
 
       if (thing.value instanceof ASTNode) {
