@@ -6718,6 +6718,17 @@ class ASTScalarReference extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
+// Scalar assignment:
+// -------------------------------------------------------------------------------------------------
+class ASTScalarAssignment extends ASTNode  {
+  constructor(destination, source, increment) {
+    super();
+    this.destination = destination;
+    this.source      = source;
+    this.increment   = increment;
+  }
+}
+// -------------------------------------------------------------------------------------------------
 // A1111-style Loras:
 // -------------------------------------------------------------------------------------------------
 class ASTLora extends ASTNode {
@@ -6764,16 +6775,6 @@ class ASTLatchedNamedWildcardedValue extends ASTNode {
     super();
     this.latched_value  = latched_value;
     this.original_value = original_value;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// Scalar assignment:
-// -------------------------------------------------------------------------------------------------
-class ASTScalarAssignment extends ASTNode  {
-  constructor(destination, source) {
-    super();
-    this.destination = destination;
-    this.source      = source;
   }
 }
 // -------------------------------------------------------------------------------------------------
