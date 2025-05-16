@@ -2749,14 +2749,6 @@ class Context {
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
   }
-  // // -----------------------------------------------------------------------------------------------
-  // add_to_negative_prompt(str) {
-  //   if (typeof str !== 'string')
-  //     throw new Error(`not a string: ${typeof str} ${inspect_fun(str)}`);
-  
-  //   this.negative_prompt ||= '';
-  //   this.negative_prompt = smart_join([this.negative_prompt, str]);
-  // }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
     // if (! Array.isArray(test_flag))
@@ -2766,7 +2758,7 @@ class Context {
     // console.log(msg);
     // const ret = this.flags.includes(test_flag);
     
-    let r = false;
+    let res = false;
 
     for (const flag of this.flags) {
       // console.log(`${inspect_fun(flag)} === ` +
@@ -2774,7 +2766,7 @@ class Context {
       
       if (arr_is_prefix_of_arr(test_flag, flag)) {
         // console.log (`FOUND IT!`);
-        r = true;
+        res = true;
         break;
       }
     }
@@ -2785,7 +2777,7 @@ class Context {
     // if (ret  !== r)
     //   throw new Error(`${msg} ret = ${inspect_fun(ret)}, r = ${inspect_fun(r)}`);
     
-    return r;
+    return res;
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(new_flag) {
