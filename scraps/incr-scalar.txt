@@ -1,4 +1,4 @@
-@animal = { cat | dog | bird }
+@animal = { cat | dog | bird | animal }
 
 $animal  = @animal
 $animal += @animal
