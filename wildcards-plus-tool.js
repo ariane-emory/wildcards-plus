@@ -7071,16 +7071,16 @@ const SpecialFunctionRevertPickSingle =
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTSpecialFunctionRevertPickMultiple(),
             '%revert-multi-pick-priority');
-const SpecialFunctionAddToNegativePrompt =
-      xform(arr => new ASTSpecialFunctionAddToNegativePrompt(arr[1]),
-            wst_cutting_seq(wst_seq('%neg',                           // [0][0]
-                                    incr_assignment_operator),        // [0][1] 
-                            () => ScalarAssignmentSource));           // [1]   
-const SpecialFunctionSetNegativePrompt = 
-      xform(arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]),
-            wst_cutting_seq(wst_seq('%neg',                           // [0][0]
-                                    assignment_operator),             // [0][1]
-                            () => ScalarAssignmentSource));           // [1]
+// const SpecialFunctionAddToNegativePrompt =
+//       xform(arr => new ASTSpecialFunctionAddToNegativePrompt(arr[1]),
+//             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
+//                                     incr_assignment_operator),        // [0][1] 
+//                             () => ScalarAssignmentSource));           // [1]   
+// const SpecialFunctionSetNegativePrompt = 
+//       xform(arr => new ASTSpecialFunctionSetNegativePrompt(arr[1]),
+//             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
+//                                     assignment_operator),             // [0][1]
+//                             () => ScalarAssignmentSource));           // [1]
 
 const SpecialFunctionUpdateNegativePrompt = 
       xform(arr => new ASTSpecialFunctionUpdateNegativePrompt(arr[1], arr[0][1] == '='),
