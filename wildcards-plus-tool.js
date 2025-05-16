@@ -2694,9 +2694,9 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
         continue;
       
       if (config[dt_name] !== undefined) {
-        console.log(`Correcting config.${dt_name} = ` +
-                    `${config[dt_name]} to ` +
-                    `config.${automatic1111_name} = ${config[dt_name]}.`);
+        console.log(`Correcting 4 config.${dt_name} = ` +
+                    `${inspect_fun(config[dt_name])} to ` +
+                    `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
         config[automatic1111_name] = config[dt_name];
         delete config[dt_name];
       }
