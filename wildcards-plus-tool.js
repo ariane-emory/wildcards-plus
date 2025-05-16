@@ -38,7 +38,7 @@ import path          from 'path';
 import { stdin as input, stdout as output } from 'process';
 // -------------------------------------------------------------------------------------------------
 
-// foo(bar(baz(quuc(corge(grault)))));
+// foo(bar(baz(quuc(corge(grault())))));
 
 // =================================================================================================
 // NODE-ONLY HELPER FUNCTIONS SECTION (these won't work inside of DT!): 
