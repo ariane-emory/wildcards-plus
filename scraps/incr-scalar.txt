@@ -13,3 +13,4 @@ It's a $animal.
 %neg  = { this }
 %neg += { that }
 %neg  = { foo }
+%neg += { bar }

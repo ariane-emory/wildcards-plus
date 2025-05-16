@@ -2730,7 +2730,7 @@ class Context {
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
-    negative_prompt              = null,
+    negative_prompt              = '',
   } = {}) {
     this.flags                        = flags;
     this.scalar_variables             = scalar_variables;
@@ -2749,14 +2749,14 @@ class Context {
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
   }
-  // -----------------------------------------------------------------------------------------------
-  add_to_negative_prompt(str) {
-    if (typeof str !== 'string')
-      throw new Error(`not a string: ${typeof str} ${inspect_fun(str)}`);
-    
-    this.negative_prompt ||= '';
-    this.negative_prompt = smart_join([this.negative_prompt, str]);
-  }
+  // // -----------------------------------------------------------------------------------------------
+  // add_to_negative_prompt(str) {
+  //   if (typeof str !== 'string')
+  //     throw new Error(`not a string: ${typeof str} ${inspect_fun(str)}`);
+  
+  //   this.negative_prompt ||= '';
+  //   this.negative_prompt = smart_join([this.negative_prompt, str]);
+  // }
   // -----------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
     // if (! Array.isArray(test_flag))
@@ -6587,26 +6587,20 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTSpecialFunctionAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateNegativePrompt) {
-      if (thing.assign)
-        context.negative_prompt = expand_wildcards(thing.negative_prompt_content, context);
-      else 
-        context.add_to_negative_prompt(expand_wildcards(thing.negative_prompt_content, context));
+      const expanded_neg_prompt_content = expand_wildcards(thing.negative_prompt_content, context);
       
+      if (thing.assign)
+        context.negative_prompt = expanded_neg_prompt_content;
+      else 
+        context.negative_prompt = smart_join([context.negative_prompt, expanded_neg_prompt_content]);
+
       console.log(`${thing.assign ? "Set" : "Updated"} ` +
                   `negative prompt: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
-    // // ---------------------------------------------------------------------------------------------
-    // // ASTSpecialFunctionSetNegativePrompt:
-    // // ---------------------------------------------------------------------------------------------
-    // else if (thing instanceof ASTSpecialFunctionSetNegativePrompt) {
-    //   context.negative_prompt = expand_wildcards(thing.negative_prompt_content, context);
-    
-    //   console.log(`Set negative prompt:      ${inspect_fun(context.negative_prompt)}`);
-    
-    //   return '';
-    // }
+    // ---------------------------------------------------------------------------------------------
+    // uncrecognized type:
     // ---------------------------------------------------------------------------------------------
     else {
       throw new Error(`confusing thing: ` +
