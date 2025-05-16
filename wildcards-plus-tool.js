@@ -6858,20 +6858,6 @@ class ASTSpecialFunctionRevertPickSingle extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// class ASTSpecialFunctionAddToNegativePrompt extends ASTNode {
-//   constructor(negative_prompt_content) {
-//     super();
-//     this.negative_prompt_content = negative_prompt_content
-//   }
-// }
-// // -------------------------------------------------------------------------------------------------
-// class ASTSpecialFunctionSetNegativePrompt extends ASTNode {
-//   constructor(negative_prompt_content) {
-//     super();
-//     this.negative_prompt_content = negative_prompt_content
-//   }
-// }
-// -------------------------------------------------------------------------------------------------
 class ASTSpecialFunctionUpdateNegativePrompt extends ASTNode {
   constructor(negative_prompt_content, assign) {
     super();
