@@ -37,7 +37,7 @@ import * as readline from 'readline';
 import path          from 'path';
 import { stdin as input, stdout as output } from 'process';
 // -------------------------------------------------------------------------------------------------
-foo(bar(baz(quux(corge(grault())));
+// foo(bar(baz(quux(corge(grault())));
 
 
 // =================================================================================================
