@@ -2031,13 +2031,9 @@ class WeightedPicker {
       for (const [used_index, usage_count] of this.used_indices) {
         const option = this.options[used_index];
 
-        // console.log(`option ${used_index} of ${inspect_fun(this.options)}: ${inspect_fun(option)}`);
-
         if (usage_count >= option.weight)
           exhausted_indices.add(used_index);
       }
-      
-      // exhausted_indices = new Set(this.used_indices.keys()); // TODO: change this.
     }
     else if (priority === picker_priority.true_randomness) {
       return false;
