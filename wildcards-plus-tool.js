@@ -6446,7 +6446,7 @@ function expand_wildcards(thing, context = new Context()) {
       } 
       
       if (log_config_enabled)
-        console.log(`${thing.assign ? "Set" : "Updated"} config to ` +
+        console.log(`${thing.assign ? "Set" : "Updated"} config to: ` +
                     `${JSON.stringify(context.config)}`);
       
       return '';
