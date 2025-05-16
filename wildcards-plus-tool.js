@@ -6588,7 +6588,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       console.log(`${thing.assign ? "Set" : "Updated"} ` +
                   `negative prompt` +
-                  thing.assign ? ' to ' : '' +
+                  `${(thing.assign ? ' to ' : '')}` +
                   `: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
