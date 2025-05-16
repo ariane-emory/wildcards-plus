@@ -7171,14 +7171,7 @@ const ScalarReference         = xform(seq('$', optional('^'), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
-const ScalarAssignment        = xform(arr => {
-  console.log(`ARR: ${inspect_fun(arr)}`);
-  
-  // if ( arr[0][1] == '+=')
-  //   throw new Error("bomb");
-  
-  return new ASTScalarAssignment(arr[0][0], arr[1], arr[0][1]);
-},
+const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0][0], arr[1], arr[0][1]),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,        // [0][0]
                                                               choice(incr_assignment_operator, assignment_operator)),    // -
                                                       () => ScalarAssignmentSource));  // [1]
