@@ -2530,89 +2530,89 @@ const dt_samplers = [   // order is significant, do not rearrange!
 const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
 // -------------------------------------------------------------------------------------------------
 const config_key_names = [
-  // [ automatic1111_name, dt_name ],
+  // [ dt_name, automatic1111_name ],
   // identical keys:
-  [ 'controls',                                    'controls'                     ],
-  [ 'fps',                                         'fps'                          ],
-  [ 'height',                                      'height'                       ],
-  [ 'loras',                                       'loras'                        ],
-  [ 'model',                                       'model'                        ],
-  [ 'prompt',                                      'prompt'                       ],
-  [ 'seed',                                        'seed'                         ],
-  [ 'sampler',                                     'sampler'                      ],
-  [ 'sharpness',                                   'sharpness'                    ],
-  [ 'shift',                                       'shift'                        ],
-  [ 'strength',                                    'strength'                     ],
-  [ 'width',                                       'width'                        ],
-  [ 'upscaler',                                    'upscaler'                     ],
+  [ 'controls',                     'controls'                                   ],
+  [ 'fps',                          'fps'                                        ],
+  [ 'height',                       'height'                                     ],
+  [ 'loras',                        'loras'                                      ],
+  [ 'model',                        'model'                                      ],
+  [ 'prompt',                       'prompt'                                     ],
+  [ 'seed',                         'seed'                                       ],
+  [ 'sampler',                      'sampler'                                    ],
+  [ 'sharpness',                    'sharpness'                                  ],
+  [ 'shift',                        'shift'                                      ],
+  [ 'strength',                     'strength'                                   ],
+  [ 'width',                        'width'                                      ],
+  [ 'upscaler',                     'upscaler'                                   ],
   // differing keys:
-  [ 'aesthetic_score',                             'aestheticScore'               ],
-  [ 'batch_count',                                 'batchCount'                   ],
-  [ 'n_iter',                                      'batchCount'                   ],
-  [ 'batch_size',                                  'batchSize'                    ],
-  [ 'separate_open_clip_g',                        'clipLText'                    ],
-  [ 'clip_skip',                                   'clipSkip'                     ],
-  [ 'clip_weight',                                 'clipWeight'                   ],
-  [ 'crop_left',                                   'cropLeft'                     ],
-  [ 'crop_top',                                    'cropTop'                      ],
-  [ 'decoding_tile_height' /* _explanation' */,    'decodingTileHeight'           ],
-  [ 'decoding_tile_overlap' /* _explanation' */,   'decodingTileOverlap'          ],
-  [ 'decoding_tile_width' /* _explanation' */,     'decodingTileWidth'            ],
-  [ 'diffusion_tile_height' /* _explanation' */,   'diffusionTileHeight'          ],
-  [ 'diffusion_tile_overlap' /* _explanation' */,  'diffusionTileOverlap'         ],
-  [ 'diffusion_tile_width' /* _explanation' */,    'diffusionTileWidth'           ],
-  [ 'guidance_embed',                              'guidanceEmbed'                ],
-  [ 'cfg_scale',                                   'guidanceScale'                ],
-  [ 'guidance',                                    'guidanceScale'                ],
-  [ 'cond_aug',                                    'guidingFrameNoise'            ],
-  [ 'enable_hr',                                   'hiresFix'                     ],
-  [ 'high_resolution_fix',                         'hiresFix'                     ],
-  [ 'firstphase_height',                           'hiresFixHeight'               ],
-  [ 'hires_first_pass_height_explanation',         'hiresFixHeight'               ],
-  [ 'hires_second_pass_strength_detail',           'hiresFixStrength'             ],
-  [ 'firstphase_width',                            'hiresFixWidth'                ],
-  [ 'hires_first_pass_width_explanation',          'hiresFixWidth'                ],
-  [ 'image_guidance',                              'imageGuidanceScale'           ],
-  [ 'image_prior_steps',                           'imagePriorSteps'              ],
-  [ 'mask_blur',                                   'maskBlur'                     ],
-  [ 'mask_blur_outset',                            'maskBlurOutset'               ],
-  [ 'motion_scale',                                'motionScale'                  ],
-  [ 'negative_aesthetic_score',                    'negativeAestheticScore'       ],
-  [ 'negative_original_height',                    'negativeOriginalHeight'       ],
-  [ 'negative_original_width',                     'negativeOriginalWidth'        ],
-  [ 'negative-prompt',                             'negativePrompt'               ],
-  [ 'negative_prompt_for_image_prior',             'negativePromptForImagePrior'  ],
-  [ 'speed_up_with_guidance_embed',                'openClipGText'                ],
-  [ 'original_height',                             'originalHeight'               ],
-  [ 'original_width',                              'originalWidth'                ],
-  [ 'preserve_original_after_inpaint',             'preserveOriginalAfterInpaint' ],
-  [ 'num_frames',                                  'refinerModel'                 ],
-  [ 'refiner_start',                               'refinerStart'                 ],
-  [ 'resolution_dependent_shift',                  'resolutionDependentShift'     ],
-  [ 'sampler_index',                               'sampler'                      ],
-  [ 'sampler_name',                                'sampler'                      ],
-  [ 'seed_mode',                                   'seedMode'                     ],
-  [ 'separate_clip_l',                             'separateClipL'                ],
-  [ 'separate_t5',                                 'separateT5'                   ],
-  [ 'stage_2_cfg',                                 'stage2Cfg'                    ],
-  [ 'stage_2_shift',                               'stage2Shift'                  ],
-  [ 'stage_2_steps',                               'stage2Steps'                  ],
-  [ 'start_frame_guidance',                        'startFrameGuidance'           ],
-  [ 'strategic_stochastic_sampling',               'stochasticSamplingGamma'      ],
-  [ 'denoising_strength',                          'strength'                     ],
-  [ 't5_text',                                     't5Text'                       ],
-  [ 't5_text_encoder',                             't5TextEncoder'                ],
-  [ 'target_height',                               'targetHeight'                 ],
-  [ 'target_width',                                'targetWidth'                  ],
-  [ 'tea_cache',                                   'teaCache'                     ],
-  [ 'tea_cache_end',                               'teaCacheEnd'                  ],
-  [ 'tea_cache_max_skip_steps',                    'teaCacheMaxSkipSteps'         ],
-  [ 'tea_cache_start',                             'teaCacheStart'                ],
-  [ 'tea_cache_threshold',                         'teaCacheThreshold'            ],
-  [ 'tiled_decoding',                              'tiledDecoding'                ],
-  [ 'tiled_diffusion',                             'tiledDiffusion'               ],
-  [ 'upscaler_scale_factor',                       'upscalerScaleFactor'          ],
-  [ 'zero_negative_prompt',                        'zeroNegativePrompt'           ],
+  [ 'aestheticScore',               'aesthetic_score'                            ],
+  [ 'batchCount',                   'batch_count'                                ],
+  [ 'batchCount',                   'n_iter'                                     ],
+  [ 'batchSize',                    'batch_size'                                 ],
+  [ 'clipLText',                    'separate_open_clip_g'                       ],
+  [ 'clipSkip',                     'clip_skip'                                  ],
+  [ 'clipWeight',                   'clip_weight'                                ],
+  [ 'cropLeft',                     'crop_left'                                  ],
+  [ 'cropTop',                      'crop_top'                                   ],
+  [ 'decodingTileHeight',           'decoding_tile_height' /* _explanation' */   ],
+  [ 'decodingTileOverlap',          'decoding_tile_overlap' /* _explanation' */  ],
+  [ 'decodingTileWidth',            'decoding_tile_width' /* _explanation' */    ],
+  [ 'diffusionTileHeight',          'diffusion_tile_height' /* _explanation' */  ],
+  [ 'diffusionTileOverlap',         'diffusion_tile_overlap' /* _explanation' */ ],
+  [ 'diffusionTileWidth',           'diffusion_tile_width' /* _explanation' */   ],
+  [ 'guidanceEmbed',                'guidance_embed'                             ],
+  [ 'guidanceScale',                'cfg_scale'                                  ],
+  [ 'guidanceScale',                'guidance'                                   ],
+  [ 'guidingFrameNoise',            'cond_aug'                                   ],
+  [ 'hiresFix',                     'enable_hr'                                  ],
+  [ 'hiresFix',                     'high_resolution_fix'                        ],
+  [ 'hiresFixHeight',               'firstphase_height'                          ],
+  [ 'hiresFixHeight',               'hires_first_pass_height_explanation'        ],
+  [ 'hiresFixStrength',             'hires_second_pass_strength_detail'          ],
+  [ 'hiresFixWidth',                'firstphase_width'                           ],
+  [ 'hiresFixWidth',                'hires_first_pass_width_explanation'         ],
+  [ 'imageGuidanceScale',           'image_guidance'                             ],
+  [ 'imagePriorSteps',              'image_prior_steps'                          ],
+  [ 'maskBlur',                     'mask_blur'                                  ],
+  [ 'maskBlurOutset',               'mask_blur_outset'                           ],
+  [ 'motionScale',                  'motion_scale'                               ],
+  [ 'negativeAestheticScore',       'negative_aesthetic_score'                   ],
+  [ 'negativeOriginalHeight',       'negative_original_height'                   ],
+  [ 'negativeOriginalWidth',        'negative_original_width'                    ],
+  [ 'negativePrompt',               'negative-prompt'                            ],
+  [ 'negativePromptForImagePrior',  'negative_prompt_for_image_prior'            ],
+  [ 'openClipGText',                'speed_up_with_guidance_embed'               ],
+  [ 'originalHeight',               'original_height'                            ],
+  [ 'originalWidth',                'original_width'                             ],
+  [ 'preserveOriginalAfterInpaint', 'preserve_original_after_inpaint'            ],
+  [ 'refinerModel',                 'num_frames'                                 ],
+  [ 'refinerStart',                 'refiner_start'                              ],
+  [ 'resolutionDependentShift',     'resolution_dependent_shift'                 ],
+  [ 'sampler',                      'sampler_index'                              ],
+  [ 'sampler',                      'sampler_name'                               ],
+  [ 'seedMode',                     'seed_mode'                                  ],
+  [ 'separateClipL',                'separate_clip_l'                            ],
+  [ 'separateT5',                   'separate_t5'                                ],
+  [ 'stage2Cfg',                    'stage_2_cfg'                                ],
+  [ 'stage2Shift',                  'stage_2_shift'                              ],
+  [ 'stage2Steps',                  'stage_2_steps'                              ],
+  [ 'startFrameGuidance',           'start_frame_guidance'                       ],
+  [ 'stochasticSamplingGamma',      'strategic_stochastic_sampling'              ],
+  [ 'strength',                     'denoising_strength'                         ],
+  [ 't5Text',                       't5_text'                                    ],
+  [ 't5TextEncoder',                't5_text_encoder'                            ],
+  [ 'targetHeight',                 'target_height'                              ],
+  [ 'targetWidth',                  'target_width'                               ],
+  [ 'teaCache',                     'tea_cache'                                  ],
+  [ 'teaCacheEnd',                  'tea_cache_end'                              ],
+  [ 'teaCacheMaxSkipSteps',         'tea_cache_max_skip_steps'                   ],
+  [ 'teaCacheStart',                'tea_cache_start'                            ],
+  [ 'teaCacheThreshold',            'tea_cache_threshold'                        ],
+  [ 'tiledDecoding',                'tiled_decoding'                             ],
+  [ 'tiledDiffusion',               'tiled_diffusion'                            ],
+  [ 'upscalerScaleFactor',          'upscaler_scale_factor'                      ],
+  [ 'zeroNegativePrompt',           'zero_negative_prompt'                       ],
 ];
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
@@ -2671,11 +2671,11 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers.indexOf(config.sampler);
     }
 
-    for (const [automatic1111_name, dt_name] of config_key_names) {
-      if (automatic1111_name === dt_name)
-        continue;
-      
+    for (const [dt_name, automatic1111_name] of config_key_names) {
       if (config[automatic1111_name] !== undefined) {
+        if (automatic1111_name === dt_name)
+          break;
+
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
                     `config.${dt_name} = ${config[automatic1111_name]}.`);
@@ -2691,11 +2691,11 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers[config.sampler];
     }
 
-    for (const [automatic1111_name, dt_name] of config_key_names) {
-      if (automatic1111_name === dt_name)
-        break;
-      
+    for (const [dt_name, automatic1111_name] of config_key_names) {
       if (config[dt_name] !== undefined) {
+        if (automatic1111_name === dt_name)
+          break;
+        
         console.log(`Correcting config.${dt_name} = ` +
                     `${inspect_fun(config[dt_name])} to ` +
                     `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
