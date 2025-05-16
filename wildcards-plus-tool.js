@@ -38,6 +38,7 @@ import path          from 'path';
 import { stdin as input, stdout as output } from 'process';
 // -------------------------------------------------------------------------------------------------
 
+// foo(bar(baz(quuc(corge(grault))));
 
 // =================================================================================================
 // NODE-ONLY HELPER FUNCTIONS SECTION (these won't work inside of DT!): 
@@ -879,14 +880,14 @@ class CuttingEnclosed extends Enclosed {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     if (string_input_mode_enabled) {
-      throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
+      throw new Error(`expected ${this.body_rule} ${this.end_rule}) ` +
                       `after ${this.start_rule} at ` +
                       `char ${index}` +
                       `, found: ` +
                       `"${abbreviate(input.substring(start_rule_result.index))}"`);
     }
     else {
-      throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
+      throw new Error(`expected ${this.body_rule} ${this.end_rule}) ` +
                       `after ${this.start_rule} at ` +
                       `char ${input[start_rule_result.index].start}` +
                       `, found: ` +
