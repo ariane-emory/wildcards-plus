@@ -1,5 +1,6 @@
 @animal = { cat | dog | bird }
 
-$animal = @animal
+$animal  = @animal
+$animal += @animal
 
 It's a $animal.
