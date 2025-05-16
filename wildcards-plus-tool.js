@@ -7081,6 +7081,13 @@ const SpecialFunctionSetNegativePrompt =
             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
                                     assignment_operator),             // [0][1]
                             () => ScalarAssignmentSource));           // [1]
+
+const SpecialFunctionUpdateNegativePrompt = 
+      xform(arr => new ASTSpecialFunctionUpdateNegativePrompt(arr[1], arr[0][1] == '='),
+            wst_cutting_seq(wst_seq('%neg',                           // [0][0]
+                                    choice(incr_assignment_operator,
+                                           assignment_operator)),     // [0][1]
+                            () => ScalarAssignmentSource));           // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
     xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2][1]),
           cutting_seq('%config.',                                     // [0]
