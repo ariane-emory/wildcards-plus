@@ -6587,7 +6587,9 @@ function expand_wildcards(thing, context = new Context()) {
         context.negative_prompt = smart_join([context.negative_prompt, expanded_neg_prompt_content]);
 
       console.log(`${thing.assign ? "Set" : "Updated"} ` +
-                  `negative prompt: ${inspect_fun(context.negative_prompt)}`);
+                  `negative prompt` +
+                  thing.assign ? ' to ' : '' +
+                  `: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
