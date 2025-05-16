@@ -1,14 +1,12 @@
-@animal = { cat | dog | bird | animal }
+@animal = { cat | dog | bird | animal } // a 'named wildcard' with 4 alterrnatives
 
-$animal  = @animal
-$animal += @animal
+$animal  = @animal  // pick an item from @animal and assign it to the scalar (string) variable $animal
+$animal += @animal  // pick another item from @animal and append it to $animal
 
-It's a $animal.
+It's a $animal. // generate some text, making use of the scalar variable $animal
 
-%config += { "foo" : 123 }
-%config += { "bar" : 234 }
+%config  = { "foo" : 123 } // assign the JSON object { "foo" : 123 } to the special vabiable %config.
+%config += { "bar" : 234 } // merge the JSON object { "bar" : 234 } onto the special vabiable %config.
 
-%neg  = { this }
-%neg += { that }
-%neg  = { foo }
-%neg += { bar }
+%neg  = { this } // assign the value of a pick from the anonymous wildcard { this } (which only has one alternative, and so will always pick 'this') to the special variable %neg.
+%neg += { that } // append the value of a pick from the anonymous wildcard { that } (which only has one alternative, and so will always pick 'that') to the special variable %neg.
