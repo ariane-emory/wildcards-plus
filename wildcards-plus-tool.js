@@ -6376,7 +6376,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     // scalar assignment:
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTScalarUpdate) {
+    else if (thing instanceof ASTUpdateScalar) {
       if (context.noisy) {
         console.log();
         console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
@@ -6716,7 +6716,7 @@ class ASTScalarReference extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Scalar assignment:
 // -------------------------------------------------------------------------------------------------
-class ASTScalarUpdate extends ASTNode  {
+class ASTUpdateScalar extends ASTNode  {
   constructor(destination, source, assign) {
     super();
     this.destination = destination;
@@ -7154,7 +7154,7 @@ const ScalarReference         = xform(seq('$', optional('^'), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
-const ScalarUpdate            = xform(arr => new ASTScalarUpdate(arr[0][0], arr[1],
+const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
                                                                  arr[0][1] == '=='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               choice(incr_assignment_operator,
