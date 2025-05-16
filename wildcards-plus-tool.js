@@ -6421,6 +6421,8 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
              thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
+      console.log(`THING: ${inspect_fun(thing)}, %config = ${inspect_fun(context.config)}`);
+      
       let value = thing.value;
 
       if (thing.value instanceof ASTNode) {
@@ -6450,7 +6452,7 @@ function expand_wildcards(thing, context = new Context()) {
       else { // ASTSpecialFunctionUpdateConfigUnary
         context.config = thing.assign
           ? value
-          : { ...context.config, ...value };
+          : { ...context.config, ...value };        
       } 
       
       if (log_config_enabled)
@@ -7091,7 +7093,7 @@ let   SpecialFunctionUpdateConfigurationBinary =
 //                                     assignment_operator),                   // [0][1]
 //                             choice(JsoncObject, () => LimitedContent)));    // [1]
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], arr[0][1]),
+      xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq('%config',                              // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),           // [0][1]
@@ -7173,7 +7175,8 @@ const ScalarReference         = xform(seq('$', optional('^'), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
-const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0][0], arr[1], arr[0][1]),
+const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0][0], arr[1],
+                                                                     arr[0][1] == '+='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
