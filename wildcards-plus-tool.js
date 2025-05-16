@@ -6411,8 +6411,8 @@ function expand_wildcards(thing, context = new Context()) {
       return walk(pick);
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionUpdateConfigUnary ||
-             thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
+    else if (thing instanceof ASTSpecialFunctionConfigUpdateUnary ||
+             thing instanceof ASTSpecialFunctionConfigUpdateBinary) {
       let value = thing.value;
 
       if (thing.value instanceof ASTNode) {
@@ -6422,24 +6422,24 @@ function expand_wildcards(thing, context = new Context()) {
 
         // console.log(`EXPANDED VALUE: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
         
-        const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionUpdateConfigUnary
+        const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionConfigUpdateUnary
                                               ? JsoncObject
                                               : Jsonc).match(expanded_value);
         // console.log(`JSCONC_PARSED_EXPANDED_VALUE: ${inspect_fun(jsconc_parsed_expanded_value)}`);
         
         if (! jsconc_parsed_expanded_value || ! jsconc_parsed_expanded_value.is_finished)
           throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
-                          (thing instanceof ASTSpecialFunctionUpdateConfigUnary ? "object": "value") +
+                          (thing instanceof ASTSpecialFunctionConfigUpdateUnary ? "object": "value") +
                           `, Jsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_expanded_value));
         
         value = jsconc_parsed_expanded_value.value;
       }
 
-      if (thing instanceof ASTSpecialFunctionUpdateConfigBinary) {
+      if (thing instanceof ASTSpecialFunctionConfigUpdateBinary) {
         context.config[thing.key] = value;
       }
-      else { // ASTSpecialFunctionUpdateConfigUnary
+      else { // ASTSpecialFunctionConfigUpdateUnary
         context.config = thing.assign
           ? value
           : { ...context.config, ...value };        
@@ -6814,7 +6814,7 @@ class ASTSpecialFunctionInclude extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionUpdateConfigUnary extends ASTNode {
+class ASTSpecialFunctionConfigUpdateUnary extends ASTNode {
   constructor(value, assign) {
     super();
     this.value = value;
@@ -6822,7 +6822,7 @@ class ASTSpecialFunctionUpdateConfigUnary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionUpdateConfigBinary extends ASTNode {
+class ASTSpecialFunctionConfigUpdateBinary extends ASTNode {
   constructor(key, value) {
     super();
     this.key   = key;
@@ -7062,18 +7062,18 @@ const SpecialFunctionUpdateNegativePrompt =
                                            assignment_operator)),     // [0][1]
                             () => ScalarUpdateSource));           // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTSpecialFunctionUpdateConfigBinary(arr[1], arr[2][1]),
+    xform(arr => new ASTSpecialFunctionConfigUpdateBinary(arr[1], arr[2][1]),
           cutting_seq('%config.',                                     // [0]
                       ident,                                          // [1]
                       wst_seq(assignment_operator,                    // [2][0]
                               choice(Jsonc, () => LimitedContent)))); // [2][1]
 // const SpecialFunctionSetConfiguration =
-//       xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], true),
+//       xform(arr => new ASTSpecialFunctionConfigUpdateUnary(arr[1], true),
 //             wst_cutting_seq(wst_seq('%config',                              // [0][0]
 //                                     assignment_operator),                   // [0][1]
 //                             choice(JsoncObject, () => LimitedContent)));    // [1]
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTSpecialFunctionUpdateConfigUnary(arr[1], arr[0][1] == '='),
+      xform(arr => new ASTSpecialFunctionConfigUpdateUnary(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq('%config',                              // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),           // [0][1]
