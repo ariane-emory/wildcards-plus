@@ -4,3 +4,5 @@ $animal  = @animal
 $animal += @animal
 
 It's a $animal.
+
+%config = { "foo" : 123 }
