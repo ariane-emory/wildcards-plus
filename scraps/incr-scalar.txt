@@ -3,4 +3,6 @@
 $animal  = @animal
 $animal += @animal
 
+\n
+
 It's a $animal.
