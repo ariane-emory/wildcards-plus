@@ -150,7 +150,7 @@ function save_post_request(options, data) {
 // -------------------------------------------------------------------------------------------------
 function process_includes(thing, context = new Context()) {
   function walk(thing, context) {
-    if (thing instanceof ASTSpecialFunctionInclude) {
+    if (thing instanceof ASTInclude) {
       const current_file = context.files[context.files.length - 1];
       const res = []
 
@@ -6411,8 +6411,8 @@ function expand_wildcards(thing, context = new Context()) {
       return walk(pick);
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionConfigUpdateUnary ||
-             thing instanceof ASTSpecialFunctionConfigUpdateBinary) {
+    else if (thing instanceof ASTUpdateConfigUnary ||
+             thing instanceof ASTUpdateConfigBinary) {
       let value = thing.value;
 
       if (thing.value instanceof ASTNode) {
@@ -6422,24 +6422,24 @@ function expand_wildcards(thing, context = new Context()) {
 
         // console.log(`EXPANDED VALUE: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
         
-        const jsconc_parsed_expanded_value = (thing instanceof ASTSpecialFunctionConfigUpdateUnary
+        const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
                                               ? JsoncObject
                                               : Jsonc).match(expanded_value);
         // console.log(`JSCONC_PARSED_EXPANDED_VALUE: ${inspect_fun(jsconc_parsed_expanded_value)}`);
         
         if (! jsconc_parsed_expanded_value || ! jsconc_parsed_expanded_value.is_finished)
           throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
-                          (thing instanceof ASTSpecialFunctionConfigUpdateUnary ? "object": "value") +
+                          (thing instanceof ASTUpdateConfigUnary ? "object": "value") +
                           `, Jsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_expanded_value));
         
         value = jsconc_parsed_expanded_value.value;
       }
 
-      if (thing instanceof ASTSpecialFunctionConfigUpdateBinary) {
+      if (thing instanceof ASTUpdateConfigBinary) {
         context.config[thing.key] = value;
       }
-      else { // ASTSpecialFunctionConfigUpdateUnary
+      else { // ASTUpdateConfigUnary
         context.config = thing.assign
           ? value
           : { ...context.config, ...value };        
@@ -6452,13 +6452,13 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionSetPickSingle || 
-             thing instanceof ASTSpecialFunctionSetPickMultiple) {
+    else if (thing instanceof ASTSetPickSingle || 
+             thing instanceof ASTSetPickMultiple) {
       const walked = picker_priority[expand_wildcards(thing.limited_content, context)];
-      const cur_key = thing instanceof ASTSpecialFunctionSetPickSingle
+      const cur_key = thing instanceof ASTSetPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
-      const prior_key = thing instanceof ASTSpecialFunctionSetPickSingle
+      const prior_key = thing instanceof ASTSetPickSingle
             ? 'prior_pick_one_priority'
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
@@ -6487,12 +6487,12 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionRevertPickSingle || 
-             thing instanceof ASTSpecialFunctionRevertPickMultiple) {
-      const cur_key = thing instanceof ASTSpecialFunctionRevertPickSingle
+    else if (thing instanceof ASTRevertPickSingle || 
+             thing instanceof ASTRevertPickMultiple) {
+      const cur_key = thing instanceof ASTRevertPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
-      const prior_key = thing instanceof ASTSpecialFunctionRevertPickSingle
+      const prior_key = thing instanceof ASTRevertPickSingle
             ? 'prior_pick_one_priority'
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
@@ -6574,9 +6574,9 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    // ASTSpecialFunctionAddToNegativePrompt:
+    // ASTAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSpecialFunctionUpdateNegativePrompt) {
+    else if (thing instanceof ASTUpdateNegativePrompt) {
       const expanded_neg_prompt_content = expand_wildcards(thing.negative_prompt_content, context);
       
       if (thing.assign)
@@ -6806,7 +6806,7 @@ class ASTAnonWildcardAlternative extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Directives:
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionInclude extends ASTNode {
+class ASTInclude extends ASTNode {
   constructor(args) {
     super();
     // this.directive = directive;
@@ -6814,7 +6814,7 @@ class ASTSpecialFunctionInclude extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionConfigUpdateUnary extends ASTNode {
+class ASTUpdateConfigUnary extends ASTNode {
   constructor(value, assign) {
     super();
     this.value = value;
@@ -6822,7 +6822,7 @@ class ASTSpecialFunctionConfigUpdateUnary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionConfigUpdateBinary extends ASTNode {
+class ASTUpdateConfigBinary extends ASTNode {
   constructor(key, value) {
     super();
     this.key   = key;
@@ -6830,33 +6830,33 @@ class ASTSpecialFunctionConfigUpdateBinary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionSetPickMultiple extends ASTNode {
+class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionSetPickSingle extends ASTNode {
+class ASTSetPickSingle extends ASTNode {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionRevertPickMultiple extends ASTNode {
+class ASTRevertPickMultiple extends ASTNode {
   constructor() {
     super();
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionRevertPickSingle extends ASTNode {
+class ASTRevertPickSingle extends ASTNode {
   constructor() {
     super();
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSpecialFunctionUpdateNegativePrompt extends ASTNode {
+class ASTUpdateNegativePrompt extends ASTNode {
   constructor(negative_prompt_content, assign) {
     super();
     this.negative_prompt_content = negative_prompt_content
@@ -7031,7 +7031,7 @@ const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_b
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments                = discard(wst_star(comment));
-const SpecialFunctionInclude           = xform(arr => new ASTSpecialFunctionInclude(arr[1]),
+const SpecialFunctionInclude           = xform(arr => new ASTInclude(arr[1]),
                                                c_funcall('%include',
                                                          first(wst_seq(DiscardedComments,
                                                                        Jsonc,
@@ -7042,38 +7042,38 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      xform(arr => new ASTSpecialFunctionSetPickSingle(arr[1]),
+      xform(arr => new ASTSetPickSingle(arr[1]),
             wst_cutting_seq(wst_seq('%single-pick-priority', assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionSetPickMultiple =
-      xform(arr => new ASTSpecialFunctionSetPickMultiple(arr[1]),
+      xform(arr => new ASTSetPickMultiple(arr[1]),
             wst_cutting_seq(wst_seq('%multi-pick-priority', assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionRevertPickSingle =
-      xform(() => new ASTSpecialFunctionRevertPickSingle(),
+      xform(() => new ASTRevertPickSingle(),
             '%revert-single-pick-priority');
 const SpecialFunctionRevertPickMultiple =
-      xform(() => new ASTSpecialFunctionRevertPickMultiple(),
+      xform(() => new ASTRevertPickMultiple(),
             '%revert-multi-pick-priority');
 const SpecialFunctionUpdateNegativePrompt = 
-      xform(arr => new ASTSpecialFunctionUpdateNegativePrompt(arr[1], arr[0][1] == '='),
+      xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),     // [0][1]
                             () => ScalarUpdateSource));           // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTSpecialFunctionConfigUpdateBinary(arr[1], arr[2][1]),
+    xform(arr => new ASTUpdateConfigBinary(arr[1], arr[2][1]),
           cutting_seq('%config.',                                     // [0]
                       ident,                                          // [1]
                       wst_seq(assignment_operator,                    // [2][0]
                               choice(Jsonc, () => LimitedContent)))); // [2][1]
 // const SpecialFunctionSetConfiguration =
-//       xform(arr => new ASTSpecialFunctionConfigUpdateUnary(arr[1], true),
+//       xform(arr => new ASTUpdateConfigUnary(arr[1], true),
 //             wst_cutting_seq(wst_seq('%config',                              // [0][0]
 //                                     assignment_operator),                   // [0][1]
 //                             choice(JsoncObject, () => LimitedContent)));    // [1]
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTSpecialFunctionConfigUpdateUnary(arr[1], arr[0][1] == '='),
+      xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq('%config',                              // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),           // [0][1]
