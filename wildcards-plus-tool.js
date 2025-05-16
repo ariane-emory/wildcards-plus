@@ -7167,8 +7167,8 @@ const ScalarReference         = xform(seq(discard('$'), optional('^'), ident),
 const ScalarAssignment        = xform(arr => {
   console.log(`ARR: ${inspect_fun(arr)}`);
   
-  if ( arr[0][1] == '+=')
-    throw new Error("bomb");
+  // if ( arr[0][1] == '+=')
+  //   throw new Error("bomb");
   
   return new ASTScalarAssignment(arr[0][0], arr[1], arr[0][1] == '+=');
 },
