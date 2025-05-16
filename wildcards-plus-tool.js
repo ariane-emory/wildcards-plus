@@ -6386,7 +6386,7 @@ function expand_wildcards(thing, context = new Context()) {
       let   new_val  = walk(thing.source);
       const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
-      if (thing.increment)
+      if (! thing.assign)
         new_val = smart_join([ old_val, new_val ]);
       
       context.scalar_variables.set(thing.destination.name, new_val);
@@ -6717,11 +6717,11 @@ class ASTScalarReference extends ASTNode {
 // Scalar assignment:
 // -------------------------------------------------------------------------------------------------
 class ASTScalarUpdate extends ASTNode  {
-  constructor(destination, source, increment) {
+  constructor(destination, source, assign) {
     super();
     this.destination = destination;
     this.source      = source;
-    this.increment   = increment;
+    this.assign      = assign;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7155,7 +7155,7 @@ const ScalarReference         = xform(seq('$', optional('^'), ident),
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
 const ScalarUpdate            = xform(arr => new ASTScalarUpdate(arr[0][0], arr[1],
-                                                                 arr[0][1] == '+='),
+                                                                 arr[0][1] == '=='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
