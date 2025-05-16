@@ -7067,11 +7067,6 @@ let   SpecialFunctionUpdateConfigurationBinary =
                       ident,                                          // [1]
                       wst_seq(assignment_operator,                    // [2][0]
                               choice(Jsonc, () => LimitedContent)))); // [2][1]
-// const SpecialFunctionSetConfiguration =
-//       xform(arr => new ASTUpdateConfigUnary(arr[1], true),
-//             wst_cutting_seq(wst_seq('%config',                              // [0][0]
-//                                     assignment_operator),                   // [0][1]
-//                             choice(JsoncObject, () => LimitedContent)));    // [1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq('%config',                              // [0][0]
