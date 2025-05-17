@@ -8,8 +8,8 @@
 
 
 // ===============================================================================================
-  // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
-  // ===============================================================================================
+// DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
+// ===============================================================================================
 {
   // -----------------------------------------------------------------------------------------------
   // DT's env doesn't seem to have structuredClone, so we'll define this early:
@@ -2471,7 +2471,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     for (const [dt_name, automatic1111_name] of config_key_names) {
       if (config[automatic1111_name] !== undefined) {
         if (automatic1111_name === dt_name)
-          break;
+          continue;
 
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
@@ -2491,7 +2491,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     for (const [dt_name, automatic1111_name] of config_key_names) {
       if (config[dt_name] !== undefined) {
         if (automatic1111_name === dt_name)
-          break;
+          continue;
         
         console.log(`Correcting config.${dt_name} = ` +
                     `${inspect_fun(config[dt_name])} to ` +
@@ -6214,25 +6214,21 @@ function expand_wildcards(thing, context = new Context()) {
              thing instanceof ASTUpdateConfigBinary) {
       let value = thing.value;
 
-      if (thing.value instanceof ASTNode) {
-        // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
-        
+      if (value instanceof ASTNode) {
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
-
-        // console.log(`EXPANDED VALUE: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
-        
         const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
                                               ? JsoncObject
                                               : Jsonc).match(expanded_value);
-        // console.log(`JSCONC_PARSED_EXPANDED_VALUE: ${inspect_fun(jsconc_parsed_expanded_value)}`);
-        
-        if (! jsconc_parsed_expanded_value || ! jsconc_parsed_expanded_value.is_finished)
-          throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
-                          (thing instanceof ASTUpdateConfigUnary ? "object": "value") +
-                          `, Jsonc.match(...) result was ` +
-                          inspect_fun(jsconc_parsed_expanded_value));
-        
-        value = jsconc_parsed_expanded_value.value;
+
+        if (thing instanceof ASTUpdateConfigBinary)
+          value = jsconc_parsed_expanded_value?.is_finished
+          ? jsconc_parsed_expanded_value.value
+          : expanded_value;
+        // else { // ASTUpdateConfigUnary
+        //   throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
+        //                   `JSONC object, Jsonc.match(...) result was ` +
+        //                   inspect_fun(jsconc_parsed_expanded_value));
+        // }
       }
 
       if (thing instanceof ASTUpdateConfigBinary) {

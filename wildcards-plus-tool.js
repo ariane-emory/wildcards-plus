@@ -204,7 +204,7 @@ function process_includes(thing, context = new Context()) {
 let inspect_fun = util.inspect;
 let clone_fun   = structuredClone;
 let dt_hosted   = false;
-//  dt_hosted   = true; // uncomment to lie and force use of the DT-legal syntax
+// dt_hosted       = true; // uncomment to lie and force use of the DT-legal syntax/configs for debugging
 // =================================================================================================
 
 
@@ -2674,7 +2674,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     for (const [dt_name, automatic1111_name] of config_key_names) {
       if (config[automatic1111_name] !== undefined) {
         if (automatic1111_name === dt_name)
-          break;
+          continue;
 
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
@@ -2694,7 +2694,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     for (const [dt_name, automatic1111_name] of config_key_names) {
       if (config[dt_name] !== undefined) {
         if (automatic1111_name === dt_name)
-          break;
+          continue;
         
         console.log(`Correcting config.${dt_name} = ` +
                     `${inspect_fun(config[dt_name])} to ` +
@@ -6427,6 +6427,11 @@ function expand_wildcards(thing, context = new Context()) {
           value = jsconc_parsed_expanded_value?.is_finished
           ? jsconc_parsed_expanded_value.value
           : expanded_value;
+        // else { // ASTUpdateConfigUnary
+        //   throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
+        //                   `JSONC object, Jsonc.match(...) result was ` +
+        //                   inspect_fun(jsconc_parsed_expanded_value));
+        // }
       }
 
       if (thing instanceof ASTUpdateConfigBinary) {
