@@ -2628,7 +2628,10 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
        (typeof config.batch_count === 'number') && config.batch_count > 1) ||
       (config.batchCount  &&
        (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
-    console.log(`Fix seed, using -1 due to n_iter > 1.`);
+
+    if (log_config_enabled)
+      console.log(`Updating seed -1 due to n_iter > 1.`);
+
     config.seed = -1;
   }
   else if (typeof config.seed !== 'number') {
@@ -2724,8 +2727,8 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     }
   }
 
-  if (log_config_enabled)
-    console.log(`Munged config is: ${JSON.stringify(config, null, 2)}`);
+  //if (log_config_enabled)
+  console.log(`Munged config is: ${JSON.stringify(config, null, 2)}`);
 
   return config;
 }
