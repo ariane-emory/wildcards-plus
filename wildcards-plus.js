@@ -6998,7 +6998,7 @@ const pipeline_configuration      = clone_fun(pipeline.configuration);
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "";
 let   prompt_string               = ui_prompt;
-const default_batch_count         = 5;
+const default_batch_count         = 125;
 // -------------------------------------------------------------------------------------------------
 
 
