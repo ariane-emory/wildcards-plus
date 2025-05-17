@@ -2653,15 +2653,13 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   }
   
   // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-  if (config.sampler) {
-    if (typeof config.sampler === 'string') {
-      const lc = config.sampler.toLowerCase();
-      // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
-      const got = dt_samplers_caps_correction.get(lc);
+  if (config.sampler && typeof config.sampler === 'string') {
+    const lc = config.sampler.toLowerCase();
+    // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
+    const got = dt_samplers_caps_correction.get(lc);
 
-      if (got)
-        config.sampler = got;
-    }
+    if (got)
+      config.sampler = got;
   }
   
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
