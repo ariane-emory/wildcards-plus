@@ -2644,6 +2644,9 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     if (config.model.endsWith('.ckpt')) {
       // do nothing
     }
+    else if (config.model.endsWith('_svd')) {
+      config.model = `${config.model}.ckpt`;
+    }
     else if (config.model.endsWith('_q5p')) {
       config.model = `${config.model}.ckpt`;
     }
