@@ -7439,7 +7439,7 @@ async function main() {
 
   while (posted_count < count) {
     console.log('==========================================================================================');
-    console.log(`Expanding #${posted_count + 1} of ${count}:`);
+    console.log(`Expansion #${posted_count + 1} of ${count}:`);
     console.log('==========================================================================================');
 
     const context    = base_context.clone();
@@ -7474,13 +7474,13 @@ async function main() {
 
     if (context.config.negative_prompt || context.config.negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`#2: Expanded negative prompt in context.config.negative_prompt:`);
+      console.log(`Expanded negative prompt:`);
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(context.config.negative_prompt);
-    } else {
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`#2: No negative prompt in context.config.negative_prompt!`);
-    }
+    } // else {
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(`No negative prompt.`);
+    // }
 
     // if (context.config.negativePrompt || context.config.negativePrompt === '') {
     //   console.log(`------------------------------------------------------------------------------------------`);
