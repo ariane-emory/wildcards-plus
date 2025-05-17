@@ -7482,22 +7482,22 @@ async function main() {
 
     if (context.config.negative_prompt || context.config.negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`#2: Expanded negative prompt:`);
+      console.log(`#2: Expanded negative prompt in context.config.negative_prompt:`);
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(context.config.negative_prompt);
     } else {
       console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`#2: No negative prompt!`);
+      console.log(`#2: No negative prompt in context.config.negative_prompt!`);
     }
 
     if (context.config.negativePrompt || context.config.negativePrompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`#3: Expanded negative prompt:`);
+      console.log(`#3: Expanded negative prompt in context.config.negativePrompt:`);
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(context.config.negativePrompt);
     } else {
       console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`#3: No negative prompt!`);
+      console.log(`#3: No negative prompt in context.config.negativePrompt!`);
     }
 
     if (!post) {
