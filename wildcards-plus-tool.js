@@ -2581,7 +2581,7 @@ const config_key_names = [
   [ 'negativeAestheticScore',       'negative_aesthetic_score'                   ],
   [ 'negativeOriginalHeight',       'negative_original_height'                   ],
   [ 'negativeOriginalWidth',        'negative_original_width'                    ],
-  [ 'negativePrompt',               'negative-prompt'                            ],
+  [ 'negativePrompt',               'negative_prompt'                            ],
   [ 'negativePromptForImagePrior',  'negative_prompt_for_image_prior'            ],
   [ 'openClipGText',                'speed_up_with_guidance_embed'               ],
   [ 'originalHeight',               'original_height'                            ],
@@ -6675,7 +6675,9 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateNegativePrompt) {
-      const temporaryNode = new ASTUpdateConfigBinary(context.config.negative_prompt ? "negative_prompt" : "negativePrompt",
+      const temporaryNode = new ASTUpdateConfigBinary(context.config.negativePrompt
+                                                      ? "negativePrompt"
+                                                      : "negative_prompt",
                                                       thing.value, thing.assign);
       
 
@@ -7481,11 +7483,13 @@ async function main() {
       console.log(`#1: No negative prompt!`);
     }
 
-    if (config.negative_prompt || config.negative_prompt === '') {
+    console.log(`THIS: ${JSON.stringify(context.config, null, 2)}`);
+    
+    if (context.config.negative_prompt || context.config.negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(`#2: Expanded negative prompt:`);
       console.log(`------------------------------------------------------------------------------------------`);
-      console.log(config.negative_prompt);
+      console.log(context.config.negative_prompt);
     } else {
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(`#2: No negative prompt!`);
