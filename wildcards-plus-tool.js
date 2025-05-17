@@ -6916,6 +6916,15 @@ class ASTUpdateConfigBinary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
+class ASTUpdateNegativePrompt extends ASTNode {
+  constructor(negative_prompt_content, assign) {
+    super();
+    this.negative_prompt_content = negative_prompt_content
+    this.assign                  = assign;
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
 class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
     super();
@@ -6939,14 +6948,6 @@ class ASTRevertPickMultiple extends ASTNode {
 class ASTRevertPickSingle extends ASTNode {
   constructor() {
     super();
-  }
-}
-// -------------------------------------------------------------------------------------------------
-class ASTUpdateNegativePrompt extends ASTNode {
-  constructor(negative_prompt_content, assign) {
-    super();
-    this.negative_prompt_content = negative_prompt_content
-    this.assign                  = assign;
   }
 }
 // =================================================================================================
