@@ -2541,7 +2541,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
          (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
 
       if (log_config_enabled)
-        console.log(`Updating seed -1 due to n_iter > 1.`);
+        console.log(`Fixing seed to -1 due to n_iter > 1.`);
 
       config.seed = -1;
     }
@@ -6283,9 +6283,13 @@ function expand_wildcards(thing, context = new Context()) {
       if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
         context.config = thing.assign
           ? value
-          : { ...context.config, ...value };        
+          : { ...context.config, ...value };
+
+        if (log_config_enabled)
+          console.log(`${thing.assign ? "Set" : "Updated"} config to: ` +
+                      `${JSON.stringify(context.config)}`);
       }
-      else{ // ASTUpdateConfigBinary
+      else { // ASTUpdateConfigBinary
         const our_name = get_our_name(thing.key); 
         
         if (thing.assign) {
@@ -6350,11 +6354,12 @@ function expand_wildcards(thing, context = new Context()) {
             context.config[our_name] = (context.config[our_name]??null) + value;
           }
         }
+
+        if (log_config_enabled)
+          console.log(`${thing.assign ? "Set" : "Incremented"} config.${our_name}, ` +
+                      `config is now: ` +
+                      `${JSON.stringify(context.config)}`);
       }
-      
-      if (log_config_enabled)
-        console.log(`${thing.assign ? "Set" : "Updated"} config to: ` +
-                    `${JSON.stringify(context.config)}`);
       
       return '';
     }
