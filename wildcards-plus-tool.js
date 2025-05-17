@@ -6451,8 +6451,15 @@ function expand_wildcards(thing, context = new Context()) {
               ...value
             ];
           }
+          else if (typeof value === 'number') {
+            context.config[thing.key] = context.config[thing.key]??0 + value;
+          }
+          else if (typeof value === 'string') {
+            context.config[thing.key] = context.config[thing.key]??'' + value;
+          }
           else {
-            context.config[thing.key] = context.config[thing.key]??null + value
+            // probly won't work
+            context.config[thing.key] = context.config[thing.key]??null + value;
           }
         }
       }
