@@ -93,7 +93,7 @@
 | 1 #wizards_artist.tsutomu_nihei
 | 1 #wizards_artist.vincent_callebaut
 | 4 #wizards_artist.virgil_finlay
-| 1 #wizards_artist.wayne_barlowe
+| 2 #wizards_artist.wayne_barlowe
 }
 
 // -------------------------------------------------------------------------------------------------
