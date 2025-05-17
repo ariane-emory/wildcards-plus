@@ -317,7 +317,7 @@ let print_ast_json_enabled      = false;
 let string_input_mode_enabled   = true;
 let log_enabled                 = true;
 let log_flags_enabled           = false;
-let log_config_enabled          = false;
+let log_config_enabled          = true;
 let log_post_enabled            = true;
 let log_join_enabled            = false;
 let log_finalize_enabled        = false;
@@ -2622,20 +2622,22 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     return config;
 
   // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if ((config.n_iter      &&
-       (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
-      (config.batch_count &&
-       (typeof config.batch_count === 'number') && config.batch_count > 1) ||
-      (config.batchCount  &&
-       (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+  if (! config.seed) {
+    if ((config.n_iter      &&
+         (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
+        (config.batch_count &&
+         (typeof config.batch_count === 'number') && config.batch_count > 1) ||
+        (config.batchCount  &&
+         (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
 
-    if (log_config_enabled)
-      console.log(`Updating seed -1 due to n_iter > 1.`);
+      if (log_config_enabled)
+        console.log(`Updating seed -1 due to n_iter > 1.`);
 
-    config.seed = -1;
-  }
-  else if (typeof config.seed !== 'number') {
-    config.seed = Math.floor(Math.random() * (2 ** 32));
+      config.seed = -1;
+    }
+    else if (typeof config.seed !== 'number') {
+      config.seed = Math.floor(Math.random() * (2 ** 32));
+    }
   }
   
   if (config.model === '') {
@@ -7277,6 +7279,7 @@ Prompt.finalize();
 // =================================================================================================
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =================================================================================================
+
 
 
 // =================================================================================================

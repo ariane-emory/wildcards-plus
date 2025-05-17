@@ -2419,17 +2419,22 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     return config;
 
   // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if ((config.n_iter      &&
-       (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
-      (config.batch_count &&
-       (typeof config.batch_count === 'number') && config.batch_count > 1) ||
-      (config.batchCount  &&
-       (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
-    console.log(`Fix seed, using -1 due to n_iter > 1.`);
-    config.seed = -1;
-  }
-  else if (typeof config.seed !== 'number') {
-    config.seed = Math.floor(Math.random() * (2 ** 32));
+  if (! config.seed) {
+    if ((config.n_iter      &&
+         (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
+        (config.batch_count &&
+         (typeof config.batch_count === 'number') && config.batch_count > 1) ||
+        (config.batchCount  &&
+         (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+
+      if (log_config_enabled)
+        console.log(`Updating seed -1 due to n_iter > 1.`);
+
+      config.seed = -1;
+    }
+    else if (typeof config.seed !== 'number') {
+      config.seed = Math.floor(Math.random() * (2 ** 32));
+    }
   }
   
   if (config.model === '') {
@@ -2521,8 +2526,8 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     }
   }
 
-  if (log_config_enabled)
-    console.log(`Munged config is: ${JSON.stringify(config, null, 2)}`);
+  //if (log_config_enabled)
+  console.log(`Munged config is: ${JSON.stringify(config, null, 2)}`);
 
   return config;
 }
@@ -6460,10 +6465,11 @@ function expand_wildcards(thing, context = new Context()) {
       else 
         context.negative_prompt = smart_join([context.negative_prompt, expanded_neg_prompt_content]);
 
-      console.log(`${thing.assign ? "Set" : "Updated"} ` +
-                  `negative prompt` +
-                  `${(thing.assign ? ' to ' : '')}` +
-                  `: ${inspect_fun(context.negative_prompt)}`);
+      if (log_config_enabled)
+        console.log(`${thing.assign ? "Set" : "Updated"} ` +
+                    `negative prompt` +
+                    `${(thing.assign ? ' to' : '')}` +
+                    `: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
