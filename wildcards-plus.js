@@ -2509,7 +2509,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   }
 
   if (log_config_enabled)
-    console.log(`Munged config is: ${JSON.stringify(config)}`);
+    console.log(`Munged config is: ${JSON.stringify(config, null, 2)}`);
 
   return config;
 }
@@ -6238,7 +6238,50 @@ function expand_wildcards(thing, context = new Context()) {
       }
 
       if (thing instanceof ASTUpdateConfigBinary) {
-        context.config[thing.key] = value;
+        if (! thing.increment) {
+          context.config[thing.key] = value;
+        }
+        else { // increment
+          if (Array.isArray(value)) {
+            const new_arr = [
+              ...(context.config[thing.key]??[]),
+              ...value
+            ];
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by array ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(new_arr)}`);
+            context.config[thing.key] = new_arr;
+          }
+          else if (typeof value === 'object') {
+            const new_obj = {
+              ...(context.config[thing.key]??{}),
+              ...value
+            };
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by object ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(new_obj)}`);
+            context.config[thing.key] = new_obj;
+          }
+          else if (typeof value === 'number') {
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by number ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun((context.config[thing.key]??0) + value)}`);
+            context.config[thing.key] = (context.config[thing.key]??0) + value;
+          }
+          else if (typeof value === 'string') {
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by string ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun((context.config[thing.key]??'') + value)}`);
+            context.config[thing.key] = (context.config[thing.key]??'') + value;
+          }
+          else {
+            // probly won't work most of the time, but let's try anyhow, I guess.
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by unknown ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(context.config[thing.key]??null + value)}`);
+            context.config[thing.key] = (context.config[thing.key]??null) + value;
+          }
+        }
       }
       else { // ASTUpdateConfigUnary
         context.config = thing.assign
@@ -6624,10 +6667,11 @@ class ASTUpdateConfigUnary extends ASTNode {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTUpdateConfigBinary extends ASTNode {
-  constructor(key, value) {
+  constructor(key, value, increment) {
     super();
-    this.key   = key;
-    this.value = value;
+    this.key       = key;
+    this.value     = value;
+    this.increment = increment;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6863,11 +6907,12 @@ const SpecialFunctionUpdateNegativePrompt =
                                            assignment_operator)),     // [0][1]
                             () => ScalarUpdateSource));           // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTUpdateConfigBinary(arr[1], arr[2][1]),
-          cutting_seq('%config.',                                     // [0]
-                      ident,                                          // [1]
-                      wst_seq(assignment_operator,                    // [2][0]
-                              choice(Jsonc, () => LimitedContent)))); // [2][1]
+    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '+='),
+          cutting_seq('%config.',                                           // [0]
+                      seq(ident,                                            // [1][0]
+                          wst_seq(choice(assignment_operator,
+                                         incr_assignment_operator),         // [1][1][0]
+                                  choice(Jsonc, () => LimitedContent)))));  // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq('%config',                              // [0][0]
