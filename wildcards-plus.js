@@ -1,4 +1,4 @@
-_// -*- fill-column: 100; eval: (display-fill-column-indicator-mode 1); -*-
+// -*- fill-column: 100; eval: (display-fill-column-indicator-mode 1); -*-
 //@api-1.0
 // wildcards-plus
 // author ariane-emory (includes some code from wetcircuit's original wildcards.js)
