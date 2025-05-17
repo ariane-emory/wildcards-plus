@@ -6673,27 +6673,16 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateNegativePrompt) {
+      // if (context.config.negativePrompt)
+      //   throw "bomb";
+      
       const temporaryNode = new ASTUpdateConfigBinary(context.config.negativePrompt
-                                                      ? "negativePrompt"
-                                                      : "negative_prompt",
+                                                          ? "negativePrompt"
+                                                          : "negative_prompt",
                                                       thing.value, thing.assign);
       
 
       return expand_wildcards(temporaryNode, context);
-      
-      // const expanded_neg_prompt_content = expand_wildcards(thing.value, context);
-      
-      // context.negative_prompt = thing.assign
-      //   ? expanded_neg_prompt_content
-      //   : smart_join([context.negative_prompt, expanded_neg_prompt_content]);
-
-      // if (log_config_enabled)
-      //                                               console.log(`${thing.assign ? "Set" : "Updated"} ` +
-      //               `negative prompt` +
-      //               `${(thing.assign ? ' to' : '')}` +
-      //               `: ${inspect_fun(context.negative_prompt)}`);
-      
-      // return '';
     }
     // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
