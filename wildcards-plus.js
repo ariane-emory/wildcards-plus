@@ -2484,23 +2484,23 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     }
     const corrected = new Set();
     
-    for (const [dt_name, automatic1111_name] of config_key_names) {
-      if (config[automatic1111_name] !== undefined) {
-        if (corrected.has(dt_name))
-          continue;
-        
-        corrected.add(dt_name);
+    // for (const [dt_name, automatic1111_name] of config_key_names) {
+    //   if (config[automatic1111_name] !== undefined) {
+    //     if (corrected.has(dt_name))
+    //       continue;
+    
+    //     corrected.add(dt_name);
 
-        if (automatic1111_name === dt_name)
-          continue;
-        
-        console.log(`Correcting config.${automatic1111_name} = ` +
-                    `${config[automatic1111_name]} to ` +
-                    `config.${dt_name} = ${config[automatic1111_name]}.`);
-        config[dt_name] = config[automatic1111_name];
-        delete config[automatic1111_name];
-      }
-    }
+    //     if (automatic1111_name === dt_name)
+    //       continue;
+    
+    //     console.log(`Correcting config.${automatic1111_name} = ` +
+    //                 `${config[automatic1111_name]} to ` +
+    //                 `config.${dt_name} = ${config[automatic1111_name]}.`);
+    //     config[dt_name] = config[automatic1111_name];
+    //     delete config[automatic1111_name];
+    //   }
+    // }
   }
   else { // running in Node.js, sampler needs to be a string:
     if (config.sampler !== undefined && typeof config.sampler ===  'number') {
@@ -2509,36 +2509,32 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers[config.sampler];
     }
 
-    const corrected = new Set();
+    // const corrected = new Set();
     
-    for (const [dt_name, automatic1111_name] of config_key_names) {      
-      if (config[dt_name] !== undefined) {
-        if (corrected.has(dt_name))
-          continue;
-        
-        corrected.add(dt_name);
+    // for (const [dt_name, automatic1111_name] of config_key_names) {      
+    //   if (config[dt_name] !== undefined) {
+    //     if (corrected.has(dt_name))
+    //       continue;
+    
+    //     corrected.add(dt_name);
 
-        if (automatic1111_name === dt_name)
-          continue;
-        
-        console.log(`Correcting config.${dt_name} = ` +
-                    `${inspect_fun(config[dt_name])} to ` +
-                    `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
-        config[automatic1111_name] = config[dt_name];
-        delete config[dt_name];
-      }
-    }
+    //     if (automatic1111_name === dt_name)
+    //       continue;
+    
+    //     console.log(`Correcting config.${dt_name} = ` +
+    //                 `${inspect_fun(config[dt_name])} to ` +
+    //                 `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
+    //     config[automatic1111_name] = config[dt_name];
+    //     delete config[dt_name];
+    //   }
+    // }
   }
 
   // 'fix' seed if n_iter > 1, doing this seems convenient?
   if (! config.seed) {
-    if ((config.n_iter      &&
-         (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
-        (config.batch_count &&
-         (typeof config.batch_count === 'number') && config.batch_count > 1) ||
-        (config.batchCount  &&
-         (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+    const n_iter_key = get_our_name('n_iter');
 
+    if (config[n_iter_key] && (typeof config[n_iter_key] === 'number') && config[n_iter_key] > 1) {
       if (log_config_enabled)
         console.log(`Fixing seed to -1 due to n_iter > 1.`);
 
@@ -6280,9 +6276,15 @@ function expand_wildcards(thing, context = new Context()) {
       }
 
       if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
+        let new_obj = value;
+
+        for (const key of Object.keys(value)) {
+          new_obj[get_our_name(key)??key] = value[key]
+        }
+        
         context.config = thing.assign
-          ? value
-          : { ...context.config, ...value };
+          ? new_obj
+          : { ...context.config, ...new_obj };
 
         if (log_config_enabled)
           console.log(`${thing.assign ? "Set" : "Updated"} config to: ` +
@@ -6355,9 +6357,12 @@ function expand_wildcards(thing, context = new Context()) {
         }
 
         if (log_config_enabled)
-          console.log(`${thing.assign ? "Set" : "Incremented"} config.${our_name}, ` +
-                      `config is now: ` +
-                      `${JSON.stringify(context.config)}`);
+          console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
+            `config.${our_name} ` +
+              `${thing.assign ? '=' : '+='} ` +
+              `${inspect_fun(value)}, ` +
+              `config is now: ` +
+              `${JSON.stringify(context.config)}`);
       }
       
       return '';
