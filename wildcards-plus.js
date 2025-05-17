@@ -2416,19 +2416,24 @@ function get_automatic111_name(dt_name) {
   const got = config_key_names.find(([dt_name2, automatic1111_name]) => dt_name2 === dt_name);
   if (got)
     return got[1];
+  return dt_name;
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(automatic1111_name) {
   const got = config_key_names.find(([dt_name, automatic1111_name2]) => automatic1111_name2 === automatic1111_name);
-
   if (got)
     return got[0];
+  return automatic1111_name;
 }
 // -------------------------------------------------------------------------------------------------
-function get_our__name(name) {
-  return (dt_hosted
-          ? get_dt_name
-          : get_automatic111_name)(name);
+function get_our_name(name) {
+  const res = (dt_hosted
+               ? get_dt_name
+               : get_automatic111_name)(name);
+
+  // console.log(`got our name for ${name}: ${res}`);
+  
+  return res;
 }
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
@@ -6253,6 +6258,8 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateConfigUnary ||
              thing instanceof ASTUpdateConfigBinary) {
+      // console.log(`WALK ${inspect_fun(thing)}`);
+
       let value = thing.value;
 
       if (value instanceof ASTNode) {
@@ -6279,68 +6286,68 @@ function expand_wildcards(thing, context = new Context()) {
           : { ...context.config, ...value };        
       }
       else{ // ASTUpdateConfigBinary
-        const key = get_our__name(thing.key);
+        const our_name = get_our_name(thing.key); 
         
         if (thing.assign) {
-          context.config[key] = value;
+          context.config[our_name] = value;
         }
         else { // increment
           if (Array.isArray(value)) {
-            const tmp_arr = context.config[thing.key]??[];
+            const tmp_arr = context.config[our_name]??[];
 
             if (! Array.isArray(tmp_arr))
               throw new Error(`can't add array ${inspect_fun(value)} ` +
                               `to non-array ${inspect_fun(tmp_arr)}`);
             
             const new_arr = [ ...tmp_arr, ...value ];
-            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by array ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun(new_arr)}`);
-            context.config[key] = new_arr;
+            context.config[our_name] = new_arr;
           }
           else if (typeof value === 'object') {
-            const tmp_obj = context.config[key]??{};
+            const tmp_obj = context.config[our_name]??{};
 
             if (typeof tmp_obj !== 'object')
               throw new Error(`can't add object ${inspect_fun(value)} `+
                               `to non-object ${inspect_fun(tmp_obj)}`);
 
             const new_obj = { ...tmp_obj, ...value };
-            // console.log(`current value ${inspect_fun(context.config[key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by object ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun(new_obj)}`);
-            context.config[key] = new_obj;
+            context.config[our_name] = new_obj;
           }
           else if (typeof value === 'number') {
-            const tmp_num = context.config[key]??0;
+            const tmp_num = context.config[our_name]??0;
             
             if (typeof tmp_num !== 'number')
               throw new Error(`can't add number ${inspect_fun(value)} `+
                               `to non-number ${inspect_fun(tmp_num)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by number ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[key]??0) + value)}`);
-            context.config[key] = tmp_num + value;
+            //             `total ${inspect_fun((context.config[our_name]??0) + value)}`);
+            context.config[our_name] = tmp_num + value;
           }
           else if (typeof value === 'string') {
-            const tmp_str = context.config[key]??'';
+            const tmp_str = context.config[our_name]??'';
 
             if (typeof tmp_str !== 'string')
               throw new Error(`can't add string ${inspect_fun(value)} `+
                               `to non-string ${inspect_fun(tmp_str)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by string ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[key]??'') + value)}`);
-            context.config[key] = smart_join([tmp_str, value]);
+            //             `total ${inspect_fun((context.config[our_name]??'') + value)}`);
+            context.config[our_name] = smart_join([tmp_str, value]);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
-            // console.log(`current value ${inspect_fun(context.config[key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by unknown ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(context.config[key]??null + value)}`);
-            context.config[key] = (context.config[key]??null) + value;
+            //             `total ${inspect_fun(context.config[our_name]??null + value)}`);
+            context.config[our_name] = (context.config[our_name]??null) + value;
           }
         }
       }
@@ -6477,12 +6484,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateNegativePrompt) {
-      // if (context.config.negativePrompt)
-      //   throw "bomb";
-      
-      const temporaryNode = new ASTUpdateConfigBinary(context.config.negativePrompt
-                                                      ? "negativePrompt"
-                                                      : "negative_prompt",
+      const temporaryNode = new ASTUpdateConfigBinary("negative_prompt",
                                                       thing.value,
                                                       thing.assign);
       
@@ -6962,7 +6964,7 @@ const SpecialFunctionUpdateNegativePrompt =
                                            assignment_operator)),     // [0][1]
                             () => LimitedContent));                   // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '=='),
+    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
           cutting_seq('%config.',                                           // [0]
                       seq(ident,                                            // [1][0]
                           wst_seq(choice(incr_assignment_operator,
