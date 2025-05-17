@@ -7399,7 +7399,7 @@ async function main() {
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
   let posted_count          = 0;
-  let negative_prompt       = undefined; // not null
+  let positive_prompt       = undefined; // not null
   let config                = null;
   let prior_positive_prompt = null;
   let prior_config          = null;
@@ -7456,15 +7456,15 @@ async function main() {
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(positive_prompt);
 
-    if (negative_prompt || negative_prompt === '') {
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`#1: Expanded negative prompt:`);
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(negative_prompt);
-    } else {
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`#1: No negative prompt!`);
-    }
+    // if (negative_prompt || negative_prompt === '') {
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(`#1: Expanded negative prompt:`);
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(negative_prompt);
+    // } else {
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(`#1: No negative prompt!`);
+    // }
 
     if (context.config.negative_prompt || context.config.negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
