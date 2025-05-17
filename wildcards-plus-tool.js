@@ -6685,15 +6685,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateNegativePrompt) {
-      // if (context.config.negativePrompt)
-      //   throw "bomb";
-
-      const key = get_our_name("negative_prompt");
-
-      if (!key)
-        throw new Error("bomb");
-      
-      const temporaryNode = new ASTUpdateConfigBinary(key,
+      const temporaryNode = new ASTUpdateConfigBinary("negative_prompt",
                                                       thing.value,
                                                       thing.assign);
       
