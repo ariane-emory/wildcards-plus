@@ -2782,7 +2782,6 @@ class Context {
     this.prior_pick_one_priority      = prior_pick_one_priority;
     this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-    this.negative_prompt              = negative_prompt;
 
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
@@ -2895,7 +2894,6 @@ class Context {
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,      
       prior_pick_multiple_priority: this.pick_multiple_priority,
-      negative_prompt:              this.negative_prompt,
     });
   }
   // -----------------------------------------------------------------------------------------------
