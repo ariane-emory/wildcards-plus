@@ -2629,9 +2629,12 @@ function get_dt_name(automatic1111_name) {
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
-  return (dt_hosted
-          ? get_dt_name
-          : get_automatic111_name)(name);
+  const res = (dt_hosted
+               ? get_dt_name
+               : get_automatic111_name)(name);
+
+  console.log(`got our name for ${name}: ${res}`);
+  return res;
 }
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
