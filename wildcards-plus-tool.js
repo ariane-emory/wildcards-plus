@@ -6447,14 +6447,23 @@ function expand_wildcards(thing, context = new Context()) {
         else { // increment
           if (Array.isArray(value)) {
             const new_arr = [
-              ...context.config[thing.key]??[],
+              ...(context.config[thing.key]??[]),
               ...value
             ];
-            
             // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
             //             `increment by array ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun(new_arr)}`);
             context.config[thing.key] = new_arr;
+          }
+          else if (typeof value === 'object') {
+            const new_obj = {
+              ...(context.config[thing.key]??{}),
+              ...value
+            };
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by object ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(new_obj)}`);
+            context.config[thing.key] = new_obj;
           }
           else if (typeof value === 'number') {
             // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
