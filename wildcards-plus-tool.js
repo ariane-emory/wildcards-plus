@@ -6479,7 +6479,9 @@ function expand_wildcards(thing, context = new Context()) {
           : { ...context.config, ...new_obj };
 
         if (log_config_enabled)
-          console.log(`${thing.assign ? "Set" : "Updated"} config to: ` +
+          console.log(`config ${thing.assign ? '=' : '+='} ` +
+                      `${JSON.stringify(new_obj)}, ` +
+                      `config is now: ` +
                       `${JSON.stringify(context.config)}`);
       }
       else { // ASTUpdateConfigBinary
@@ -6553,8 +6555,8 @@ function expand_wildcards(thing, context = new Context()) {
                       `config.${our_name} ` +
                       `${thing.assign ? '=' : '+='} ` +
                       `${inspect_fun(value)}, ` +
-                      `config is now: ` +
-                      `${JSON.stringify(context.config)}`);
+              `config is now: ` +
+              `${JSON.stringify(context.config)}`);
       }
             
       return '';
