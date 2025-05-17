@@ -6489,7 +6489,7 @@ function expand_wildcards(thing, context = new Context()) {
       else{ // ASTUpdateConfigBinary
         const our_name = get_our_name(thing.key); 
         
-        if (! thing.increment) {
+        if (thing.assign) {
           context.config[our_name] = value;
         }
         else { // increment
@@ -7173,7 +7173,7 @@ const SpecialFunctionUpdateNegativePrompt =
                                            assignment_operator)),     // [0][1]
                             () => LimitedContent));                   // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '=='),
+    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
           cutting_seq('%config.',                                           // [0]
                       seq(ident,                                            // [1][0]
                           wst_seq(choice(incr_assignment_operator,
