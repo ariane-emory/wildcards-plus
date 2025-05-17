@@ -2336,12 +2336,12 @@ const config_key_names = [
   [ 'model',                        'model'                                      ],
   [ 'prompt',                       'prompt'                                     ],
   [ 'seed',                         'seed'                                       ],
-  [ 'sampler',                      'sampler'                                    ],
   [ 'sharpness',                    'sharpness'                                  ],
   [ 'shift',                        'shift'                                      ],
   [ 'strength',                     'strength'                                   ],
   [ 'width',                        'width'                                      ],
   [ 'upscaler',                     'upscaler'                                   ],
+  [ 'sampler',                      'sampler'                                    ], // ordering significant
   // differing keys:
   [ 'aestheticScore',               'aesthetic_score'                            ],
   [ 'batchCount',                   'batch_count'                                ],
@@ -2473,12 +2473,18 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
                   `config.sampler = ${dt_samplers.indexOf(config.sampler)}.`);
       config.sampler = dt_samplers.indexOf(config.sampler);
     }
-
+    const corrected = new Set();
+    
     for (const [dt_name, automatic1111_name] of config_key_names) {
       if (config[automatic1111_name] !== undefined) {
+        if (corrected.has(dt_name))
+          continue;
+        
+        corrected.add(dt_name);
+
         if (automatic1111_name === dt_name)
           continue;
-
+        
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
                     `config.${dt_name} = ${config[automatic1111_name]}.`);
@@ -2494,8 +2500,15 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers[config.sampler];
     }
 
-    for (const [dt_name, automatic1111_name] of config_key_names) {
+    const corrected = new Set();
+    
+    for (const [dt_name, automatic1111_name] of config_key_names) {      
       if (config[dt_name] !== undefined) {
+        if (corrected.has(dt_name))
+          continue;
+        
+        corrected.add(dt_name);
+
         if (automatic1111_name === dt_name)
           continue;
         
@@ -6226,10 +6239,11 @@ function expand_wildcards(thing, context = new Context()) {
                                               ? JsoncObject
                                               : Jsonc).match(expanded_value);
 
-        if (thing instanceof ASTUpdateConfigBinary)
+        if (thing instanceof ASTUpdateConfigBinary) {
           value = jsconc_parsed_expanded_value?.is_finished
-          ? jsconc_parsed_expanded_value.value
-          : expanded_value;
+            ? jsconc_parsed_expanded_value.value
+            : expanded_value;
+        }
         else { // ASTUpdateConfigUnary
           throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
                           `JSONC object, Jsonc.match(...) result was ` +
@@ -6237,7 +6251,12 @@ function expand_wildcards(thing, context = new Context()) {
         }
       }
 
-      if (thing instanceof ASTUpdateConfigBinary) {
+      if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
+        context.config = thing.assign
+          ? value
+          : { ...context.config, ...value };        
+      }
+      else{
         if (! thing.increment) {
           context.config[thing.key] = value;
         }
@@ -6283,11 +6302,6 @@ function expand_wildcards(thing, context = new Context()) {
           }
         }
       }
-      else { // ASTUpdateConfigUnary
-        context.config = thing.assign
-          ? value
-          : { ...context.config, ...value };        
-      } 
       
       if (log_config_enabled)
         console.log(`${thing.assign ? "Set" : "Updated"} config to: ` +
@@ -6910,8 +6924,8 @@ let   SpecialFunctionUpdateConfigurationBinary =
     xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '+='),
           cutting_seq('%config.',                                           // [0]
                       seq(ident,                                            // [1][0]
-                          wst_seq(choice(assignment_operator,
-                                         incr_assignment_operator),         // [1][1][0]
+                          wst_seq(choice(incr_assignment_operator,
+                                         assignment_operator),              // [1][1][0]
                                   choice(Jsonc, () => LimitedContent)))));  // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
