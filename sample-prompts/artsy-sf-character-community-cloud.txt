@@ -15,86 +15,84 @@
 // force an artist from this small list instead of picking from all of the 1000-plus
 // artists from Wizard Whitebeard's list:
 // ---------------------------------------------------------------------------------------
-{   #wizards_artist.frank_frazetta
-| 2 #wizards_artist.tony_diterlizzi
+{ 1 #wizards_artist.al_williamson
+| 1 #wizards_artist.alan_bean
+| 1 #wizards_artist.alan_moore
+| 1 #wizards_artist.alejandro_burdisio
+| 1 #wizards_artist.andy_fairhurst
+| 1 #wizards_artist.angus_mckie
+| 1 #wizards_artist.anne_mccaffrey
+| 1 #wizards_artist.barclay_shaw
+| 1 #wizards_artist.beeple
+| 1 #wizards_artist.benedick_bana
+| 1 #wizards_artist.bruce_pennington
 | 2 #wizards_artist.boris_vallejo
+| 1 #wizards_artist.chesley_bonestell 
+| 1 #wizards_artist.chris_foss
+| 1 #wizards_artist.christopher_balaskas
+| 1 #wizards_artist.clayton_crain
+| 1 #wizards_artist.clyde_caldwell
+| 1 #wizards_artist.dan_mcpharlin
+| 1 #wizards_artist.dave_dorman
+| 1 #wizards_artist.don_maitz
+| 1 #wizards_artist.donato_giancola
+| 1 #wizards_artist.drew_struzan
+| 1 #wizards_artist.ed_emshwiller
+| 1 #wizards_artist.enki_bilal comics
+| 1 #wizards_artist.filip_hodas
+| 1 #wizards_artist.frank_frazetta
 | 2 #wizards_artist.gerald_brom
-|   #wizards_artist.ian_miller
-|   #wizards_artist.john_blanche
-|   #wizards_artist.jack_gaughan
-|   #wizards_artist.michael_whelan
-|   #wizards_artist.chris_foss
-|   #wizards_artist.peter_elson
-|   #wizards_artist.wayne_barlowe
-|   #wizards_artist.jim_burns
-|   #wizards_artist.christopher_balaskas
-|   #wizards_artist.benedick_bana
-|   #wizards_artist.alan_bean
-|   #wizards_artist.beeple
-|   #wizards_artist.john_berkey
-|   #wizards_artist.enki_bilal comics
-|   #wizards_artist.chesley_bonestell 
-|   #wizards_artist.louise_bourgeois
-|   #wizards_artist.mark_brooks
-|   #wizards_artist.alejandro_burdisio
-|   #wizards_artist.clyde_caldwell
-|   #wizards_artist.vincent_callebaut
-|   #wizards_artist.richard_corben
-|   #wizards_artist.clayton_crain
-|   #wizards_artist.roger_dean
-|   #wizards_artist.dave_dorman
-|   #wizards_artist.philippe_druillet
-|   #wizards_artist.joseba_elorza
-|   #wizards_artist.ed_emshwiller
-|   #wizards_artist.kilian_eng
-|   #wizards_artist.glenn_fabry
-|   #wizards_artist.andy_fairhurst
-|   #wizards_artist.virgil_finlay
-|   #wizards_artist.kelly_freas
-|   #wizards_artist.donato_giancola
-|   #wizards_artist.hr_giger
-|   #wizards_artist.benedick_bana
-|   #wizards_artist.jean_giraud
-|   #wizards_artist.josan_gonzalez
-|   #wizards_artist.john_harris
-|   #wizards_artist.lorenz_hideyoshi
-|   #wizards_artist.filip_hodas
-|   #wizards_artist.michael_hutter
-|   #wizards_artist.peter_andrew_jones
-|   #wizards_artist.michal_karcz
-|   #wizards_artist.paul_lehr
-|   #wizards_artist.don_maitz
-|   #wizards_artist.stephan_martiniere
-|   #wizards_artist.rodney_matthews
-|   #wizards_artist.anne_mccaffrey
-|   #wizards_artist.robert_mccall
-|   #wizards_artist.angus_mckie
-|   #wizards_artist.dan_mcpharlin
-|   #wizards_artist.ralph_mcquarrie
-|   #wizards_artist.ian_mcque
-|   #wizards_artist.syd_mead
-|   #wizards_artist.moebius
-|   #wizards_artist.alan_moore
-|   #wizards_artist.todd_nauck
-// |   #wizards_artist.tsutomu_nihei
-|   #wizards_artist.terry_oakes
-|   #wizards_artist.noriyoshi_ohrai
-|   #wizards_artist.mamoru_oshii
-|   #wizards_artist.bruce_pennington
-|   #wizards_artist.kenneth_rocafort
-|   #wizards_artist.barclay_shaw
-|   #wizards_artist.masamune_shirow
-|   #wizards_artist.hajime_sorayama
-|   #wizards_artist.sparth
-|   #wizards_artist.simon_stalenhag
-|   #wizards_artist.drew_struzan
-|   #wizards_artist.osamu_tezuka
-|   #wizards_artist.michael_whelan
-|   #wizards_artist.tim_white
-|   #wizards_artist.al_williamson
-|   #wizards_artist.liam_wong
-|   #wizards_artist.patrick_woodroffe
-|   #wizards_artist.john_zeleznik
+| 1 #wizards_artist.glenn_fabry
+| 1 #wizards_artist.hajime_sorayama
+| 1 #wizards_artist.hr_giger
+| 1 #wizards_artist.ian_mcque
+| 1 #wizards_artist.ian_miller
+| 1 #wizards_artist.jack_gaughan
+| 1 #wizards_artist.jean_giraud
+| 1 #wizards_artist.jim_burns
+| 1 #wizards_artist.john_berkey
+| 1 #wizards_artist.john_blanche
+| 1 #wizards_artist.john_harris
+| 1 #wizards_artist.john_zeleznik
+| 1 #wizards_artist.josan_gonzalez
+| 1 #wizards_artist.joseba_elorza
+| 1 #wizards_artist.kelly_freas
+| 1 #wizards_artist.kenneth_rocafort
+| 1 #wizards_artist.kilian_eng
+| 1 #wizards_artist.liam_wong
+| 1 #wizards_artist.lorenz_hideyoshi
+| 1 #wizards_artist.louise_bourgeois
+| 1 #wizards_artist.mamoru_oshii
+| 1 #wizards_artist.mark_brooks
+| 1 #wizards_artist.masamune_shirow
+| 1 #wizards_artist.michael_hutter
+| 1 #wizards_artist.michael_whelan
+| 1 #wizards_artist.michal_karcz
+| 1 #wizards_artist.moebius
+| 1 #wizards_artist.noriyoshi_ohrai
+| 1 #wizards_artist.osamu_tezuka
+| 1 #wizards_artist.patrick_woodroffe
+| 1 #wizards_artist.paul_lehr
+| 1 #wizards_artist.peter_andrew_jones
+| 1 #wizards_artist.peter_elson
+| 1 #wizards_artist.philippe_druillet
+| 1 #wizards_artist.ralph_mcquarrie
+| 1 #wizards_artist.richard_corben
+| 1 #wizards_artist.robert_mccall
+| 1 #wizards_artist.rodney_matthews
+| 1 #wizards_artist.roger_dean
+| 1 #wizards_artist.simon_stalenhag
+| 1 #wizards_artist.sparth
+| 1 #wizards_artist.stephan_martiniere
+| 1 #wizards_artist.syd_mead
+| 1 #wizards_artist.terry_oakes
+| 1 #wizards_artist.tim_white
+| 1 #wizards_artist.todd_nauck
+| 2 #wizards_artist.tony_diterlizzi
+| 1 #wizards_artist.tsutomu_nihei
+| 1 #wizards_artist.vincent_callebaut
+| 1 #wizards_artist.virgil_finlay
+| 1 #wizards_artist.wayne_barlowe
 }
 
 // ---------------------------------------------------------------------------------------
