@@ -106,6 +106,7 @@
 %config.model     = { 8 shuttle_v3.1_aesthetic_q5p_svd.ckpt
                     | 4 artsy_vibe_v1_q5p_svd.ckpt
                     | 2 pixelwave_flux_1_schnell_04_q5p_svd.ckpt
+                    | 1 devmode_v0.3_turbo_q5p_svd.ckpt
                     | 1 flux_1_dev_q8p 
                     }
 %config.sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
