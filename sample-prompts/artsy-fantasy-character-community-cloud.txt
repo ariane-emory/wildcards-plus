@@ -1,10 +1,75 @@
-// just in case it's a Pony-based model, hopefully shouldn't make a big, difference
-// otherwise:
-// score_9, score_8_up, score_7_up, score_6_up, \n
+// =======================================================================================
+// use wildcards to randomize some parts of the configuration before we get on with the
+// actual textual content of the prompt:
+// =======================================================================================
 
-{|2 epic|3 dark} fantasy, masterpiece, ultra high resolution, 8k, detailed background,
-wide shot,
-\n
+// ---------------------------------------------------------------------------------------
+// template config flags to enable model families or other features:
+// ---------------------------------------------------------------------------------------
+
+#flux_on
+#hidream_full_on
+// #hidream_fast_on
+
+// ---------------------------------------------------------------------------------------
+// force an artist from this small list instead of picking from all of the 1000-plus
+// artists from Wizard Whitebeard's list:
+// ---------------------------------------------------------------------------------------
+// {   #wizards_artist.frank_frazetta
+// | 2 #wizards_artist.tony_diterlizzi
+// | 2 #wizards_artist.boris_vallejo
+// | 2 #wizards_artist.gerald_brom
+// |   #wizards_artist.ian_miller
+// |   #wizards_artist.john_blanche
+// |   #wizards_artist.jack_gaughan
+// |   #wizards_artist.michael_whelan
+// |   #wizards_artist.chris_foss
+// |   #wizards_artist.peter_elson
+// |   #wizards_artist.wayne_barlowe
+// |   #wizards_artist.jim_burns
+// }
+
+// ---------------------------------------------------------------------------------------
+%config.loras     = [] // unconfigure any LoRAs that are configured in the DT UI first.
+
+{ 4 ?flux_on
+// Flux Dev:
+
+%config.model     = "flux_1_dev_q8p.ckpt"
+%config.sampler   = { "DDIM Trailing" | "Euler A" | "Euler A Trailing" }
+%config.cfg_scale = { 1.0 | 1.5 | 2.0 | 2.5| 3.0 | 3.5| 4.0 | 4.5 | 5.0 }
+%config.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+%config.n_iter    = 2
+
+{ 1 %config += { "width": 960,   "height": 960,  "steps": 40  } // 12,093
+| 2 %config += { "width": 1024,  "height": 960,  "steps": 40  } // 13,671
+| 8 %config += { "width": 1408,  "height": 704,  "steps": 40  } // 13,888
+| 1 %config += { "width": 896,   "height": 896,  "steps": 50  } // 11,631
+| 2 %config += { "width": 960,   "height": 896,  "steps": 50  } // 13,260
+| 8 %config += { "width": 1280,  "height": 640,  "steps": 50  } // 12,086
+}
+
+| 2 ?hidream_fast_on,hidream_full_on
+// Hidream with some basic settings that seem to work alright:
+
+%config.model    = { ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
+| ?hidream_full_on "hidream_i1_full_q5p.ckpt"
+// | ?hidream_full_on "hidream_i1_full_q8p.ckpt"
+}  
+%config.sampler   = { "DDIM Trailing" | "Euler A" | "Euler A Trailing" }
+%config.cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
+%config.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+%config.n_iter    = 2
+
+{ 1 %config += { "width": 960,   "height": 960, "steps": 40  }
+| 2 %config += { "width": 1152,  "height": 768, "steps": 40  }
+| 6 %config += { "width": 1280,  "height": 640, "steps": 45  }
+}
+}
+
+// =======================================================================================
+// make random fantasy characters:
+// =======================================================================================
 
 // set an 'm' or 'f' gender flag that will help guide the selection of picks later on.
 {!male !female !neuter {#male|#female}}
@@ -55,37 +120,32 @@ $weapon  = @weapon
 
 @pro_pos_rand    = {5 @pro_pos_adj|4 a|1 their}
 
-@video_game_descriptor = {highly anticipated|blockbuster|award winning}
-@video_game_origin     = {|3 from {Japan's FROM Software|2 Hidetaka Miyazaki}|, the
-                            sequel to Bloodborne}
-{3 A {|oil} painting for the cover of a fantasy novel published in the
- {3 1970s|2 1980s|1990s|early 2000s}
- , in the style of
- {3 Julie Bell|2 Boris Vallejo|2 Frank Frazetta|3 Ian Miller|3 Zdzislaw Beksinski
- |4 Gerald Brom|3 {Yoshiaki Kawajiri|the anime movie \'Ninja Scroll'}
- |2 an 'Ace double' novel|Tor Books|an Omni Magazine cover|a Weird Tales magazine cover
- |a Heavy Metal magazine cover}
-|A screenshot from a {cinematic|cutscene} {3|before the first boss fight} in a
- @video_game_descriptor video sgame @video_game_origin
-|A promotional poster for a @video_game_descriptor video game @video_game_origin
-}
-
-, {which depicts|depicting}
-
 @world_adjective = {ancient|primevil|medieval|Atlantean|Victorian|Mesopotamian|forgotten
                     |primitive|frightening|hellish|alien|{haunted|{ghost|demon}-haunted}
                     |ruined|abandoned|lonely|chaotic|crowded|mythical|fantastical
                     }
-                    
+
+@wizard_clothing_adjs = {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
+                         |ornate|silken|brightly colored|occult|embroidered}
+@pluralize_clothing   = {!used_pro <s}
+
+@look_aim = {past|towards|2 {|up|down} {at|towards}}
+
+// =======================================================================================
+// generate the prompt body:
+// =======================================================================================
+
+{|2 epic|3 dark} fantasy, masterpiece, ultra high resolution, 8k, detailed background,
+wide shot,
+\n
+
+A {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting}
+
 {|2 a scene in a @world_adjective world {showing|featuring|focused on|centered on}}
 
 a
 
 @1-2&character_adjectives @roles
-
-@wizard_clothing_adjs = {swirling|cowled|hooded|shadowy|multicolored|oily|many-layered
-                         |ornate|silken|brightly colored|occult|embroidered}
-@pluralize_clothing   = {!used_pro <s}
 
 // Clothing: only reference any clothing half the time, because of the empty alternative
 // at the start:
@@ -136,7 +196,7 @@ a
 {|#outdoors}
 {|?outdoors #mounted}
 
-{?maleounted {sitting on|mounted on|riding on|astride|leading}
+{?mounted {sitting on|mounted on|riding on|astride|leading}
           @pro_pos_rand
           {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
           {3 beast|wolf|2 lizard|reptile|snake|serpent|insect|2 steed|2 destrier
@@ -167,8 +227,6 @@ in {3|the heart of|the depths of} a
 }
 
 {,|and}
-
-@look_aim = {past|towards|2 {|up|down} {at|towards}}
 
 // Expression/looking at:
 {2 looking @look_aim
@@ -206,15 +264,15 @@ the viewer
 // unless flagged as #alone, warriors always have #many_minions, but wizards may have a
 // single minion sometimes: 
 {?warrior #many_minions|?wizard {|3 #many_minions}}
-@pluralize_minions = { ?maleany_minions <s }
+@pluralize_minions = { ?many_minions <s }
 
 // Companions: don't always mention the companions, because of the empty alternative at
 // the start:
 {|!alone {,|2 while}
-         {accompanied by|?maleany_minions surrounded by|?maleany_minions encircled by
+         {accompanied by|?many_minions surrounded by|?many_minions encircled by
          |guarded by|leading|commanding|directing|guiding|rallying|alongside}
          @pro_pos_rand
-         {?maleany_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang
+         {?many_minions {horde|host|?warrior {|2 motley|3 merry} {band|crew}|?warrior gang
                         |?warrior squad|army|?wizard coterie|?wizard circle|?wizard coven
                         |?wizard variety|?wizard menagerie}
                         of
@@ -234,3 +292,5 @@ the viewer
                                 |?warrior violence}
 }
 . \n
+
+By @wizards_artists, @wizards_artist_styles.

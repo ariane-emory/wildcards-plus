@@ -1,12 +1,12 @@
-@nonZeroInteger     := {/*<1|<2|*/ <3|<4|<5|<6|<7|<8|<9}
-@randomWeight       := {:1. @nonZeroInteger}
+@nonZeroInteger     = {/*<1|<2|*/ <3|<4|<5|<6|<7|<8|<9}
+@randomWeight       = {:1. @nonZeroInteger}
 
 // A (cute @randomWeight) (orange @randomWeight) {cat|bird}. 
 
-@pluralize          := {?pluralize <s}
+@pluralize          = {?pluralize <s}
 
-@weightedFormats    := {@formats|2 (@formats @randomWeight)}
-@formats            := {!#used_bread 3 {2|grilled|toasted} sandwich 
+@weightedFormats    = {@formats|2 (@formats @randomWeight)}
+@formats            = {!#used_bread 3 {2|grilled|toasted} sandwich 
                        |!#used_bread banh mi 
                        |!#used_bread panini 
                        |!#used_bread burger
@@ -19,8 +19,8 @@
                        |omelette #used_eggs
                        }
                        
-@weightedMeats      := {@meats|2 (@meats @randomWeight)}
-@meats              := {2 bacon
+@weightedMeats      = {@meats|2 (@meats @randomWeight)}
+@meats              = {2 bacon
                        |2 {|fried|grilled|roasted} chicken
                        |2 Spam
                        |{2|fried|grilled} fish
@@ -39,8 +39,8 @@
                        |3 {3|2 grilled|ground|roast} beef
                        |{|garlic|fried|coconut|tiger|popcorn} shrimp}
 
-@weightedToppings   := {@toppings|2 (@toppings @randomWeight)}
-@toppings           := {4 !#cheese
+@weightedToppings   = {@toppings|2 (@toppings @randomWeight)}
+@toppings           = {4 !#cheese
                          {|melted}
                          {4 
                          |3 American
@@ -86,8 +86,8 @@
                        |!#sauced 4 {4|brown|chicken|beef|turkey} gravy              
                         }
 
-@weightedSides      := {@sides|2 (@sides @randomWeight)}
-@sides              := {!#used_potatoes 3 {|French} fries
+@weightedSides      = {@sides|2 (@sides @randomWeight)}
+@sides              = {!#used_potatoes 3 {|French} fries
                        |!#noodles 6 {|chow mein|rice|mi goreng|pad see ew|udon|instant|Indo Mie} noodles
                        |!#noodles pasta
                        |!#used_bread a bagel
@@ -117,16 +117,16 @@
                        |pancakes
                        }
 
-@relation           := {served with|paired with|accompanied by}
-@relation2          := {with|and|sitting {beside|next to}|alongside}
+@relation           = {served with|paired with|accompanied by}
+@relation2          = {with|and|sitting {beside|next to}|alongside}
 
-@drink              := {glass of {milk|orange juice}
+@drink              = {glass of {milk|orange juice}
                        |{mug|cup} of {{2|green} tea|coffee}
                        |{|'Rockstar' brand|'Monster' brand|'Red Bull' brand} energy drink
                        |{glass|mug|stein|can|bottle} of beer}
 
-@weightedChefs      := {@chefs|2 (@chefs @randomWeight)}
-@chefs              := {Gordon Ramsay
+@weightedChefs      = {@chefs|2 (@chefs @randomWeight)}
+@chefs              = {Gordon Ramsay
                        |Alvin Cailan
                        |Kenji López-Alt
                        |Anthony Bourdain
@@ -139,7 +139,7 @@
                             |Michelin star}
                         chef}
 
-@food_superlatives  := {|2 delicious{|<-looking}
+@food_superlatives  = {|2 delicious{|<-looking}
                        |amazing
                        |Michelin star
                        |award-winning
@@ -150,7 +150,7 @@
                        |2 mouth-watering
                        }
 
-@photo_superlatives := {|award-winning|perfectly {composed|framed|lit}}
+@photo_superlatives = {|award-winning|perfectly {composed|framed|lit}}
 
 A high-definition, @photo_superlatives {\25|\50}-megapixel photograph, shot at infinite focus, of a
 @food_superlatives @weightedFormats with @1-3,weightedMeats, @2-3&weightedToppings

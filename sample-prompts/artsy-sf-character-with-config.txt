@@ -1,52 +1,51 @@
-{ #wizards_artist.helen_frankenthaler
-| #wizards_artist.frank_frazetta
-| #wizards_artist.boris_vallejo
-| #wizards_artist.gerald_brom
-| #wizards_artist.jack_gaughan 
-| #wizards_artist.chris_foss
-| #wizards_artist.peter_elson
-| #wizards_artist.john_blanche
-| #wizards_artist.wayne_barlowe
-}
-
-#artsy
-
-// =======================================================================================
+// =======================================================================================ss
 // use wildcards to randomize some parts of the configuration before we get on with the
 // actual textual content of the prompt:
 // =======================================================================================
-
-// %single-pick-prioritizes({ true_randomness })
-// %revert-single-pick-prioritizes
-// %multi-pick-prioritizes(true_randomness)
-// %revert-multi-pick-prioritizes
 
 // ---------------------------------------------------------------------------------------
 // template config flags to enable model families or other features:
 // ---------------------------------------------------------------------------------------
 
-%config.loras([])
+%config.loras = []
 
 #sdxl_on
-#flux_on
-#hidream_fast_on
-#hidream_full_on
+// #flux_on
+// #hidream_fast_on
+// #hidream_full_on
 
 // #hidream_high_steps
 // #flux_high_steps
 
 // #sdxl_always_lightning
-// #sdxl_always_lightning_off
+#sdxl_always_lightning_off
 
 { !sdxl_always_lightning
 | !sdxl_always_lightning_off #sdxl_lightning_on }  // enable lightning 4-step in SDXL models.
 
 #square_on                                         // enable square aspect ratios
-// #sdxl_hires                                     // enable higher resolutions
+
+// ---------------------------------------------------------------------------------------
+// force an artist from this small list instead of picking from all of the 1000-plus
+// artists from Wizard Whitebeard's list:
+// ---------------------------------------------------------------------------------------
+{   #wizards_artist.frank_frazetta
+| 2 #wizards_artist.tony_diterlizzi
+| 2 #wizards_artist.boris_vallejo
+| 2 #wizards_artist.gerald_brom
+|   #wizards_artist.ian_miller
+|   #wizards_artist.john_blanche
+|   #wizards_artist.jack_gaughan
+|   #wizards_artist.michael_whelan
+|   #wizards_artist.chris_foss
+|   #wizards_artist.peter_elson
+|   #wizards_artist.wayne_barlowe
+|   #wizards_artist.jim_burns
+}
 
 // ---------------------------------------------------------------------------------------
 
-@lora_names :=
+@lora_names =
 { ?sdxl_selected { mj52_v2.0
                  | ethereon
                  | trendcraft_the_peoples_style_detailer_v2.1a_3_12_2025_sdxl
@@ -66,105 +65,106 @@
 }
 
 // named wildcard that expands into A1111-style lora expressions using one of the @lora_names.
-@lora := { <lora:@lora_names: @low_random_weight> }
+@lora = { <lora:@lora_names: @low_random_weight> }
 
 
 // =================================================================================================
 // Flux config:
 // =================================================================================================
-{ 2 ?flux_on #flux_selected
-  { %config.model("devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt")
-  | %config.model("devmode8stepsflux1dev_v03fp8_f16.ckpt")
+{ 4 ?flux_on #flux_selected
+  { %config.model = "devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt"
+  | %config.model = "devmode8stepsflux1dev_v03fp8_f16.ckpt"
   }
-  
+
   { @1-2lora | @1-3lora }
   
-  %config.steps({ { \8 | \9 | \10 }
-                | ?flux_high_steps { \11 | \12 | \13 } })
+  %config.n_iter    = 2
+  %config.steps = { { \8 | \9 | \10 }
+                   | ?flux_high_steps { \11 | \12 | \13 } }
   
   // don't worry, capitalization will be automatically fixed to "Euler A":
-  %config.sampler({ "DDIM Trailing" | 3 "Euler A" | "Euler A Trailing" })
-  %config.cfg_scale({ \1.0 | \1.5 | \2.0 | \2.5 })
+  %config.sampler = { "DDIM Trailing" | 3 "Euler A" | "Euler A Trailing" }
+  %config.cfg_scale = { \1.0 | \1.5 | \2.0 | \2.5 }
 
   // possible resolutions:
-  { // 3 %config({ "width": 1024, "height": 512 })
-  | 3 %config({ "width": 768,  "height": 384 })
-  | 3 %config({ "width": 640,  "height": 320 })
-  | 3 ?square_on %config({ "width": 768,  "height": 768 })
-  | 3 ?square_on %config({ "width": 640,  "height": 640 })
-  | 3 ?square_on %config({ "width": 512,  "height": 512 })
+  { // 3 %config += { "width": 1024, "height": 512 }
+  | 3 %config += { "width": 768,  "height": 384 }
+  | 3 %config += { "width": 640,  "height": 320 }
+  | 3 ?square_on %config += { "width": 768,  "height": 768 }
+  | 3 ?square_on %config += { "width": 640,  "height": 640 }
+  | 3 ?square_on %config += { "width": 512,  "height": 512 }
   }
 
 // =================================================================================================
 // HiDream config:
 // =================================================================================================
-| 3 ?hidream_fast_on,hidream_full_on #hidream_selected
-  %config.model({ ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
-                | ?hidream_full_on "hidream_i1_full_q5p.ckpt" })
+| 4 ?hidream_fast_on,hidream_full_on #hidream_selected
+  %config.model = { ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
+                | ?hidream_full_on "hidream_i1_full_q5p.ckpt" }
   
-  %config.shift({ 1.10 | 1.20 | 1.30 | 1.40 | 1.50 })
-  %config.sampler({ 2 "DDIM Trailing" | "Euler A" | 2 "Euler A Trailing" })
-  %config.cfg_scale({ 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0})
+  %config.n_iter = 2
+  %config.shift = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+  %config.sampler = { 2 "DDIM Trailing" | "Euler A" | 2 "Euler A Trailing" }
+  %config.cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
 
   // 9-18 steps, equally likely:
-  %config.steps({ { \9 | \10 | \11 | \12 | \13 }
-                | ?hidream_high_steps { \14 | \15 | \16 | \17 | \18 } })
+  %config.steps = { { \9 | \10 | \11 | \12 | \13 }
+                | ?hidream_high_steps { \14 | \15 | \16 | \17 | \18 } }
 
   // possible resolutions:
-  { // 3 %config({ "width": 1024, "height": 512 })
-  | 3 %config({ "width": 768,  "height": 384 })
-  | 3 %config({ "width": 640,  "height": 320 })
-  // | 3 ?square_on %config({ "width": 768,  "height": 768 })
-  | 3 ?square_on %config({ "width": 640,  "height": 640 })
-  | 3 ?square_on %config({ "width": 512,  "height": 512 })
+  { // 3 %config += { "width": 1024, "height": 512 }
+  | 3 %config += { "width": 768,  "height": 384 }
+  | 3 %config += { "width": 640,  "height": 320 }
+  // | 3 ?square_on %config += { "width": 768,  "height": 768 }
+  | 3 ?square_on %config += { "width": 640,  "height": 640 }
+  | 3 ?square_on %config += { "width": 512,  "height": 512 }
   }
 
 // =================================================================================================
 // SDXL config:
 // =================================================================================================
-| 8 ?sdxl_on #sdxl_selected
-  { ?sdxl_lightning_on {   <lora:sdxl_lightning_4step_lora:1.0> %config.steps(4)
-                  | 2 <lora:sdxl_lightning_8step_lora:1.0> %config.steps(8) } }
+| 4 ?sdxl_on #sdxl_selected
+  { ?sdxl_lightning_on { 1 <lora:sdxl_lightning_4step_lora:1.0> %config.steps = 4
+                       | 2 <lora:sdxl_lightning_8step_lora:1.0> %config.steps = 8 } }
 
   { @1-2lora | @1-3lora }
 
-  { !sdxl_lightning_on %config.steps({ \25 | \30 | \35 }) }
-  // { !sdxl_lightning_on %config.steps(30) }   
+  { !sdxl_lightning_on %config.steps = { \35 | \40 | \45 } }
+  // { !sdxl_lightning_on %config.steps = 30 }   
   
   // possible resolutions:
-  { // 3 ?sdxl_hires %config({ "width": 1280, "height": 640 })
-  // | 3 ?sdxl_hires %config({ "width": 1152, "height": 576 })
-  | 3 ?sdxl_hires %config({ "width": 1024, "height": 512 })
-  | 3 %config({ "width": 768,  "height": 384 })
-  | 3 %config({ "width": 640,  "height": 320 })
-  | 3 ?square_on ?sdxl_hires %config({ "width": 1024,  "height": 1024 })
-  // | 3 ?square_on %config({ "width": 768,  "height": 768 })
-  | 3 ?square_on %config({ "width": 640,  "height": 640 })
-  | 3 ?square_on %config({ "width": 512,  "height": 512 })
+  { 4            %config += { "width": 1280, "height": 640  }
+  | 4            %config += { "width": 1152, "height": 576  }
+  | 4            %config += { "width": 1024, "height": 512  }
+  | 3 ?square_on %config += { "width": 1024, "height": 1024 }
+  | 3 ?square_on %config += { "width": 768,  "height": 768  }
+  | 3 ?square_on %config += { "width": 640,  "height": 640  }
   }
 
+  %config.n_iter    = 2
+
   // three possible 'shift' values:
-  %config.shift({ \1.00 | \1.10 | \1.20 })
+  %config.shift = { \1.00 | \1.10 | \1.20 }
 
   // two sampler possibilities:
-  { ?sdxl_lightning_on %config.sampler("LCM") }
-  { !sdxl_lightning_on { %config.sampler("DPM++ SDE Karras") | %config.sampler("DPM++ 2M Karras") | %config.sampler("Euler A") } }
+  { ?sdxl_lightning_on %config.sampler = "LCM" }
+  { !sdxl_lightning_on { %config.sampler = "DPM++ SDE Karras" | %config.sampler = "DPM++ 2M Karras" | %config.sampler = "Euler A" } }
 
   // eight possible CFG values:
-  %config.cfg_scale({ \3.0 | \4.0 | \5.0 | \6.0 | \7.0 | \8.0 | \9.0 | \10.0 })
+  %config.cfg_scale = { \3.0 | \4.0 | \5.0 | \6.0 | \7.0 | \8.0 | \9.0 | \10.0 }
 
   // lots of models pick from:
-  { 4 %config.model("bookIllustrationChar_v10")
-  | 4 %config.model("challengexlv10yoursecret_v10")
-  | 0 %config.model("cyberrealisticpony_v10") {@pony_score_7_up|@pony_score_8_up}
-  | 0 %config.model("cyberrealisticpony_v90alt1")
-  | 0 %config.model("cyberrealisticxl_v57")
-  | 4 %config.model("nightvisionxl_v900")
-  | 8 %config.model("oldmaster_v30")
-  | 4 %config.model("zavychromaxl_v100")
-  | 4 %config.model("comicbookxl_v10")
-  | 4 %config.model("plantmilkmodelsuite_hempii")
-  | 4 %config.model("juggernautxl_ragnarokby")
+  { 4 %config.model = "bookIllustrationChar_v10"
+  | 4 %config.model = "challengexlv10yoursecret_v10"
+  | 0 %config.model = "cyberrealisticpony_v10" {@pony_score_7_up|@pony_score_8_up}
+  | 0 %config.model = "cyberrealisticpony_v90alt1"
+  | 0 %config.model = "cyberrealisticxl_v57"
+  | 4 %config.model = "nightvisionxl_v900"
+  | 8 %config.model = "oldmaster_v30"
+  | 4 %config.model = "zavychromaxl_v100"
+  | 4 %config.model = "comicbookxl_v10"
+  | 4 %config.model = "plantmilkmodelsuite_hempii"
+  | 4 %config.model = "juggernautxl_ragnarokby"
   }
 }
 
@@ -174,12 +174,12 @@
 
 {#planet|#ship|#moon|#station} // where are we?
 
-@pro_pos_rand  := {2 @pro_pos_adj|a}
-@setting_word  := {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
+@pro_pos_rand  = {2 @pro_pos_adj|a}
+@setting_word  = {?planet 2 planet|?moon 2 moon|?ship ship|?station station}
 
-@ship_term     := {starship|spacecraft|space ship|shuttle}
-@ship_late_adj := {space|interstellar}
-@ship_term2    := {starship|spacecraft|@ship_late_adj ship|{|interplanetary} shuttle
+@ship_term     = {starship|spacecraft|space ship|shuttle}
+@ship_late_adj = {space|interstellar}
+@ship_term2    = {starship|spacecraft|@ship_late_adj ship|{|interplanetary} shuttle
                   |@ship_late_adj frigate
                   |@ship_late_adj battleship|@ship_late_adj destroyer
                   |{|@ship_late_adj} merchant vessel
@@ -190,9 +190,9 @@
 // ---------------------------------------------------------------------------------------
 // 'level 2' places, for phrases like 'in $place in a $largerPlace':
 // ---------------------------------------------------------------------------------------
-@l2_place     := {on a @l2_place_adj {?ship @ship_term2|?station space station
+@l2_place     = {on a @l2_place_adj {?ship @ship_term2|?station space station
                  |?planet planet|?planet world|?moon moon}}
-@l2_place_adj := 
+@l2_place_adj = 
 {
 |strange
 |exotic
@@ -207,18 +207,18 @@
 |!#highly-detailed highly-detailed
 |!#greebled {|highly} greebled
 }
-@l2_orbit_obj_adj   := {dim|distant|huge|luminous|shining}
-@l2_orbit_obj       := {2 !planet {|ringed} planet|!planet !moon ship
+@l2_orbit_obj_adj   = {dim|distant|huge|luminous|shining}
+@l2_orbit_obj       = {2 !planet {|ringed} planet|!planet !moon ship
                        |!planet !moon space station|!planet !moon asteroid
                        |!planet comet|2 {|2 yellow|2 red|green} star|black hole
                        |!planet !moon satellite}
-@l2_orbit_phrase    := {@l2_orbit_obj_adj @l2_orbit_obj}
-@l2_place_phrase    := {@l2_place {|2 orbiting a @l2_orbit_phrase}}
+@l2_orbit_phrase    = {@l2_orbit_obj_adj @l2_orbit_obj}
+@l2_place_phrase    = {@l2_place {|2 orbiting a @l2_orbit_phrase}}
 
 // ---------------------------------------------------------------------------------------
 // places to be 'in' or 'at':
 // ---------------------------------------------------------------------------------------
-@place_to_be_in := 
+@place_to_be_in = 
 {2 #indoors  {2 crew cabin 
              |bar
              |control room
@@ -251,9 +251,9 @@
                           }
 }
 
-@place_to_be_at :=
+@place_to_be_at =
 {{ware|store} #indoors <house
-|?planet,moon an alien ruin
+|?planet,moon alien ruin
 |abandoned wreck of a @ship_term2
 |{2|holographic} computer
 |?planet,moon #outdoors colony
@@ -263,7 +263,7 @@
 |?ship,station 2 #indoors {|navigation|control|sensor|computer} console
 }
 
-@place_to_be_in_adj :=
+@place_to_be_in_adj =
 {3
 |!vehicle !#busy busy
 |!vehicle !#crowded crowded
@@ -276,17 +276,18 @@
 |?outdoors foggy
 }
 
-@place_phrase := {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
+@place_phrase = {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
                  |at {a|the} @#place_to_be_at @place_to_be_at}
 
 // ---------------------------------------------------------------------------------------
 // character adjectives:
 // ---------------------------------------------------------------------------------------
-@char_early_adj :=
+@char_early_adj =
 {adventurous
 |androgynous
 |?neuter 2 androgynous
 |mysterious
+|enigmatic
 |solitary #solo
 |inscrutable
 |independant #solo
@@ -294,7 +295,7 @@
 |resolute
 |brave
 |cunning
-|inhuman
+|#inhuman inhuman
 |intimidating
 |exotic
 |otherworldly
@@ -304,13 +305,13 @@
 |beautiful
 }
 
-@char_late_adj :=
+@char_late_adj =
 {4
 |alien #alien
 |android
 |cyborg #cyborg
-|human #human
-|?traveller Vargr
+|!inhuman human #human
+// |?traveller Vargr // unrecognized!
 |?traveller Vilani
 |?traveller Zhodani
 }
@@ -318,14 +319,14 @@
 // ---------------------------------------------------------------------------------------
 // weapons:
 // ---------------------------------------------------------------------------------------
-@weapon_phrase           := {@weapon_verb @pro_pos_rand {2 !melee @ranged_weapon|@melee_weapon}}
-@weapon_verb             := {3 holding|wielding|brandishing|displaying|presenting}
-@melee_weapon            := {{vibro|phase|energy|monomolecular|pulse}
+@weapon_phrase           = {@weapon_verb @pro_pos_rand {2 !melee @ranged_weapon|@melee_weapon}}
+@weapon_verb             = {3 holding|wielding|brandishing|displaying|presenting}
+@melee_weapon            = {{vibro|phase|energy|monomolecular|pulse}
                              {sword|blade|knife|dagger|baton}}
-@ranged_weapon_early_adj := {|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien
+@ranged_weapon_early_adj = {|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien
                             |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
-@ranged_weapon_late_adj  := {|laser|plasma|gauss|smart|pulse|combat|high-velocity|ion}
-@ranged_weapon           := {@ranged_weapon_early_adj
+@ranged_weapon_late_adj  = {|laser|plasma|gauss|smart|pulse|combat|high-velocity|ion}
+@ranged_weapon           = {@ranged_weapon_early_adj
                              @ranged_weapon_late_adj
                              {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|blaster
                              |{grenade|rocket} launcher|stunner|cannon|disintegrator}
@@ -334,10 +335,10 @@
 // ---------------------------------------------------------------------------------------
 // tools:
 // ---------------------------------------------------------------------------------------
-@tool_adj    := {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
-                |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
-@tool_phrase := {holding @pro_pos_rand @tool_adj @tool}
-@tool :=
+@tool_adj    = {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
+|!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
+@tool_phrase = {holding @pro_pos_rand @tool_adj @tool}
+@tool =
 {hydrospanner
 |2 probe
 |2 scanner
@@ -359,15 +360,15 @@
 // ---------------------------------------------------------------------------------------
 // inventory flags:
 // ---------------------------------------------------------------------------------------
-@maybe_no_equipment := {|2 #tool|#weapon}
-@tool_or_weapon     := {#tool|#weapon}
-@likely_weapon      := {#tool|2 #weapon}
-@likely_tool        := {2 #tool|#weapon}
+@maybe_no_equipment = {|2 #tool|#weapon}
+@tool_or_weapon     = {#tool|#weapon}
+@likely_weapon      = {#tool|2 #weapon}
+@likely_tool        = {2 #tool|#weapon}
 
 // ---------------------------------------------------------------------------------------
 // roles/character types:
 // ---------------------------------------------------------------------------------------
-@role :=
+@role =
 {#weapon mercenary 
 |{3|hyperdrive|@ship_term} technician          @likely_tool
 |engineer                                      @likely_tool
@@ -398,13 +399,13 @@
 // ---------------------------------------------------------------------------------------
 // clothing:
 // ---------------------------------------------------------------------------------------
-@clothing_sentence := {@^pro_3rd_subj is @clothing_verb @clothing_type.}
-@clothing_verb     := {2 wearing|clad in|dressed in}
-@clothing_adj      := {2|1 futuristic|!#advanced advanced|tattered|dusty|!merchant millitary
+@clothing_sentence = {@^pro_3rd_subj is @clothing_verb @clothing_type.}
+@clothing_verb     = {2 wearing|clad in|dressed in}
+@clothing_adj      = {2|1 futuristic|!#advanced advanced|tattered|dusty|!merchant millitary
                       |!#high-tech high-tech|#highly-detailed highly-detailed
                       |{|starship|space ship|spacecraft} crew members'
                       |!merchant !#greebled {|highly} greebled}
-@clothing_type     := {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
+@clothing_type     = {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
                       |@pro_pos_rand @clothing_adj flight suit
                       |@pro_pos_rand @clothing_adj body suit
                       |@pro_pos_rand @clothing_adj uniform
@@ -412,24 +413,24 @@
                       |@pro_pos_rand @clothing_adj {|helmetless}
                                      {space|vacuum|hazardous environment} suit
                       |@pro_pos_rand @clothing_adj exoskeleton}
- 
+
 // ---------------------------------------------------------------------------------------
 // cyborg features:
 // ---------------------------------------------------------------------------------------
-@cyborg_features :=
+@cyborg_features =
 {{a|one} {bionic|mechanical} arm
 |{bionic|mechanical} arms
 |{a|one} {bionic|cyber {|<netic}} eye
 |{bionic|cyber {|<netic}} eyes
 }
 
-@cyborg_feature_sentence       := {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
-@early_cyborg_feature_sentence := {?cyborg #ecfs with @cyborg_features }
+@cyborg_feature_sentence       = {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
+@early_cyborg_feature_sentence = {?cyborg #ecfs with @cyborg_features }
 
 // ---------------------------------------------------------------------------------------
-// ailen features:
+// alien features:
 // ---------------------------------------------------------------------------------------
-@alien_features :=
+@alien_features =
 {an insectoid appearance
 |2 digitigrade legs
 |gills on @pro_pos_adj throat
@@ -450,18 +451,18 @@
 |!#alien_skin {smooth|shiny} fur
 |!#alien_quills quill {<-like|<s instead of} hair
 |a reptilian appearance
-}
+}                   
 
-@alien_feature_sentence       := {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
-@early_alien_feature_sentence := {?alien #eafs with @1-2&alien_features }
+@alien_feature_sentence       = {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
+@early_alien_feature_sentence = {?alien #eafs with @1-2&alien_features }
 
 // ---------------------------------------------------------------------------------------
 // things in the sky:
 // ---------------------------------------------------------------------------------------
-@late_sky_verb_frag       := {in the sky above|overhead}
-@early_sky_verb_frag      := {can be seen|hangs|looms}
-@early_sky_verb_frag_no_s := {can be seen|hang|loom}
-@sky_sentence := {?outdoors {
+@late_sky_verb_frag       = {in the sky above|overhead}
+@early_sky_verb_frag      = {can be seen|hangs|looms}
+@early_sky_verb_frag_no_s = {can be seen|hang|loom}
+@sky_sentence = {?outdoors {
 2 {Two|Three} {3 moons|suns} @early_sky_verb_frag_no_s @late_sky_verb_frag.
 |2 A {binary|trinary} { 2 star|sun} @early_sky_verb_frag @late_sky_verb_frag.
 |3 ?moon The {planet|gas giant} that this @setting_word is orbiting @early_sky_verb_frag @late_sky_verb_frag. 
@@ -480,7 +481,7 @@
 // ---------------------------------------------------------------------------------------
 // colour palette/lighting stuff:
 // ---------------------------------------------------------------------------------------
-@colour_modifiers := {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
+@colour_modifiers = {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
 
 // =======================================================================================
 // generate the prompt body:
@@ -517,8 +518,3 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 {|8 @sky_sentence}
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
-
-%neg := { dog  }
-%neg += { cat  }
-%neg := { bird }
-

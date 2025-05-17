@@ -1,3 +1,57 @@
+// =======================================================================================
+// use wildcards to randomize some parts of the configuration before we get on with the
+// actual textual content of the prompt:
+// =======================================================================================
+
+// ---------------------------------------------------------------------------------------
+// template config flags to enable model families or other features:
+// ---------------------------------------------------------------------------------------
+
+// #flux_on
+// #hidream_full_on
+// #hidream_fast_on
+
+// ---------------------------------------------------------------------------------------
+%config.loras     = [] // unconfigure any LoRAs that are configured in the DT UI first.
+
+{ 4 ?flux_on
+// Flux Dev:
+
+%config.model     = "flux_1_dev_q8p.ckpt"
+%config.sampler   = { "DDIM Trailing" | "Euler A" | "Euler A Trailing" }
+%config.cfg_scale = { 1.0 | 1.5 | 2.0 | 2.5| 3.0 | 3.5| 4.0 | 4.5 | 5.0 }
+%config.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+%config.n_iter    = 2
+
+{ // 1 %config += { "width": 960,   "height": 960,  "steps": 40  } // 12,093
+// | 2 %config += { "width": 1024,  "height": 960,  "steps": 40  } // 13,671
+// | 8 %config += { "width": 1408,  "height": 704,  "steps": 40  } // 13,888
+| 1 %config += { "width": 1152,  "height": 1152, "steps": 50  } // 11,631
+| 2 %config += { "width": 1280,  "height": 1024, "steps": 50  } // 13,260
+| 8 %config += { "width": 1536,  "height": 768,  "steps": 50  } // 12,086
+}
+
+| 2 ?hidream_fast_on,hidream_full_on
+// Hidream with some basic settings that seem to work alright:
+
+%config.model    = { ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
+| ?hidream_full_on "hidream_i1_full_q5p.ckpt"
+// | ?hidream_full_on "hidream_i1_full_q8p.ckpt"
+}  
+%config.sampler   = { "DDIM Trailing" | "Euler A" | "Euler A Trailing" }
+%config.cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
+%config.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+%config.n_iter    = 2
+
+{ 1 %config += { "width": 960,   "height": 960, "steps": 40  }
+| 2 %config += { "width": 1152,  "height": 768, "steps": 40  }
+| 6 %config += { "width": 1280,  "height": 640, "steps": 45  }
+}
+}
+
+// =======================================================================================
+// make random meals:
+// =======================================================================================
 @pluralize          = {?pluralize <s}
 @formats            = {!#used_bread 3 {2|grilled|toasted} sandwich 
                        |!#used_bread banh mi 
@@ -12,24 +66,24 @@
                        |omelette #used_eggs
                        }
                        
-@meats              = {2 bacon
-                       |2 {|fried|grilled|roasted} chicken
-                       |2 Spam
-                       |{2|fried|grilled} fish
-                       |{|fried|roasted} turkey
-                       |brisket
-                       |corned beef
-                       |crab
-                       |ham
-                       |lobster
-                       |{|grilled|roasted} lamb
-                       |mititei              
-                       |oysters
-                       |pastrami
-                       |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
-                       |2 steak
-                       |3 {3|2 grilled|ground|roast} beef
-                       |{|garlic|fried|coconut|tiger|popcorn} shrimp}
+@meats              = {12 bacon
+                      |6 {|4 fried|grilled|roasted} chicken
+                      |2 Spam
+                      |{2|fried|grilled} fish
+                      |{|fried|roasted} turkey
+                      |4 brisket
+                      |corned beef
+                      |crab
+                      |ham
+                      |lobster
+                      |4 {|grilled|roasted} lamb
+                      |mititei              
+                      |oysters
+                      |pastrami
+                      |2 {5|Polish|merguez|beakfast|Italian} sausage @pluralize
+                      |4 steak
+                      |3 {3|2 grilled|ground|roast} beef
+                      |{|garlic|fried|coconut|tiger|popcorn} shrimp}
 
 @toppings           = {4 !#cheese
                          {|melted}
