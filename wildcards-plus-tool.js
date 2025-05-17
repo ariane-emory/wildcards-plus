@@ -6484,7 +6484,7 @@ function expand_wildcards(thing, context = new Context()) {
           ? value
           : { ...context.config, ...value };        
       }
-      else{
+      else{ // ASTUnlatchnamedwildcard
         if (! thing.increment) {
           context.config[thing.key] = value;
         }
