@@ -6827,10 +6827,11 @@ class ASTUpdateConfigUnary extends ASTNode {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTUpdateConfigBinary extends ASTNode {
-  constructor(key, value) {
+  constructor(key, value, increment) {
     super();
-    this.key   = key;
-    this.value = value;
+    this.key       = key;
+    this.value     = value;
+    this.increment = increment;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7066,10 +7067,11 @@ const SpecialFunctionUpdateNegativePrompt =
                                            assignment_operator)),     // [0][1]
                             () => ScalarUpdateSource));           // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1]),
+    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '+='),
           cutting_seq('%config.',                                           // [0]
                       seq(ident,                                            // [1][0]
-                          wst_seq(assignment_operator,                      // [1][1][0]
+                          wst_seq(choice(assignment_operator,
+                                         incr_assignment_operator),         // [1][1][0]
                                   choice(Jsonc, () => LimitedContent)))));  // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
