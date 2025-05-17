@@ -63,13 +63,11 @@ function parse_file(filename) {
   return result;
 }
 // -------------------------------------------------------------------------------------------------
-function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860,
-                               negative_prompt = undefined } = {}) {
+function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 }) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
   let data = { prompt: prompt,
-               ...config,
-               negative_prompt: negative_prompt || negative_prompt === '' ? negative_prompt : undefined };
+               ...config };
 
   // // doing this seems convenient?
   // if (data.n_iter && (typeof data.n_iter === 'number') && data.n_iter > 1) { 
@@ -84,7 +82,7 @@ function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860,
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
-    console.log(`POST data is: ${JSON.stringify(data)}`);
+    console.log(`POST data is: ${JSON.stringify(data, null, 2)}`);
 
   const options = {
     hostname: hostname,
