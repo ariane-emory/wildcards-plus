@@ -334,7 +334,7 @@
 // roles/character types:
 // ---------------------------------------------------------------------------------------
 @role =
-{#weapon mercenary 
+{mercenary                                     #weapon
 |{3|hyperdrive|@ship_term} technician          @likely_tool
 |engineer                                      @likely_tool
 |communications officer                        @maybe_no_equipment
@@ -353,7 +353,7 @@
 |medic                                         #tool
 |cyberdoc                                      #tool
 |worker                                        #tool
-|{?traveller psion}                            @maybe_no_equipment
+|?traveller psion                              @maybe_no_equipment
 |2 {space|star|interstellar} {trader|merchant} @maybe_no_equipment #merchant
 |{space|star} marine                           #weapon
 |@ship_term captain                            @maybe_no_equipment
@@ -494,3 +494,4 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 // %config.baz += "baz"
 // %config.quux = { "foo": 456, "bar" : 789 }
 // %config.quux += { "baz": 111, "corge": 222 }
+

@@ -317,7 +317,7 @@ let print_ast_json_enabled      = false;
 let string_input_mode_enabled   = true;
 let log_enabled                 = true;
 let log_flags_enabled           = false;
-let log_config_enabled          = true;
+let log_config_enabled          = false;
 let log_post_enabled            = true;
 let log_join_enabled            = false;
 let log_finalize_enabled        = false;
@@ -6663,10 +6663,11 @@ function expand_wildcards(thing, context = new Context()) {
       else 
         context.negative_prompt = smart_join([context.negative_prompt, expanded_neg_prompt_content]);
 
-      console.log(`${thing.assign ? "Set" : "Updated"} ` +
-                  `negative prompt` +
-                  `${(thing.assign ? ' to ' : '')}` +
-                  `: ${inspect_fun(context.negative_prompt)}`);
+      if (log_config_enabled)
+        console.log(`${thing.assign ? "Set" : "Updated"} ` +
+                    `negative prompt` +
+                    `${(thing.assign ? ' to' : '')}` +
+                    `: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
@@ -7421,8 +7422,8 @@ async function main() {
     const add_loras  = context.add_loras;
     const have_loras = add_loras && add_loras.length > 0;
 
-    //if (log_flags_enabled)
-    console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
+    if (log_flags_enabled || log_config_enabled)
+      console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
     
     if (have_loras) {
       console.log('-----------------------------------------------------------------------------------------');
