@@ -6427,11 +6427,11 @@ function expand_wildcards(thing, context = new Context()) {
           value = jsconc_parsed_expanded_value?.is_finished
           ? jsconc_parsed_expanded_value.value
           : expanded_value;
-        // else { // ASTUpdateConfigUnary
-        //   throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-        //                   `JSONC object, Jsonc.match(...) result was ` +
-        //                   inspect_fun(jsconc_parsed_expanded_value));
-        // }
+        else { // ASTUpdateConfigUnary
+          throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
+                          `JSONC object, Jsonc.match(...) result was ` +
+                          inspect_fun(jsconc_parsed_expanded_value));
+        }
       }
 
       if (thing instanceof ASTUpdateConfigBinary) {
