@@ -103,10 +103,15 @@
 { 6 ?flux_on
 // Flux Dev:
 
-%config.model     = { 6 shuttle_v3.1_aesthetic_q5p_svd
+{ 1 %config += { "width": 1088,  "height": 1088, "steps": 50  } // 1.183 mpx, 12,162 cu
+| 2 %config += { "width": 1152,  "height": 1024, "steps": 50  } // 1.179 mpx, 12,082 ci
+| 4 %config += { "width": 1536,  "height": 768,  "steps": 50  } // 1.179 mpx, 12,082 ci
+}
+
+%config.model     = { 6 juggernaut_xl_ragnarok %config.steps = 100
+                    | 6 shuttle_v3.1_aesthetic_q5p_svd
                     | 6 artsy_vibe_v1_q5p_svd
                     | 6 pixelwave_flux_1_schnell_04_q5p_svd
-                    | 6 juggernaut_xl_ragnarok // SDXL
                     | 2 devmode_v0.3_turbo_q5p_svd
                     | 2 flux_1_dev_q8p 
                     }
@@ -114,11 +119,6 @@
 %config.cfg_scale = { 1.0 | 1.5 | 2.0 | 2.5| 3.0 | 3.5| 4.0 | 4.5 | 5.0 }
 %config.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
 %config.n_iter    = 2
-
-{ 1 %config += { "width": 1088,  "height": 1088, "steps": 50  } // 1.183 mpx, 12,162 cu
-| 2 %config += { "width": 1152,  "height": 1024, "steps": 50  } // 1.179 mpx, 12,082 ci
-| 4 %config += { "width": 1536,  "height": 768,  "steps": 50  } // 1.179 mpx, 12,082 ci
-}
 
 | 2 ?hidream_fast_on,hidream_full_on
 // Hidream with some basic settings that seem to work alright:
