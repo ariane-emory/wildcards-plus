@@ -67,7 +67,8 @@ function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860,
                                negative_prompt = undefined } = {}) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
-  let data = { prompt: prompt, ...config,
+  let data = { prompt: prompt,
+               ...config,
                negative_prompt: negative_prompt || negative_prompt === '' ? negative_prompt : undefined };
 
   // // doing this seems convenient?
@@ -6663,10 +6664,9 @@ function expand_wildcards(thing, context = new Context()) {
     else if (thing instanceof ASTUpdateNegativePrompt) {
       const expanded_neg_prompt_content = expand_wildcards(thing.negative_prompt_content, context);
       
-      if (thing.assign)
-        context.negative_prompt = expanded_neg_prompt_content;
-      else 
-        context.negative_prompt = smart_join([context.negative_prompt, expanded_neg_prompt_content]);
+      context.negative_prompt = thing.assign
+        ? expanded_neg_prompt_content
+        : smart_join([context.negative_prompt, expanded_neg_prompt_content]);
 
       if (log_config_enabled)
         console.log(`${thing.assign ? "Set" : "Updated"} ` +
