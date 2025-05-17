@@ -7453,9 +7453,20 @@ async function main() {
 
     if (negative_prompt || negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`Expanded negative prompt:`);
+      console.log(`#1: Expanded negative prompt:`);
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(negative_prompt);
+    } else {
+      console.log(`#1: No negative prompt!`);
+    }
+
+    if (config.negative_prompt || config.negative_prompt === '') {
+      console.log(`------------------------------------------------------------------------------------------`);
+      console.log(`#2: Expanded negative prompt:`);
+      console.log(`------------------------------------------------------------------------------------------`);
+      console.log(config.negative_prompt);
+    } else {
+      console.log(`#2: No negative prompt!`);
     }
 
     if (!post) {
