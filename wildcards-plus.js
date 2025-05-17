@@ -2377,7 +2377,7 @@ const config_key_names = [
   [ 'negativeAestheticScore',       'negative_aesthetic_score'                   ],
   [ 'negativeOriginalHeight',       'negative_original_height'                   ],
   [ 'negativeOriginalWidth',        'negative_original_width'                    ],
-  [ 'negativePrompt',               'negative-prompt'                            ],
+  [ 'negativePrompt',               'negative_prompt'                            ],
   [ 'negativePromptForImagePrior',  'negative_prompt_for_image_prior'            ],
   [ 'openClipGText',                'speed_up_with_guidance_embed'               ],
   [ 'originalHeight',               'original_height'                            ],
@@ -2412,31 +2412,25 @@ const config_key_names = [
   [ 'zeroNegativePrompt',           'zero_negative_prompt'                       ],
 ];
 // -------------------------------------------------------------------------------------------------
+function get_automatic111_name(dt_name) {
+  const got = config_key_names.find(([dt_name2, automatic1111_name]) => dt_name2 === dt_name);
+  if (got)
+    return got[1];
+}
+// -------------------------------------------------------------------------------------------------
+function get_dt_name(automatic1111_name) {
+  const got = config_key_names.find(([dt_name, automatic1111_name2]) => automatic1111_name2 === automatic1111_name);
+
+  if (got)
+    return got[0];
+}
+// -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = clone_fun(config);
 
   if (is_empty_object(config))
     return config;
 
-  // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if (! config.seed) {
-    if ((config.n_iter      &&
-         (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
-        (config.batch_count &&
-         (typeof config.batch_count === 'number') && config.batch_count > 1) ||
-        (config.batchCount  &&
-         (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
-
-      if (log_config_enabled)
-        console.log(`Updating seed -1 due to n_iter > 1.`);
-
-      config.seed = -1;
-    }
-    else if (typeof config.seed !== 'number') {
-      config.seed = Math.floor(Math.random() * (2 ** 32));
-    }
-  }
-  
   if (config.model === '') {
     console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
                 `what you meant to do, your prompt template may contain an error!`);
@@ -2526,6 +2520,25 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     }
   }
 
+  // 'fix' seed if n_iter > 1, doing this seems convenient?
+  if (! config.seed) {
+    if ((config.n_iter      &&
+         (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
+        (config.batch_count &&
+         (typeof config.batch_count === 'number') && config.batch_count > 1) ||
+        (config.batchCount  &&
+         (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+
+      if (log_config_enabled)
+        console.log(`Updating seed -1 due to n_iter > 1.`);
+
+      config.seed = -1;
+    }
+    else if (typeof config.seed !== 'number') {
+      config.seed = Math.floor(Math.random() * (2 ** 32));
+    }
+  }
+
   //if (log_config_enabled)
   console.log(`Munged config is: ${JSON.stringify(config, null, 2)}`);
 
@@ -2553,7 +2566,7 @@ class Context {
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
-    negative_prompt              = '',
+    negative_prompt              = null,
   } = {}) {
     this.flags                        = flags;
     this.scalar_variables             = scalar_variables;
@@ -2567,7 +2580,6 @@ class Context {
     this.prior_pick_one_priority      = prior_pick_one_priority;
     this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-    this.negative_prompt              = negative_prompt;
 
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
@@ -2680,7 +2692,6 @@ class Context {
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,      
       prior_pick_multiple_priority: this.pick_multiple_priority,
-      negative_prompt:              this.negative_prompt,
     });
   }
   // -----------------------------------------------------------------------------------------------
@@ -6262,7 +6273,7 @@ function expand_wildcards(thing, context = new Context()) {
           : { ...context.config, ...value };        
       }
       else{
-        if (! thing.increment) {
+        if (thing.assign) {
           context.config[thing.key] = value;
         }
         else { // increment
@@ -6314,7 +6325,7 @@ function expand_wildcards(thing, context = new Context()) {
             // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
             //             `increment by string ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun((context.config[thing.key]??'') + value)}`);
-            context.config[thing.key] = tmp_str + value;
+            context.config[thing.key] = smart_join([tmp_str, value]);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
@@ -6458,20 +6469,16 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateNegativePrompt) {
-      const expanded_neg_prompt_content = expand_wildcards(thing.negative_prompt_content, context);
+      // if (context.config.negativePrompt)
+      //   throw "bomb";
       
-      if (thing.assign)
-        context.negative_prompt = expanded_neg_prompt_content;
-      else 
-        context.negative_prompt = smart_join([context.negative_prompt, expanded_neg_prompt_content]);
+      const temporaryNode = new ASTUpdateConfigBinary(context.config.negativePrompt
+                                                      ? "negativePrompt"
+                                                      : "negative_prompt",
+                                                      thing.value, thing.assign);
+      
 
-      if (log_config_enabled)
-        console.log(`${thing.assign ? "Set" : "Updated"} ` +
-                    `negative prompt` +
-                    `${(thing.assign ? ' to' : '')}` +
-                    `: ${inspect_fun(context.negative_prompt)}`);
-      
-      return '';
+      return expand_wildcards(temporaryNode, context);
     }
     // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
@@ -6705,13 +6712,22 @@ class ASTUpdateConfigUnary extends ASTNode {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTUpdateConfigBinary extends ASTNode {
-  constructor(key, value, increment) {
+  constructor(key, value, assign) {
     super();
-    this.key       = key;
-    this.value     = value;
-    this.increment = increment;
+    this.key    = key;
+    this.value  = value;
+    this.assign = assign;
   }
 }
+// -------------------------------------------------------------------------------------------------
+class ASTUpdateNegativePrompt extends ASTNode {
+  constructor(value, assign) {
+    super();
+    this.value  = value
+    this.assign = assign;
+  }
+}
+
 // -------------------------------------------------------------------------------------------------
 class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
@@ -6736,14 +6752,6 @@ class ASTRevertPickMultiple extends ASTNode {
 class ASTRevertPickSingle extends ASTNode {
   constructor() {
     super();
-  }
-}
-// -------------------------------------------------------------------------------------------------
-class ASTUpdateNegativePrompt extends ASTNode {
-  constructor(negative_prompt_content, assign) {
-    super();
-    this.negative_prompt_content = negative_prompt_content
-    this.assign                  = assign;
   }
 }
 // =================================================================================================
@@ -6943,14 +6951,15 @@ const SpecialFunctionUpdateNegativePrompt =
             wst_cutting_seq(wst_seq('%neg',                           // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),     // [0][1]
-                            () => ScalarUpdateSource));           // [1]
+                            () => LimitedContent));                   // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '+='),
+    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '=='),
           cutting_seq('%config.',                                           // [0]
                       seq(ident,                                            // [1][0]
                           wst_seq(choice(incr_assignment_operator,
                                          assignment_operator),              // [1][1][0]
-                                  choice(Jsonc, () => LimitedContent)))));  // [1][1][1]
+                                  choice(Jsonc,
+                                         () => LimitedContent)))));  // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq('%config',                              // [0][0]
@@ -6958,14 +6967,14 @@ const SpecialFunctionUpdateConfigurationUnary =
                                            assignment_operator)),           // [0][1]
                             choice(JsoncObject, () => LimitedContent)));    // [1]   
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
-                                                  SpecialFunctionUpdateConfigurationBinary);
+                                                  SpecialFunctionUpdateConfigurationBinary,
+                                                  SpecialFunctionUpdateNegativePrompt);
 const SpecialFunctionNotInclude          = choice(SpecialFunctionUpdateConfiguration,
                                                   // SpecialFunctionSetConfiguration,
                                                   SpecialFunctionSetPickSingle,
                                                   SpecialFunctionSetPickMultiple,
                                                   SpecialFunctionRevertPickSingle,
-                                                  SpecialFunctionRevertPickMultiple,
-                                                  SpecialFunctionUpdateNegativePrompt);
+                                                  SpecialFunctionRevertPickMultiple);
 const AnySpecialFunction                  = choice((dt_hosted
                                                     ? UnexpectedSpecialFunctionInclude
                                                     : SpecialFunctionInclude),
@@ -7038,7 +7047,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      () => ScalarUpdateSource));       // [1]
+                                                      () => LimitedContent));       // [1]
 const ScalarUpdateSource      = choice(NamedWildcardReference,
                                        AnonWildcard,
                                        ScalarReference,);
@@ -7191,7 +7200,7 @@ for (let ix = 0; ix < batch_count; ix++) {
                                     seed: -1,
                                     ...munge_config(context.config) };
   const add_loras               = context.add_loras;
-  const negative_prompt         = context.negative_prompt;
+  // const negative_prompt         = context.negative_prompt;
   // const added_loras_files       = [];
 
   if (add_loras.length > 0) {
@@ -7243,7 +7252,7 @@ for (let ix = 0; ix < batch_count; ix++) {
     configuration: generated_configuration,
     prompt: generated_prompt,
     // negative_prompt: "this string",
-    negativePrompt: negative_prompt,
+    // negativePrompt: negative_prompt,
   });
 
   const end_time     = new Date().getTime();
