@@ -2712,7 +2712,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   }
 
   if (log_config_enabled)
-    console.log(`Munged config is: ${JSON.stringify(config)}`);
+    console.log(`Munged config is: ${JSON.stringify(config, null, 2)}`);
 
   return config;
 }
@@ -6441,7 +6441,20 @@ function expand_wildcards(thing, context = new Context()) {
       }
 
       if (thing instanceof ASTUpdateConfigBinary) {
-        context.config[thing.key] = value;
+        if (! thing.increment) {
+          context.config[thing.key] = value;
+        }
+        else { // increment
+          if (Array.isArray(value)) {
+            context.config[thing.key] = [
+              ...context.config[thing.key]??[],
+              ...value
+            ];
+          }
+          else {
+            context.config[thing.key] = context.config[thing.key]??null + value
+          }
+        }
       }
       else { // ASTUpdateConfigUnary
         context.config = thing.assign

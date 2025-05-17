@@ -484,3 +484,10 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
 
+%config.foo += 1
+%config.foo += 2
+%config.foo += 3
+%config.bar += [ 2, 3, 4 ]
+%config.baz += "foo"
+%config.baz += "bar"
+%config.baz += "baz"
