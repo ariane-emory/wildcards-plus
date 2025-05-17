@@ -2725,7 +2725,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   // 'fix' seed if n_iter > 1, doing this seems convenient?
   if (! config.seed) {
     const n_iter_key = get_our_name('n_iter');
-    
+
     if (config[n_iter_key] && (typeof config[n_iter_key] === 'number') && config[n_iter_key] > 1) {
       if (log_config_enabled)
         console.log(`Fixing seed to -1 due to n_iter > 1.`);
