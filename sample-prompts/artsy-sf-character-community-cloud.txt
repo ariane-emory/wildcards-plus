@@ -486,13 +486,13 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
 
-// %config.foo += 1
-// %config.foo += 2
-// %config.foo += 3
-// %config.bar += [ 2, 3, 4 ]
-// %config.bar += [ 5, 6, 7 ]
-// %config.baz += "foo"
-// %config.baz += "bar"
-// %config.baz += "baz"
-// %config.quux = { "foo": 456, "bar" : 789 }
-// %config.quux += { "baz": 111, "corge": 222 }
+%config.foo += 1
+%config.foo += 2
+%config.foo += 3
+%config.bar += [ 2, 3, 4 ]
+%config.bar += [ 5, 6, 7 ]
+%config.baz += "foo"
+%config.baz += "bar"
+%config.baz += "baz"
+%config.quux = { "foo": 456, "bar" : 789 }
+%config.quux += { "baz": 111, "corge": 222 }

@@ -6518,7 +6518,7 @@ function expand_wildcards(thing, context = new Context()) {
             // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
             //             `increment by string ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun((context.config[thing.key]??'') + value)}`);
-            context.config[thing.key] = tmp_str + value;
+            context.config[thing.key] = smart_join([tmp_str, value]);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
