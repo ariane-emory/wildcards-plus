@@ -2,3 +2,4 @@
 - compound flags with trailing numbers?
 - maybe revise 'update config' logging messages?
 - iterative sequences
+- autofix key names in unary config update.

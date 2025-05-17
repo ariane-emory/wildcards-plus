@@ -2627,6 +2627,12 @@ function get_dt_name(automatic1111_name) {
     return got[0];
 }
 // -------------------------------------------------------------------------------------------------
+function get_our__name(name) {
+  return (dt_hosted
+          ? get_dt_name
+          : get_automatic111_name)(name);
+}
+// -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = clone_fun(config);
 
@@ -6474,9 +6480,11 @@ function expand_wildcards(thing, context = new Context()) {
           ? value
           : { ...context.config, ...value };        
       }
-      else{
+      else{ // ASTUpdateConfigBinary
+        const key = get_our__name(thing.key);
+        
         if (thing.assign) {
-          context.config[thing.key] = value;
+          context.config[key] = value;
         }
         else { // increment
           if (Array.isArray(value)) {
@@ -6490,51 +6498,51 @@ function expand_wildcards(thing, context = new Context()) {
             // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
             //             `increment by array ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun(new_arr)}`);
-            context.config[thing.key] = new_arr;
+            context.config[key] = new_arr;
           }
           else if (typeof value === 'object') {
-            const tmp_obj = context.config[thing.key]??{};
+            const tmp_obj = context.config[key]??{};
 
             if (typeof tmp_obj !== 'object')
               throw new Error(`can't add object ${inspect_fun(value)} `+
                               `to non-object ${inspect_fun(tmp_obj)}`);
 
             const new_obj = { ...tmp_obj, ...value };
-            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[key])}, ` +
             //             `increment by object ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun(new_obj)}`);
-            context.config[thing.key] = new_obj;
+            context.config[key] = new_obj;
           }
           else if (typeof value === 'number') {
-            const tmp_num = context.config[thing.key]??0;
+            const tmp_num = context.config[key]??0;
             
             if (typeof tmp_num !== 'number')
               throw new Error(`can't add number ${inspect_fun(value)} `+
                               `to non-number ${inspect_fun(tmp_num)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[key])}, ` +
             //             `increment by number ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[thing.key]??0) + value)}`);
-            context.config[thing.key] = tmp_num + value;
+            //             `total ${inspect_fun((context.config[key]??0) + value)}`);
+            context.config[key] = tmp_num + value;
           }
           else if (typeof value === 'string') {
-            const tmp_str = context.config[thing.key]??'';
+            const tmp_str = context.config[key]??'';
 
             if (typeof tmp_str !== 'string')
               throw new Error(`can't add string ${inspect_fun(value)} `+
                               `to non-string ${inspect_fun(tmp_str)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[key])}, ` +
             //             `increment by string ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[thing.key]??'') + value)}`);
-            context.config[thing.key] = smart_join([tmp_str, value]);
+            //             `total ${inspect_fun((context.config[key]??'') + value)}`);
+            context.config[key] = smart_join([tmp_str, value]);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
-            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[key])}, ` +
             //             `increment by unknown ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(context.config[thing.key]??null + value)}`);
-            context.config[thing.key] = (context.config[thing.key]??null) + value;
+            //             `total ${inspect_fun(context.config[key]??null + value)}`);
+            context.config[key] = (context.config[key]??null) + value;
           }
         }
       }
@@ -6675,9 +6683,10 @@ function expand_wildcards(thing, context = new Context()) {
       //   throw "bomb";
       
       const temporaryNode = new ASTUpdateConfigBinary(context.config.negativePrompt
-                                                          ? "negativePrompt"
-                                                          : "negative_prompt",
-                                                      thing.value, thing.assign);
+                                                      ? "negativePrompt"
+                                                      : "negative_prompt",
+                                                      thing.value,
+                                                      thing.assign);
       
 
       return expand_wildcards(temporaryNode, context);
