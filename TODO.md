@@ -1,4 +1,4 @@
-- compound flags with trailing numbers
 - revise/simplify negative prompt handling
-- maybe revise 'update config' logging
+- compound flags with trailing numbers?
+- maybe revise 'update config' logging messages?
 - iterative sequences
