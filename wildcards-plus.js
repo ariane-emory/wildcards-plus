@@ -2431,7 +2431,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   else if (typeof config.seed !== 'number') {
     config.seed = Math.floor(Math.random() * (2 ** 32));
   }
-
+  
   if (config.model === '') {
     console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
                 `what you meant to do, your prompt template may contain an error!`);
@@ -2439,13 +2439,13 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   }
   else if (config.model) {
     config.model = config.model.toLowerCase();
-    
+
     if (config.model.endsWith('.ckpt')) {
       // do nothing
     }
-    // else if (config.model.endsWith('_f16.ckpt')) {
-    //   // do nothing
-    // }
+    else if (config.model.endsWith('_q8p')) {
+      config.model = `${config.model}.ckpt`;
+    }
     else if (config.model.endsWith('_f16')) {
       config.model = `${config.model}.ckpt`;
     }
