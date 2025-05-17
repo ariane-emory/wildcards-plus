@@ -6417,25 +6417,16 @@ function expand_wildcards(thing, context = new Context()) {
              thing instanceof ASTUpdateConfigBinary) {
       let value = thing.value;
 
-      if (thing.value instanceof ASTNode) {
-        // console.log(`THING.VALUE: ${inspect_fun(thing.value)}`);
-        
+      if (value instanceof ASTNode) {
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
-
-        // console.log(`EXPANDED VALUE: ${typeof expanded_value} ${inspect_fun(expanded_value)}`);
-        
         const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
                                               ? JsoncObject
                                               : Jsonc).match(expanded_value);
-        // console.log(`JSCONC_PARSED_EXPANDED_VALUE: ${inspect_fun(jsconc_parsed_expanded_value)}`);
-        
-        if (! jsconc_parsed_expanded_value || ! jsconc_parsed_expanded_value.is_finished)
-          throw new Error(`walking ${thing.constructor.name}.value ` + `must produce a valid JSONC ` +
-                          (thing instanceof ASTUpdateConfigUnary ? "object": "value") +
-                          `, Jsonc.match(...) result was ` +
-                          inspect_fun(jsconc_parsed_expanded_value));
-        
-        value = jsconc_parsed_expanded_value.value;
+
+        if (thing instanceof ASTUpdateConfigBinary)
+          value = jsconc_parsed_expanded_value?.is_finished
+          ? jsconc_parsed_expanded_value.value
+          : expanded_value;
       }
 
       if (thing instanceof ASTUpdateConfigBinary) {
