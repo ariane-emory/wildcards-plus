@@ -7483,8 +7483,6 @@ async function main() {
       console.log(`#1: No negative prompt!`);
     }
 
-    console.log(`THIS: ${JSON.stringify(context.config, null, 2)}`);
-    
     if (context.config.negative_prompt || context.config.negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(`#2: Expanded negative prompt:`);
