@@ -7262,9 +7262,9 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
                                                       () => LimitedContent));       // [1]
-const ScalarUpdateSource      = choice(NamedWildcardReference,
-                                       AnonWildcard,
-                                       ScalarReference,);
+// const ScalarUpdateSource      = choice(NamedWildcardReference,
+//                                        AnonWildcard,
+//                                        ScalarReference,);
 const LimitedContent          = choice(
   NamedWildcardReference,
   AnonWildcardNoLoras,
