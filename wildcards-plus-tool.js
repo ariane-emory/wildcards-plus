@@ -2680,12 +2680,12 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     //   if (config[automatic1111_name] !== undefined) {
     //     if (corrected.has(dt_name))
     //       continue;
-        
+    
     //     corrected.add(dt_name);
 
     //     if (automatic1111_name === dt_name)
     //       continue;
-        
+    
     //     console.log(`Correcting config.${automatic1111_name} = ` +
     //                 `${config[automatic1111_name]} to ` +
     //                 `config.${dt_name} = ${config[automatic1111_name]}.`);
@@ -2724,12 +2724,10 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 
   // 'fix' seed if n_iter > 1, doing this seems convenient?
   if (! config.seed) {
-    if ((config.n_iter      &&
-         (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
-        (config.batch_count &&
-         (typeof config.batch_count === 'number') && config.batch_count > 1) ||
-        (config.batchCount  &&
-         (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+    const n_iter_key = get_our_name('n_iter');
+    
+    if (config[n_iter_key]      &&
+        (typeof config[n_iter_key] === 'number') && config[n_iter_key] > 1)
 
       if (log_config_enabled)
         console.log(`Fixing seed to -1 due to n_iter > 1.`);
