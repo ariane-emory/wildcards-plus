@@ -102,7 +102,7 @@
 { 4 ?flux_on
 // Flux Dev:
 
-%config.model     = { 3 pixelwave_flux_1_schnell_04_q5p_svd.ckpt
+%config.model     = { 4 pixelwave_flux_1_schnell_04_q5p_svd.ckpt
                     | 1 flux_1_dev_q8p }
 %config.sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
 %config.cfg_scale = { 1.0 | 1.5 | 2.0 | 2.5| 3.0 | 3.5| 4.0 | 4.5 | 5.0 }
@@ -120,8 +120,8 @@
 | 2 ?hidream_fast_on,hidream_full_on
 // Hidream with some basic settings that seem to work alright:
 
-%config.model    = { ?hidream_fast_on hidream_i1_fast_q5p.ckpt
-                   | ?hidream_full_on hidream_i1_full_q5p.ckpt }  
+%config.model    = { ?hidream_fast_on hidream_i1_fast_q5p
+                   | ?hidream_full_on hidream_i1_full_q5p } 
 %config.sampler   = { "DDIM Trailing" | "Euler A" | "Euler A Trailing" }
 %config.cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
 %config.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
