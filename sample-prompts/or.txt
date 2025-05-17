@@ -1,3 +1,0 @@
-{#bar}
-
-{ ?foo,bar THIS HAPPENS IF EITHER FLAG IS SET }
