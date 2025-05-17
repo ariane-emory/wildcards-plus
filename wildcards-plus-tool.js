@@ -7456,16 +7456,6 @@ async function main() {
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(positive_prompt);
 
-    // if (negative_prompt || negative_prompt === '') {
-    //   console.log(`------------------------------------------------------------------------------------------`);
-    //   console.log(`#1: Expanded negative prompt:`);
-    //   console.log(`------------------------------------------------------------------------------------------`);
-    //   console.log(negative_prompt);
-    // } else {
-    //   console.log(`------------------------------------------------------------------------------------------`);
-    //   console.log(`#1: No negative prompt!`);
-    // }
-
     if (context.config.negative_prompt || context.config.negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(`#2: Expanded negative prompt in context.config.negative_prompt:`);
@@ -7476,15 +7466,15 @@ async function main() {
       console.log(`#2: No negative prompt in context.config.negative_prompt!`);
     }
 
-    if (context.config.negativePrompt || context.config.negativePrompt === '') {
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`#3: Expanded negative prompt in context.config.negativePrompt:`);
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(context.config.negativePrompt);
-    } else {
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`#3: No negative prompt in context.config.negativePrompt!`);
-    }
+    // if (context.config.negativePrompt || context.config.negativePrompt === '') {
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(`#3: Expanded negative prompt in context.config.negativePrompt:`);
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(context.config.negativePrompt);
+    // } else {
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(`#3: No negative prompt in context.config.negativePrompt!`);
+    // }
 
     if (!post) {
       posted_count += 1; // a lie to make the counter correct.
