@@ -2621,25 +2621,6 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   if (is_empty_object(config))
     return config;
 
-  // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if (! config.seed) {
-    if ((config.n_iter      &&
-         (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
-        (config.batch_count &&
-         (typeof config.batch_count === 'number') && config.batch_count > 1) ||
-        (config.batchCount  &&
-         (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
-
-      if (log_config_enabled)
-        console.log(`Updating seed -1 due to n_iter > 1.`);
-
-      config.seed = -1;
-    }
-    else if (typeof config.seed !== 'number') {
-      config.seed = Math.floor(Math.random() * (2 ** 32));
-    }
-  }
-  
   if (config.model === '') {
     console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
                 `what you meant to do, your prompt template may contain an error!`);
@@ -2726,6 +2707,25 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
         config[automatic1111_name] = config[dt_name];
         delete config[dt_name];
       }
+    }
+  }
+
+  // 'fix' seed if n_iter > 1, doing this seems convenient?
+  if (! config.seed) {
+    if ((config.n_iter      &&
+         (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
+        (config.batch_count &&
+         (typeof config.batch_count === 'number') && config.batch_count > 1) ||
+        (config.batchCount  &&
+         (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+
+      if (log_config_enabled)
+        console.log(`Updating seed -1 due to n_iter > 1.`);
+
+      config.seed = -1;
+    }
+    else if (typeof config.seed !== 'number') {
+      config.seed = Math.floor(Math.random() * (2 ** 32));
     }
   }
 
