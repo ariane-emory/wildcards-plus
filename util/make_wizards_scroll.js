@@ -105,7 +105,7 @@ const artists = [
   ["Birrell","George","cityscapes|colorful|contemporary|urban-life|vibrant|added-2023-08-10"],
   ["Bissell","Robert","animals|contemporary|fantasy|impressionism|kids-book|mysterious|nature|painting|Plein-air|whimsical|wildlife|added-2023-08-08"],
   ["Blackman","Charles","colorful|painting|portraits|added-2023-08-10"],
-  ["Blair","Mary","|animation|characters|childhood|illustration|nature|vibrant|whimsical|added-2023-08-20"],
+  ["Blair","Mary","animation|characters|childhood|illustration|nature|vibrant|whimsical|added-2023-08-20"],
   ["Blanche","John","elegant|fantasy|French|portraits|science-fiction|added-2023-08-08"],
   ["Blanding","Don","architecture|art-deco|high-contrast|minimalism|added-2023-08-10"],
   ["Bloch","Albert","Engraving|Impressionism|painting|Realism|Satire|Social-commentary|added-2023-08-08"],

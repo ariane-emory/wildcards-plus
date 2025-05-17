@@ -27,34 +27,34 @@
 | 1 #wizards_artist.beeple
 | 1 #wizards_artist.benedick_bana
 | 1 #wizards_artist.bruce_pennington
-| 2 #wizards_artist.boris_vallejo
+| 4 #wizards_artist.boris_vallejo
 | 1 #wizards_artist.chesley_bonestell 
 | 1 #wizards_artist.chris_foss
 | 1 #wizards_artist.christopher_balaskas
 | 1 #wizards_artist.clayton_crain
 | 1 #wizards_artist.clyde_caldwell
-| 1 #wizards_artist.dan_mcpharlin
+| 4 #wizards_artist.dan_mcpharlin
 | 1 #wizards_artist.dave_dorman
 | 1 #wizards_artist.don_maitz
 | 1 #wizards_artist.donato_giancola
 | 1 #wizards_artist.drew_struzan
 | 1 #wizards_artist.ed_emshwiller
-| 1 #wizards_artist.enki_bilal comics
+| 1 #wizards_artist.enki_bilal
 | 1 #wizards_artist.filip_hodas
-| 1 #wizards_artist.frank_frazetta
-| 2 #wizards_artist.gerald_brom
+| 2 #wizards_artist.frank_frazetta
+| 4 #wizards_artist.gerald_brom
 | 1 #wizards_artist.glenn_fabry
 | 1 #wizards_artist.hajime_sorayama
 | 1 #wizards_artist.hr_giger
 | 1 #wizards_artist.ian_mcque
-| 1 #wizards_artist.ian_miller
+| 4 #wizards_artist.ian_miller
 | 1 #wizards_artist.jack_gaughan
 | 1 #wizards_artist.jean_giraud
 | 1 #wizards_artist.jim_burns
 | 1 #wizards_artist.john_berkey
-| 1 #wizards_artist.john_blanche
+| 2 #wizards_artist.john_blanche
 | 1 #wizards_artist.john_harris
-| 1 #wizards_artist.john_zeleznik
+| 2 #wizards_artist.john_zeleznik
 | 1 #wizards_artist.josan_gonzalez
 | 1 #wizards_artist.joseba_elorza
 | 1 #wizards_artist.kelly_freas
@@ -92,7 +92,7 @@
 | 2 #wizards_artist.tony_diterlizzi
 | 1 #wizards_artist.tsutomu_nihei
 | 1 #wizards_artist.vincent_callebaut
-| 1 #wizards_artist.virgil_finlay
+| 4 #wizards_artist.virgil_finlay
 | 1 #wizards_artist.wayne_barlowe
 }
 
