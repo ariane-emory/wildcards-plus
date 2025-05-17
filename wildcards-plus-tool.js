@@ -6675,7 +6675,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateNegativePrompt) {
-      const expanded_neg_prompt_content = expand_wildcards(thing.negative_prompt_content, context);
+      const expanded_neg_prompt_content = expand_wildcards(thing.value, context);
       
       context.negative_prompt = thing.assign
         ? expanded_neg_prompt_content
@@ -6930,10 +6930,10 @@ class ASTUpdateConfigBinary extends ASTNode {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTUpdateNegativePrompt extends ASTNode {
-  constructor(negative_prompt_content, assign) {
+  constructor(value, assign) {
     super();
-    this.negative_prompt_content = negative_prompt_content
-    this.assign                  = assign;
+    this.value  = value
+    this.assign = assign;
   }
 }
 
