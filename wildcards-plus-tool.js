@@ -6466,7 +6466,7 @@ function expand_wildcards(thing, context = new Context()) {
           : { ...context.config, ...value };        
       }
       else{
-        if (! thing.increment) {
+        if (thing.assign) {
           context.config[thing.key] = value;
         }
         else { // increment
@@ -6908,11 +6908,11 @@ class ASTUpdateConfigUnary extends ASTNode {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTUpdateConfigBinary extends ASTNode {
-  constructor(key, value, increment) {
+  constructor(key, value, assign) {
     super();
-    this.key       = key;
-    this.value     = value;
-    this.increment = increment;
+    this.key    = key;
+    this.value  = value;
+    this.assign = assign;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7149,7 +7149,7 @@ const SpecialFunctionUpdateNegativePrompt =
                                            assignment_operator)),     // [0][1]
                             () => ScalarUpdateSource));               // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '+='),
+    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '=='),
           cutting_seq('%config.',                                           // [0]
                       seq(ident,                                            // [1][0]
                           wst_seq(choice(incr_assignment_operator,

@@ -497,3 +497,4 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 // %config.baz += "baz"
 // %config.quux = { "foo": 456, "bar" : 789 }
 // %config.quux += { "baz": 111, "corge": 222 }
+%neg              = { signature, watermmark, text, }
