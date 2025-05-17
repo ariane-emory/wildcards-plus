@@ -2539,12 +2539,12 @@ const config_key_names = [
   [ 'model',                        'model'                                      ],
   [ 'prompt',                       'prompt'                                     ],
   [ 'seed',                         'seed'                                       ],
-  [ 'sampler',                      'sampler'                                    ],
   [ 'sharpness',                    'sharpness'                                  ],
   [ 'shift',                        'shift'                                      ],
   [ 'strength',                     'strength'                                   ],
   [ 'width',                        'width'                                      ],
   [ 'upscaler',                     'upscaler'                                   ],
+  [ 'sampler',                      'sampler'                                    ], // ordering significant
   // differing keys:
   [ 'aestheticScore',               'aesthetic_score'                            ],
   [ 'batchCount',                   'batch_count'                                ],
@@ -2676,12 +2676,18 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
                   `config.sampler = ${dt_samplers.indexOf(config.sampler)}.`);
       config.sampler = dt_samplers.indexOf(config.sampler);
     }
-
+    const corrected = new Set();
+    
     for (const [dt_name, automatic1111_name] of config_key_names) {
       if (config[automatic1111_name] !== undefined) {
+        if (corrected.has(dt_name))
+          continue;
+        
+        corrected.add(dt_name);
+
         if (automatic1111_name === dt_name)
           continue;
-
+        
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
                     `config.${dt_name} = ${config[automatic1111_name]}.`);
@@ -2697,8 +2703,15 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers[config.sampler];
     }
 
-    for (const [dt_name, automatic1111_name] of config_key_names) {
+    const corrected = new Set();
+    
+    for (const [dt_name, automatic1111_name] of config_key_names) {      
       if (config[dt_name] !== undefined) {
+        if (corrected.has(dt_name))
+          continue;
+        
+        corrected.add(dt_name);
+
         if (automatic1111_name === dt_name)
           continue;
         
