@@ -66,18 +66,8 @@ function parse_file(filename) {
 function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 }) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
-  let data = { prompt: prompt,  ...config };
+  const data = { prompt: prompt,  ...config };
 
-  // // doing this seems convenient?
-  // if (data.n_iter && (typeof data.n_iter === 'number') && data.n_iter > 1) { 
-  //   console.log(`FIX SEED!`);
-  
-  //   data.seed = -1;
-  // }
-  // else {
-  //   data.seed = Math.floor(Math.random() * (2 ** 32));
-  // }
-  
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
@@ -7409,27 +7399,25 @@ async function main() {
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
   let posted_count          = 0;
-  let positive_prompt       = null;
   let negative_prompt       = undefined; // not null
   let config                = null;
   let prior_positive_prompt = null;
-  let prior_negative_prompt = null;
   let prior_config          = null;
-
+  
   const stash_priors = () => {
     prior_positive_prompt = positive_prompt;
-    prior_negative_prompt = negative_prompt;
+    // prior_negative_prompt = negative_prompt;
     prior_config = clone_fun(config);
   };
 
   const restore_priors = () => {
     [ positive_prompt, prior_positive_prompt ] = [ prior_positive_prompt, positive_prompt ];
     [ config,          prior_config          ] = [ prior_config,          config          ];
-    [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ];
+    // [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ];
   };
 
   const do_post = () => {
-    post_prompt(positive_prompt, { config: config, negative_prompt: negative_prompt });
+    post_prompt(positive_prompt, { config: config });
     posted_count += 1; 
   };
 
@@ -7440,7 +7428,7 @@ async function main() {
 
     const context    = base_context.clone();
     positive_prompt  = expand_wildcards(AST, context);
-    negative_prompt  = context.negative_prompt;
+    // negative_prompt  = context.negative_prompt;
     config           = munge_config(context.config);
     const add_loras  = context.add_loras;
     const have_loras = add_loras && add_loras.length > 0;
