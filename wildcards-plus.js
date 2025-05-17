@@ -2444,21 +2444,22 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     else if (config.model.endsWith('_f16')) {
       config.model = `${config.model}.ckpt`;
     }
+    else if (config.model.endsWith('_f16')) {
+      config.model = `${config.model}.ckpt`;
+    }
     else {
       config.model= `${config.model}_f16.ckpt`;
     }
   }
   
   // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-  if (config.sampler) {
-    if (typeof config.sampler === 'string') {
-      const lc = config.sampler.toLowerCase();
-      // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
-      const got = dt_samplers_caps_correction.get(lc);
+  if (config.sampler && typeof config.sampler === 'string') {
+    const lc = config.sampler.toLowerCase();
+    // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
+    const got = dt_samplers_caps_correction.get(lc);
 
-      if (got)
-        config.sampler = got;
-    }
+    if (got)
+      config.sampler = got;
   }
   
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
@@ -6224,11 +6225,11 @@ function expand_wildcards(thing, context = new Context()) {
           value = jsconc_parsed_expanded_value?.is_finished
           ? jsconc_parsed_expanded_value.value
           : expanded_value;
-        // else { // ASTUpdateConfigUnary
-        //   throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-        //                   `JSONC object, Jsonc.match(...) result was ` +
-        //                   inspect_fun(jsconc_parsed_expanded_value));
-        // }
+        else { // ASTUpdateConfigUnary
+          throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
+                          `JSONC object, Jsonc.match(...) result was ` +
+                          inspect_fun(jsconc_parsed_expanded_value));
+        }
       }
 
       if (thing instanceof ASTUpdateConfigBinary) {
