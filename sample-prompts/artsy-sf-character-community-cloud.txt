@@ -488,6 +488,7 @@
 %config.foo += 2
 %config.foo += 3
 %config.bar += [ 2, 3, 4 ]
+%config.bar += [ 5, 6, 7 ]
 %config.baz += "foo"
 %config.baz += "bar"
 %config.baz += "baz"

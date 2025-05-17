@@ -6446,20 +6446,34 @@ function expand_wildcards(thing, context = new Context()) {
         }
         else { // increment
           if (Array.isArray(value)) {
-            context.config[thing.key] = [
+            const new_arr = [
               ...context.config[thing.key]??[],
               ...value
             ];
+            
+            console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+                        `increment by array ${inspect_fun(value)}, ` +
+                        `total ${inspect_fun(new_arr)}`);
+            context.config[thing.key] = new_arr;
           }
           else if (typeof value === 'number') {
-            context.config[thing.key] = context.config[thing.key]??0 + value;
+            console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+                        `increment by number ${inspect_fun(value)}, ` +
+                        `total ${inspect_fun((context.config[thing.key]??0) + value)}`);
+            context.config[thing.key] = (context.config[thing.key]??0) + value;
           }
           else if (typeof value === 'string') {
-            context.config[thing.key] = context.config[thing.key]??'' + value;
+            console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+                        `increment by string ${inspect_fun(value)}, ` +
+                        `total ${inspect_fun((context.config[thing.key]??'') + value)}`);
+            context.config[thing.key] = (context.config[thing.key]??'') + value;
           }
           else {
-            // probly won't work
-            context.config[thing.key] = context.config[thing.key]??null + value;
+            // probly won't work most of the time, but let's try anyhow, I guess.
+            console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+                        `increment by unknown ${inspect_fun(value)}, ` +
+                        `total ${inspect_fun(context.config[thing.key]??null + value)}`);
+            context.config[thing.key] = (context.config[thing.key]??null) + value;
           }
         }
       }
