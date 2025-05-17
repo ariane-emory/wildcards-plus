@@ -2616,6 +2616,19 @@ const config_key_names = [
   [ 'zeroNegativePrompt',           'zero_negative_prompt'                       ],
 ];
 // -------------------------------------------------------------------------------------------------
+function get_automatic111_name(dt_name) {
+  const got = config_key_names.find(([dt_name2, automatic1111_name]) => dt_name2 === dt_name);
+  if (got)
+    return got[1];
+}
+// -------------------------------------------------------------------------------------------------
+function get_dt_name(automatic1111_name) {
+  const got = config_key_names.find(([dt_name, automatic1111_name2]) => automatic1111_name2 === automatic1111_name);
+
+  if (got)
+    return got[0];
+}
+// -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = clone_fun(config);
 
