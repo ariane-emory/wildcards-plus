@@ -2622,7 +2622,8 @@ function get_our_name(name) {
                ? get_dt_name
                : get_automatic111_name)(name);
 
-  console.log(`got our name for ${name}: ${res}`);
+  // console.log(`got our name for ${name}: ${res}`);
+  
   return res;
 }
 // -------------------------------------------------------------------------------------------------
@@ -6448,7 +6449,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateConfigUnary ||
              thing instanceof ASTUpdateConfigBinary) {
-      console.log(`WALK ${inspect_fun(thing)}`);
+      // console.log(`WALK ${inspect_fun(thing)}`);
 
       let value = thing.value;
 
