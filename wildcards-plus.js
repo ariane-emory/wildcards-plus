@@ -6475,7 +6475,8 @@ function expand_wildcards(thing, context = new Context()) {
       const temporaryNode = new ASTUpdateConfigBinary(context.config.negativePrompt
                                                       ? "negativePrompt"
                                                       : "negative_prompt",
-                                                      thing.value, thing.assign);
+                                                      thing.value,
+                                                      thing.assign);
       
 
       return expand_wildcards(temporaryNode, context);
@@ -7242,17 +7243,41 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`${generated_prompt}`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
+
+  if (context.config.negative_prompt || context.config.negative_prompt === '') {
+    console.log(`------------------------------------------------------------------------------------------`);
+    console.log(`#1: Expanded negative prompt in context.config.negative_prompt:`);
+    console.log(`------------------------------------------------------------------------------------------`);
+    console.log(context.config.negative_prompt);
+  } else {
+    console.log(`------------------------------------------------------------------------------------------`);
+    console.log(`#1: No negative prompt!`);
+  }
+
+  if (context.config.negativePrompt || context.config.negativePrompt === '') {
+    console.log(`------------------------------------------------------------------------------------------`);
+    console.log(`#2: Expanded negative prompt in context.config.negativePrompt:`);
+    console.log(`------------------------------------------------------------------------------------------`);
+    console.log(context.config.negativePrompt);
+  } else {
+    console.log(`------------------------------------------------------------------------------------------`);
+    console.log(`#2: No negative prompt!`);
+  }
+
   console.log(`Generating image #${ix+1} out of ${batch_count}...`);
 
   // -----------------------------------------------------------------------------------------------
   // run the pipeline:
   // -----------------------------------------------------------------------------------------------
   canvas.clear();
+
+  const negative_prompt = generated_configuration.negativePrompt;
+  delete generated_configuration.negativePrompt;
+  
   pipeline.run({
     configuration: generated_configuration,
     prompt: generated_prompt,
-    // negative_prompt: "this string",
-    // negativePrompt: negative_prompt,
+    negativePrompt: negative_prompt,
   });
 
   const end_time     = new Date().getTime();
