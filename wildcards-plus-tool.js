@@ -2770,7 +2770,7 @@ class Context {
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
-    negative_prompt              = '',
+    negative_prompt              = null,
   } = {}) {
     this.flags                        = flags;
     this.scalar_variables             = scalar_variables;
@@ -6675,19 +6675,25 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTAddToNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateNegativePrompt) {
-      const expanded_neg_prompt_content = expand_wildcards(thing.value, context);
+      const temporaryNode = new ASTUpdateConfigBinary(context.config.negative_prompt ? "negative_prompt" : "negativePrompt",
+                                                      thing.value, thing.assign);
       
-      context.negative_prompt = thing.assign
-        ? expanded_neg_prompt_content
-        : smart_join([context.negative_prompt, expanded_neg_prompt_content]);
 
-      if (log_config_enabled)
-        console.log(`${thing.assign ? "Set" : "Updated"} ` +
-                    `negative prompt` +
-                    `${(thing.assign ? ' to' : '')}` +
-                    `: ${inspect_fun(context.negative_prompt)}`);
+      return expand_wildcards(temporaryNode, context);
       
-      return '';
+      // const expanded_neg_prompt_content = expand_wildcards(thing.value, context);
+      
+      // context.negative_prompt = thing.assign
+      //   ? expanded_neg_prompt_content
+      //   : smart_join([context.negative_prompt, expanded_neg_prompt_content]);
+
+      // if (log_config_enabled)
+      //                                               console.log(`${thing.assign ? "Set" : "Updated"} ` +
+      //               `negative prompt` +
+      //               `${(thing.assign ? ' to' : '')}` +
+      //               `: ${inspect_fun(context.negative_prompt)}`);
+      
+      // return '';
     }
     // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
