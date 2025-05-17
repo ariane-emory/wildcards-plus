@@ -499,4 +499,4 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 // %config.quux += { "baz": 111, "corge": 222 }
 
 %config.negativePrompt =  "FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR,";
-%neg                  += { signature, watermark, text, }
+%neg                  += { CORGE, GRAULT, }
