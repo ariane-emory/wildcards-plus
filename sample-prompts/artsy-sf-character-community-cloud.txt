@@ -506,3 +506,4 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 // %single_pick = true_randomness
 
 foo//bar
+foo\ bar 

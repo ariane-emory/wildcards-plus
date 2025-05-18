@@ -301,7 +301,7 @@ if (false)
 // variables:
 // -------------------------------------------------------------------------------------------------
 let unnecessary_choice_is_error = false;
-let print_ast_enabled           = false;
+let print_ast_enabled           = true;
 let print_ast_json_enabled      = false;
 let string_input_mode_enabled   = true;
 let log_enabled                 = true;
@@ -7026,7 +7026,9 @@ class ASTRevertPickSingle extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 const word_break               = /(?=\s|[{|}]|$)/;
 // const plaintext                = /(?:\\\s|[^\s{|}])+/;
-const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)[\s\S])+/; // stop at comments
+// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
+// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
+const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
 
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext_no_parens      = /[^{|}\s()]+/;
