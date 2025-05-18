@@ -92,7 +92,9 @@ function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 
     socket.on('connect', () => {
       req.write(string_data);
       req.end();
-      socket.destroy(); // don't wait for the response.
+
+      if (fire_and_forget_post)
+        socket.destroy(); // don't wait for the response.
     });
   });
 
@@ -300,6 +302,7 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
+let fire_and_forget_post        = false;
 let unnecessary_choice_is_error = false;
 let print_ast_enabled           = true;
 let print_ast_json_enabled      = false;
