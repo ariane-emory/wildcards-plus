@@ -107,6 +107,7 @@
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
+let fire_and_forget_post        = false;
 let unnecessary_choice_is_error = false;
 let print_ast_enabled           = false;
 let print_ast_json_enabled      = false;
@@ -6832,7 +6833,10 @@ class ASTRevertPickSingle extends ASTNode {
 // terminals:
 // -------------------------------------------------------------------------------------------------
 const word_break               = /(?=\s|[{|}]|$)/;
-const plaintext                = /(?:\\\s|[^\s{|}])+/;
+// const plaintext                = /(?:\\\s|[^\s{|}])+/;
+// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
+// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
+const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 // const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
@@ -6924,9 +6928,13 @@ const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), 
 
                                             return new ASTCheckFlags(...args);
                                           });
-const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(ident, '.'), word_break ),
+const CheckFlagWithSetConsequent  = xform(seq('?',              // [0]
+                                              plus(ident, '.'), // [1]
+                                              '.#',             // [2]
+                                              plus(ident, '.'), // [3]
+                                              word_break),      // [-]
                                           arr => {
-                                            const args = [[ arr[1] ], arr[3]];
+                                            const args = [ [ arr[1] ], arr[3] ]; 
 
                                             if (log_flags_enabled) {
                                               console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
@@ -7013,12 +7021,6 @@ const SpecialFunctionRevertPickSingle =
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             '%revert_multi_pick');
-// const SpecialFunctionUpdateNegativePrompt = 
-//       xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
-//             wst_cutting_seq(wst_seq(/%n(?:eg(?:ative)?)?/,            // [0][0]
-//                                     choice(incr_assignment_operator,
-//                                            assignment_operator)),     // [0][1]
-//                             () => LimitedContent));                   // [1]
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
             cutting_seq(/%c(?:onf(?:ig)?)?\./,                           // [0]
@@ -7051,14 +7053,18 @@ const AnySpecialFunction                  = choice((dt_hosted
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                             seq(wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                                 wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  () => ContentStar));
 const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                             seq(wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                                 wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  () => ContentStarNoLoras));
 const AnonWildcard                   = xform(arr => new ASTAnonWildcard(arr),
                                              brc_enc(wst_star(AnonWildcardAlternative, '|')));
@@ -7115,10 +7121,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      () => LimitedContent));       // [1]
-// const ScalarUpdateSource      = choice(NamedWildcardReference,
-//                                        AnonWildcard,
-//                                        ScalarReference,);
+                                                      () => LimitedContent));               // [1]
 const LimitedContent          = choice(
   NamedWildcardReference,
   AnonWildcardNoLoras,
