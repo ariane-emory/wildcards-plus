@@ -7025,7 +7025,9 @@ class ASTRevertPickSingle extends ASTNode {
 // terminals:
 // -------------------------------------------------------------------------------------------------
 const word_break               = /(?=\s|[{|}]|$)/;
-const plaintext                = /(?:\\\s|[^\s{|}])+/;
+// const plaintext                = /(?:\\\s|[^\s{|}])+/;
+const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)[\s\S])+/; // stop at comments
+
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 // const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
