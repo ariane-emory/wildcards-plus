@@ -127,7 +127,7 @@ function save_post_request(options, data) {
 
   try {
     fs.writeFileSync(filename, file_data);
-    console.log(`Saved  POST data to '${filename}'.`);
+    console.log(`Saved  POST data.`);
     
     return true;
   }
