@@ -113,7 +113,7 @@
                     | 6 artsy_vibe_v1_q5p_svd
                     | 6 pixelwave_flux_1_schnell_04_q5p_svd
                     | 2 devmode_v0.3_turbo_q5p_svd
-                    | 2 flux_1_dev_q8p 
+                    | 0 flux_1_dev_q8p 
                     }
 %config.sampler   = { DDIM Trailing | Euler A | Euler A Trailing | Euler A AYS | DPM++ 2M Karras }
 %config.cfg_scale = { 1.0 | 1.5 | 2.0 | 2.5| 3.0 | 3.5| 4.0 | 4.5 | 5.0 }

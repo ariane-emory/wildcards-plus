@@ -6687,14 +6687,10 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    // ASTAddToNegativePrompt:
+    // ASTUpdateNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateNegativePrompt) {
-      const temporaryNode = new ASTUpdateConfigBinary("negative_prompt",
-                                                      thing.value,
-                                                      thing.assign);
-      
-
+      const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
       return expand_wildcards(temporaryNode, context);
     }
     // ---------------------------------------------------------------------------------------------
