@@ -2519,6 +2519,9 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 // -------------------------------------------------------------------------------------------------
 const config_key_names = [
   // [ dt_name, automatic1111_name ],
+  // shorthand, not a real field name:
+  [ 'neg',                          'negative_prompt'                            ],
+  [ 'negativePrompt',               'neg'                                        ],
   // identical keys:
   [ 'controls',                     'controls'                                   ],
   [ 'fps',                          'fps'                                        ],
@@ -6689,10 +6692,10 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     // ASTUpdateNegativePrompt:
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUpdateNegativePrompt) {
-      const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
-      return expand_wildcards(temporaryNode, context);
-    }
+    // else if (thing instanceof ASTUpdateNegativePrompt) {
+    //   const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
+    //   return expand_wildcards(temporaryNode, context);
+    // }
     // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
     // ---------------------------------------------------------------------------------------------
@@ -6933,14 +6936,13 @@ class ASTUpdateConfigBinary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTUpdateNegativePrompt extends ASTNode {
-  constructor(value, assign) {
-    super();
-    this.value  = value
-    this.assign = assign;
-  }
-}
-
+// class ASTUpdateNegativePrompt extends ASTNode {
+//   constructor(value, assign) {
+//     super();
+//     this.value  = value
+//     this.assign = assign;
+//   }
+// }
 // -------------------------------------------------------------------------------------------------
 class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
@@ -7159,12 +7161,12 @@ const SpecialFunctionRevertPickSingle =
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             '%revert-multi-pick-priority');
-const SpecialFunctionUpdateNegativePrompt = 
-      xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq(/%n(?:eg(?:ative)?)?/,            // [0][0]
-                                    choice(incr_assignment_operator,
-                                           assignment_operator)),     // [0][1]
-                            () => LimitedContent));                   // [1]
+// const SpecialFunctionUpdateNegativePrompt = 
+//       xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
+//             wst_cutting_seq(wst_seq(/%n(?:eg(?:ative)?)?/,            // [0][0]
+//                                     choice(incr_assignment_operator,
+//                                            assignment_operator)),     // [0][1]
+//                             () => LimitedContent));                   // [1]
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
             cutting_seq(/%c(?:onfig)?\./,                                // [0]
@@ -7181,7 +7183,8 @@ const SpecialFunctionUpdateConfigurationUnary =
                             choice(JsoncObject, () => LimitedContent))); // [1]   
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary,
-                                                  SpecialFunctionUpdateNegativePrompt);
+                                                  //SpecialFunctionUpdateNegativePrompt
+                                                 );
 const SpecialFunctionNotInclude          = choice(SpecialFunctionUpdateConfiguration,
                                                   // SpecialFunctionSetConfiguration,
                                                   SpecialFunctionSetPickSingle,
