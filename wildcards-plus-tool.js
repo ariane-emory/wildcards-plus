@@ -7161,24 +7161,24 @@ const SpecialFunctionRevertPickMultiple =
             '%revert-multi-pick-priority');
 const SpecialFunctionUpdateNegativePrompt = 
       xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq('%neg',                           // [0][0]
+            wst_cutting_seq(wst_seq(/%n(?:eg(?:ative)?)?/,            // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),     // [0][1]
                             () => LimitedContent));                   // [1]
-let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
-          cutting_seq('%config.',                                           // [0]
-                      seq(ident,                                            // [1][0]
-                          wst_seq(choice(incr_assignment_operator,
-                                         assignment_operator),              // [1][1][0]
-                                  choice(Jsonc,
-                                         () => LimitedContent)))));  // [1][1][1]
+const SpecialFunctionUpdateConfigurationBinary =
+      xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
+            cutting_seq(/%c(?:onfig)?\./,                                // [0]
+                        seq(ident,                                       // [1][0]
+                            wst_seq(choice(incr_assignment_operator,
+                                           assignment_operator),         // [1][1][0]
+                                    choice(Jsonc,
+                                           () => LimitedContent)))));    // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq('%config',                              // [0][0]
+            wst_cutting_seq(wst_seq(/%c(?:onfig)?/,                      // [0][0]
                                     choice(incr_assignment_operator,
-                                           assignment_operator)),           // [0][1]
-                            choice(JsoncObject, () => LimitedContent)));    // [1]   
+                                           assignment_operator)),        // [0][1]
+                            choice(JsoncObject, () => LimitedContent))); // [1]   
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary,
                                                   SpecialFunctionUpdateNegativePrompt);
