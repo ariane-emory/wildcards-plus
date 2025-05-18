@@ -1,20 +1,21 @@
+// -*- fill-column: 100; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 // use wildcards to randomize some parts of the configuration before we get on with the
 // actual textual content of the prompt:
-// =======================================================================================
+// =================================================================================================
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // template config flags to enable model families or other features:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 #flux_on
-#hidream_full_on
+// #hidream_full_on
 // #hidream_fast_on
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // force an artist from this small list instead of picking from all of the 1000-plus
 // artists from Wizard Whitebeard's list:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 { 1 #wizards_artist.al_williamson
 | 1 #wizards_artist.alan_bean
 | 1 #wizards_artist.alan_moore
@@ -26,34 +27,34 @@
 | 1 #wizards_artist.beeple
 | 1 #wizards_artist.benedick_bana
 | 1 #wizards_artist.bruce_pennington
-| 2 #wizards_artist.boris_vallejo
+| 4 #wizards_artist.boris_vallejo
 | 1 #wizards_artist.chesley_bonestell 
 | 1 #wizards_artist.chris_foss
 | 1 #wizards_artist.christopher_balaskas
 | 1 #wizards_artist.clayton_crain
 | 1 #wizards_artist.clyde_caldwell
-| 1 #wizards_artist.dan_mcpharlin
+| 4 #wizards_artist.dan_mcpharlin
 | 1 #wizards_artist.dave_dorman
 | 1 #wizards_artist.don_maitz
 | 1 #wizards_artist.donato_giancola
 | 1 #wizards_artist.drew_struzan
 | 1 #wizards_artist.ed_emshwiller
-| 1 #wizards_artist.enki_bilal comics
+| 1 #wizards_artist.enki_bilal
 | 1 #wizards_artist.filip_hodas
-| 1 #wizards_artist.frank_frazetta
-| 2 #wizards_artist.gerald_brom
+| 2 #wizards_artist.frank_frazetta
+| 4 #wizards_artist.gerald_brom
 | 1 #wizards_artist.glenn_fabry
 | 1 #wizards_artist.hajime_sorayama
 | 1 #wizards_artist.hr_giger
 | 1 #wizards_artist.ian_mcque
-| 1 #wizards_artist.ian_miller
+| 4 #wizards_artist.ian_miller
 | 1 #wizards_artist.jack_gaughan
 | 1 #wizards_artist.jean_giraud
 | 1 #wizards_artist.jim_burns
 | 1 #wizards_artist.john_berkey
-| 1 #wizards_artist.john_blanche
+| 2 #wizards_artist.john_blanche
 | 1 #wizards_artist.john_harris
-| 1 #wizards_artist.john_zeleznik
+| 2 #wizards_artist.john_zeleznik
 | 1 #wizards_artist.josan_gonzalez
 | 1 #wizards_artist.joseba_elorza
 | 1 #wizards_artist.kelly_freas
@@ -91,37 +92,38 @@
 | 2 #wizards_artist.tony_diterlizzi
 | 1 #wizards_artist.tsutomu_nihei
 | 1 #wizards_artist.vincent_callebaut
-| 1 #wizards_artist.virgil_finlay
-| 1 #wizards_artist.wayne_barlowe
+| 4 #wizards_artist.virgil_finlay
+| 2 #wizards_artist.wayne_barlowe
 }
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 %config.loras     = [] // unconfigure any LoRAs that are configured in the DT UI first.
 %neg              = { signature, watermmark, text, }
 
-{ 4 ?flux_on
+{ 6 ?flux_on
 // Flux Dev:
 
-%config.model     = { 4 pixelwave_flux_1_schnell_04_q5p_svd.ckpt
-                    | 1 flux_1_dev_q8p }
+%config.model     = { 8 shuttle_v3.1_aesthetic_q5p_svd.ckpt
+                    | 4 artsy_vibe_v1_q5p_svd.ckpt
+                    | 2 pixelwave_flux_1_schnell_04_q5p_svd.ckpt
+                    | 1 devmode_v0.3_turbo_q5p_svd.ckpt
+                    | 1 flux_1_dev_q8p 
+                    }
 %config.sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
 %config.cfg_scale = { 1.0 | 1.5 | 2.0 | 2.5| 3.0 | 3.5| 4.0 | 4.5 | 5.0 }
 %config.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
 %config.n_iter    = 2
 
-{ 1 %config += { "width": 960,   "height": 960,  "steps": 40  } // 12,093
-| 2 %config += { "width": 1024,  "height": 960,  "steps": 40  } // 13,671
-| 8 %config += { "width": 1408,  "height": 704,  "steps": 40  } // 13,888
-| 1 %config += { "width": 896,   "height": 896,  "steps": 50  } // 11,631
-| 2 %config += { "width": 960,   "height": 896,  "steps": 50  } // 13,260
-| 8 %config += { "width": 1280,  "height": 640,  "steps": 50  } // 12,086
+{ 1 %config += { "width": 1088,  "height": 1088, "steps": 50  } // 1.183 mpx, 12,162 cu
+| 2 %config += { "width": 1152,  "height": 1024, "steps": 50  } // 1.179 mpx, 12,082 ci
+| 4 %config += { "width": 1536,  "height": 768,  "steps": 50  } // 1.179 mpx, 12,082 ci
 }
 
 | 2 ?hidream_fast_on,hidream_full_on
 // Hidream with some basic settings that seem to work alright:
 
-%config.model    = { ?hidream_fast_on hidream_i1_fast_q5p
-                   | ?hidream_full_on hidream_i1_full_q5p } 
+%config.model     = { ?hidream_fast_on hidream_i1_fast_q5p
+                    | ?hidream_full_on hidream_i1_full_q5p } 
 %config.sampler   = { "DDIM Trailing" | "Euler A" | "Euler A Trailing" }
 %config.cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
 %config.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
@@ -133,9 +135,9 @@
 }
 }
 
-// =======================================================================================
+// =================================================================================================
 // make random sci-fi characters:
-// =======================================================================================
+// =================================================================================================
 
 {#planet|#ship|#moon|#station} // where are we?
 
@@ -152,9 +154,9 @@
                   |{|@ship_late_adj} liner
                   |{|@ship_late_adj} vessel}
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // 'level 2' places, for phrases like 'in $place in a $largerPlace':
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @l2_place     = {on a @l2_place_adj {?ship @ship_term2|?station space station
                  |?planet planet|?planet world|?moon moon}}
 @l2_place_adj = 
@@ -180,9 +182,9 @@
 @l2_orbit_phrase    = {@l2_orbit_obj_adj @l2_orbit_obj}
 @l2_place_phrase    = {@l2_place {|2 orbiting a @l2_orbit_phrase}}
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // places to be 'in' or 'at':
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @place_to_be_in = 
 {2 #indoors  {2 crew cabin 
              |bar
@@ -244,9 +246,9 @@
 @place_phrase = {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
                  |at {a|the} @#place_to_be_at @place_to_be_at}
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // character adjectives:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @char_early_adj =
 {adventurous
 |androgynous
@@ -281,9 +283,9 @@
 |?traveller Zhodani
 }
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // weapons:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @weapon_phrase           = {@weapon_verb @pro_pos_rand {2 !melee @ranged_weapon|@melee_weapon}}
 @weapon_verb             = {3 holding|wielding|brandishing|displaying|presenting}
 @melee_weapon            = {{vibro|phase|energy|monomolecular|pulse}
@@ -297,9 +299,9 @@
                              |{grenade|rocket} launcher|stunner|cannon|disintegrator}
                             }                
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // tools:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @tool_adj    = {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
 |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
 @tool_phrase = {holding @pro_pos_rand @tool_adj @tool}
@@ -322,19 +324,19 @@
 |1 radio
 }
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // inventory flags:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @maybe_no_equipment = {|2 #tool|#weapon}
 @tool_or_weapon     = {#tool|#weapon}
 @likely_weapon      = {#tool|2 #weapon}
 @likely_tool        = {2 #tool|#weapon}
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // roles/character types:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @role =
-{#weapon mercenary 
+{mercenary                                     #weapon
 |{3|hyperdrive|@ship_term} technician          @likely_tool
 |engineer                                      @likely_tool
 |communications officer                        @maybe_no_equipment
@@ -353,7 +355,7 @@
 |medic                                         #tool
 |cyberdoc                                      #tool
 |worker                                        #tool
-|{?traveller psion}                            @maybe_no_equipment
+|?traveller psion                              @maybe_no_equipment
 |2 {space|star|interstellar} {trader|merchant} @maybe_no_equipment #merchant
 |{space|star} marine                           #weapon
 |@ship_term captain                            @maybe_no_equipment
@@ -361,9 +363,9 @@
 |{|@ship_term} {navigator|astrogator}          @maybe_no_equipment
 }
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // clothing:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @clothing_sentence = {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_verb     = {2 wearing|clad in|dressed in}
 @clothing_adj      = {2|1 futuristic|!#advanced advanced|tattered|dusty|!merchant millitary
@@ -379,9 +381,9 @@
                                      {space|vacuum|hazardous environment} suit
                       |@pro_pos_rand @clothing_adj exoskeleton}
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // cyborg features:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @cyborg_features =
 {{a|one} {bionic|mechanical} arm
 |{bionic|mechanical} arms
@@ -392,9 +394,9 @@
 @cyborg_feature_sentence       = {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
 @early_cyborg_feature_sentence = {?cyborg #ecfs with @cyborg_features }
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // alien features:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @alien_features =
 {an insectoid appearance
 |2 digitigrade legs
@@ -421,9 +423,9 @@
 @alien_feature_sentence       = {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
 @early_alien_feature_sentence = {?alien #eafs with @1-2&alien_features }
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // things in the sky:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @late_sky_verb_frag       = {in the sky above|overhead}
 @early_sky_verb_frag      = {can be seen|hangs|looms}
 @early_sky_verb_frag_no_s = {can be seen|hang|loom}
@@ -443,14 +445,14 @@
 |A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} @early_sky_verb_frag @late_sky_verb_frag.
 }}
 
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // colour palette/lighting stuff:
-// ---------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 @colour_modifiers = {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
 
-// =======================================================================================
+// =================================================================================================
 // generate the prompt body:
-// =======================================================================================
+// =================================================================================================
 
 {2|@aris_defaults,}
 science fiction,
@@ -468,7 +470,8 @@ science fiction,
 
 \n\n
 
-A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
+A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
+    {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
 {2|@early_alien_feature_sentence}
 {2|@early_cyborg_feature_sentence}
@@ -484,3 +487,14 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
 
+// %config.foo += 1
+// %config.foo += 2
+// %config.foo += 3
+// %config.bar += [ 2, 3, 4 ]
+// %config.bar += [ 5, 6, 7 ]
+// %config.baz += "foo"
+// %config.baz += "bar"
+// %config.baz += "baz"
+// %config.quux = { "foo": 456, "bar" : 789 }
+// %config.quux += { "baz": 111, "corge": 222 }
+%neg              = { signature, watermmark, text, }

@@ -1,0 +1,4 @@
+- compound flags with trailing numbers
+- revise/simplify negative prompt handling
+- maybe revise 'update config' logging
+- iterative sequences

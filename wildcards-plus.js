@@ -2336,12 +2336,12 @@ const config_key_names = [
   [ 'model',                        'model'                                      ],
   [ 'prompt',                       'prompt'                                     ],
   [ 'seed',                         'seed'                                       ],
-  [ 'sampler',                      'sampler'                                    ],
   [ 'sharpness',                    'sharpness'                                  ],
   [ 'shift',                        'shift'                                      ],
   [ 'strength',                     'strength'                                   ],
   [ 'width',                        'width'                                      ],
   [ 'upscaler',                     'upscaler'                                   ],
+  [ 'sampler',                      'sampler'                                    ], // ordering significant
   // differing keys:
   [ 'aestheticScore',               'aesthetic_score'                            ],
   [ 'batchCount',                   'batch_count'                                ],
@@ -2419,17 +2419,22 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     return config;
 
   // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if ((config.n_iter      &&
-       (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
-      (config.batch_count &&
-       (typeof config.batch_count === 'number') && config.batch_count > 1) ||
-      (config.batchCount  &&
-       (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
-    console.log(`Fix seed, using -1 due to n_iter > 1.`);
-    config.seed = -1;
-  }
-  else if (typeof config.seed !== 'number') {
-    config.seed = Math.floor(Math.random() * (2 ** 32));
+  if (! config.seed) {
+    if ((config.n_iter      &&
+         (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
+        (config.batch_count &&
+         (typeof config.batch_count === 'number') && config.batch_count > 1) ||
+        (config.batchCount  &&
+         (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+
+      if (log_config_enabled)
+        console.log(`Updating seed -1 due to n_iter > 1.`);
+
+      config.seed = -1;
+    }
+    else if (typeof config.seed !== 'number') {
+      config.seed = Math.floor(Math.random() * (2 ** 32));
+    }
   }
   
   if (config.model === '') {
@@ -2473,12 +2478,18 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
                   `config.sampler = ${dt_samplers.indexOf(config.sampler)}.`);
       config.sampler = dt_samplers.indexOf(config.sampler);
     }
-
+    const corrected = new Set();
+    
     for (const [dt_name, automatic1111_name] of config_key_names) {
       if (config[automatic1111_name] !== undefined) {
+        if (corrected.has(dt_name))
+          continue;
+        
+        corrected.add(dt_name);
+
         if (automatic1111_name === dt_name)
           continue;
-
+        
         console.log(`Correcting config.${automatic1111_name} = ` +
                     `${config[automatic1111_name]} to ` +
                     `config.${dt_name} = ${config[automatic1111_name]}.`);
@@ -2494,8 +2505,15 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers[config.sampler];
     }
 
-    for (const [dt_name, automatic1111_name] of config_key_names) {
+    const corrected = new Set();
+    
+    for (const [dt_name, automatic1111_name] of config_key_names) {      
       if (config[dt_name] !== undefined) {
+        if (corrected.has(dt_name))
+          continue;
+        
+        corrected.add(dt_name);
+
         if (automatic1111_name === dt_name)
           continue;
         
@@ -2508,8 +2526,8 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     }
   }
 
-  if (log_config_enabled)
-    console.log(`Munged config is: ${JSON.stringify(config)}`);
+  //if (log_config_enabled)
+  console.log(`Munged config is: ${JSON.stringify(config, null, 2)}`);
 
   return config;
 }
@@ -4996,7 +5014,7 @@ const prelude_text = disable_prelude ? '' : `
 | ?wizards_artist.george_birrell cityscapes, colorful, contemporary, urban-life, vibrant,
 | ?wizards_artist.robert_bissell animals, contemporary, fantasy, impressionism, kids-book, mysterious, nature, painting, plein-air, whimsical, wildlife,
 | ?wizards_artist.charles_blackman colorful, painting, portraits,
-| ?wizards_artist.mary_blair , animation, characters, childhood, illustration, nature, vibrant, whimsical,
+| ?wizards_artist.mary_blair animation, characters, childhood, illustration, nature, vibrant, whimsical,
 | ?wizards_artist.john_blanche elegant, fantasy, French, portraits, science-fiction, warhammer,
 | ?wizards_artist.don_blanding architecture, art-deco, high-contrast, minimalism,
 | ?wizards_artist.albert_bloch engraving, impressionism, painting, realism, satire, social-commentary,
@@ -5505,7 +5523,7 @@ const prelude_text = disable_prelude ? '' : `
 | ?wizards_artist.yoann_lossel animals, fantasy, golden, illustration, realism,
 | ?wizards_artist.morris_louis abstract-expressionism, color-field, minimalism, painting,
 | ?wizards_artist.sarah_lucas contemporary, femininity, feminism, sculpture, surreal,
-| ?wizards_artist.maximilien_luce , French, impressionism, landscapes, nature, oil-painting, plein-air, romanticism, vibrant,
+| ?wizards_artist.maximilien_luce French, impressionism, landscapes, nature, oil-painting, plein-air, romanticism, vibrant,
 | ?wizards_artist.loretta_lux American, childhood, contemporary, impressionism, installation, photography, photography-color, portraits,
 | ?wizards_artist.george_platt_lynes fashion, figure-studies, homo-eroticism, lgbtq, monochromatic, nudes, photography, photography-bw,
 | ?wizards_artist.frances_macdonald allegory, impressionism, landscapes, nostalgia, painting,
@@ -6226,10 +6244,11 @@ function expand_wildcards(thing, context = new Context()) {
                                               ? JsoncObject
                                               : Jsonc).match(expanded_value);
 
-        if (thing instanceof ASTUpdateConfigBinary)
+        if (thing instanceof ASTUpdateConfigBinary) {
           value = jsconc_parsed_expanded_value?.is_finished
-          ? jsconc_parsed_expanded_value.value
-          : expanded_value;
+            ? jsconc_parsed_expanded_value.value
+            : expanded_value;
+        }
         else { // ASTUpdateConfigUnary
           throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
                           `JSONC object, Jsonc.match(...) result was ` +
@@ -6237,14 +6256,75 @@ function expand_wildcards(thing, context = new Context()) {
         }
       }
 
-      if (thing instanceof ASTUpdateConfigBinary) {
-        context.config[thing.key] = value;
-      }
-      else { // ASTUpdateConfigUnary
+      if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
         context.config = thing.assign
           ? value
           : { ...context.config, ...value };        
-      } 
+      }
+      else{
+        if (! thing.increment) {
+          context.config[thing.key] = value;
+        }
+        else { // increment
+          if (Array.isArray(value)) {
+            const tmp_arr = context.config[thing.key]??[];
+
+            if (! Array.isArray(tmp_arr))
+              throw new Error(`can't add array ${inspect_fun(value)} ` +
+                              `to non-array ${inspect_fun(tmp_arr)}`);
+            
+            const new_arr = [ ...tmp_arr, ...value ];
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by array ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(new_arr)}`);
+            context.config[thing.key] = new_arr;
+          }
+          else if (typeof value === 'object') {
+            const tmp_obj = context.config[thing.key]??{};
+
+            if (typeof tmp_obj !== 'object')
+              throw new Error(`can't add object ${inspect_fun(value)} `+
+                              `to non-object ${inspect_fun(tmp_obj)}`);
+
+            const new_obj = { ...tmp_obj, ...value };
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by object ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(new_obj)}`);
+            context.config[thing.key] = new_obj;
+          }
+          else if (typeof value === 'number') {
+            const tmp_num = context.config[thing.key]??0;
+            
+            if (typeof tmp_num !== 'number')
+              throw new Error(`can't add number ${inspect_fun(value)} `+
+                              `to non-number ${inspect_fun(tmp_num)}`);
+
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by number ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun((context.config[thing.key]??0) + value)}`);
+            context.config[thing.key] = tmp_num + value;
+          }
+          else if (typeof value === 'string') {
+            const tmp_str = context.config[thing.key]??'';
+
+            if (typeof tmp_str !== 'string')
+              throw new Error(`can't add string ${inspect_fun(value)} `+
+                              `to non-string ${inspect_fun(tmp_str)}`);
+
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by string ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun((context.config[thing.key]??'') + value)}`);
+            context.config[thing.key] = tmp_str + value;
+          }
+          else {
+            // probly won't work most of the time, but let's try anyhow, I guess.
+            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            //             `increment by unknown ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(context.config[thing.key]??null + value)}`);
+            context.config[thing.key] = (context.config[thing.key]??null) + value;
+          }
+        }
+      }
       
       if (log_config_enabled)
         console.log(`${thing.assign ? "Set" : "Updated"} config to: ` +
@@ -6385,10 +6465,11 @@ function expand_wildcards(thing, context = new Context()) {
       else 
         context.negative_prompt = smart_join([context.negative_prompt, expanded_neg_prompt_content]);
 
-      console.log(`${thing.assign ? "Set" : "Updated"} ` +
-                  `negative prompt` +
-                  `${(thing.assign ? ' to ' : '')}` +
-                  `: ${inspect_fun(context.negative_prompt)}`);
+      if (log_config_enabled)
+        console.log(`${thing.assign ? "Set" : "Updated"} ` +
+                    `negative prompt` +
+                    `${(thing.assign ? ' to' : '')}` +
+                    `: ${inspect_fun(context.negative_prompt)}`);
       
       return '';
     }
@@ -6624,10 +6705,11 @@ class ASTUpdateConfigUnary extends ASTNode {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTUpdateConfigBinary extends ASTNode {
-  constructor(key, value) {
+  constructor(key, value, increment) {
     super();
-    this.key   = key;
-    this.value = value;
+    this.key       = key;
+    this.value     = value;
+    this.increment = increment;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6863,11 +6945,12 @@ const SpecialFunctionUpdateNegativePrompt =
                                            assignment_operator)),     // [0][1]
                             () => ScalarUpdateSource));           // [1]
 let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTUpdateConfigBinary(arr[1], arr[2][1]),
-          cutting_seq('%config.',                                     // [0]
-                      ident,                                          // [1]
-                      wst_seq(assignment_operator,                    // [2][0]
-                              choice(Jsonc, () => LimitedContent)))); // [2][1]
+    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '+='),
+          cutting_seq('%config.',                                           // [0]
+                      seq(ident,                                            // [1][0]
+                          wst_seq(choice(incr_assignment_operator,
+                                         assignment_operator),              // [1][1][0]
+                                  choice(Jsonc, () => LimitedContent)))));  // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq('%config',                              // [0][0]
