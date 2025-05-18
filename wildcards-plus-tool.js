@@ -6983,7 +6983,7 @@ const word_break               = /(?=\s|[{|}]|$)/;
 const plaintext                = /(?:\\\s|[^\s{|}])+/;
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext_no_parens      = /[^{|}\s()]+/;
-const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                  = discard(choice(c_block_comment, c_line_comment));
