@@ -2327,6 +2327,11 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 // -------------------------------------------------------------------------------------------------
 const config_key_names = [
   // [ dt_name, automatic1111_name ],
+  // shorthand, not a real field name:
+  [ 'neg',                          'negative_prompt'                            ],
+  [ 'negative',                     'negative_prompt'                            ],
+  [ 'negativePrompt',               'neg'                                        ],
+  [ 'negativePrompt',               'negative'                                   ],
   // identical keys:
   [ 'controls',                     'controls'                                   ],
   [ 'fps',                          'fps'                                        ],
@@ -2451,6 +2456,9 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 
     if (config.model.endsWith('.ckpt')) {
       // do nothing
+    }
+    else if (config.model.endsWith('_svd')) {
+      config.model = `${config.model}.ckpt`;
     }
     else if (config.model.endsWith('_q5p')) {
       config.model = `${config.model}.ckpt`;
@@ -6492,16 +6500,12 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    // ASTAddToNegativePrompt:
+    // ASTUpdateNegativePrompt:
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUpdateNegativePrompt) {
-      const temporaryNode = new ASTUpdateConfigBinary("negative_prompt",
-                                                      thing.value,
-                                                      thing.assign);
-      
-
-      return expand_wildcards(temporaryNode, context);
-    }
+    // else if (thing instanceof ASTUpdateNegativePrompt) {
+    //   const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
+    //   return expand_wildcards(temporaryNode, context);
+    // }
     // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
     // ---------------------------------------------------------------------------------------------
@@ -6742,14 +6746,13 @@ class ASTUpdateConfigBinary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTUpdateNegativePrompt extends ASTNode {
-  constructor(value, assign) {
-    super();
-    this.value  = value
-    this.assign = assign;
-  }
-}
-
+// class ASTUpdateNegativePrompt extends ASTNode {
+//   constructor(value, assign) {
+//     super();
+//     this.value  = value
+//     this.assign = assign;
+//   }
+// }
 // -------------------------------------------------------------------------------------------------
 class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
@@ -6790,7 +6793,7 @@ const word_break               = /(?=\s|[{|}]|$)/;
 const plaintext                = /(?:\\\s|[^\s{|}])+/;
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext_no_parens      = /[^{|}\s()]+/;
-const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                  = discard(choice(c_block_comment, c_line_comment));
@@ -6956,41 +6959,42 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1]),
-            wst_cutting_seq(wst_seq('%single-pick-priority', assignment_operator),
+            wst_cutting_seq(wst_seq('%single_pick', assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1]),
-            wst_cutting_seq(wst_seq('%multi-pick-priority', assignment_operator),
+            wst_cutting_seq(wst_seq('%multi_pick', assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            '%revert-single-pick-priority');
+            '%revert_single_pick');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            '%revert-multi-pick-priority');
-const SpecialFunctionUpdateNegativePrompt = 
-      xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq('%neg',                           // [0][0]
-                                    choice(incr_assignment_operator,
-                                           assignment_operator)),     // [0][1]
-                            () => LimitedContent));                   // [1]
-let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
-          cutting_seq('%config.',                                           // [0]
-                      seq(ident,                                            // [1][0]
-                          wst_seq(choice(incr_assignment_operator,
-                                         assignment_operator),              // [1][1][0]
-                                  choice(Jsonc,
-                                         () => LimitedContent)))));  // [1][1][1]
+            '%revert_multi_pick');
+// const SpecialFunctionUpdateNegativePrompt = 
+//       xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
+//             wst_cutting_seq(wst_seq(/%n(?:eg(?:ative)?)?/,            // [0][0]
+//                                     choice(incr_assignment_operator,
+//                                            assignment_operator)),     // [0][1]
+//                             () => LimitedContent));                   // [1]
+const SpecialFunctionUpdateConfigurationBinary =
+      xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
+            cutting_seq(/%c(?:onf(?:ig)?)?\./,                           // [0]
+                        seq(ident,                                       // [1][0]
+                            wst_seq(choice(incr_assignment_operator,
+                                           assignment_operator),         // [1][1][0]
+                                    choice(Jsonc,
+                                           () => LimitedContent)))));    // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq('%config',                              // [0][0]
+            wst_cutting_seq(wst_seq(/%c(?:onf(?:ig)?)?/,                 // [0][0]
                                     choice(incr_assignment_operator,
-                                           assignment_operator)),           // [0][1]
-                            choice(JsoncObject, () => LimitedContent)));    // [1]   
+                                           assignment_operator)),        // [0][1]
+                            choice(JsoncObject, () => LimitedContent))); // [1]   
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary,
-                                                  SpecialFunctionUpdateNegativePrompt);
+                                                  //SpecialFunctionUpdateNegativePrompt
+                                                 );
 const SpecialFunctionNotInclude          = choice(SpecialFunctionUpdateConfiguration,
                                                   // SpecialFunctionSetConfiguration,
                                                   SpecialFunctionSetPickSingle,
