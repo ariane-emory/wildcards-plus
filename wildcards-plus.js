@@ -7311,26 +7311,26 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`${generated_prompt}`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
 
-  if (context.config.negative_prompt || context.config.negative_prompt === '') {
-    console.log(`------------------------------------------------------------------------------------------`);
-    console.log(`#1: Expanded negative prompt in context.config.negative_prompt:`);
-    console.log(`------------------------------------------------------------------------------------------`);
-    console.log(context.config.negative_prompt);
-  } else {
-    console.log(`------------------------------------------------------------------------------------------`);
-    console.log(`#1: No negative prompt!`);
-  }
+  // if (context.config.negative_prompt || context.config.negative_prompt === '') {
+  //   console.log(`------------------------------------------------------------------------------------------`);
+  //   console.log(`#1: Expanded negative prompt in context.config.negative_prompt:`);
+  //   console.log(`------------------------------------------------------------------------------------------`);
+  //   console.log(context.config.negative_prompt);
+  // } else {
+  //   console.log(`------------------------------------------------------------------------------------------`);
+  //   console.log(`#1: No negative prompt!`);
+  // }
 
   if (context.config.negativePrompt || context.config.negativePrompt === '') {
     console.log(`------------------------------------------------------------------------------------------`);
-    console.log(`#2: Expanded negative prompt in context.config.negativePrompt:`);
+    console.log(`Expanded negative prompt:`);
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(context.config.negativePrompt);
   } else {
     console.log(`------------------------------------------------------------------------------------------`);
-    console.log(`#2: No negative prompt!`);
+    console.log(`No negative prompt/`);
   }
-
+  console.log(`------------------------------------------------------------------------------------------`);
   console.log(`Generating image #${ix+1} out of ${batch_count}...`);
 
   // -----------------------------------------------------------------------------------------------
