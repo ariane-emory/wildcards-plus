@@ -45,7 +45,9 @@
     }
   }
   // -------------------------------------------------------------------------------------------------
-  inspect_fun = JSON.stringify;
+  let inspect_fun = (thing, no_break = false) => util.inspect(thing, no_break ? { breakLength: Infinity } : {});
+
+  inspect_fun = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
   clone_fun   = structured_clone;
   dt_hosted   = true;
 }
@@ -537,17 +539,18 @@ class Element extends Rule {
     if (! rule_match_result)
       return null;
 
-    if (log_match_enabled) {
-      log(indent, `taking elem ${this.index} from ` +
-          `${JSON.stringify(rule_match_result)}'s value.`);
-    }
+    // if (log_match_enabled) {
+    //   log(indent, `taking elem ${this.index} from ` +
+    //       `${inspect_fun(rule_match_result)}'s value.`);
+    // }
 
     const ret = rule_match_result.value[this.index] === undefined
           ? DISCARD
           : rule_match_result.value[this.index];
     
     if (log_match_enabled) {
-      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result)} = ${typeof ret === 'symbol' ? ret.toString() : ret}`);
+      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result.value)} = ` +
+          `${typeof ret === 'symbol' ? ret.toString() : inspect_fun(ret)}`);
     }
     
     rule_match_result.value = ret;
@@ -1690,9 +1693,9 @@ const JsoncObject =
         xform(arr => ({}), wst_seq('{', '}')),
         xform(arr => {
           // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
-          const arr2 = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
           // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
-          return Object.fromEntries(arr2);
+          return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
                 wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
@@ -1717,6 +1720,47 @@ const JsoncObject =
 Jsonc.finalize(); 
 // =================================================================================================
 // END OF JSONC GRAMMAR SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
+// =================================================================================================
+const rJsonc = second(wst_seq(JsoncComments,
+                              choice(() => rJsoncObject,  () => JsoncArray,
+                                     () => json_string,   () => json_true, () => json_false,
+                                     () => json_null,     () => json_number),
+                              JsoncComments));
+const rJsoncObject =
+      choice(
+        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => {
+          const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          return Object.fromEntries(new_arr);
+        },
+              wst_cutting_seq(
+                wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
+                JsoncComments,
+                Jsonc,
+                JsoncComments,
+                optional(second(wst_seq(',',
+                                        wst_star(
+                                          xform(arr =>  [arr[1], arr[5]],
+                                                wst_seq(JsoncComments,
+                                                        choice(json_string, c_ident),
+                                                        JsoncComments,
+                                                        ':',
+                                                        JsoncComments,
+                                                        Jsonc, 
+                                                        JsoncComments
+                                                       ))             
+                                          , ',')),
+                               )),
+                '{}'[1]))); // dumb hack for rainbow brackets sake
+// -------------------------------------------------------------------------------------------------
+rJsonc.finalize(); 
+// =================================================================================================
+// END OF 'relaxed' JSONC GRAMMAR SECTION.
 // =================================================================================================
 
 
@@ -2554,7 +2598,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   }
 
   //if (log_config_enabled)
-  console.log(`Munged config is: ${JSON.stringify(config, null, 2)}`);
+  console.log(`Munged config is: ${inspect_fun(config, null, 2)}`);
 
   return config;
 }
@@ -2985,1115 +3029,1115 @@ const prelude_text = disable_prelude ? '' : `
 | !wizards_artist.#francesco_clemente
 | !wizards_artist.#alvin_langdon_coburn
 | !wizards_artist.#clifford_coffin
-| !wizards_artist.#vince_colletta
-| !wizards_artist.#beth_conklin
-| !wizards_artist.#john_constable
-| !wizards_artist.#darwyn_cooke
-| !wizards_artist.#richard_corben
-| !wizards_artist.#vittorio_matteo_corcos
-| !wizards_artist.#paul_corfield
-| !wizards_artist.#fernand_cormon
-| !wizards_artist.#norman_cornish
-| !wizards_artist.#camille_corot
-| !wizards_artist.#gemma_correll
-| !wizards_artist.#petra_cortright
-| !wizards_artist.#lorenzo_costa_the_elder
-| !wizards_artist.#olive_cotton
-| !wizards_artist.#peter_coulson
-| !wizards_artist.#gustave_courbet
-| !wizards_artist.#frank_cadogan_cowper
-| !wizards_artist.#kinuko_y_craft
-| !wizards_artist.#clayton_crain
-| !wizards_artist.#lucas_cranach_the_elder
-| !wizards_artist.#lucas_cranach_the_younger
-| !wizards_artist.#walter_crane
-| !wizards_artist.#martin_creed
-| !wizards_artist.#gregory_crewdson
-| !wizards_artist.#debbie_criswell
-| !wizards_artist.#victoria_crowe
-| !wizards_artist.#etam_cru
-| !wizards_artist.#robert_crumb
-| !wizards_artist.#carlos_cruz_diez
-| !wizards_artist.#john_currin
-| !wizards_artist.#krenz_cushart
-| !wizards_artist.#camilla_derrico
-| !wizards_artist.#pino_daeni
-| !wizards_artist.#salvador_dali
-| !wizards_artist.#sunil_das
-| !wizards_artist.#ian_davenport
-| !wizards_artist.#stuart_davis
-| !wizards_artist.#roger_dean
-| !wizards_artist.#michael_deforge
-| !wizards_artist.#edgar_degas
-| !wizards_artist.#eugene_delacroix
-| !wizards_artist.#robert_delaunay
-| !wizards_artist.#sonia_delaunay
-| !wizards_artist.#gabriele_dellotto
-| !wizards_artist.#nicolas_delort
-| !wizards_artist.#jean_delville
-| !wizards_artist.#posuka_demizu
-| !wizards_artist.#guy_denning
-| !wizards_artist.#monsu_desiderio
-| !wizards_artist.#charles_maurice_detmold
-| !wizards_artist.#edward_julius_detmold
-| !wizards_artist.#anne_dewailly
-| !wizards_artist.#walt_disney
-| !wizards_artist.#tony_diterlizzi
-| !wizards_artist.#anna_dittmann
-| !wizards_artist.#dima_dmitriev
-| !wizards_artist.#peter_doig
-| !wizards_artist.#kees_van_dongen
-| !wizards_artist.#gustave_dore
-| !wizards_artist.#dave_dorman
-| !wizards_artist.#emilio_giuseppe_dossena
-| !wizards_artist.#david_downton
-| !wizards_artist.#jessica_drossin
-| !wizards_artist.#philippe_druillet
-| !wizards_artist.#tj_drysdale
-| !wizards_artist.#ton_dubbeldam
-| !wizards_artist.#marcel_duchamp
-| !wizards_artist.#joseph_ducreux
-| !wizards_artist.#edmund_dulac
-| !wizards_artist.#marlene_dumas
-| !wizards_artist.#charles_dwyer
-| !wizards_artist.#william_dyce
-| !wizards_artist.#chris_dyer
-| !wizards_artist.#eyvind_earle
-| !wizards_artist.#amy_earles
-| !wizards_artist.#lori_earley
-| !wizards_artist.#jeff_easley
-| !wizards_artist.#tristan_eaton
-| !wizards_artist.#jason_edmiston
-| !wizards_artist.#alfred_eisenstaedt
-| !wizards_artist.#jesper_ejsing
-| !wizards_artist.#olafur_eliasson
-| !wizards_artist.#harrison_ellenshaw
-| !wizards_artist.#christine_ellger
-| !wizards_artist.#larry_elmore
-| !wizards_artist.#joseba_elorza
-| !wizards_artist.#peter_elson
-| !wizards_artist.#gil_elvgren
-| !wizards_artist.#ed_emshwiller
-| !wizards_artist.#kilian_eng
-| !wizards_artist.#jason_a_engle
-| !wizards_artist.#max_ernst
-| !wizards_artist.#romain_de_tirtoff_erte
-| !wizards_artist.#m_c_escher
-| !wizards_artist.#tim_etchells
-| !wizards_artist.#walker_evans
-| !wizards_artist.#jan_van_eyck
-| !wizards_artist.#glenn_fabry
-| !wizards_artist.#ludwig_fahrenkrog
-| !wizards_artist.#shepard_fairey
-| !wizards_artist.#andy_fairhurst
-| !wizards_artist.#luis_ricardo_falero
-| !wizards_artist.#jean_fautrier
-| !wizards_artist.#andrew_ferez
-| !wizards_artist.#hugh_ferriss
-| !wizards_artist.#david_finch
-| !wizards_artist.#callie_fink
-| !wizards_artist.#virgil_finlay
-| !wizards_artist.#anato_finnstark
-| !wizards_artist.#howard_finster
-| !wizards_artist.#oskar_fischinger
-| !wizards_artist.#samuel_melton_fisher
-| !wizards_artist.#john_anster_fitzgerald
-| !wizards_artist.#tony_fitzpatrick
-| !wizards_artist.#hippolyte_flandrin
-| !wizards_artist.#dan_flavin
-| !wizards_artist.#max_fleischer
-| !wizards_artist.#govaert_flinck
-| !wizards_artist.#alex_russell_flint
-| !wizards_artist.#lucio_fontana
-| !wizards_artist.#chris_foss
-| !wizards_artist.#jon_foster
-| !wizards_artist.#jean_fouquet
-| !wizards_artist.#toby_fox
-| !wizards_artist.#art_frahm
-| !wizards_artist.#lisa_frank
-| !wizards_artist.#helen_frankenthaler
-| !wizards_artist.#frank_frazetta
-| !wizards_artist.#kelly_freas
-| !wizards_artist.#lucian_freud
-| !wizards_artist.#brian_froud
-| !wizards_artist.#wendy_froud
-| !wizards_artist.#tom_fruin
-| !wizards_artist.#john_wayne_gacy
-| !wizards_artist.#justin_gaffrey
-| !wizards_artist.#hashimoto_gaho
-| !wizards_artist.#neil_gaiman
-| !wizards_artist.#stephen_gammell
-| !wizards_artist.#hope_gangloff
-| !wizards_artist.#alex_garant
-| !wizards_artist.#gilbert_garcin
-| !wizards_artist.#michael_and_inessa_garmash
-| !wizards_artist.#antoni_gaudi
-| !wizards_artist.#paul_gauguin
-| !wizards_artist.#giovanni_battista_gaulli
-| !wizards_artist.#anne_geddes
-| !wizards_artist.#bill_gekas
-| !wizards_artist.#artemisia_gentileschi
-| !wizards_artist.#orazio_gentileschi
-| !wizards_artist.#daniel_f_gerhartz
-| !wizards_artist.#theodore_gericault
-| !wizards_artist.#jean_leon_gerome
-| !wizards_artist.#mark_gertler
-| !wizards_artist.#atey_ghailan
-| !wizards_artist.#alberto_giacometti
-| !wizards_artist.#donato_giancola
-| !wizards_artist.#hr_giger
-| !wizards_artist.#james_gilleard
-| !wizards_artist.#harold_gilman
-| !wizards_artist.#charles_ginner
-| !wizards_artist.#jean_giraud
-| !wizards_artist.#anne_louis_girodet
-| !wizards_artist.#milton_glaser
-| !wizards_artist.#warwick_goble
-| !wizards_artist.#john_william_godward
-| !wizards_artist.#sacha_goldberger
-| !wizards_artist.#nan_goldin
-| !wizards_artist.#josan_gonzalez
-| !wizards_artist.#felix_gonzalez_torres
-| !wizards_artist.#derek_gores
-| !wizards_artist.#edward_gorey
-| !wizards_artist.#arshile_gorky
-| !wizards_artist.#alessandro_gottardo
-| !wizards_artist.#adolph_gottlieb
-| !wizards_artist.#francisco_goya
-| !wizards_artist.#laurent_grasso
-| !wizards_artist.#mab_graves
-| !wizards_artist.#eileen_gray
-| !wizards_artist.#kate_greenaway
-| !wizards_artist.#alex_grey
-| !wizards_artist.#carne_griffiths
-| !wizards_artist.#gris_grimly
-| !wizards_artist.#brothers_grimm
-| !wizards_artist.#tracie_grimwood
-| !wizards_artist.#matt_groening
-| !wizards_artist.#alex_gross
-| !wizards_artist.#tom_grummett
-| !wizards_artist.#huang_guangjian
-| !wizards_artist.#wu_guanzhong
-| !wizards_artist.#rebecca_guay
-| !wizards_artist.#guercino
-| !wizards_artist.#jeannette_guichard_bunel
-| !wizards_artist.#scott_gustafson
-| !wizards_artist.#wade_guyton
-| !wizards_artist.#hans_haacke
-| !wizards_artist.#robert_hagan
-| !wizards_artist.#philippe_halsman
-| !wizards_artist.#maggi_hambling
-| !wizards_artist.#richard_hamilton
-| !wizards_artist.#bess_hamiti
-| !wizards_artist.#tom_hammick
-| !wizards_artist.#david_hammons
-| !wizards_artist.#ren_hang
-| !wizards_artist.#erin_hanson
-| !wizards_artist.#keith_haring
-| !wizards_artist.#alexei_harlamoff
-| !wizards_artist.#charley_harper
-| !wizards_artist.#john_harris
-| !wizards_artist.#florence_harrison
-| !wizards_artist.#marsden_hartley
-| !wizards_artist.#ryohei_hase
-| !wizards_artist.#childe_hassam
-| !wizards_artist.#ben_hatke
-| !wizards_artist.#mona_hatoum
-| !wizards_artist.#pam_hawkes
-| !wizards_artist.#jamie_hawkesworth
-| !wizards_artist.#stuart_haygarth
-| !wizards_artist.#erich_heckel
-| !wizards_artist.#valerie_hegarty
-| !wizards_artist.#mary_heilmann
-| !wizards_artist.#michael_heizer
-| !wizards_artist.#gottfried_helnwein
-| !wizards_artist.#barkley_l_hendricks
-| !wizards_artist.#bill_henson
-| !wizards_artist.#barbara_hepworth
-| !wizards_artist.#herge
-| !wizards_artist.#carolina_herrera
-| !wizards_artist.#george_herriman
-| !wizards_artist.#don_hertzfeldt
-| !wizards_artist.#prudence_heward
-| !wizards_artist.#ryan_hewett
-| !wizards_artist.#nora_heysen
-| !wizards_artist.#george_elgar_hicks
-| !wizards_artist.#lorenz_hideyoshi
-| !wizards_artist.#brothers_hildebrandt
-| !wizards_artist.#dan_hillier
-| !wizards_artist.#lewis_hine
-| !wizards_artist.#miho_hirano
-| !wizards_artist.#harumi_hironaka
-| !wizards_artist.#hiroshige
-| !wizards_artist.#morris_hirshfield
-| !wizards_artist.#damien_hirst
-| !wizards_artist.#fan_ho
-| !wizards_artist.#meindert_hobbema
-| !wizards_artist.#david_hockney
-| !wizards_artist.#filip_hodas
-| !wizards_artist.#howard_hodgkin
-| !wizards_artist.#ferdinand_hodler
-| !wizards_artist.#tiago_hoisel
-| !wizards_artist.#katsushika_hokusai
-| !wizards_artist.#hans_holbein_the_younger
-| !wizards_artist.#frank_holl
-| !wizards_artist.#carsten_holler
-| !wizards_artist.#zena_holloway
-| !wizards_artist.#edward_hopper
-| !wizards_artist.#aaron_horkey
-| !wizards_artist.#alex_horley
-| !wizards_artist.#roni_horn
-| !wizards_artist.#john_howe
-| !wizards_artist.#alex_howitt
-| !wizards_artist.#meghan_howland
-| !wizards_artist.#john_hoyland
-| !wizards_artist.#shilin_huang
-| !wizards_artist.#arthur_hughes
-| !wizards_artist.#edward_robert_hughes
-| !wizards_artist.#jack_hughes
-| !wizards_artist.#talbot_hughes
-| !wizards_artist.#pieter_hugo
-| !wizards_artist.#gary_hume
-| !wizards_artist.#friedensreich_hundertwasser
-| !wizards_artist.#william_holman_hunt
-| !wizards_artist.#george_hurrell
-| !wizards_artist.#fabio_hurtado
-| !wizards_artist.#hush
-| !wizards_artist.#michael_hutter
-| !wizards_artist.#pierre_huyghe
-| !wizards_artist.#doug_hyde
-| !wizards_artist.#louis_icart
-| !wizards_artist.#robert_indiana
-| !wizards_artist.#jean_auguste_dominique_ingres
-| !wizards_artist.#robert_irwin
-| !wizards_artist.#gabriel_isak
-| !wizards_artist.#junji_ito
-| !wizards_artist.#christophe_jacrot
-| !wizards_artist.#louis_janmot
-| !wizards_artist.#frieke_janssens
-| !wizards_artist.#alexander_jansson
-| !wizards_artist.#tove_jansson
-| !wizards_artist.#aaron_jasinski
-| !wizards_artist.#alexej_von_jawlensky
-| !wizards_artist.#james_jean
-| !wizards_artist.#oliver_jeffers
-| !wizards_artist.#lee_jeffries
-| !wizards_artist.#georg_jensen
-| !wizards_artist.#ellen_jewett
-| !wizards_artist.#he_jiaying
-| !wizards_artist.#chantal_joffe
-| !wizards_artist.#martine_johanna
-| !wizards_artist.#augustus_john
-| !wizards_artist.#gwen_john
-| !wizards_artist.#jasper_johns
-| !wizards_artist.#eastman_johnson
-| !wizards_artist.#alfred_cheney_johnston
-| !wizards_artist.#dorothy_johnstone
-| !wizards_artist.#android_jones
-| !wizards_artist.#erik_jones
-| !wizards_artist.#jeffrey_catherine_jones
-| !wizards_artist.#peter_andrew_jones
-| !wizards_artist.#loui_jover
-| !wizards_artist.#amy_judd
-| !wizards_artist.#donald_judd
-| !wizards_artist.#jean_jullien
-| !wizards_artist.#matthias_jung
-| !wizards_artist.#joe_jusko
-| !wizards_artist.#frida_kahlo
-| !wizards_artist.#hayv_kahraman
-| !wizards_artist.#mw_kaluta
-| !wizards_artist.#nadav_kander
-| !wizards_artist.#wassily_kandinsky
-| !wizards_artist.#jun_kaneko
-| !wizards_artist.#titus_kaphar
-| !wizards_artist.#michal_karcz
-| !wizards_artist.#gertrude_kasebier
-| !wizards_artist.#terada_katsuya
-| !wizards_artist.#audrey_kawasaki
-| !wizards_artist.#hasui_kawase
-| !wizards_artist.#glen_keane
-| !wizards_artist.#margaret_keane
-| !wizards_artist.#ellsworth_kelly
-| !wizards_artist.#michael_kenna
-| !wizards_artist.#thomas_benjamin_kennington
-| !wizards_artist.#william_kentridge
-| !wizards_artist.#hendrik_kerstens
-| !wizards_artist.#jeremiah_ketner
-| !wizards_artist.#fernand_khnopff
-| !wizards_artist.#hideyuki_kikuchi
-| !wizards_artist.#tom_killion
-| !wizards_artist.#thomas_kinkade
-| !wizards_artist.#jack_kirby
-| !wizards_artist.#ernst_ludwig_kirchner
-| !wizards_artist.#tatsuro_kiuchi
-| !wizards_artist.#jon_klassen
-| !wizards_artist.#paul_klee
-| !wizards_artist.#william_klein
-| !wizards_artist.#yves_klein
-| !wizards_artist.#carl_kleiner
-| !wizards_artist.#gustav_klimt
-| !wizards_artist.#godfrey_kneller
-| !wizards_artist.#emily_kame_kngwarreye
-| !wizards_artist.#chad_knight
-| !wizards_artist.#nick_knight
-| !wizards_artist.#helene_knoop
-| !wizards_artist.#phil_koch
-| !wizards_artist.#kazuo_koike
-| !wizards_artist.#oskar_kokoschka
-| !wizards_artist.#kathe_kollwitz
-| !wizards_artist.#michael_komarck
-| !wizards_artist.#satoshi_kon
-| !wizards_artist.#jeff_koons
-| !wizards_artist.#caia_koopman
-| !wizards_artist.#konstantin_korovin
-| !wizards_artist.#mark_kostabi
-| !wizards_artist.#bella_kotak
-| !wizards_artist.#andrea_kowch
-| !wizards_artist.#lee_krasner
-| !wizards_artist.#barbara_kruger
-| !wizards_artist.#brad_kunkle
-| !wizards_artist.#yayoi_kusama
-| !wizards_artist.#michael_k_kutsche
-| !wizards_artist.#ilya_kuvshinov
-| !wizards_artist.#david_lachapelle
-| !wizards_artist.#raphael_lacoste
-| !wizards_artist.#lev_lagorio
-| !wizards_artist.#rene_lalique
-| !wizards_artist.#abigail_larson
-| !wizards_artist.#gary_larson
-| !wizards_artist.#denys_lasdun
-| !wizards_artist.#maria_lassnig
-| !wizards_artist.#dorothy_lathrop
-| !wizards_artist.#melissa_launay
-| !wizards_artist.#john_lavery
-| !wizards_artist.#jacob_lawrence
-| !wizards_artist.#thomas_lawrence
-| !wizards_artist.#ernest_lawson
-| !wizards_artist.#bastien_lecouffe_deharme
-| !wizards_artist.#alan_lee
-| !wizards_artist.#minjae_lee
-| !wizards_artist.#nina_leen
-| !wizards_artist.#fernand_leger
-| !wizards_artist.#paul_lehr
-| !wizards_artist.#frederic_leighton
-| !wizards_artist.#alayna_lemmer
-| !wizards_artist.#tamara_de_lempicka
-| !wizards_artist.#sol_lewitt
-| !wizards_artist.#jc_leyendecker
-| !wizards_artist.#andre_lhote
-| !wizards_artist.#roy_lichtenstein
-| !wizards_artist.#rob_liefeld
-| !wizards_artist.#fang_lijun
-| !wizards_artist.#maya_lin
-| !wizards_artist.#filippino_lippi
-| !wizards_artist.#herbert_list
-| !wizards_artist.#richard_long
-| !wizards_artist.#yoann_lossel
-| !wizards_artist.#morris_louis
-| !wizards_artist.#sarah_lucas
-| !wizards_artist.#maximilien_luce
-| !wizards_artist.#loretta_lux
-| !wizards_artist.#george_platt_lynes
-| !wizards_artist.#frances_macdonald
-| !wizards_artist.#august_macke
-| !wizards_artist.#stephen_mackey
-| !wizards_artist.#rachel_maclean
-| !wizards_artist.#raimundo_de_madrazo_y_garreta
-| !wizards_artist.#joe_madureira
-| !wizards_artist.#rene_magritte
-| !wizards_artist.#jim_mahfood
-| !wizards_artist.#vivian_maier
-| !wizards_artist.#aristide_maillol
-| !wizards_artist.#don_maitz
-| !wizards_artist.#laura_makabresku
-| !wizards_artist.#alex_maleev
-| !wizards_artist.#keith_mallett
-| !wizards_artist.#johji_manabe
-| !wizards_artist.#milo_manara
-| !wizards_artist.#edouard_manet
-| !wizards_artist.#henri_manguin
-| !wizards_artist.#jeremy_mann
-| !wizards_artist.#sally_mann
-| !wizards_artist.#andrea_mantegna
-| !wizards_artist.#antonio_j_manzanedo
-| !wizards_artist.#robert_mapplethorpe
-| !wizards_artist.#franz_marc
-| !wizards_artist.#ivan_marchuk
-| !wizards_artist.#brice_marden
-| !wizards_artist.#andrei_markin
-| !wizards_artist.#kerry_james_marshall
-| !wizards_artist.#serge_marshennikov
-| !wizards_artist.#agnes_martin
-| !wizards_artist.#adam_martinakis
-| !wizards_artist.#stephan_martiniere
-| !wizards_artist.#ilya_mashkov
-| !wizards_artist.#henri_matisse
-| !wizards_artist.#rodney_matthews
-| !wizards_artist.#anton_mauve
-| !wizards_artist.#peter_max
-| !wizards_artist.#mike_mayhew
-| !wizards_artist.#angus_mcbride
-| !wizards_artist.#anne_mccaffrey
-| !wizards_artist.#robert_mccall
-| !wizards_artist.#scott_mccloud
-| !wizards_artist.#steve_mccurry
-| !wizards_artist.#todd_mcfarlane
-| !wizards_artist.#barry_mcgee
-| !wizards_artist.#ryan_mcginley
-| !wizards_artist.#robert_mcginnis
-| !wizards_artist.#richard_mcguire
-| !wizards_artist.#patrick_mchale
-| !wizards_artist.#kelly_mckernan
-| !wizards_artist.#angus_mckie
-| !wizards_artist.#alasdair_mclellan
-| !wizards_artist.#jon_mcnaught
-| !wizards_artist.#dan_mcpharlin
-| !wizards_artist.#tara_mcpherson
-| !wizards_artist.#ralph_mcquarrie
-| !wizards_artist.#ian_mcque
-| !wizards_artist.#syd_mead
-| !wizards_artist.#richard_meier
-| !wizards_artist.#maria_sibylla_merian
-| !wizards_artist.#willard_metcalf
-| !wizards_artist.#gabriel_metsu
-| !wizards_artist.#jean_metzinger
-| !wizards_artist.#michelangelo
-| !wizards_artist.#nicolas_mignard
-| !wizards_artist.#mike_mignola
-| !wizards_artist.#dimitra_milan
-| !wizards_artist.#john_everett_millais
-| !wizards_artist.#marilyn_minter
-| !wizards_artist.#januz_miralles
-| !wizards_artist.#joan_miro
-| !wizards_artist.#joan_mitchell
-| !wizards_artist.#hayao_miyazaki
-| !wizards_artist.#paula_modersohn_becker
-| !wizards_artist.#amedeo_modigliani
-| !wizards_artist.#moebius
-| !wizards_artist.#peter_mohrbacher
-| !wizards_artist.#piet_mondrian
-| !wizards_artist.#claude_monet
-| !wizards_artist.#jean_baptiste_monge
-| !wizards_artist.#alyssa_monks
-| !wizards_artist.#alan_moore
-| !wizards_artist.#antonio_mora
-| !wizards_artist.#edward_moran
-| !wizards_artist.#koji_morimoto
-| !wizards_artist.#berthe_morisot
-| !wizards_artist.#daido_moriyama
-| !wizards_artist.#james_wilson_morrice
-| !wizards_artist.#sarah_morris
-| !wizards_artist.#john_lowrie_morrison
-| !wizards_artist.#igor_morski
-| !wizards_artist.#john_kenn_mortensen
-| !wizards_artist.#victor_moscoso
-| !wizards_artist.#inna_mosina
-| !wizards_artist.#richard_mosse
-| !wizards_artist.#thomas_edwin_mostyn
-| !wizards_artist.#marcel_mouly
-| !wizards_artist.#emmanuelle_moureaux
-| !wizards_artist.#alphonse_mucha
-| !wizards_artist.#craig_mullins
-| !wizards_artist.#augustus_edwin_mulready
-| !wizards_artist.#dan_mumford
-| !wizards_artist.#edvard_munch
-| !wizards_artist.#alfred_munnings
-| !wizards_artist.#gabriele_munter
-| !wizards_artist.#takashi_murakami
-| !wizards_artist.#patrice_murciano
-| !wizards_artist.#scott_musgrove
-| !wizards_artist.#wangechi_mutu
-| !wizards_artist.#go_nagai
-| !wizards_artist.#hiroshi_nagai
-| !wizards_artist.#patrick_nagel
-| !wizards_artist.#tibor_nagy
-| !wizards_artist.#scott_naismith
-| !wizards_artist.#juliana_nan
-| !wizards_artist.#ted_nasmith
-| !wizards_artist.#todd_nauck
-| !wizards_artist.#bruce_nauman
-| !wizards_artist.#ernst_wilhelm_nay
-| !wizards_artist.#alice_neel
-| !wizards_artist.#keith_negley
-| !wizards_artist.#leroy_neiman
-| !wizards_artist.#kadir_nelson
-| !wizards_artist.#odd_nerdrum
-| !wizards_artist.#shirin_neshat
-| !wizards_artist.#mikhail_nesterov
-| !wizards_artist.#jane_newland
-| !wizards_artist.#victo_ngai
-| !wizards_artist.#william_nicholson
-| !wizards_artist.#florian_nicolle
-| !wizards_artist.#kay_nielsen
-| !wizards_artist.#tsutomu_nihei
-| !wizards_artist.#victor_nizovtsev
-| !wizards_artist.#isamu_noguchi
-| !wizards_artist.#catherine_nolin
-| !wizards_artist.#francois_de_nome
-| !wizards_artist.#earl_norem
-| !wizards_artist.#phil_noto
-| !wizards_artist.#georgia_okeeffe
-| !wizards_artist.#terry_oakes
-| !wizards_artist.#chris_ofili
-| !wizards_artist.#jack_ohman
-| !wizards_artist.#noriyoshi_ohrai
-| !wizards_artist.#helio_oiticica
-| !wizards_artist.#taro_okamoto
-| !wizards_artist.#tim_okamura
-| !wizards_artist.#naomi_okubo
-| !wizards_artist.#atelier_olschinsky
-| !wizards_artist.#greg_olsen
-| !wizards_artist.#oleg_oprisco
-| !wizards_artist.#tony_orrico
-| !wizards_artist.#mamoru_oshii
-| !wizards_artist.#ida_rentoul_outhwaite
-| !wizards_artist.#yigal_ozeri
-| !wizards_artist.#gabriel_pacheco
-| !wizards_artist.#michael_page
-| !wizards_artist.#rui_palha
-| !wizards_artist.#polixeni_papapetrou
-| !wizards_artist.#julio_le_parc
-| !wizards_artist.#michael_parkes
-| !wizards_artist.#philippe_parreno
-| !wizards_artist.#maxfield_parrish
-| !wizards_artist.#alice_pasquini
-| !wizards_artist.#james_mcintosh_patrick
-| !wizards_artist.#john_pawson
-| !wizards_artist.#max_pechstein
-| !wizards_artist.#agnes_lawrence_pelton
-| !wizards_artist.#irving_penn
-| !wizards_artist.#bruce_pennington
-| !wizards_artist.#john_perceval
-| !wizards_artist.#george_perez
-| !wizards_artist.#constant_permeke
-| !wizards_artist.#lilla_cabot_perry
-| !wizards_artist.#gaetano_pesce
-| !wizards_artist.#cleon_peterson
-| !wizards_artist.#daria_petrilli
-| !wizards_artist.#raymond_pettibon
-| !wizards_artist.#coles_phillips
-| !wizards_artist.#francis_picabia
-| !wizards_artist.#pablo_picasso
-| !wizards_artist.#sopheap_pich
-| !wizards_artist.#otto_piene
-| !wizards_artist.#jerry_pinkney
-| !wizards_artist.#pinturicchio
-| !wizards_artist.#sebastiano_del_piombo
-| !wizards_artist.#camille_pissarro
-| !wizards_artist.#ferris_plock
-| !wizards_artist.#bill_plympton
-| !wizards_artist.#willy_pogany
-| !wizards_artist.#patricia_polacco
-| !wizards_artist.#jackson_pollock
-| !wizards_artist.#beatrix_potter
-| !wizards_artist.#edward_henry_potthast
-| !wizards_artist.#simon_prades
-| !wizards_artist.#maurice_prendergast
-| !wizards_artist.#dod_procter
-| !wizards_artist.#leo_putz
-| !wizards_artist.#howard_pyle
-| !wizards_artist.#arthur_rackham
-| !wizards_artist.#natalia_rak
-| !wizards_artist.#paul_ranson
-| !wizards_artist.#raphael
-| !wizards_artist.#abraham_rattner
-| !wizards_artist.#jan_van_ravesteyn
-| !wizards_artist.#aliza_razell
-| !wizards_artist.#paula_rego
-| !wizards_artist.#lotte_reiniger
-| !wizards_artist.#valentin_rekunenko
-| !wizards_artist.#christoffer_relander
-| !wizards_artist.#andrey_remnev
-| !wizards_artist.#pierre_auguste_renoir
-| !wizards_artist.#ilya_repin
-| !wizards_artist.#joshua_reynolds
-| !wizards_artist.#rhads
-| !wizards_artist.#bettina_rheims
-| !wizards_artist.#jason_rhoades
-| !wizards_artist.#georges_ribemont_dessaignes
-| !wizards_artist.#jusepe_de_ribera
-| !wizards_artist.#gerhard_richter
-| !wizards_artist.#chris_riddell
-| !wizards_artist.#hyacinthe_rigaud
-| !wizards_artist.#rembrandt_van_rijn
-| !wizards_artist.#faith_ringgold
-| !wizards_artist.#jozsef_rippl_ronai
-| !wizards_artist.#pipilotti_rist
-| !wizards_artist.#charles_robinson
-| !wizards_artist.#theodore_robinson
-| !wizards_artist.#kenneth_rocafort
-| !wizards_artist.#andreas_rocha
-| !wizards_artist.#norman_rockwell
-| !wizards_artist.#ludwig_mies_van_der_rohe
-| !wizards_artist.#fatima_ronquillo
-| !wizards_artist.#salvator_rosa
-| !wizards_artist.#kerby_rosanes
-| !wizards_artist.#conrad_roset
-| !wizards_artist.#bob_ross
-| !wizards_artist.#dante_gabriel_rossetti
-| !wizards_artist.#jessica_rossier
-| !wizards_artist.#marianna_rothen
-| !wizards_artist.#mark_rothko
-| !wizards_artist.#eva_rothschild
-| !wizards_artist.#georges_rousse
-| !wizards_artist.#luis_royo
-| !wizards_artist.#joao_ruas
-| !wizards_artist.#peter_paul_rubens
-| !wizards_artist.#rachel_ruysch
-| !wizards_artist.#albert_pinkham_ryder
-| !wizards_artist.#mark_ryden
-| !wizards_artist.#ursula_von_rydingsvard
-| !wizards_artist.#theo_van_rysselberghe
-| !wizards_artist.#eero_saarinen
-| !wizards_artist.#wlad_safronow
-| !wizards_artist.#amanda_sage
-| !wizards_artist.#antoine_de_saint_exupery
-| !wizards_artist.#nicola_samori
-| !wizards_artist.#rebeca_saray
-| !wizards_artist.#john_singer_sargent
-| !wizards_artist.#martiros_saryan
-| !wizards_artist.#viviane_sassen
-| !wizards_artist.#nike_savvas
-| !wizards_artist.#richard_scarry
-| !wizards_artist.#godfried_schalcken
-| !wizards_artist.#miriam_schapiro
-| !wizards_artist.#kenny_scharf
-| !wizards_artist.#jerry_schatzberg
-| !wizards_artist.#ary_scheffer
-| !wizards_artist.#kees_scherer
-| !wizards_artist.#helene_schjerfbeck
-| !wizards_artist.#christian_schloe
-| !wizards_artist.#karl_schmidt_rottluff
-| !wizards_artist.#julian_schnabel
-| !wizards_artist.#fritz_scholder
-| !wizards_artist.#charles_schulz
-| !wizards_artist.#sean_scully
-| !wizards_artist.#ronald_searle
-| !wizards_artist.#mark_seliger
-| !wizards_artist.#anton_semenov
-| !wizards_artist.#edmondo_senatore
-| !wizards_artist.#maurice_sendak
-| !wizards_artist.#richard_serra
-| !wizards_artist.#georges_seurat
-| !wizards_artist.#dr_seuss
-| !wizards_artist.#tanya_shatseva
-| !wizards_artist.#natalie_shau
-| !wizards_artist.#barclay_shaw
-| !wizards_artist.#e_h_shepard
-| !wizards_artist.#amrita_sher_gil
-| !wizards_artist.#irene_sheri
-| !wizards_artist.#duffy_sheridan
-| !wizards_artist.#cindy_sherman
-| !wizards_artist.#shozo_shimamoto
-| !wizards_artist.#hikari_shimoda
-| !wizards_artist.#makoto_shinkai
-| !wizards_artist.#chiharu_shiota
-| !wizards_artist.#elizabeth_shippen_green
-| !wizards_artist.#masamune_shirow
-| !wizards_artist.#tim_shumate
-| !wizards_artist.#yuri_shwedoff
-| !wizards_artist.#malick_sidibe
-| !wizards_artist.#jeanloup_sieff
-| !wizards_artist.#bill_sienkiewicz
-| !wizards_artist.#marc_simonetti
-| !wizards_artist.#david_sims
-| !wizards_artist.#andy_singer
-| !wizards_artist.#alfred_sisley
-| !wizards_artist.#sandy_skoglund
-| !wizards_artist.#jeffrey_smart
-| !wizards_artist.#berndnaut_smilde
-| !wizards_artist.#rodney_smith
-| !wizards_artist.#samantha_keely_smith
-| !wizards_artist.#robert_smithson
-| !wizards_artist.#barbara_stauffacher_solomon
-| !wizards_artist.#simeon_solomon
-| !wizards_artist.#hajime_sorayama
-| !wizards_artist.#joaquin_sorolla
-| !wizards_artist.#ettore_sottsass
-| !wizards_artist.#amadeo_de_souza_cardoso
-| !wizards_artist.#millicent_sowerby
-| !wizards_artist.#moses_soyer
-| !wizards_artist.#sparth
-| !wizards_artist.#jack_spencer
-| !wizards_artist.#art_spiegelman
-| !wizards_artist.#simon_stalenhag
-| !wizards_artist.#ralph_steadman
-| !wizards_artist.#philip_wilson_steer
-| !wizards_artist.#william_steig
-| !wizards_artist.#fred_stein
-| !wizards_artist.#theophile_steinlen
-| !wizards_artist.#brian_stelfreeze
-| !wizards_artist.#frank_stella
-| !wizards_artist.#joseph_stella
-| !wizards_artist.#irma_stern
-| !wizards_artist.#alfred_stevens
-| !wizards_artist.#marie_spartali_stillman
-| !wizards_artist.#stinkfish
-| !wizards_artist.#anne_stokes
-| !wizards_artist.#william_stout
-| !wizards_artist.#paul_strand
-| !wizards_artist.#linnea_strid
-| !wizards_artist.#john_melhuish_strudwick
-| !wizards_artist.#drew_struzan
-| !wizards_artist.#tatiana_suarez
-| !wizards_artist.#eustache_le_sueur
-| !wizards_artist.#rebecca_sugar
-| !wizards_artist.#hiroshi_sugimoto
-| !wizards_artist.#graham_sutherland
-| !wizards_artist.#jan_svankmajer
-| !wizards_artist.#raymond_swanland
-| !wizards_artist.#annie_swynnerton
-| !wizards_artist.#stanislaw_szukalski
-| !wizards_artist.#philip_taaffe
-| !wizards_artist.#hiroyuki_mitsume_takahashi
-| !wizards_artist.#dorothea_tanning
-| !wizards_artist.#margaret_tarrant
-| !wizards_artist.#genndy_tartakovsky
-| !wizards_artist.#teamlab
-| !wizards_artist.#raina_telgemeier
-| !wizards_artist.#john_tenniel
-| !wizards_artist.#sir_john_tenniel
-| !wizards_artist.#howard_terpning
-| !wizards_artist.#osamu_tezuka
-| !wizards_artist.#abbott_handerson_thayer
-| !wizards_artist.#heather_theurer
-| !wizards_artist.#mickalene_thomas
-| !wizards_artist.#tom_thomson
-| !wizards_artist.#titian
-| !wizards_artist.#mark_tobey
-| !wizards_artist.#greg_tocchini
-| !wizards_artist.#roland_topor
-| !wizards_artist.#sergio_toppi
-| !wizards_artist.#alex_toth
-| !wizards_artist.#henri_de_toulouse_lautrec
-| !wizards_artist.#ross_tran
-| !wizards_artist.#philip_treacy
-| !wizards_artist.#anne_truitt
-| !wizards_artist.#henry_scott_tuke
-| !wizards_artist.#jmw_turner
-| !wizards_artist.#james_turrell
-| !wizards_artist.#john_henry_twachtman
-| !wizards_artist.#naomi_tydeman
-| !wizards_artist.#euan_uglow
-| !wizards_artist.#daniela_uhlig
-| !wizards_artist.#kitagawa_utamaro
-| !wizards_artist.#christophe_vacher
-| !wizards_artist.#suzanne_valadon
-| !wizards_artist.#thiago_valdi
-| !wizards_artist.#chris_van_allsburg
-| !wizards_artist.#francine_van_hove
-| !wizards_artist.#jan_van_kessel_the_elder
-| !wizards_artist.#remedios_varo
-| !wizards_artist.#nick_veasey
-| !wizards_artist.#diego_velazquez
-| !wizards_artist.#eve_ventrue
-| !wizards_artist.#johannes_vermeer
-| !wizards_artist.#charles_vess
-| !wizards_artist.#roman_vishniac
-| !wizards_artist.#kelly_vivanco
-| !wizards_artist.#brian_m_viveros
-| !wizards_artist.#elke_vogelsang
-| !wizards_artist.#vladimir_volegov
-| !wizards_artist.#robert_vonnoh
-| !wizards_artist.#mikhail_vrubel
-| !wizards_artist.#louis_wain
-| !wizards_artist.#kara_walker
-| !wizards_artist.#josephine_wall
-| !wizards_artist.#bruno_walpoth
-| !wizards_artist.#chris_ware
-| !wizards_artist.#andy_warhol
-| !wizards_artist.#john_william_waterhouse
-| !wizards_artist.#bill_watterson
-| !wizards_artist.#george_frederic_watts
-| !wizards_artist.#walter_ernest_webster
-| !wizards_artist.#hendrik_weissenbruch
-| !wizards_artist.#neil_welliver
-| !wizards_artist.#catrin_welz_stein
-| !wizards_artist.#vivienne_westwood
-| !wizards_artist.#michael_whelan
-| !wizards_artist.#james_abbott_mcneill_whistler
-| !wizards_artist.#william_whitaker
-| !wizards_artist.#tim_white
-| !wizards_artist.#coby_whitmore
-| !wizards_artist.#david_wiesner
-| !wizards_artist.#kehinde_wiley
-| !wizards_artist.#cathy_wilkes
-| !wizards_artist.#jessie_willcox_smith
-| !wizards_artist.#gilbert_williams
-| !wizards_artist.#kyffin_williams
-| !wizards_artist.#al_williamson
-| !wizards_artist.#wes_wilson
-| !wizards_artist.#mike_winkelmann
-| !wizards_artist.#bec_winnel
-| !wizards_artist.#franz_xaver_winterhalter
-| !wizards_artist.#nathan_wirth
-| !wizards_artist.#wlop
-| !wizards_artist.#brandon_woelfel
-| !wizards_artist.#liam_wong
-| !wizards_artist.#francesca_woodman
-| !wizards_artist.#jim_woodring
-| !wizards_artist.#patrick_woodroffe
-| !wizards_artist.#frank_lloyd_wright
-| !wizards_artist.#sulamith_wulfing
-| !wizards_artist.#nc_wyeth
-| !wizards_artist.#rose_wylie
-| !wizards_artist.#stanislaw_wyspianski
-| !wizards_artist.#takato_yamamoto
-| !wizards_artist.#gene_luen_yang
-| !wizards_artist.#ikenaga_yasunari
-| !wizards_artist.#kozo_yokai
-| !wizards_artist.#sean_yoro
-| !wizards_artist.#chie_yoshii
-| !wizards_artist.#skottie_young
-| !wizards_artist.#masaaki_yuasa
-| !wizards_artist.#konstantin_yuon
-| !wizards_artist.#yuumei
-| !wizards_artist.#william_zorach
-| !wizards_artist.#ander_zorn
-// artists added by me (ariane-emory)
-| 3 !wizards_artist.#ian_miller
-| 3 !wizards_artist.#john_zeleznik
-| 3 !wizards_artist.#keith_parkinson
-| 3 !wizards_artist.#kevin_fales
-| 3 !wizards_artist.#boris_vallejo
-}
+                                                            | !wizards_artist.#vince_colletta
+                                                            | !wizards_artist.#beth_conklin
+                                                            | !wizards_artist.#john_constable
+                                                            | !wizards_artist.#darwyn_cooke
+                                                            | !wizards_artist.#richard_corben
+                                                            | !wizards_artist.#vittorio_matteo_corcos
+                                                            | !wizards_artist.#paul_corfield
+                                                            | !wizards_artist.#fernand_cormon
+                                                            | !wizards_artist.#norman_cornish
+                                                            | !wizards_artist.#camille_corot
+                                                            | !wizards_artist.#gemma_correll
+                                                            | !wizards_artist.#petra_cortright
+                                                            | !wizards_artist.#lorenzo_costa_the_elder
+                                                            | !wizards_artist.#olive_cotton
+                                                            | !wizards_artist.#peter_coulson
+                                                            | !wizards_artist.#gustave_courbet
+                                                            | !wizards_artist.#frank_cadogan_cowper
+                                                            | !wizards_artist.#kinuko_y_craft
+                                                            | !wizards_artist.#clayton_crain
+                                                            | !wizards_artist.#lucas_cranach_the_elder
+                                                            | !wizards_artist.#lucas_cranach_the_younger
+                                                            | !wizards_artist.#walter_crane
+                                                            | !wizards_artist.#martin_creed
+                                                            | !wizards_artist.#gregory_crewdson
+                                                            | !wizards_artist.#debbie_criswell
+                                                            | !wizards_artist.#victoria_crowe
+                                                            | !wizards_artist.#etam_cru
+                                                            | !wizards_artist.#robert_crumb
+                                                            | !wizards_artist.#carlos_cruz_diez
+                                                            | !wizards_artist.#john_currin
+                                                            | !wizards_artist.#krenz_cushart
+                                                            | !wizards_artist.#camilla_derrico
+                                                            | !wizards_artist.#pino_daeni
+                                                            | !wizards_artist.#salvador_dali
+                                                            | !wizards_artist.#sunil_das
+                                                            | !wizards_artist.#ian_davenport
+                                                            | !wizards_artist.#stuart_davis
+                                                            | !wizards_artist.#roger_dean
+                                                            | !wizards_artist.#michael_deforge
+                                                            | !wizards_artist.#edgar_degas
+                                                            | !wizards_artist.#eugene_delacroix
+                                                            | !wizards_artist.#robert_delaunay
+                                                            | !wizards_artist.#sonia_delaunay
+                                                            | !wizards_artist.#gabriele_dellotto
+                                                            | !wizards_artist.#nicolas_delort
+                                                            | !wizards_artist.#jean_delville
+                                                            | !wizards_artist.#posuka_demizu
+                                                            | !wizards_artist.#guy_denning
+                                                            | !wizards_artist.#monsu_desiderio
+                                                            | !wizards_artist.#charles_maurice_detmold
+                                                            | !wizards_artist.#edward_julius_detmold
+                                                            | !wizards_artist.#anne_dewailly
+                                                            | !wizards_artist.#walt_disney
+                                                            | !wizards_artist.#tony_diterlizzi
+                                                            | !wizards_artist.#anna_dittmann
+                                                            | !wizards_artist.#dima_dmitriev
+                                                            | !wizards_artist.#peter_doig
+                                                            | !wizards_artist.#kees_van_dongen
+                                                            | !wizards_artist.#gustave_dore
+                                                            | !wizards_artist.#dave_dorman
+                                                            | !wizards_artist.#emilio_giuseppe_dossena
+                                                            | !wizards_artist.#david_downton
+                                                            | !wizards_artist.#jessica_drossin
+                                                            | !wizards_artist.#philippe_druillet
+                                                            | !wizards_artist.#tj_drysdale
+                                                            | !wizards_artist.#ton_dubbeldam
+                                                            | !wizards_artist.#marcel_duchamp
+                                                            | !wizards_artist.#joseph_ducreux
+                                                            | !wizards_artist.#edmund_dulac
+                                                            | !wizards_artist.#marlene_dumas
+                                                            | !wizards_artist.#charles_dwyer
+                                                            | !wizards_artist.#william_dyce
+                                                            | !wizards_artist.#chris_dyer
+                                                            | !wizards_artist.#eyvind_earle
+                                                            | !wizards_artist.#amy_earles
+                                                            | !wizards_artist.#lori_earley
+                                                            | !wizards_artist.#jeff_easley
+                                                            | !wizards_artist.#tristan_eaton
+                                                            | !wizards_artist.#jason_edmiston
+                                                            | !wizards_artist.#alfred_eisenstaedt
+                                                            | !wizards_artist.#jesper_ejsing
+                                                            | !wizards_artist.#olafur_eliasson
+                                                            | !wizards_artist.#harrison_ellenshaw
+                                                            | !wizards_artist.#christine_ellger
+                                                            | !wizards_artist.#larry_elmore
+                                                            | !wizards_artist.#joseba_elorza
+                                                            | !wizards_artist.#peter_elson
+                                                            | !wizards_artist.#gil_elvgren
+                                                            | !wizards_artist.#ed_emshwiller
+                                                            | !wizards_artist.#kilian_eng
+                                                            | !wizards_artist.#jason_a_engle
+                                                            | !wizards_artist.#max_ernst
+                                                            | !wizards_artist.#romain_de_tirtoff_erte
+                                                            | !wizards_artist.#m_c_escher
+                                                            | !wizards_artist.#tim_etchells
+                                                            | !wizards_artist.#walker_evans
+                                                            | !wizards_artist.#jan_van_eyck
+                                                            | !wizards_artist.#glenn_fabry
+                                                            | !wizards_artist.#ludwig_fahrenkrog
+                                                            | !wizards_artist.#shepard_fairey
+                                                            | !wizards_artist.#andy_fairhurst
+                                                            | !wizards_artist.#luis_ricardo_falero
+                                                            | !wizards_artist.#jean_fautrier
+                                                            | !wizards_artist.#andrew_ferez
+                                                            | !wizards_artist.#hugh_ferriss
+                                                            | !wizards_artist.#david_finch
+                                                            | !wizards_artist.#callie_fink
+                                                            | !wizards_artist.#virgil_finlay
+                                                            | !wizards_artist.#anato_finnstark
+                                                            | !wizards_artist.#howard_finster
+                                                            | !wizards_artist.#oskar_fischinger
+                                                            | !wizards_artist.#samuel_melton_fisher
+                                                            | !wizards_artist.#john_anster_fitzgerald
+                                                            | !wizards_artist.#tony_fitzpatrick
+                                                            | !wizards_artist.#hippolyte_flandrin
+                                                            | !wizards_artist.#dan_flavin
+                                                            | !wizards_artist.#max_fleischer
+                                                            | !wizards_artist.#govaert_flinck
+                                                            | !wizards_artist.#alex_russell_flint
+                                                            | !wizards_artist.#lucio_fontana
+                                                            | !wizards_artist.#chris_foss
+                                                            | !wizards_artist.#jon_foster
+                                                            | !wizards_artist.#jean_fouquet
+                                                            | !wizards_artist.#toby_fox
+                                                            | !wizards_artist.#art_frahm
+                                                            | !wizards_artist.#lisa_frank
+                                                            | !wizards_artist.#helen_frankenthaler
+                                                            | !wizards_artist.#frank_frazetta
+                                                            | !wizards_artist.#kelly_freas
+                                                            | !wizards_artist.#lucian_freud
+                                                            | !wizards_artist.#brian_froud
+                                                            | !wizards_artist.#wendy_froud
+                                                            | !wizards_artist.#tom_fruin
+                                                            | !wizards_artist.#john_wayne_gacy
+                                                            | !wizards_artist.#justin_gaffrey
+                                                            | !wizards_artist.#hashimoto_gaho
+                                                            | !wizards_artist.#neil_gaiman
+                                                            | !wizards_artist.#stephen_gammell
+                                                            | !wizards_artist.#hope_gangloff
+                                                            | !wizards_artist.#alex_garant
+                                                            | !wizards_artist.#gilbert_garcin
+                                                            | !wizards_artist.#michael_and_inessa_garmash
+                                                            | !wizards_artist.#antoni_gaudi
+                                                            | !wizards_artist.#paul_gauguin
+                                                            | !wizards_artist.#giovanni_battista_gaulli
+                                                            | !wizards_artist.#anne_geddes
+                                                            | !wizards_artist.#bill_gekas
+                                                            | !wizards_artist.#artemisia_gentileschi
+                                                            | !wizards_artist.#orazio_gentileschi
+                                                            | !wizards_artist.#daniel_f_gerhartz
+                                                            | !wizards_artist.#theodore_gericault
+                                                            | !wizards_artist.#jean_leon_gerome
+                                                            | !wizards_artist.#mark_gertler
+                                                            | !wizards_artist.#atey_ghailan
+                                                            | !wizards_artist.#alberto_giacometti
+                                                            | !wizards_artist.#donato_giancola
+                                                            | !wizards_artist.#hr_giger
+                                                            | !wizards_artist.#james_gilleard
+                                                            | !wizards_artist.#harold_gilman
+                                                            | !wizards_artist.#charles_ginner
+                                                            | !wizards_artist.#jean_giraud
+                                                            | !wizards_artist.#anne_louis_girodet
+                                                            | !wizards_artist.#milton_glaser
+                                                            | !wizards_artist.#warwick_goble
+                                                            | !wizards_artist.#john_william_godward
+                                                            | !wizards_artist.#sacha_goldberger
+                                                            | !wizards_artist.#nan_goldin
+                                                            | !wizards_artist.#josan_gonzalez
+                                                            | !wizards_artist.#felix_gonzalez_torres
+                                                            | !wizards_artist.#derek_gores
+                                                            | !wizards_artist.#edward_gorey
+                                                            | !wizards_artist.#arshile_gorky
+                                                            | !wizards_artist.#alessandro_gottardo
+                                                            | !wizards_artist.#adolph_gottlieb
+                                                            | !wizards_artist.#francisco_goya
+                                                            | !wizards_artist.#laurent_grasso
+                                                            | !wizards_artist.#mab_graves
+                                                            | !wizards_artist.#eileen_gray
+                                                            | !wizards_artist.#kate_greenaway
+                                                            | !wizards_artist.#alex_grey
+                                                            | !wizards_artist.#carne_griffiths
+                                                            | !wizards_artist.#gris_grimly
+                                                            | !wizards_artist.#brothers_grimm
+                                                            | !wizards_artist.#tracie_grimwood
+                                                            | !wizards_artist.#matt_groening
+                                                            | !wizards_artist.#alex_gross
+                                                            | !wizards_artist.#tom_grummett
+                                                            | !wizards_artist.#huang_guangjian
+                                                            | !wizards_artist.#wu_guanzhong
+                                                            | !wizards_artist.#rebecca_guay
+                                                            | !wizards_artist.#guercino
+                                                            | !wizards_artist.#jeannette_guichard_bunel
+                                                            | !wizards_artist.#scott_gustafson
+                                                            | !wizards_artist.#wade_guyton
+                                                            | !wizards_artist.#hans_haacke
+                                                            | !wizards_artist.#robert_hagan
+                                                            | !wizards_artist.#philippe_halsman
+                                                            | !wizards_artist.#maggi_hambling
+                                                            | !wizards_artist.#richard_hamilton
+                                                            | !wizards_artist.#bess_hamiti
+                                                            | !wizards_artist.#tom_hammick
+                                                            | !wizards_artist.#david_hammons
+                                                            | !wizards_artist.#ren_hang
+                                                            | !wizards_artist.#erin_hanson
+                                                            | !wizards_artist.#keith_haring
+                                                            | !wizards_artist.#alexei_harlamoff
+                                                            | !wizards_artist.#charley_harper
+                                                            | !wizards_artist.#john_harris
+                                                            | !wizards_artist.#florence_harrison
+                                                            | !wizards_artist.#marsden_hartley
+                                                            | !wizards_artist.#ryohei_hase
+                                                            | !wizards_artist.#childe_hassam
+                                                            | !wizards_artist.#ben_hatke
+                                                            | !wizards_artist.#mona_hatoum
+                                                            | !wizards_artist.#pam_hawkes
+                                                            | !wizards_artist.#jamie_hawkesworth
+                                                            | !wizards_artist.#stuart_haygarth
+                                                            | !wizards_artist.#erich_heckel
+                                                            | !wizards_artist.#valerie_hegarty
+                                                            | !wizards_artist.#mary_heilmann
+                                                            | !wizards_artist.#michael_heizer
+                                                            | !wizards_artist.#gottfried_helnwein
+                                                            | !wizards_artist.#barkley_l_hendricks
+                                                            | !wizards_artist.#bill_henson
+                                                            | !wizards_artist.#barbara_hepworth
+                                                            | !wizards_artist.#herge
+                                                            | !wizards_artist.#carolina_herrera
+                                                            | !wizards_artist.#george_herriman
+                                                            | !wizards_artist.#don_hertzfeldt
+                                                            | !wizards_artist.#prudence_heward
+                                                            | !wizards_artist.#ryan_hewett
+                                                            | !wizards_artist.#nora_heysen
+                                                            | !wizards_artist.#george_elgar_hicks
+                                                            | !wizards_artist.#lorenz_hideyoshi
+                                                            | !wizards_artist.#brothers_hildebrandt
+                                                            | !wizards_artist.#dan_hillier
+                                                            | !wizards_artist.#lewis_hine
+                                                            | !wizards_artist.#miho_hirano
+                                                            | !wizards_artist.#harumi_hironaka
+                                                            | !wizards_artist.#hiroshige
+                                                            | !wizards_artist.#morris_hirshfield
+                                                            | !wizards_artist.#damien_hirst
+                                                            | !wizards_artist.#fan_ho
+                                                            | !wizards_artist.#meindert_hobbema
+                                                            | !wizards_artist.#david_hockney
+                                                            | !wizards_artist.#filip_hodas
+                                                            | !wizards_artist.#howard_hodgkin
+                                                            | !wizards_artist.#ferdinand_hodler
+                                                            | !wizards_artist.#tiago_hoisel
+                                                            | !wizards_artist.#katsushika_hokusai
+                                                            | !wizards_artist.#hans_holbein_the_younger
+                                                            | !wizards_artist.#frank_holl
+                                                            | !wizards_artist.#carsten_holler
+                                                            | !wizards_artist.#zena_holloway
+                                                            | !wizards_artist.#edward_hopper
+                                                            | !wizards_artist.#aaron_horkey
+                                                            | !wizards_artist.#alex_horley
+                                                            | !wizards_artist.#roni_horn
+                                                            | !wizards_artist.#john_howe
+                                                            | !wizards_artist.#alex_howitt
+                                                            | !wizards_artist.#meghan_howland
+                                                            | !wizards_artist.#john_hoyland
+                                                            | !wizards_artist.#shilin_huang
+                                                            | !wizards_artist.#arthur_hughes
+                                                            | !wizards_artist.#edward_robert_hughes
+                                                            | !wizards_artist.#jack_hughes
+                                                            | !wizards_artist.#talbot_hughes
+                                                            | !wizards_artist.#pieter_hugo
+                                                            | !wizards_artist.#gary_hume
+                                                            | !wizards_artist.#friedensreich_hundertwasser
+                                                            | !wizards_artist.#william_holman_hunt
+                                                            | !wizards_artist.#george_hurrell
+                                                            | !wizards_artist.#fabio_hurtado
+                                                            | !wizards_artist.#hush
+                                                            | !wizards_artist.#michael_hutter
+                                                            | !wizards_artist.#pierre_huyghe
+                                                            | !wizards_artist.#doug_hyde
+                                                            | !wizards_artist.#louis_icart
+                                                            | !wizards_artist.#robert_indiana
+                                                            | !wizards_artist.#jean_auguste_dominique_ingres
+                                                            | !wizards_artist.#robert_irwin
+                                                            | !wizards_artist.#gabriel_isak
+                                                            | !wizards_artist.#junji_ito
+                                                            | !wizards_artist.#christophe_jacrot
+                                                            | !wizards_artist.#louis_janmot
+                                                            | !wizards_artist.#frieke_janssens
+                                                            | !wizards_artist.#alexander_jansson
+                                                            | !wizards_artist.#tove_jansson
+                                                            | !wizards_artist.#aaron_jasinski
+                                                            | !wizards_artist.#alexej_von_jawlensky
+                                                            | !wizards_artist.#james_jean
+                                                            | !wizards_artist.#oliver_jeffers
+                                                            | !wizards_artist.#lee_jeffries
+                                                            | !wizards_artist.#georg_jensen
+                                                            | !wizards_artist.#ellen_jewett
+                                                            | !wizards_artist.#he_jiaying
+                                                            | !wizards_artist.#chantal_joffe
+                                                            | !wizards_artist.#martine_johanna
+                                                            | !wizards_artist.#augustus_john
+                                                            | !wizards_artist.#gwen_john
+                                                            | !wizards_artist.#jasper_johns
+                                                            | !wizards_artist.#eastman_johnson
+                                                            | !wizards_artist.#alfred_cheney_johnston
+                                                            | !wizards_artist.#dorothy_johnstone
+                                                            | !wizards_artist.#android_jones
+                                                            | !wizards_artist.#erik_jones
+                                                            | !wizards_artist.#jeffrey_catherine_jones
+                                                            | !wizards_artist.#peter_andrew_jones
+                                                            | !wizards_artist.#loui_jover
+                                                            | !wizards_artist.#amy_judd
+                                                            | !wizards_artist.#donald_judd
+                                                            | !wizards_artist.#jean_jullien
+                                                            | !wizards_artist.#matthias_jung
+                                                            | !wizards_artist.#joe_jusko
+                                                            | !wizards_artist.#frida_kahlo
+                                                            | !wizards_artist.#hayv_kahraman
+                                                            | !wizards_artist.#mw_kaluta
+                                                            | !wizards_artist.#nadav_kander
+                                                            | !wizards_artist.#wassily_kandinsky
+                                                            | !wizards_artist.#jun_kaneko
+                                                            | !wizards_artist.#titus_kaphar
+                                                            | !wizards_artist.#michal_karcz
+                                                            | !wizards_artist.#gertrude_kasebier
+                                                            | !wizards_artist.#terada_katsuya
+                                                            | !wizards_artist.#audrey_kawasaki
+                                                            | !wizards_artist.#hasui_kawase
+                                                            | !wizards_artist.#glen_keane
+                                                            | !wizards_artist.#margaret_keane
+                                                            | !wizards_artist.#ellsworth_kelly
+                                                            | !wizards_artist.#michael_kenna
+                                                            | !wizards_artist.#thomas_benjamin_kennington
+                                                            | !wizards_artist.#william_kentridge
+                                                            | !wizards_artist.#hendrik_kerstens
+                                                            | !wizards_artist.#jeremiah_ketner
+                                                            | !wizards_artist.#fernand_khnopff
+                                                            | !wizards_artist.#hideyuki_kikuchi
+                                                            | !wizards_artist.#tom_killion
+                                                            | !wizards_artist.#thomas_kinkade
+                                                            | !wizards_artist.#jack_kirby
+                                                            | !wizards_artist.#ernst_ludwig_kirchner
+                                                            | !wizards_artist.#tatsuro_kiuchi
+                                                            | !wizards_artist.#jon_klassen
+                                                            | !wizards_artist.#paul_klee
+                                                            | !wizards_artist.#william_klein
+                                                            | !wizards_artist.#yves_klein
+                                                            | !wizards_artist.#carl_kleiner
+                                                            | !wizards_artist.#gustav_klimt
+                                                            | !wizards_artist.#godfrey_kneller
+                                                            | !wizards_artist.#emily_kame_kngwarreye
+                                                            | !wizards_artist.#chad_knight
+                                                            | !wizards_artist.#nick_knight
+                                                            | !wizards_artist.#helene_knoop
+                                                            | !wizards_artist.#phil_koch
+                                                            | !wizards_artist.#kazuo_koike
+                                                            | !wizards_artist.#oskar_kokoschka
+                                                            | !wizards_artist.#kathe_kollwitz
+                                                            | !wizards_artist.#michael_komarck
+                                                            | !wizards_artist.#satoshi_kon
+                                                            | !wizards_artist.#jeff_koons
+                                                            | !wizards_artist.#caia_koopman
+                                                            | !wizards_artist.#konstantin_korovin
+                                                            | !wizards_artist.#mark_kostabi
+                                                            | !wizards_artist.#bella_kotak
+                                                            | !wizards_artist.#andrea_kowch
+                                                            | !wizards_artist.#lee_krasner
+                                                            | !wizards_artist.#barbara_kruger
+                                                            | !wizards_artist.#brad_kunkle
+                                                            | !wizards_artist.#yayoi_kusama
+                                                            | !wizards_artist.#michael_k_kutsche
+                                                            | !wizards_artist.#ilya_kuvshinov
+                                                            | !wizards_artist.#david_lachapelle
+                                                            | !wizards_artist.#raphael_lacoste
+                                                            | !wizards_artist.#lev_lagorio
+                                                            | !wizards_artist.#rene_lalique
+                                                            | !wizards_artist.#abigail_larson
+                                                            | !wizards_artist.#gary_larson
+                                                            | !wizards_artist.#denys_lasdun
+                                                            | !wizards_artist.#maria_lassnig
+                                                            | !wizards_artist.#dorothy_lathrop
+                                                            | !wizards_artist.#melissa_launay
+                                                            | !wizards_artist.#john_lavery
+                                                            | !wizards_artist.#jacob_lawrence
+                                                            | !wizards_artist.#thomas_lawrence
+                                                            | !wizards_artist.#ernest_lawson
+                                                            | !wizards_artist.#bastien_lecouffe_deharme
+                                                            | !wizards_artist.#alan_lee
+                                                            | !wizards_artist.#minjae_lee
+                                                            | !wizards_artist.#nina_leen
+                                                            | !wizards_artist.#fernand_leger
+                                                            | !wizards_artist.#paul_lehr
+                                                            | !wizards_artist.#frederic_leighton
+                                                            | !wizards_artist.#alayna_lemmer
+                                                            | !wizards_artist.#tamara_de_lempicka
+                                                            | !wizards_artist.#sol_lewitt
+                                                            | !wizards_artist.#jc_leyendecker
+                                                            | !wizards_artist.#andre_lhote
+                                                            | !wizards_artist.#roy_lichtenstein
+                                                            | !wizards_artist.#rob_liefeld
+                                                            | !wizards_artist.#fang_lijun
+                                                            | !wizards_artist.#maya_lin
+                                                            | !wizards_artist.#filippino_lippi
+                                                            | !wizards_artist.#herbert_list
+                                                            | !wizards_artist.#richard_long
+                                                            | !wizards_artist.#yoann_lossel
+                                                            | !wizards_artist.#morris_louis
+                                                            | !wizards_artist.#sarah_lucas
+                                                            | !wizards_artist.#maximilien_luce
+                                                            | !wizards_artist.#loretta_lux
+                                                            | !wizards_artist.#george_platt_lynes
+                                                            | !wizards_artist.#frances_macdonald
+                                                            | !wizards_artist.#august_macke
+                                                            | !wizards_artist.#stephen_mackey
+                                                            | !wizards_artist.#rachel_maclean
+                                                            | !wizards_artist.#raimundo_de_madrazo_y_garreta
+                                                            | !wizards_artist.#joe_madureira
+                                                            | !wizards_artist.#rene_magritte
+                                                            | !wizards_artist.#jim_mahfood
+                                                            | !wizards_artist.#vivian_maier
+                                                            | !wizards_artist.#aristide_maillol
+                                                            | !wizards_artist.#don_maitz
+                                                            | !wizards_artist.#laura_makabresku
+                                                            | !wizards_artist.#alex_maleev
+                                                            | !wizards_artist.#keith_mallett
+                                                            | !wizards_artist.#johji_manabe
+                                                            | !wizards_artist.#milo_manara
+                                                            | !wizards_artist.#edouard_manet
+                                                            | !wizards_artist.#henri_manguin
+                                                            | !wizards_artist.#jeremy_mann
+                                                            | !wizards_artist.#sally_mann
+                                                            | !wizards_artist.#andrea_mantegna
+                                                            | !wizards_artist.#antonio_j_manzanedo
+                                                            | !wizards_artist.#robert_mapplethorpe
+                                                            | !wizards_artist.#franz_marc
+                                                            | !wizards_artist.#ivan_marchuk
+                                                            | !wizards_artist.#brice_marden
+                                                            | !wizards_artist.#andrei_markin
+                                                            | !wizards_artist.#kerry_james_marshall
+                                                            | !wizards_artist.#serge_marshennikov
+                                                            | !wizards_artist.#agnes_martin
+                                                            | !wizards_artist.#adam_martinakis
+                                                            | !wizards_artist.#stephan_martiniere
+                                                            | !wizards_artist.#ilya_mashkov
+                                                            | !wizards_artist.#henri_matisse
+                                                            | !wizards_artist.#rodney_matthews
+                                                            | !wizards_artist.#anton_mauve
+                                                            | !wizards_artist.#peter_max
+                                                            | !wizards_artist.#mike_mayhew
+                                                            | !wizards_artist.#angus_mcbride
+                                                            | !wizards_artist.#anne_mccaffrey
+                                                            | !wizards_artist.#robert_mccall
+                                                            | !wizards_artist.#scott_mccloud
+                                                            | !wizards_artist.#steve_mccurry
+                                                            | !wizards_artist.#todd_mcfarlane
+                                                            | !wizards_artist.#barry_mcgee
+                                                            | !wizards_artist.#ryan_mcginley
+                                                            | !wizards_artist.#robert_mcginnis
+                                                            | !wizards_artist.#richard_mcguire
+                                                            | !wizards_artist.#patrick_mchale
+                                                            | !wizards_artist.#kelly_mckernan
+                                                            | !wizards_artist.#angus_mckie
+                                                            | !wizards_artist.#alasdair_mclellan
+                                                            | !wizards_artist.#jon_mcnaught
+                                                            | !wizards_artist.#dan_mcpharlin
+                                                            | !wizards_artist.#tara_mcpherson
+                                                            | !wizards_artist.#ralph_mcquarrie
+                                                            | !wizards_artist.#ian_mcque
+                                                            | !wizards_artist.#syd_mead
+                                                            | !wizards_artist.#richard_meier
+                                                            | !wizards_artist.#maria_sibylla_merian
+                                                            | !wizards_artist.#willard_metcalf
+                                                            | !wizards_artist.#gabriel_metsu
+                                                            | !wizards_artist.#jean_metzinger
+                                                            | !wizards_artist.#michelangelo
+                                                            | !wizards_artist.#nicolas_mignard
+                                                            | !wizards_artist.#mike_mignola
+                                                            | !wizards_artist.#dimitra_milan
+                                                            | !wizards_artist.#john_everett_millais
+                                                            | !wizards_artist.#marilyn_minter
+                                                            | !wizards_artist.#januz_miralles
+                                                            | !wizards_artist.#joan_miro
+                                                            | !wizards_artist.#joan_mitchell
+                                                            | !wizards_artist.#hayao_miyazaki
+                                                            | !wizards_artist.#paula_modersohn_becker
+                                                            | !wizards_artist.#amedeo_modigliani
+                                                            | !wizards_artist.#moebius
+                                                            | !wizards_artist.#peter_mohrbacher
+                                                            | !wizards_artist.#piet_mondrian
+                                                            | !wizards_artist.#claude_monet
+                                                            | !wizards_artist.#jean_baptiste_monge
+                                                            | !wizards_artist.#alyssa_monks
+                                                            | !wizards_artist.#alan_moore
+                                                            | !wizards_artist.#antonio_mora
+                                                            | !wizards_artist.#edward_moran
+                                                            | !wizards_artist.#koji_morimoto
+                                                            | !wizards_artist.#berthe_morisot
+                                                            | !wizards_artist.#daido_moriyama
+                                                            | !wizards_artist.#james_wilson_morrice
+                                                            | !wizards_artist.#sarah_morris
+                                                            | !wizards_artist.#john_lowrie_morrison
+                                                            | !wizards_artist.#igor_morski
+                                                            | !wizards_artist.#john_kenn_mortensen
+                                                            | !wizards_artist.#victor_moscoso
+                                                            | !wizards_artist.#inna_mosina
+                                                            | !wizards_artist.#richard_mosse
+                                                            | !wizards_artist.#thomas_edwin_mostyn
+                                                            | !wizards_artist.#marcel_mouly
+                                                            | !wizards_artist.#emmanuelle_moureaux
+                                                            | !wizards_artist.#alphonse_mucha
+                                                            | !wizards_artist.#craig_mullins
+                                                            | !wizards_artist.#augustus_edwin_mulready
+                                                            | !wizards_artist.#dan_mumford
+                                                            | !wizards_artist.#edvard_munch
+                                                            | !wizards_artist.#alfred_munnings
+                                                            | !wizards_artist.#gabriele_munter
+                                                            | !wizards_artist.#takashi_murakami
+                                                            | !wizards_artist.#patrice_murciano
+                                                            | !wizards_artist.#scott_musgrove
+                                                            | !wizards_artist.#wangechi_mutu
+                                                            | !wizards_artist.#go_nagai
+                                                            | !wizards_artist.#hiroshi_nagai
+                                                            | !wizards_artist.#patrick_nagel
+                                                            | !wizards_artist.#tibor_nagy
+                                                            | !wizards_artist.#scott_naismith
+                                                            | !wizards_artist.#juliana_nan
+                                                            | !wizards_artist.#ted_nasmith
+                                                            | !wizards_artist.#todd_nauck
+                                                            | !wizards_artist.#bruce_nauman
+                                                            | !wizards_artist.#ernst_wilhelm_nay
+                                                            | !wizards_artist.#alice_neel
+                                                            | !wizards_artist.#keith_negley
+                                                            | !wizards_artist.#leroy_neiman
+                                                            | !wizards_artist.#kadir_nelson
+                                                            | !wizards_artist.#odd_nerdrum
+                                                            | !wizards_artist.#shirin_neshat
+                                                            | !wizards_artist.#mikhail_nesterov
+                                                            | !wizards_artist.#jane_newland
+                                                            | !wizards_artist.#victo_ngai
+                                                            | !wizards_artist.#william_nicholson
+                                                            | !wizards_artist.#florian_nicolle
+                                                            | !wizards_artist.#kay_nielsen
+                                                            | !wizards_artist.#tsutomu_nihei
+                                                            | !wizards_artist.#victor_nizovtsev
+                                                            | !wizards_artist.#isamu_noguchi
+                                                            | !wizards_artist.#catherine_nolin
+                                                            | !wizards_artist.#francois_de_nome
+                                                            | !wizards_artist.#earl_norem
+                                                            | !wizards_artist.#phil_noto
+                                                            | !wizards_artist.#georgia_okeeffe
+                                                            | !wizards_artist.#terry_oakes
+                                                            | !wizards_artist.#chris_ofili
+                                                            | !wizards_artist.#jack_ohman
+                                                            | !wizards_artist.#noriyoshi_ohrai
+                                                            | !wizards_artist.#helio_oiticica
+                                                            | !wizards_artist.#taro_okamoto
+                                                            | !wizards_artist.#tim_okamura
+                                                            | !wizards_artist.#naomi_okubo
+                                                            | !wizards_artist.#atelier_olschinsky
+                                                            | !wizards_artist.#greg_olsen
+                                                            | !wizards_artist.#oleg_oprisco
+                                                            | !wizards_artist.#tony_orrico
+                                                            | !wizards_artist.#mamoru_oshii
+                                                            | !wizards_artist.#ida_rentoul_outhwaite
+                                                            | !wizards_artist.#yigal_ozeri
+                                                            | !wizards_artist.#gabriel_pacheco
+                                                            | !wizards_artist.#michael_page
+                                                            | !wizards_artist.#rui_palha
+                                                            | !wizards_artist.#polixeni_papapetrou
+                                                            | !wizards_artist.#julio_le_parc
+                                                            | !wizards_artist.#michael_parkes
+                                                            | !wizards_artist.#philippe_parreno
+                                                            | !wizards_artist.#maxfield_parrish
+                                                            | !wizards_artist.#alice_pasquini
+                                                            | !wizards_artist.#james_mcintosh_patrick
+                                                            | !wizards_artist.#john_pawson
+                                                            | !wizards_artist.#max_pechstein
+                                                            | !wizards_artist.#agnes_lawrence_pelton
+                                                            | !wizards_artist.#irving_penn
+                                                            | !wizards_artist.#bruce_pennington
+                                                            | !wizards_artist.#john_perceval
+                                                            | !wizards_artist.#george_perez
+                                                            | !wizards_artist.#constant_permeke
+                                                            | !wizards_artist.#lilla_cabot_perry
+                                                            | !wizards_artist.#gaetano_pesce
+                                                            | !wizards_artist.#cleon_peterson
+                                                            | !wizards_artist.#daria_petrilli
+                                                            | !wizards_artist.#raymond_pettibon
+                                                            | !wizards_artist.#coles_phillips
+                                                            | !wizards_artist.#francis_picabia
+                                                            | !wizards_artist.#pablo_picasso
+                                                            | !wizards_artist.#sopheap_pich
+                                                            | !wizards_artist.#otto_piene
+                                                            | !wizards_artist.#jerry_pinkney
+                                                            | !wizards_artist.#pinturicchio
+                                                            | !wizards_artist.#sebastiano_del_piombo
+                                                            | !wizards_artist.#camille_pissarro
+                                                            | !wizards_artist.#ferris_plock
+                                                            | !wizards_artist.#bill_plympton
+                                                            | !wizards_artist.#willy_pogany
+                                                            | !wizards_artist.#patricia_polacco
+                                                            | !wizards_artist.#jackson_pollock
+                                                            | !wizards_artist.#beatrix_potter
+                                                            | !wizards_artist.#edward_henry_potthast
+                                                            | !wizards_artist.#simon_prades
+                                                            | !wizards_artist.#maurice_prendergast
+                                                            | !wizards_artist.#dod_procter
+                                                            | !wizards_artist.#leo_putz
+                                                            | !wizards_artist.#howard_pyle
+                                                            | !wizards_artist.#arthur_rackham
+                                                            | !wizards_artist.#natalia_rak
+                                                            | !wizards_artist.#paul_ranson
+                                                            | !wizards_artist.#raphael
+                                                            | !wizards_artist.#abraham_rattner
+                                                            | !wizards_artist.#jan_van_ravesteyn
+                                                            | !wizards_artist.#aliza_razell
+                                                            | !wizards_artist.#paula_rego
+                                                            | !wizards_artist.#lotte_reiniger
+                                                            | !wizards_artist.#valentin_rekunenko
+                                                            | !wizards_artist.#christoffer_relander
+                                                            | !wizards_artist.#andrey_remnev
+                                                            | !wizards_artist.#pierre_auguste_renoir
+                                                            | !wizards_artist.#ilya_repin
+                                                            | !wizards_artist.#joshua_reynolds
+                                                            | !wizards_artist.#rhads
+                                                            | !wizards_artist.#bettina_rheims
+                                                            | !wizards_artist.#jason_rhoades
+                                                            | !wizards_artist.#georges_ribemont_dessaignes
+                                                            | !wizards_artist.#jusepe_de_ribera
+                                                            | !wizards_artist.#gerhard_richter
+                                                            | !wizards_artist.#chris_riddell
+                                                            | !wizards_artist.#hyacinthe_rigaud
+                                                            | !wizards_artist.#rembrandt_van_rijn
+                                                            | !wizards_artist.#faith_ringgold
+                                                            | !wizards_artist.#jozsef_rippl_ronai
+                                                            | !wizards_artist.#pipilotti_rist
+                                                            | !wizards_artist.#charles_robinson
+                                                            | !wizards_artist.#theodore_robinson
+                                                            | !wizards_artist.#kenneth_rocafort
+                                                            | !wizards_artist.#andreas_rocha
+                                                            | !wizards_artist.#norman_rockwell
+                                                            | !wizards_artist.#ludwig_mies_van_der_rohe
+                                                            | !wizards_artist.#fatima_ronquillo
+                                                            | !wizards_artist.#salvator_rosa
+                                                            | !wizards_artist.#kerby_rosanes
+                                                            | !wizards_artist.#conrad_roset
+                                                            | !wizards_artist.#bob_ross
+                                                            | !wizards_artist.#dante_gabriel_rossetti
+                                                            | !wizards_artist.#jessica_rossier
+                                                            | !wizards_artist.#marianna_rothen
+                                                            | !wizards_artist.#mark_rothko
+                                                            | !wizards_artist.#eva_rothschild
+                                                            | !wizards_artist.#georges_rousse
+                                                            | !wizards_artist.#luis_royo
+                                                            | !wizards_artist.#joao_ruas
+                                                            | !wizards_artist.#peter_paul_rubens
+                                                            | !wizards_artist.#rachel_ruysch
+                                                            | !wizards_artist.#albert_pinkham_ryder
+                                                            | !wizards_artist.#mark_ryden
+                                                            | !wizards_artist.#ursula_von_rydingsvard
+                                                            | !wizards_artist.#theo_van_rysselberghe
+                                                            | !wizards_artist.#eero_saarinen
+                                                            | !wizards_artist.#wlad_safronow
+                                                            | !wizards_artist.#amanda_sage
+                                                            | !wizards_artist.#antoine_de_saint_exupery
+                                                            | !wizards_artist.#nicola_samori
+                                                            | !wizards_artist.#rebeca_saray
+                                                            | !wizards_artist.#john_singer_sargent
+                                                            | !wizards_artist.#martiros_saryan
+                                                            | !wizards_artist.#viviane_sassen
+                                                            | !wizards_artist.#nike_savvas
+                                                            | !wizards_artist.#richard_scarry
+                                                            | !wizards_artist.#godfried_schalcken
+                                                            | !wizards_artist.#miriam_schapiro
+                                                            | !wizards_artist.#kenny_scharf
+                                                            | !wizards_artist.#jerry_schatzberg
+                                                            | !wizards_artist.#ary_scheffer
+                                                            | !wizards_artist.#kees_scherer
+                                                            | !wizards_artist.#helene_schjerfbeck
+                                                            | !wizards_artist.#christian_schloe
+                                                            | !wizards_artist.#karl_schmidt_rottluff
+                                                            | !wizards_artist.#julian_schnabel
+                                                            | !wizards_artist.#fritz_scholder
+                                                            | !wizards_artist.#charles_schulz
+                                                            | !wizards_artist.#sean_scully
+                                                            | !wizards_artist.#ronald_searle
+                                                            | !wizards_artist.#mark_seliger
+                                                            | !wizards_artist.#anton_semenov
+                                                            | !wizards_artist.#edmondo_senatore
+                                                            | !wizards_artist.#maurice_sendak
+                                                            | !wizards_artist.#richard_serra
+                                                            | !wizards_artist.#georges_seurat
+                                                            | !wizards_artist.#dr_seuss
+                                                            | !wizards_artist.#tanya_shatseva
+                                                            | !wizards_artist.#natalie_shau
+                                                            | !wizards_artist.#barclay_shaw
+                                                            | !wizards_artist.#e_h_shepard
+                                                            | !wizards_artist.#amrita_sher_gil
+                                                            | !wizards_artist.#irene_sheri
+                                                            | !wizards_artist.#duffy_sheridan
+                                                            | !wizards_artist.#cindy_sherman
+                                                            | !wizards_artist.#shozo_shimamoto
+                                                            | !wizards_artist.#hikari_shimoda
+                                                            | !wizards_artist.#makoto_shinkai
+                                                            | !wizards_artist.#chiharu_shiota
+                                                            | !wizards_artist.#elizabeth_shippen_green
+                                                            | !wizards_artist.#masamune_shirow
+                                                            | !wizards_artist.#tim_shumate
+                                                            | !wizards_artist.#yuri_shwedoff
+                                                            | !wizards_artist.#malick_sidibe
+                                                            | !wizards_artist.#jeanloup_sieff
+                                                            | !wizards_artist.#bill_sienkiewicz
+                                                            | !wizards_artist.#marc_simonetti
+                                                            | !wizards_artist.#david_sims
+                                                            | !wizards_artist.#andy_singer
+                                                            | !wizards_artist.#alfred_sisley
+                                                            | !wizards_artist.#sandy_skoglund
+                                                            | !wizards_artist.#jeffrey_smart
+                                                            | !wizards_artist.#berndnaut_smilde
+                                                            | !wizards_artist.#rodney_smith
+                                                            | !wizards_artist.#samantha_keely_smith
+                                                            | !wizards_artist.#robert_smithson
+                                                            | !wizards_artist.#barbara_stauffacher_solomon
+                                                            | !wizards_artist.#simeon_solomon
+                                                            | !wizards_artist.#hajime_sorayama
+                                                            | !wizards_artist.#joaquin_sorolla
+                                                            | !wizards_artist.#ettore_sottsass
+                                                            | !wizards_artist.#amadeo_de_souza_cardoso
+                                                            | !wizards_artist.#millicent_sowerby
+                                                            | !wizards_artist.#moses_soyer
+                                                            | !wizards_artist.#sparth
+                                                            | !wizards_artist.#jack_spencer
+                                                            | !wizards_artist.#art_spiegelman
+                                                            | !wizards_artist.#simon_stalenhag
+                                                            | !wizards_artist.#ralph_steadman
+                                                            | !wizards_artist.#philip_wilson_steer
+                                                            | !wizards_artist.#william_steig
+                                                            | !wizards_artist.#fred_stein
+                                                            | !wizards_artist.#theophile_steinlen
+                                                            | !wizards_artist.#brian_stelfreeze
+                                                            | !wizards_artist.#frank_stella
+                                                            | !wizards_artist.#joseph_stella
+                                                            | !wizards_artist.#irma_stern
+                                                            | !wizards_artist.#alfred_stevens
+                                                            | !wizards_artist.#marie_spartali_stillman
+                                                            | !wizards_artist.#stinkfish
+                                                            | !wizards_artist.#anne_stokes
+                                                            | !wizards_artist.#william_stout
+                                                            | !wizards_artist.#paul_strand
+                                                            | !wizards_artist.#linnea_strid
+                                                            | !wizards_artist.#john_melhuish_strudwick
+                                                            | !wizards_artist.#drew_struzan
+                                                            | !wizards_artist.#tatiana_suarez
+                                                            | !wizards_artist.#eustache_le_sueur
+                                                            | !wizards_artist.#rebecca_sugar
+                                                            | !wizards_artist.#hiroshi_sugimoto
+                                                            | !wizards_artist.#graham_sutherland
+                                                            | !wizards_artist.#jan_svankmajer
+                                                            | !wizards_artist.#raymond_swanland
+                                                            | !wizards_artist.#annie_swynnerton
+                                                            | !wizards_artist.#stanislaw_szukalski
+                                                            | !wizards_artist.#philip_taaffe
+                                                            | !wizards_artist.#hiroyuki_mitsume_takahashi
+                                                            | !wizards_artist.#dorothea_tanning
+                                                            | !wizards_artist.#margaret_tarrant
+                                                            | !wizards_artist.#genndy_tartakovsky
+                                                            | !wizards_artist.#teamlab
+                                                            | !wizards_artist.#raina_telgemeier
+                                                            | !wizards_artist.#john_tenniel
+                                                            | !wizards_artist.#sir_john_tenniel
+                                                            | !wizards_artist.#howard_terpning
+                                                            | !wizards_artist.#osamu_tezuka
+                                                            | !wizards_artist.#abbott_handerson_thayer
+                                                            | !wizards_artist.#heather_theurer
+                                                            | !wizards_artist.#mickalene_thomas
+                                                            | !wizards_artist.#tom_thomson
+                                                            | !wizards_artist.#titian
+                                                            | !wizards_artist.#mark_tobey
+                                                            | !wizards_artist.#greg_tocchini
+                                                            | !wizards_artist.#roland_topor
+                                                            | !wizards_artist.#sergio_toppi
+                                                            | !wizards_artist.#alex_toth
+                                                            | !wizards_artist.#henri_de_toulouse_lautrec
+                                                            | !wizards_artist.#ross_tran
+                                                            | !wizards_artist.#philip_treacy
+                                                            | !wizards_artist.#anne_truitt
+                                                            | !wizards_artist.#henry_scott_tuke
+                                                            | !wizards_artist.#jmw_turner
+                                                            | !wizards_artist.#james_turrell
+                                                            | !wizards_artist.#john_henry_twachtman
+                                                            | !wizards_artist.#naomi_tydeman
+                                                            | !wizards_artist.#euan_uglow
+                                                            | !wizards_artist.#daniela_uhlig
+                                                            | !wizards_artist.#kitagawa_utamaro
+                                                            | !wizards_artist.#christophe_vacher
+                                                            | !wizards_artist.#suzanne_valadon
+                                                            | !wizards_artist.#thiago_valdi
+                                                            | !wizards_artist.#chris_van_allsburg
+                                                            | !wizards_artist.#francine_van_hove
+                                                            | !wizards_artist.#jan_van_kessel_the_elder
+                                                            | !wizards_artist.#remedios_varo
+                                                            | !wizards_artist.#nick_veasey
+                                                            | !wizards_artist.#diego_velazquez
+                                                            | !wizards_artist.#eve_ventrue
+                                                            | !wizards_artist.#johannes_vermeer
+                                                            | !wizards_artist.#charles_vess
+                                                            | !wizards_artist.#roman_vishniac
+                                                            | !wizards_artist.#kelly_vivanco
+                                                            | !wizards_artist.#brian_m_viveros
+                                                            | !wizards_artist.#elke_vogelsang
+                                                            | !wizards_artist.#vladimir_volegov
+                                                            | !wizards_artist.#robert_vonnoh
+                                                            | !wizards_artist.#mikhail_vrubel
+                                                            | !wizards_artist.#louis_wain
+                                                            | !wizards_artist.#kara_walker
+                                                            | !wizards_artist.#josephine_wall
+                                                            | !wizards_artist.#bruno_walpoth
+                                                            | !wizards_artist.#chris_ware
+                                                            | !wizards_artist.#andy_warhol
+                                                            | !wizards_artist.#john_william_waterhouse
+                                                            | !wizards_artist.#bill_watterson
+                                                            | !wizards_artist.#george_frederic_watts
+                                                            | !wizards_artist.#walter_ernest_webster
+                                                            | !wizards_artist.#hendrik_weissenbruch
+                                                            | !wizards_artist.#neil_welliver
+                                                            | !wizards_artist.#catrin_welz_stein
+                                                            | !wizards_artist.#vivienne_westwood
+                                                            | !wizards_artist.#michael_whelan
+                                                            | !wizards_artist.#james_abbott_mcneill_whistler
+                                                            | !wizards_artist.#william_whitaker
+                                                            | !wizards_artist.#tim_white
+                                                            | !wizards_artist.#coby_whitmore
+                                                            | !wizards_artist.#david_wiesner
+                                                            | !wizards_artist.#kehinde_wiley
+                                                            | !wizards_artist.#cathy_wilkes
+                                                            | !wizards_artist.#jessie_willcox_smith
+                                                            | !wizards_artist.#gilbert_williams
+                                                            | !wizards_artist.#kyffin_williams
+                                                            | !wizards_artist.#al_williamson
+                                                            | !wizards_artist.#wes_wilson
+                                                            | !wizards_artist.#mike_winkelmann
+                                                            | !wizards_artist.#bec_winnel
+                                                            | !wizards_artist.#franz_xaver_winterhalter
+                                                            | !wizards_artist.#nathan_wirth
+                                                            | !wizards_artist.#wlop
+                                                            | !wizards_artist.#brandon_woelfel
+                                                            | !wizards_artist.#liam_wong
+                                                            | !wizards_artist.#francesca_woodman
+                                                            | !wizards_artist.#jim_woodring
+                                                            | !wizards_artist.#patrick_woodroffe
+                                                            | !wizards_artist.#frank_lloyd_wright
+                                                            | !wizards_artist.#sulamith_wulfing
+                                                            | !wizards_artist.#nc_wyeth
+                                                            | !wizards_artist.#rose_wylie
+                                                            | !wizards_artist.#stanislaw_wyspianski
+                                                            | !wizards_artist.#takato_yamamoto
+                                                            | !wizards_artist.#gene_luen_yang
+                                                            | !wizards_artist.#ikenaga_yasunari
+                                                            | !wizards_artist.#kozo_yokai
+                                                            | !wizards_artist.#sean_yoro
+                                                            | !wizards_artist.#chie_yoshii
+                                                            | !wizards_artist.#skottie_young
+                                                            | !wizards_artist.#masaaki_yuasa
+                                                            | !wizards_artist.#konstantin_yuon
+                                                            | !wizards_artist.#yuumei
+                                                            | !wizards_artist.#william_zorach
+                                                            | !wizards_artist.#ander_zorn
+                                                            // artists added by me (ariane-emory)
+                                                            | 3 !wizards_artist.#ian_miller
+                                                            | 3 !wizards_artist.#john_zeleznik
+                                                            | 3 !wizards_artist.#keith_parkinson
+                                                            | 3 !wizards_artist.#kevin_fales
+                                                            | 3 !wizards_artist.#boris_vallejo
+                                                           }
 
 @wizards_artists = { @__set_wizards_artists_artist_if_unset
-{ ?wizards_artist.zacharias_martin_aagaard Zacharias Martin Aagaard
-| ?wizards_artist.slim_aarons Slim Aarons
-| ?wizards_artist.elenore_abbott Elenore Abbott
-| ?wizards_artist.tomma_abts Tomma Abts
-| ?wizards_artist.vito_acconci Vito Acconci
-| ?wizards_artist.andreas_achenbach Andreas Achenbach
-| ?wizards_artist.ansel_adams Ansel Adams
-| ?wizards_artist.josh_adamski Josh Adamski
-| ?wizards_artist.charles_addams Charles Addams
-| ?wizards_artist.etel_adnan Etel Adnan
-| ?wizards_artist.alena_aenami Alena Aenami
-| ?wizards_artist.leonid_afremov Leonid Afremov
-| ?wizards_artist.petros_afshar Petros Afshar
-| ?wizards_artist.yaacov_agam Yaacov Agam
-| ?wizards_artist.eileen_agar Eileen Agar
-| ?wizards_artist.craigie_aitchison Craigie Aitchison
-| ?wizards_artist.ivan_aivazovsky Ivan Aivazovsky
-| ?wizards_artist.francesco_albani Francesco Albani
-| ?wizards_artist.alessio_albi Alessio Albi
-| ?wizards_artist.miles_aldridge Miles Aldridge
-| ?wizards_artist.john_white_alexander John White Alexander
-| ?wizards_artist.alessandro_allori Alessandro Allori
-| ?wizards_artist.mike_allred Mike Allred
-| ?wizards_artist.lawrence_alma_tadema Lawrence Alma-Tadema
-| ?wizards_artist.lilia_alvarado Lilia Alvarado
-| ?wizards_artist.tarsila_do_amaral Tarsila do Amaral
-| ?wizards_artist.ghada_amer Ghada Amer
-| ?wizards_artist.cuno_amiet Cuno Amiet
-| ?wizards_artist.el_anatsui El Anatsui
-| ?wizards_artist.helga_ancher Helga Ancher
-| ?wizards_artist.sarah_andersen Sarah Andersen
-| ?wizards_artist.richard_anderson Richard Anderson
-| ?wizards_artist.sophie_gengembre_anderson Sophie Gengembre Anderson
-| ?wizards_artist.wes_anderson Wes Anderson
-| ?wizards_artist.alex_andreev Alex Andreev
-| ?wizards_artist.sofonisba_anguissola Sofonisba Anguissola
-| ?wizards_artist.louis_anquetin Louis Anquetin
-| ?wizards_artist.mary_jane_ansell Mary Jane Ansell
-| ?wizards_artist.chiho_aoshima Chiho Aoshima
-| ?wizards_artist.sabbas_apterus Sabbas Apterus
-| ?wizards_artist.hirohiko_araki Hirohiko Araki
-| ?wizards_artist.howard_arkley Howard Arkley
-| ?wizards_artist.rolf_armstrong Rolf Armstrong
-| ?wizards_artist.gerd_arntz Gerd Arntz
-| ?wizards_artist.guy_aroch Guy Aroch
-| ?wizards_artist.miki_asai Miki Asai
-| ?wizards_artist.clemens_ascher Clemens Ascher
-| ?wizards_artist.henry_asencio Henry Asencio
-| ?wizards_artist.andrew_atroshenko Andrew Atroshenko
-| ?wizards_artist.deborah_azzopardi Deborah Azzopardi
-| ?wizards_artist.lois_van_baarle Lois van Baarle
-| ?wizards_artist.ingrid_baars Ingrid Baars
-| ?wizards_artist.anne_bachelier Anne Bachelier
-| ?wizards_artist.francis_bacon Francis Bacon
-| ?wizards_artist.firmin_baes Firmin Baes
-| ?wizards_artist.tom_bagshaw Tom Bagshaw
-| ?wizards_artist.karol_bak Karol Bak
-| ?wizards_artist.christopher_balaskas Christopher Balaskas
-| ?wizards_artist.benedick_bana Benedick Bana
-| ?wizards_artist.banksy Banksy
-| ?wizards_artist.george_barbier George Barbier
-| ?wizards_artist.cicely_mary_barker Cicely Mary Barker
-| ?wizards_artist.wayne_barlowe Wayne Barlowe
-| ?wizards_artist.will_barnet Will Barnet
-| ?wizards_artist.matthew_barney Matthew Barney
-| ?wizards_artist.angela_barrett Angela Barrett
-| ?wizards_artist.jean_michel_basquiat Jean-Michel Basquiat
-| ?wizards_artist.lillian_bassman Lillian Bassman
-| ?wizards_artist.pompeo_batoni Pompeo Batoni
-| ?wizards_artist.casey_baugh Casey Baugh
-| ?wizards_artist.chiara_bautista Chiara Bautista
-| ?wizards_artist.herbert_bayer Herbert Bayer
-| ?wizards_artist.mary_beale Mary Beale
-| ?wizards_artist.alan_bean Alan Bean
-| ?wizards_artist.romare_bearden Romare Bearden
-| ?wizards_artist.cecil_beaton Cecil Beaton
-| ?wizards_artist.cecilia_beaux Cecilia Beaux
-| ?wizards_artist.jasmine_becket_griffith Jasmine Becket-Griffith
-| ?wizards_artist.vanessa_beecroft Vanessa Beecroft
-| ?wizards_artist.beeple Beeple
-| ?wizards_artist.zdzislaw_beksinski Zdzisław Beksiński
-| ?wizards_artist.katerina_belkina Katerina Belkina
-| ?wizards_artist.julie_bell Julie Bell
-| ?wizards_artist.vanessa_bell Vanessa Bell
-| ?wizards_artist.bernardo_bellotto Bernardo Bellotto
-| ?wizards_artist.ambrosius_benson Ambrosius Benson
-| ?wizards_artist.stan_berenstain Stan Berenstain
-| ?wizards_artist.laura_berger Laura Berger
-| ?wizards_artist.jody_bergsma Jody Bergsma
-| ?wizards_artist.john_berkey John Berkey
-| ?wizards_artist.gian_lorenzo_bernini Gian Lorenzo Bernini
-| ?wizards_artist.marta_bevacqua Marta Bevacqua
-| ?wizards_artist.john_t_biggers John T. Biggers
-| ?wizards_artist.enki_bilal Enki Bilal
-| ?wizards_artist.ivan_bilibin Ivan Bilibin
-| ?wizards_artist.butcher_billy Butcher Billy
-| ?wizards_artist.george_caleb_bingham George Caleb Bingham
-| ?wizards_artist.ed_binkley Ed Binkley
-| ?wizards_artist.george_birrell George Birrell
-| ?wizards_artist.robert_bissell Robert Bissell
-| ?wizards_artist.charles_blackman Charles Blackman
-| ?wizards_artist.mary_blair Mary Blair
-| ?wizards_artist.john_blanche John Blanche
-| ?wizards_artist.don_blanding Don Blanding
-| ?wizards_artist.albert_bloch Albert Bloch
-| ?wizards_artist.hyman_bloom Hyman Bloom
-| ?wizards_artist.peter_blume Peter Blume
-| ?wizards_artist.don_bluth Don Bluth
-| ?wizards_artist.umberto_boccioni Umberto Boccioni
-| ?wizards_artist.anna_bocek Anna Bocek
-| ?wizards_artist.lee_bogle Lee Bogle
-| ?wizards_artist.louis_leopold_boily Louis-Léopold Boily
-| ?wizards_artist.giovanni_boldini Giovanni Boldini
-| ?wizards_artist.enoch_bolles Enoch Bolles
-| ?wizards_artist.david_bomberg David Bomberg
-| ?wizards_artist.chesley_bonestell Chesley Bonestell
-| ?wizards_artist.lee_bontecou Lee Bontecou
-| ?wizards_artist.michael_borremans Michael Borremans
-| ?wizards_artist.matt_bors Matt Bors
-| ?wizards_artist.flora_borsi Flora Borsi
-| ?wizards_artist.hieronymus_bosch Hieronymus Bosch
-| ?wizards_artist.sam_bosma Sam Bosma
-| ?wizards_artist.johfra_bosschart Johfra Bosschart
-| ?wizards_artist.fernando_botero Fernando Botero
-| ?wizards_artist.sandro_botticelli Sandro Botticelli
-| ?wizards_artist.william_adolphe_bouguereau William-Adolphe Bouguereau
-| ?wizards_artist.susan_seddon_boulet Susan Seddon Boulet
-| ?wizards_artist.louise_bourgeois Louise Bourgeois
-| ?wizards_artist.annick_bouvattier Annick Bouvattier
-| ?wizards_artist.david_michael_bowers David Michael Bowers
-| ?wizards_artist.noah_bradley Noah Bradley
-| ?wizards_artist.aleksi_briclot Aleksi Briclot
-| ?wizards_artist.frederick_arthur_bridgman Frederick Arthur Bridgman
-| ?wizards_artist.renie_britenbucher Renie Britenbucher
-| ?wizards_artist.romero_britto Romero Britto
-| ?wizards_artist.gerald_brom Gerald Brom
-| ?wizards_artist.bronzino Bronzino
-| ?wizards_artist.herman_brood Herman Brood
-| ?wizards_artist.mark_brooks Mark Brooks
-| ?wizards_artist.romaine_brooks Romaine Brooks
-| ?wizards_artist.troy_brooks Troy Brooks
-| ?wizards_artist.broom_lee Broom Lee
-| ?wizards_artist.allie_brosh Allie Brosh
-| ?wizards_artist.ford_madox_brown Ford Madox Brown
-| ?wizards_artist.charles_le_brun Charles Le Brun
-| ?wizards_artist.elisabeth_vigee_le_brun Élisabeth Vigée Le Brun
-| ?wizards_artist.james_bullough James Bullough
-| ?wizards_artist.laurel_burch Laurel Burch
-| ?wizards_artist.alejandro_burdisio Alejandro Burdisio
-| ?wizards_artist.daniel_buren Daniel Buren
-| ?wizards_artist.jon_burgerman Jon Burgerman
-| ?wizards_artist.richard_burlet Richard Burlet
-| ?wizards_artist.jim_burns Jim Burns
-| ?wizards_artist.stasia_burrington Stasia Burrington
-| ?wizards_artist.kaethe_butcher Kaethe Butcher
-| ?wizards_artist.saturno_butto Saturno Butto
-| ?wizards_artist.paul_cadmus Paul Cadmus
-| ?wizards_artist.zhichao_cai Zhichao Cai
-| ?wizards_artist.randolph_caldecott Randolph Caldecott
-| ?wizards_artist.alexander_calder_milne Alexander Calder Milne
-| ?wizards_artist.clyde_caldwell Clyde Caldwell
-| ?wizards_artist.vincent_callebaut Vincent Callebaut
-| ?wizards_artist.fred_calleri Fred Calleri
-| ?wizards_artist.charles_camoin Charles Camoin
-| ?wizards_artist.mike_campau Mike Campau
-| ?wizards_artist.eric_canete Eric Canete
-| ?wizards_artist.josef_capek Josef Capek
-| ?wizards_artist.leonetto_cappiello Leonetto Cappiello
-| ?wizards_artist.eric_carle Eric Carle
-| ?wizards_artist.larry_carlson Larry Carlson
-| ?wizards_artist.bill_carman Bill Carman
-| ?wizards_artist.jean_baptiste_carpeaux Jean-Baptiste Carpeaux
-| ?wizards_artist.rosalba_carriera Rosalba Carriera
-| ?wizards_artist.michael_carson Michael Carson
-| ?wizards_artist.felice_casorati Felice Casorati
-| ?wizards_artist.mary_cassatt Mary Cassatt
-| ?wizards_artist.a_j_casson A. J. Casson
-| ?wizards_artist.giorgio_barbarelli_da_castelfranco Giorgio Barbarelli da Castelfranco
-| ?wizards_artist.paul_catherall Paul Catherall
-| ?wizards_artist.george_catlin George Catlin
-| ?wizards_artist.patrick_caulfield Patrick Caulfield
-| ?wizards_artist.nicoletta_ceccoli Nicoletta Ceccoli
-| ?wizards_artist.agnes_cecile Agnes Cecile
-| ?wizards_artist.paul_cezanne Paul Cézanne
-| ?wizards_artist.paul_chabas Paul Chabas
-| ?wizards_artist.marc_chagall Marc Chagall
-| ?wizards_artist.tom_chambers Tom Chambers
-| ?wizards_artist.katia_chausheva Katia Chausheva
-| ?wizards_artist.hsiao_ron_cheng Hsiao-Ron Cheng
-| ?wizards_artist.yanjun_cheng Yanjun Cheng
-| ?wizards_artist.sandra_chevrier Sandra Chevrier
-| ?wizards_artist.judy_chicago Judy Chicago
-| ?wizards_artist.dale_chihuly Dale Chihuly
-| ?wizards_artist.frank_cho Frank Cho
-| ?wizards_artist.james_c_christensen James C. Christensen
-| ?wizards_artist.mikalojus_konstantinas_ciurlionis Mikalojus Konstantinas Ciurlionis
-| ?wizards_artist.alson_skinner_clark Alson Skinner Clark
-| ?wizards_artist.amanda_clark Amanda Clark
-| ?wizards_artist.harry_clarke Harry Clarke
-| ?wizards_artist.george_clausen George Clausen
-| ?wizards_artist.francesco_clemente Francesco Clemente
-| ?wizards_artist.alvin_langdon_coburn Alvin Langdon Coburn
-| ?wizards_artist.clifford_coffin Clifford Coffin
-| ?wizards_artist.vince_colletta Vince Colletta
-| ?wizards_artist.beth_conklin Beth Conklin
-| ?wizards_artist.john_constable John Constable
-| ?wizards_artist.darwyn_cooke Darwyn Cooke
-| ?wizards_artist.richard_corben Richard Corben
-| ?wizards_artist.vittorio_matteo_corcos Vittorio Matteo Corcos
-| ?wizards_artist.paul_corfield Paul Corfield
-| ?wizards_artist.fernand_cormon Fernand Cormon
-| ?wizards_artist.norman_cornish Norman Cornish
-| ?wizards_artist.camille_corot Camille Corot
-| ?wizards_artist.gemma_correll Gemma Correll
-| ?wizards_artist.petra_cortright Petra Cortright
-| ?wizards_artist.lorenzo_costa_the_elder Lorenzo Costa the Elder
-| ?wizards_artist.olive_cotton Olive Cotton
-| ?wizards_artist.peter_coulson Peter Coulson
-| ?wizards_artist.gustave_courbet Gustave Courbet
-| ?wizards_artist.frank_cadogan_cowper Frank Cadogan Cowper
-| ?wizards_artist.kinuko_y_craft Kinuko Y. Craft
-| ?wizards_artist.clayton_crain Clayton Crain
-| ?wizards_artist.lucas_cranach_the_elder Lucas Cranach the Elder
-| ?wizards_artist.lucas_cranach_the_younger Lucas Cranach the Younger
-| ?wizards_artist.walter_crane Walter Crane
-| ?wizards_artist.martin_creed Martin Creed
-| ?wizards_artist.gregory_crewdson Gregory Crewdson
-| ?wizards_artist.debbie_criswell Debbie Criswell
-| ?wizards_artist.victoria_crowe Victoria Crowe
-| ?wizards_artist.etam_cru Etam Cru
-| ?wizards_artist.robert_crumb Robert Crumb
-| ?wizards_artist.carlos_cruz_diez Carlos Cruz-Diez
-| ?wizards_artist.john_currin John Currin
-| ?wizards_artist.krenz_cushart Krenz Cushart
-| ?wizards_artist.camilla_derrico Camilla d'Errico
+                     { ?wizards_artist.zacharias_martin_aagaard Zacharias Martin Aagaard
+                       | ?wizards_artist.slim_aarons Slim Aarons
+                       | ?wizards_artist.elenore_abbott Elenore Abbott
+                       | ?wizards_artist.tomma_abts Tomma Abts
+                       | ?wizards_artist.vito_acconci Vito Acconci
+                       | ?wizards_artist.andreas_achenbach Andreas Achenbach
+                       | ?wizards_artist.ansel_adams Ansel Adams
+                       | ?wizards_artist.josh_adamski Josh Adamski
+                       | ?wizards_artist.charles_addams Charles Addams
+                       | ?wizards_artist.etel_adnan Etel Adnan
+                       | ?wizards_artist.alena_aenami Alena Aenami
+                       | ?wizards_artist.leonid_afremov Leonid Afremov
+                       | ?wizards_artist.petros_afshar Petros Afshar
+                       | ?wizards_artist.yaacov_agam Yaacov Agam
+                       | ?wizards_artist.eileen_agar Eileen Agar
+                       | ?wizards_artist.craigie_aitchison Craigie Aitchison
+                       | ?wizards_artist.ivan_aivazovsky Ivan Aivazovsky
+                       | ?wizards_artist.francesco_albani Francesco Albani
+                       | ?wizards_artist.alessio_albi Alessio Albi
+                       | ?wizards_artist.miles_aldridge Miles Aldridge
+                       | ?wizards_artist.john_white_alexander John White Alexander
+                       | ?wizards_artist.alessandro_allori Alessandro Allori
+                       | ?wizards_artist.mike_allred Mike Allred
+                       | ?wizards_artist.lawrence_alma_tadema Lawrence Alma-Tadema
+                       | ?wizards_artist.lilia_alvarado Lilia Alvarado
+                       | ?wizards_artist.tarsila_do_amaral Tarsila do Amaral
+                       | ?wizards_artist.ghada_amer Ghada Amer
+                       | ?wizards_artist.cuno_amiet Cuno Amiet
+                       | ?wizards_artist.el_anatsui El Anatsui
+                       | ?wizards_artist.helga_ancher Helga Ancher
+                       | ?wizards_artist.sarah_andersen Sarah Andersen
+                       | ?wizards_artist.richard_anderson Richard Anderson
+                       | ?wizards_artist.sophie_gengembre_anderson Sophie Gengembre Anderson
+                       | ?wizards_artist.wes_anderson Wes Anderson
+                       | ?wizards_artist.alex_andreev Alex Andreev
+                       | ?wizards_artist.sofonisba_anguissola Sofonisba Anguissola
+                       | ?wizards_artist.louis_anquetin Louis Anquetin
+                       | ?wizards_artist.mary_jane_ansell Mary Jane Ansell
+                       | ?wizards_artist.chiho_aoshima Chiho Aoshima
+                       | ?wizards_artist.sabbas_apterus Sabbas Apterus
+                       | ?wizards_artist.hirohiko_araki Hirohiko Araki
+                       | ?wizards_artist.howard_arkley Howard Arkley
+                       | ?wizards_artist.rolf_armstrong Rolf Armstrong
+                       | ?wizards_artist.gerd_arntz Gerd Arntz
+                       | ?wizards_artist.guy_aroch Guy Aroch
+                       | ?wizards_artist.miki_asai Miki Asai
+                       | ?wizards_artist.clemens_ascher Clemens Ascher
+                       | ?wizards_artist.henry_asencio Henry Asencio
+                       | ?wizards_artist.andrew_atroshenko Andrew Atroshenko
+                       | ?wizards_artist.deborah_azzopardi Deborah Azzopardi
+                       | ?wizards_artist.lois_van_baarle Lois van Baarle
+                       | ?wizards_artist.ingrid_baars Ingrid Baars
+                       | ?wizards_artist.anne_bachelier Anne Bachelier
+                       | ?wizards_artist.francis_bacon Francis Bacon
+                       | ?wizards_artist.firmin_baes Firmin Baes
+                       | ?wizards_artist.tom_bagshaw Tom Bagshaw
+                       | ?wizards_artist.karol_bak Karol Bak
+                       | ?wizards_artist.christopher_balaskas Christopher Balaskas
+                       | ?wizards_artist.benedick_bana Benedick Bana
+                       | ?wizards_artist.banksy Banksy
+                       | ?wizards_artist.george_barbier George Barbier
+                       | ?wizards_artist.cicely_mary_barker Cicely Mary Barker
+                       | ?wizards_artist.wayne_barlowe Wayne Barlowe
+                       | ?wizards_artist.will_barnet Will Barnet
+                       | ?wizards_artist.matthew_barney Matthew Barney
+                       | ?wizards_artist.angela_barrett Angela Barrett
+                       | ?wizards_artist.jean_michel_basquiat Jean-Michel Basquiat
+                       | ?wizards_artist.lillian_bassman Lillian Bassman
+                       | ?wizards_artist.pompeo_batoni Pompeo Batoni
+                       | ?wizards_artist.casey_baugh Casey Baugh
+                       | ?wizards_artist.chiara_bautista Chiara Bautista
+                       | ?wizards_artist.herbert_bayer Herbert Bayer
+                       | ?wizards_artist.mary_beale Mary Beale
+                       | ?wizards_artist.alan_bean Alan Bean
+                       | ?wizards_artist.romare_bearden Romare Bearden
+                       | ?wizards_artist.cecil_beaton Cecil Beaton
+                       | ?wizards_artist.cecilia_beaux Cecilia Beaux
+                       | ?wizards_artist.jasmine_becket_griffith Jasmine Becket-Griffith
+                       | ?wizards_artist.vanessa_beecroft Vanessa Beecroft
+                       | ?wizards_artist.beeple Beeple
+                       | ?wizards_artist.zdzislaw_beksinski Zdzisław Beksiński
+                       | ?wizards_artist.katerina_belkina Katerina Belkina
+                       | ?wizards_artist.julie_bell Julie Bell
+                       | ?wizards_artist.vanessa_bell Vanessa Bell
+                       | ?wizards_artist.bernardo_bellotto Bernardo Bellotto
+                       | ?wizards_artist.ambrosius_benson Ambrosius Benson
+                       | ?wizards_artist.stan_berenstain Stan Berenstain
+                       | ?wizards_artist.laura_berger Laura Berger
+                       | ?wizards_artist.jody_bergsma Jody Bergsma
+                       | ?wizards_artist.john_berkey John Berkey
+                       | ?wizards_artist.gian_lorenzo_bernini Gian Lorenzo Bernini
+                       | ?wizards_artist.marta_bevacqua Marta Bevacqua
+                       | ?wizards_artist.john_t_biggers John T. Biggers
+                       | ?wizards_artist.enki_bilal Enki Bilal
+                       | ?wizards_artist.ivan_bilibin Ivan Bilibin
+                       | ?wizards_artist.butcher_billy Butcher Billy
+                       | ?wizards_artist.george_caleb_bingham George Caleb Bingham
+                       | ?wizards_artist.ed_binkley Ed Binkley
+                       | ?wizards_artist.george_birrell George Birrell
+                       | ?wizards_artist.robert_bissell Robert Bissell
+                       | ?wizards_artist.charles_blackman Charles Blackman
+                       | ?wizards_artist.mary_blair Mary Blair
+                       | ?wizards_artist.john_blanche John Blanche
+                       | ?wizards_artist.don_blanding Don Blanding
+                       | ?wizards_artist.albert_bloch Albert Bloch
+                       | ?wizards_artist.hyman_bloom Hyman Bloom
+                       | ?wizards_artist.peter_blume Peter Blume
+                       | ?wizards_artist.don_bluth Don Bluth
+                       | ?wizards_artist.umberto_boccioni Umberto Boccioni
+                       | ?wizards_artist.anna_bocek Anna Bocek
+                       | ?wizards_artist.lee_bogle Lee Bogle
+                       | ?wizards_artist.louis_leopold_boily Louis-Léopold Boily
+                       | ?wizards_artist.giovanni_boldini Giovanni Boldini
+                       | ?wizards_artist.enoch_bolles Enoch Bolles
+                       | ?wizards_artist.david_bomberg David Bomberg
+                       | ?wizards_artist.chesley_bonestell Chesley Bonestell
+                       | ?wizards_artist.lee_bontecou Lee Bontecou
+                       | ?wizards_artist.michael_borremans Michael Borremans
+                       | ?wizards_artist.matt_bors Matt Bors
+                       | ?wizards_artist.flora_borsi Flora Borsi
+                       | ?wizards_artist.hieronymus_bosch Hieronymus Bosch
+                       | ?wizards_artist.sam_bosma Sam Bosma
+                       | ?wizards_artist.johfra_bosschart Johfra Bosschart
+                       | ?wizards_artist.fernando_botero Fernando Botero
+                       | ?wizards_artist.sandro_botticelli Sandro Botticelli
+                       | ?wizards_artist.william_adolphe_bouguereau William-Adolphe Bouguereau
+                       | ?wizards_artist.susan_seddon_boulet Susan Seddon Boulet
+                       | ?wizards_artist.louise_bourgeois Louise Bourgeois
+                       | ?wizards_artist.annick_bouvattier Annick Bouvattier
+                       | ?wizards_artist.david_michael_bowers David Michael Bowers
+                       | ?wizards_artist.noah_bradley Noah Bradley
+                       | ?wizards_artist.aleksi_briclot Aleksi Briclot
+                       | ?wizards_artist.frederick_arthur_bridgman Frederick Arthur Bridgman
+                       | ?wizards_artist.renie_britenbucher Renie Britenbucher
+                       | ?wizards_artist.romero_britto Romero Britto
+                       | ?wizards_artist.gerald_brom Gerald Brom
+                       | ?wizards_artist.bronzino Bronzino
+                       | ?wizards_artist.herman_brood Herman Brood
+                       | ?wizards_artist.mark_brooks Mark Brooks
+                       | ?wizards_artist.romaine_brooks Romaine Brooks
+                       | ?wizards_artist.troy_brooks Troy Brooks
+                       | ?wizards_artist.broom_lee Broom Lee
+                       | ?wizards_artist.allie_brosh Allie Brosh
+                       | ?wizards_artist.ford_madox_brown Ford Madox Brown
+                       | ?wizards_artist.charles_le_brun Charles Le Brun
+                       | ?wizards_artist.elisabeth_vigee_le_brun Élisabeth Vigée Le Brun
+                       | ?wizards_artist.james_bullough James Bullough
+                       | ?wizards_artist.laurel_burch Laurel Burch
+                       | ?wizards_artist.alejandro_burdisio Alejandro Burdisio
+                       | ?wizards_artist.daniel_buren Daniel Buren
+                       | ?wizards_artist.jon_burgerman Jon Burgerman
+                       | ?wizards_artist.richard_burlet Richard Burlet
+                       | ?wizards_artist.jim_burns Jim Burns
+                       | ?wizards_artist.stasia_burrington Stasia Burrington
+                       | ?wizards_artist.kaethe_butcher Kaethe Butcher
+                       | ?wizards_artist.saturno_butto Saturno Butto
+                       | ?wizards_artist.paul_cadmus Paul Cadmus
+                       | ?wizards_artist.zhichao_cai Zhichao Cai
+                       | ?wizards_artist.randolph_caldecott Randolph Caldecott
+                       | ?wizards_artist.alexander_calder_milne Alexander Calder Milne
+                       | ?wizards_artist.clyde_caldwell Clyde Caldwell
+                       | ?wizards_artist.vincent_callebaut Vincent Callebaut
+                       | ?wizards_artist.fred_calleri Fred Calleri
+                       | ?wizards_artist.charles_camoin Charles Camoin
+                       | ?wizards_artist.mike_campau Mike Campau
+                       | ?wizards_artist.eric_canete Eric Canete
+                       | ?wizards_artist.josef_capek Josef Capek
+                       | ?wizards_artist.leonetto_cappiello Leonetto Cappiello
+                       | ?wizards_artist.eric_carle Eric Carle
+                       | ?wizards_artist.larry_carlson Larry Carlson
+                       | ?wizards_artist.bill_carman Bill Carman
+                       | ?wizards_artist.jean_baptiste_carpeaux Jean-Baptiste Carpeaux
+                       | ?wizards_artist.rosalba_carriera Rosalba Carriera
+                       | ?wizards_artist.michael_carson Michael Carson
+                       | ?wizards_artist.felice_casorati Felice Casorati
+                       | ?wizards_artist.mary_cassatt Mary Cassatt
+                       | ?wizards_artist.a_j_casson A. J. Casson
+                       | ?wizards_artist.giorgio_barbarelli_da_castelfranco Giorgio Barbarelli da Castelfranco
+                       | ?wizards_artist.paul_catherall Paul Catherall
+                       | ?wizards_artist.george_catlin George Catlin
+                       | ?wizards_artist.patrick_caulfield Patrick Caulfield
+                       | ?wizards_artist.nicoletta_ceccoli Nicoletta Ceccoli
+                       | ?wizards_artist.agnes_cecile Agnes Cecile
+                       | ?wizards_artist.paul_cezanne Paul Cézanne
+                       | ?wizards_artist.paul_chabas Paul Chabas
+                       | ?wizards_artist.marc_chagall Marc Chagall
+                       | ?wizards_artist.tom_chambers Tom Chambers
+                       | ?wizards_artist.katia_chausheva Katia Chausheva
+                       | ?wizards_artist.hsiao_ron_cheng Hsiao-Ron Cheng
+                       | ?wizards_artist.yanjun_cheng Yanjun Cheng
+                       | ?wizards_artist.sandra_chevrier Sandra Chevrier
+                       | ?wizards_artist.judy_chicago Judy Chicago
+                       | ?wizards_artist.dale_chihuly Dale Chihuly
+                       | ?wizards_artist.frank_cho Frank Cho
+                       | ?wizards_artist.james_c_christensen James C. Christensen
+                       | ?wizards_artist.mikalojus_konstantinas_ciurlionis Mikalojus Konstantinas Ciurlionis
+                       | ?wizards_artist.alson_skinner_clark Alson Skinner Clark
+                       | ?wizards_artist.amanda_clark Amanda Clark
+                       | ?wizards_artist.harry_clarke Harry Clarke
+                       | ?wizards_artist.george_clausen George Clausen
+                       | ?wizards_artist.francesco_clemente Francesco Clemente
+                       | ?wizards_artist.alvin_langdon_coburn Alvin Langdon Coburn
+                       | ?wizards_artist.clifford_coffin Clifford Coffin
+                       | ?wizards_artist.vince_colletta Vince Colletta
+                       | ?wizards_artist.beth_conklin Beth Conklin
+                       | ?wizards_artist.john_constable John Constable
+                       | ?wizards_artist.darwyn_cooke Darwyn Cooke
+                       | ?wizards_artist.richard_corben Richard Corben
+                       | ?wizards_artist.vittorio_matteo_corcos Vittorio Matteo Corcos
+                       | ?wizards_artist.paul_corfield Paul Corfield
+                       | ?wizards_artist.fernand_cormon Fernand Cormon
+                       | ?wizards_artist.norman_cornish Norman Cornish
+                       | ?wizards_artist.camille_corot Camille Corot
+                       | ?wizards_artist.gemma_correll Gemma Correll
+                       | ?wizards_artist.petra_cortright Petra Cortright
+                       | ?wizards_artist.lorenzo_costa_the_elder Lorenzo Costa the Elder
+                       | ?wizards_artist.olive_cotton Olive Cotton
+                       | ?wizards_artist.peter_coulson Peter Coulson
+                       | ?wizards_artist.gustave_courbet Gustave Courbet
+                       | ?wizards_artist.frank_cadogan_cowper Frank Cadogan Cowper
+                       | ?wizards_artist.kinuko_y_craft Kinuko Y. Craft
+                       | ?wizards_artist.clayton_crain Clayton Crain
+                       | ?wizards_artist.lucas_cranach_the_elder Lucas Cranach the Elder
+                       | ?wizards_artist.lucas_cranach_the_younger Lucas Cranach the Younger
+                       | ?wizards_artist.walter_crane Walter Crane
+                       | ?wizards_artist.martin_creed Martin Creed
+                       | ?wizards_artist.gregory_crewdson Gregory Crewdson
+                       | ?wizards_artist.debbie_criswell Debbie Criswell
+                       | ?wizards_artist.victoria_crowe Victoria Crowe
+                       | ?wizards_artist.etam_cru Etam Cru
+                       | ?wizards_artist.robert_crumb Robert Crumb
+                       | ?wizards_artist.carlos_cruz_diez Carlos Cruz-Diez
+                       | ?wizards_artist.john_currin John Currin
+                       | ?wizards_artist.krenz_cushart Krenz Cushart
+                       | ?wizards_artist.camilla_derrico Camilla d'Errico
 | ?wizards_artist.pino_daeni Pino Daeni
 | ?wizards_artist.salvador_dali Salvador Dalí
 | ?wizards_artist.sunil_das Sunil Das
@@ -4106,511 +4150,511 @@ const prelude_text = disable_prelude ? '' : `
 | ?wizards_artist.robert_delaunay Robert Delaunay
 | ?wizards_artist.sonia_delaunay Sonia Delaunay
 | ?wizards_artist.gabriele_dellotto Gabriele Dell'otto
-| ?wizards_artist.nicolas_delort Nicolas Delort
-| ?wizards_artist.jean_delville Jean Delville
-| ?wizards_artist.posuka_demizu Posuka Demizu
-| ?wizards_artist.guy_denning Guy Denning
-| ?wizards_artist.monsu_desiderio Monsù Desiderio
-| ?wizards_artist.charles_maurice_detmold Charles Maurice Detmold
-| ?wizards_artist.edward_julius_detmold Edward Julius Detmold
-| ?wizards_artist.anne_dewailly Anne Dewailly
-| ?wizards_artist.walt_disney Walt Disney
-| ?wizards_artist.tony_diterlizzi Tony DiTerlizzi
-| ?wizards_artist.anna_dittmann Anna Dittmann
-| ?wizards_artist.dima_dmitriev Dima Dmitriev
-| ?wizards_artist.peter_doig Peter Doig
-| ?wizards_artist.kees_van_dongen Kees van Dongen
-| ?wizards_artist.gustave_dore Gustave Doré
-| ?wizards_artist.dave_dorman Dave Dorman
-| ?wizards_artist.emilio_giuseppe_dossena Emilio Giuseppe Dossena
-| ?wizards_artist.david_downton David Downton
-| ?wizards_artist.jessica_drossin Jessica Drossin
-| ?wizards_artist.philippe_druillet Philippe Druillet
-| ?wizards_artist.tj_drysdale TJ Drysdale
-| ?wizards_artist.ton_dubbeldam Ton Dubbeldam
-| ?wizards_artist.marcel_duchamp Marcel Duchamp
-| ?wizards_artist.joseph_ducreux Joseph Ducreux
-| ?wizards_artist.edmund_dulac Edmund Dulac
-| ?wizards_artist.marlene_dumas Marlene Dumas
-| ?wizards_artist.charles_dwyer Charles Dwyer
-| ?wizards_artist.william_dyce William Dyce
-| ?wizards_artist.chris_dyer Chris Dyer
-| ?wizards_artist.eyvind_earle Eyvind Earle
-| ?wizards_artist.amy_earles Amy Earles
-| ?wizards_artist.lori_earley Lori Earley
-| ?wizards_artist.jeff_easley Jeff Easley
-| ?wizards_artist.tristan_eaton Tristan Eaton
-| ?wizards_artist.jason_edmiston Jason Edmiston
-| ?wizards_artist.alfred_eisenstaedt Alfred Eisenstaedt
-| ?wizards_artist.jesper_ejsing Jesper Ejsing
-| ?wizards_artist.olafur_eliasson Olafur Eliasson
-| ?wizards_artist.harrison_ellenshaw Harrison Ellenshaw
-| ?wizards_artist.christine_ellger Christine Ellger
-| ?wizards_artist.larry_elmore Larry Elmore
-| ?wizards_artist.joseba_elorza Joseba Elorza
-| ?wizards_artist.peter_elson Peter Elson
-| ?wizards_artist.gil_elvgren Gil Elvgren
-| ?wizards_artist.ed_emshwiller Ed Emshwiller
-| ?wizards_artist.kilian_eng Kilian Eng
-| ?wizards_artist.jason_a_engle Jason A. Engle
-| ?wizards_artist.max_ernst Max Ernst
-| ?wizards_artist.romain_de_tirtoff_erte Romain de Tirtoff Erté
-| ?wizards_artist.m_c_escher M. C. Escher
-| ?wizards_artist.tim_etchells Tim Etchells
-| ?wizards_artist.walker_evans Walker Evans
-| ?wizards_artist.jan_van_eyck Jan van Eyck
-| ?wizards_artist.glenn_fabry Glenn Fabry
-| ?wizards_artist.ludwig_fahrenkrog Ludwig Fahrenkrog
-| ?wizards_artist.shepard_fairey Shepard Fairey
-| ?wizards_artist.andy_fairhurst Andy Fairhurst
-| ?wizards_artist.luis_ricardo_falero Luis Ricardo Falero
-| ?wizards_artist.jean_fautrier Jean Fautrier
-| ?wizards_artist.andrew_ferez Andrew Ferez
-| ?wizards_artist.hugh_ferriss Hugh Ferriss
-| ?wizards_artist.david_finch David Finch
-| ?wizards_artist.callie_fink Callie Fink
-| ?wizards_artist.virgil_finlay Virgil Finlay
-| ?wizards_artist.anato_finnstark Anato Finnstark
-| ?wizards_artist.howard_finster Howard Finster
-| ?wizards_artist.oskar_fischinger Oskar Fischinger
-| ?wizards_artist.samuel_melton_fisher Samuel Melton Fisher
-| ?wizards_artist.john_anster_fitzgerald John Anster Fitzgerald
-| ?wizards_artist.tony_fitzpatrick Tony Fitzpatrick
-| ?wizards_artist.hippolyte_flandrin Hippolyte Flandrin
-| ?wizards_artist.dan_flavin Dan Flavin
-| ?wizards_artist.max_fleischer Max Fleischer
-| ?wizards_artist.govaert_flinck Govaert Flinck
-| ?wizards_artist.alex_russell_flint Alex Russell Flint
-| ?wizards_artist.lucio_fontana Lucio Fontana
-| ?wizards_artist.chris_foss Chris Foss
-| ?wizards_artist.jon_foster Jon Foster
-| ?wizards_artist.jean_fouquet Jean Fouquet
-| ?wizards_artist.toby_fox Toby Fox
-| ?wizards_artist.art_frahm Art Frahm
-| ?wizards_artist.lisa_frank Lisa Frank
-| ?wizards_artist.helen_frankenthaler Helen Frankenthaler
-| ?wizards_artist.frank_frazetta Frank Frazetta
-| ?wizards_artist.kelly_freas Kelly Freas
-| ?wizards_artist.lucian_freud Lucian Freud
-| ?wizards_artist.brian_froud Brian Froud
-| ?wizards_artist.wendy_froud Wendy Froud
-| ?wizards_artist.tom_fruin Tom Fruin
-| ?wizards_artist.john_wayne_gacy John Wayne Gacy
-| ?wizards_artist.justin_gaffrey Justin Gaffrey
-| ?wizards_artist.hashimoto_gaho Hashimoto Gahō
-| ?wizards_artist.neil_gaiman Neil Gaiman
-| ?wizards_artist.stephen_gammell Stephen Gammell
-| ?wizards_artist.hope_gangloff Hope Gangloff
-| ?wizards_artist.alex_garant Alex Garant
-| ?wizards_artist.gilbert_garcin Gilbert Garcin
-| ?wizards_artist.michael_and_inessa_garmash Michael and Inessa Garmash
-| ?wizards_artist.antoni_gaudi Antoni Gaudi
-| 3 ?wizards_artist.jack_gaughan Jack Gaughan
-| ?wizards_artist.paul_gauguin Paul Gauguin
-| ?wizards_artist.giovanni_battista_gaulli Giovanni Battista Gaulli
-| ?wizards_artist.anne_geddes Anne Geddes
-| ?wizards_artist.bill_gekas Bill Gekas
-| ?wizards_artist.artemisia_gentileschi Artemisia Gentileschi
-| ?wizards_artist.orazio_gentileschi Orazio Gentileschi
-| ?wizards_artist.daniel_f_gerhartz Daniel F. Gerhartz
-| ?wizards_artist.theodore_gericault Théodore Géricault
-| ?wizards_artist.jean_leon_gerome Jean-Léon Gérôme
-| ?wizards_artist.mark_gertler Mark Gertler
-| ?wizards_artist.atey_ghailan Atey Ghailan
-| ?wizards_artist.alberto_giacometti Alberto Giacometti
-| ?wizards_artist.donato_giancola Donato Giancola
-| ?wizards_artist.hr_giger H.R. Giger
-| ?wizards_artist.james_gilleard James Gilleard
-| ?wizards_artist.harold_gilman Harold Gilman
-| ?wizards_artist.charles_ginner Charles Ginner
-| ?wizards_artist.jean_giraud Jean Giraud
-| ?wizards_artist.anne_louis_girodet Anne-Louis Girodet
-| ?wizards_artist.milton_glaser Milton Glaser
-| ?wizards_artist.warwick_goble Warwick Goble
-| ?wizards_artist.john_william_godward John William Godward
-| ?wizards_artist.sacha_goldberger Sacha Goldberger
-| ?wizards_artist.nan_goldin Nan Goldin
-| ?wizards_artist.josan_gonzalez Josan Gonzalez
-| ?wizards_artist.felix_gonzalez_torres Felix Gonzalez-Torres
-| ?wizards_artist.derek_gores Derek Gores
-| ?wizards_artist.edward_gorey Edward Gorey
-| ?wizards_artist.arshile_gorky Arshile Gorky
-| ?wizards_artist.alessandro_gottardo Alessandro Gottardo
-| ?wizards_artist.adolph_gottlieb Adolph Gottlieb
-| ?wizards_artist.francisco_goya Francisco Goya
-| ?wizards_artist.laurent_grasso Laurent Grasso
-| ?wizards_artist.mab_graves Mab Graves
-| ?wizards_artist.eileen_gray Eileen Gray
-| ?wizards_artist.kate_greenaway Kate Greenaway
-| ?wizards_artist.alex_grey Alex Grey
-| ?wizards_artist.carne_griffiths Carne Griffiths
-| ?wizards_artist.gris_grimly Gris Grimly
-| ?wizards_artist.brothers_grimm Brothers Grimm
-| ?wizards_artist.tracie_grimwood Tracie Grimwood
-| ?wizards_artist.matt_groening Matt Groening
-| ?wizards_artist.alex_gross Alex Gross
-| ?wizards_artist.tom_grummett Tom Grummett
-| ?wizards_artist.huang_guangjian Huang Guangjian
-| ?wizards_artist.wu_guanzhong Wu Guanzhong
-| ?wizards_artist.rebecca_guay Rebecca Guay
-| ?wizards_artist.guercino Guercino
-| ?wizards_artist.jeannette_guichard_bunel Jeannette Guichard-Bunel
-| ?wizards_artist.scott_gustafson Scott Gustafson
-| ?wizards_artist.wade_guyton Wade Guyton
-| ?wizards_artist.hans_haacke Hans Haacke
-| ?wizards_artist.robert_hagan Robert Hagan
-| ?wizards_artist.philippe_halsman Philippe Halsman
-| ?wizards_artist.maggi_hambling Maggi Hambling
-| ?wizards_artist.richard_hamilton Richard Hamilton
-| ?wizards_artist.bess_hamiti Bess Hamiti
-| ?wizards_artist.tom_hammick Tom Hammick
-| ?wizards_artist.david_hammons David Hammons
-| ?wizards_artist.ren_hang Ren Hang
-| ?wizards_artist.erin_hanson Erin Hanson
-| ?wizards_artist.keith_haring Keith Haring
-| ?wizards_artist.alexei_harlamoff Alexei Harlamoff
-| ?wizards_artist.charley_harper Charley Harper
-| ?wizards_artist.john_harris John Harris
-| ?wizards_artist.florence_harrison Florence Harrison
-| ?wizards_artist.marsden_hartley Marsden Hartley
-| ?wizards_artist.ryohei_hase Ryohei Hase
-| ?wizards_artist.childe_hassam Childe Hassam
-| ?wizards_artist.ben_hatke Ben Hatke
-| ?wizards_artist.mona_hatoum Mona Hatoum
-| ?wizards_artist.pam_hawkes Pam Hawkes
-| ?wizards_artist.jamie_hawkesworth Jamie Hawkesworth
-| ?wizards_artist.stuart_haygarth Stuart Haygarth
-| ?wizards_artist.erich_heckel Erich Heckel
-| ?wizards_artist.valerie_hegarty Valerie Hegarty
-| ?wizards_artist.mary_heilmann Mary Heilmann
-| ?wizards_artist.michael_heizer Michael Heizer
-| ?wizards_artist.gottfried_helnwein Gottfried Helnwein
-| ?wizards_artist.barkley_l_hendricks Barkley L. Hendricks
-| ?wizards_artist.bill_henson Bill Henson
-| ?wizards_artist.barbara_hepworth Barbara Hepworth
-| ?wizards_artist.herge Hergé
-| ?wizards_artist.carolina_herrera Carolina Herrera
-| ?wizards_artist.george_herriman George Herriman
-| ?wizards_artist.don_hertzfeldt Don Hertzfeldt
-| ?wizards_artist.prudence_heward Prudence Heward
-| ?wizards_artist.ryan_hewett Ryan Hewett
-| ?wizards_artist.nora_heysen Nora Heysen
-| ?wizards_artist.george_elgar_hicks George Elgar Hicks
-| ?wizards_artist.lorenz_hideyoshi Lorenz Hideyoshi
-| ?wizards_artist.brothers_hildebrandt Brothers Hildebrandt
-| ?wizards_artist.dan_hillier Dan Hillier
-| ?wizards_artist.lewis_hine Lewis Hine
-| ?wizards_artist.miho_hirano Miho Hirano
-| ?wizards_artist.harumi_hironaka Harumi Hironaka
-| ?wizards_artist.hiroshige Hiroshige
-| ?wizards_artist.morris_hirshfield Morris Hirshfield
-| ?wizards_artist.damien_hirst Damien Hirst
-| ?wizards_artist.fan_ho Fan Ho
-| ?wizards_artist.meindert_hobbema Meindert Hobbema
-| ?wizards_artist.david_hockney David Hockney
-| ?wizards_artist.filip_hodas Filip Hodas
-| ?wizards_artist.howard_hodgkin Howard Hodgkin
-| ?wizards_artist.ferdinand_hodler Ferdinand Hodler
-| ?wizards_artist.tiago_hoisel Tiago Hoisel
-| ?wizards_artist.katsushika_hokusai Katsushika Hokusai
-| ?wizards_artist.hans_holbein_the_younger Hans Holbein the Younger
-| ?wizards_artist.frank_holl Frank Holl
-| ?wizards_artist.carsten_holler Carsten Holler
-| ?wizards_artist.zena_holloway Zena Holloway
-| ?wizards_artist.edward_hopper Edward Hopper
-| ?wizards_artist.aaron_horkey Aaron Horkey
-| ?wizards_artist.alex_horley Alex Horley
-| ?wizards_artist.roni_horn Roni Horn
-| ?wizards_artist.john_howe John Howe
-| ?wizards_artist.alex_howitt Alex Howitt
-| ?wizards_artist.meghan_howland Meghan Howland
-| ?wizards_artist.john_hoyland John Hoyland
-| ?wizards_artist.shilin_huang Shilin Huang
-| ?wizards_artist.arthur_hughes Arthur Hughes
-| ?wizards_artist.edward_robert_hughes Edward Robert Hughes
-| ?wizards_artist.jack_hughes Jack Hughes
-| ?wizards_artist.talbot_hughes Talbot Hughes
-| ?wizards_artist.pieter_hugo Pieter Hugo
-| ?wizards_artist.gary_hume Gary Hume
-| ?wizards_artist.friedensreich_hundertwasser Friedensreich Hundertwasser
-| ?wizards_artist.william_holman_hunt William Holman Hunt
-| ?wizards_artist.george_hurrell George Hurrell
-| ?wizards_artist.fabio_hurtado Fabio Hurtado
-| ?wizards_artist.hush HUSH
-| ?wizards_artist.michael_hutter Michael Hutter
-| ?wizards_artist.pierre_huyghe Pierre Huyghe
-| ?wizards_artist.doug_hyde Doug Hyde
-| ?wizards_artist.louis_icart Louis Icart
-| ?wizards_artist.robert_indiana Robert Indiana
-| ?wizards_artist.jean_auguste_dominique_ingres Jean Auguste Dominique Ingres
-| ?wizards_artist.robert_irwin Robert Irwin
-| ?wizards_artist.gabriel_isak Gabriel Isak
-| ?wizards_artist.junji_ito Junji Ito
-| ?wizards_artist.christophe_jacrot Christophe Jacrot
-| ?wizards_artist.louis_janmot Louis Janmot
-| ?wizards_artist.frieke_janssens Frieke Janssens
-| ?wizards_artist.alexander_jansson Alexander Jansson
-| ?wizards_artist.tove_jansson Tove Jansson
-| ?wizards_artist.aaron_jasinski Aaron Jasinski
-| ?wizards_artist.alexej_von_jawlensky Alexej von Jawlensky
-| ?wizards_artist.james_jean James Jean
-| ?wizards_artist.oliver_jeffers Oliver Jeffers
-| ?wizards_artist.lee_jeffries Lee Jeffries
-| ?wizards_artist.georg_jensen Georg Jensen
-| ?wizards_artist.ellen_jewett Ellen Jewett
-| ?wizards_artist.he_jiaying He Jiaying
-| ?wizards_artist.chantal_joffe Chantal Joffe
-| ?wizards_artist.martine_johanna Martine Johanna
-| ?wizards_artist.augustus_john Augustus John
-| ?wizards_artist.gwen_john Gwen John
-| ?wizards_artist.jasper_johns Jasper Johns
-| ?wizards_artist.eastman_johnson Eastman Johnson
-| ?wizards_artist.alfred_cheney_johnston Alfred Cheney Johnston
-| ?wizards_artist.dorothy_johnstone Dorothy Johnstone
-| ?wizards_artist.android_jones Android Jones
-| ?wizards_artist.erik_jones Erik Jones
-| ?wizards_artist.jeffrey_catherine_jones Jeffrey Catherine Jones
-| ?wizards_artist.peter_andrew_jones Peter Andrew Jones
-| ?wizards_artist.loui_jover Loui Jover
-| ?wizards_artist.amy_judd Amy Judd
-| ?wizards_artist.donald_judd Donald Judd
-| ?wizards_artist.jean_jullien Jean Jullien
-| ?wizards_artist.matthias_jung Matthias Jung
-| ?wizards_artist.joe_jusko Joe Jusko
-| ?wizards_artist.frida_kahlo Frida Kahlo
-| ?wizards_artist.hayv_kahraman Hayv Kahraman
-| ?wizards_artist.mw_kaluta M.W. Kaluta
-| ?wizards_artist.nadav_kander Nadav Kander
-| ?wizards_artist.wassily_kandinsky Wassily Kandinsky
-| ?wizards_artist.jun_kaneko Jun Kaneko
-| ?wizards_artist.titus_kaphar Titus Kaphar
-| ?wizards_artist.michal_karcz Michal Karcz
-| ?wizards_artist.gertrude_kasebier Gertrude Käsebier
-| ?wizards_artist.terada_katsuya Terada Katsuya
-| ?wizards_artist.audrey_kawasaki Audrey Kawasaki
-| ?wizards_artist.hasui_kawase Hasui Kawase
-| ?wizards_artist.glen_keane Glen Keane
-| ?wizards_artist.margaret_keane Margaret Keane
-| ?wizards_artist.ellsworth_kelly Ellsworth Kelly
-| ?wizards_artist.michael_kenna Michael Kenna
-| ?wizards_artist.thomas_benjamin_kennington Thomas Benjamin Kennington
-| ?wizards_artist.william_kentridge William Kentridge
-| ?wizards_artist.hendrik_kerstens Hendrik Kerstens
-| ?wizards_artist.jeremiah_ketner Jeremiah Ketner
-| ?wizards_artist.fernand_khnopff Fernand Khnopff
-| ?wizards_artist.hideyuki_kikuchi Hideyuki Kikuchi
-| ?wizards_artist.tom_killion Tom Killion
-| ?wizards_artist.thomas_kinkade Thomas Kinkade
-| ?wizards_artist.jack_kirby Jack Kirby
-| ?wizards_artist.ernst_ludwig_kirchner Ernst Ludwig Kirchner
-| ?wizards_artist.tatsuro_kiuchi Tatsuro Kiuchi
-| ?wizards_artist.jon_klassen Jon Klassen
-| ?wizards_artist.paul_klee Paul Klee
-| ?wizards_artist.william_klein William Klein
-| ?wizards_artist.yves_klein Yves Klein
-| ?wizards_artist.carl_kleiner Carl Kleiner
-| ?wizards_artist.gustav_klimt Gustav Klimt
-| ?wizards_artist.godfrey_kneller Godfrey Kneller
-| ?wizards_artist.emily_kame_kngwarreye Emily Kame Kngwarreye
-| ?wizards_artist.chad_knight Chad Knight
-| ?wizards_artist.nick_knight Nick Knight
-| ?wizards_artist.helene_knoop Helene Knoop
-| ?wizards_artist.phil_koch Phil Koch
-| ?wizards_artist.kazuo_koike Kazuo Koike
-| ?wizards_artist.oskar_kokoschka Oskar Kokoschka
-| ?wizards_artist.kathe_kollwitz Käthe Kollwitz
-| ?wizards_artist.michael_komarck Michael Komarck
-| ?wizards_artist.satoshi_kon Satoshi Kon
-| ?wizards_artist.jeff_koons Jeff Koons
-| ?wizards_artist.caia_koopman Caia Koopman
-| ?wizards_artist.konstantin_korovin Konstantin Korovin
-| ?wizards_artist.mark_kostabi Mark Kostabi
-| ?wizards_artist.bella_kotak Bella Kotak
-| ?wizards_artist.andrea_kowch Andrea Kowch
-| ?wizards_artist.lee_krasner Lee Krasner
-| ?wizards_artist.barbara_kruger Barbara Kruger
-| ?wizards_artist.brad_kunkle Brad Kunkle
-| ?wizards_artist.yayoi_kusama Yayoi Kusama
-| ?wizards_artist.michael_k_kutsche Michael K Kutsche
-| ?wizards_artist.ilya_kuvshinov Ilya Kuvshinov
-| ?wizards_artist.david_lachapelle David LaChapelle
-| ?wizards_artist.raphael_lacoste Raphael Lacoste
-| ?wizards_artist.lev_lagorio Lev Lagorio
-| ?wizards_artist.rene_lalique René Lalique
-| ?wizards_artist.abigail_larson Abigail Larson
-| ?wizards_artist.gary_larson Gary Larson
-| ?wizards_artist.denys_lasdun Denys Lasdun
-| ?wizards_artist.maria_lassnig Maria Lassnig
-| ?wizards_artist.dorothy_lathrop Dorothy Lathrop
-| ?wizards_artist.melissa_launay Melissa Launay
-| ?wizards_artist.john_lavery John Lavery
-| ?wizards_artist.jacob_lawrence Jacob Lawrence
-| ?wizards_artist.thomas_lawrence Thomas Lawrence
-| ?wizards_artist.ernest_lawson Ernest Lawson
-| ?wizards_artist.bastien_lecouffe_deharme Bastien Lecouffe-Deharme
-| ?wizards_artist.alan_lee Alan Lee
-| ?wizards_artist.minjae_lee Minjae Lee
-| ?wizards_artist.nina_leen Nina Leen
-| ?wizards_artist.fernand_leger Fernand Leger
-| ?wizards_artist.paul_lehr Paul Lehr
-| ?wizards_artist.frederic_leighton Frederic Leighton
-| ?wizards_artist.alayna_lemmer Alayna Lemmer
-| ?wizards_artist.tamara_de_lempicka Tamara de Lempicka
-| ?wizards_artist.sol_lewitt Sol LeWitt
-| ?wizards_artist.jc_leyendecker J.C. Leyendecker
-| ?wizards_artist.andre_lhote André Lhote
-| ?wizards_artist.roy_lichtenstein Roy Lichtenstein
-| ?wizards_artist.rob_liefeld Rob Liefeld
-| ?wizards_artist.fang_lijun Fang Lijun
-| ?wizards_artist.maya_lin Maya Lin
-| ?wizards_artist.filippino_lippi Filippino Lippi
-| ?wizards_artist.herbert_list Herbert List
-| ?wizards_artist.richard_long Richard Long
-| ?wizards_artist.yoann_lossel Yoann Lossel
-| ?wizards_artist.morris_louis Morris Louis
-| ?wizards_artist.sarah_lucas Sarah Lucas
-| ?wizards_artist.maximilien_luce Maximilien Luce
-| ?wizards_artist.loretta_lux Loretta Lux
-| ?wizards_artist.george_platt_lynes George Platt Lynes
-| ?wizards_artist.frances_macdonald Frances MacDonald
-| ?wizards_artist.august_macke August Macke
-| ?wizards_artist.stephen_mackey Stephen Mackey
-| ?wizards_artist.rachel_maclean Rachel Maclean
-| ?wizards_artist.raimundo_de_madrazo_y_garreta Raimundo de Madrazo y Garreta
-| ?wizards_artist.joe_madureira Joe Madureira
-| ?wizards_artist.rene_magritte Rene Magritte
-| ?wizards_artist.jim_mahfood Jim Mahfood
-| ?wizards_artist.vivian_maier Vivian Maier
-| ?wizards_artist.aristide_maillol Aristide Maillol
-| ?wizards_artist.don_maitz Don Maitz
-| ?wizards_artist.laura_makabresku Laura Makabresku
-| ?wizards_artist.alex_maleev Alex Maleev
-| ?wizards_artist.keith_mallett Keith Mallett
-| ?wizards_artist.johji_manabe Johji Manabe
-| ?wizards_artist.milo_manara Milo Manara
-| ?wizards_artist.edouard_manet Édouard Manet
-| ?wizards_artist.henri_manguin Henri Manguin
-| ?wizards_artist.jeremy_mann Jeremy Mann
-| ?wizards_artist.sally_mann Sally Mann
-| ?wizards_artist.andrea_mantegna Andrea Mantegna
-| ?wizards_artist.antonio_j_manzanedo Antonio J. Manzanedo
-| ?wizards_artist.robert_mapplethorpe Robert Mapplethorpe
-| ?wizards_artist.franz_marc Franz Marc
-| ?wizards_artist.ivan_marchuk Ivan Marchuk
-| ?wizards_artist.brice_marden Brice Marden
-| ?wizards_artist.andrei_markin Andrei Markin
-| ?wizards_artist.kerry_james_marshall Kerry James Marshall
-| ?wizards_artist.serge_marshennikov Serge Marshennikov
-| ?wizards_artist.agnes_martin Agnes Martin
-| ?wizards_artist.adam_martinakis Adam Martinakis
-| ?wizards_artist.stephan_martiniere Stephan Martinière
-| ?wizards_artist.ilya_mashkov Ilya Mashkov
-| ?wizards_artist.henri_matisse Henri Matisse
-| ?wizards_artist.rodney_matthews Rodney Matthews
-| ?wizards_artist.anton_mauve Anton Mauve
-| ?wizards_artist.peter_max Peter Max
-| ?wizards_artist.mike_mayhew Mike Mayhew
-| ?wizards_artist.angus_mcbride Angus McBride
-| ?wizards_artist.anne_mccaffrey Anne McCaffrey
-| ?wizards_artist.robert_mccall Robert McCall
-| ?wizards_artist.scott_mccloud Scott McCloud
-| ?wizards_artist.steve_mccurry Steve McCurry
-| ?wizards_artist.todd_mcfarlane Todd McFarlane
-| ?wizards_artist.barry_mcgee Barry McGee
-| ?wizards_artist.ryan_mcginley Ryan McGinley
-| ?wizards_artist.robert_mcginnis Robert McGinnis
-| ?wizards_artist.richard_mcguire Richard McGuire
-| ?wizards_artist.patrick_mchale Patrick McHale
-| ?wizards_artist.kelly_mckernan Kelly McKernan
-| ?wizards_artist.angus_mckie Angus McKie
-| ?wizards_artist.alasdair_mclellan Alasdair McLellan
-| ?wizards_artist.jon_mcnaught Jon McNaught
-| ?wizards_artist.dan_mcpharlin Dan McPharlin
-| ?wizards_artist.tara_mcpherson Tara McPherson
-| ?wizards_artist.ralph_mcquarrie Ralph McQuarrie
-| ?wizards_artist.ian_mcque Ian McQue
-| ?wizards_artist.syd_mead Syd Mead
-| ?wizards_artist.richard_meier Richard Meier
-| ?wizards_artist.maria_sibylla_merian Maria Sibylla Merian
-| ?wizards_artist.willard_metcalf Willard Metcalf
-| ?wizards_artist.gabriel_metsu Gabriel Metsu
-| ?wizards_artist.jean_metzinger Jean Metzinger
-| ?wizards_artist.michelangelo Michelangelo
-| ?wizards_artist.nicolas_mignard Nicolas Mignard
-| ?wizards_artist.mike_mignola Mike Mignola
-| ?wizards_artist.dimitra_milan Dimitra Milan
-| ?wizards_artist.john_everett_millais John Everett Millais
-| ?wizards_artist.marilyn_minter Marilyn Minter
-| ?wizards_artist.januz_miralles Januz Miralles
-| ?wizards_artist.joan_miro Joan Miró
-| ?wizards_artist.joan_mitchell Joan Mitchell
-| ?wizards_artist.hayao_miyazaki Hayao Miyazaki
-| ?wizards_artist.paula_modersohn_becker Paula Modersohn-Becker
-| ?wizards_artist.amedeo_modigliani Amedeo Modigliani
-| ?wizards_artist.moebius Moebius
-| ?wizards_artist.peter_mohrbacher Peter Mohrbacher
-| ?wizards_artist.piet_mondrian Piet Mondrian
-| ?wizards_artist.claude_monet Claude Monet
-| ?wizards_artist.jean_baptiste_monge Jean-Baptiste Monge
-| ?wizards_artist.alyssa_monks Alyssa Monks
-| ?wizards_artist.alan_moore Alan Moore
-| ?wizards_artist.antonio_mora Antonio Mora
-| ?wizards_artist.edward_moran Edward Moran
-| ?wizards_artist.koji_morimoto Kōji Morimoto
-| ?wizards_artist.berthe_morisot Berthe Morisot
-| ?wizards_artist.daido_moriyama Daido Moriyama
-| ?wizards_artist.james_wilson_morrice James Wilson Morrice
-| ?wizards_artist.sarah_morris Sarah Morris
-| ?wizards_artist.john_lowrie_morrison John Lowrie Morrison
-| ?wizards_artist.igor_morski Igor Morski
-| ?wizards_artist.john_kenn_mortensen John Kenn Mortensen
-| ?wizards_artist.victor_moscoso Victor Moscoso
-| ?wizards_artist.inna_mosina Inna Mosina
-| ?wizards_artist.richard_mosse Richard Mosse
-| ?wizards_artist.thomas_edwin_mostyn Thomas Edwin Mostyn
-| ?wizards_artist.marcel_mouly Marcel Mouly
-| ?wizards_artist.emmanuelle_moureaux Emmanuelle Moureaux
-| ?wizards_artist.alphonse_mucha Alphonse Mucha
-| ?wizards_artist.craig_mullins Craig Mullins
-| ?wizards_artist.augustus_edwin_mulready Augustus Edwin Mulready
-| ?wizards_artist.dan_mumford Dan Mumford
-| ?wizards_artist.edvard_munch Edvard Munch
-| ?wizards_artist.alfred_munnings Alfred Munnings
-| ?wizards_artist.gabriele_munter Gabriele Münter
-| ?wizards_artist.takashi_murakami Takashi Murakami
-| ?wizards_artist.patrice_murciano Patrice Murciano
-| ?wizards_artist.scott_musgrove Scott Musgrove
-| ?wizards_artist.wangechi_mutu Wangechi Mutu
-| ?wizards_artist.go_nagai Go Nagai
-| ?wizards_artist.hiroshi_nagai Hiroshi Nagai
-| ?wizards_artist.patrick_nagel Patrick Nagel
-| ?wizards_artist.tibor_nagy Tibor Nagy
-| ?wizards_artist.scott_naismith Scott Naismith
-| ?wizards_artist.juliana_nan Juliana Nan
-| ?wizards_artist.ted_nasmith Ted Nasmith
-| ?wizards_artist.todd_nauck Todd Nauck
-| ?wizards_artist.bruce_nauman Bruce Nauman
-| ?wizards_artist.ernst_wilhelm_nay Ernst Wilhelm Nay
-| ?wizards_artist.alice_neel Alice Neel
-| ?wizards_artist.keith_negley Keith Negley
-| ?wizards_artist.leroy_neiman LeRoy Neiman
-| ?wizards_artist.kadir_nelson Kadir Nelson
-| ?wizards_artist.odd_nerdrum Odd Nerdrum
-| ?wizards_artist.shirin_neshat Shirin Neshat
-| ?wizards_artist.mikhail_nesterov Mikhail Nesterov
-| ?wizards_artist.jane_newland Jane Newland
-| ?wizards_artist.victo_ngai Victo Ngai
-| ?wizards_artist.william_nicholson William Nicholson
-| ?wizards_artist.florian_nicolle Florian Nicolle
-| ?wizards_artist.kay_nielsen Kay Nielsen
-| ?wizards_artist.tsutomu_nihei Tsutomu Nihei
-| ?wizards_artist.victor_nizovtsev Victor Nizovtsev
-| ?wizards_artist.isamu_noguchi Isamu Noguchi
-| ?wizards_artist.catherine_nolin Catherine Nolin
-| ?wizards_artist.francois_de_nome François De Nomé
-| ?wizards_artist.earl_norem Earl Norem
-| ?wizards_artist.phil_noto Phil Noto
-| ?wizards_artist.georgia_okeeffe Georgia O'Keeffe
+                       | ?wizards_artist.nicolas_delort Nicolas Delort
+                       | ?wizards_artist.jean_delville Jean Delville
+                       | ?wizards_artist.posuka_demizu Posuka Demizu
+                       | ?wizards_artist.guy_denning Guy Denning
+                       | ?wizards_artist.monsu_desiderio Monsù Desiderio
+                       | ?wizards_artist.charles_maurice_detmold Charles Maurice Detmold
+                       | ?wizards_artist.edward_julius_detmold Edward Julius Detmold
+                       | ?wizards_artist.anne_dewailly Anne Dewailly
+                       | ?wizards_artist.walt_disney Walt Disney
+                       | ?wizards_artist.tony_diterlizzi Tony DiTerlizzi
+                       | ?wizards_artist.anna_dittmann Anna Dittmann
+                       | ?wizards_artist.dima_dmitriev Dima Dmitriev
+                       | ?wizards_artist.peter_doig Peter Doig
+                       | ?wizards_artist.kees_van_dongen Kees van Dongen
+                       | ?wizards_artist.gustave_dore Gustave Doré
+                       | ?wizards_artist.dave_dorman Dave Dorman
+                       | ?wizards_artist.emilio_giuseppe_dossena Emilio Giuseppe Dossena
+                       | ?wizards_artist.david_downton David Downton
+                       | ?wizards_artist.jessica_drossin Jessica Drossin
+                       | ?wizards_artist.philippe_druillet Philippe Druillet
+                       | ?wizards_artist.tj_drysdale TJ Drysdale
+                       | ?wizards_artist.ton_dubbeldam Ton Dubbeldam
+                       | ?wizards_artist.marcel_duchamp Marcel Duchamp
+                       | ?wizards_artist.joseph_ducreux Joseph Ducreux
+                       | ?wizards_artist.edmund_dulac Edmund Dulac
+                       | ?wizards_artist.marlene_dumas Marlene Dumas
+                       | ?wizards_artist.charles_dwyer Charles Dwyer
+                       | ?wizards_artist.william_dyce William Dyce
+                       | ?wizards_artist.chris_dyer Chris Dyer
+                       | ?wizards_artist.eyvind_earle Eyvind Earle
+                       | ?wizards_artist.amy_earles Amy Earles
+                       | ?wizards_artist.lori_earley Lori Earley
+                       | ?wizards_artist.jeff_easley Jeff Easley
+                       | ?wizards_artist.tristan_eaton Tristan Eaton
+                       | ?wizards_artist.jason_edmiston Jason Edmiston
+                       | ?wizards_artist.alfred_eisenstaedt Alfred Eisenstaedt
+                       | ?wizards_artist.jesper_ejsing Jesper Ejsing
+                       | ?wizards_artist.olafur_eliasson Olafur Eliasson
+                       | ?wizards_artist.harrison_ellenshaw Harrison Ellenshaw
+                       | ?wizards_artist.christine_ellger Christine Ellger
+                       | ?wizards_artist.larry_elmore Larry Elmore
+                       | ?wizards_artist.joseba_elorza Joseba Elorza
+                       | ?wizards_artist.peter_elson Peter Elson
+                       | ?wizards_artist.gil_elvgren Gil Elvgren
+                       | ?wizards_artist.ed_emshwiller Ed Emshwiller
+                       | ?wizards_artist.kilian_eng Kilian Eng
+                       | ?wizards_artist.jason_a_engle Jason A. Engle
+                       | ?wizards_artist.max_ernst Max Ernst
+                       | ?wizards_artist.romain_de_tirtoff_erte Romain de Tirtoff Erté
+                       | ?wizards_artist.m_c_escher M. C. Escher
+                       | ?wizards_artist.tim_etchells Tim Etchells
+                       | ?wizards_artist.walker_evans Walker Evans
+                       | ?wizards_artist.jan_van_eyck Jan van Eyck
+                       | ?wizards_artist.glenn_fabry Glenn Fabry
+                       | ?wizards_artist.ludwig_fahrenkrog Ludwig Fahrenkrog
+                       | ?wizards_artist.shepard_fairey Shepard Fairey
+                       | ?wizards_artist.andy_fairhurst Andy Fairhurst
+                       | ?wizards_artist.luis_ricardo_falero Luis Ricardo Falero
+                       | ?wizards_artist.jean_fautrier Jean Fautrier
+                       | ?wizards_artist.andrew_ferez Andrew Ferez
+                       | ?wizards_artist.hugh_ferriss Hugh Ferriss
+                       | ?wizards_artist.david_finch David Finch
+                       | ?wizards_artist.callie_fink Callie Fink
+                       | ?wizards_artist.virgil_finlay Virgil Finlay
+                       | ?wizards_artist.anato_finnstark Anato Finnstark
+                       | ?wizards_artist.howard_finster Howard Finster
+                       | ?wizards_artist.oskar_fischinger Oskar Fischinger
+                       | ?wizards_artist.samuel_melton_fisher Samuel Melton Fisher
+                       | ?wizards_artist.john_anster_fitzgerald John Anster Fitzgerald
+                       | ?wizards_artist.tony_fitzpatrick Tony Fitzpatrick
+                       | ?wizards_artist.hippolyte_flandrin Hippolyte Flandrin
+                       | ?wizards_artist.dan_flavin Dan Flavin
+                       | ?wizards_artist.max_fleischer Max Fleischer
+                       | ?wizards_artist.govaert_flinck Govaert Flinck
+                       | ?wizards_artist.alex_russell_flint Alex Russell Flint
+                       | ?wizards_artist.lucio_fontana Lucio Fontana
+                       | ?wizards_artist.chris_foss Chris Foss
+                       | ?wizards_artist.jon_foster Jon Foster
+                       | ?wizards_artist.jean_fouquet Jean Fouquet
+                       | ?wizards_artist.toby_fox Toby Fox
+                       | ?wizards_artist.art_frahm Art Frahm
+                       | ?wizards_artist.lisa_frank Lisa Frank
+                       | ?wizards_artist.helen_frankenthaler Helen Frankenthaler
+                       | ?wizards_artist.frank_frazetta Frank Frazetta
+                       | ?wizards_artist.kelly_freas Kelly Freas
+                       | ?wizards_artist.lucian_freud Lucian Freud
+                       | ?wizards_artist.brian_froud Brian Froud
+                       | ?wizards_artist.wendy_froud Wendy Froud
+                       | ?wizards_artist.tom_fruin Tom Fruin
+                       | ?wizards_artist.john_wayne_gacy John Wayne Gacy
+                       | ?wizards_artist.justin_gaffrey Justin Gaffrey
+                       | ?wizards_artist.hashimoto_gaho Hashimoto Gahō
+                       | ?wizards_artist.neil_gaiman Neil Gaiman
+                       | ?wizards_artist.stephen_gammell Stephen Gammell
+                       | ?wizards_artist.hope_gangloff Hope Gangloff
+                       | ?wizards_artist.alex_garant Alex Garant
+                       | ?wizards_artist.gilbert_garcin Gilbert Garcin
+                       | ?wizards_artist.michael_and_inessa_garmash Michael and Inessa Garmash
+                     | ?wizards_artist.antoni_gaudi Antoni Gaudi
+                     | 3 ?wizards_artist.jack_gaughan Jack Gaughan
+                     | ?wizards_artist.paul_gauguin Paul Gauguin
+                     | ?wizards_artist.giovanni_battista_gaulli Giovanni Battista Gaulli
+                     | ?wizards_artist.anne_geddes Anne Geddes
+                     | ?wizards_artist.bill_gekas Bill Gekas
+                     | ?wizards_artist.artemisia_gentileschi Artemisia Gentileschi
+                     | ?wizards_artist.orazio_gentileschi Orazio Gentileschi
+                     | ?wizards_artist.daniel_f_gerhartz Daniel F. Gerhartz
+                     | ?wizards_artist.theodore_gericault Théodore Géricault
+                     | ?wizards_artist.jean_leon_gerome Jean-Léon Gérôme
+                     | ?wizards_artist.mark_gertler Mark Gertler
+                     | ?wizards_artist.atey_ghailan Atey Ghailan
+                     | ?wizards_artist.alberto_giacometti Alberto Giacometti
+                     | ?wizards_artist.donato_giancola Donato Giancola
+                     | ?wizards_artist.hr_giger H.R. Giger
+                     | ?wizards_artist.james_gilleard James Gilleard
+                     | ?wizards_artist.harold_gilman Harold Gilman
+                     | ?wizards_artist.charles_ginner Charles Ginner
+                     | ?wizards_artist.jean_giraud Jean Giraud
+                     | ?wizards_artist.anne_louis_girodet Anne-Louis Girodet
+                     | ?wizards_artist.milton_glaser Milton Glaser
+                     | ?wizards_artist.warwick_goble Warwick Goble
+                     | ?wizards_artist.john_william_godward John William Godward
+                     | ?wizards_artist.sacha_goldberger Sacha Goldberger
+                     | ?wizards_artist.nan_goldin Nan Goldin
+                     | ?wizards_artist.josan_gonzalez Josan Gonzalez
+                     | ?wizards_artist.felix_gonzalez_torres Felix Gonzalez-Torres
+                     | ?wizards_artist.derek_gores Derek Gores
+                     | ?wizards_artist.edward_gorey Edward Gorey
+                     | ?wizards_artist.arshile_gorky Arshile Gorky
+                     | ?wizards_artist.alessandro_gottardo Alessandro Gottardo
+                     | ?wizards_artist.adolph_gottlieb Adolph Gottlieb
+                     | ?wizards_artist.francisco_goya Francisco Goya
+                     | ?wizards_artist.laurent_grasso Laurent Grasso
+                     | ?wizards_artist.mab_graves Mab Graves
+                     | ?wizards_artist.eileen_gray Eileen Gray
+                     | ?wizards_artist.kate_greenaway Kate Greenaway
+                     | ?wizards_artist.alex_grey Alex Grey
+                     | ?wizards_artist.carne_griffiths Carne Griffiths
+                     | ?wizards_artist.gris_grimly Gris Grimly
+                     | ?wizards_artist.brothers_grimm Brothers Grimm
+                     | ?wizards_artist.tracie_grimwood Tracie Grimwood
+                     | ?wizards_artist.matt_groening Matt Groening
+                     | ?wizards_artist.alex_gross Alex Gross
+                     | ?wizards_artist.tom_grummett Tom Grummett
+                     | ?wizards_artist.huang_guangjian Huang Guangjian
+                     | ?wizards_artist.wu_guanzhong Wu Guanzhong
+                     | ?wizards_artist.rebecca_guay Rebecca Guay
+                     | ?wizards_artist.guercino Guercino
+                     | ?wizards_artist.jeannette_guichard_bunel Jeannette Guichard-Bunel
+                     | ?wizards_artist.scott_gustafson Scott Gustafson
+                     | ?wizards_artist.wade_guyton Wade Guyton
+                     | ?wizards_artist.hans_haacke Hans Haacke
+                     | ?wizards_artist.robert_hagan Robert Hagan
+                     | ?wizards_artist.philippe_halsman Philippe Halsman
+                     | ?wizards_artist.maggi_hambling Maggi Hambling
+                     | ?wizards_artist.richard_hamilton Richard Hamilton
+                     | ?wizards_artist.bess_hamiti Bess Hamiti
+                     | ?wizards_artist.tom_hammick Tom Hammick
+                     | ?wizards_artist.david_hammons David Hammons
+                     | ?wizards_artist.ren_hang Ren Hang
+                     | ?wizards_artist.erin_hanson Erin Hanson
+                     | ?wizards_artist.keith_haring Keith Haring
+                     | ?wizards_artist.alexei_harlamoff Alexei Harlamoff
+                     | ?wizards_artist.charley_harper Charley Harper
+                     | ?wizards_artist.john_harris John Harris
+                     | ?wizards_artist.florence_harrison Florence Harrison
+                     | ?wizards_artist.marsden_hartley Marsden Hartley
+                     | ?wizards_artist.ryohei_hase Ryohei Hase
+                     | ?wizards_artist.childe_hassam Childe Hassam
+                     | ?wizards_artist.ben_hatke Ben Hatke
+                     | ?wizards_artist.mona_hatoum Mona Hatoum
+                     | ?wizards_artist.pam_hawkes Pam Hawkes
+                     | ?wizards_artist.jamie_hawkesworth Jamie Hawkesworth
+                     | ?wizards_artist.stuart_haygarth Stuart Haygarth
+                     | ?wizards_artist.erich_heckel Erich Heckel
+                     | ?wizards_artist.valerie_hegarty Valerie Hegarty
+                     | ?wizards_artist.mary_heilmann Mary Heilmann
+                     | ?wizards_artist.michael_heizer Michael Heizer
+                     | ?wizards_artist.gottfried_helnwein Gottfried Helnwein
+                     | ?wizards_artist.barkley_l_hendricks Barkley L. Hendricks
+                     | ?wizards_artist.bill_henson Bill Henson
+                     | ?wizards_artist.barbara_hepworth Barbara Hepworth
+                     | ?wizards_artist.herge Hergé
+                     | ?wizards_artist.carolina_herrera Carolina Herrera
+                     | ?wizards_artist.george_herriman George Herriman
+                     | ?wizards_artist.don_hertzfeldt Don Hertzfeldt
+                     | ?wizards_artist.prudence_heward Prudence Heward
+                     | ?wizards_artist.ryan_hewett Ryan Hewett
+                     | ?wizards_artist.nora_heysen Nora Heysen
+                     | ?wizards_artist.george_elgar_hicks George Elgar Hicks
+                     | ?wizards_artist.lorenz_hideyoshi Lorenz Hideyoshi
+                     | ?wizards_artist.brothers_hildebrandt Brothers Hildebrandt
+                     | ?wizards_artist.dan_hillier Dan Hillier
+                     | ?wizards_artist.lewis_hine Lewis Hine
+                     | ?wizards_artist.miho_hirano Miho Hirano
+                     | ?wizards_artist.harumi_hironaka Harumi Hironaka
+                     | ?wizards_artist.hiroshige Hiroshige
+                     | ?wizards_artist.morris_hirshfield Morris Hirshfield
+                     | ?wizards_artist.damien_hirst Damien Hirst
+                     | ?wizards_artist.fan_ho Fan Ho
+                     | ?wizards_artist.meindert_hobbema Meindert Hobbema
+                     | ?wizards_artist.david_hockney David Hockney
+                     | ?wizards_artist.filip_hodas Filip Hodas
+                     | ?wizards_artist.howard_hodgkin Howard Hodgkin
+                     | ?wizards_artist.ferdinand_hodler Ferdinand Hodler
+                     | ?wizards_artist.tiago_hoisel Tiago Hoisel
+                     | ?wizards_artist.katsushika_hokusai Katsushika Hokusai
+                     | ?wizards_artist.hans_holbein_the_younger Hans Holbein the Younger
+                     | ?wizards_artist.frank_holl Frank Holl
+                     | ?wizards_artist.carsten_holler Carsten Holler
+                     | ?wizards_artist.zena_holloway Zena Holloway
+                     | ?wizards_artist.edward_hopper Edward Hopper
+                     | ?wizards_artist.aaron_horkey Aaron Horkey
+                     | ?wizards_artist.alex_horley Alex Horley
+                     | ?wizards_artist.roni_horn Roni Horn
+                     | ?wizards_artist.john_howe John Howe
+                     | ?wizards_artist.alex_howitt Alex Howitt
+                     | ?wizards_artist.meghan_howland Meghan Howland
+                     | ?wizards_artist.john_hoyland John Hoyland
+                     | ?wizards_artist.shilin_huang Shilin Huang
+                     | ?wizards_artist.arthur_hughes Arthur Hughes
+                     | ?wizards_artist.edward_robert_hughes Edward Robert Hughes
+                     | ?wizards_artist.jack_hughes Jack Hughes
+                     | ?wizards_artist.talbot_hughes Talbot Hughes
+                     | ?wizards_artist.pieter_hugo Pieter Hugo
+                     | ?wizards_artist.gary_hume Gary Hume
+                     | ?wizards_artist.friedensreich_hundertwasser Friedensreich Hundertwasser
+                     | ?wizards_artist.william_holman_hunt William Holman Hunt
+                     | ?wizards_artist.george_hurrell George Hurrell
+                     | ?wizards_artist.fabio_hurtado Fabio Hurtado
+                     | ?wizards_artist.hush HUSH
+                     | ?wizards_artist.michael_hutter Michael Hutter
+                     | ?wizards_artist.pierre_huyghe Pierre Huyghe
+                     | ?wizards_artist.doug_hyde Doug Hyde
+                     | ?wizards_artist.louis_icart Louis Icart
+                     | ?wizards_artist.robert_indiana Robert Indiana
+                     | ?wizards_artist.jean_auguste_dominique_ingres Jean Auguste Dominique Ingres
+                     | ?wizards_artist.robert_irwin Robert Irwin
+                     | ?wizards_artist.gabriel_isak Gabriel Isak
+                     | ?wizards_artist.junji_ito Junji Ito
+                     | ?wizards_artist.christophe_jacrot Christophe Jacrot
+                     | ?wizards_artist.louis_janmot Louis Janmot
+                     | ?wizards_artist.frieke_janssens Frieke Janssens
+                     | ?wizards_artist.alexander_jansson Alexander Jansson
+                     | ?wizards_artist.tove_jansson Tove Jansson
+                     | ?wizards_artist.aaron_jasinski Aaron Jasinski
+                     | ?wizards_artist.alexej_von_jawlensky Alexej von Jawlensky
+                     | ?wizards_artist.james_jean James Jean
+                     | ?wizards_artist.oliver_jeffers Oliver Jeffers
+                     | ?wizards_artist.lee_jeffries Lee Jeffries
+                     | ?wizards_artist.georg_jensen Georg Jensen
+                     | ?wizards_artist.ellen_jewett Ellen Jewett
+                     | ?wizards_artist.he_jiaying He Jiaying
+                     | ?wizards_artist.chantal_joffe Chantal Joffe
+                     | ?wizards_artist.martine_johanna Martine Johanna
+                     | ?wizards_artist.augustus_john Augustus John
+                     | ?wizards_artist.gwen_john Gwen John
+                     | ?wizards_artist.jasper_johns Jasper Johns
+                     | ?wizards_artist.eastman_johnson Eastman Johnson
+                     | ?wizards_artist.alfred_cheney_johnston Alfred Cheney Johnston
+                     | ?wizards_artist.dorothy_johnstone Dorothy Johnstone
+                     | ?wizards_artist.android_jones Android Jones
+                     | ?wizards_artist.erik_jones Erik Jones
+                     | ?wizards_artist.jeffrey_catherine_jones Jeffrey Catherine Jones
+                     | ?wizards_artist.peter_andrew_jones Peter Andrew Jones
+                     | ?wizards_artist.loui_jover Loui Jover
+                     | ?wizards_artist.amy_judd Amy Judd
+                     | ?wizards_artist.donald_judd Donald Judd
+                     | ?wizards_artist.jean_jullien Jean Jullien
+                     | ?wizards_artist.matthias_jung Matthias Jung
+                     | ?wizards_artist.joe_jusko Joe Jusko
+                     | ?wizards_artist.frida_kahlo Frida Kahlo
+                     | ?wizards_artist.hayv_kahraman Hayv Kahraman
+                     | ?wizards_artist.mw_kaluta M.W. Kaluta
+                     | ?wizards_artist.nadav_kander Nadav Kander
+                     | ?wizards_artist.wassily_kandinsky Wassily Kandinsky
+                     | ?wizards_artist.jun_kaneko Jun Kaneko
+                     | ?wizards_artist.titus_kaphar Titus Kaphar
+                     | ?wizards_artist.michal_karcz Michal Karcz
+                     | ?wizards_artist.gertrude_kasebier Gertrude Käsebier
+                     | ?wizards_artist.terada_katsuya Terada Katsuya
+                     | ?wizards_artist.audrey_kawasaki Audrey Kawasaki
+                     | ?wizards_artist.hasui_kawase Hasui Kawase
+                     | ?wizards_artist.glen_keane Glen Keane
+                     | ?wizards_artist.margaret_keane Margaret Keane
+                     | ?wizards_artist.ellsworth_kelly Ellsworth Kelly
+                     | ?wizards_artist.michael_kenna Michael Kenna
+                     | ?wizards_artist.thomas_benjamin_kennington Thomas Benjamin Kennington
+                     | ?wizards_artist.william_kentridge William Kentridge
+                     | ?wizards_artist.hendrik_kerstens Hendrik Kerstens
+                     | ?wizards_artist.jeremiah_ketner Jeremiah Ketner
+                     | ?wizards_artist.fernand_khnopff Fernand Khnopff
+                     | ?wizards_artist.hideyuki_kikuchi Hideyuki Kikuchi
+                     | ?wizards_artist.tom_killion Tom Killion
+                     | ?wizards_artist.thomas_kinkade Thomas Kinkade
+                     | ?wizards_artist.jack_kirby Jack Kirby
+                     | ?wizards_artist.ernst_ludwig_kirchner Ernst Ludwig Kirchner
+                     | ?wizards_artist.tatsuro_kiuchi Tatsuro Kiuchi
+                     | ?wizards_artist.jon_klassen Jon Klassen
+                     | ?wizards_artist.paul_klee Paul Klee
+                     | ?wizards_artist.william_klein William Klein
+                     | ?wizards_artist.yves_klein Yves Klein
+                     | ?wizards_artist.carl_kleiner Carl Kleiner
+                     | ?wizards_artist.gustav_klimt Gustav Klimt
+                     | ?wizards_artist.godfrey_kneller Godfrey Kneller
+                     | ?wizards_artist.emily_kame_kngwarreye Emily Kame Kngwarreye
+                     | ?wizards_artist.chad_knight Chad Knight
+                     | ?wizards_artist.nick_knight Nick Knight
+                     | ?wizards_artist.helene_knoop Helene Knoop
+                     | ?wizards_artist.phil_koch Phil Koch
+                     | ?wizards_artist.kazuo_koike Kazuo Koike
+                     | ?wizards_artist.oskar_kokoschka Oskar Kokoschka
+                     | ?wizards_artist.kathe_kollwitz Käthe Kollwitz
+                     | ?wizards_artist.michael_komarck Michael Komarck
+                     | ?wizards_artist.satoshi_kon Satoshi Kon
+                     | ?wizards_artist.jeff_koons Jeff Koons
+                     | ?wizards_artist.caia_koopman Caia Koopman
+                     | ?wizards_artist.konstantin_korovin Konstantin Korovin
+                     | ?wizards_artist.mark_kostabi Mark Kostabi
+                     | ?wizards_artist.bella_kotak Bella Kotak
+                     | ?wizards_artist.andrea_kowch Andrea Kowch
+                     | ?wizards_artist.lee_krasner Lee Krasner
+                     | ?wizards_artist.barbara_kruger Barbara Kruger
+                     | ?wizards_artist.brad_kunkle Brad Kunkle
+                     | ?wizards_artist.yayoi_kusama Yayoi Kusama
+                     | ?wizards_artist.michael_k_kutsche Michael K Kutsche
+                     | ?wizards_artist.ilya_kuvshinov Ilya Kuvshinov
+                     | ?wizards_artist.david_lachapelle David LaChapelle
+                     | ?wizards_artist.raphael_lacoste Raphael Lacoste
+                     | ?wizards_artist.lev_lagorio Lev Lagorio
+                     | ?wizards_artist.rene_lalique René Lalique
+                     | ?wizards_artist.abigail_larson Abigail Larson
+                     | ?wizards_artist.gary_larson Gary Larson
+                     | ?wizards_artist.denys_lasdun Denys Lasdun
+                     | ?wizards_artist.maria_lassnig Maria Lassnig
+                     | ?wizards_artist.dorothy_lathrop Dorothy Lathrop
+                     | ?wizards_artist.melissa_launay Melissa Launay
+                     | ?wizards_artist.john_lavery John Lavery
+                     | ?wizards_artist.jacob_lawrence Jacob Lawrence
+                     | ?wizards_artist.thomas_lawrence Thomas Lawrence
+                     | ?wizards_artist.ernest_lawson Ernest Lawson
+                     | ?wizards_artist.bastien_lecouffe_deharme Bastien Lecouffe-Deharme
+                     | ?wizards_artist.alan_lee Alan Lee
+                     | ?wizards_artist.minjae_lee Minjae Lee
+                     | ?wizards_artist.nina_leen Nina Leen
+                     | ?wizards_artist.fernand_leger Fernand Leger
+                     | ?wizards_artist.paul_lehr Paul Lehr
+                     | ?wizards_artist.frederic_leighton Frederic Leighton
+                     | ?wizards_artist.alayna_lemmer Alayna Lemmer
+                     | ?wizards_artist.tamara_de_lempicka Tamara de Lempicka
+                     | ?wizards_artist.sol_lewitt Sol LeWitt
+                     | ?wizards_artist.jc_leyendecker J.C. Leyendecker
+                     | ?wizards_artist.andre_lhote André Lhote
+                     | ?wizards_artist.roy_lichtenstein Roy Lichtenstein
+                     | ?wizards_artist.rob_liefeld Rob Liefeld
+                     | ?wizards_artist.fang_lijun Fang Lijun
+                     | ?wizards_artist.maya_lin Maya Lin
+                     | ?wizards_artist.filippino_lippi Filippino Lippi
+                     | ?wizards_artist.herbert_list Herbert List
+                     | ?wizards_artist.richard_long Richard Long
+                     | ?wizards_artist.yoann_lossel Yoann Lossel
+                     | ?wizards_artist.morris_louis Morris Louis
+                     | ?wizards_artist.sarah_lucas Sarah Lucas
+                     | ?wizards_artist.maximilien_luce Maximilien Luce
+                     | ?wizards_artist.loretta_lux Loretta Lux
+                     | ?wizards_artist.george_platt_lynes George Platt Lynes
+                     | ?wizards_artist.frances_macdonald Frances MacDonald
+                     | ?wizards_artist.august_macke August Macke
+                     | ?wizards_artist.stephen_mackey Stephen Mackey
+                     | ?wizards_artist.rachel_maclean Rachel Maclean
+                     | ?wizards_artist.raimundo_de_madrazo_y_garreta Raimundo de Madrazo y Garreta
+                     | ?wizards_artist.joe_madureira Joe Madureira
+                     | ?wizards_artist.rene_magritte Rene Magritte
+                     | ?wizards_artist.jim_mahfood Jim Mahfood
+                     | ?wizards_artist.vivian_maier Vivian Maier
+                     | ?wizards_artist.aristide_maillol Aristide Maillol
+                     | ?wizards_artist.don_maitz Don Maitz
+                     | ?wizards_artist.laura_makabresku Laura Makabresku
+                     | ?wizards_artist.alex_maleev Alex Maleev
+                     | ?wizards_artist.keith_mallett Keith Mallett
+                     | ?wizards_artist.johji_manabe Johji Manabe
+                     | ?wizards_artist.milo_manara Milo Manara
+                     | ?wizards_artist.edouard_manet Édouard Manet
+                     | ?wizards_artist.henri_manguin Henri Manguin
+                     | ?wizards_artist.jeremy_mann Jeremy Mann
+                     | ?wizards_artist.sally_mann Sally Mann
+                     | ?wizards_artist.andrea_mantegna Andrea Mantegna
+                     | ?wizards_artist.antonio_j_manzanedo Antonio J. Manzanedo
+                     | ?wizards_artist.robert_mapplethorpe Robert Mapplethorpe
+                     | ?wizards_artist.franz_marc Franz Marc
+                     | ?wizards_artist.ivan_marchuk Ivan Marchuk
+                     | ?wizards_artist.brice_marden Brice Marden
+                     | ?wizards_artist.andrei_markin Andrei Markin
+                     | ?wizards_artist.kerry_james_marshall Kerry James Marshall
+                     | ?wizards_artist.serge_marshennikov Serge Marshennikov
+                     | ?wizards_artist.agnes_martin Agnes Martin
+                     | ?wizards_artist.adam_martinakis Adam Martinakis
+                     | ?wizards_artist.stephan_martiniere Stephan Martinière
+                     | ?wizards_artist.ilya_mashkov Ilya Mashkov
+                     | ?wizards_artist.henri_matisse Henri Matisse
+                     | ?wizards_artist.rodney_matthews Rodney Matthews
+                     | ?wizards_artist.anton_mauve Anton Mauve
+                     | ?wizards_artist.peter_max Peter Max
+                     | ?wizards_artist.mike_mayhew Mike Mayhew
+                     | ?wizards_artist.angus_mcbride Angus McBride
+                     | ?wizards_artist.anne_mccaffrey Anne McCaffrey
+                     | ?wizards_artist.robert_mccall Robert McCall
+                     | ?wizards_artist.scott_mccloud Scott McCloud
+                     | ?wizards_artist.steve_mccurry Steve McCurry
+                     | ?wizards_artist.todd_mcfarlane Todd McFarlane
+                     | ?wizards_artist.barry_mcgee Barry McGee
+                     | ?wizards_artist.ryan_mcginley Ryan McGinley
+                     | ?wizards_artist.robert_mcginnis Robert McGinnis
+                     | ?wizards_artist.richard_mcguire Richard McGuire
+                     | ?wizards_artist.patrick_mchale Patrick McHale
+                     | ?wizards_artist.kelly_mckernan Kelly McKernan
+                     | ?wizards_artist.angus_mckie Angus McKie
+                     | ?wizards_artist.alasdair_mclellan Alasdair McLellan
+                     | ?wizards_artist.jon_mcnaught Jon McNaught
+                     | ?wizards_artist.dan_mcpharlin Dan McPharlin
+                     | ?wizards_artist.tara_mcpherson Tara McPherson
+                     | ?wizards_artist.ralph_mcquarrie Ralph McQuarrie
+                     | ?wizards_artist.ian_mcque Ian McQue
+                     | ?wizards_artist.syd_mead Syd Mead
+                     | ?wizards_artist.richard_meier Richard Meier
+                     | ?wizards_artist.maria_sibylla_merian Maria Sibylla Merian
+                     | ?wizards_artist.willard_metcalf Willard Metcalf
+                     | ?wizards_artist.gabriel_metsu Gabriel Metsu
+                     | ?wizards_artist.jean_metzinger Jean Metzinger
+                     | ?wizards_artist.michelangelo Michelangelo
+                     | ?wizards_artist.nicolas_mignard Nicolas Mignard
+                     | ?wizards_artist.mike_mignola Mike Mignola
+                     | ?wizards_artist.dimitra_milan Dimitra Milan
+                     | ?wizards_artist.john_everett_millais John Everett Millais
+                     | ?wizards_artist.marilyn_minter Marilyn Minter
+                     | ?wizards_artist.januz_miralles Januz Miralles
+                     | ?wizards_artist.joan_miro Joan Miró
+                     | ?wizards_artist.joan_mitchell Joan Mitchell
+                     | ?wizards_artist.hayao_miyazaki Hayao Miyazaki
+                     | ?wizards_artist.paula_modersohn_becker Paula Modersohn-Becker
+                     | ?wizards_artist.amedeo_modigliani Amedeo Modigliani
+                     | ?wizards_artist.moebius Moebius
+                     | ?wizards_artist.peter_mohrbacher Peter Mohrbacher
+                     | ?wizards_artist.piet_mondrian Piet Mondrian
+                     | ?wizards_artist.claude_monet Claude Monet
+                     | ?wizards_artist.jean_baptiste_monge Jean-Baptiste Monge
+                     | ?wizards_artist.alyssa_monks Alyssa Monks
+                     | ?wizards_artist.alan_moore Alan Moore
+                     | ?wizards_artist.antonio_mora Antonio Mora
+                     | ?wizards_artist.edward_moran Edward Moran
+                     | ?wizards_artist.koji_morimoto Kōji Morimoto
+                     | ?wizards_artist.berthe_morisot Berthe Morisot
+                     | ?wizards_artist.daido_moriyama Daido Moriyama
+                     | ?wizards_artist.james_wilson_morrice James Wilson Morrice
+                     | ?wizards_artist.sarah_morris Sarah Morris
+                     | ?wizards_artist.john_lowrie_morrison John Lowrie Morrison
+                     | ?wizards_artist.igor_morski Igor Morski
+                     | ?wizards_artist.john_kenn_mortensen John Kenn Mortensen
+                     | ?wizards_artist.victor_moscoso Victor Moscoso
+                     | ?wizards_artist.inna_mosina Inna Mosina
+                     | ?wizards_artist.richard_mosse Richard Mosse
+                     | ?wizards_artist.thomas_edwin_mostyn Thomas Edwin Mostyn
+                     | ?wizards_artist.marcel_mouly Marcel Mouly
+                     | ?wizards_artist.emmanuelle_moureaux Emmanuelle Moureaux
+                     | ?wizards_artist.alphonse_mucha Alphonse Mucha
+                     | ?wizards_artist.craig_mullins Craig Mullins
+                     | ?wizards_artist.augustus_edwin_mulready Augustus Edwin Mulready
+                     | ?wizards_artist.dan_mumford Dan Mumford
+                     | ?wizards_artist.edvard_munch Edvard Munch
+                     | ?wizards_artist.alfred_munnings Alfred Munnings
+                     | ?wizards_artist.gabriele_munter Gabriele Münter
+                     | ?wizards_artist.takashi_murakami Takashi Murakami
+                     | ?wizards_artist.patrice_murciano Patrice Murciano
+                     | ?wizards_artist.scott_musgrove Scott Musgrove
+                     | ?wizards_artist.wangechi_mutu Wangechi Mutu
+                     | ?wizards_artist.go_nagai Go Nagai
+                     | ?wizards_artist.hiroshi_nagai Hiroshi Nagai
+                     | ?wizards_artist.patrick_nagel Patrick Nagel
+                     | ?wizards_artist.tibor_nagy Tibor Nagy
+                     | ?wizards_artist.scott_naismith Scott Naismith
+                     | ?wizards_artist.juliana_nan Juliana Nan
+                     | ?wizards_artist.ted_nasmith Ted Nasmith
+                     | ?wizards_artist.todd_nauck Todd Nauck
+                     | ?wizards_artist.bruce_nauman Bruce Nauman
+                     | ?wizards_artist.ernst_wilhelm_nay Ernst Wilhelm Nay
+                     | ?wizards_artist.alice_neel Alice Neel
+                     | ?wizards_artist.keith_negley Keith Negley
+                     | ?wizards_artist.leroy_neiman LeRoy Neiman
+                     | ?wizards_artist.kadir_nelson Kadir Nelson
+                     | ?wizards_artist.odd_nerdrum Odd Nerdrum
+                     | ?wizards_artist.shirin_neshat Shirin Neshat
+                     | ?wizards_artist.mikhail_nesterov Mikhail Nesterov
+                     | ?wizards_artist.jane_newland Jane Newland
+                     | ?wizards_artist.victo_ngai Victo Ngai
+                     | ?wizards_artist.william_nicholson William Nicholson
+                     | ?wizards_artist.florian_nicolle Florian Nicolle
+                     | ?wizards_artist.kay_nielsen Kay Nielsen
+                     | ?wizards_artist.tsutomu_nihei Tsutomu Nihei
+                     | ?wizards_artist.victor_nizovtsev Victor Nizovtsev
+                     | ?wizards_artist.isamu_noguchi Isamu Noguchi
+                     | ?wizards_artist.catherine_nolin Catherine Nolin
+                     | ?wizards_artist.francois_de_nome François De Nomé
+                     | ?wizards_artist.earl_norem Earl Norem
+                     | ?wizards_artist.phil_noto Phil Noto
+                     | ?wizards_artist.georgia_okeeffe Georgia O'Keeffe
 | ?wizards_artist.terry_oakes Terry Oakes
 | ?wizards_artist.chris_ofili Chris Ofili
 | ?wizards_artist.jack_ohman Jack Ohman
@@ -6268,8 +6312,8 @@ function expand_wildcards(thing, context = new Context()) {
       if (value instanceof ASTNode) {
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
         const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
-                                              ? JsoncObject
-                                              : Jsonc).match(expanded_value);
+                                              ? rJsoncObject
+                                              : rJsonc).match(expanded_value);
 
         if (thing instanceof ASTUpdateConfigBinary) {
           value = jsconc_parsed_expanded_value?.is_finished
@@ -6278,7 +6322,7 @@ function expand_wildcards(thing, context = new Context()) {
         }
         else { // ASTUpdateConfigUnary
           throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                          `JSONC object, Jsonc.match(...) result was ` +
+                          `rJSONC object, rJsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_expanded_value));
         }
       }
@@ -6296,9 +6340,9 @@ function expand_wildcards(thing, context = new Context()) {
 
         if (log_config_enabled)
           console.log(`config ${thing.assign ? '=' : '+='} ` +
-                      `${JSON.stringify(new_obj)}, ` +
+                      `${inspect_fun(new_obj)}, ` +
                       `config is now: ` +
-                      `${JSON.stringify(context.config)}`);
+                      `${inspect_fun(context.config, true)}`);
       }
       else { // ASTUpdateConfigBinary
         const our_name = get_our_name(thing.key); 
@@ -6372,7 +6416,7 @@ function expand_wildcards(thing, context = new Context()) {
               `${thing.assign ? '=' : '+='} ` +
               `${inspect_fun(value)}, ` +
               `config is now: ` +
-              `${JSON.stringify(context.config)}`);
+              `${inspect_fun(context.config, true)}`);
       }
       
       return '';
@@ -6950,7 +6994,7 @@ const DiscardedComments                = discard(wst_star(comment));
 const SpecialFunctionInclude           = xform(arr => new ASTInclude(arr[1]),
                                                c_funcall('%include',
                                                          first(wst_seq(DiscardedComments,
-                                                                       Jsonc,
+                                                                       json_string,
                                                                        DiscardedComments))))
 const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     () => "%include is only supported when " +
@@ -6983,14 +7027,14 @@ const SpecialFunctionUpdateConfigurationBinary =
                         seq(ident,                                       // [1][0]
                             wst_seq(choice(incr_assignment_operator,
                                            assignment_operator),         // [1][1][0]
-                                    choice(Jsonc,
+                                    choice(rJsonc,
                                            () => LimitedContent)))));    // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq(/%c(?:onf(?:ig)?)?/,                 // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),        // [0][1]
-                            choice(JsoncObject, () => LimitedContent))); // [1]   
+                            choice(rJsoncObject, () => LimitedContent))); // [1]   
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary,
                                                   //SpecialFunctionUpdateNegativePrompt
