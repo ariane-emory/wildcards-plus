@@ -6502,8 +6502,8 @@ function expand_wildcards(thing, context = new Context()) {
       if (value instanceof ASTNode) {
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
         const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
-                                              ? JsoncObject
-                                              : Jsonc).match(expanded_value);
+                                              ? rJsoncObject
+                                              : rJsonc).match(expanded_value);
 
         if (thing instanceof ASTUpdateConfigBinary) {
           value = jsconc_parsed_expanded_value?.is_finished
@@ -6512,7 +6512,7 @@ function expand_wildcards(thing, context = new Context()) {
         }
         else { // ASTUpdateConfigUnary
           throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                          `JSONC object, Jsonc.match(...) result was ` +
+                          `rJSONC object, rJsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_expanded_value));
         }
       }
@@ -7184,7 +7184,7 @@ const DiscardedComments                = discard(wst_star(comment));
 const SpecialFunctionInclude           = xform(arr => new ASTInclude(arr[1]),
                                                c_funcall('%include',
                                                          first(wst_seq(DiscardedComments,
-                                                                       Jsonc,
+                                                                       json_string,
                                                                        DiscardedComments))))
 const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     () => "%include is only supported when " +
@@ -7600,6 +7600,3 @@ main().catch(err => {
 // END OF MAIN SECTION.
 // =================================================================================================
 // log_match_enabled = true;
-console.log(
-  rJsoncObject.match(`{ foo: 123, "bar": 234 }`)
-);
