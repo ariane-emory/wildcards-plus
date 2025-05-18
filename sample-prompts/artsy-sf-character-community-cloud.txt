@@ -503,4 +503,4 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 // %conf.negativePrompt =  "FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR,"
 // %n                  += { CORGE, GRAULT, }
 
-%single_pick = true_randomness
+// %single_pick = true_randomness
