@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // -*- fill-column: 100; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
-// This file is NOT the Draw Things script: that's over in wildcards-plus.js.
+// THIS FILE IS NOT THE DRAW THINGS SCRIPT: that's over in wildcards-plus.js.
 //
 // This script is a tool that you can use at the command line (you'll need to have Node.js
 // installed) to test out wildcards-plus prompts that you're working on to see how they'll
@@ -63,28 +63,15 @@ function parse_file(filename) {
   return result;
 }
 // -------------------------------------------------------------------------------------------------
-function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860,
-                               negative_prompt = undefined } = {}) {
+function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 }) {
   console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
-  let data = { prompt: prompt,
-               ...config,
-               negative_prompt: negative_prompt || negative_prompt === '' ? negative_prompt : undefined };
+  const data = { prompt: prompt,  ...config };
 
-  // // doing this seems convenient?
-  // if (data.n_iter && (typeof data.n_iter === 'number') && data.n_iter > 1) { 
-  //   console.log(`FIX SEED!`);
-  
-  //   data.seed = -1;
-  // }
-  // else {
-  //   data.seed = Math.floor(Math.random() * (2 ** 32));
-  // }
-  
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
-    console.log(`POST data is: ${JSON.stringify(data)}`);
+    console.log(`POST data is: ${JSON.stringify(data, null, 2)}`);
 
   const options = {
     hostname: hostname,
@@ -2532,6 +2519,11 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 // -------------------------------------------------------------------------------------------------
 const config_key_names = [
   // [ dt_name, automatic1111_name ],
+  // shorthand, not a real field name:
+  [ 'neg',                          'negative_prompt'                            ],
+  [ 'negative',                     'negative_prompt'                            ],
+  [ 'negativePrompt',               'neg'                                        ],
+  [ 'negativePrompt',               'negative'                                   ],
   // identical keys:
   [ 'controls',                     'controls'                                   ],
   [ 'fps',                          'fps'                                        ],
@@ -2581,7 +2573,7 @@ const config_key_names = [
   [ 'negativeAestheticScore',       'negative_aesthetic_score'                   ],
   [ 'negativeOriginalHeight',       'negative_original_height'                   ],
   [ 'negativeOriginalWidth',        'negative_original_width'                    ],
-  [ 'negativePrompt',               'negative-prompt'                            ],
+  [ 'negativePrompt',               'negative_prompt'                            ],
   [ 'negativePromptForImagePrior',  'negative_prompt_for_image_prior'            ],
   [ 'openClipGText',                'speed_up_with_guidance_embed'               ],
   [ 'originalHeight',               'original_height'                            ],
@@ -2616,6 +2608,30 @@ const config_key_names = [
   [ 'zeroNegativePrompt',           'zero_negative_prompt'                       ],
 ];
 // -------------------------------------------------------------------------------------------------
+function get_automatic111_name(dt_name) {
+  const got = config_key_names.find(([dt_name2, automatic1111_name]) => dt_name2 === dt_name);
+  if (got)
+    return got[1];
+  return dt_name;
+}
+// -------------------------------------------------------------------------------------------------
+function get_dt_name(automatic1111_name) {
+  const got = config_key_names.find(([dt_name, automatic1111_name2]) => automatic1111_name2 === automatic1111_name);
+  if (got)
+    return got[0];
+  return automatic1111_name;
+}
+// -------------------------------------------------------------------------------------------------
+function get_our_name(name) {
+  const res = (dt_hosted
+               ? get_dt_name
+               : get_automatic111_name)(name);
+
+  // console.log(`got our name for ${name}: ${res}`);
+  
+  return res;
+}
+// -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   config = clone_fun(config);
 
@@ -2632,6 +2648,9 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 
     if (config.model.endsWith('.ckpt')) {
       // do nothing
+    }
+    else if (config.model.endsWith('_svd')) {
+      config.model = `${config.model}.ckpt`;
     }
     else if (config.model.endsWith('_q5p')) {
       config.model = `${config.model}.ckpt`;
@@ -2665,23 +2684,23 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     }
     const corrected = new Set();
     
-    for (const [dt_name, automatic1111_name] of config_key_names) {
-      if (config[automatic1111_name] !== undefined) {
-        if (corrected.has(dt_name))
-          continue;
-        
-        corrected.add(dt_name);
+    // for (const [dt_name, automatic1111_name] of config_key_names) {
+    //   if (config[automatic1111_name] !== undefined) {
+    //     if (corrected.has(dt_name))
+    //       continue;
+    
+    //     corrected.add(dt_name);
 
-        if (automatic1111_name === dt_name)
-          continue;
-        
-        console.log(`Correcting config.${automatic1111_name} = ` +
-                    `${config[automatic1111_name]} to ` +
-                    `config.${dt_name} = ${config[automatic1111_name]}.`);
-        config[dt_name] = config[automatic1111_name];
-        delete config[automatic1111_name];
-      }
-    }
+    //     if (automatic1111_name === dt_name)
+    //       continue;
+    
+    //     console.log(`Correcting config.${automatic1111_name} = ` +
+    //                 `${config[automatic1111_name]} to ` +
+    //                 `config.${dt_name} = ${config[automatic1111_name]}.`);
+    //     config[dt_name] = config[automatic1111_name];
+    //     delete config[automatic1111_name];
+    //   }
+    // }
   }
   else { // running in Node.js, sampler needs to be a string:
     if (config.sampler !== undefined && typeof config.sampler ===  'number') {
@@ -2690,38 +2709,34 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
       config.sampler = dt_samplers[config.sampler];
     }
 
-    const corrected = new Set();
+    // const corrected = new Set();
     
-    for (const [dt_name, automatic1111_name] of config_key_names) {      
-      if (config[dt_name] !== undefined) {
-        if (corrected.has(dt_name))
-          continue;
-        
-        corrected.add(dt_name);
+    // for (const [dt_name, automatic1111_name] of config_key_names) {      
+    //   if (config[dt_name] !== undefined) {
+    //     if (corrected.has(dt_name))
+    //       continue;
+    
+    //     corrected.add(dt_name);
 
-        if (automatic1111_name === dt_name)
-          continue;
-        
-        console.log(`Correcting config.${dt_name} = ` +
-                    `${inspect_fun(config[dt_name])} to ` +
-                    `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
-        config[automatic1111_name] = config[dt_name];
-        delete config[dt_name];
-      }
-    }
+    //     if (automatic1111_name === dt_name)
+    //       continue;
+    
+    //     console.log(`Correcting config.${dt_name} = ` +
+    //                 `${inspect_fun(config[dt_name])} to ` +
+    //                 `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
+    //     config[automatic1111_name] = config[dt_name];
+    //     delete config[dt_name];
+    //   }
+    // }
   }
 
   // 'fix' seed if n_iter > 1, doing this seems convenient?
   if (! config.seed) {
-    if ((config.n_iter      &&
-         (typeof config.n_iter      === 'number') && config.n_iter      > 1) ||
-        (config.batch_count &&
-         (typeof config.batch_count === 'number') && config.batch_count > 1) ||
-        (config.batchCount  &&
-         (typeof config.batchCount  === 'number') && config.batchCount  > 1)) { 
+    const n_iter_key = get_our_name('n_iter');
 
+    if (config[n_iter_key] && (typeof config[n_iter_key] === 'number') && config[n_iter_key] > 1) {
       if (log_config_enabled)
-        console.log(`Updating seed -1 due to n_iter > 1.`);
+        console.log(`Fixing seed to -1 due to n_iter > 1.`);
 
       config.seed = -1;
     }
@@ -2757,7 +2772,7 @@ class Context {
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
-    negative_prompt              = '',
+    negative_prompt              = null,
   } = {}) {
     this.flags                        = flags;
     this.scalar_variables             = scalar_variables;
@@ -2771,7 +2786,6 @@ class Context {
     this.prior_pick_one_priority      = prior_pick_one_priority;
     this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-    this.negative_prompt              = negative_prompt;
 
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
@@ -2884,7 +2898,6 @@ class Context {
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,      
       prior_pick_multiple_priority: this.pick_multiple_priority,
-      negative_prompt:              this.negative_prompt,
     });
   }
   // -----------------------------------------------------------------------------------------------
@@ -6440,6 +6453,8 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateConfigUnary ||
              thing instanceof ASTUpdateConfigBinary) {
+      // console.log(`WALK ${inspect_fun(thing)}`);
+
       let value = thing.value;
 
       if (value instanceof ASTNode) {
@@ -6461,79 +6476,97 @@ function expand_wildcards(thing, context = new Context()) {
       }
 
       if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
+        let new_obj = value;
+
+        for (const key of Object.keys(value)) {
+          new_obj[get_our_name(key)??key] = value[key]
+        }
+        
         context.config = thing.assign
-          ? value
-          : { ...context.config, ...value };        
+          ? new_obj
+          : { ...context.config, ...new_obj };
+
+        if (log_config_enabled)
+          console.log(`config ${thing.assign ? '=' : '+='} ` +
+                      `${JSON.stringify(new_obj)}, ` +
+                      `config is now: ` +
+                      `${JSON.stringify(context.config)}`);
       }
-      else{
-        if (! thing.increment) {
-          context.config[thing.key] = value;
+      else { // ASTUpdateConfigBinary
+        const our_name = get_our_name(thing.key); 
+        
+        if (thing.assign) {
+          context.config[our_name] = value;
         }
         else { // increment
           if (Array.isArray(value)) {
-            const tmp_arr = context.config[thing.key]??[];
+            const tmp_arr = context.config[our_name]??[];
 
             if (! Array.isArray(tmp_arr))
               throw new Error(`can't add array ${inspect_fun(value)} ` +
                               `to non-array ${inspect_fun(tmp_arr)}`);
             
             const new_arr = [ ...tmp_arr, ...value ];
-            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by array ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun(new_arr)}`);
-            context.config[thing.key] = new_arr;
+            context.config[our_name] = new_arr;
           }
           else if (typeof value === 'object') {
-            const tmp_obj = context.config[thing.key]??{};
+            const tmp_obj = context.config[our_name]??{};
 
             if (typeof tmp_obj !== 'object')
               throw new Error(`can't add object ${inspect_fun(value)} `+
                               `to non-object ${inspect_fun(tmp_obj)}`);
 
             const new_obj = { ...tmp_obj, ...value };
-            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by object ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun(new_obj)}`);
-            context.config[thing.key] = new_obj;
+            context.config[our_name] = new_obj;
           }
           else if (typeof value === 'number') {
-            const tmp_num = context.config[thing.key]??0;
+            const tmp_num = context.config[our_name]??0;
             
             if (typeof tmp_num !== 'number')
               throw new Error(`can't add number ${inspect_fun(value)} `+
                               `to non-number ${inspect_fun(tmp_num)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by number ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[thing.key]??0) + value)}`);
-            context.config[thing.key] = tmp_num + value;
+            //             `total ${inspect_fun((context.config[our_name]??0) + value)}`);
+            context.config[our_name] = tmp_num + value;
           }
           else if (typeof value === 'string') {
-            const tmp_str = context.config[thing.key]??'';
+            const tmp_str = context.config[our_name]??'';
 
             if (typeof tmp_str !== 'string')
               throw new Error(`can't add string ${inspect_fun(value)} `+
                               `to non-string ${inspect_fun(tmp_str)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by string ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[thing.key]??'') + value)}`);
-            context.config[thing.key] = smart_join([tmp_str, value]);
+            //             `total ${inspect_fun((context.config[our_name]??'') + value)}`);
+            context.config[our_name] = smart_join([tmp_str, value]);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
-            // console.log(`current value ${inspect_fun(context.config[thing.key])}, ` +
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by unknown ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(context.config[thing.key]??null + value)}`);
-            context.config[thing.key] = (context.config[thing.key]??null) + value;
+            //             `total ${inspect_fun(context.config[our_name]??null + value)}`);
+            context.config[our_name] = (context.config[our_name]??null) + value;
           }
         }
+
+        if (log_config_enabled)
+          console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
+                      `config.${our_name} ` +
+                      `${thing.assign ? '=' : '+='} ` +
+                      `${inspect_fun(value)}, ` +
+              `config is now: ` +
+              `${JSON.stringify(context.config)}`);
       }
-      
-      if (log_config_enabled)
-        console.log(`${thing.assign ? "Set" : "Updated"} config to: ` +
-                    `${JSON.stringify(context.config)}`);
-      
+            
       return '';
     }
     // ---------------------------------------------------------------------------------------------
@@ -6659,23 +6692,12 @@ function expand_wildcards(thing, context = new Context()) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    // ASTAddToNegativePrompt:
+    // ASTUpdateNegativePrompt:
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUpdateNegativePrompt) {
-      const expanded_neg_prompt_content = expand_wildcards(thing.negative_prompt_content, context);
-      
-      context.negative_prompt = thing.assign
-        ? expanded_neg_prompt_content
-        : smart_join([context.negative_prompt, expanded_neg_prompt_content]);
-
-      if (log_config_enabled)
-        console.log(`${thing.assign ? "Set" : "Updated"} ` +
-                    `negative prompt` +
-                    `${(thing.assign ? ' to' : '')}` +
-                    `: ${inspect_fun(context.negative_prompt)}`);
-      
-      return '';
-    }
+    // else if (thing instanceof ASTUpdateNegativePrompt) {
+    //   const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
+    //   return expand_wildcards(temporaryNode, context);
+    // }
     // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
     // ---------------------------------------------------------------------------------------------
@@ -6908,13 +6930,21 @@ class ASTUpdateConfigUnary extends ASTNode {
 }
 // -------------------------------------------------------------------------------------------------
 class ASTUpdateConfigBinary extends ASTNode {
-  constructor(key, value, increment) {
+  constructor(key, value, assign) {
     super();
-    this.key       = key;
-    this.value     = value;
-    this.increment = increment;
+    this.key    = key;
+    this.value  = value;
+    this.assign = assign;
   }
 }
+// -------------------------------------------------------------------------------------------------
+// class ASTUpdateNegativePrompt extends ASTNode {
+//   constructor(value, assign) {
+//     super();
+//     this.value  = value
+//     this.assign = assign;
+//   }
+// }
 // -------------------------------------------------------------------------------------------------
 class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
@@ -6941,14 +6971,6 @@ class ASTRevertPickSingle extends ASTNode {
     super();
   }
 }
-// -------------------------------------------------------------------------------------------------
-class ASTUpdateNegativePrompt extends ASTNode {
-  constructor(negative_prompt_content, assign) {
-    super();
-    this.negative_prompt_content = negative_prompt_content
-    this.assign                  = assign;
-  }
-}
 // =================================================================================================
 // END OF SD PROMPT AST CLASSES SECTION.
 // =================================================================================================
@@ -6963,7 +6985,7 @@ const word_break               = /(?=\s|[{|}]|$)/;
 const plaintext                = /(?:\\\s|[^\s{|}])+/;
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext_no_parens      = /[^{|}\s()]+/;
-const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                  = discard(choice(c_block_comment, c_line_comment));
@@ -7129,46 +7151,48 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1]),
-            wst_cutting_seq(wst_seq('%single-pick-priority', assignment_operator),
+            wst_cutting_seq(wst_seq('%single_pick', assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1]),
-            wst_cutting_seq(wst_seq('%multi-pick-priority', assignment_operator),
+            wst_cutting_seq(wst_seq('%multi_pick', assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            '%revert-single-pick-priority');
+            '%revert_single_pick');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            '%revert-multi-pick-priority');
-const SpecialFunctionUpdateNegativePrompt = 
-      xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq('%neg',                           // [0][0]
-                                    choice(incr_assignment_operator,
-                                           assignment_operator)),     // [0][1]
-                            () => ScalarUpdateSource));           // [1]
-let   SpecialFunctionUpdateConfigurationBinary =
-    xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '+='),
-          cutting_seq('%config.',                                           // [0]
-                      seq(ident,                                            // [1][0]
-                          wst_seq(choice(incr_assignment_operator,
-                                         assignment_operator),              // [1][1][0]
-                                  choice(Jsonc, () => LimitedContent)))));  // [1][1][1]
+            '%revert_multi_pick');
+// const SpecialFunctionUpdateNegativePrompt = 
+//       xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
+//             wst_cutting_seq(wst_seq(/%n(?:eg(?:ative)?)?/,            // [0][0]
+//                                     choice(incr_assignment_operator,
+//                                            assignment_operator)),     // [0][1]
+//                             () => LimitedContent));                   // [1]
+const SpecialFunctionUpdateConfigurationBinary =
+      xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
+            cutting_seq(/%c(?:onf(?:ig)?)?\./,                           // [0]
+                        seq(ident,                                       // [1][0]
+                            wst_seq(choice(incr_assignment_operator,
+                                           assignment_operator),         // [1][1][0]
+                                    choice(Jsonc,
+                                           () => LimitedContent)))));    // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq('%config',                              // [0][0]
+            wst_cutting_seq(wst_seq(/%c(?:onf(?:ig)?)?/,                 // [0][0]
                                     choice(incr_assignment_operator,
-                                           assignment_operator)),           // [0][1]
-                            choice(JsoncObject, () => LimitedContent)));    // [1]   
+                                           assignment_operator)),        // [0][1]
+                            choice(JsoncObject, () => LimitedContent))); // [1]   
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
-                                                  SpecialFunctionUpdateConfigurationBinary);
+                                                  SpecialFunctionUpdateConfigurationBinary,
+                                                  //SpecialFunctionUpdateNegativePrompt
+                                                 );
 const SpecialFunctionNotInclude          = choice(SpecialFunctionUpdateConfiguration,
                                                   // SpecialFunctionSetConfiguration,
                                                   SpecialFunctionSetPickSingle,
                                                   SpecialFunctionSetPickMultiple,
                                                   SpecialFunctionRevertPickSingle,
-                                                  SpecialFunctionRevertPickMultiple,
-                                                  SpecialFunctionUpdateNegativePrompt);
+                                                  SpecialFunctionRevertPickMultiple);
 const AnySpecialFunction                  = choice((dt_hosted
                                                     ? UnexpectedSpecialFunctionInclude
                                                     : SpecialFunctionInclude),
@@ -7241,10 +7265,10 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      () => ScalarUpdateSource));       // [1]
-const ScalarUpdateSource      = choice(NamedWildcardReference,
-                                       AnonWildcard,
-                                       ScalarReference,);
+                                                      () => LimitedContent));       // [1]
+// const ScalarUpdateSource      = choice(NamedWildcardReference,
+//                                        AnonWildcard,
+//                                        ScalarReference,);
 const LimitedContent          = choice(
   NamedWildcardReference,
   AnonWildcardNoLoras,
@@ -7392,38 +7416,36 @@ async function main() {
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
   let posted_count          = 0;
-  let positive_prompt       = null;
-  let negative_prompt       = undefined; // not null
+  let positive_prompt       = undefined; // not null
   let config                = null;
   let prior_positive_prompt = null;
-  let prior_negative_prompt = null;
   let prior_config          = null;
-
+  
   const stash_priors = () => {
     prior_positive_prompt = positive_prompt;
-    prior_negative_prompt = negative_prompt;
+    // prior_negative_prompt = negative_prompt;
     prior_config = clone_fun(config);
   };
 
   const restore_priors = () => {
     [ positive_prompt, prior_positive_prompt ] = [ prior_positive_prompt, positive_prompt ];
     [ config,          prior_config          ] = [ prior_config,          config          ];
-    [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ];
+    // [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ];
   };
 
   const do_post = () => {
-    post_prompt(positive_prompt, { config: config, negative_prompt: negative_prompt });
+    post_prompt(positive_prompt, { config: config });
     posted_count += 1; 
   };
 
   while (posted_count < count) {
     console.log('==========================================================================================');
-    console.log(`Expanding #${posted_count + 1} of ${count}:`);
+    console.log(`Expansion #${posted_count + 1} of ${count}:`);
     console.log('==========================================================================================');
 
     const context    = base_context.clone();
     positive_prompt  = expand_wildcards(AST, context);
-    negative_prompt  = context.negative_prompt;
+    // negative_prompt  = context.negative_prompt;
     config           = munge_config(context.config);
     const add_loras  = context.add_loras;
     const have_loras = add_loras && add_loras.length > 0;
@@ -7451,12 +7473,25 @@ async function main() {
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(positive_prompt);
 
-    if (negative_prompt || negative_prompt === '') {
+    if (context.config.negative_prompt || context.config.negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(`Expanded negative prompt:`);
       console.log(`------------------------------------------------------------------------------------------`);
-      console.log(negative_prompt);
-    }
+      console.log(context.config.negative_prompt);
+    } // else {
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(`No negative prompt.`);
+    // }
+
+    // if (context.config.negativePrompt || context.config.negativePrompt === '') {
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(`#3: Expanded negative prompt in context.config.negativePrompt:`);
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(context.config.negativePrompt);
+    // } else {
+    //   console.log(`------------------------------------------------------------------------------------------`);
+    //   console.log(`#3: No negative prompt in context.config.negativePrompt!`);
+    // }
 
     if (!post) {
       posted_count += 1; // a lie to make the counter correct.
