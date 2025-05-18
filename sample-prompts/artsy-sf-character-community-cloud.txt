@@ -101,22 +101,22 @@
 %conf.neg       = { signature, watermmark, text, }
 
 {6 ?flux_on
-// Flux Dev:
+// Flux finetunes:
 
-{ 1 %conf += { "width": 1088,  "height": 1088, "steps": 25  } // 1.183 mpx, 12,162 cu
-| 2 %conf += { "width": 1152,  "height": 1024, "steps": 25  } // 1.179 mpx, 12,082 ci
-| 4 %conf += { "width": 1536,  "height": 768,  "steps": 25  } // 1.179 mpx, 12,082 ci
+{ 1 %conf += { "width": 1088,  "height": 1088, "steps": 50  } // 1.183 mpx, 12,162 cu
+| 2 %conf += { "width": 1152,  "height": 1024, "steps": 50  } // 1.179 mpx, 12,082 ci
+| 4 %conf += { "width": 1536,  "height": 768,  "steps": 50  } // 1.179 mpx, 12,082 ci
 }
 
-%conf.model     = { 6 juggernaut_xl_ragnarok %conf.steps = 50
+%conf.model     = { 6 juggernaut_xl_ragnarok %conf.steps = 100
                   | 6 shuttle_v3.1_aesthetic_q5p_svd
                   | 6 artsy_vibe_v1_q5p_svd
                   | 6 pixelwave_flux_1_schnell_04_q5p_svd
                   | 2 devmode_v0.3_turbo_q5p_svd
-                  | 0 flux_1_dev_q8p 
+                  | 2 flux_1_dev_q8p 
                   }
 %conf.sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
-%conf.cfg_scale = { 1.0 | 1.5 | 2.0 | 2.5| 3.0 | 3.5| 4.0 | 4.5 | 5.0 }
+%conf.cfg_scale = { 1 1.0 | 2 1.5 | 3 2.0 | 4 2.5| 5 3.0 | 4 3.5| 3 4.0 | 2 4.5 | 1 5.0 }
 %conf.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
 %conf.n_iter    = 2
 
