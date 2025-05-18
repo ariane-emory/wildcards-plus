@@ -7218,12 +7218,6 @@ const SpecialFunctionRevertPickSingle =
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             '%revert_multi_pick');
-// const SpecialFunctionUpdateNegativePrompt = 
-//       xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
-//             wst_cutting_seq(wst_seq(/%n(?:eg(?:ative)?)?/,            // [0][0]
-//                                     choice(incr_assignment_operator,
-//                                            assignment_operator)),     // [0][1]
-//                             () => LimitedContent));                   // [1]
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
             cutting_seq(/%c(?:onf(?:ig)?)?\./,                           // [0]
@@ -7324,10 +7318,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      () => LimitedContent));       // [1]
-// const ScalarUpdateSource      = choice(NamedWildcardReference,
-//                                        AnonWildcard,
-//                                        ScalarReference,);
+                                                      () => LimitedContent));               // [1]
 const LimitedContent          = choice(
   NamedWildcardReference,
   AnonWildcardNoLoras,
