@@ -97,8 +97,9 @@ function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 
       }
       else {
         console.log(`POSTing..`);
-        socket.on('data', (chunk) => {
+        socket.on('data', chunk => {
           console.log(`Response:\n${abbreviate(chunk.toString(), 1000)}`);
+          socket.destroy(); 
         });
       }
     });
@@ -310,7 +311,7 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 let fire_and_forget_post        = false;
 let unnecessary_choice_is_error = false;
-let print_ast_enabled           = true;
+let print_ast_enabled           = false;
 let print_ast_json_enabled      = false;
 let string_input_mode_enabled   = true;
 let log_enabled                 = true;
