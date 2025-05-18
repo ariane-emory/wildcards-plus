@@ -97,8 +97,9 @@ function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 
         socket.destroy(); // don't wait for the response.
       }
       else {
+        console.log(`POSTing..`);
         socket.on('data', (chunk) => {
-          console.log(chunk.toString());
+          console.log(`DATA: ${chunk.toString()}`);
         });
       }
     });
