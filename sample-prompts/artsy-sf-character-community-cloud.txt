@@ -109,12 +109,12 @@
 }
 
 %conf.model     = { 6 juggernaut_xl_ragnarok %conf.steps = 100
-               | 6 shuttle_v3.1_aesthetic_q5p_svd
-               | 6 artsy_vibe_v1_q5p_svd
-               | 6 pixelwave_flux_1_schnell_04_q5p_svd
-               | 2 devmode_v0.3_turbo_q5p_svd
-               | 0 flux_1_dev_q8p 
-               }
+                  | 6 shuttle_v3.1_aesthetic_q5p_svd
+                  | 6 artsy_vibe_v1_q5p_svd
+                  | 6 pixelwave_flux_1_schnell_04_q5p_svd
+                  | 2 devmode_v0.3_turbo_q5p_svd
+                  | 0 flux_1_dev_q8p 
+                  }
 %conf.sampler   = { DDIM Trailing | Euler A | Euler A Trailing | Euler A AYS | DPM++ 2M Karras }
 %conf.cfg_scale = { 1.0 | 1.5 | 2.0 | 2.5| 3.0 | 3.5| 4.0 | 4.5 | 5.0 }
 %conf.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
@@ -124,7 +124,7 @@
 // Hidream with some basic settings that seem to work alright:
 
 %conf.model     = { ?hidream_fast_on hidream_i1_fast_q5p
-               | ?hidream_full_on hidream_i1_full_q5p } 
+                  | ?hidream_full_on hidream_i1_full_q5p } 
 %conf.sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
 %conf.cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
 %conf.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
