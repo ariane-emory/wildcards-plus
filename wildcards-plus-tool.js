@@ -1913,6 +1913,49 @@ Jsonc.finalize();
 
 
 // =================================================================================================
+// 'relaxed' JSONC GRAMMAR SECTION:
+// =================================================================================================
+const rJsonc = second(wst_seq(JsoncComments,
+                              choice(() => rJsoncObject,  () => JsoncArray,
+                                     () => json_string,   () => json_true, () => json_false,
+                                     () => json_null,     () => json_number),
+                              JsoncComments));
+const rJsoncObject =
+      choice(
+        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => {
+          // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
+          const arr2 = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
+          return Object.fromEntries(arr2);
+        },
+              wst_cutting_seq(
+                wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
+                JsoncComments,
+                Jsonc,
+                JsoncComments,
+                optional(second(wst_seq(',',
+                                        wst_star(
+                                          xform(arr =>  [arr[1], arr[5]],
+                                                wst_seq(JsoncComments,
+                                                        () => json_string,
+                                                        JsoncComments,
+                                                        ':',
+                                                        JsoncComments,
+                                                        Jsonc, 
+                                                        JsoncComments
+                                                       ))             
+                                          , ',')),
+                               )),
+                '{}'[1]))); // dumb hack for rainbow brackets sake
+// -------------------------------------------------------------------------------------------------
+rJsonc.finalize(); 
+// =================================================================================================
+// END OF 'relaxed' JSONC GRAMMAR SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
