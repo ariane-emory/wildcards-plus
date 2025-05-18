@@ -6338,7 +6338,7 @@ function expand_wildcards(thing, context = new Context()) {
 
         if (log_config_enabled)
           console.log(`config ${thing.assign ? '=' : '+='} ` +
-                      `${inspect_fun(new_obj)}, ` +
+                      `${inspect_fun(new_obj, true)}, ` +
                       `config is now: ` +
                       `${inspect_fun(context.config, true)}`);
       }
@@ -6412,7 +6412,7 @@ function expand_wildcards(thing, context = new Context()) {
           console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
             `config.${our_name} ` +
               `${thing.assign ? '=' : '+='} ` +
-              `${inspect_fun(value)}, ` +
+              `${inspect_fun(value, true)}, ` +
               `config is now: ` +
               `${inspect_fun(context.config, true)}`);
       }
