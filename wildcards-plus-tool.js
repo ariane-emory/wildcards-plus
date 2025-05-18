@@ -7157,10 +7157,10 @@ const SpecialFunctionSetPickMultiple =
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            '%revert-single-pick-priority');
+            '%revert_single_pick');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            '%revert-multi-pick-priority');
+            '%revert_multi_pick');
 // const SpecialFunctionUpdateNegativePrompt = 
 //       xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
 //             wst_cutting_seq(wst_seq(/%n(?:eg(?:ative)?)?/,            // [0][0]
