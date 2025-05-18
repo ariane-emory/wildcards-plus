@@ -7038,7 +7038,6 @@ const word_break               = /(?=\s|[{|}]|$)/;
 // const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
 // const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
 const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
-
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 // const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
@@ -7257,14 +7256,18 @@ const AnySpecialFunction                  = choice((dt_hosted
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                             seq(wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                                 wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  () => ContentStar));
 const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                             seq(wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                                 wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  () => ContentStarNoLoras));
 const AnonWildcard                   = xform(arr => new ASTAnonWildcard(arr),
                                              brc_enc(wst_star(AnonWildcardAlternative, '|')));
