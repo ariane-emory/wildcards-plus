@@ -92,13 +92,17 @@ function post_prompt({ prompt = '', config = {}, hostname = '127.0.0.1', port = 
       req.write(string_data);
       req.end();
 
+      let printed = false;
+      
       if (fire_and_forget_post) {
         socket.destroy(); // don't wait for the response.
       }
       else {
         console.log(`POSTing..`);
         socket.on('data', chunk => {
-          console.log(`Response:${abbreviate(chunk.toString(), 1000)}`);
+          if (! printed)
+            console.log(`Response: ${abbreviate(chunk.toString(), 1000)}`);
+          printed = true;
         });
       }
     });

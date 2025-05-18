@@ -118,7 +118,7 @@
 %conf.sampler   = { DDIM Trailing | Euler A | Euler A Trailing | Euler A AYS /* | DPM++ 2M Karras */ }
 %conf.cfg_scale = { 1 1.0 | 2 1.5 | 3 2.0 | 4 2.5| 5 3.0 | 4 3.5| 3 4.0 | 2 4.5 | 1 5.0 }
 %conf.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
-%conf.n_iter    = 1 // 2
+%conf.n_iter    = 2
 
 | 2 ?hidream_fast_on,hidream_full_on
 // Hidream with some basic settings that seem to work alright:
