@@ -1882,9 +1882,9 @@ const JsoncObject =
         xform(arr => ({}), wst_seq('{', '}')),
         xform(arr => {
           // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
-          const arr2 = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
           // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
-          return Object.fromEntries(arr2);
+          return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
                 wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
@@ -1924,10 +1924,8 @@ const rJsoncObject =
       choice(
         xform(arr => ({}), wst_seq('{', '}')),
         xform(arr => {
-          // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
-          const arr2 = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
-          // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
-          return Object.fromEntries(arr2);
+          const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
                 wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
