@@ -63,7 +63,7 @@ function parse_file(filename) {
   return result;
 }
 // -------------------------------------------------------------------------------------------------
-function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 }) {
+function post_prompt({ prompt = '', config = {}, hostname = '127.0.0.1', port = 7860 }) {
   // console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
   const data        = { prompt: prompt, ...config };
@@ -98,8 +98,7 @@ function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 
       else {
         console.log(`POSTing..`);
         socket.on('data', chunk => {
-          console.log(`Response:\n${abbreviate(chunk.toString(), 1000)}`);
-          socket.destroy(); 
+          console.log(`Response:${abbreviate(chunk.toString(), 1000)}`);
         });
       }
     });
@@ -7489,7 +7488,7 @@ async function main() {
   };
 
   const do_post = () => {
-    post_prompt(positive_prompt, { config: config });
+    post_prompt({ prompt: positive_prompt,  config: config });
     posted_count += 1; 
   };
 
