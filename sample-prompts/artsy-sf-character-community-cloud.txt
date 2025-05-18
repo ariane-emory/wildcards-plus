@@ -103,9 +103,9 @@
 {6 ?flux_on
 // Flux Dev:
 
-{ 1 %conf += { "width": 1088,  "height": 1088, "steps": 50  } // 1.183 mpx, 12,162 cu
-| 2 %conf += { "width": 1152,  "height": 1024, "steps": 50  } // 1.179 mpx, 12,082 ci
-| 4 %conf += { "width": 1536,  "height": 768,  "steps": 50  } // 1.179 mpx, 12,082 ci
+{ 1 %conf += { "width": 1088,  height: 1088, steps: 50  } // 1.183 mpx, 12,162 cu
+| 2 %conf += { width: 1152,  "height": 1024, steps: 50  } // 1.179 mpx, 12,082 ci
+| 4 %conf += { width: 1536,  height: 768,  "steps": 50  } // 1.179 mpx, 12,082 ci
 }
 
 %conf.model     = { 6 juggernaut_xl_ragnarok %conf.steps = 100
