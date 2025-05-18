@@ -6560,13 +6560,13 @@ function expand_wildcards(thing, context = new Context()) {
 
         if (log_config_enabled)
           console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
-                      `config.${our_name} ` +
-                      `${thing.assign ? '=' : '+='} ` +
-                      `${inspect_fun(value)}, ` +
+            `config.${our_name} ` +
+              `${thing.assign ? '=' : '+='} ` +
+              `${inspect_fun(value)}, ` +
               `config is now: ` +
               `${JSON.stringify(context.config)}`);
       }
-            
+      
       return '';
     }
     // ---------------------------------------------------------------------------------------------
