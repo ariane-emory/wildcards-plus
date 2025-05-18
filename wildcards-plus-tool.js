@@ -66,13 +66,12 @@ function parse_file(filename) {
 function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 }) {
   // console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
-  const data = { prompt: prompt,  ...config };
-
+  const data        = { prompt: prompt, ...config };
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
     console.log(`POST data is: ${inspect_fun(data)}`);
-
+  
   const options = {
     hostname: hostname,
     port: port,
