@@ -2521,7 +2521,9 @@ const config_key_names = [
   // [ dt_name, automatic1111_name ],
   // shorthand, not a real field name:
   [ 'neg',                          'negative_prompt'                            ],
+  [ 'negative',                     'negative_prompt'                            ],
   [ 'negativePrompt',               'neg'                                        ],
+  [ 'negativePrompt',               'negative'                                   ],
   // identical keys:
   [ 'controls',                     'controls'                                   ],
   [ 'fps',                          'fps'                                        ],
@@ -7169,7 +7171,7 @@ const SpecialFunctionRevertPickMultiple =
 //                             () => LimitedContent));                   // [1]
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
-            cutting_seq(/%c(?:onfig)?\./,                                // [0]
+            cutting_seq(/%c(?:onf(?:ig)?)?\./,                           // [0]
                         seq(ident,                                       // [1][0]
                             wst_seq(choice(incr_assignment_operator,
                                            assignment_operator),         // [1][1][0]
@@ -7177,7 +7179,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                                            () => LimitedContent)))));    // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq(/%c(?:onfig)?/,                      // [0][0]
+            wst_cutting_seq(wst_seq(/%c(?:onf(?:ig)?)?/,                 // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),        // [0][1]
                             choice(JsoncObject, () => LimitedContent))); // [1]   
