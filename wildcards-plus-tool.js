@@ -1725,1245 +1725,1245 @@ const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
 // other C-like terminals:
 const c_bool             = choice('true', 'false');
 const c_arith_assign     = r(/\+=|\-=|\*=|\/=|\%=/)
-                   const c_bitwise_and      = l('&');
-                   const c_bitwise_bool_ops = r(/&&|\|\|/);
-                   const c_bitwise_not      = l('~');
-                   const c_bitwise_or       = l('|');
-                   const c_bitwise_xor      = caret; 
-                   const c_ccomparison_op   = r(/<=?|>=?|[!=]/);
-                   const c_incr_decr        = r(/\+\+|--/);
-                   const c_shift            = r(/<<|>>/);
-                   const c_shift_assign     = r(/<<=|>>=/);
-                   const c_unicode_ident    = r(/[\p{L}_][\p{L}\p{N}_]*/u);
-                   // -------------------------------------------------------------------------------------------------
-                   // dotted chains:
-                   const dot_chain          = rule => plus(rule, dot); 
-                   // -------------------------------------------------------------------------------------------------
-                   // common comment styles:
-                   const c_line_comment     = r(/\/\/[^\n]*/);
-                   const py_line_comment    = r(/#[^\n]*/);
-                   const c_block_comment    = r(/\/\*[^]*?\*\//);
-                   // -------------------------------------------------------------------------------------------------
-                   // ternary helper combinator:
-                   const ternary            =
-                         ((cond_rule, then_rule = cond_rule, else_rule = then_rule) =>
-                           xform(seq(cond_rule, question, then_rule, colon, else_rule),
-                                 arr => [ arr[0], arr[2], arr[4] ]));
-                   // -------------------------------------------------------------------------------------------------
-                   // misc unsorted Rules:
-                   const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
-                   // -------------------------------------------------------------------------------------------------
-                   // C-like function calls:
-                   const c_funcall = (fun_rule, arg_rule, open = '(', close = ')', sep = ',') =>
-                         seq(fun_rule,
-                             wst_cutting_enc(open,
-                                             wst_star(arg_rule, sep),
-                                             close));
-                   // -------------------------------------------------------------------------------------------------
-                   // whitespace tolerant combinators:
-                   // -------------------------------------------------------------------------------------------------
-                   const __make_wst_quantified_combinator = base_combinator => 
-                         ((rule, sep = null) => base_combinator(wse(rule), sep));
-                   const __make_wst_quantified_combinator_alt = base_combinator =>
-                         ((rule, sep = null) =>
-                           lws(base_combinator(tws(rule),
-                                               sep ? seq(sep, whites_star) : null)));
-                   const __make_wst_seq_combinator = base_combinator =>
-                         //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
-                         (...rules) => base_combinator(...rules.map(x => lws(x)));
-                   // -------------------------------------------------------------------------------------------------
-                   const wst_choice      = (...options) => wse(choice(...options));
-                   const wst_star        = __make_wst_quantified_combinator(star);
-                   const wst_plus        = __make_wst_quantified_combinator(plus);
-                   const wst_star_alt    = __make_wst_quantified_combinator_alt(star);
-                   const wst_plus_alt    = __make_wst_quantified_combinator_alt(plus);
-                   const wst_seq         = __make_wst_seq_combinator(seq);
-                   const wst_enc         = __make_wst_seq_combinator(enc);
-                   const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
-                   const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-                   const wst_par_enc     = rule => cutting_enc(wse(lpar), rule, wse(rpar));
-                   const wst_brc_enc     = rule => cutting_enc(wse(lbrc), rule, wse(rbrc));
-                   const wst_sqr_enc     = rule => cutting_enc(wse(lsqr), rule, wse(rsqr));
-                   const wst_tri_enc     = rule => cutting_enc(wse(lt),   rule, wse(gt));
-                   // -------------------------------------------------------------------------------------------------
-                   // convenience combinators:
-                   // -------------------------------------------------------------------------------------------------
-                   const push            = ((value, rule) =>
-                     xform(rule, arr => [value, ...arr]));
-                   const enclosing       = (left, enclosed, right) =>
-                         xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
-                   // =================================================================================================
-                   // END of COMMON-GRAMMAR.JS CONTENT SECTION.
-                   // =================================================================================================
+const c_bitwise_and      = l('&');
+const c_bitwise_bool_ops = r(/&&|\|\|/);
+const c_bitwise_not      = l('~');
+const c_bitwise_or       = l('|');
+const c_bitwise_xor      = caret; 
+const c_ccomparison_op   = r(/<=?|>=?|[!=]/);
+const c_incr_decr        = r(/\+\+|--/);
+const c_shift            = r(/<<|>>/);
+const c_shift_assign     = r(/<<=|>>=/);
+const c_unicode_ident    = r(/[\p{L}_][\p{L}\p{N}_]*/u);
+// -------------------------------------------------------------------------------------------------
+// dotted chains:
+const dot_chain          = rule => plus(rule, dot); 
+// -------------------------------------------------------------------------------------------------
+// common comment styles:
+const c_line_comment     = r(/\/\/[^\n]*/);
+const py_line_comment    = r(/#[^\n]*/);
+const c_block_comment    = r(/\/\*[^]*?\*\//);
+// -------------------------------------------------------------------------------------------------
+// ternary helper combinator:
+const ternary            =
+      ((cond_rule, then_rule = cond_rule, else_rule = then_rule) =>
+        xform(seq(cond_rule, question, then_rule, colon, else_rule),
+              arr => [ arr[0], arr[2], arr[4] ]));
+// -------------------------------------------------------------------------------------------------
+// misc unsorted Rules:
+const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
+// -------------------------------------------------------------------------------------------------
+// C-like function calls:
+const c_funcall = (fun_rule, arg_rule, open = '(', close = ')', sep = ',') =>
+      seq(fun_rule,
+          wst_cutting_enc(open,
+                          wst_star(arg_rule, sep),
+                          close));
+// -------------------------------------------------------------------------------------------------
+// whitespace tolerant combinators:
+// -------------------------------------------------------------------------------------------------
+const __make_wst_quantified_combinator = base_combinator => 
+      ((rule, sep = null) => base_combinator(wse(rule), sep));
+const __make_wst_quantified_combinator_alt = base_combinator =>
+      ((rule, sep = null) =>
+        lws(base_combinator(tws(rule),
+                            sep ? seq(sep, whites_star) : null)));
+const __make_wst_seq_combinator = base_combinator =>
+      //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
+      (...rules) => base_combinator(...rules.map(x => lws(x)));
+// -------------------------------------------------------------------------------------------------
+const wst_choice      = (...options) => wse(choice(...options));
+const wst_star        = __make_wst_quantified_combinator(star);
+const wst_plus        = __make_wst_quantified_combinator(plus);
+const wst_star_alt    = __make_wst_quantified_combinator_alt(star);
+const wst_plus_alt    = __make_wst_quantified_combinator_alt(plus);
+const wst_seq         = __make_wst_seq_combinator(seq);
+const wst_enc         = __make_wst_seq_combinator(enc);
+const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
+const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
+const wst_par_enc     = rule => cutting_enc(wse(lpar), rule, wse(rpar));
+const wst_brc_enc     = rule => cutting_enc(wse(lbrc), rule, wse(rbrc));
+const wst_sqr_enc     = rule => cutting_enc(wse(lsqr), rule, wse(rsqr));
+const wst_tri_enc     = rule => cutting_enc(wse(lt),   rule, wse(gt));
+// -------------------------------------------------------------------------------------------------
+// convenience combinators:
+// -------------------------------------------------------------------------------------------------
+const push            = ((value, rule) =>
+  xform(rule, arr => [value, ...arr]));
+const enclosing       = (left, enclosed, right) =>
+      xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
+// =================================================================================================
+// END of COMMON-GRAMMAR.JS CONTENT SECTION.
+// =================================================================================================
 
 
-                   // =================================================================================================
-                   // BASIC JSON GRAMMAR SECTION:
-                   // =================================================================================================
-                   // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
-                   const json = choice(() => JsonObject,  () => JsonArray,
-                                       () => json_string, () => json_true,   () => json_false,
-                                       () => json_null,   () => json_number);
-                   // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
-                   const JsonObject = xform(arr =>  Object.fromEntries(arr), 
-                                            wst_cutting_enc('{',
-                                                            wst_star(
-                                                              xform(arr => [arr[0], arr[2]],
-                                                                    wst_seq(() => json_string, ':', json)),
-                                                              ','),
-                                                            '}'));
-                   // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-                   const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
-                   // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
-                   const json_string = xform(JSON.parse,
-                                             /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
-                   // UnicodeEscape ← "u" [0-9A-Fa-f]{4}
-                   const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
-                   // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
-                   const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
-                   // True ← "true"
-                   const json_true = xform(x => true, 'true');
-                   // False ← "false"
-                   const json_false = xform(x => false, 'false');
-                   // Null ← "null"
-                   const json_null = xform(x => null, 'null');
-                   // Minus ← "-"
-                   const json_minus = l('-');
-                   // IntegralPart ← "0" / [1-9] [0-9]*
-                   const json_integralPart = r(/0|[1-9][0-9]*/);
-                   // FractionalPart ← "." [0-9]+
-                   const json_fractionalPart = r(/\.[0-9]+/);
-                   // ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
-                   const json_exponentPart = r(/[eE][+-]?\d+/);
-                   // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
-                   const reify_json_number = arr => {
-                     const multiplier      = arr[0].length > 0 ? -1 : 1;
-                     const integer_part    = arr[1];
-                     const fractional_part = arr[2];
-                     const exponent        = arr[3];
-                     const number          = multiplier * ((integer_part + fractional_part)**exponent);
+// =================================================================================================
+// BASIC JSON GRAMMAR SECTION:
+// =================================================================================================
+// JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
+const json = choice(() => JsonObject,  () => JsonArray,
+                    () => json_string, () => json_true,   () => json_false,
+                    () => json_null,   () => json_number);
+// Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
+const JsonObject = xform(arr =>  Object.fromEntries(arr), 
+                         wst_cutting_enc('{',
+                                         wst_star(
+                                           xform(arr => [arr[0], arr[2]],
+                                                 wst_seq(() => json_string, ':', json)),
+                                           ','),
+                                         '}'));
+// Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
+const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
+// String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
+const json_string = xform(JSON.parse,
+                          /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
+// UnicodeEscape ← "u" [0-9A-Fa-f]{4}
+const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
+// Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
+const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
+// True ← "true"
+const json_true = xform(x => true, 'true');
+// False ← "false"
+const json_false = xform(x => false, 'false');
+// Null ← "null"
+const json_null = xform(x => null, 'null');
+// Minus ← "-"
+const json_minus = l('-');
+// IntegralPart ← "0" / [1-9] [0-9]*
+const json_integralPart = r(/0|[1-9][0-9]*/);
+// FractionalPart ← "." [0-9]+
+const json_fractionalPart = r(/\.[0-9]+/);
+// ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
+const json_exponentPart = r(/[eE][+-]?\d+/);
+// Number ← Minus? IntegralPart FractionalPart? ExponentPart?
+const reify_json_number = arr => {
+  const multiplier      = arr[0].length > 0 ? -1 : 1;
+  const integer_part    = arr[1];
+  const fractional_part = arr[2];
+  const exponent        = arr[3];
+  const number          = multiplier * ((integer_part + fractional_part)**exponent);
 
-                     return number;
-                     return arr;
-                   };
-                   const json_number = xform(reify_json_number,
-                                             seq(optional(json_minus),
-                                                 xform(parseInt, json_integralPart), 
-                                                 xform(arr => {
-                                                   // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
-                                                   return parseFloat(arr[0]);
-                                                 }, optional(json_fractionalPart, 0.0)),
-                                                 xform(parseInt, optional(json_exponentPart, 1))));
-                   // S ← [ U+0009 U+000A U+000D U+0020 ]+
-                   const json_S = whites_plus;
-                   // -------------------------------------------------------------------------------------------------
-                   json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
-                   // =================================================================================================
-                   // END OF BASIC JSON GRAMMAR SECTION.
-                   // =================================================================================================
-
-
-                   // =================================================================================================
-                   // JSONC GRAMMAR SECTION:
-                   // =================================================================================================
-                   const JsoncComments = wst_star(choice(c_block_comment, c_line_comment));
-                   const Jsonc = second(wst_seq(JsoncComments,
-                                                choice(() => JsoncObject,  () => JsoncArray,
-                                                       () => json_string,  () => json_true, () => json_false,
-                                                       () => json_null,    () => json_number),
-                                                JsoncComments));
-                   const JsoncArray =
-                         wst_cutting_enc('[',
-                                         wst_star(second(seq(JsoncComments,
-                                                             Jsonc,
-                                                             JsoncComments)),
-                                                  ','),
-                                         ']');
-                   const JsoncObject =
-                         choice(
-                           xform(arr => ({}), wst_seq('{', '}')),
-                           xform(arr => {
-                             // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
-                             const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
-                             // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
-                             return Object.fromEntries(new_arr);
-                           },
-                                 wst_cutting_seq(
-                                   wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
-                                   JsoncComments,
-                                   Jsonc,
-                                   JsoncComments,
-                                   optional(second(wst_seq(',',
-                                                           wst_star(
-                                                             xform(arr =>  [arr[1], arr[5]],
-                                                                   wst_seq(JsoncComments,
-                                                                           () => json_string,
-                                                                           JsoncComments,
-                                                                           ':',
-                                                                           JsoncComments,
-                                                                           Jsonc, 
-                                                                           JsoncComments
-                                                                          ))             
-                                                             , ',')),
-                                                  )),
-                                   '{}'[1]))); // dumb hack for rainbow brackets sake
-                   // -------------------------------------------------------------------------------------------------
-                   Jsonc.finalize(); 
-                   // =================================================================================================
-                   // END OF JSONC GRAMMAR SECTION.
-                   // =================================================================================================
+  return number;
+  return arr;
+};
+const json_number = xform(reify_json_number,
+                          seq(optional(json_minus),
+                              xform(parseInt, json_integralPart), 
+                              xform(arr => {
+                                // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
+                                return parseFloat(arr[0]);
+                              }, optional(json_fractionalPart, 0.0)),
+                              xform(parseInt, optional(json_exponentPart, 1))));
+// S ← [ U+0009 U+000A U+000D U+0020 ]+
+const json_S = whites_plus;
+// -------------------------------------------------------------------------------------------------
+json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
+// =================================================================================================
+// END OF BASIC JSON GRAMMAR SECTION.
+// =================================================================================================
 
 
-                   // =================================================================================================
-                   // 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
-                   // =================================================================================================
-                   const rJsonc = second(wst_seq(JsoncComments,
-                                                 choice(() => rJsoncObject,  () => JsoncArray,
-                                                        () => json_string,   () => json_true, () => json_false,
-                                                        () => json_null,     () => json_number),
-                                                 JsoncComments));
-                   const rJsoncObject =
-                         choice(
-                           xform(arr => ({}), wst_seq('{', '}')),
-                           xform(arr => {
-                             const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
-                             return Object.fromEntries(new_arr);
-                           },
-                                 wst_cutting_seq(
-                                   wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
-                                   JsoncComments,
-                                   Jsonc,
-                                   JsoncComments,
-                                   optional(second(wst_seq(',',
-                                                           wst_star(
-                                                             xform(arr =>  [arr[1], arr[5]],
-                                                                   wst_seq(JsoncComments,
-                                                                           choice(json_string, c_ident),
-                                                                           JsoncComments,
-                                                                           ':',
-                                                                           JsoncComments,
-                                                                           Jsonc, 
-                                                                           JsoncComments
-                                                                          ))             
-                                                             , ',')),
-                                                  )),
-                                   '{}'[1]))); // dumb hack for rainbow brackets sake
-                   // -------------------------------------------------------------------------------------------------
-                   rJsonc.finalize(); 
-                   // =================================================================================================
-                   // END OF 'relaxed' JSONC GRAMMAR SECTION.
-                   // =================================================================================================
+// =================================================================================================
+// JSONC GRAMMAR SECTION:
+// =================================================================================================
+const JsoncComments = wst_star(choice(c_block_comment, c_line_comment));
+const Jsonc = second(wst_seq(JsoncComments,
+                             choice(() => JsoncObject,  () => JsoncArray,
+                                    () => json_string,  () => json_true, () => json_false,
+                                    () => json_null,    () => json_number),
+                             JsoncComments));
+const JsoncArray =
+      wst_cutting_enc('[',
+                      wst_star(second(seq(JsoncComments,
+                                          Jsonc,
+                                          JsoncComments)),
+                               ','),
+                      ']');
+const JsoncObject =
+      choice(
+        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => {
+          // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
+          const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
+          // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
+          return Object.fromEntries(new_arr);
+        },
+              wst_cutting_seq(
+                wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
+                JsoncComments,
+                Jsonc,
+                JsoncComments,
+                optional(second(wst_seq(',',
+                                        wst_star(
+                                          xform(arr =>  [arr[1], arr[5]],
+                                                wst_seq(JsoncComments,
+                                                        () => json_string,
+                                                        JsoncComments,
+                                                        ':',
+                                                        JsoncComments,
+                                                        Jsonc, 
+                                                        JsoncComments
+                                                       ))             
+                                          , ',')),
+                               )),
+                '{}'[1]))); // dumb hack for rainbow brackets sake
+// -------------------------------------------------------------------------------------------------
+Jsonc.finalize(); 
+// =================================================================================================
+// END OF JSONC GRAMMAR SECTION.
+// =================================================================================================
 
 
-                   // =================================================================================================
-                   const always = () => true;
-                   const never  = () => false;
-                   const picker_priority = Object.freeze({
-                     avoid_repetition_short:        'Avoiding repetition (short term only)',
-                     avoid_repetition_long:         'Avoiding repetition', 
-                     ensure_weighted_distribution:  'Ensuring a weighted distribution',
-                     true_randomness:               'Just plain old randomness',
-                   });
-                   const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
-                   const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
-                   // const picker_priority_descriptions_to_names = new Map(
-                   //   Object.entries(picker_priority).map(([k, v]) => [v, k])
-                   // );
-                   // -------------------------------------------------------------------------------------------------
-                   class WeightedPicker {
-                     // -----------------------------------------------------------------------------------------------
-                     constructor(initialOptions = []) {
-                       // console.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
-                       
-                       this.options = []; // array of [weight, value]
-                       this.used_indices = new Map();
-                       this.last_pick_index = null;
+// =================================================================================================
+// 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
+// =================================================================================================
+const rJsonc = second(wst_seq(JsoncComments,
+                              choice(() => rJsoncObject,  () => JsoncArray,
+                                     () => json_string,   () => json_true, () => json_false,
+                                     () => json_null,     () => json_number),
+                              JsoncComments));
+const rJsoncObject =
+      choice(
+        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => {
+          const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          return Object.fromEntries(new_arr);
+        },
+              wst_cutting_seq(
+                wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
+                JsoncComments,
+                Jsonc,
+                JsoncComments,
+                optional(second(wst_seq(',',
+                                        wst_star(
+                                          xform(arr =>  [arr[1], arr[5]],
+                                                wst_seq(JsoncComments,
+                                                        choice(json_string, c_ident),
+                                                        JsoncComments,
+                                                        ':',
+                                                        JsoncComments,
+                                                        Jsonc, 
+                                                        JsoncComments
+                                                       ))             
+                                          , ',')),
+                               )),
+                '{}'[1]))); // dumb hack for rainbow brackets sake
+// -------------------------------------------------------------------------------------------------
+rJsonc.finalize(); 
+// =================================================================================================
+// END OF 'relaxed' JSONC GRAMMAR SECTION.
+// =================================================================================================
 
-                       for (const [weight, value] of initialOptions)
-                         this.add(weight, value);
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     add(weight, value) {
-                       this.options.push({weight: weight, value: value });
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     __record_index_usage(index) {
-                       this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
-                       this.last_pick_index = index;
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     pick(min_count = 1, max_count = min_count,
-                          allow_if = always, forbid_if = never,
-                          priority = null) {
-                       if (! priority)
-                         throw new Error("no priority");
 
-                       if ((min_count > 1 || max_count > 1) && 
-                           priority === picker_priority.avoid_repetition_short)
-                         this.__clear_used_indices();
-                       
-                       // console.log(`PICK ${min_count}-${max_count}`);
-                       const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+// =================================================================================================
+const always = () => true;
+const never  = () => false;
+const picker_priority = Object.freeze({
+  avoid_repetition_short:        'Avoiding repetition (short term only)',
+  avoid_repetition_long:         'Avoiding repetition', 
+  ensure_weighted_distribution:  'Ensuring a weighted distribution',
+  true_randomness:               'Just plain old randomness',
+});
+const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
+const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
+// const picker_priority_descriptions_to_names = new Map(
+//   Object.entries(picker_priority).map(([k, v]) => [v, k])
+// );
+// -------------------------------------------------------------------------------------------------
+class WeightedPicker {
+  // -----------------------------------------------------------------------------------------------
+  constructor(initialOptions = []) {
+    // console.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
+    
+    this.options = []; // array of [weight, value]
+    this.used_indices = new Map();
+    this.last_pick_index = null;
 
-                       const res = [];
-                       
-                       for (let ix = 0; ix < count; ix++) {
-                         const pick = this.pick_one(allow_if, forbid_if, priority);
+    for (const [weight, value] of initialOptions)
+      this.add(weight, value);
+  }
+  // -----------------------------------------------------------------------------------------------
+  add(weight, value) {
+    this.options.push({weight: weight, value: value });
+  }
+  // -----------------------------------------------------------------------------------------------
+  __record_index_usage(index) {
+    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+    this.last_pick_index = index;
+  }
+  // -----------------------------------------------------------------------------------------------
+  pick(min_count = 1, max_count = min_count,
+       allow_if = always, forbid_if = never,
+       priority = null) {
+    if (! priority)
+      throw new Error("no priority");
 
-                         // if (pick)
-                         res.push(pick);
-                       }
+    if ((min_count > 1 || max_count > 1) && 
+        priority === picker_priority.avoid_repetition_short)
+      this.__clear_used_indices();
+    
+    // console.log(`PICK ${min_count}-${max_count}`);
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
 
-                       // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+    const res = [];
+    
+    for (let ix = 0; ix < count; ix++) {
+      const pick = this.pick_one(allow_if, forbid_if, priority);
 
-                       return res;
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     __gather_legal_option_indices(allow_if, forbid_if) {
-                       const legal_option_indices = [];
-                       
-                       for (let ix = 0; ix < this.options.length; ix++) {
-                         const option = this.options[ix];
-                         
-                         if (option.weight !== 0 &&
-                             allow_if(option.value) &&
-                             !forbid_if(option.value))
-                           legal_option_indices.push(ix);
-                       }
+      // if (pick)
+      res.push(pick);
+    }
 
-                       return legal_option_indices;
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     __clear_used_indices() {
-                       this.used_indices.clear();
-                       this.last_pick_index = null;
-                       // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
-                     }
-                     // -----------------------------------------------------------------------------------------------  
-                     __indices_are_exhausted(option_indices, priority) {
-                       // console.log(`this.options      = ${inspect_fun(this.options)}`);
-                       // console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
-                       
-                       if (! priority)
-                         throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
 
-                       if (this.used_indices.size == 0)
-                         return false;
+    return res;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __gather_legal_option_indices(allow_if, forbid_if) {
+    const legal_option_indices = [];
+    
+    for (let ix = 0; ix < this.options.length; ix++) {
+      const option = this.options[ix];
+      
+      if (option.weight !== 0 &&
+          allow_if(option.value) &&
+          !forbid_if(option.value))
+        legal_option_indices.push(ix);
+    }
 
-                       let exhausted_indices = null;
-                       
-                       if (priority === picker_priority.avoid_repetition_long ||
-                           priority === picker_priority.avoid_repetition_short) {
-                         exhausted_indices = new Set(this.used_indices.keys());
-                       }
-                       else if (priority == picker_priority.ensure_weighted_distribution) {
-                         exhausted_indices = new Set();
+    return legal_option_indices;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __clear_used_indices() {
+    this.used_indices.clear();
+    this.last_pick_index = null;
+    // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+  }
+  // -----------------------------------------------------------------------------------------------  
+  __indices_are_exhausted(option_indices, priority) {
+    // console.log(`this.options      = ${inspect_fun(this.options)}`);
+    // console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+    
+    if (! priority)
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
-                         for (const [used_index, usage_count] of this.used_indices) {
-                           const option = this.options[used_index];
+    if (this.used_indices.size == 0)
+      return false;
 
-                           if (usage_count >= option.weight)
-                             exhausted_indices.add(used_index);
-                         }
-                       }
-                       else if (priority === picker_priority.true_randomness) {
-                         return false;
-                       }
-                       else {
-                         throw new Error(`bad priority: ${inspect_fun(priority)}`);
-                       }
-                       
-                       return exhausted_indices.isSupersetOf(new Set(option_indices));
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     __effective_weight(option_index, priority) {
-                       if (! ((option_index || option_index === 0) && priority))
-                         throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-                       
-                       let ret = null;
-                       
-                       if (priority === picker_priority.avoid_repetition_long ||
-                           priority === picker_priority.avoid_repetition_short) {
-                         ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-                       }
-                       else if (priority === picker_priority.ensure_weighted_distribution) {
-                         ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-                       }
-                       else if (priority === picker_priority.true_randomness) {
-                         ret = this.options[option_index].weight;
-                       }
-                       else {
-                         throw Error("unexpected priority");
-                       }
+    let exhausted_indices = null;
+    
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) {
+      exhausted_indices = new Set(this.used_indices.keys());
+    }
+    else if (priority == picker_priority.ensure_weighted_distribution) {
+      exhausted_indices = new Set();
 
-                       // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
-                       
-                       return Math.max(0, ret);
-                     };
-                     // -----------------------------------------------------------------------------------------------
-                     pick_one(allow_if, forbid_if, priority) {
-                       // console.log(`PICK ONE =================================================================================`);
-                       // console.log(`PRIORITY        = ${inspect_fun(priority)}`);
-                       // console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
-                       // console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+      for (const [used_index, usage_count] of this.used_indices) {
+        const option = this.options[used_index];
 
-                       if (! (priority && allow_if && forbid_if))
-                         throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-                       
-                       const noisy = false;
+        if (usage_count >= option.weight)
+          exhausted_indices.add(used_index);
+      }
+    }
+    else if (priority === picker_priority.true_randomness) {
+      return false;
+    }
+    else {
+      throw new Error(`bad priority: ${inspect_fun(priority)}`);
+    }
+    
+    return exhausted_indices.isSupersetOf(new Set(option_indices));
+  }
+  // -----------------------------------------------------------------------------------------------
+  __effective_weight(option_index, priority) {
+    if (! ((option_index || option_index === 0) && priority))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    let ret = null;
+    
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) {
+      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+    }
+    else if (priority === picker_priority.ensure_weighted_distribution) {
+      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+    }
+    else if (priority === picker_priority.true_randomness) {
+      ret = this.options[option_index].weight;
+    }
+    else {
+      throw Error("unexpected priority");
+    }
 
-                       // // console.log(`PICK_ONE!`);
-                       
-                       // // console.log(`PICK FROM ${JSON.stringify(this)}`);
+    // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+    
+    return Math.max(0, ret);
+  };
+  // -----------------------------------------------------------------------------------------------
+  pick_one(allow_if, forbid_if, priority) {
+    // console.log(`PICK ONE =================================================================================`);
+    // console.log(`PRIORITY        = ${inspect_fun(priority)}`);
+    // console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+    // console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
 
-                       if (this.options.length === 0) {
-                         // // console.log(`PICK_ONE: NO OPTIONS 1!`);
-                         return null;
-                       }
+    if (! (priority && allow_if && forbid_if))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    const noisy = false;
 
-                       let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
-                       
-                       if (this.__indices_are_exhausted(legal_option_indices, priority)) {
-                         // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-                         if (priority === picker_priority.avoid_repetition_long) {
-                           if (this.last_pick_index !== null) {
-                             const last_pick_index = this.last_pick_index;
-                             this.__clear_used_indices();
-                             this.__record_index_usage(last_pick_index);
-                           }
-                           else /* ensure_weighted_distribution, true_randomness */ {
-                             this.__clear_used_indices();
-                           }
-                         }
-                         else {
-                           this.__clear_used_indices();
-                         }
-                         
-                         // console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
-                         
-                         legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
-                       }
-                       
-                       if (legal_option_indices.length === 0) {
-                         // // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
-                         // console.log(`BEFORE BAIL 1: ${inspect_fun(this.used_indices)}`);
-                         return null;
-                       }
+    // // console.log(`PICK_ONE!`);
+    
+    // // console.log(`PICK FROM ${JSON.stringify(this)}`);
 
-                       if (legal_option_indices.length === 1) {
-                         // // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
-                         this.__record_index_usage(legal_option_indices[0]);
-                         // console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
-                         return this.options[legal_option_indices[0]].value;
-                       }
+    if (this.options.length === 0) {
+      // // console.log(`PICK_ONE: NO OPTIONS 1!`);
+      return null;
+    }
 
-                       // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+    
+    if (this.__indices_are_exhausted(legal_option_indices, priority)) {
+      // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      if (priority === picker_priority.avoid_repetition_long) {
+        if (this.last_pick_index !== null) {
+          const last_pick_index = this.last_pick_index;
+          this.__clear_used_indices();
+          this.__record_index_usage(last_pick_index);
+        }
+        else /* ensure_weighted_distribution, true_randomness */ {
+          this.__clear_used_indices();
+        }
+      }
+      else {
+        this.__clear_used_indices();
+      }
+      
+      // console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+      
+      legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+    }
+    
+    if (legal_option_indices.length === 0) {
+      // // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+      // console.log(`BEFORE BAIL 1: ${inspect_fun(this.used_indices)}`);
+      return null;
+    }
 
-                       let total_weight = 0;
+    if (legal_option_indices.length === 1) {
+      // // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      this.__record_index_usage(legal_option_indices[0]);
+      // console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+      return this.options[legal_option_indices[0]].value;
+    }
 
-                       // console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
-                       
-                       for (const legal_option_ix of legal_option_indices) {
-                         const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
-                         // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-                         // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
-                         // console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
-                         total_weight += adjusted_weight;
-                       }
-                       // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
-                       // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
-                       
-                       // Since we now avoid adding options with a weight of 0, this shoul dnever be true:
-                       if (total_weight === 0) {
-                         // return '';
-                         throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                                         `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
+    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+
+    let total_weight = 0;
+
+    // console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
+    
+    for (const legal_option_ix of legal_option_indices) {
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+      // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+      // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+      // console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+      total_weight += adjusted_weight;
+    }
+    // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
+    // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
+    
+    // Since we now avoid adding options with a weight of 0, this shoul dnever be true:
+    if (total_weight === 0) {
+      // return '';
+      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
   [
     ix,
     this.__effective_weight(ix, priority),
     this.options[ix]
   ]
 ), null, 2)}, ` +
-                                         `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
-
-                         if (noisy) {
-                           // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
-                         }
-                       }
-                       
-                       if (noisy) {
-                         // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
-                       }
-                       
-                       let random = Math.random() * total_weight;
-
-                       if (noisy) {
-                         // console.log(`----------------------------------------------------------------------------------`);
-                         // console.log(`RANDOM IS ${random}`);
-                         // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-                         // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
-                       }
-                       
-                       for (const legal_option_ix of legal_option_indices) {
-                         const option          = this.options[legal_option_ix];
-                         const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
-
-                         if (adjusted_weight === 0)
-                           continue;
-
-                         if (noisy) {
-                           // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
-                         }
-                         
-                         if (random < adjusted_weight) {
-                           this.__record_index_usage(legal_option_ix);
-                           return option.value;
-                         }
-
-                         random -= adjusted_weight;
-
-                         if (noisy) {
-                           // console.log(`RANDOM IS NOW ${random}`);
-                         }
-                       }
-
-                       throw new Error("random selection failed");
-                     }
-                   }
-                   // =================================================================================================
-
-
-                   // =================================================================================================
-                   // HELPER FUNCTIONS SECTION:
-                   // =================================================================================================
-                   // function arr_is_prefix_of_arr(prefix_arr, full_arr) {
-                   //   if (prefix_arr.length > full_arr.length)
-                   //     return false;
-
-                   //   // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
-                   //   return prefix_arr.every((val, idx) => val === full_arr[idx]);
-                   // }
-                   // -------------------------------------------------------------------------------------------------
-                   function arr_is_prefix_of_arr(prefix_arr, full_arr) {
-                     if (prefix_arr.length > full_arr.length)
-                       return false;
-
-                     for (let ix = 0; ix < prefix_arr.length; ix++)
-                       if (prefix_arr[ix] !== full_arr[ix])
-                         return false;
-                     
-                     return true;
-                   }
-                   // // -------------------------------------------------------------------------------------------------
-                   // function equal_arrs(this_arr, that_arr) {
-                   //   if (this_arr.length != that_arr.length)
-                   //     return false;
-
-                   //   for (let ix = 0; ix < this_arr.length; ix++)
-                   //     if (this_arr[ix] !== that_arr[ix])
-                   //       return false;
-
-                   //   return true;
-                   // }
-                   // -------------------------------------------------------------------------------------------------
-                   function is_flag_set(test_flag, set_flags) {
-                     // GPT's idea, clearly inadequate.
-                     return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
-                     console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
-                     
-                     const index = array.findIndex(existing => existing.file === lora.file);
-                     if (index !== -1) {
-                       array.splice(index, 1); // Remove the existing entry
-                     }
-                     array.push(lora); // Add the new entry at the end
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   function is_empty_object(obj) {
-                     return obj && typeof obj === 'object' &&
-                       Object.keys(obj).length === 0 &&
-                       obj.constructor === Object;
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   function rand_int(x, y) {
-                     y ||= x;
-                     const min = Math.min(x, y);
-                     const max = Math.max(x, y);
-                     return Math.floor(Math.random() * (max - min + 1)) + min;
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   function pretty_list(arr) {
-                     const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
-
-                     if (items.length === 0) return "";
-                     if (items.length === 1) return items[0];
-                     if (items.length === 2) return `${items[0]} and ${items[1]}`;
-
-                     const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
-                     
-                     return ret;
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   function capitalize(string) {
-                     // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
-                     return string.charAt(0).toUpperCase() + string.slice(1);
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   function choose_indefinite_article(word) {
-                     if (!word)
-                       return 'a'; // fallback
-
-                     const lower = word.toLowerCase();
-
-                     // Words that begin with vowel *sounds*
-                     const vowelSoundExceptions = [
-                       /^e[uw]/,          // eulogy, Europe
-                       /^onc?e\b/,        // once
-                       /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
-                       /^u[bcfhjkqrstn]/, // unicorn, useful, usual
-                       /^uk/,             // UK (spoken "you-kay")
-                       /^ur[aeiou]/,      // uranium
-                     ];
-
-                     const silentHWords = [
-                       'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
-                     ];
-
-                     const acronymStartsWithVowelSound = /^[aeiou]/i;
-                     const consonantYooSound = /^u[bcfhjkqrstn]/i;
-
-                     if (silentHWords.includes(lower))
-                       return 'an';
-
-                     if (vowelSoundExceptions.some(re => re.test(lower)))
-                       return 'a';
-
-                     // Words beginning with vowel letters
-                     if ('aeiou'.includes(lower[0]))
-                       return 'an';
-
-                     return 'a';
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   function unescape(str) {
-                     if (typeof str !== 'string')
-                       return str;
-                     
-                     return str
-                       .replace(/\\n/g,   '\n')
-                       .replace(/\\ /g,   ' ')
-                       .replace(/\\(.)/g, '$1')
-                   };
-                   // -------------------------------------------------------------------------------------------------
-                   function smart_join(arr) {
-                     if (! arr)
-                       return arr;
-                     
-                     if (typeof arr === 'string')
-                       return arr;
-                     
-                     arr = [...arr.flat(Infinity).filter(x=> x)];
-
-                     if (arr.length === 0) // investigate why this is necessary.
-                       return '';
-                     
-                     if (log_join_enabled)
-                       console.log(`JOINING ${inspect_fun(arr)}`);
-
-                     // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
-                     const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-                     const linkingp     = (ch)  => "_-".includes(ch);
-                     // const whitep       = (ch)  => " \n".includes(ch);
-                     
-                     // handle "a" → "an" if necessary:
-                     const articleCorrection = (originalArticle, nextWord) => {
-                       const expected = choose_indefinite_article(nextWord);
-                       if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-                         return originalArticle === 'A' ? 'An' : 'an';
-                       }
-                       return originalArticle;
-                     };
-                     
-                     let left_word = arr[0]; // ?.toString() ?? "";
-                     let str       = left_word;
-                     
-                     for (let ix = 1; ix < arr.length; ix++)  {
-                       let right_word           = null;
-                       let prev_char            = null;
-                       let prev_char_is_escaped = null;
-                       let next_char_is_escaped = null;
-                       let next_char            = null;
-
-                       const add_a_space = () => {
-                         if (log_join_enabled)
-                           console.log(`SPACE!`);
-
-                         prev_char  = ' ';
-                         str       += ' ';
-                       }
-
-                       const chomp_left_side = () => {
-                         if (log_join_enabled)
-                           console.log(`CHOMP LEFT!`);
-                         
-                         str      = str.slice(0, -1);
-                         left_word = left_word.slice(0, -1);
-                         
-                         update_pos_vars();
-                       };
-                       
-                       const chomp_right_side = () => {
-                         if (log_join_enabled)
-                           console.log(`CHOMP RIGHT!`);
-
-                         arr[ix] = arr[ix].slice(1);
-
-                         update_pos_vars();
-                       }
-
-                       const consume_right_word = () => {
-                         if (log_join_enabled)
-                           console.log(`CONSUME ${inspect_fun(right_word)}!`);
-
-                         left_word  = right_word;
-                         str       += left_word;
-                       }
-
-                       const move_chars_left = (n) => {
-                         if (log_join_enabled)
-                           console.log(`SHIFT ${n} CHARACTERS!`);
-
-                         const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-                         const shifted_str = right_word.substring(0, n);
-
-                         arr[ix]   = right_word.substring(n);
-                         str       = str.substring(0, str.length - overcut) + shifted_str;
-                         left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
-                         
-                         update_pos_vars();
-                       };
-                       
-                       const update_pos_vars = () => {
-                         right_word           = arr[ix]; // ?.toString() ?? "";
-                         prev_char            = left_word[left_word.length - 1] ?? "";
-                         prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-                         next_char            = right_word[0] ?? '';
-                         next_char_is_escaped = right_word[0] === '\\';
-
-                         if (log_join_enabled)
-                           console.log(`ix = ${inspect_fun(ix)}, ` +
-                                       `str = ${inspect_fun(str)}, ` +
-                                       `left_word = ${inspect_fun(left_word)}, ` +         
-                                       `right_word = ${inspect_fun(right_word)}, ` +       
-                                       `prev_char = ${inspect_fun(prev_char)}, ` +         
-                                       `next_char = ${inspect_fun(next_char)}, ` + 
-                                       `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-                                       `next_char_is_escaped = ${next_char_is_escaped}`);
-                       };
-                       
-                       update_pos_vars();
-                       
-                       if (right_word === '') {
-                         if (log_join_enabled)
-                           console.log(`JUMP EMPTY!`);
-
-                         continue;
-                       }
-
-                       while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
-                         move_chars_left(3);
-                       
-                       while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
-                         move_chars_left(1);
-                       
-                       // Normalize article if needed:
-                       const article_match = str.match(/(?:^|\s)([Aa])$/);
-                       
-                       if (article_match) {
-                         const originalArticle = article_match[1];
-                         const updatedArticle = articleCorrection(originalArticle, right_word);
-
-                         if (updatedArticle !== originalArticle) 
-                           str = str.slice(0, -originalArticle.length) + updatedArticle;
-                       }
-
-                       let chomped = false;
-
-                       if (!prev_char_is_escaped && prev_char === '<') {
-                         chomp_left_side();
-                         chomped = true;
-                       }
-                       
-                       if (right_word.startsWith('<')) {
-                         chomp_right_side();
-                         chomped = true;
-                       }
-
-                       if (right_word === '') {
-                         if (log_join_enabled)
-                           console.log(`JUMP EMPTY (LATE)!`);
-
-                         continue;
-                       }
-
-                       if (!chomped &&
-                           (prev_char_is_escaped && !' n'.includes(prev_char) || 
-                            (!(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-                             // !(next_char_is_escaped && ",.!?".includes(right_word[1])) && 
-                             !right_word.startsWith('\\n') &&
-                             !right_word.startsWith('\\ ') && 
-                             !punctuationp (next_char)     && 
-                             !linkingp     (prev_char)     &&
-                             !linkingp     (next_char)     &&
-                             !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-                             !'([])'.substring(2,4).includes(next_char))))
-                         add_a_space();
-
-                       consume_right_word();
-                     }
-
-                     if (log_join_enabled)
-                       console.log(`JOINED ${inspect_fun(str)}`);
-                     
-                     return str;
-                   }
-                   // =================================================================================================
-                   // END OF HELPER FUNCTIONS SECTION.
-                   // =================================================================================================
-
-
-                   // =================================================================================================
-                   // HELPER FUNCTION FOR MUNGING THE CONFIGURATION:
-                   // =================================================================================================
-                   // var values adapted from the file config.fbs in
-                   // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
-                   const dt_samplers = [   // order is significant, do not rearrange!
-                     'DPM++ 2M Karras',    // 0
-                     'Euler a',            // 1
-                     'DDIM',               // 2
-                     'PLMS',               // 3
-                     'DPM++ SDE Karras',   // 4
-                     'UniPC',              // 5
-                     'LCM',                // 6
-                     'Euler A Substep',    // 7
-                     'DPM++ SDE Substep',  // 8
-                     'TCD',                // 9
-                     'Euler A Trailing',   // 10
-                     'DPM++ SDE Trailing', // 11
-                     'DPM++ 2M AYS',       // 12
-                     'Euler A AYS',        // 13
-                     'DPM++ SDE AYS',      // 14
-                     'DPM++ 2M Trailing',  // 15
-                     'DDIM Trailing',      // 16
-                   ];
-                   const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
-                   // -------------------------------------------------------------------------------------------------
-                   const config_key_names = [
-                     // [ dt_name, automatic1111_name ],
-                     // shorthand, not a real field name:
-                     [ 'neg',                          'negative_prompt'                            ],
-                     [ 'negative',                     'negative_prompt'                            ],
-                     [ 'negativePrompt',               'neg'                                        ],
-                     [ 'negativePrompt',               'negative'                                   ],
-                     // identical keys:
-                     [ 'controls',                     'controls'                                   ],
-                     [ 'fps',                          'fps'                                        ],
-                     [ 'height',                       'height'                                     ],
-                     [ 'loras',                        'loras'                                      ],
-                     [ 'model',                        'model'                                      ],
-                     [ 'prompt',                       'prompt'                                     ],
-                     [ 'seed',                         'seed'                                       ],
-                     [ 'sharpness',                    'sharpness'                                  ],
-                     [ 'shift',                        'shift'                                      ],
-                     [ 'strength',                     'strength'                                   ],
-                     [ 'width',                        'width'                                      ],
-                     [ 'upscaler',                     'upscaler'                                   ],
-                     [ 'sampler',                      'sampler'                                    ], // ordering significant
-                     // differing keys:
-                     [ 'aestheticScore',               'aesthetic_score'                            ],
-                     [ 'batchCount',                   'batch_count'                                ],
-                     [ 'batchCount',                   'n_iter'                                     ],
-                     [ 'batchSize',                    'batch_size'                                 ],
-                     [ 'clipLText',                    'separate_open_clip_g'                       ],
-                     [ 'clipSkip',                     'clip_skip'                                  ],
-                     [ 'clipWeight',                   'clip_weight'                                ],
-                     [ 'cropLeft',                     'crop_left'                                  ],
-                     [ 'cropTop',                      'crop_top'                                   ],
-                     [ 'decodingTileHeight',           'decoding_tile_height' /* _explanation' */   ],
-                     [ 'decodingTileOverlap',          'decoding_tile_overlap' /* _explanation' */  ],
-                     [ 'decodingTileWidth',            'decoding_tile_width' /* _explanation' */    ],
-                     [ 'diffusionTileHeight',          'diffusion_tile_height' /* _explanation' */  ],
-                     [ 'diffusionTileOverlap',         'diffusion_tile_overlap' /* _explanation' */ ],
-                     [ 'diffusionTileWidth',           'diffusion_tile_width' /* _explanation' */   ],
-                     [ 'guidanceEmbed',                'guidance_embed'                             ],
-                     [ 'guidanceScale',                'cfg_scale'                                  ],
-                     [ 'guidanceScale',                'guidance'                                   ],
-                     [ 'guidingFrameNoise',            'cond_aug'                                   ],
-                     [ 'hiresFix',                     'enable_hr'                                  ],
-                     [ 'hiresFix',                     'high_resolution_fix'                        ],
-                     [ 'hiresFixHeight',               'firstphase_height'                          ],
-                     [ 'hiresFixHeight',               'hires_first_pass_height_explanation'        ],
-                     [ 'hiresFixStrength',             'hires_second_pass_strength_detail'          ],
-                     [ 'hiresFixWidth',                'firstphase_width'                           ],
-                     [ 'hiresFixWidth',                'hires_first_pass_width_explanation'         ],
-                     [ 'imageGuidanceScale',           'image_guidance'                             ],
-                     [ 'imagePriorSteps',              'image_prior_steps'                          ],
-                     [ 'maskBlur',                     'mask_blur'                                  ],
-                     [ 'maskBlurOutset',               'mask_blur_outset'                           ],
-                     [ 'motionScale',                  'motion_scale'                               ],
-                     [ 'negativeAestheticScore',       'negative_aesthetic_score'                   ],
-                     [ 'negativeOriginalHeight',       'negative_original_height'                   ],
-                     [ 'negativeOriginalWidth',        'negative_original_width'                    ],
-                     [ 'negativePrompt',               'negative_prompt'                            ],
-                     [ 'negativePromptForImagePrior',  'negative_prompt_for_image_prior'            ],
-                     [ 'openClipGText',                'speed_up_with_guidance_embed'               ],
-                     [ 'originalHeight',               'original_height'                            ],
-                     [ 'originalWidth',                'original_width'                             ],
-                     [ 'preserveOriginalAfterInpaint', 'preserve_original_after_inpaint'            ],
-                     [ 'refinerModel',                 'num_frames'                                 ],
-                     [ 'refinerStart',                 'refiner_start'                              ],
-                     [ 'resolutionDependentShift',     'resolution_dependent_shift'                 ],
-                     [ 'sampler',                      'sampler_index'                              ],
-                     [ 'sampler',                      'sampler_name'                               ],
-                     [ 'seedMode',                     'seed_mode'                                  ],
-                     [ 'separateClipL',                'separate_clip_l'                            ],
-                     [ 'separateT5',                   'separate_t5'                                ],
-                     [ 'stage2Cfg',                    'stage_2_cfg'                                ],
-                     [ 'stage2Shift',                  'stage_2_shift'                              ],
-                     [ 'stage2Steps',                  'stage_2_steps'                              ],
-                     [ 'startFrameGuidance',           'start_frame_guidance'                       ],
-                     [ 'stochasticSamplingGamma',      'strategic_stochastic_sampling'              ],
-                     [ 'strength',                     'denoising_strength'                         ],
-                     [ 't5Text',                       't5_text'                                    ],
-                     [ 't5TextEncoder',                't5_text_encoder'                            ],
-                     [ 'targetHeight',                 'target_height'                              ],
-                     [ 'targetWidth',                  'target_width'                               ],
-                     [ 'teaCache',                     'tea_cache'                                  ],
-                     [ 'teaCacheEnd',                  'tea_cache_end'                              ],
-                     [ 'teaCacheMaxSkipSteps',         'tea_cache_max_skip_steps'                   ],
-                     [ 'teaCacheStart',                'tea_cache_start'                            ],
-                     [ 'teaCacheThreshold',            'tea_cache_threshold'                        ],
-                     [ 'tiledDecoding',                'tiled_decoding'                             ],
-                     [ 'tiledDiffusion',               'tiled_diffusion'                            ],
-                     [ 'upscalerScaleFactor',          'upscaler_scale_factor'                      ],
-                     [ 'zeroNegativePrompt',           'zero_negative_prompt'                       ],
-                   ];
-                   // -------------------------------------------------------------------------------------------------
-                   function get_automatic111_name(dt_name) {
-                     const got = config_key_names.find(([dt_name2, automatic1111_name]) => dt_name2 === dt_name);
-                     if (got)
-                       return got[1];
-                     return dt_name;
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   function get_dt_name(automatic1111_name) {
-                     const got = config_key_names.find(([dt_name, automatic1111_name2]) => automatic1111_name2 === automatic1111_name);
-                     if (got)
-                       return got[0];
-                     return automatic1111_name;
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   function get_our_name(name) {
-                     const res = (dt_hosted
-                                  ? get_dt_name
-                                  : get_automatic111_name)(name);
-
-                     // console.log(`got our name for ${name}: ${res}`);
-                     
-                     return res;
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   function munge_config(config, is_dt_hosted = dt_hosted) {
-                     config = clone_fun(config);
-
-                     if (is_empty_object(config))
-                       return config;
-
-                     if (config.model === '') {
-                       console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
-                                   `what you meant to do, your prompt template may contain an error!`);
-                       delete config.model;
-                     }
-                     else if (config.model) {
-                       config.model = config.model.toLowerCase();
-
-                       if (config.model.endsWith('.ckpt')) {
-                         // do nothing
-                       }
-                       else if (config.model.endsWith('_svd')) {
-                         config.model = `${config.model}.ckpt`;
-                       }
-                       else if (config.model.endsWith('_q5p')) {
-                         config.model = `${config.model}.ckpt`;
-                       }
-                       else if (config.model.endsWith('_q8p')) {
-                         config.model = `${config.model}.ckpt`;
-                       }
-                       else if (config.model.endsWith('_f16')) {
-                         config.model = `${config.model}.ckpt`;
-                       }
-                       else {
-                         config.model= `${config.model}_f16.ckpt`;
-                       }
-                     }
-                     
-                     // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-                     if (config.sampler && typeof config.sampler === 'string') {
-                       const lc = config.sampler.toLowerCase();
-                       // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
-                       const got = dt_samplers_caps_correction.get(lc);
-
-                       if (got)
-                         config.sampler = got;
-                     }
-                     
-                     if (is_dt_hosted) { // running in DT, sampler needs to be an index:
-                       if (config.sampler !== undefined && typeof config.sampler === 'string') {
-                         console.log(`Correcting config.sampler = ${inspect_fun(config.sampler)} to ` +
-                                     `config.sampler = ${dt_samplers.indexOf(config.sampler)}.`);
-                         config.sampler = dt_samplers.indexOf(config.sampler);
-                       }
-                       const corrected = new Set();
-                       
-                       // for (const [dt_name, automatic1111_name] of config_key_names) {
-                       //   if (config[automatic1111_name] !== undefined) {
-                       //     if (corrected.has(dt_name))
-                       //       continue;
-                       
-                       //     corrected.add(dt_name);
-
-                       //     if (automatic1111_name === dt_name)
-                       //       continue;
-                       
-                       //     console.log(`Correcting config.${automatic1111_name} = ` +
-                       //                 `${config[automatic1111_name]} to ` +
-                       //                 `config.${dt_name} = ${config[automatic1111_name]}.`);
-                       //     config[dt_name] = config[automatic1111_name];
-                       //     delete config[automatic1111_name];
-                       //   }
-                       // }
-                     }
-                     else { // running in Node.js, sampler needs to be a string:
-                       if (config.sampler !== undefined && typeof config.sampler ===  'number') {
-                         console.log(`Correcting config.sampler = ${config.sampler} to ` +
-                                     `config.sampler = ${inspect_fun(dt_samplers[config.sampler])}.`);
-                         config.sampler = dt_samplers[config.sampler];
-                       }
-
-                       // const corrected = new Set();
-                       
-                       // for (const [dt_name, automatic1111_name] of config_key_names) {      
-                       //   if (config[dt_name] !== undefined) {
-                       //     if (corrected.has(dt_name))
-                       //       continue;
-                       
-                       //     corrected.add(dt_name);
-
-                       //     if (automatic1111_name === dt_name)
-                       //       continue;
-                       
-                       //     console.log(`Correcting config.${dt_name} = ` +
-                       //                 `${inspect_fun(config[dt_name])} to ` +
-                       //                 `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
-                       //     config[automatic1111_name] = config[dt_name];
-                       //     delete config[dt_name];
-                       //   }
-                       // }
-                     }
-
-                     // 'fix' seed if n_iter > 1, doing this seems convenient?
-                     if (! config.seed) {
-                       const n_iter_key = get_our_name('n_iter');
-
-                       if (config[n_iter_key] && (typeof config[n_iter_key] === 'number') && config[n_iter_key] > 1) {
-                         if (log_config_enabled)
-                           console.log(`Fixing seed to -1 due to n_iter > 1.`);
-
-                         config.seed = -1;
-                       }
-                       else if (typeof config.seed !== 'number') {
-                         config.seed = Math.floor(Math.random() * (2 ** 32));
-                       }
-                     }
-
-                     //if (log_config_enabled)
-                     console.log(`Munged config is: ${inspect_fun(config, null, 2)}`);
-
-                     return config;
-                   }
-                   // =================================================================================================
-                   // END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
-                   // =================================================================================================
-
-
-                   // =================================================================================================
-                   // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
-                   // =================================================================================================
-                   class Context {
-                     constructor({ 
-                       flags                        = [], 
-                       scalar_variables             = new Map(),
-                       named_wildcards              = new Map(),
-                       noisy                        = false,
-                       files                        = [],
-                       config                       = {},
-                       add_loras                    = [],
-                       top_file                     = true,
-                       pick_one_priority            = picker_priority.ensure_weighted_distribution,
-                       pick_multiple_priority       = picker_priority.avoid_repetition_short,
-                       prior_pick_one_priority      = pick_one_priority,
-                       prior_pick_multiple_priority = pick_multiple_priority,
-                       negative_prompt              = null,
-                     } = {}) {
-                       this.flags                        = flags;
-                       this.scalar_variables             = scalar_variables;
-                       this.named_wildcards              = named_wildcards;
-                       this.noisy                        = noisy;
-                       this.files                        = files;
-                       this.config                       = config;
-                       this.add_loras                    = add_loras;
-                       this.top_file                     = top_file;
-                       this.pick_one_priority            = pick_one_priority;
-                       this.prior_pick_one_priority      = prior_pick_one_priority;
-                       this.pick_multiple_priority       = pick_multiple_priority;
-                       this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-
-                       if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
-                         this.set_flag(["dt_hosted"]);
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     flag_is_set(test_flag) {
-                       // if (! Array.isArray(test_flag))
-                       //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
-
-                       // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
-                       // console.log(msg);
-                       // const ret = this.flags.includes(test_flag);
-                       
-                       let res = false;
-
-                       for (const flag of this.flags) {
-                         // console.log(`${inspect_fun(flag)} === ` +
-                         //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
-                         
-                         if (arr_is_prefix_of_arr(test_flag, flag)) {
-                           // console.log (`FOUND IT!`);
-                           res = true;
-                           break;
-                         }
-                       }
-
-                       // if (! r)
-                       //   console.log(`DIDN'T FIND IT...`);
-                       
-                       // if (ret  !== r)
-                       //   throw new Error(`${msg} ret = ${inspect_fun(ret)}, r = ${inspect_fun(r)}`);
-                       
-                       return res;
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     set_flag(new_flag) {
-                       // if (! Array.isArray(new_flag))
-                       //   throw new Error(`NOT AN ARRAY: ${inspect_fun(new_flag)}`);
-
-                       // log_flags_enabled = true;
-                       
-                       if (log_flags_enabled)
-                         console.log(`\nADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
-
-                       // skip already set flags:
-                       if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
-                         if (log_flags_enabled)
-                           console.log(`SKIPPING, ALREADY SET`);
-                         return;
-                       }
-
-                       const new_flag_head = new_flag.slice(0, -1);
-                       
-                       this.flags = this.flags.filter(existing_flag => {
-                         if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
-                           if (log_flags_enabled)
-                             console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A PREFIX OF ` +
-                                         `NEW FLAG ${inspect_fun(new_flag)}`);
-                           return false;
-                         }
-                         
-                         if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
-                           if (log_flags_enabled)
-                             console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A SUFFIX OF ` +
-                                         `NEW FLAG'S HEAD ${inspect_fun(new_flag_head)}`);
-                           return false; 
-                         }
-                         
-                         return true;
-                       });
-
-                       // log_flags_enabled = false;
-
-                       this.flags.push(new_flag);
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     unset_flag(flag) {
-                       // if (! Array.isArray(flag))
-                       //   throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
-
-                       if (log_flags_enabled)
-                         console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-                       
-                       this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
-
-                       if (log_flags_enabled)
-                         console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-                       
-                       // if (this.flags.includes(undefined))
-                       //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     reset_temporaries() {
-                       this.flags = [];
-                       this.scalar_variables = new Map();
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     clone() {
-                       return new Context({
-                         flags:                        this.flags.map(arr => [...arr]),
-                         scalar_variables:             new Map(this.scalar_variables),
-                         named_wildcards:              new Map(this.named_wildcards),
-                         noisy:                        this.noisy,
-                         files:                        [ ...this.files ],
-                         config:                       { ...this.config }, /// ???
-                         add_loras:                    [ ...this.add_loras
-                                                         .map(o => ({ file: o.file, weigh: o.weight })) ],
-                         top_file:                     this.top_file,
-                         pick_one_priority:            this.pick_one_priority,
-                         prior_pick_one_priority:      this.prior_pick_one_priority,
-                         pick_multiple_priority:       this.pick_multiple_priority,      
-                         prior_pick_multiple_priority: this.pick_multiple_priority,
-                       });
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     shallow_copy() {
-                       return new Context({
-                         flags:                        this.flags,
-                         scalar_variables:             this.scalar_variables,
-                         named_wildcards:              this.named_wildcards,
-                         noisy:                        this.noisy,
-                         files:                        this.files,
-                         config:                       this.config,
-                         add_loras:                    this.add_loras,
-                         top_file:                     false, // deliberately not copied!
-                         pick_one_priority:            this.pick_one_priority,
-                         prior_pick_one_priority:      this.prior_pick_one_priority,
-                         pick_multiple_priority:       this.pick_multiple_priority,
-                         prior_pick_multiple_priority: this.pick_multiple_priority,      
-                         negative_prompt:              this.negative_prompt,
-                       });
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   const prelude_text = disable_prelude ? '' : `
+                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
+
+      if (noisy) {
+        // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
+      }
+    }
+    
+    if (noisy) {
+      // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
+    }
+    
+    let random = Math.random() * total_weight;
+
+    if (noisy) {
+      // console.log(`----------------------------------------------------------------------------------`);
+      // console.log(`RANDOM IS ${random}`);
+      // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+    }
+    
+    for (const legal_option_ix of legal_option_indices) {
+      const option          = this.options[legal_option_ix];
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+
+      if (adjusted_weight === 0)
+        continue;
+
+      if (noisy) {
+        // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+      }
+      
+      if (random < adjusted_weight) {
+        this.__record_index_usage(legal_option_ix);
+        return option.value;
+      }
+
+      random -= adjusted_weight;
+
+      if (noisy) {
+        // console.log(`RANDOM IS NOW ${random}`);
+      }
+    }
+
+    throw new Error("random selection failed");
+  }
+}
+// =================================================================================================
+
+
+// =================================================================================================
+// HELPER FUNCTIONS SECTION:
+// =================================================================================================
+// function arr_is_prefix_of_arr(prefix_arr, full_arr) {
+//   if (prefix_arr.length > full_arr.length)
+//     return false;
+
+//   // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
+//   return prefix_arr.every((val, idx) => val === full_arr[idx]);
+// }
+// -------------------------------------------------------------------------------------------------
+function arr_is_prefix_of_arr(prefix_arr, full_arr) {
+  if (prefix_arr.length > full_arr.length)
+    return false;
+
+  for (let ix = 0; ix < prefix_arr.length; ix++)
+    if (prefix_arr[ix] !== full_arr[ix])
+      return false;
+  
+  return true;
+}
+// // -------------------------------------------------------------------------------------------------
+// function equal_arrs(this_arr, that_arr) {
+//   if (this_arr.length != that_arr.length)
+//     return false;
+
+//   for (let ix = 0; ix < this_arr.length; ix++)
+//     if (this_arr[ix] !== that_arr[ix])
+//       return false;
+
+//   return true;
+// }
+// -------------------------------------------------------------------------------------------------
+function is_flag_set(test_flag, set_flags) {
+  // GPT's idea, clearly inadequate.
+  return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
+}
+// -------------------------------------------------------------------------------------------------
+function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
+  console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
+  
+  const index = array.findIndex(existing => existing.file === lora.file);
+  if (index !== -1) {
+    array.splice(index, 1); // Remove the existing entry
+  }
+  array.push(lora); // Add the new entry at the end
+}
+// -------------------------------------------------------------------------------------------------
+function is_empty_object(obj) {
+  return obj && typeof obj === 'object' &&
+    Object.keys(obj).length === 0 &&
+    obj.constructor === Object;
+}
+// -------------------------------------------------------------------------------------------------
+function rand_int(x, y) {
+  y ||= x;
+  const min = Math.min(x, y);
+  const max = Math.max(x, y);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+// -------------------------------------------------------------------------------------------------
+function pretty_list(arr) {
+  const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
+
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+
+  const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  
+  return ret;
+}
+// -------------------------------------------------------------------------------------------------
+function capitalize(string) {
+  // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+// -------------------------------------------------------------------------------------------------
+function choose_indefinite_article(word) {
+  if (!word)
+    return 'a'; // fallback
+
+  const lower = word.toLowerCase();
+
+  // Words that begin with vowel *sounds*
+  const vowelSoundExceptions = [
+    /^e[uw]/,          // eulogy, Europe
+    /^onc?e\b/,        // once
+    /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
+    /^u[bcfhjkqrstn]/, // unicorn, useful, usual
+    /^uk/,             // UK (spoken "you-kay")
+    /^ur[aeiou]/,      // uranium
+  ];
+
+  const silentHWords = [
+    'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
+  ];
+
+  const acronymStartsWithVowelSound = /^[aeiou]/i;
+  const consonantYooSound = /^u[bcfhjkqrstn]/i;
+
+  if (silentHWords.includes(lower))
+    return 'an';
+
+  if (vowelSoundExceptions.some(re => re.test(lower)))
+    return 'a';
+
+  // Words beginning with vowel letters
+  if ('aeiou'.includes(lower[0]))
+    return 'an';
+
+  return 'a';
+}
+// -------------------------------------------------------------------------------------------------
+function unescape(str) {
+  if (typeof str !== 'string')
+    return str;
+  
+  return str
+    .replace(/\\n/g,   '\n')
+    .replace(/\\ /g,   ' ')
+    .replace(/\\(.)/g, '$1')
+};
+// -------------------------------------------------------------------------------------------------
+function smart_join(arr) {
+  if (! arr)
+    return arr;
+  
+  if (typeof arr === 'string')
+    return arr;
+  
+  arr = [...arr.flat(Infinity).filter(x=> x)];
+
+  if (arr.length === 0) // investigate why this is necessary.
+    return '';
+  
+  if (log_join_enabled)
+    console.log(`JOINING ${inspect_fun(arr)}`);
+
+  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
+  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
+  const linkingp     = (ch)  => "_-".includes(ch);
+  // const whitep       = (ch)  => " \n".includes(ch);
+  
+  // handle "a" → "an" if necessary:
+  const articleCorrection = (originalArticle, nextWord) => {
+    const expected = choose_indefinite_article(nextWord);
+    if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
+      return originalArticle === 'A' ? 'An' : 'an';
+    }
+    return originalArticle;
+  };
+  
+  let left_word = arr[0]; // ?.toString() ?? "";
+  let str       = left_word;
+  
+  for (let ix = 1; ix < arr.length; ix++)  {
+    let right_word           = null;
+    let prev_char            = null;
+    let prev_char_is_escaped = null;
+    let next_char_is_escaped = null;
+    let next_char            = null;
+
+    const add_a_space = () => {
+      if (log_join_enabled)
+        console.log(`SPACE!`);
+
+      prev_char  = ' ';
+      str       += ' ';
+    }
+
+    const chomp_left_side = () => {
+      if (log_join_enabled)
+        console.log(`CHOMP LEFT!`);
+      
+      str      = str.slice(0, -1);
+      left_word = left_word.slice(0, -1);
+      
+      update_pos_vars();
+    };
+    
+    const chomp_right_side = () => {
+      if (log_join_enabled)
+        console.log(`CHOMP RIGHT!`);
+
+      arr[ix] = arr[ix].slice(1);
+
+      update_pos_vars();
+    }
+
+    const consume_right_word = () => {
+      if (log_join_enabled)
+        console.log(`CONSUME ${inspect_fun(right_word)}!`);
+
+      left_word  = right_word;
+      str       += left_word;
+    }
+
+    const move_chars_left = (n) => {
+      if (log_join_enabled)
+        console.log(`SHIFT ${n} CHARACTERS!`);
+
+      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+      const shifted_str = right_word.substring(0, n);
+
+      arr[ix]   = right_word.substring(n);
+      str       = str.substring(0, str.length - overcut) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
+      
+      update_pos_vars();
+    };
+    
+    const update_pos_vars = () => {
+      right_word           = arr[ix]; // ?.toString() ?? "";
+      prev_char            = left_word[left_word.length - 1] ?? "";
+      prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
+      next_char            = right_word[0] ?? '';
+      next_char_is_escaped = right_word[0] === '\\';
+
+      if (log_join_enabled)
+        console.log(`ix = ${inspect_fun(ix)}, ` +
+                    `str = ${inspect_fun(str)}, ` +
+                    `left_word = ${inspect_fun(left_word)}, ` +         
+                    `right_word = ${inspect_fun(right_word)}, ` +       
+                    `prev_char = ${inspect_fun(prev_char)}, ` +         
+                    `next_char = ${inspect_fun(next_char)}, ` + 
+                    `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+                    `next_char_is_escaped = ${next_char_is_escaped}`);
+    };
+    
+    update_pos_vars();
+    
+    if (right_word === '') {
+      if (log_join_enabled)
+        console.log(`JUMP EMPTY!`);
+
+      continue;
+    }
+
+    while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
+      move_chars_left(3);
+    
+    while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
+      move_chars_left(1);
+    
+    // Normalize article if needed:
+    const article_match = str.match(/(?:^|\s)([Aa])$/);
+    
+    if (article_match) {
+      const originalArticle = article_match[1];
+      const updatedArticle = articleCorrection(originalArticle, right_word);
+
+      if (updatedArticle !== originalArticle) 
+        str = str.slice(0, -originalArticle.length) + updatedArticle;
+    }
+
+    let chomped = false;
+
+    if (!prev_char_is_escaped && prev_char === '<') {
+      chomp_left_side();
+      chomped = true;
+    }
+    
+    if (right_word.startsWith('<')) {
+      chomp_right_side();
+      chomped = true;
+    }
+
+    if (right_word === '') {
+      if (log_join_enabled)
+        console.log(`JUMP EMPTY (LATE)!`);
+
+      continue;
+    }
+
+    if (!chomped &&
+        (prev_char_is_escaped && !' n'.includes(prev_char) || 
+         (!(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+          // !(next_char_is_escaped && ",.!?".includes(right_word[1])) && 
+          !right_word.startsWith('\\n') &&
+          !right_word.startsWith('\\ ') && 
+          !punctuationp (next_char)     && 
+          !linkingp     (prev_char)     &&
+          !linkingp     (next_char)     &&
+          !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
+          !'([])'.substring(2,4).includes(next_char))))
+      add_a_space();
+
+    consume_right_word();
+  }
+
+  if (log_join_enabled)
+    console.log(`JOINED ${inspect_fun(str)}`);
+  
+  return str;
+}
+// =================================================================================================
+// END OF HELPER FUNCTIONS SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// HELPER FUNCTION FOR MUNGING THE CONFIGURATION:
+// =================================================================================================
+// var values adapted from the file config.fbs in
+// https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
+const dt_samplers = [   // order is significant, do not rearrange!
+  'DPM++ 2M Karras',    // 0
+  'Euler a',            // 1
+  'DDIM',               // 2
+  'PLMS',               // 3
+  'DPM++ SDE Karras',   // 4
+  'UniPC',              // 5
+  'LCM',                // 6
+  'Euler A Substep',    // 7
+  'DPM++ SDE Substep',  // 8
+  'TCD',                // 9
+  'Euler A Trailing',   // 10
+  'DPM++ SDE Trailing', // 11
+  'DPM++ 2M AYS',       // 12
+  'Euler A AYS',        // 13
+  'DPM++ SDE AYS',      // 14
+  'DPM++ 2M Trailing',  // 15
+  'DDIM Trailing',      // 16
+];
+const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
+// -------------------------------------------------------------------------------------------------
+const config_key_names = [
+  // [ dt_name, automatic1111_name ],
+  // shorthand, not a real field name:
+  [ 'neg',                          'negative_prompt'                            ],
+  [ 'negative',                     'negative_prompt'                            ],
+  [ 'negativePrompt',               'neg'                                        ],
+  [ 'negativePrompt',               'negative'                                   ],
+  // identical keys:
+  [ 'controls',                     'controls'                                   ],
+  [ 'fps',                          'fps'                                        ],
+  [ 'height',                       'height'                                     ],
+  [ 'loras',                        'loras'                                      ],
+  [ 'model',                        'model'                                      ],
+  [ 'prompt',                       'prompt'                                     ],
+  [ 'seed',                         'seed'                                       ],
+  [ 'sharpness',                    'sharpness'                                  ],
+  [ 'shift',                        'shift'                                      ],
+  [ 'strength',                     'strength'                                   ],
+  [ 'width',                        'width'                                      ],
+  [ 'upscaler',                     'upscaler'                                   ],
+  [ 'sampler',                      'sampler'                                    ], // ordering significant
+  // differing keys:
+  [ 'aestheticScore',               'aesthetic_score'                            ],
+  [ 'batchCount',                   'batch_count'                                ],
+  [ 'batchCount',                   'n_iter'                                     ],
+  [ 'batchSize',                    'batch_size'                                 ],
+  [ 'clipLText',                    'separate_open_clip_g'                       ],
+  [ 'clipSkip',                     'clip_skip'                                  ],
+  [ 'clipWeight',                   'clip_weight'                                ],
+  [ 'cropLeft',                     'crop_left'                                  ],
+  [ 'cropTop',                      'crop_top'                                   ],
+  [ 'decodingTileHeight',           'decoding_tile_height' /* _explanation' */   ],
+  [ 'decodingTileOverlap',          'decoding_tile_overlap' /* _explanation' */  ],
+  [ 'decodingTileWidth',            'decoding_tile_width' /* _explanation' */    ],
+  [ 'diffusionTileHeight',          'diffusion_tile_height' /* _explanation' */  ],
+  [ 'diffusionTileOverlap',         'diffusion_tile_overlap' /* _explanation' */ ],
+  [ 'diffusionTileWidth',           'diffusion_tile_width' /* _explanation' */   ],
+  [ 'guidanceEmbed',                'guidance_embed'                             ],
+  [ 'guidanceScale',                'cfg_scale'                                  ],
+  [ 'guidanceScale',                'guidance'                                   ],
+  [ 'guidingFrameNoise',            'cond_aug'                                   ],
+  [ 'hiresFix',                     'enable_hr'                                  ],
+  [ 'hiresFix',                     'high_resolution_fix'                        ],
+  [ 'hiresFixHeight',               'firstphase_height'                          ],
+  [ 'hiresFixHeight',               'hires_first_pass_height_explanation'        ],
+  [ 'hiresFixStrength',             'hires_second_pass_strength_detail'          ],
+  [ 'hiresFixWidth',                'firstphase_width'                           ],
+  [ 'hiresFixWidth',                'hires_first_pass_width_explanation'         ],
+  [ 'imageGuidanceScale',           'image_guidance'                             ],
+  [ 'imagePriorSteps',              'image_prior_steps'                          ],
+  [ 'maskBlur',                     'mask_blur'                                  ],
+  [ 'maskBlurOutset',               'mask_blur_outset'                           ],
+  [ 'motionScale',                  'motion_scale'                               ],
+  [ 'negativeAestheticScore',       'negative_aesthetic_score'                   ],
+  [ 'negativeOriginalHeight',       'negative_original_height'                   ],
+  [ 'negativeOriginalWidth',        'negative_original_width'                    ],
+  [ 'negativePrompt',               'negative_prompt'                            ],
+  [ 'negativePromptForImagePrior',  'negative_prompt_for_image_prior'            ],
+  [ 'openClipGText',                'speed_up_with_guidance_embed'               ],
+  [ 'originalHeight',               'original_height'                            ],
+  [ 'originalWidth',                'original_width'                             ],
+  [ 'preserveOriginalAfterInpaint', 'preserve_original_after_inpaint'            ],
+  [ 'refinerModel',                 'num_frames'                                 ],
+  [ 'refinerStart',                 'refiner_start'                              ],
+  [ 'resolutionDependentShift',     'resolution_dependent_shift'                 ],
+  [ 'sampler',                      'sampler_index'                              ],
+  [ 'sampler',                      'sampler_name'                               ],
+  [ 'seedMode',                     'seed_mode'                                  ],
+  [ 'separateClipL',                'separate_clip_l'                            ],
+  [ 'separateT5',                   'separate_t5'                                ],
+  [ 'stage2Cfg',                    'stage_2_cfg'                                ],
+  [ 'stage2Shift',                  'stage_2_shift'                              ],
+  [ 'stage2Steps',                  'stage_2_steps'                              ],
+  [ 'startFrameGuidance',           'start_frame_guidance'                       ],
+  [ 'stochasticSamplingGamma',      'strategic_stochastic_sampling'              ],
+  [ 'strength',                     'denoising_strength'                         ],
+  [ 't5Text',                       't5_text'                                    ],
+  [ 't5TextEncoder',                't5_text_encoder'                            ],
+  [ 'targetHeight',                 'target_height'                              ],
+  [ 'targetWidth',                  'target_width'                               ],
+  [ 'teaCache',                     'tea_cache'                                  ],
+  [ 'teaCacheEnd',                  'tea_cache_end'                              ],
+  [ 'teaCacheMaxSkipSteps',         'tea_cache_max_skip_steps'                   ],
+  [ 'teaCacheStart',                'tea_cache_start'                            ],
+  [ 'teaCacheThreshold',            'tea_cache_threshold'                        ],
+  [ 'tiledDecoding',                'tiled_decoding'                             ],
+  [ 'tiledDiffusion',               'tiled_diffusion'                            ],
+  [ 'upscalerScaleFactor',          'upscaler_scale_factor'                      ],
+  [ 'zeroNegativePrompt',           'zero_negative_prompt'                       ],
+];
+// -------------------------------------------------------------------------------------------------
+function get_automatic111_name(dt_name) {
+  const got = config_key_names.find(([dt_name2, automatic1111_name]) => dt_name2 === dt_name);
+  if (got)
+    return got[1];
+  return dt_name;
+}
+// -------------------------------------------------------------------------------------------------
+function get_dt_name(automatic1111_name) {
+  const got = config_key_names.find(([dt_name, automatic1111_name2]) => automatic1111_name2 === automatic1111_name);
+  if (got)
+    return got[0];
+  return automatic1111_name;
+}
+// -------------------------------------------------------------------------------------------------
+function get_our_name(name) {
+  const res = (dt_hosted
+               ? get_dt_name
+               : get_automatic111_name)(name);
+
+  // console.log(`got our name for ${name}: ${res}`);
+  
+  return res;
+}
+// -------------------------------------------------------------------------------------------------
+function munge_config(config, is_dt_hosted = dt_hosted) {
+  config = clone_fun(config);
+
+  if (is_empty_object(config))
+    return config;
+
+  if (config.model === '') {
+    console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
+                `what you meant to do, your prompt template may contain an error!`);
+    delete config.model;
+  }
+  else if (config.model) {
+    config.model = config.model.toLowerCase();
+
+    if (config.model.endsWith('.ckpt')) {
+      // do nothing
+    }
+    else if (config.model.endsWith('_svd')) {
+      config.model = `${config.model}.ckpt`;
+    }
+    else if (config.model.endsWith('_q5p')) {
+      config.model = `${config.model}.ckpt`;
+    }
+    else if (config.model.endsWith('_q8p')) {
+      config.model = `${config.model}.ckpt`;
+    }
+    else if (config.model.endsWith('_f16')) {
+      config.model = `${config.model}.ckpt`;
+    }
+    else {
+      config.model= `${config.model}_f16.ckpt`;
+    }
+  }
+  
+  // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
+  if (config.sampler && typeof config.sampler === 'string') {
+    const lc = config.sampler.toLowerCase();
+    // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
+    const got = dt_samplers_caps_correction.get(lc);
+
+    if (got)
+      config.sampler = got;
+  }
+  
+  if (is_dt_hosted) { // running in DT, sampler needs to be an index:
+    if (config.sampler !== undefined && typeof config.sampler === 'string') {
+      console.log(`Correcting config.sampler = ${inspect_fun(config.sampler)} to ` +
+                  `config.sampler = ${dt_samplers.indexOf(config.sampler)}.`);
+      config.sampler = dt_samplers.indexOf(config.sampler);
+    }
+    const corrected = new Set();
+    
+    // for (const [dt_name, automatic1111_name] of config_key_names) {
+    //   if (config[automatic1111_name] !== undefined) {
+    //     if (corrected.has(dt_name))
+    //       continue;
+    
+    //     corrected.add(dt_name);
+
+    //     if (automatic1111_name === dt_name)
+    //       continue;
+    
+    //     console.log(`Correcting config.${automatic1111_name} = ` +
+    //                 `${config[automatic1111_name]} to ` +
+    //                 `config.${dt_name} = ${config[automatic1111_name]}.`);
+    //     config[dt_name] = config[automatic1111_name];
+    //     delete config[automatic1111_name];
+    //   }
+    // }
+  }
+  else { // running in Node.js, sampler needs to be a string:
+    if (config.sampler !== undefined && typeof config.sampler ===  'number') {
+      console.log(`Correcting config.sampler = ${config.sampler} to ` +
+                  `config.sampler = ${inspect_fun(dt_samplers[config.sampler])}.`);
+      config.sampler = dt_samplers[config.sampler];
+    }
+
+    // const corrected = new Set();
+    
+    // for (const [dt_name, automatic1111_name] of config_key_names) {      
+    //   if (config[dt_name] !== undefined) {
+    //     if (corrected.has(dt_name))
+    //       continue;
+    
+    //     corrected.add(dt_name);
+
+    //     if (automatic1111_name === dt_name)
+    //       continue;
+    
+    //     console.log(`Correcting config.${dt_name} = ` +
+    //                 `${inspect_fun(config[dt_name])} to ` +
+    //                 `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
+    //     config[automatic1111_name] = config[dt_name];
+    //     delete config[dt_name];
+    //   }
+    // }
+  }
+
+  // 'fix' seed if n_iter > 1, doing this seems convenient?
+  if (! config.seed) {
+    const n_iter_key = get_our_name('n_iter');
+
+    if (config[n_iter_key] && (typeof config[n_iter_key] === 'number') && config[n_iter_key] > 1) {
+      if (log_config_enabled)
+        console.log(`Fixing seed to -1 due to n_iter > 1.`);
+
+      config.seed = -1;
+    }
+    else if (typeof config.seed !== 'number') {
+      config.seed = Math.floor(Math.random() * (2 ** 32));
+    }
+  }
+
+  //if (log_config_enabled)
+  console.log(`Munged config is: ${inspect_fun(config, null, 2)}`);
+
+  return config;
+}
+// =================================================================================================
+// END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
+// =================================================================================================
+
+
+// =================================================================================================
+// HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
+// =================================================================================================
+class Context {
+  constructor({ 
+    flags                        = [], 
+    scalar_variables             = new Map(),
+    named_wildcards              = new Map(),
+    noisy                        = false,
+    files                        = [],
+    config                       = {},
+    add_loras                    = [],
+    top_file                     = true,
+    pick_one_priority            = picker_priority.ensure_weighted_distribution,
+    pick_multiple_priority       = picker_priority.avoid_repetition_short,
+    prior_pick_one_priority      = pick_one_priority,
+    prior_pick_multiple_priority = pick_multiple_priority,
+    negative_prompt              = null,
+  } = {}) {
+    this.flags                        = flags;
+    this.scalar_variables             = scalar_variables;
+    this.named_wildcards              = named_wildcards;
+    this.noisy                        = noisy;
+    this.files                        = files;
+    this.config                       = config;
+    this.add_loras                    = add_loras;
+    this.top_file                     = top_file;
+    this.pick_one_priority            = pick_one_priority;
+    this.prior_pick_one_priority      = prior_pick_one_priority;
+    this.pick_multiple_priority       = pick_multiple_priority;
+    this.prior_pick_multiple_priority = prior_pick_multiple_priority;
+
+    if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
+      this.set_flag(["dt_hosted"]);
+  }
+  // -----------------------------------------------------------------------------------------------
+  flag_is_set(test_flag) {
+    // if (! Array.isArray(test_flag))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
+
+    // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
+    // console.log(msg);
+    // const ret = this.flags.includes(test_flag);
+    
+    let res = false;
+
+    for (const flag of this.flags) {
+      // console.log(`${inspect_fun(flag)} === ` +
+      //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
+      
+      if (arr_is_prefix_of_arr(test_flag, flag)) {
+        // console.log (`FOUND IT!`);
+        res = true;
+        break;
+      }
+    }
+
+    // if (! r)
+    //   console.log(`DIDN'T FIND IT...`);
+    
+    // if (ret  !== r)
+    //   throw new Error(`${msg} ret = ${inspect_fun(ret)}, r = ${inspect_fun(r)}`);
+    
+    return res;
+  }
+  // -----------------------------------------------------------------------------------------------
+  set_flag(new_flag) {
+    // if (! Array.isArray(new_flag))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(new_flag)}`);
+
+    // log_flags_enabled = true;
+    
+    if (log_flags_enabled)
+      console.log(`\nADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
+
+    // skip already set flags:
+    if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
+      if (log_flags_enabled)
+        console.log(`SKIPPING, ALREADY SET`);
+      return;
+    }
+
+    const new_flag_head = new_flag.slice(0, -1);
+    
+    this.flags = this.flags.filter(existing_flag => {
+      if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
+        if (log_flags_enabled)
+          console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A PREFIX OF ` +
+                      `NEW FLAG ${inspect_fun(new_flag)}`);
+        return false;
+      }
+      
+      if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
+        if (log_flags_enabled)
+          console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A SUFFIX OF ` +
+                      `NEW FLAG'S HEAD ${inspect_fun(new_flag_head)}`);
+        return false; 
+      }
+      
+      return true;
+    });
+
+    // log_flags_enabled = false;
+
+    this.flags.push(new_flag);
+  }
+  // -----------------------------------------------------------------------------------------------
+  unset_flag(flag) {
+    // if (! Array.isArray(flag))
+    //   throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
+
+    if (log_flags_enabled)
+      console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    
+    this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
+
+    if (log_flags_enabled)
+      console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    
+    // if (this.flags.includes(undefined))
+    //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  reset_temporaries() {
+    this.flags = [];
+    this.scalar_variables = new Map();
+  }
+  // -----------------------------------------------------------------------------------------------
+  clone() {
+    return new Context({
+      flags:                        this.flags.map(arr => [...arr]),
+      scalar_variables:             new Map(this.scalar_variables),
+      named_wildcards:              new Map(this.named_wildcards),
+      noisy:                        this.noisy,
+      files:                        [ ...this.files ],
+      config:                       { ...this.config }, /// ???
+      add_loras:                    [ ...this.add_loras
+                                      .map(o => ({ file: o.file, weigh: o.weight })) ],
+      top_file:                     this.top_file,
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.pick_multiple_priority,
+    });
+  }
+  // -----------------------------------------------------------------------------------------------
+  shallow_copy() {
+    return new Context({
+      flags:                        this.flags,
+      scalar_variables:             this.scalar_variables,
+      named_wildcards:              this.named_wildcards,
+      noisy:                        this.noisy,
+      files:                        this.files,
+      config:                       this.config,
+      add_loras:                    this.add_loras,
+      top_file:                     false, // deliberately not copied!
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,
+      prior_pick_multiple_priority: this.pick_multiple_priority,      
+      negative_prompt:              this.negative_prompt,
+    });
+  }
+}
+// -------------------------------------------------------------------------------------------------
+const prelude_text = disable_prelude ? '' : `
 @__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
                            |?male   #gender.male
                            |?neuter #gender.neuter}
@@ -6250,797 +6250,797 @@ const c_arith_assign     = r(/\+=|\-=|\*=|\/=|\%=/)
 | ?wizards_artist.boris_vallejo fantasy, science-fiction, magic, nature, muscles, femininity,
 }}
 `;
-                   // -------------------------------------------------------------------------------------------------
-                   let prelude_parse_result = null;
-                   // -------------------------------------------------------------------------------------------------
-                   function load_prelude(into_context = new Context()) {
-                     if (! prelude_parse_result) {
-                       const old_log_match_enabled = log_match_enabled;
-                       log_match_enabled = false; 
-                       prelude_parse_result = Prompt.match(prelude_text);
-                       log_match_enabled = old_log_match_enabled;
-                     }
-                     
-                     const ignored = expand_wildcards(prelude_parse_result.value, into_context);
-
-                     if (ignored === undefined)
-                       throw new Error("crap");
-                     
-                     return into_context;
-                   }
-                   // =================================================================================================
-                   // END OF HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE SECTION.
-                   // =================================================================================================
-
-
-                   // =================================================================================================
-                   // THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
-                   // =================================================================================================
-                   function expand_wildcards(thing, context = new Context()) {
-                     // ---------------------------------------------------------------------------------------------
-                     function forbid_fun(option) {
-                       for (const not_flag of option.not_flags)
-                         if (context.flag_is_set(not_flag.flag))
-                           return true;
-                       return false;
-                     };
-                     // -----------------------------------------------------------------------------------------------
-                     function allow_fun(option) {
-                       let allowed = true;
-                       
-                       for (const check_flag of option.check_flags) {
-                         let found = false;
-                         
-                         for (const flag of check_flag.flags) {
-                           if (context.flag_is_set(flag)) {
-                             found = true;
-                             break;
-                           }
-                         }
-                         
-                         if (!found) {
-                           allowed = false;
-                           break;
-                         }
-                       }
-                       
-                       return allowed;
-                     };
-                     // -----------------------------------------------------------------------------------------------
-                     function walk(thing) {
-                       // ---------------------------------------------------------------------------------------------
-                       // basic types (strings and Arrays):
-                       // ---------------------------------------------------------------------------------------------
-                       if (typeof thing === 'string')
-                         return thing;
-                       // ---------------------------------------------------------------------------------------------
-                       else if (Array.isArray(thing)) {
-                         const ret = [];
-
-                         for (const t of thing) {
-                           if (context.noisy)
-                             console.log(`WALKING ` +
-                                         typeof t === 'object'
-                                         ? inspect_fun(t)
-                                         : `${typeof t} '${t}'`);
-                           
-                           ret.push(walk(t));
-                         }
-
-                         // console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
-                         
-                         return ret;
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       // flags:
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTSetFlag) {
-                         // console.log(`SET FLAG '${thing.name}'.`);
-                         
-                         context.set_flag(thing.flag);
-
-                         return ''; // produce nothing
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTUnsetFlag) {
-                         if (log_flags_enabled)
-                           console.log(`UNSETTING FLAG '${thing.flag}'.`);
-
-                         context.unset_flag(thing.flag);
-                         
-                         return ''; // produce nothing
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       // references:
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTNamedWildcardReference) {
-                         const got = context.named_wildcards.get(thing.name);
-
-                         if (!got)
-                           return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
-
-                         let res = [];
-                         
-                         if (got instanceof ASTLatchedNamedWildcardedValue) {
-                           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-                             res.push(expand_wildcards(got, context)); // not walk!
-                         }
-                         else {
-                           const priority = thing.min_count === 1 && thing.max_count === 1
-                                 ? context.pick_one_priority
-                                 : context.pick_multiple_priority;
-                           
-                           const picks = got.pick(thing.min_count, thing.max_count,
-                                                  allow_fun, forbid_fun,
-                                                  priority);
-                           
-                           res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context))); // not walk!
-                         }
-                         
-                         res = res.filter(s => s !== '');
-
-                         if (thing.capitalize && res.length > 0) {
-                           res[0] = capitalize(res[0]);
-                         }
-
-                         return thing.joiner == ','
-                           ? res.join(", ")
-                           : (thing.joiner == '&'
-                              ? pretty_list(res)
-                              : res.join(" "));
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTScalarReference) {
-                         let got = context.scalar_variables.get(thing.name) ??
-                             `SCALAR '${thing.name}' NOT FOUND}`;
-
-                         if (thing.capitalize)
-                           got = capitalize(got);
-
-                         return got;
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       // NamedWildcards:
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTLatchNamedWildcard) {
-                         const got = context.named_wildcards.get(thing.name);
-                         
-                         if (!got)
-                           return `<ERROR: Named wildcard ${thing.name} not found!>`;
-
-                         if (got instanceof ASTLatchedNamedWildcardedValue) {
-                           if (context.noisy)
-                             console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
-
-                           return '';
-                         }
-
-                         const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
-
-                         if (context.noisy)
-                           console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
-                         
-                         context.named_wildcards.set(thing.name, latched);
-
-                         return '';
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTUnlatchNamedWildcard) {
-                         let got = context.named_wildcards.get(thing.name);
-
-                         if (!got)
-                           return `ERROR: Named wildcard ${thing.name} not found!`;
-
-                         if (! (got instanceof ASTLatchedNamedWildcardedValue))
-                           throw new Error(`NOT LATCHED: '${thing.name}'`);
-
-                         context.named_wildcards.set(thing.name, got.original_value);
-
-                         if (context.noisy)
-                           console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
-
-                         return ''; // produce no text.
-                       } 
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTNamedWildcardDefinition) {
-                         if (context.named_wildcards.has(thing.destination))
-                           console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
-
-                         context.named_wildcards.set(thing.destination, thing.wildcard);
-
-                         return '';
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       // internal objects:
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTLatchedNamedWildcardedValue) {
-                         return thing.latched_value;
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       // scalar assignment:
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTUpdateScalar) {
-                         if (context.noisy) {
-                           console.log();
-                           console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
-                                       `TO '${thing.destination.name}'`);
-                         }
-
-                         let   new_val  = walk(thing.source);
-                         const old_val = context.scalar_variables.get(thing.destination.name)??'';
-
-                         if (! thing.assign)
-                           new_val = smart_join([ old_val, new_val ]);
-                         
-                         context.scalar_variables.set(thing.destination.name, new_val);
-
-                         if (context.noisy) {
-                           console.log(`ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
-                           console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
-                         }
-                         
-                         return '';
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       // AnonWildcards:
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTAnonWildcard) {
-                         const pick = thing.pick_one(allow_fun, forbid_fun,
-                                                     context.pick_one_priority)?.body;
-
-                         if (! pick)
-                           return ''; // inelegant... investigate why this is necessary?
-                         
-                         return walk(pick);
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTUpdateConfigUnary ||
-                                thing instanceof ASTUpdateConfigBinary) {
-                         // console.log(`WALK ${inspect_fun(thing)}`);
-
-                         let value = thing.value;
-
-                         if (value instanceof ASTNode) {
-                           const expanded_value = expand_wildcards(thing.value, context); // not walk!
-                           const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
-                                                                 ? rJsoncObject
-                                                                 : rJsonc).match(expanded_value);
-
-                           if (thing instanceof ASTUpdateConfigBinary) {
-                             value = jsconc_parsed_expanded_value?.is_finished
-                               ? jsconc_parsed_expanded_value.value
-                               : expanded_value;
-                           }
-                           else { // ASTUpdateConfigUnary
-                             throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                                             `rJSONC object, rJsonc.match(...) result was ` +
-                                             inspect_fun(jsconc_parsed_expanded_value));
-                           }
-                         }
-
-                         if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
-                           let new_obj = value;
-
-                           for (const key of Object.keys(value)) {
-                             new_obj[get_our_name(key)??key] = value[key]
-                           }
-                           
-                           context.config = thing.assign
-                             ? new_obj
-                             : { ...context.config, ...new_obj };
-
-                           if (log_config_enabled)
-                             console.log(`config ${thing.assign ? '=' : '+='} ` +
-                                         `${inspect_fun(new_obj)}, ` +
-                                         `config is now: ` +
-                                         `${inspect_fun(context.config, null)}`);
-                         }
-                         else { // ASTUpdateConfigBinary
-                           const our_name = get_our_name(thing.key); 
-                           
-                           if (thing.assign) {
-                             context.config[our_name] = value;
-                           }
-                           else { // increment
-                             if (Array.isArray(value)) {
-                               const tmp_arr = context.config[our_name]??[];
-
-                               if (! Array.isArray(tmp_arr))
-                                 throw new Error(`can't add array ${inspect_fun(value)} ` +
-                                                 `to non-array ${inspect_fun(tmp_arr)}`);
-                               
-                               const new_arr = [ ...tmp_arr, ...value ];
-                               // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-                               //             `increment by array ${inspect_fun(value)}, ` +
-                               //             `total ${inspect_fun(new_arr)}`);
-                               context.config[our_name] = new_arr;
-                             }
-                             else if (typeof value === 'object') {
-                               const tmp_obj = context.config[our_name]??{};
-
-                               if (typeof tmp_obj !== 'object')
-                                 throw new Error(`can't add object ${inspect_fun(value)} `+
-                                                 `to non-object ${inspect_fun(tmp_obj)}`);
-
-                               const new_obj = { ...tmp_obj, ...value };
-                               // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-                               //             `increment by object ${inspect_fun(value)}, ` +
-                               //             `total ${inspect_fun(new_obj)}`);
-                               context.config[our_name] = new_obj;
-                             }
-                             else if (typeof value === 'number') {
-                               const tmp_num = context.config[our_name]??0;
-                               
-                               if (typeof tmp_num !== 'number')
-                                 throw new Error(`can't add number ${inspect_fun(value)} `+
-                                                 `to non-number ${inspect_fun(tmp_num)}`);
-
-                               // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-                               //             `increment by number ${inspect_fun(value)}, ` +
-                               //             `total ${inspect_fun((context.config[our_name]??0) + value)}`);
-                               context.config[our_name] = tmp_num + value;
-                             }
-                             else if (typeof value === 'string') {
-                               const tmp_str = context.config[our_name]??'';
-
-                               if (typeof tmp_str !== 'string')
-                                 throw new Error(`can't add string ${inspect_fun(value)} `+
-                                                 `to non-string ${inspect_fun(tmp_str)}`);
-
-                               // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-                               //             `increment by string ${inspect_fun(value)}, ` +
-                               //             `total ${inspect_fun((context.config[our_name]??'') + value)}`);
-                               context.config[our_name] = smart_join([tmp_str, value]);
-                             }
-                             else {
-                               // probly won't work most of the time, but let's try anyhow, I guess.
-                               // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-                               //             `increment by unknown ${inspect_fun(value)}, ` +
-                               //             `total ${inspect_fun(context.config[our_name]??null + value)}`);
-                               context.config[our_name] = (context.config[our_name]??null) + value;
-                             }
-                           }
-
-                           if (log_config_enabled)
-                             console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
-                               `config.${our_name} ` +
-                                 `${thing.assign ? '=' : '+='} ` +
-                                 `${inspect_fun(value)}, ` +
-                                 `config is now: ` +
-                                 `${inspect_fun(context.config, null)}`);
-                         }
-                         
-                         return '';
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTSetPickSingle || 
-                                thing instanceof ASTSetPickMultiple) {
-                         const walked = picker_priority[expand_wildcards(thing.limited_content, context)];
-                         const cur_key = thing instanceof ASTSetPickSingle
-                               ? 'pick_one_priority'
-                               : 'pick_multiple_priority';
-                         const prior_key = thing instanceof ASTSetPickSingle
-                               ? 'prior_pick_one_priority'
-                               : 'prior_pick_multiple_priority';
-                         const cur_val   = context[cur_key];
-                         const prior_val = context[prior_key];
-
-                         // if (log_config_enabled)
-                         //   console.log(`SET PICK DATA: ` +
-                         //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-                         //                               cur_val: cur_val, prior_val: prior_val,
-                         //                               walked: walked})}`);
-                         
-                         if (! picker_priority_descriptions.includes(walked))
-                           throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
-
-                         context[prior_key] = context[cur_key];
-                         context[cur_key]   = walked;
-
-                         if (log_config_enabled)
-                           // console.log(
-                           //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                           // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
-                           console.log(
-                             `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                               `${inspect_fun(walked)}.`);
-                         
-                         return '';
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTRevertPickSingle || 
-                                thing instanceof ASTRevertPickMultiple) {
-                         const cur_key = thing instanceof ASTRevertPickSingle
-                               ? 'pick_one_priority'
-                               : 'pick_multiple_priority';
-                         const prior_key = thing instanceof ASTRevertPickSingle
-                               ? 'prior_pick_one_priority'
-                               : 'prior_pick_multiple_priority';
-                         const cur_val   = context[cur_key];
-                         const prior_val = context[prior_key];
-
-                         // if (log_config_enabled)
-                         //   console.log(`REVERT PICK DATA: ` +
-                         //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-                         //                               cur_val: cur_val, prior_val: prior_val })}`);
-                         
-                         if (log_config_enabled)
-                           // console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                           //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
-                           console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                                       `${inspect_fun(prior_val)}.`);
-                         
-                         context[cur_key]   = prior_val;
-                         context[prior_key] = cur_val;
-
-                         return '';
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       // ASTLora:
-                       // ---------------------------------------------------------------------------------------------
-                       else if (thing instanceof ASTLora) {
-                         // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
-                         
-                         let walked_file = expand_wildcards(thing.file, context); // not walk!
-
-                         // console.log(`walked_file is ${typeof walked_file} ` +
-                         //             `${walked_file.constructor.name} ` +
-                         //             `${inspect_fun(walked_file)} ` +
-                         //             `${Array.isArray(walked_file)}`);
-
-                         // if (Array.isArray(walked_file))
-                         //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
-
-                         let walked_weight = expand_wildcards(thing.weight, context); // not walk!
-
-                         // console.log(`walked_weight is ${typeof walked_weight} ` +
-                         //             `${walked_weight.constructor.name} ` +
-                         //             `${inspect_fun(walked_weight)} ` +
-                         //             `${Array.isArray(walked_weight)}`);
-                         
-                         // if (Array.isArray(walked_weight))
-                         //   walked_weight = smart_join(walked_weight);
-                         
-                         const weight_match_result = json_number.match(walked_weight);
-
-                         if (!weight_match_result || !weight_match_result.is_finished)
-                           throw new Error(`LoRA weight must be a number, got ` +
-                                           `${inspect_fun(walked_weight)}`);
-
-                         let file = walked_file.toLowerCase();
-
-                         if (file === '')
-                           throw new Error(`LoRA file name is empty!`);
-                         
-                         // if (file.endsWith('_lora_f16.ckpt')) {
-                         if (file.endsWith('.ckpt')) {
-                           // do nothing 
-                         }
-                         else if (file.endsWith('_lora_f16')) {
-                           file = `${file}.ckpt`;
-                         }
-                         else if (file.endsWith('_lora')) {
-                           file = `${file}_f16.ckpt`;
-                         }
-                         else {
-                           file = `${file}_lora_f16.ckpt`;
-                         }
-
-                         const weight = weight_match_result.value;
-
-                         add_lora_to_array({ file: file, weight: weight },
-                                           context.add_loras,
-                                           "context.add_loras");
-                         
-                         return '';
-                       }
-                       // ---------------------------------------------------------------------------------------------
-                       // ASTUpdateNegativePrompt:
-                       // ---------------------------------------------------------------------------------------------
-                       // else if (thing instanceof ASTUpdateNegativePrompt) {
-                       //   const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
-                       //   return expand_wildcards(temporaryNode, context);
-                       // }
-                       // ---------------------------------------------------------------------------------------------
-                       // uncrecognized type:
-                       // ---------------------------------------------------------------------------------------------
-                       else {
-                         throw new Error(`confusing thing: ` +
-                                         (typeof thing === 'object'
-                                          ? thing?.constructor.name
-                                          : typeof thing) +
-                                         ' ' +
-                                         inspect_fun(thing));
-                       }
-                     }
-                     
-                     const ret = unescape(smart_join(walk(thing)));
-
-                     // if (ret === undefined)
-                     //   throw new Error("what");
-                     
-                     // if (ret.match(/^\s+$/))
-                     //   throw "bombλ";
-                     
-                     return ret;
-                   }
-                   // =================================================================================================
-                   // END OF THE MAIN AST-WALKING FUNCTION.
-                   // =================================================================================================
-
-
-                   // =================================================================================================
-                   // SD PROMPT AST CLASSES SECTION:
-                   // =================================================================================================
-                   class ASTNode {}
-                   // -------------------------------------------------------------------------------------------------
-                   // Flags:
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTSetFlag extends ASTNode {
-                     constructor(flag_arr) {
-                       // if (! Array.isArray(flag_arr))
-                       //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
-                       super();
-                       this.flag = flag_arr;
-                       
-                       // if (this.flag === undefined)
-                       //   throw new Error("stop after constructing ASTSetFlag");
-                     }
-                   }
-                   // --------------------------------------------------------------------------------------------------
-                   class ASTUnsetFlag extends ASTNode {
-                     constructor(flag_arr) {
-                       // if (! Array.isArray(flag_arr))
-                       //   throw new Error(`${this.constructor.name} ` +
-                       //                   `ARG NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
-                       super();
-                       this.flag = flag_arr;
-                     }
-                   }
-                   // --------------------------------------------------------------------------------------------------
-                   class ASTCheckFlags extends ASTNode {
-                     constructor(flag_arrs, consequently_set_flag_tail) {
-                       // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
-                       //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
-                       super();
-
-                       if (consequently_set_flag_tail && flag_arrs.length != 1 )
-                         throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
-
-                       this.flags = flag_arrs;
-                       this.consequently_set_flag_tail = consequently_set_flag_tail;
-
-                       if (log_flags_enabled)
-                         console.log(`constructed ${inspect_fun(this)}`)
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTNotFlag extends ASTNode  { 
-                     constructor(flag_arr, { set_immediately = undefined,
-                                             consequently_set_flag_tail = undefined } = {}) {
-                       // if (! Array.isArray(flag_arr))
-                       //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
-                       super();
-
-                       if (set_immediately && consequently_set_flag_tail)
-                         throw new Error(`don't supply both set_immediately and consequently_set_flag_tail`);
-
-                       this.flag                       = flag_arr;
-                       this.consequently_set_flag_tail = consequently_set_flag_tail
-                       this.set_immediately            = set_immediately;
-
-                       if (log_flags_enabled)
-                         console.log(`constructed ${inspect_fun(this)}`)
-                       
-                       // if (this.set_immediately)
-                       //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // NamedWildcard references:
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTNamedWildcardReference extends ASTNode {
-                     constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
-                       super();
-                       this.name       = name;
-                       this.min_count  = min_count;
-                       this.max_count  = max_count;
-                       this.joiner     = joiner;
-                       this.capitalize = capitalize;
-                       // console.log(`BUILT ${inspect_fun(this)}`);
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // Scalar references:
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTScalarReference extends ASTNode {
-                     constructor(name, capitalize) {
-                       super();
-                       this.name       = name;
-                       this.capitalize = capitalize;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // Scalar assignment:
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTUpdateScalar extends ASTNode  {
-                     constructor(destination, source, assign) {
-                       super();
-                       this.destination = destination;
-                       this.source      = source;
-                       this.assign      = assign;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // A1111-style Loras:
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTLora extends ASTNode {
-                     constructor(file, weight) {
-                       super();
-                       this.file   = file;
-                       this.weight = weight;
-                       // console.log(`Constructed LoRa ${this}!`);
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // Latch a NamedWildcard:
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTLatchNamedWildcard extends ASTNode {
-                     constructor(name) {
-                       super();
-                       this.name = name;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // Unlatch a NamedWildcard:
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTUnlatchNamedWildcard extends ASTNode {
-                     constructor(name) {
-                       super();
-                       this.name = name;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // Named wildcard definitions:
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTNamedWildcardDefinition extends ASTNode {
-                     constructor(destination, wildcard) {
-                       super();
-                       this.destination = destination;
-                       this.wildcard    = wildcard;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // Internal usage.. might not /really/ be part of the AST per se?
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTLatchedNamedWildcardedValue extends ASTNode {
-                     constructor(latched_value, original_value) {
-                       super();
-                       this.latched_value  = latched_value;
-                       this.original_value = original_value;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // AnonWildcards:
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTAnonWildcard  extends ASTNode {
-                     constructor(options) {
-                       super();
-                       this.picker = new WeightedPicker(options
-                                                        .filter(o => o.weight !== 0)
-                                                        .map(o => [o.weight, o]));
-                       // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     pick(...args) {
-                       return this.picker.pick(...args);
-                     }
-                     // -----------------------------------------------------------------------------------------------
-                     pick_one(...args) {
-                       return this.picker.pick_one(...args);
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTAnonWildcardAlternative extends ASTNode {
-                     constructor(weight, check_flags, not_flags, body) {
-                       super();
-                       this.weight      = weight;
-                       this.check_flags = check_flags;
-                       this.not_flags   = not_flags;
-                       this.body        = body;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // Directives:
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTInclude extends ASTNode {
-                     constructor(args) {
-                       super();
-                       // this.directive = directive;
-                       this.args      = args;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTUpdateConfigUnary extends ASTNode {
-                     constructor(value, assign) {
-                       super();
-                       this.value = value;
-                       this.assign = assign; // otherwise update
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTUpdateConfigBinary extends ASTNode {
-                     constructor(key, value, assign) {
-                       super();
-                       this.key    = key;
-                       this.value  = value;
-                       this.assign = assign;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   // class ASTUpdateNegativePrompt extends ASTNode {
-                   //   constructor(value, assign) {
-                   //     super();
-                   //     this.value  = value
-                   //     this.assign = assign;
-                   //   }
-                   // }
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTSetPickMultiple extends ASTNode {
-                     constructor(limited_content) {
-                       super();
-                       this.limited_content = limited_content;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTSetPickSingle extends ASTNode {
-                     constructor(limited_content) {
-                       super();
-                       this.limited_content = limited_content;
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTRevertPickMultiple extends ASTNode {
-                     constructor() {
-                       super();
-                     }
-                   }
-                   // -------------------------------------------------------------------------------------------------
-                   class ASTRevertPickSingle extends ASTNode {
-                     constructor() {
-                       super();
-                     }
-                   }
-                   // =================================================================================================
-                   // END OF SD PROMPT AST CLASSES SECTION.
-                   // =================================================================================================
-
-
-                   // =================================================================================================
-                   // SD PROMPT GRAMMAR SECTION:
-                   // =================================================================================================
-                   // terminals:
-                   // -------------------------------------------------------------------------------------------------
-                   const word_break               = /(?=\s|[{|}]|$)/;
-                   const plaintext                = /(?:\\\s|[^\s{|}])+/;
-                   // const plaintext                = /[^{|}\s]+/;
-                   // const plaintext_no_parens      = /[^{|}\s()]+/;
-                   // const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
-                   const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-                   const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
-                   const comment                  = discard(choice(c_block_comment, c_line_comment));
-                   const assignment_operator      = second(seq(wst_star(comment), '=', wst_star(comment)));
-                   const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
-                   const escaped_brc              = second(choice('\\{', '\\}'));
-                   const filename                 = /[A-Za-z0-9 ._\-()]+/;
-                   // ^ conservative regex, no unicode or weird symbols
-                   // -------------------------------------------------------------------------------------------------
-                   // combinators:
-                   // -------------------------------------------------------------------------------------------------
-                   // const unarySpecialFunction = (prefix, rule, xform_func) =>
+// -------------------------------------------------------------------------------------------------
+let prelude_parse_result = null;
+// -------------------------------------------------------------------------------------------------
+function load_prelude(into_context = new Context()) {
+  if (! prelude_parse_result) {
+    const old_log_match_enabled = log_match_enabled;
+    log_match_enabled = false; 
+    prelude_parse_result = Prompt.match(prelude_text);
+    log_match_enabled = old_log_match_enabled;
+  }
+  
+  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+
+  if (ignored === undefined)
+    throw new Error("crap");
+  
+  return into_context;
+}
+// =================================================================================================
+// END OF HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
+// =================================================================================================
+function expand_wildcards(thing, context = new Context()) {
+  // ---------------------------------------------------------------------------------------------
+  function forbid_fun(option) {
+    for (const not_flag of option.not_flags)
+      if (context.flag_is_set(not_flag.flag))
+        return true;
+    return false;
+  };
+  // -----------------------------------------------------------------------------------------------
+  function allow_fun(option) {
+    let allowed = true;
+    
+    for (const check_flag of option.check_flags) {
+      let found = false;
+      
+      for (const flag of check_flag.flags) {
+        if (context.flag_is_set(flag)) {
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        allowed = false;
+        break;
+      }
+    }
+    
+    return allowed;
+  };
+  // -----------------------------------------------------------------------------------------------
+  function walk(thing) {
+    // ---------------------------------------------------------------------------------------------
+    // basic types (strings and Arrays):
+    // ---------------------------------------------------------------------------------------------
+    if (typeof thing === 'string')
+      return thing;
+    // ---------------------------------------------------------------------------------------------
+    else if (Array.isArray(thing)) {
+      const ret = [];
+
+      for (const t of thing) {
+        if (context.noisy)
+          console.log(`WALKING ` +
+                      typeof t === 'object'
+                      ? inspect_fun(t)
+                      : `${typeof t} '${t}'`);
+        
+        ret.push(walk(t));
+      }
+
+      // console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
+      
+      return ret;
+    }
+    // ---------------------------------------------------------------------------------------------
+    // flags:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTSetFlag) {
+      // console.log(`SET FLAG '${thing.name}'.`);
+      
+      context.set_flag(thing.flag);
+
+      return ''; // produce nothing
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUnsetFlag) {
+      if (log_flags_enabled)
+        console.log(`UNSETTING FLAG '${thing.flag}'.`);
+
+      context.unset_flag(thing.flag);
+      
+      return ''; // produce nothing
+    }
+    // ---------------------------------------------------------------------------------------------
+    // references:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTNamedWildcardReference) {
+      const got = context.named_wildcards.get(thing.name);
+
+      if (!got)
+        return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
+
+      let res = [];
+      
+      if (got instanceof ASTLatchedNamedWildcardedValue) {
+        for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
+          res.push(expand_wildcards(got, context)); // not walk!
+      }
+      else {
+        const priority = thing.min_count === 1 && thing.max_count === 1
+              ? context.pick_one_priority
+              : context.pick_multiple_priority;
+        
+        const picks = got.pick(thing.min_count, thing.max_count,
+                               allow_fun, forbid_fun,
+                               priority);
+        
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context))); // not walk!
+      }
+      
+      res = res.filter(s => s !== '');
+
+      if (thing.capitalize && res.length > 0) {
+        res[0] = capitalize(res[0]);
+      }
+
+      return thing.joiner == ','
+        ? res.join(", ")
+        : (thing.joiner == '&'
+           ? pretty_list(res)
+           : res.join(" "));
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTScalarReference) {
+      let got = context.scalar_variables.get(thing.name) ??
+          `SCALAR '${thing.name}' NOT FOUND}`;
+
+      if (thing.capitalize)
+        got = capitalize(got);
+
+      return got;
+    }
+    // ---------------------------------------------------------------------------------------------
+    // NamedWildcards:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTLatchNamedWildcard) {
+      const got = context.named_wildcards.get(thing.name);
+      
+      if (!got)
+        return `<ERROR: Named wildcard ${thing.name} not found!>`;
+
+      if (got instanceof ASTLatchedNamedWildcardedValue) {
+        if (context.noisy)
+          console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
+
+        return '';
+      }
+
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
+
+      if (context.noisy)
+        console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+      
+      context.named_wildcards.set(thing.name, latched);
+
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUnlatchNamedWildcard) {
+      let got = context.named_wildcards.get(thing.name);
+
+      if (!got)
+        return `ERROR: Named wildcard ${thing.name} not found!`;
+
+      if (! (got instanceof ASTLatchedNamedWildcardedValue))
+        throw new Error(`NOT LATCHED: '${thing.name}'`);
+
+      context.named_wildcards.set(thing.name, got.original_value);
+
+      if (context.noisy)
+        console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+
+      return ''; // produce no text.
+    } 
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTNamedWildcardDefinition) {
+      if (context.named_wildcards.has(thing.destination))
+        console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
+
+      context.named_wildcards.set(thing.destination, thing.wildcard);
+
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    // internal objects:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTLatchedNamedWildcardedValue) {
+      return thing.latched_value;
+    }
+    // ---------------------------------------------------------------------------------------------
+    // scalar assignment:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUpdateScalar) {
+      if (context.noisy) {
+        console.log();
+        console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
+                    `TO '${thing.destination.name}'`);
+      }
+
+      let   new_val  = walk(thing.source);
+      const old_val = context.scalar_variables.get(thing.destination.name)??'';
+
+      if (! thing.assign)
+        new_val = smart_join([ old_val, new_val ]);
+      
+      context.scalar_variables.set(thing.destination.name, new_val);
+
+      if (context.noisy) {
+        console.log(`ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
+        console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+      }
+      
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    // AnonWildcards:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTAnonWildcard) {
+      const pick = thing.pick_one(allow_fun, forbid_fun,
+                                  context.pick_one_priority)?.body;
+
+      if (! pick)
+        return ''; // inelegant... investigate why this is necessary?
+      
+      return walk(pick);
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUpdateConfigUnary ||
+             thing instanceof ASTUpdateConfigBinary) {
+      // console.log(`WALK ${inspect_fun(thing)}`);
+
+      let value = thing.value;
+
+      if (value instanceof ASTNode) {
+        const expanded_value = expand_wildcards(thing.value, context); // not walk!
+        const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
+                                              ? rJsoncObject
+                                              : rJsonc).match(expanded_value);
+
+        if (thing instanceof ASTUpdateConfigBinary) {
+          value = jsconc_parsed_expanded_value?.is_finished
+            ? jsconc_parsed_expanded_value.value
+            : expanded_value;
+        }
+        else { // ASTUpdateConfigUnary
+          throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
+                          `rJSONC object, rJsonc.match(...) result was ` +
+                          inspect_fun(jsconc_parsed_expanded_value));
+        }
+      }
+
+      if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
+        let new_obj = value;
+
+        for (const key of Object.keys(value)) {
+          new_obj[get_our_name(key)??key] = value[key]
+        }
+        
+        context.config = thing.assign
+          ? new_obj
+          : { ...context.config, ...new_obj };
+
+        if (log_config_enabled)
+          console.log(`config ${thing.assign ? '=' : '+='} ` +
+                      `${inspect_fun(new_obj)}, ` +
+                      `config is now: ` +
+                      `${inspect_fun(context.config, null)}`);
+      }
+      else { // ASTUpdateConfigBinary
+        const our_name = get_our_name(thing.key); 
+        
+        if (thing.assign) {
+          context.config[our_name] = value;
+        }
+        else { // increment
+          if (Array.isArray(value)) {
+            const tmp_arr = context.config[our_name]??[];
+
+            if (! Array.isArray(tmp_arr))
+              throw new Error(`can't add array ${inspect_fun(value)} ` +
+                              `to non-array ${inspect_fun(tmp_arr)}`);
+            
+            const new_arr = [ ...tmp_arr, ...value ];
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            //             `increment by array ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(new_arr)}`);
+            context.config[our_name] = new_arr;
+          }
+          else if (typeof value === 'object') {
+            const tmp_obj = context.config[our_name]??{};
+
+            if (typeof tmp_obj !== 'object')
+              throw new Error(`can't add object ${inspect_fun(value)} `+
+                              `to non-object ${inspect_fun(tmp_obj)}`);
+
+            const new_obj = { ...tmp_obj, ...value };
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            //             `increment by object ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(new_obj)}`);
+            context.config[our_name] = new_obj;
+          }
+          else if (typeof value === 'number') {
+            const tmp_num = context.config[our_name]??0;
+            
+            if (typeof tmp_num !== 'number')
+              throw new Error(`can't add number ${inspect_fun(value)} `+
+                              `to non-number ${inspect_fun(tmp_num)}`);
+
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            //             `increment by number ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun((context.config[our_name]??0) + value)}`);
+            context.config[our_name] = tmp_num + value;
+          }
+          else if (typeof value === 'string') {
+            const tmp_str = context.config[our_name]??'';
+
+            if (typeof tmp_str !== 'string')
+              throw new Error(`can't add string ${inspect_fun(value)} `+
+                              `to non-string ${inspect_fun(tmp_str)}`);
+
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            //             `increment by string ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun((context.config[our_name]??'') + value)}`);
+            context.config[our_name] = smart_join([tmp_str, value]);
+          }
+          else {
+            // probly won't work most of the time, but let's try anyhow, I guess.
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            //             `increment by unknown ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(context.config[our_name]??null + value)}`);
+            context.config[our_name] = (context.config[our_name]??null) + value;
+          }
+        }
+
+        if (log_config_enabled)
+          console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
+            `config.${our_name} ` +
+              `${thing.assign ? '=' : '+='} ` +
+              `${inspect_fun(value)}, ` +
+              `config is now: ` +
+              `${inspect_fun(context.config, null)}`);
+      }
+      
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTSetPickSingle || 
+             thing instanceof ASTSetPickMultiple) {
+      const walked = picker_priority[expand_wildcards(thing.limited_content, context)];
+      const cur_key = thing instanceof ASTSetPickSingle
+            ? 'pick_one_priority'
+            : 'pick_multiple_priority';
+      const prior_key = thing instanceof ASTSetPickSingle
+            ? 'prior_pick_one_priority'
+            : 'prior_pick_multiple_priority';
+      const cur_val   = context[cur_key];
+      const prior_val = context[prior_key];
+
+      // if (log_config_enabled)
+      //   console.log(`SET PICK DATA: ` +
+      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+      //                               cur_val: cur_val, prior_val: prior_val,
+      //                               walked: walked})}`);
+      
+      if (! picker_priority_descriptions.includes(walked))
+        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+
+      context[prior_key] = context[cur_key];
+      context[cur_key]   = walked;
+
+      if (log_config_enabled)
+        // console.log(
+        //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
+        console.log(
+          `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+            `${inspect_fun(walked)}.`);
+      
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTRevertPickSingle || 
+             thing instanceof ASTRevertPickMultiple) {
+      const cur_key = thing instanceof ASTRevertPickSingle
+            ? 'pick_one_priority'
+            : 'pick_multiple_priority';
+      const prior_key = thing instanceof ASTRevertPickSingle
+            ? 'prior_pick_one_priority'
+            : 'prior_pick_multiple_priority';
+      const cur_val   = context[cur_key];
+      const prior_val = context[prior_key];
+
+      // if (log_config_enabled)
+      //   console.log(`REVERT PICK DATA: ` +
+      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+      //                               cur_val: cur_val, prior_val: prior_val })}`);
+      
+      if (log_config_enabled)
+        // console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
+        console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                    `${inspect_fun(prior_val)}.`);
+      
+      context[cur_key]   = prior_val;
+      context[prior_key] = cur_val;
+
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    // ASTLora:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTLora) {
+      // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      
+      let walked_file = expand_wildcards(thing.file, context); // not walk!
+
+      // console.log(`walked_file is ${typeof walked_file} ` +
+      //             `${walked_file.constructor.name} ` +
+      //             `${inspect_fun(walked_file)} ` +
+      //             `${Array.isArray(walked_file)}`);
+
+      // if (Array.isArray(walked_file))
+      //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
+
+      let walked_weight = expand_wildcards(thing.weight, context); // not walk!
+
+      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      //             `${walked_weight.constructor.name} ` +
+      //             `${inspect_fun(walked_weight)} ` +
+      //             `${Array.isArray(walked_weight)}`);
+      
+      // if (Array.isArray(walked_weight))
+      //   walked_weight = smart_join(walked_weight);
+      
+      const weight_match_result = json_number.match(walked_weight);
+
+      if (!weight_match_result || !weight_match_result.is_finished)
+        throw new Error(`LoRA weight must be a number, got ` +
+                        `${inspect_fun(walked_weight)}`);
+
+      let file = walked_file.toLowerCase();
+
+      if (file === '')
+        throw new Error(`LoRA file name is empty!`);
+      
+      // if (file.endsWith('_lora_f16.ckpt')) {
+      if (file.endsWith('.ckpt')) {
+        // do nothing 
+      }
+      else if (file.endsWith('_lora_f16')) {
+        file = `${file}.ckpt`;
+      }
+      else if (file.endsWith('_lora')) {
+        file = `${file}_f16.ckpt`;
+      }
+      else {
+        file = `${file}_lora_f16.ckpt`;
+      }
+
+      const weight = weight_match_result.value;
+
+      add_lora_to_array({ file: file, weight: weight },
+                        context.add_loras,
+                        "context.add_loras");
+      
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    // ASTUpdateNegativePrompt:
+    // ---------------------------------------------------------------------------------------------
+    // else if (thing instanceof ASTUpdateNegativePrompt) {
+    //   const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
+    //   return expand_wildcards(temporaryNode, context);
+    // }
+    // ---------------------------------------------------------------------------------------------
+    // uncrecognized type:
+    // ---------------------------------------------------------------------------------------------
+    else {
+      throw new Error(`confusing thing: ` +
+                      (typeof thing === 'object'
+                       ? thing?.constructor.name
+                       : typeof thing) +
+                      ' ' +
+                      inspect_fun(thing));
+    }
+  }
+  
+  const ret = unescape(smart_join(walk(thing)));
+
+  // if (ret === undefined)
+  //   throw new Error("what");
+  
+  // if (ret.match(/^\s+$/))
+  //   throw "bombλ";
+  
+  return ret;
+}
+// =================================================================================================
+// END OF THE MAIN AST-WALKING FUNCTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// SD PROMPT AST CLASSES SECTION:
+// =================================================================================================
+class ASTNode {}
+// -------------------------------------------------------------------------------------------------
+// Flags:
+// -------------------------------------------------------------------------------------------------
+class ASTSetFlag extends ASTNode {
+  constructor(flag_arr) {
+    // if (! Array.isArray(flag_arr))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+
+    super();
+    this.flag = flag_arr;
+    
+    // if (this.flag === undefined)
+    //   throw new Error("stop after constructing ASTSetFlag");
+  }
+}
+// --------------------------------------------------------------------------------------------------
+class ASTUnsetFlag extends ASTNode {
+  constructor(flag_arr) {
+    // if (! Array.isArray(flag_arr))
+    //   throw new Error(`${this.constructor.name} ` +
+    //                   `ARG NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+
+    super();
+    this.flag = flag_arr;
+  }
+}
+// --------------------------------------------------------------------------------------------------
+class ASTCheckFlags extends ASTNode {
+  constructor(flag_arrs, consequently_set_flag_tail) {
+    // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
+    //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
+    super();
+
+    if (consequently_set_flag_tail && flag_arrs.length != 1 )
+      throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
+
+    this.flags = flag_arrs;
+    this.consequently_set_flag_tail = consequently_set_flag_tail;
+
+    if (log_flags_enabled)
+      console.log(`constructed ${inspect_fun(this)}`)
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTNotFlag extends ASTNode  { 
+  constructor(flag_arr, { set_immediately = undefined,
+                          consequently_set_flag_tail = undefined } = {}) {
+    // if (! Array.isArray(flag_arr))
+    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
+
+    super();
+
+    if (set_immediately && consequently_set_flag_tail)
+      throw new Error(`don't supply both set_immediately and consequently_set_flag_tail`);
+
+    this.flag                       = flag_arr;
+    this.consequently_set_flag_tail = consequently_set_flag_tail
+    this.set_immediately            = set_immediately;
+
+    if (log_flags_enabled)
+      console.log(`constructed ${inspect_fun(this)}`)
+    
+    // if (this.set_immediately)
+    //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// NamedWildcard references:
+// -------------------------------------------------------------------------------------------------
+class ASTNamedWildcardReference extends ASTNode {
+  constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
+    super();
+    this.name       = name;
+    this.min_count  = min_count;
+    this.max_count  = max_count;
+    this.joiner     = joiner;
+    this.capitalize = capitalize;
+    // console.log(`BUILT ${inspect_fun(this)}`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Scalar references:
+// -------------------------------------------------------------------------------------------------
+class ASTScalarReference extends ASTNode {
+  constructor(name, capitalize) {
+    super();
+    this.name       = name;
+    this.capitalize = capitalize;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Scalar assignment:
+// -------------------------------------------------------------------------------------------------
+class ASTUpdateScalar extends ASTNode  {
+  constructor(destination, source, assign) {
+    super();
+    this.destination = destination;
+    this.source      = source;
+    this.assign      = assign;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// A1111-style Loras:
+// -------------------------------------------------------------------------------------------------
+class ASTLora extends ASTNode {
+  constructor(file, weight) {
+    super();
+    this.file   = file;
+    this.weight = weight;
+    // console.log(`Constructed LoRa ${this}!`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Latch a NamedWildcard:
+// -------------------------------------------------------------------------------------------------
+class ASTLatchNamedWildcard extends ASTNode {
+  constructor(name) {
+    super();
+    this.name = name;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Unlatch a NamedWildcard:
+// -------------------------------------------------------------------------------------------------
+class ASTUnlatchNamedWildcard extends ASTNode {
+  constructor(name) {
+    super();
+    this.name = name;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Named wildcard definitions:
+// -------------------------------------------------------------------------------------------------
+class ASTNamedWildcardDefinition extends ASTNode {
+  constructor(destination, wildcard) {
+    super();
+    this.destination = destination;
+    this.wildcard    = wildcard;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Internal usage.. might not /really/ be part of the AST per se?
+// -------------------------------------------------------------------------------------------------
+class ASTLatchedNamedWildcardedValue extends ASTNode {
+  constructor(latched_value, original_value) {
+    super();
+    this.latched_value  = latched_value;
+    this.original_value = original_value;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// AnonWildcards:
+// -------------------------------------------------------------------------------------------------
+class ASTAnonWildcard  extends ASTNode {
+  constructor(options) {
+    super();
+    this.picker = new WeightedPicker(options
+                                     .filter(o => o.weight !== 0)
+                                     .map(o => [o.weight, o]));
+    // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  pick(...args) {
+    return this.picker.pick(...args);
+  }
+  // -----------------------------------------------------------------------------------------------
+  pick_one(...args) {
+    return this.picker.pick_one(...args);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTAnonWildcardAlternative extends ASTNode {
+  constructor(weight, check_flags, not_flags, body) {
+    super();
+    this.weight      = weight;
+    this.check_flags = check_flags;
+    this.not_flags   = not_flags;
+    this.body        = body;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Directives:
+// -------------------------------------------------------------------------------------------------
+class ASTInclude extends ASTNode {
+  constructor(args) {
+    super();
+    // this.directive = directive;
+    this.args      = args;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTUpdateConfigUnary extends ASTNode {
+  constructor(value, assign) {
+    super();
+    this.value = value;
+    this.assign = assign; // otherwise update
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTUpdateConfigBinary extends ASTNode {
+  constructor(key, value, assign) {
+    super();
+    this.key    = key;
+    this.value  = value;
+    this.assign = assign;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// class ASTUpdateNegativePrompt extends ASTNode {
+//   constructor(value, assign) {
+//     super();
+//     this.value  = value
+//     this.assign = assign;
+//   }
+// }
+// -------------------------------------------------------------------------------------------------
+class ASTSetPickMultiple extends ASTNode {
+  constructor(limited_content) {
+    super();
+    this.limited_content = limited_content;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTSetPickSingle extends ASTNode {
+  constructor(limited_content) {
+    super();
+    this.limited_content = limited_content;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTRevertPickMultiple extends ASTNode {
+  constructor() {
+    super();
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTRevertPickSingle extends ASTNode {
+  constructor() {
+    super();
+  }
+}
+// =================================================================================================
+// END OF SD PROMPT AST CLASSES SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// SD PROMPT GRAMMAR SECTION:
+// =================================================================================================
+// terminals:
+// -------------------------------------------------------------------------------------------------
+const word_break               = /(?=\s|[{|}]|$)/;
+const plaintext                = /(?:\\\s|[^\s{|}])+/;
+// const plaintext                = /[^{|}\s]+/;
+// const plaintext_no_parens      = /[^{|}\s()]+/;
+// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
+const comment                  = discard(choice(c_block_comment, c_line_comment));
+const assignment_operator      = second(seq(wst_star(comment), '=', wst_star(comment)));
+const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
+const escaped_brc              = second(choice('\\{', '\\}'));
+const filename                 = /[A-Za-z0-9 ._\-()]+/;
+// ^ conservative regex, no unicode or weird symbols
+// -------------------------------------------------------------------------------------------------
+// combinators:
+// -------------------------------------------------------------------------------------------------
+// const unarySpecialFunction = (prefix, rule, xform_func) =>
 //       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
 //                                     DiscardedComments,     // -
 //                                     '(',                   // [0][1]
