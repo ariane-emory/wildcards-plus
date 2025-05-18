@@ -93,8 +93,14 @@ function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 
       req.write(string_data);
       req.end();
 
-      if (fire_and_forget_post)
+      if (fire_and_forget_post) {
         socket.destroy(); // don't wait for the response.
+      }
+      else {
+        socket.on('data', (chunk) => {
+          console.log(chunk.toString());
+        });
+      }
     });
   });
 
@@ -1133,69 +1139,69 @@ function seq(...elements) { // convenience constructor
 }
 // -------------------------------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------------------------------
-  // CuttingSequence class
-  // -------------------------------------------------------------------------------------------------
-  class CuttingSequence extends Sequence {
-    // -----------------------------------------------------------------------------------------------
-    constructor(leading_rule, ...expected_rules) {
-      super(leading_rule, ...expected_rules);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __fail_or_throw_error(start_rule_result, failed_rule_result,
-                          input, index) {
-      throw new Error(`expected (${this.elements.slice(1).join(" ")}) ` +
-                      `after ${this.elements[0]} at ` +
-                      `char ${index}` +
-                      `, found: ` +
-                      `'${abbreviate(input.substr(start_rule_result.index))}'`);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id) {
-      return `${this.__vivify(this.elements[0]).__toString(visited, next_id)}=>` +
-        `${this.elements.slice(1)
+// -------------------------------------------------------------------------------------------------
+// CuttingSequence class
+// -------------------------------------------------------------------------------------------------
+class CuttingSequence extends Sequence {
+  // -----------------------------------------------------------------------------------------------
+  constructor(leading_rule, ...expected_rules) {
+    super(leading_rule, ...expected_rules);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __fail_or_throw_error(start_rule_result, failed_rule_result,
+                        input, index) {
+    throw new Error(`expected (${this.elements.slice(1).join(" ")}) ` +
+                    `after ${this.elements[0]} at ` +
+                    `char ${index}` +
+                    `, found: ` +
+                    `'${abbreviate(input.substr(start_rule_result.index))}'`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `${this.__vivify(this.elements[0]).__toString(visited, next_id)}=>` +
+      `${this.elements.slice(1)
          .map(x => this.__vivify(x).__toString(visited, next_id))}`;
-    }
   }
-  // -------------------------------------------------------------------------------------------------
-  // convenience constructor:
-  function cutting_seq(leading_rule, ...expected_rules) {
-    return new CuttingSequence(leading_rule, ...expected_rules);
+}
+// -------------------------------------------------------------------------------------------------
+// convenience constructor:
+function cutting_seq(leading_rule, ...expected_rules) {
+  return new CuttingSequence(leading_rule, ...expected_rules);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Xform class
+// -------------------------------------------------------------------------------------------------
+class Xform extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule, xform_func) {
+    super();
+    this.xform_func = xform_func;
+    this.rule       = make_rule_func(rule);
   }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // Xform class
-  // -------------------------------------------------------------------------------------------------
-  class Xform extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(rule, xform_func) {
-      super();
-      this.xform_func = xform_func;
-      this.rule       = make_rule_func(rule);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      this.rule = this.__vivify(this.rule);
-      this.rule.__finalize(indent + 1, visited);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index) {
-      const rule_match_result = this.rule.match(
-        input, index, indent + 1);
-
-      if (! rule_match_result)
-        return null;
-
-      rule_match_result.value = this.xform_func(rule_match_result.value);
-
-      return rule_match_result
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id) {
-      return `${this.__vivify(this.rule).__toString(visited, next_id)}`;
-    }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    this.rule.__finalize(indent + 1, visited);
   }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index) {
+    const rule_match_result = this.rule.match(
+      input, index, indent + 1);
+
+    if (! rule_match_result)
+      return null;
+
+    rule_match_result.value = this.xform_func(rule_match_result.value);
+
+    return rule_match_result
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id)}`;
+  }
+}
 // -------------------------------------------------------------------------------------------------
 function xform(...things) { // convenience constructor with magic
   things = things.map(make_rule_func);
@@ -1633,7 +1639,7 @@ const tws                = rule => first(seq(rule, whites_star));
 // common numbers:
 const udecimal           = r(/\d+\.\d+/); 
 const urational          = r(/\d+\/[1-9]\d*/);
-  const uint               = r(/\d+/)
+const uint               = r(/\d+/)
 const sdecimal           = r(/[+-]?\d+\.\d+/);
 const srational          = r(/[+-]?\d+\/[1-9]\d*/);
 const sint               = r(/[+-]?\d+/)
