@@ -1914,7 +1914,7 @@ Jsonc.finalize();
 
 
 // =================================================================================================
-// 'relaxed' JSONC GRAMMAR SECTION:
+// 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
 // =================================================================================================
 const rJsonc = second(wst_seq(JsoncComments,
                               choice(() => rJsoncObject,  () => JsoncArray,
