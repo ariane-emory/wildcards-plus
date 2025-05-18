@@ -7149,11 +7149,11 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1]),
-            wst_cutting_seq(wst_seq('%single-pick-priority', assignment_operator),
+            wst_cutting_seq(wst_seq('%single_pick', assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1]),
-            wst_cutting_seq(wst_seq('%multi-pick-priority', assignment_operator),
+            wst_cutting_seq(wst_seq('%multi_pick', assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
