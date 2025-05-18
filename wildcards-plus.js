@@ -45,8 +45,6 @@
     }
   }
   // -------------------------------------------------------------------------------------------------
-  let inspect_fun = (thing, no_break = false) => util.inspect(thing, no_break ? { breakLength: Infinity } : {});
-
   inspect_fun = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
   clone_fun   = structured_clone;
   dt_hosted   = true;
