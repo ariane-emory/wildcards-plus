@@ -729,17 +729,18 @@ class Element extends Rule {
     if (! rule_match_result)
       return null;
 
-    if (log_match_enabled) {
-      log(indent, `taking elem ${this.index} from ` +
-          `${JSON.stringify(rule_match_result)}'s value.`);
-    }
+    // if (log_match_enabled) {
+    //   log(indent, `taking elem ${this.index} from ` +
+    //       `${inspect_fun(rule_match_result)}'s value.`);
+    // }
 
     const ret = rule_match_result.value[this.index] === undefined
           ? DISCARD
           : rule_match_result.value[this.index];
     
     if (log_match_enabled) {
-      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result)} = ${typeof ret === 'symbol' ? ret.toString() : ret}`);
+      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result.value)} = ` +
+          `${typeof ret === 'symbol' ? ret.toString() : inspect_fun(ret)}`);
     }
     
     rule_match_result.value = ret;
@@ -1928,7 +1929,7 @@ const rJsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
+                wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
                 JsoncComments,
                 Jsonc,
                 JsoncComments,
@@ -1936,7 +1937,7 @@ const rJsoncObject =
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(JsoncComments,
-                                                        choice(() => json_string, c_ident),
+                                                        choice(json_string, c_ident),
                                                         JsoncComments,
                                                         ':',
                                                         JsoncComments,
@@ -7598,3 +7599,7 @@ main().catch(err => {
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
+// log_match_enabled = true;
+console.log(
+  rJsoncObject.match(`{ foo: 123, "bar": 234 }`)
+);
