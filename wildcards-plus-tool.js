@@ -1936,7 +1936,7 @@ const rJsoncObject =
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(JsoncComments,
-                                                        () => json_string,
+                                                        choice(() => json_string, c_ident),
                                                         JsoncComments,
                                                         ':',
                                                         JsoncComments,
