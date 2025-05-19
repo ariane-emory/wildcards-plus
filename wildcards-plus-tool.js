@@ -2696,7 +2696,7 @@ function get_other_name(return_key, find_key, find_value) {
     if (log_name_lookups_enabled)
       console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
                   `${inspect_fun(find_value_lc)} = ` +
-                `${obj[return_key].toLowerCase() === find_value_lc}`);
+                  `${obj[return_key].toLowerCase() === find_value_lc}`);
     return obj[return_key].toLowerCase() === find_value_lc;
   });
 
@@ -2719,11 +2719,9 @@ function get_other_name(return_key, find_key, find_value) {
     console.log(`GOT: ${inspect_fun(got)}`);
 
   if (got) {
-    if (log_name_lookups_enabled) {
-      console.log(`got ${return_key} for ` +
-                  `${inspect_fun(find_value)}: ${inspect_fun(got[return_key])}`);
-      console.log(`RETURNING ${return_key} ${inspect_fun(got[return_key])}\n`);
-    }
+    if (log_name_lookups_enabled)
+      console.log(`GOT ${return_key} FOR ` +
+                  `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
     
     return got[return_key];
   }
