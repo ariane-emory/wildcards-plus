@@ -2439,10 +2439,11 @@ const config_key_names = [
   [ 'negativePrompt',                    'negative'                                   ],
   // -----------------------------------------------------------------------------------------------
   [ 'negativePromptForImagePrior',       'negative_prompt_for_image_prior'            ],
-  [ 'openClipGText',                     'open_clip_g_text'                           ],
   // -----------------------------------------------------------------------------------------------
   [ 'openClipGText',                     'open_clip_g_text'                           ],
   // shorthands:
+  [ 'clipGText',                         'open_clip_g_text'                           ],
+  [ 'openClipGText',                     'clipGText'                                  ],
   [ 'clip_g_text',                       'open_clip_g_text'                           ],
   [ 'openClipGText',                     'clip_g_text'                                ],
   [ 'clip_g',                            'open_clip_g_text'                           ],

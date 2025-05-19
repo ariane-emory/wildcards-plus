@@ -2575,7 +2575,9 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 // -------------------------------------------------------------------------------------------------
 const config_key_names = [
   // [ dt_name, automatic1111_name ],
+  // -----------------------------------------------------------------------------------------------
   // identical keys:
+  // -----------------------------------------------------------------------------------------------
   [ 'controls',                          'controls'                                   ],
   [ 'fps',                               'fps'                                        ],
   [ 'height',                            'height'                                     ],
@@ -2589,7 +2591,9 @@ const config_key_names = [
   [ 'width',                             'width'                                      ],
   [ 'upscaler',                          'upscaler'                                   ],
   [ 'sampler',                           'sampler'                                    ], // ordering significant?
+  // -----------------------------------------------------------------------------------------------
   // differing keys:
+  // -----------------------------------------------------------------------------------------------
   [ 'aestheticScore',                    'aesthetic_score'                            ],
   [ 'batchCount',                        'batch_count'                                ],
   [ 'batchCount',                        'n_iter'                                     ],
@@ -2640,10 +2644,11 @@ const config_key_names = [
   [ 'negativePrompt',                    'negative'                                   ],
   // -----------------------------------------------------------------------------------------------
   [ 'negativePromptForImagePrior',       'negative_prompt_for_image_prior'            ],
-  [ 'openClipGText',                     'open_clip_g_text'                           ],
   // -----------------------------------------------------------------------------------------------
   [ 'openClipGText',                     'open_clip_g_text'                           ],
   // shorthands:
+  [ 'clipGText',                         'open_clip_g_text'                           ],
+  [ 'openClipGText',                     'clipGText'                                  ],
   [ 'clip_g_text',                       'open_clip_g_text'                           ],
   [ 'openClipGText',                     'clip_g_text'                                ],
   [ 'clip_g',                            'open_clip_g_text'                           ],
