@@ -161,7 +161,7 @@
 // -------------------------------------------------------------------------------------------------
 
 @l2_place     = {on a @l2_place_adj {?ship @ship_term2|?station space station
-                 |?planet planet|?planet world|?moon moon}}
+                |?planet planet|?planet world|?moon moon}}
 @l2_place_adj = 
 {
 |strange
@@ -179,9 +179,9 @@
 }
 @l2_orbit_obj_adj   = {dim|distant|huge|luminous|shining}
 @l2_orbit_obj       = {2 !planet {|ringed} planet|!planet !moon ship
-                       |!planet !moon space station|!planet !moon asteroid
-                       |!planet comet|2 {|2 yellow|2 red|green} star|black hole
-                       |!planet !moon satellite}
+                      |!planet !moon space station|!planet !moon asteroid
+                      |!planet comet|2 {|2 yellow|2 red|green} star|black hole
+                      |!planet !moon satellite}
 @l2_orbit_phrase    = {@l2_orbit_obj_adj @l2_orbit_obj}
 @l2_place_phrase    = {@l2_place {|2 orbiting a @l2_orbit_phrase}}
 
@@ -248,7 +248,7 @@
 }
 
 @place_phrase = {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
-                 |at {a|the} @#place_to_be_at @place_to_be_at}
+                |at {a|the} @#place_to_be_at @place_to_be_at}
 
 // -------------------------------------------------------------------------------------------------
 // character adjectives:
@@ -270,7 +270,7 @@
 |#inhuman inhuman
 |intimidating
 |exotic
-|otherworldly
+|otherworldls
 |athletic
 |muscular
 |youthful
@@ -295,15 +295,15 @@
 @weapon_phrase           = {@weapon_verb @pro_pos_rand {2 !melee @ranged_weapon|@melee_weapon}}
 @weapon_verb             = {3 holding|wielding|brandishing|displaying|presenting}
 @melee_weapon            = {{vibro|phase|energy|monomolecular|pulse}
-                             {sword|blade|knife|dagger|baton}}
+                            {sword|blade|knife|dagger|baton}}
 @ranged_weapon_early_adj = {|automatic|primitive|!#high-tech high-tech|!#advanced advanced|alien
                             |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
 @ranged_weapon_late_adj  = {|laser|plasma|gauss|smart|pulse|combat|high-velocity|ion}
 @ranged_weapon           = {@ranged_weapon_early_adj
-                             @ranged_weapon_late_adj
-                             {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|blaster
-                             |{grenade|rocket} launcher|stunner|cannon|disintegrator}
-                            }                
+                            @ranged_weapon_late_adj
+                            {3 pistol|2 {|sniper|hunting} rifle|2 submachinegun|blaster
+                            |{grenade|rocket} launcher|stunner|cannon|disintegrator}
+                           }                
 
 // -------------------------------------------------------------------------------------------------
 // tools:
@@ -379,17 +379,17 @@
 @clothing_sentence = {@^pro_3rd_subj is @clothing_verb @clothing_type.}
 @clothing_verb     = {2 wearing|clad in|dressed in}
 @clothing_adj      = {2|1 futuristic|!#advanced advanced|tattered|dusty|!merchant millitary
-                      |!#high-tech high-tech|#highly-detailed highly-detailed
-                      |{|starship|space ship|spacecraft} crew members'
-                      |!merchant !#greebled {|highly} greebled}
+                     |!#high-tech high-tech|#highly-detailed highly-detailed
+                     |{|starship|space ship|spacecraft} crew members'
+                     |!merchant !#greebled {|highly} greebled}
 @clothing_type     = {?weapon {|@pro_pos_adj} @clothing_adj {|combat|power|space} armor
-                      |@pro_pos_rand @clothing_adj flight suit
-                      |@pro_pos_rand @clothing_adj body suit
-                      |@pro_pos_rand @clothing_adj uniform
-                      |3 ?merchant @pro_pos_rand @clothing_adj rich attire
-                      |@pro_pos_rand @clothing_adj {|helmetless}
-                                     {space|vacuum|hazardous environment} suit
-                      |@pro_pos_rand @clothing_adj exoskeleton}
+                     |@pro_pos_rand @clothing_adj flight suit
+                     |@pro_pos_rand @clothing_adj body suit
+                     |@pro_pos_rand @clothing_adj uniform
+                     |3 ?merchant @pro_pos_rand @clothing_adj rich attire
+                     |@pro_pos_rand @clothing_adj {|helmetless}
+                                    {space|vacuum|hazardous environment} suit
+                     |@pro_pos_rand @clothing_adj exoskeleton}
 
 // -------------------------------------------------------------------------------------------------
 // cyborg features:
@@ -470,15 +470,15 @@
 
 %conf.separate_clip_l = true
 %conf.clip_l_text     = {
-  {|@aris_defaults,}
-  {3|3 illustration,|2 sketch,|1 drawing,}
-  science fiction,
-  {3|greebles,|greeblies,}
-  {|#traveller Traveller RPG,}
-  {|futuristic,}
-  {|extremely detailed,}
-  {@0-2,colour_modifiers,}
-  {?wizards_artist @wizards_artists, @wizards_artist_styles,}
+ {|@aris_defaults,}
+ {3|3 illustration,|2 sketch,|1 drawing,}
+ science fiction,
+ {3|greebles,|greeblies,}
+ {|#traveller Traveller RPG,}
+ {|futuristic,}
+ {|extremely detailed,}
+ {@0-2,colour_modifiers,}
+ {?wizards_artist @wizards_artists, @wizards_artist_styles,}
 }
 
 // =================================================================================================
