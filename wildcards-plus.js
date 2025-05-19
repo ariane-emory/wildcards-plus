@@ -2502,22 +2502,34 @@ const config_key_names = [
 ];
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
+  // case correction:
+  const lc_name = name.toLowerCase();
+  const lc_got = config_key_names.find(([dt_name, automatic1111_name]) =>
+    automatic1111_name === lc_name);
+  if (lc_got && lc_got[0] !== name)
+    return lc_got[0];
+
+  // normal lookup:
   const got = config_key_names.find(([dt_name, automatic1111_name]) =>
     dt_name === name);
   if (got) {
+    console.log(`got automatic1111 name for ${name}: ${got[1]}`);
     return got[1];
   } else {
+    console.log(`did not find automatic1111 name for ${name}, returning ${name}`);
     return name;
   }
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
+  // case correction:
   const lc_name = name.toLowerCase();
   const lc_got = config_key_names.find(([dt_name, automatic1111_name]) =>
     dt_name === lc_name);
   if (lc_got && lc_got[0] !== name)
     return lc_got[0];
-  
+
+  // normal lookup:
   const got = config_key_names.find(([dt_name, automatic1111_name]) =>
     automatic1111_name === name);
   if (got) {
