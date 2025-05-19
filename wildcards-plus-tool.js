@@ -2711,7 +2711,7 @@ function get_other_name(return_key, find_key, find_value) {
   } 
 
   // -----------------------------------------------------------------------------------------------
-  // look up the other key
+  // look up the other key:
   got     = config_key_names.find(obj => 
     obj[find_key].toLowerCase() === find_value_lc);
 
@@ -2727,6 +2727,7 @@ function get_other_name(return_key, find_key, find_value) {
   }
 
   // -----------------------------------------------------------------------------------------------
+  // didn't find it, just return arg:
   if (log_name_lookups_enabled) 
     console.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
 
@@ -2734,18 +2735,10 @@ function get_other_name(return_key, find_key, find_value) {
   return find_value;
 }
 // -------------------------------------------------------------------------------------------------
-function get_automatic1111_name(name) {
-  return get_other_name('automatic1111_name', 'dt_name', name);
-}
-// -------------------------------------------------------------------------------------------------
-function get_dt_name(name) {
-  return get_other_name('dt_name', 'automatic1111_name', name);
-}
-// -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
   const res = (dt_hosted
-               ? get_dt_name
-               : get_automatic1111_name)(name);
+               ? get_other_name('dt_name',            'automatic1111_name', name)
+               : get_other_name('automatic1111_name', 'dt_name',            name));
 
   // console.log(`got our name for ${name}: ${res}`);
   
