@@ -7355,7 +7355,8 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
 const LimitedContent          = choice(NamedWildcardReference,
                                        AnonWildcardNoLoras,
                                        ScalarReference);
-const ContentNoLoras          = choice(NamedWildcardReference,
+const ContentNoLoras          = choice(comment,
+                                       NamedWildcardReference,
                                        NamedWildcardUsage,
                                        SetFlag,
                                        UnsetFlag,
@@ -7363,7 +7364,6 @@ const ContentNoLoras          = choice(NamedWildcardReference,
                                        AnonWildcard,
                                        ScalarUpdate,
                                        ScalarReference,
-                                       comment,
                                        SpecialFunctionNotInclude,
                                        plaintext);
 const Content                 = choice(A1111StyleLora, ContentNoLoras);
