@@ -2584,17 +2584,26 @@ const config_key_names = [
   [ 'negative',                          'negative_prompt'                            ],
   [ 'negativePrompt',                    'negative'                                   ],
   // -----------------------------------------------------------------------------------------------
+  // do this one early:
+  [ 'clipLText',                         'clip_l_text'                                ],
+  // -----------------------------------------------------------------------------------------------
   [ 'clip_l',                            'clip_l_text'                                ],
   [ 'clipLText',                         'clip_l'                                     ],
   // -----------------------------------------------------------------------------------------------
   [ 'clipl',                             'clip_l_text'                                ],
   [ 'clipLText',                         'clipl'                                      ],
   // -----------------------------------------------------------------------------------------------
+  // do this one early:
+  [ 'openClipGText',                     'open_clip_g_text'                           ],
+  // -----------------------------------------------------------------------------------------------
   [ 'clip_g',                            'open_clip_g_text'                           ],
   [ 'openClipGText',                     'clip_g'                                     ],
   // -----------------------------------------------------------------------------------------------
   [ 'clipg',                             'open_clip_g_text'                           ],
   [ 'openClipGText',                     'clipg'                                      ],
+  // -----------------------------------------------------------------------------------------------
+  // do this one early:
+  [ 't5Text',                            't5_text'                                    ],
   // -----------------------------------------------------------------------------------------------
   [ 't5',                                't5_text'                                    ],
   [ 't5Text',                            't5'                                         ],
@@ -2633,7 +2642,7 @@ const config_key_names = [
   [ 'batchCount',                        'batch_count'                                ],
   [ 'batchCount',                        'n_iter'                                     ],
   [ 'batchSize',                         'batch_size'                                 ],
-  [ 'clipLText',                         'clip_l_text'                                ],
+  // [ 'clipLText',                         'clip_l_text'                                ],
   [ 'clipSkip',                          'clip_skip'                                  ],
   [ 'clipWeight',                        'clip_weight'                                ],
   [ 'cropLeft',                          'crop_left'                                  ],
@@ -2665,7 +2674,7 @@ const config_key_names = [
   [ 'negativeOriginalWidth',             'negative_original_width'                    ],
   [ 'negativePrompt',                    'negative_prompt'                            ],
   [ 'negativePromptForImagePrior',       'negative_prompt_for_image_prior'            ],
-  [ 'openClipGText',                     'open_clip_g_text'                           ],
+  // [ 'openClipGText',                     'open_clip_g_text'                           ],
   [ 'openClipGText',                     'clip_g_text'                                ],  
   [ 'originalHeight',                    'original_height'                            ],
   [ 'originalWidth',                     'original_width'                             ],
@@ -2686,7 +2695,7 @@ const config_key_names = [
   [ 'startFrameGuidance',                'start_frame_guidance'                       ],
   [ 'stochasticSamplingGamma',           'strategic_stochastic_sampling'              ],
   [ 'strength',                          'denoising_strength'                         ],
-  [ 't5Text',                            't5_text'                                    ],
+  // [ 't5Text',                            't5_text'                                    ],
   [ 't5TextEncoder',                     't5_text_encoder'                            ],
   [ 'targetHeight',                      'target_height'                              ],
   [ 'targetWidth',                       'target_width'                               ],
