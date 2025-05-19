@@ -7216,27 +7216,27 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1]),
-            wst_cutting_seq(wst_seq('%single_pick', assignment_operator),
+            wst_cutting_seq(wst_seq('single_pick', assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1]),
-            wst_cutting_seq(wst_seq('%multi_pick', assignment_operator),
+            wst_cutting_seq(wst_seq('multi_pick', assignment_operator),
                             choice(() => LimitedContent, /[a-z_]+/)));
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            '%revert_single_pick');
+            'revert_single_pick');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            '%revert_multi_pick');
+            'revert_multi_pick');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[1], arr[2][1], arr[2][0] == '='),
-            cutting_seq('%',
+            cutting_seq('',
                         ident,                                                         // [1]
                         wst_seq(choice(incr_assignment_operator, assignment_operator), // [2][0]
                                 choice(rJsonc, () => LimitedContent))));               // [2][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq(/%conf(?:ig)?/,                       // [0][0]
+            wst_cutting_seq(wst_seq(/conf(?:ig)?/,                       // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),         // [0][1]
                             choice(rJsoncObject, () => LimitedContent))); // [1]   
@@ -7247,7 +7247,7 @@ const NormalSpecialFunction             = choice(SpecialFunctionSetPickSingle,
                                                  SpecialFunctionRevertPickMultiple,
                                                  SpecialFunctionUpdateConfigurationUnary,
                                                  SpecialFunctionUpdateConfigurationBinary);
-const SpecialFunctionNotInclude         = NormalSpecialFunction;
+const SpecialFunctionNotInclude         = second(seq('%', NormalSpecialFunction, optional(';')));
 const AnySpecialFunction                = choice((dt_hosted
                                                   ? UnexpectedSpecialFunctionInclude
                                                   : SpecialFunctionInclude),
