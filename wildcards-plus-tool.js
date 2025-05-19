@@ -7204,12 +7204,11 @@ const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_b
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const DiscardedComments                = discard(wst_star(comment));
 const SpecialFunctionInclude           = xform(arr => new ASTInclude(arr[1]),
                                                c_funcall('%include',
-                                                         first(wst_seq(DiscardedComments,
+                                                         first(wst_seq(() => DiscardedComments,
                                                                        json_string,
-                                                                       DiscardedComments))))
+                                                                       () => DiscardedComments))))
 const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     () => "%include is only supported when " +
                                                     "using wildcards-plus-tool.js, NOT when " +
@@ -7255,6 +7254,7 @@ const AnySpecialFunction                  = choice((dt_hosted
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
+const DiscardedComments              = discard(wst_star(comment));
 const AnonWildcardAlternative        = xform(make_ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag,
                                                                  SetFlag, UnsetFlag)),
