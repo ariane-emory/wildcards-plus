@@ -7241,13 +7241,13 @@ const SpecialFunctionUpdateConfigurationUnary =
                                     choice(incr_assignment_operator,
                                            assignment_operator)),         // [0][1]
                             choice(rJsoncObject, () => LimitedContent))); // [1]   
-const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
-                                                  SpecialFunctionUpdateConfigurationBinary);
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude          = choice(SpecialFunctionSetPickSingle,
                                                   SpecialFunctionSetPickMultiple,
                                                   SpecialFunctionRevertPickSingle,
                                                   SpecialFunctionRevertPickMultiple,
-                                                  SpecialFunctionUpdateConfiguration);
+                                                  SpecialFunctionUpdateConfigurationUnary,
+                                                  SpecialFunctionUpdateConfigurationBinary);
 const AnySpecialFunction                  = choice((dt_hosted
                                                     ? UnexpectedSpecialFunctionInclude
                                                     : SpecialFunctionInclude),
