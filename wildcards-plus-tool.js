@@ -2723,29 +2723,36 @@ function get_automatic1111_name(name) {
     console.log(`got automatic111 name for ${name}: ${got[1]}`);
     return got[1];
   } else {
-    console.log(`did not find automatic1111 name for ${name}, returning ${name}`);
+    console.log(`did not find Automatic1111 name for ${name}, returning ${name}`);
     return name;
   }
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
+  console.log(`\nLOOKING UP '${name}'`);
+  
   let   name_lc = name.toLowerCase();
   const got_lc  = config_key_names.find(([dt_name, automatic1111_name]) =>
-    dt_name.toLowerCase() === name_lc);
+    automatic1111_name.toLowerCase() === name_lc);
+
+  console.log(`GOT_LC: ${inspect_fun(got_lc)}`);
 
   if (got_lc && got_lc[1] !== name) {
     name    = got_lc[1];
     name_lc = name.toLowerCase();
+    console.log(`update name to '${name}' / '${name_lc}'`);
   }
 
   const got = config_key_names.find(([dt_name, automatic1111_name]) =>
     automatic1111_name.toLowerCase() === name_lc);
 
+  console.log(`GOT: ${inspect_fun(got)}`);
+
   if (got) {
-    console.log(`got dt name for ${name}: ${got[0]}`);
+    console.log(`got DT name for '${name}': '${got[0]}'`);
     return got[0];
   } else {
-    console.log(`did not find dt name for ${name}, returning ${name}`);
+    console.log(`did not find dt name for '${name}', returning '${name}'`);
     return name;
   }
 }
