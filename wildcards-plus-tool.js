@@ -2723,6 +2723,16 @@ function get_automatic1111_name(name) {
     return got.dt_name;
   }
 
+  got = config_key_names.find(({ dt_name, automatic1111_name }) =>
+    automatic1111_name.toLowerCase() === name_lc);
+  
+  if (got) {
+    if (log_name_lookups_enabled)
+      console.log(`RETURNING CASE-CORRECTED GOT.AUTOMATIC1111_NAME ${inspect_fun(got.automatic1111_name)}\n`);
+    
+    return got.automatic1111_name;
+  } 
+
   got     = config_key_names.find(({ dt_name, automatic1111_name }) =>
     dt_name.toLowerCase() === name_lc);
 
@@ -2738,18 +2748,9 @@ function get_automatic1111_name(name) {
     return got.automatic1111_name;
   }
   
-  if (log_name_lookups_enabled)
+  if (log_name_lookups_enabled) {
     console.log(`did not find automatic1111 name for ${inspect_fun(name)} yet`);
-
-  got = config_key_names.find(({ dt_name, automatic1111_name }) =>
-    automatic1111_name.toLowerCase() === name_lc);
-  
-  if (got) {
-    if (log_name_lookups_enabled)
-      console.log(`RETURNING CASE-CORRECTED GOT.AUTOMATIC1111_NAME ${inspect_fun(got.automatic1111_name)}\n`);
-    
-    return got.automatic1111_name;
-  } else { // could be an error case?
+  }else { // could be an error case?
     if (log_name_lookups_enabled)
       console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
     
@@ -2770,25 +2771,7 @@ function get_dt_name(name) {
 
     return got.dt_name;
   }
-    
-  got         = config_key_names.find(({ dt_name, automatic1111_name }) => 
-    automatic1111_name.toLowerCase() === name_lc);
-
-  if (log_name_lookups_enabled)
-                                           console.log(`GOT: ${inspect_fun(got)}`);
-
-                                         if (got) {
-                                           if (log_name_lookups_enabled) {
-                                             console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(got.dt_name)}`);
-                                             console.log(`RETURNING GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
-                                           }
-                                           
-                                           return got.dt_name;
-                                         }
-                                         
-  if (log_name_lookups_enabled)
-    console.log(`did not find dt name for ${inspect_fun(name)} yet`);
-
+  
   got = config_key_names.find(({ dt_name, automatic1111_name }) => 
     dt_name.toLowerCase() === name_lc);
   
@@ -2797,6 +2780,24 @@ function get_dt_name(name) {
       console.log(`RETURNING CASE-CORRECTED GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
     
     return got.dt_name;
+  }
+  got         = config_key_names.find(({ dt_name, automatic1111_name }) => 
+    automatic1111_name.toLowerCase() === name_lc);
+
+  if (log_name_lookups_enabled)
+    console.log(`GOT: ${inspect_fun(got)}`);
+
+  if (got) {
+    if (log_name_lookups_enabled) {
+      console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(got.dt_name)}`);
+      console.log(`RETURNING GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
+    }
+    
+    return got.dt_name;
+  }
+  
+  if (log_name_lookups_enabled) {
+    console.log(`did not find dt name for ${inspect_fun(name)} yet`);
   } else { // could be an error case?
     if (log_name_lookups_enabled)
       console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
