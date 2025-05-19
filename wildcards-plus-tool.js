@@ -2672,7 +2672,8 @@ const config_key_names = [
   // -----------------------------------------------------------------------------------------------
   { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l'                            },
   // -----------------------------------------------------------------------------------------------
-  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g'                       },
+  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
+    shorthands: [ 'separate_clipg', 'separate_clip_g' ] },
   // shorthands:
   { dt_name: 'separate_clipg',                    automatic1111_name: 'separate_open_clip_g'                       },
   { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_clipg'                             },
