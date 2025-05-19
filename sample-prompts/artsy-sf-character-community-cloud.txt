@@ -99,7 +99,10 @@
 
 // -------------------------------------------------------------------------------------------------
 // %loras     = [] // clear any LoRAs that are set up the DT UI first.
-%neg       = { signature, watermark, text, }
+
+%neg            += { first,  }
+%nEgAtIvE       += { second, }
+%nEgAtIvEpRoMpT += { third,  }
 
 // {6 ?flux
 // // Flux finetunes:

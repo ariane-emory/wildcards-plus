@@ -2729,32 +2729,43 @@ function get_automatic1111_name(name) {
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
-  console.log(`\CASE-CORRECTING A1111 NAME '${name}'`);
+  // console.log(`\nCASE-CORRECTING A1111 NAME '${name}'`);
 
-  let   name_lc = name.toLowerCase();
-  const got_lc  = config_key_names.find(([dt_name, automatic1111_name]) =>
-    automatic1111_name.toLowerCase() === name_lc);
+  // let name_lc = name.toLowerCase();
+  // let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
+  //   automatic1111_name.toLowerCase() === name_lc);
 
-  console.log(`GOT_LC: ${inspect_fun(got_lc)}`);
+  // console.log(`GOT: ${inspect_fun(got)}`);
+  
+  // if (got && got[1] !== name) {
+  //   name    = got[1];
+  //   name_lc = name.toLowerCase();
+  //   console.log(`CASE-CORRECTING NAME TO '${name}' / '${name_lc}'`);
+  // }
 
-  if (got_lc && got_lc[1] !== name) {
-    name    = got_lc[1];
-    name_lc = name.toLowerCase();
-    console.log(`update name to '${name}' / '${name_lc}'`);
-  }
+  // console.log(`LOOKING UP DT NAME FOR CASE-CORRECTED 1111 NAME '${name}'`);
+  console.log(`\nLOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
 
-  const got = config_key_names.find(([dt_name, automatic1111_name]) =>
+  let name_lc = name.toLowerCase();
+  let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
     automatic1111_name.toLowerCase() === name_lc);
 
   console.log(`GOT: ${inspect_fun(got)}`);
 
   if (got) {
-    console.log(`got DT name for '${name}': '${got[0]}'`);
+    console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(got[0])}`);
     return got[0];
-  } else {
-    console.log(`did not find dt name for '${name}', returning '${name}'`);
-    return name;
   }
+  
+  console.log(`did not find dt name for ${inspect_fun(name)} yet`);
+
+  got         = config_key_names.find(([dt_name, automatic1111_name]) =>
+    dt_name.toLowerCase() === name_lc);
+  
+  console.log(`GOT       ${inspect_fun(got)}`);
+  console.log(`RETURNING ${inspect_fun(got[1] ?? name)}`);
+
+  return got ?? name;
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
