@@ -7240,13 +7240,12 @@ const SpecialFunctionUpdateConfigurationBinary =
                         ident,                                                         // [1]
                         wst_seq(choice(incr_assignment_operator, assignment_operator), // [2][0]
                                 choice(rJsonc, () => LimitedContent))));               // [2][1]
-const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
-                                                  SpecialFunctionUpdateConfigurationBinary);
 const SpecialFunctionNotInclude          = first(wst_seq(choice(SpecialFunctionSetPickSingle,
                                                                 SpecialFunctionSetPickMultiple,
                                                                 SpecialFunctionRevertPickSingle,
                                                                 SpecialFunctionRevertPickMultiple,
-                                                                SpecialFunctionUpdateConfiguration),
+                                                                SpecialFunctionUpdateConfigurationUnary,
+                                                                SpecialFunctionUpdateConfigurationBinary),
                                                          optional(';')));
 const AnySpecialFunction                  = choice(first(wst_seq((dt_hosted
                                                                   ? UnexpectedSpecialFunctionInclude
