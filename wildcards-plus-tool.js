@@ -2753,21 +2753,31 @@ function get_dt_name(name) {
     console.log(`\nLOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
-  let got     = config_key_names.find(({ dt_name, automatic1111_name }) => 
+
+  let got     = config_key_names.find(({ dt_name, automatic1111_name, shorthands }) =>
+    shorthands?.includes(name_lc))
+
+  if (got) {
+    console.log(`RETURN SHORTHAND ${inspect_fun(got.dt_name)}\n`);
+
+    return got.dt_name;
+  }
+    
+  got         = config_key_names.find(({ dt_name, automatic1111_name }) => 
     automatic1111_name.toLowerCase() === name_lc);
 
   if (log_name_lookups_enabled)
-    console.log(`GOT: ${inspect_fun(got)}`);
+                                           console.log(`GOT: ${inspect_fun(got)}`);
 
-  if (got) {
-    if (log_name_lookups_enabled) {
-      console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(got.dt_name)}`);
-      console.log(`RETURNING GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
-    }
-    
-    return got.dt_name;
-  }
-  
+                                         if (got) {
+                                           if (log_name_lookups_enabled) {
+                                             console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(got.dt_name)}`);
+                                             console.log(`RETURNING GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
+                                           }
+                                           
+                                           return got.dt_name;
+                                         }
+                                         
   if (log_name_lookups_enabled)
     console.log(`did not find dt name for ${inspect_fun(name)} yet`);
 
