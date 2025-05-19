@@ -2714,6 +2714,8 @@ function get_automatic1111_name(name) {
     console.log(`\nLOOKING UP A1111 NAME FOR DT NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
+
+  // is name a shorthand?
   let got     = config_key_names.find(({ dt_name, automatic1111_name, shorthands }) =>
     shorthands?.includes(name_lc))
 
@@ -2723,6 +2725,7 @@ function get_automatic1111_name(name) {
     return got.automatic1111_name;
   }
 
+  // is it just miscapitalized?
   got = config_key_names.find(({ dt_name, automatic1111_name }) =>
     automatic1111_name.toLowerCase() === name_lc);
   
@@ -2763,15 +2766,18 @@ function get_dt_name(name) {
     console.log(`\nLOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
+
+  // is name a shorthand?  
   let got     = config_key_names.find(({ dt_name, automatic1111_name, shorthands }) =>
     shorthands?.includes(name_lc))
 
   if (got) {
-    console.log(`RETURN SHORTHAND ${inspect_fun(got.dt_name)}\n`);
+    console.log(`RETURN FROM SHORTHAND ${inspect_fun(got.dt_name)}\n`);
 
     return got.dt_name;
   }
-  
+
+  // is it just miscapitalized?
   got = config_key_names.find(({ dt_name, automatic1111_name }) => 
     dt_name.toLowerCase() === name_lc);
   
