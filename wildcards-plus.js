@@ -2370,54 +2370,6 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 // -------------------------------------------------------------------------------------------------
 const config_key_names = [
   // [ dt_name, automatic1111_name ],
-  // -----------------------------------------------------------------------------------------------
-  // shorthands, not real field names:
-  // -----------------------------------------------------------------------------------------------
-  [ 'neg',                               'negative_prompt'                            ], 
-  [ 'negativePrompt',                    'neg'                                        ],
-  // -----------------------------------------------------------------------------------------------
-  [ 'negative',                          'negative_prompt'                            ],
-  [ 'negativePrompt',                    'negative'                                   ],
-  // -----------------------------------------------------------------------------------------------
-  // do this one early:
-  [ 'clipLText',                         'clip_l_text'                                ],
-  // -----------------------------------------------------------------------------------------------
-  [ 'clip_l',                            'clip_l_text'                                ],
-  [ 'clipLText',                         'clip_l'                                     ],
-  // -----------------------------------------------------------------------------------------------
-  [ 'clipl',                             'clip_l_text'                                ],
-  [ 'clipLText',                         'clipl'                                      ],
-  // -----------------------------------------------------------------------------------------------
-  // do this one early:
-  [ 'openClipGText',                     'open_clip_g_text'                           ],
-  // -----------------------------------------------------------------------------------------------
-  [ 'clip_g',                            'open_clip_g_text'                           ],
-  [ 'openClipGText',                     'clip_g'                                     ],
-  // -----------------------------------------------------------------------------------------------
-  [ 'clipg',                             'open_clip_g_text'                           ],
-  [ 'openClipGText',                     'clipg'                                      ],
-  // -----------------------------------------------------------------------------------------------
-  // do this one early:
-  [ 't5Text',                            't5_text'                                    ],
-  // -----------------------------------------------------------------------------------------------
-  [ 't5',                                't5_text'                                    ],
-  [ 't5Text',                            't5'                                         ],
-  // -----------------------------------------------------------------------------------------------
-  // do this one early:
-  [ 'separateClipL',                     'separate_clip_l'                            ],
-  // -----------------------------------------------------------------------------------------------
-  [ 'separate_clipl',                    'separate_clip_l'                            ],
-  [ 'separateClipL',                     'separate_clipl'                             ],
-  // -----------------------------------------------------------------------------------------------
-  // do this one early:
-  [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
-  // -----------------------------------------------------------------------------------------------
-  [ 'separate_clipg',                    'separate_open_clip_g'                       ],
-  [ 'separateOpenClipG',                 'separate_clipg'                             ],
-  // -----------------------------------------------------------------------------------------------
-  [ 'separate_clip_g',                   'separate_open_clip_g'                       ],
-  [ 'separateOpenClipG',                 'separate_clip_g'                            ],
-  // -----------------------------------------------------------------------------------------------
   // identical keys:
   [ 'controls',                          'controls'                                   ],
   [ 'fps',                               'fps'                                        ],
@@ -2437,7 +2389,14 @@ const config_key_names = [
   [ 'batchCount',                        'batch_count'                                ],
   [ 'batchCount',                        'n_iter'                                     ],
   [ 'batchSize',                         'batch_size'                                 ],
-  // [ 'clipLText',                         'clip_l_text'                                ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'clipLText',                         'clip_l_text'                                ],
+  // shorthands:
+  [ 'clip_l',                            'clip_l_text'                                ],
+  [ 'clipLText',                         'clip_l'                                     ],
+  [ 'clipl',                             'clip_l_text'                                ],
+  [ 'clipLText',                         'clipl'                                      ],
+  // -----------------------------------------------------------------------------------------------
   [ 'clipSkip',                          'clip_skip'                                  ],
   [ 'clipWeight',                        'clip_weight'                                ],
   [ 'cropLeft',                          'crop_left'                                  ],
@@ -2467,10 +2426,26 @@ const config_key_names = [
   [ 'negativeAestheticScore',            'negative_aesthetic_score'                   ],
   [ 'negativeOriginalHeight',            'negative_original_height'                   ],
   [ 'negativeOriginalWidth',             'negative_original_width'                    ],
+  // -----------------------------------------------------------------------------------------------
   [ 'negativePrompt',                    'negative_prompt'                            ],
+  // shorthands:
+  [ 'neg',                               'negative_prompt'                            ], 
+  [ 'negativePrompt',                    'neg'                                        ],
+  [ 'negative',                          'negative_prompt'                            ],
+  [ 'negativePrompt',                    'negative'                                   ],
+  // -----------------------------------------------------------------------------------------------
   [ 'negativePromptForImagePrior',       'negative_prompt_for_image_prior'            ],
-  // [ 'openClipGText',                     'open_clip_g_text'                           ],
-  [ 'openClipGText',                     'clip_g_text'                                ],  
+  [ 'openClipGText',                     'open_clip_g_text'                           ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'openClipGText',                     'open_clip_g_text'                           ],
+  // shorthands:
+  [ 'clip_g_text',                       'open_clip_g_text'                           ],
+  [ 'openClipGText',                     'clip_g_text'                                ],
+  [ 'clip_g',                            'open_clip_g_text'                           ],
+  [ 'openClipGText',                     'clip_g'                                     ],
+  [ 'clipg',                             'open_clip_g_text'                           ],
+  [ 'openClipGText',                     'clipg'                                      ],
+  // -----------------------------------------------------------------------------------------------
   [ 'originalHeight',                    'original_height'                            ],
   [ 'originalWidth',                     'original_width'                             ],
   [ 'preserveOriginalAfterInpaint',      'preserve_original_after_inpaint'            ],
@@ -2480,8 +2455,19 @@ const config_key_names = [
   [ 'sampler',                           'sampler_index'                              ],
   [ 'sampler',                           'sampler_name'                               ],
   [ 'seedMode',                          'seed_mode'                                  ],
-  // [ 'separateClipL',                     'separate_clip_l'                            ],
-  // [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'separateClipL',                     'separate_clip_l'                            ],
+  // shorthands:
+  [ 'separate_clipl',                    'separate_clip_l'                            ],
+  [ 'separateClipL',                     'separate_clipl'                             ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
+  // shorthands:
+  [ 'separate_clipg',                    'separate_open_clip_g'                       ],
+  [ 'separateOpenClipG',                 'separate_clipg'                             ],
+  [ 'separate_clip_g',                   'separate_open_clip_g'                       ],
+  [ 'separateOpenClipG',                 'separate_clip_g'                            ],
+  // -----------------------------------------------------------------------------------------------
   [ 'separateT5',                        'separate_t5'                                ],
   [ 'speedUpWithGuidanceEmbedParameter', 'speed_up_with_guidance_embed'               ],
   [ 'stage2Cfg',                         'stage_2_cfg'                                ],
@@ -2490,7 +2476,12 @@ const config_key_names = [
   [ 'startFrameGuidance',                'start_frame_guidance'                       ],
   [ 'stochasticSamplingGamma',           'strategic_stochastic_sampling'              ],
   [ 'strength',                          'denoising_strength'                         ],
-  // [ 't5Text',                            't5_text'                                    ],
+  // -----------------------------------------------------------------------------------------------
+  [ 't5Text',                            't5_text'                                    ],
+  // shorthands:
+  [ 't5',                                't5_text'                                    ],
+  [ 't5Text',                            't5'                                         ],
+  // -----------------------------------------------------------------------------------------------
   [ 't5TextEncoder',                     't5_text_encoder'                            ],
   [ 'targetHeight',                      'target_height'                              ],
   [ 'targetWidth',                       'target_width'                               ],
