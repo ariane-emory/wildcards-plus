@@ -7242,9 +7242,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                                            assignment_operator)),         // [0][1]
                             choice(rJsoncObject, () => LimitedContent))); // [1]   
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
-                                                  SpecialFunctionUpdateConfigurationBinary,
-                                                  //SpecialFunctionUpdateNegativePrompt
-                                                 );
+                                                  SpecialFunctionUpdateConfigurationBinary);
 const SpecialFunctionNotInclude          = choice(SpecialFunctionSetPickSingle,
                                                   SpecialFunctionSetPickMultiple,
                                                   SpecialFunctionRevertPickSingle,
