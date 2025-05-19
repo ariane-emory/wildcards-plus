@@ -2756,7 +2756,43 @@ function get_dt_name(name) {
     
     console.log(`RETURNING CASE-CORRECTED DT_NAME ${inspect_fun(dt_name)}\n`);
 
+    
+    return dt_name;
+  } else {
+    console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
+    
+    return name;
+  }
+}
+function get_dt_name(name) {
+  console.log(`\nLOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
+
+  let name_lc = name.toLowerCase();
+  let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
+    automatic1111_name.toLowerCase() === name_lc);
+
+  console.log(`GOT: ${inspect_fun(got)}`);
+
+  if (got) {
+    const [dt_name, automatic1111_name] = got;
+    
+    console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(dt_name)}`);
+    console.log(`RETURNING DT_NAME ${inspect_fun(dt_name)}\n`);
+    
+    return dt_name;
+  }
   
+  console.log(`did not find dt name for ${inspect_fun(name)} yet`);
+
+  got = config_key_names.find(([dt_name, automatic1111_name]) =>
+    dt_name.toLowerCase() === name_lc);
+  
+  if (got) {
+    const [dt_name, automatic1111_name] = got;
+    
+    console.log(`RETURNING CASE-CORRECTED DT_NAME ${inspect_fun(dt_name)}\n`);
+
+    
     return dt_name;
   } else {
     console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
