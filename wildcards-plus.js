@@ -2444,7 +2444,7 @@ const config_key_names = [
   { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
   // -----------------------------------------------------------------------------------------------
   { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
-    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg' ] },
+    shorthands: ['clipGText', 'clip_g_text', 'clip_g', 'clipg' ] },
   // // shorthands:
   // { dt_name: 'clipGText',                         automatic1111_name: 'open_clip_g_text'                           },
   // { dt_name: 'openClipGText',                     automatic1111_name: 'clipGText'                                  },
@@ -2513,7 +2513,7 @@ function get_automatic1111_name(name) {
     console.log(`\nLOOKING UP A1111 NAME FOR DT NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
-  let got     = config_key_names.find(([got.dt_name, got.automatic1111_name]) =>
+  let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
     got.dt_name.toLowerCase() === name_lc);
 
   if (log_name_lookups_enabled)

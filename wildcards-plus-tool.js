@@ -2579,191 +2579,167 @@ const config_key_names = [
   // -----------------------------------------------------------------------------------------------
   // identical keys:
   // -----------------------------------------------------------------------------------------------
-  [ 'controls',                          'controls'                                   ],
-  [ 'fps',                               'fps'                                        ],
-  [ 'height',                            'height'                                     ],
-  [ 'loras',                             'loras'                                      ],
-  [ 'model',                             'model'                                      ],
-  [ 'prompt',                            'prompt'                                     ],
-  [ 'seed',                              'seed'                                       ],
-  [ 'sharpness',                         'sharpness'                                  ],
-  [ 'shift',                             'shift'                                      ],
-  [ 'strength',                          'strength'                                   ],
-  [ 'width',                             'width'                                      ],
-  [ 'upscaler',                          'upscaler'                                   ],
-  [ 'sampler',                           'sampler'                                    ], // ordering significant?
+  { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
+  { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
+  { dt_name: 'height',                            automatic1111_name: 'height'                                     },
+  { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
+  { dt_name: 'model',                             automatic1111_name: 'model'                                      },
+  { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
+  { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
+  { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
+  { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
+  { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
+  { dt_name: 'width',                             automatic1111_name: 'width'                                      },
+  { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
+  { dt_name: 'sampler',                           automatic1111_name: 'sampler'                                    }, // ordering significant?
   // -----------------------------------------------------------------------------------------------
   // differing keys:
   // -----------------------------------------------------------------------------------------------
-  [ 'aestheticScore',                    'aesthetic_score'                            ],
-  [ 'batchCount',                        'batch_count'                                ],
-  [ 'batchCount',                        'n_iter'                                     ],
-  [ 'batchSize',                         'batch_size'                                 ],
+  { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score'                            },
+  { dt_name: 'batchCount',                        automatic1111_name: 'batch_count'                                },
+  { dt_name: 'batchCount',                        automatic1111_name: 'n_iter'                                     },
+  { dt_name: 'batchSize',                         automatic1111_name: 'batch_size'                                 },
   // -----------------------------------------------------------------------------------------------
-  [ 'clipLText',                         'clip_l_text'                                ],
+  { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text'                                },
   // shorthands:
-  [ 'clip_l',                            'clip_l_text'                                ],
-  [ 'clipLText',                         'clip_l'                                     ],
-  [ 'clipl',                             'clip_l_text'                                ],
-  [ 'clipLText',                         'clipl'                                      ],
+  { dt_name: 'clip_l',                            automatic1111_name: 'clip_l_text'                                },
+  { dt_name: 'clipLText',                         automatic1111_name: 'clip_l'                                     },
+  { dt_name: 'clipl',                             automatic1111_name: 'clip_l_text'                                },
+  { dt_name: 'clipLText',                         automatic1111_name: 'clipl'                                      },
   // -----------------------------------------------------------------------------------------------
-  [ 'clipSkip',                          'clip_skip'                                  ],
-  [ 'clipWeight',                        'clip_weight'                                ],
-  [ 'cropLeft',                          'crop_left'                                  ],
-  [ 'cropTop',                           'crop_top'                                   ],
-  [ 'decodingTileHeight',                'decoding_tile_height' /* _explanation' */   ],
-  [ 'decodingTileOverlap',               'decoding_tile_overlap' /* _explanation' */  ],
-  [ 'decodingTileWidth',                 'decoding_tile_width' /* _explanation' */    ],
-  [ 'diffusionTileHeight',               'diffusion_tile_height' /* _explanation' */  ],
-  [ 'diffusionTileOverlap',              'diffusion_tile_overlap' /* _explanation' */ ],
-  [ 'diffusionTileWidth',                'diffusion_tile_width' /* _explanation' */   ],
-  [ 'guidanceEmbed',                     'guidance_embed'                             ],
-  [ 'guidanceScale',                     'cfg_scale'                                  ],
-  [ 'guidanceScale',                     'guidance'                                   ],
-  [ 'guidingFrameNoise',                 'cond_aug'                                   ],
-  [ 'hiresFix',                          'enable_hr'                                  ],
-  [ 'hiresFix',                          'high_resolution_fix'                        ],
-  [ 'hiresFixHeight',                    'firstphase_height'                          ],
-  [ 'hiresFixHeight',                    'hires_first_pass_height_explanation'        ],
-  [ 'hiresFixStrength',                  'hires_second_pass_strength_detail'          ],
-  [ 'hiresFixWidth',                     'firstphase_width'                           ],
-  [ 'hiresFixWidth',                     'hires_first_pass_width_explanation'         ],
-  [ 'imageGuidanceScale',                'image_guidance'                             ],
-  [ 'imagePriorSteps',                   'image_prior_steps'                          ],
-  [ 'maskBlur',                          'mask_blur'                                  ],
-  [ 'maskBlurOutset',                    'mask_blur_outset'                           ],
-  [ 'motionScale',                       'motion_scale'                               ],
-  [ 'negativeAestheticScore',            'negative_aesthetic_score'                   ],
-  [ 'negativeOriginalHeight',            'negative_original_height'                   ],
-  [ 'negativeOriginalWidth',             'negative_original_width'                    ],
+  { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip'                                  },
+  { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight'                                },
+  { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left'                                  },
+  { dt_name: 'cropTop',                           automatic1111_name: 'crop_top'                                   },
+  { dt_name: 'decodingTileHeight',                automatic1111_name: 'decoding_tile_height' /* _explanation' */   },
+  { dt_name: 'decodingTileOverlap',               automatic1111_name: 'decoding_tile_overlap' /* _explanation' */  },
+  { dt_name: 'decodingTileWidth',                 automatic1111_name: 'decoding_tile_width' /* _explanation' */    },
+  { dt_name: 'diffusionTileHeight',               automatic1111_name: 'diffusion_tile_height' /* _explanation' */  },
+  { dt_name: 'diffusionTileOverlap',              automatic1111_name: 'diffusion_tile_overlap' /* _explanation' */ },
+  { dt_name: 'diffusionTileWidth',                automatic1111_name: 'diffusion_tile_width' /* _explanation' */   },
+  { dt_name: 'guidanceEmbed',                     automatic1111_name: 'guidance_embed'                             },
+  { dt_name: 'guidanceScale',                     automatic1111_name: 'cfg_scale'                                  },
+  { dt_name: 'guidanceScale',                     automatic1111_name: 'guidance'                                   },
+  { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug'                                   },
+  { dt_name: 'hiresFix',                          automatic1111_name: 'enable_hr'                                  },
+  { dt_name: 'hiresFix',                          automatic1111_name: 'high_resolution_fix'                        },
+  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'firstphase_height'                          },
+  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height_explanation'        },
+  { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail'          },
+  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'firstphase_width'                           },
+  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width_explanation'         },
+  { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
+  { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
+  { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
+  { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
+  { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
+  { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
+  { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
+  { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
   // -----------------------------------------------------------------------------------------------
-  [ 'negativePrompt',                    'negative_prompt'                            ],
+  { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt'                            },
   // shorthands:
-  [ 'neg',                               'negative_prompt'                            ], 
-  [ 'negativePrompt',                    'neg'                                        ],
-  [ 'negative',                          'negative_prompt'                            ],
-  [ 'negativePrompt',                    'negative'                                   ],
+  { dt_name: 'neg',                               automatic1111_name: 'negative_prompt'                            }, 
+  { dt_name: 'negativePrompt',                    automatic1111_name: 'neg'                                        },
+  { dt_name: 'negative',                          automatic1111_name: 'negative_prompt'                            },
+  { dt_name: 'negativePrompt',                    automatic1111_name: 'negative'                                   },
   // -----------------------------------------------------------------------------------------------
-  [ 'negativePromptForImagePrior',       'negative_prompt_for_image_prior'            ],
+  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
   // -----------------------------------------------------------------------------------------------
-  [ 'openClipGText',                     'open_clip_g_text'                           ],
+  { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text'                           },
   // shorthands:
-  [ 'clipGText',                         'open_clip_g_text'                           ],
-  [ 'openClipGText',                     'clipGText'                                  ],
-  [ 'clip_g_text',                       'open_clip_g_text'                           ],
-  [ 'openClipGText',                     'clip_g_text'                                ],
-  [ 'clip_g',                            'open_clip_g_text'                           ],
-  [ 'openClipGText',                     'clip_g'                                     ],
-  [ 'clipg',                             'open_clip_g_text'                           ],
-  [ 'openClipGText',                     'clipg'                                      ],
+  { dt_name: 'clipGText',                         automatic1111_name: 'open_clip_g_text'                           },
+  { dt_name: 'openClipGText',                     automatic1111_name: 'clipGText'                                  },
+  { dt_name: 'clip_g_text',                       automatic1111_name: 'open_clip_g_text'                           },
+  { dt_name: 'openClipGText',                     automatic1111_name: 'clip_g_text'                                },
+  { dt_name: 'clip_g',                            automatic1111_name: 'open_clip_g_text'                           },
+  { dt_name: 'openClipGText',                     automatic1111_name: 'clip_g'                                     },
+  { dt_name: 'clipg',                             automatic1111_name: 'open_clip_g_text'                           },
+  { dt_name: 'openClipGText',                     automatic1111_name: 'clipg'                                      },
   // -----------------------------------------------------------------------------------------------
-  [ 'originalHeight',                    'original_height'                            ],
-  [ 'originalWidth',                     'original_width'                             ],
-  [ 'preserveOriginalAfterInpaint',      'preserve_original_after_inpaint'            ],
-  [ 'refinerModel',                      'num_frames'                                 ],
-  [ 'refinerStart',                      'refiner_start'                              ],
-  [ 'resolutionDependentShift',          'resolution_dependent_shift'                 ],
-  [ 'sampler',                           'sampler_index'                              ],
-  [ 'sampler',                           'sampler_name'                               ],
-  [ 'seedMode',                          'seed_mode'                                  ],
+  { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
+  { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
+  { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
+  { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
+  { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
+  { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
+  { dt_name: 'sampler',                           automatic1111_name: 'sampler_index'                              },
+  { dt_name: 'sampler',                           automatic1111_name: 'sampler_name'                               },
+  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
   // -----------------------------------------------------------------------------------------------
-  [ 'separateClipL',                     'separate_clip_l'                            ],
+  { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l'                            },
   // shorthands:
-  [ 'separate_clipl',                    'separate_clip_l'                            ],
-  [ 'separateClipL',                     'separate_clipl'                             ],
+  { dt_name: 'separate_clipl',                    automatic1111_name: 'separate_clip_l'                            },
+  { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clipl'                             },
   // -----------------------------------------------------------------------------------------------
-  [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
+  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g'                       },
   // shorthands:
-  [ 'separate_clipg',                    'separate_open_clip_g'                       ],
-  [ 'separateOpenClipG',                 'separate_clipg'                             ],
-  [ 'separate_clip_g',                   'separate_open_clip_g'                       ],
-  [ 'separateOpenClipG',                 'separate_clip_g'                            ],
+  { dt_name: 'separate_clipg',                    automatic1111_name: 'separate_open_clip_g'                       },
+  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_clipg'                             },
+  { dt_name: 'separate_clip_g',                   automatic1111_name: 'separate_open_clip_g'                       },
+  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_clip_g'                            },
   // -----------------------------------------------------------------------------------------------
-  [ 'separateT5',                        'separate_t5'                                ],
-  [ 'speedUpWithGuidanceEmbedParameter', 'speed_up_with_guidance_embed'               ],
-  [ 'stage2Cfg',                         'stage_2_cfg'                                ],
-  [ 'stage2Shift',                       'stage_2_shift'                              ],
-  [ 'stage2Steps',                       'stage_2_steps'                              ],
-  [ 'startFrameGuidance',                'start_frame_guidance'                       ],
-  [ 'stochasticSamplingGamma',           'strategic_stochastic_sampling'              ],
-  [ 'strength',                          'denoising_strength'                         ],
+  { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
+  { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
+  { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
+  { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
+  { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
+  { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
+  { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
+  { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
   // -----------------------------------------------------------------------------------------------
-  [ 't5Text',                            't5_text'                                    ],
+  { dt_name: 't5Text',                            automatic1111_name: 't5_text'                                    },
   // shorthands:
-  [ 't5',                                't5_text'                                    ],
-  [ 't5Text',                            't5'                                         ],
+  { dt_name: 't5',                                automatic1111_name: 't5_text'                                    },
+  { dt_name: 't5Text',                            automatic1111_name: 't5'                                         },
   // -----------------------------------------------------------------------------------------------
-  [ 't5TextEncoder',                     't5_text_encoder'                            ],
-  [ 'targetHeight',                      'target_height'                              ],
-  [ 'targetWidth',                       'target_width'                               ],
-  [ 'teaCache',                          'tea_cache'                                  ],
-  [ 'teaCacheEnd',                       'tea_cache_end'                              ],
-  [ 'teaCacheMaxSkipSteps',              'tea_cache_max_skip_steps'                   ],
-  [ 'teaCacheStart',                     'tea_cache_start'                            ],
-  [ 'teaCacheThreshold',                 'tea_cache_threshold'                        ],
-  [ 'tiledDecoding',                     'tiled_decoding'                             ],
-  [ 'tiledDiffusion',                    'tiled_diffusion'                            ],
-  [ 'upscalerScaleFactor',               'upscaler_scale_factor'                      ],
-  [ 'zeroNegativePrompt',                'zero_negative_prompt'                       ],
+  { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
+  { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
+  { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
+  { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
+  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
+  { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
+  { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
+  { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
+  { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
+  { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
+  { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
+  { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
 ];
-// -------------------------------------------------------------------------------------------------
-// function get_automatic1111_name(name) {
-//   let   name_lc = name.toLowerCase();
-//   const got_lc  = config_key_names.find(([dt_name, automatic1111_name]) =>
-//     automatic1111_name.toLowerCase() === name_lc);
-
-//   if (got_lc && got_lc[0] !== name) {
-//     name    = got_lc[0];
-//     name_lc = name.toLowerCase();
-//   }
-
-//   const got = config_key_names.find(([dt_name, automatic1111_name]) =>
-//     dt_name.toLowerCase() === name_lc);
-
-//   if (got) {
-//     console.log(`got automatic111 name for ${name}: ${got[1]}`);
-//     return got[1];
-//   } else {
-//     console.log(`did not find Automatic1111 name for ${name}, returning ${name}`);
-//     return name;
-//   }
-// }
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
   if (log_name_lookups_enabled)
     console.log(`\nLOOKING UP A1111 NAME FOR DT NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
-  let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
+  // let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
+  //   got.dt_name.toLowerCase() === name_lc);
+  let got = config_key_names.find(({ dt_name, automatic1111_name }) =>
     dt_name.toLowerCase() === name_lc);
 
   if (log_name_lookups_enabled)
     console.log(`GOT: ${inspect_fun(got)}`);
 
   if (got) {
-    const [dt_name, automatic1111_name] = got;
-    
     if (log_name_lookups_enabled) {
-      console.log(`got A1111 name for ${inspect_fun(name)}: ${inspect_fun(automatic1111_name)}`);
-      console.log(`RETURNING DT_NAME ${inspect_fun(dt_name)}\n`);
+      console.log(`got A1111 name for ${inspect_fun(name)}: ${inspect_fun(got.automatic1111_name)}`);
+      console.log(`RETURNING GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
     }
     
-    return automatic1111_name;
+    return got.automatic1111_name;
   }
   
   if (log_name_lookups_enabled)
     console.log(`did not find automatic1111 name for ${inspect_fun(name)} yet`);
 
-  got = config_key_names.find(([dt_name, automatic1111_name]) =>
+  got = config_key_names.find(({ dt_name, automatic1111_name }) =>
     automatic1111_name.toLowerCase() === name_lc);
   
   if (got) {
-    const [dt_name, automatic1111_name] = got;
-    
     if (log_name_lookups_enabled)
-      console.log(`RETURNING CASE-CORRECTED AUTOMATIC1111_NAME ${inspect_fun(automatic1111_name)}\n`);
+      console.log(`RETURNING CASE-CORRECTED GOT.AUTOMATIC1111_NAME ${inspect_fun(got.automatic1111_name)}\n`);
     
-    return automatic1111_name;
+    return got.automatic1111_name;
   } else { // could be an error case?
     if (log_name_lookups_enabled)
       console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
@@ -2777,36 +2753,32 @@ function get_dt_name(name) {
     console.log(`\nLOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
-  let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
+  let got = config_key_names.find(({ dt_name, automatic1111_name }) => 
     automatic1111_name.toLowerCase() === name_lc);
 
   if (log_name_lookups_enabled)
     console.log(`GOT: ${inspect_fun(got)}`);
 
   if (got) {
-    const [dt_name, automatic1111_name] = got;
-
     if (log_name_lookups_enabled) {
-      console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(dt_name)}`);
-      console.log(`RETURNING DT_NAME ${inspect_fun(dt_name)}\n`);
+      console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(got.dt_name)}`);
+      console.log(`RETURNING GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
     }
     
-    return dt_name;
+    return got.dt_name;
   }
   
   if (log_name_lookups_enabled)
     console.log(`did not find dt name for ${inspect_fun(name)} yet`);
 
-  got = config_key_names.find(([dt_name, automatic1111_name]) =>
+  got = config_key_names.find(({ dt_name, automatic1111_name }) => 
     dt_name.toLowerCase() === name_lc);
   
   if (got) {
-    const [dt_name, automatic1111_name] = got;
-    
     if (log_name_lookups_enabled)
-      console.log(`RETURNING CASE-CORRECTED DT_NAME ${inspect_fun(dt_name)}\n`);
+      console.log(`RETURNING CASE-CORRECTED GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
     
-    return dt_name;
+    return got.dt_name;
   } else { // could be an error case?
     if (log_name_lookups_enabled)
       console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
