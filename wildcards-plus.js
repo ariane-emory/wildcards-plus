@@ -2397,8 +2397,8 @@ const config_key_names = [
   // [ 'separate_clipl',                    'separate_clip_l'                            ],
   // [ 'separateClipL',                     'separate_clipl'                             ],
   // // -----------------------------------------------------------------------------------------------
-  [ 'separate_clipg',                    'separate_open_clip_g'                       ],
-  [ 'separateOpenClipG',                 'separate_clipg'                             ],
+  // [ 'separate_clipg',                    'separate_open_clip_g'                       ],
+  // [ 'separateOpenClipG',                 'separate_clipg'                             ],
   // // -----------------------------------------------------------------------------------------------
   // [ 'separate_clip_g',                   'separate_open_clip_g'                       ],
   // [ 'separateOpenClipG',                 'separate_clip_g'                            ],
