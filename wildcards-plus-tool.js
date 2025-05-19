@@ -2729,21 +2729,6 @@ function get_automatic1111_name(name) {
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
-  // console.log(`\nCASE-CORRECTING A1111 NAME '${name}'`);
-
-  // let name_lc = name.toLowerCase();
-  // let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
-  //   automatic1111_name.toLowerCase() === name_lc);
-
-  // console.log(`GOT: ${inspect_fun(got)}`);
-  
-  // if (got && got[1] !== name) {
-  //   name    = got[1];
-  //   name_lc = name.toLowerCase();
-  //   console.log(`CASE-CORRECTING NAME TO '${name}' / '${name_lc}'`);
-  // }
-
-  // console.log(`LOOKING UP DT NAME FOR CASE-CORRECTED 1111 NAME '${name}'`);
   console.log(`LOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
@@ -2761,7 +2746,7 @@ function get_dt_name(name) {
   
   console.log(`did not find dt name for ${inspect_fun(name)} yet`);
 
-  got         = config_key_names.find(([dt_name, automatic1111_name]) =>
+  got = config_key_names.find(([dt_name, automatic1111_name]) =>
     dt_name.toLowerCase() === name_lc);
   
   console.log(`GOT       ${inspect_fun(got)}`);
