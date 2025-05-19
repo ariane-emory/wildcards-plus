@@ -2733,8 +2733,8 @@ function get_dt_name(name) {
   const got_lc  = config_key_names.find(([dt_name, automatic1111_name]) =>
     dt_name.toLowerCase() === name_lc);
 
-  if (got_lc && got_lc[0] !== name) {
-    name    = got_lc[0];
+  if (got_lc && got_lc[1] !== name) {
+    name    = got_lc[1];
     name_lc = name.toLowerCase();
   }
 

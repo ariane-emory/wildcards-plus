@@ -2515,7 +2515,7 @@ function get_automatic1111_name(name) {
     dt_name.toLowerCase() === name_lc);
 
   if (got) {
-    console.log(`got automatic111 name for ${name}: ${got[0]}`);
+    console.log(`got automatic111 name for ${name}: ${got[1]}`);
     return got[1];
   } else {
     console.log(`did not find automatic1111 name for ${name}, returning ${name}`);
@@ -2528,8 +2528,8 @@ function get_dt_name(name) {
   const got_lc  = config_key_names.find(([dt_name, automatic1111_name]) =>
     dt_name.toLowerCase() === name_lc);
 
-  if (got_lc && got_lc[0] !== name) {
-    name    = got_lc[0];
+  if (got_lc && got_lc[1] !== name) {
+    name    = got_lc[1];
     name_lc = name.toLowerCase();
   }
 
