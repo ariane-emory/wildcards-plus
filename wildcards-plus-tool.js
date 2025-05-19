@@ -7212,8 +7212,7 @@ const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
             c_funcall('include',                          // [0]
                       first(wst_seq(DiscardedComments,    // -
-                                    json_string,          // [1]
-                                    DiscardedComments)))) // -
+                                    json_string))))       // [1]
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  () => "%include is only supported when " +
@@ -7257,23 +7256,26 @@ const SpecialFunctionUpdateConfigurationUnary =
                         DiscardedComments,                                     // -
                         choice(rJsoncObject, () => LimitedContent))));         // [1][1]   
 // -------------------------------------------------------------------------------------------------
-const NormalSpecialFunction             = choice(SpecialFunctionSetPickSingle,
-                                                 SpecialFunctionSetPickMultiple,
-                                                 SpecialFunctionRevertPickSingle,
-                                                 SpecialFunctionRevertPickMultiple,
-                                                 SpecialFunctionUpdateConfigurationUnary,
-                                                 SpecialFunctionUpdateConfigurationBinary);
-const SpecialFunctionNotInclude         = second(cutting_seq('%',
-                                                             NormalSpecialFunction,
-                                                             DiscardedComments,
-                                                             lws(optional(';'))));
-const AnySpecialFunction                = second(cutting_seq('%',
-                                                             choice((dt_hosted
-                                                                     ? UnexpectedSpecialFunctionInclude
-                                                                     : SpecialFunctionInclude),
-                                                                    NormalSpecialFunction),
-                                                             DiscardedComments,
-                                                             lws(optional(';'))));
+const NormalSpecialFunction
+      = choice(SpecialFunctionSetPickSingle,
+               SpecialFunctionSetPickMultiple,
+               SpecialFunctionRevertPickSingle,
+               SpecialFunctionRevertPickMultiple,
+               SpecialFunctionUpdateConfigurationUnary,
+               SpecialFunctionUpdateConfigurationBinary);
+const SpecialFunctionNotInclude
+      = second(cutting_seq('%',
+                           NormalSpecialFunction,
+                           DiscardedComments,
+                           lws(optional(';'))));
+const AnySpecialFunction
+      = second(cutting_seq('%',
+                           choice((dt_hosted
+                                   ? UnexpectedSpecialFunctionInclude
+                                   : SpecialFunctionInclude),
+                                  NormalSpecialFunction),
+                           DiscardedComments,
+                           lws(optional(';'))));
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
