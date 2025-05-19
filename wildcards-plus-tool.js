@@ -2709,7 +2709,7 @@ const config_key_names = [
   { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
 ];
 // -------------------------------------------------------------------------------------------------
-function get_alternate_name(find_key, find_value, return_key) {
+function get_alternate_name(find_value, find_key, return_key) {
   if (log_name_lookups_enabled)
     console.log(`\nLOOKING UP ${return_key} FOR ${inspect_fun(find_key)} ` +
                 `${inspect_fun(find_value)}`);
@@ -2773,15 +2773,11 @@ function get_alternate_name(find_key, find_value, return_key) {
 }
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
-  return get_alternate_name('dt_name',
-                            name,
-                            'automatic1111_name');
+  return get_alternate_name(name, 'dt_name', 'automatic1111_name');
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
-  return get_alternate_name('automatic1111_name',
-                            name,
-                            'dt_name');
+  return get_alternate_name(name, 'automatic1111_name', 'dt_name');
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
