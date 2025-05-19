@@ -2744,7 +2744,7 @@ function get_dt_name(name) {
   // }
 
   // console.log(`LOOKING UP DT NAME FOR CASE-CORRECTED 1111 NAME '${name}'`);
-  console.log(`\nLOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
+  console.log(`LOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
   let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
@@ -2754,6 +2754,8 @@ function get_dt_name(name) {
 
   if (got) {
     console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(got[0])}`);
+
+    console.log();
     return got[0];
   }
   
@@ -2763,9 +2765,10 @@ function get_dt_name(name) {
     dt_name.toLowerCase() === name_lc);
   
   console.log(`GOT       ${inspect_fun(got)}`);
-  console.log(`RETURNING ${inspect_fun(got[1] ?? name)}`);
+  console.log(`RETURNING ${inspect_fun(got[0] ?? name)}`);
 
-  return got ?? name;
+  console.log();  
+  return got[0] ?? name;
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
