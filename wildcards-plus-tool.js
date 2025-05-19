@@ -7215,13 +7215,15 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     "running the wildcards-plus.js script " +
                                                     "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      xform(arr => new ASTSetPickSingle(arr[1]),
-            wst_cutting_seq(wst_seq('single_pick', assignment_operator),
-                            choice(() => LimitedContent, /[a-z_]+/)));
+      xform(arr => new ASTSetPickSingle(arr[1][1]),
+            seq('single_pick',                                      // [0]
+                wst_seq(assignment_operator,                        // [1][0]
+                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionSetPickMultiple =
-      xform(arr => new ASTSetPickMultiple(arr[1]),
-            wst_cutting_seq(wst_seq('multi_pick', assignment_operator),
-                            choice(() => LimitedContent, /[a-z_]+/)));
+      xform(arr => new ASTSetPickMultiple(arr[1][1]),
+            seq('multi_pick',                                       // [0]
+                wst_seq(assignment_operator,                        // [1][0]
+                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             'revert_single_pick');
@@ -7229,11 +7231,10 @@ const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             'revert_multi_pick');
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigBinary(arr[1], arr[2][1], arr[2][0] == '='),
-            cutting_seq('',
-                        ident,                                                         // [1]
-                        wst_seq(choice(incr_assignment_operator, assignment_operator), // [2][0]
-                                choice(rJsonc, () => LimitedContent))));               // [2][1]
+      xform(arr => new ASTUpdateConfigBinary(arr[0], arr[1][1], arr[1][0] == '='),
+            seq(ident,                                                         // [0]
+                wst_seq(choice(incr_assignment_operator, assignment_operator), // [1][0]
+                        choice(rJsonc, () => LimitedContent))));               // [1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq(/conf(?:ig)?/,                       // [0][0]
