@@ -2393,9 +2393,13 @@ const config_key_names = [
   // -----------------------------------------------------------------------------------------------
   [ 't5',                                't5_text'                                    ],
   [ 't5Text',                            't5'                                         ],
-  // // -----------------------------------------------------------------------------------------------
-  // [ 'separateClipL',                     'separate_clipl'                             ],
-  // [ 'separate_clipl',                    'separate_clip_l'                            ],
+  // -----------------------------------------------------------------------------------------------
+  // do this one early:
+  [ 'separateClipL',                     'separate_clip_l'                            ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'separate_clipl',                    'separate_clip_l'                            ],
+  [ 'separateClipL',                     'separate_clipl'                             ],
+  // got dt name for separate_clip_l: separate_clipl
   // // -----------------------------------------------------------------------------------------------
   // [ 'separate_clipg',                    'separate_open_clip_g'                       ],
   // [ 'separateOpenClipG',                 'separate_clipg'                             ],
@@ -2465,7 +2469,7 @@ const config_key_names = [
   [ 'sampler',                           'sampler_index'                              ],
   [ 'sampler',                           'sampler_name'                               ],
   [ 'seedMode',                          'seed_mode'                                  ],
-  [ 'separateClipL',                     'separate_clip_l'                            ],
+  // [ 'separateClipL',                     'separate_clip_l'                            ],
   [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
   [ 'separateT5',                        'separate_t5'                                ],
   [ 'speedUpWithGuidanceEmbedParameter', 'speed_up_with_guidance_embed'               ],
@@ -2491,17 +2495,25 @@ const config_key_names = [
 ];
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
-  const got = config_key_names.find(([dt_name, automatic1111_name]) => dt_name === name);
-  if (got)
+  const got = config_key_names.find(([dt_name, automatic1111_name]) =>
+    dt_name === name);
+  if (got) {
     return got[1];
-  return name;
+  } else {
+    return name;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
-  const got = config_key_names.find(([dt_name, automatic1111_name]) => automatic1111_name === name);
-  if (got)
+  const got = config_key_names.find(([dt_name, automatic1111_name]) =>
+    automatic1111_name === name);
+  if (got) {
+    console.log(`got dt name for ${name}: ${got[0]}`);
     return got[0];
-  return name;
+  } else {
+    console.log(`did not find dt name for ${name}, returning ${name}`);
+    return name;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
