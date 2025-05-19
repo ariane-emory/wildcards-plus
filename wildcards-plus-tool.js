@@ -7057,6 +7057,10 @@ const escaped_brc              = second(choice('\\{', '\\}'));
 const filename                 = /[A-Za-z0-9 ._\-()]+/;
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
+// discard comments:
+// -------------------------------------------------------------------------------------------------
+const DiscardedComments        = discard(wst_star(comment));
+// -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
 // const unarySpecialFunction = (prefix, rule, xform_func) =>
@@ -7206,9 +7210,9 @@ const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_b
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude           = xform(arr => new ASTInclude(arr[1]),
                                                c_funcall('%include',
-                                                         first(wst_seq(() => DiscardedComments,
+                                                         first(wst_seq(DiscardedComments,
                                                                        json_string,
-                                                                       () => DiscardedComments))))
+                                                                       DiscardedComments))))
 const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     () => "%include is only supported when " +
                                                     "using wildcards-plus-tool.js, NOT when " +
@@ -7237,10 +7241,10 @@ const SpecialFunctionUpdateConfigurationBinary =
                         choice(rJsonc, () => LimitedContent))));               // [1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                          // [0]
+            seq(/conf(?:ig)?/,                                                 // [0]
                 wst_seq(choice(incr_assignment_operator,
-                               assignment_operator),                    // [1][0]
-                        choice(rJsoncObject, () => LimitedContent)))); // [1][1]   
+                               assignment_operator),                           // [1][0]
+                        choice(rJsoncObject, () => LimitedContent))));         // [1][1]   
 // -------------------------------------------------------------------------------------------------
 const NormalSpecialFunction             = choice(SpecialFunctionSetPickSingle,
                                                  SpecialFunctionSetPickMultiple,
@@ -7258,7 +7262,6 @@ const AnySpecialFunction                = choice((dt_hosted
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
-const DiscardedComments              = discard(wst_star(comment));
 const AnonWildcardAlternative        = xform(make_ASTAnonWildcardAlternative,
                                              seq(wst_star(choice(comment, TestFlag,
                                                                  SetFlag, UnsetFlag)),
