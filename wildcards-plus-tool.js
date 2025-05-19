@@ -7240,7 +7240,7 @@ const SpecialFunctionUpdateConfigurationUnary =
             seq(/conf(?:ig)?/,                                          // [0]
                 wst_seq(choice(incr_assignment_operator,
                                assignment_operator),                    // [1][0]
-                        choice(rJsoncObject, () => LimitedContent))))); // [1][1]   
+                        choice(rJsoncObject, () => LimitedContent)))); // [1][1]   
 // -------------------------------------------------------------------------------------------------
 const NormalSpecialFunction             = choice(SpecialFunctionSetPickSingle,
                                                  SpecialFunctionSetPickMultiple,
