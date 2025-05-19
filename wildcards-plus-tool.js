@@ -7236,11 +7236,11 @@ const SpecialFunctionUpdateConfigurationBinary =
                 wst_seq(choice(incr_assignment_operator, assignment_operator), // [1][0]
                         choice(rJsonc, () => LimitedContent))));               // [1][1]
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq(/conf(?:ig)?/,                       // [0][0]
-                                    choice(incr_assignment_operator,
-                                           assignment_operator)),         // [0][1]
-                            choice(rJsoncObject, () => LimitedContent))); // [1]   
+      xform(arr => new ASTUpdateConfigUnary(arr[1][1], arr[1][0] == '='),
+            seq(/conf(?:ig)?/,                                          // [0]
+                wst_seq(choice(incr_assignment_operator,
+                               assignment_operator),                    // [1][0]
+                        choice(rJsoncObject, () => LimitedContent))))); // [1][1]   
 // -------------------------------------------------------------------------------------------------
 const NormalSpecialFunction             = choice(SpecialFunctionSetPickSingle,
                                                  SpecialFunctionSetPickMultiple,
