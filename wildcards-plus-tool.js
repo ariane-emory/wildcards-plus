@@ -2712,9 +2712,7 @@ function get_automatic1111_name(name) {
     console.log(`\nLOOKING UP A1111 NAME FOR DT NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
-  // let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
-  //   got.dt_name.toLowerCase() === name_lc);
-  let got = config_key_names.find(({ dt_name, automatic1111_name }) =>
+  let got     = config_key_names.find(({ dt_name, automatic1111_name }) =>
     dt_name.toLowerCase() === name_lc);
 
   if (log_name_lookups_enabled)
@@ -2753,7 +2751,7 @@ function get_dt_name(name) {
     console.log(`\nLOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
-  let got = config_key_names.find(({ dt_name, automatic1111_name }) => 
+  let got     = config_key_names.find(({ dt_name, automatic1111_name }) => 
     automatic1111_name.toLowerCase() === name_lc);
 
   if (log_name_lookups_enabled)
