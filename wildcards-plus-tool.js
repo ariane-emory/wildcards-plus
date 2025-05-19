@@ -2671,9 +2671,6 @@ const config_key_names = [
   { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
   // -----------------------------------------------------------------------------------------------
   { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l'                            },
-  // shorthands:
-  { dt_name: 'separate_clipl',                    automatic1111_name: 'separate_clip_l'                            },
-  { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clipl'                             },
   // -----------------------------------------------------------------------------------------------
   { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g'                       },
   // shorthands:
