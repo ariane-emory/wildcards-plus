@@ -7209,7 +7209,7 @@ const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_b
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude           = xform(arr => new ASTInclude(arr[1]),
-                                               c_funcall('%include',
+                                               c_funcall('include',
                                                          first(wst_seq(DiscardedComments,
                                                                        json_string,
                                                                        DiscardedComments))))
@@ -7221,12 +7221,16 @@ const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single_pick',                                      // [0]
-                wst_seq(assignment_operator,                        // [1][0]
-                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
+                wst_seq(DiscardedComments,                          // -
+                        assignment_operator,                        // [1][0]
+                        choice(() => LimitedContent, /[a-z_]+/),    // [1][1]
+                        DiscardedComments)));                       // -
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
             seq('multi_pick',                                       // [0]
-                wst_seq(assignment_operator,                        // [1][0]
+                wst_seq(DiscardedComments,                          // -
+                        assignment_operator,                        // [1][0]
+                        DiscardedComments,                          // -
                         choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
