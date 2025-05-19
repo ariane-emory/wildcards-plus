@@ -205,7 +205,7 @@ function process_includes(thing, context = new Context()) {
 let inspect_fun = (thing, no_break = false) => util.inspect(thing, no_break ? { breakLength: Infinity } : {});
 let clone_fun   = structuredClone;
 let dt_hosted   = false;
-dt_hosted       = true; // uncomment to lie and force use of the DT-legal syntax/configs for debugging
+// dt_hosted       = true; // uncomment to lie and force use of the DT-legal syntax/configs for debugging
 // =================================================================================================
 
 
@@ -322,7 +322,7 @@ let log_flags_enabled           = false;
 let log_config_enabled          = true;
 let log_post_enabled            = true;
 let log_join_enabled            = false;
-let log_name_lookups_enabled    = false;
+let log_name_lookups_enabled    = true;
 let log_finalize_enabled        = false;
 let log_match_enabled           = false;
 let disable_prelude             = false;
@@ -2718,9 +2718,9 @@ function get_automatic1111_name(name) {
     shorthands?.includes(name_lc))
 
   if (got) {
-    console.log(`RETURN SHORTHAND ${inspect_fun(got.dt_name)}\n`);
+    console.log(`RETURN FROM SHORTHAND ${inspect_fun(got.dt_name)}\n`);
 
-    return got.dt_name;
+    return got.automatic1111_name;
   }
 
   got = config_key_names.find(({ dt_name, automatic1111_name }) =>
