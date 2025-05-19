@@ -7213,8 +7213,8 @@ const SpecialFunctionInclude =
             c_funcall('include',                          // [0]
                       first(wst_seq(DiscardedComments,    // -
                                     json_string,          // [1]
-                                    DiscardedComments))))       
-const UnexpectedSpecialFunctionInclude =
+                                    DiscardedComments)))) // -
+  const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  () => "%include is only supported when " +
                  "using wildcards-plus-tool.js, NOT when " +
