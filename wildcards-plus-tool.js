@@ -2736,6 +2736,7 @@ function get_automatic1111_name(name) {
     return got.automatic1111_name;
   } 
 
+  // look up the alternate key
   got     = config_key_names.find(({ dt_name, automatic1111_name }) =>
     dt_name.toLowerCase() === name_lc);
 
