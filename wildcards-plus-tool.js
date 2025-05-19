@@ -2720,7 +2720,7 @@ function get_automatic1111_name(name) {
     dt_name.toLowerCase() === name_lc);
 
   if (got) {
-    console.log(`got automatic111 name for ${name}: ${got[0]}`);
+    console.log(`got automatic111 name for ${name}: ${got[1]}`);
     return got[1];
   } else {
     console.log(`did not find automatic1111 name for ${name}, returning ${name}`);
