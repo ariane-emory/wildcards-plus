@@ -458,26 +458,22 @@
 %conf.separate_clip_l = true
 
 %conf.clip_l_text = {
-{|@aris_defaults,}
-{3|3 illustration,|2 sketch,|1 drawing,}
-science fiction,
-{3|greebles,|greeblies,}
-{|#traveller Traveller RPG,}
-// {|?traveller GDW,}
-// {|?traveller Third Imperium,}
-{|futuristic,}
-// {2|hyperrealistic,}
-// {2|infinite focus,}
-{|extremely detailed,}
-// {2|100-hour render time,}
-{@0-2,colour_modifiers}
-.
+  {|@aris_defaults,}
+  {3|3 illustration,|2 sketch,|1 drawing,}
+  science fiction,
+  {3|greebles,|greeblies,}
+  {|#traveller Traveller RPG,}
+  // {|?traveller GDW,}
+  // {|?traveller Third Imperium,}
+  {|futuristic,}
+  // {2|hyperrealistic,}
+  // {2|infinite focus,}
+  {|extremely detailed,}
+  // {2|100-hour render time,}
+  {@0-2,colour_modifiers,}
+  {?wizards_artist @wizards_artists, @wizards_artist_styles,}
 }
 
-// \n\n
-
-// %conf.t5_text =
-{
 A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
     {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
@@ -493,5 +489,5 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 {|6 @alien_feature_sentence}
 {|8 @sky_sentence}
 
-{?wizards_artist By @wizards_artists, @wizards_artist_styles. }
-}
+{?wizards_artist By @wizards_artists. }
+
