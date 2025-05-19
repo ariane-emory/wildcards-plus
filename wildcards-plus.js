@@ -2512,7 +2512,7 @@ function get_automatic1111_name(name) {
   }
   
   const got = config_key_names.find(([dt_name, automatic1111_name]) =>
-    dt_name.toLowerCase() === name);
+    dt_name.toLowerCase() === name_lc);
 
   if (got) {
     console.log(`got automatic111 name for ${name}: ${got[0]}`);
