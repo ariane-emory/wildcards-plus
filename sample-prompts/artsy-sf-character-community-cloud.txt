@@ -104,7 +104,7 @@
 {6 ?flux
 // Flux finetunes:
 
-{ 1 %width = 1088; %height = 1088; %steps = 50; // 1.183 mpx, 12,162 cu
+{ 1 %width = 1088 ; %height = 1088; %steps = 50; // 1.183 mpx, 12,162 cu
 | 2 %width = 1152; %height = 1024; %steps = 50; // 1.179 mpx, 12,082 cu
 | 4 %width = 1536; %height = 768;  %steps = 50; // 1.179 mpx, 12,082 cu
 }
@@ -515,3 +515,9 @@ A
 // $foo += { Bar }
 // $foo += { Baz }
 // $foo
+
+$foo  = { foo }
+$foo += { Foo }
+$foo  = { bar }
+$foo += { Bar }
+$foo

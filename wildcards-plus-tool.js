@@ -7214,7 +7214,7 @@ const SpecialFunctionInclude =
                       first(wst_seq(DiscardedComments,    // -
                                     json_string,          // [1]
                                     DiscardedComments)))) // -
-  const UnexpectedSpecialFunctionInclude =
+const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  () => "%include is only supported when " +
                  "using wildcards-plus-tool.js, NOT when " +
@@ -7278,48 +7278,47 @@ const AnySpecialFunction =
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 () => ContentStar));
-const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 () => ContentStarNoLoras));
-const AnonWildcard                   = xform(arr => new ASTAnonWildcard(arr),
-                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const AnonWildcardNoLoras            = xform(arr => new ASTAnonWildcard(arr),
-                                             brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-const NamedWildcardReference         = xform(seq(discard('@'),
-                                                 optional('^'),                             // [0]
-                                                 optional(xform(parseInt, /\d+/)),          // [1]
-                                                 optional(xform(parseInt,
-                                                                second(seq('-', /\d+/)))),  // [2]
-                                                 optional(/[,&]/),                          // [3]
-                                                 ident),                                    // [4]
-                                             arr => {
-                                               const ident  = arr[4];
-                                               const min_ct = arr[1][0] ?? 1;
-                                               const max_ct = arr[2][0] ?? min_ct;
-                                               const join   = arr[3][0] ?? '';
-                                               const caret  = arr[0][0];
-                                               
-                                               return new ASTNamedWildcardReference(ident,
-                                                                                    join,
-                                                                                    caret,
-                                                                                    min_ct,
-                                                                                    max_ct);
-                                             });
+const AnonWildcardAlternative =
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                optional(wb_uint, 1),
+                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                () => ContentStar));
+const AnonWildcardAlternativeNoLoras =
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                optional(wb_uint, 1),
+                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                () => ContentStarNoLoras));
+const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+const NamedWildcardReference  = xform(seq(discard('@'),
+                                          optional('^'),                             // [0]
+                                          optional(xform(parseInt, /\d+/)),          // [1]
+                                          optional(xform(parseInt,
+                                                         second(seq('-', /\d+/)))),  // [2]
+                                          optional(/[,&]/),                          // [3]
+                                          ident),                                    // [4]
+                                      arr => {
+                                        const ident  = arr[4];
+                                        const min_ct = arr[1][0] ?? 1;
+                                        const max_ct = arr[2][0] ?? min_ct;
+                                        const join   = arr[3][0] ?? '';
+                                        const caret  = arr[0][0];
+                                        
+                                        return new ASTNamedWildcardReference(ident,
+                                                                             join,
+                                                                             caret,
+                                                                             min_ct,
+                                                                             max_ct);
+                                      });
 const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
                                       wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
                                                               assignment_operator),    // -
+                                                      DiscardedComments,
                                                       AnonWildcard));                  // [1]
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
@@ -7343,29 +7342,30 @@ const ScalarReference         = xform(seq('$', optional('^'), ident),
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == '=='),
+                                                                 arr[0][1] == '='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
+                                                              DiscardedComments,
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      () => LimitedContent));               // [1]
-const LimitedContent          = choice(
-  NamedWildcardReference,
-  AnonWildcardNoLoras,
-  ScalarReference,
-);
-const ContentNoLoras          = choice(
-  NamedWildcardReference,
-  NamedWildcardUsage,
-  SetFlag,
-  UnsetFlag,
-  escaped_brc,
-  AnonWildcard,
-  ScalarUpdate,
-  ScalarReference,
-  comment,
-  SpecialFunctionNotInclude,
-  plaintext,
-);
+                                                      DiscardedComments,                    // [1]
+                                                      () => LimitedContent,
+                                                      DiscardedComments,
+                                                      lws(optional(';'))));
+
+const LimitedContent          = choice(NamedWildcardReference,
+                                       AnonWildcardNoLoras,
+                                       ScalarReference);
+const ContentNoLoras          = choice(NamedWildcardReference,
+                                       NamedWildcardUsage,
+                                       SetFlag,
+                                       UnsetFlag,
+                                       escaped_brc,
+                                       AnonWildcard,
+                                       ScalarUpdate,
+                                       ScalarReference,
+                                       comment,
+                                       SpecialFunctionNotInclude,
+                                       plaintext);
 const Content                 = choice(A1111StyleLora, ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
