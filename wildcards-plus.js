@@ -2502,28 +2502,6 @@ const config_key_names = [
   [ 'zeroNegativePrompt',                'zero_negative_prompt'                       ],
 ];
 // -------------------------------------------------------------------------------------------------
-// function get_automatic1111_name(name) {
-//   let   name_lc = name.toLowerCase();
-//   const got_lc  = config_key_names.find(([dt_name, automatic1111_name]) =>
-//     automatic1111_name.toLowerCase() === name_lc);
-
-//   if (got_lc && got_lc[0] !== name) {
-//     name    = got_lc[0];
-//     name_lc = name.toLowerCase();
-//   }
-
-//   const got = config_key_names.find(([dt_name, automatic1111_name]) =>
-//     dt_name.toLowerCase() === name_lc);
-
-//   if (got) {
-//     console.log(`got automatic111 name for ${name}: ${got[1]}`);
-//     return got[1];
-//   } else {
-//     console.log(`did not find Automatic1111 name for ${name}, returning ${name}`);
-//     return name;
-//   }
-// }
-// -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
   if (log_name_lookups_enabled)
     console.log(`\nLOOKING UP A1111 NAME FOR DT NAME ${inspect_fun(name)}`);

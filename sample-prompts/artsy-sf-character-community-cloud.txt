@@ -512,3 +512,7 @@ A
 // $foo  = { bar }
 // $foo += { Bar }
 // $foo
+
+// %neg            += { first,  }
+// %nEgAtIvE       += { second, }
+// %nEgAtIvEpRoMpT += { third,  }
