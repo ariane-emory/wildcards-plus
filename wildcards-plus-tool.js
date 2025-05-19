@@ -7212,7 +7212,8 @@ const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
             c_funcall('include',                          // [0]
                       first(wst_seq(DiscardedComments,    // -
-                                    json_string))))       // [1]
+                                    json_string,          // [1]
+                                    DiscardedComments))))       
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  () => "%include is only supported when " +
