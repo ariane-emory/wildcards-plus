@@ -2600,7 +2600,8 @@ const config_key_names = [
   { dt_name: 'batchCount',                        automatic1111_name: 'n_iter'                                     },
   { dt_name: 'batchSize',                         automatic1111_name: 'batch_size'                                 },
   // -----------------------------------------------------------------------------------------------
-  { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text'                                },
+  { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text',
+    shorthands: [ 'clip_l', 'clipl' ] },
   // shorthands:
   { dt_name: 'clip_l',                            automatic1111_name: 'clip_l_text'                                },
   { dt_name: 'clipLText',                         automatic1111_name: 'clip_l'                                     },
