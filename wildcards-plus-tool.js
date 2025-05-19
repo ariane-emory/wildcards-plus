@@ -2598,15 +2598,21 @@ const config_key_names = [
   // -----------------------------------------------------------------------------------------------
   [ 't5',                                't5_text'                                    ],
   [ 't5Text',                            't5'                                         ],
-  // // -----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
+  // do this one early:
+  [ 'separateClipL',                     'separate_clip_l'                            ],
+  // -----------------------------------------------------------------------------------------------
   [ 'separate_clipl',                    'separate_clip_l'                            ],
   [ 'separateClipL',                     'separate_clipl'                             ],
-  // // -----------------------------------------------------------------------------------------------
-  // [ 'separate_clipg',                    'separate_open_clip_g'                       ],
-  // [ 'separateOpenClipG',                 'separate_clipg'                             ],
-  // // -----------------------------------------------------------------------------------------------
-  // [ 'separate_clip_g',                   'separate_open_clip_g'                       ],
-  // [ 'separateOpenClipG',                 'separate_clip_g'                            ],
+  // -----------------------------------------------------------------------------------------------
+  // do this one early:
+  [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'separate_clipg',                    'separate_open_clip_g'                       ],
+  [ 'separateOpenClipG',                 'separate_clipg'                             ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'separate_clip_g',                   'separate_open_clip_g'                       ],
+  [ 'separateOpenClipG',                 'separate_clip_g'                            ],
   // -----------------------------------------------------------------------------------------------
   // identical keys:
   [ 'controls',                          'controls'                                   ],
@@ -2670,8 +2676,8 @@ const config_key_names = [
   [ 'sampler',                           'sampler_index'                              ],
   [ 'sampler',                           'sampler_name'                               ],
   [ 'seedMode',                          'seed_mode'                                  ],
-  [ 'separateClipL',                     'separate_clip_l'                            ],
-  [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
+  // [ 'separateClipL',                     'separate_clip_l'                            ],
+  // [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
   [ 'separateT5',                        'separate_t5'                                ],
   [ 'speedUpWithGuidanceEmbedParameter', 'speed_up_with_guidance_embed'               ],
   [ 'stage2Cfg',                         'stage_2_cfg'                                ],
@@ -2695,24 +2701,32 @@ const config_key_names = [
   [ 'zeroNegativePrompt',                'zero_negative_prompt'                       ],
 ];
 // -------------------------------------------------------------------------------------------------
-function get_automatic111_name(dt_name) {
-  const got = config_key_names.find(([dt_name2, automatic1111_name]) => dt_name2 === dt_name);
-  if (got)
+function get_automatic1111_name(name) {
+  const got = config_key_names.find(([dt_name, automatic1111_name]) =>
+    dt_name === name);
+  if (got) {
     return got[1];
-  return dt_name;
+  } else {
+    return name;
+  }
 }
 // -------------------------------------------------------------------------------------------------
-function get_dt_name(automatic1111_name) {
-  const got = config_key_names.find(([dt_name, automatic1111_name2]) => automatic1111_name2 === automatic1111_name);
-  if (got)
+function get_dt_name(name) {
+  const got = config_key_names.find(([dt_name, automatic1111_name]) =>
+    automatic1111_name === name);
+  if (got) {
+    console.log(`got dt name for ${name}: ${got[0]}`);
     return got[0];
-  return automatic1111_name;
+  } else {
+    console.log(`did not find dt name for ${name}, returning ${name}`);
+    return name;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
   const res = (dt_hosted
                ? get_dt_name
-               : get_automatic111_name)(name);
+               : get_automatic1111_name)(name);
 
   // console.log(`got our name for ${name}: ${res}`);
   

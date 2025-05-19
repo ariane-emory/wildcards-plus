@@ -2399,12 +2399,15 @@ const config_key_names = [
   // -----------------------------------------------------------------------------------------------
   [ 'separate_clipl',                    'separate_clip_l'                            ],
   [ 'separateClipL',                     'separate_clipl'                             ],
-  // // -----------------------------------------------------------------------------------------------
-  // [ 'separate_clipg',                    'separate_open_clip_g'                       ],
-  // [ 'separateOpenClipG',                 'separate_clipg'                             ],
-  // // -----------------------------------------------------------------------------------------------
-  // [ 'separate_clip_g',                   'separate_open_clip_g'                       ],
-  // [ 'separateOpenClipG',                 'separate_clip_g'                            ],
+  // -----------------------------------------------------------------------------------------------
+  // do this one early:
+  [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'separate_clipg',                    'separate_open_clip_g'                       ],
+  [ 'separateOpenClipG',                 'separate_clipg'                             ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'separate_clip_g',                   'separate_open_clip_g'                       ],
+  [ 'separateOpenClipG',                 'separate_clip_g'                            ],
   // -----------------------------------------------------------------------------------------------
   // identical keys:
   [ 'controls',                          'controls'                                   ],
@@ -2469,7 +2472,7 @@ const config_key_names = [
   [ 'sampler',                           'sampler_name'                               ],
   [ 'seedMode',                          'seed_mode'                                  ],
   // [ 'separateClipL',                     'separate_clip_l'                            ],
-  [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
+  // [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
   [ 'separateT5',                        'separate_t5'                                ],
   [ 'speedUpWithGuidanceEmbedParameter', 'speed_up_with_guidance_embed'               ],
   [ 'stage2Cfg',                         'stage_2_cfg'                                ],
