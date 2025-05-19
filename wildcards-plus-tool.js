@@ -322,7 +322,7 @@ let log_flags_enabled           = false;
 let log_config_enabled          = true;
 let log_post_enabled            = true;
 let log_join_enabled            = false;
-let log_name_lookups_enabled    = true;
+let log_name_lookups_enabled    = false;
 let log_finalize_enabled        = false;
 let log_match_enabled           = false;
 let disable_prelude             = false;
@@ -2709,32 +2709,37 @@ const config_key_names = [
   { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
 ];
 // -------------------------------------------------------------------------------------------------
-function get_alternate_name(find_key, name, return_key) {
+function get_alternate_name(find_key, find_value, return_key) {
   if (log_name_lookups_enabled)
     console.log(`\nLOOKING UP ${return_key} FOR ${inspect_fun(find_key)} ` +
-                `${inspect_fun(name)}`);
+                `${inspect_fun(find_value)}`);
 
-  let name_lc = name.toLowerCase();
+  let find_value_lc = find_value.toLowerCase();
 
-  // is name a shorthand?
+  // -----------------------------------------------------------------------------------------------
+  // is find_value a shorthand?
   let got     = config_key_names.find(obj => 
-    obj?.shorthands?.includes(name_lc))
+    obj?.shorthands?.includes(find_value_lc))
 
   if (got) {
-    console.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+    if (log_name_lookups_enabled)
+      console.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
 
     return got[return_key];
   }
 
+  // -----------------------------------------------------------------------------------------------
   // is it just miscapitalized?
   got = config_key_names.find(obj => {
-    console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
-                `${inspect_fun(name_lc)} = ` +
-                `${obj[return_key].toLowerCase() === name_lc}`);
-    return obj[return_key].toLowerCase() === name_lc;
+    if (log_name_lookups_enabled)
+      console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
+                  `${inspect_fun(find_value_lc)} = ` +
+                `${obj[return_key].toLowerCase() === find_value_lc}`);
+    return obj[return_key].toLowerCase() === find_value_lc;
   });
-  
-  console.log(`GOT ${return_key} ${inspect_fun(got)}`);
+
+  if (log_name_lookups_enabled)
+    console.log(`GOT ${return_key} ${inspect_fun(got)}`);
   
   if (got) {
     if (log_name_lookups_enabled)
@@ -2743,16 +2748,17 @@ function get_alternate_name(find_key, name, return_key) {
     return got[return_key];
   } 
 
+  // -----------------------------------------------------------------------------------------------
   // look up the alternate key
   got     = config_key_names.find(obj => 
-    obj[find_key].toLowerCase() === name_lc);
+    obj[find_key].toLowerCase() === find_value_lc);
 
   if (log_name_lookups_enabled)
     console.log(`GOT: ${inspect_fun(got)}`);
 
   if (got) {
     if (log_name_lookups_enabled) {
-      console.log(`got ${return_key} for ${inspect_fun(name)}: ${inspect_fun(got[return_key])}`);
+      console.log(`got ${return_key} for ${inspect_fun(find_value)}: ${inspect_fun(got[return_key])}`);
       console.log(`RETURNING ${return_key} ${inspect_fun(got[return_key])}\n`);
     }
     
@@ -2760,9 +2766,10 @@ function get_alternate_name(find_key, name, return_key) {
   }
 
   if (log_name_lookups_enabled) 
-    console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
-  
-  return name;
+    console.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
+
+  // possibly an error? maybe not always.
+  return find_value;
 }
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
