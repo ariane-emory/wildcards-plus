@@ -2399,7 +2399,6 @@ const config_key_names = [
   // -----------------------------------------------------------------------------------------------
   [ 'separate_clipl',                    'separate_clip_l'                            ],
   [ 'separateClipL',                     'separate_clipl'                             ],
-  // got dt name for separate_clip_l: separate_clipl
   // // -----------------------------------------------------------------------------------------------
   // [ 'separate_clipg',                    'separate_open_clip_g'                       ],
   // [ 'separateOpenClipG',                 'separate_clipg'                             ],
