@@ -7241,16 +7241,17 @@ const SpecialFunctionUpdateConfigurationUnary =
                                            assignment_operator)),         // [0][1]
                             choice(rJsoncObject, () => LimitedContent))); // [1]   
 // -------------------------------------------------------------------------------------------------
-const SpecialFunctionNotInclude          = choice(SpecialFunctionSetPickSingle,
-                                                  SpecialFunctionSetPickMultiple,
+const NormalSpecialFunction             = choice(SpecialFunctionSetPickSingle,
+                                                 SpecialFunctionSetPickMultiple,
                                                   SpecialFunctionRevertPickSingle,
                                                   SpecialFunctionRevertPickMultiple,
                                                   SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary);
-const AnySpecialFunction                  = choice((dt_hosted
-                                                    ? UnexpectedSpecialFunctionInclude
-                                                    : SpecialFunctionInclude),
-                                                   SpecialFunctionNotInclude);
+const SpecialFunctionNotInclude         = NormalSpecialFunction;
+const AnySpecialFunction                = choice((dt_hosted
+                                                  ? UnexpectedSpecialFunctionInclude
+                                                  : SpecialFunctionInclude),
+                                                   NormalSpecialFunction);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
