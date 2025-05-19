@@ -7223,15 +7223,17 @@ const SpecialFunctionSetPickSingle =
             seq('single_pick',                                      // [0]
                 wst_seq(DiscardedComments,                          // -
                         assignment_operator,                        // [1][0]
+                        DiscardedComments,                          // -
                         choice(() => LimitedContent, /[a-z_]+/),    // [1][1]
                         DiscardedComments)));                       // -
 const SpecialFunctionSetPickMultiple =
-      xform(arr => new ASTSetPickMultiple(arr[1][1]),
-            seq('multi_pick',                                       // [0]
+      xform(arr => new ASTSetPickSingle(arr[1][1]),
+            seq('multi_pick',                                      // [0]
                 wst_seq(DiscardedComments,                          // -
                         assignment_operator,                        // [1][0]
                         DiscardedComments,                          // -
-                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
+                        choice(() => LimitedContent, /[a-z_]+/),    // [1][1]
+                        DiscardedComments)));                       // -
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             'revert_single_pick');
