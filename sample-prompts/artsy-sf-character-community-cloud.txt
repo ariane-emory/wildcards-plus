@@ -273,7 +273,7 @@
 |#inhuman inhuman
 |intimidating
 |exotic
-|otherworldls
+|otherworldly
 |athletic
 |muscular
 |youthful
@@ -406,7 +406,7 @@
 }
 
 @cyborg_feature_sentence       = {?cyborg !ecfs @^pro_3rd_subj has @cyborg_features . }
-@early_cyborg_feature_sentence = {?cyborg #ecfs with @cyborg_features }
+@early_cyborg_feature_phrase   = {?cyborg #ecfs with @cyborg_features }
 
 // -------------------------------------------------------------------------------------------------
 // alien features:
@@ -436,7 +436,7 @@
 }                   
 
 @alien_feature_sentence       = {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
-@early_alien_feature_sentence = {?alien #eafs with               @1-2&alien_features   }
+@early_alien_feature_phrase   = {?alien #eafs with               @1-2&alien_features   }
 
 // -------------------------------------------------------------------------------------------------
 // things in the sky:
@@ -473,7 +473,7 @@
 
 %conf.separate_clip_l = true
 %conf.clip_l_text     = {
- {|@aris_defaults,}
+ {3|@aris_defaults,}
  {3|3 illustration,|2 sketch,|1 drawing,}
  science fiction,
  {3|greebles,|greeblies,}
@@ -490,11 +490,11 @@
 
 A
 {?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
-                 {which depicts|depicting} a }
+                 {featuring|which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
-{2|@early_alien_feature_sentence}
-{2|@early_cyborg_feature_sentence}
-@place_phrase {|3 @context_place_phrase|5 ?outdoors @context_place_phrase}
+{2|@early_alien_feature_phrase}
+{2|@early_cyborg_feature_phrase}
+@place_phrase {|3 @context_place_phrase|3 ?outdoors @context_place_phrase}
 {|6 ?weapon @weapon_phrase}
 {|6 ?tool   @tool_phrase}
 .
@@ -505,4 +505,3 @@ A
 {|8 ?outdoors @sky_sentence}
 
 {?wizards_artist By @wizards_artists. }
-
