@@ -7240,14 +7240,14 @@ const SpecialFunctionRevertPickSingle =
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             'revert_multi_pick');
-const SpecialFunctionUpdateConfigurationBinary =
+const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(ident,                                                         // [0]
                 wst_seq(DiscardedComments,                                     // -
                         choice(incr_assignment_operator, assignment_operator), // [1][0]
                         DiscardedComments,                                     // -
                         choice(rJsonc, () => LimitedContent))));               // [1][1]
-const SpecialFunctionUpdateConfigurationUnary =
+const SpecialFunctionConfigurationUpdateUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                 // [0]
                 wst_seq(DiscardedComments,                                     // -
@@ -7260,8 +7260,8 @@ const NormalSpecialFunction =
              SpecialFunctionSetPickMultiple,
              SpecialFunctionRevertPickSingle,
              SpecialFunctionRevertPickMultiple,
-             SpecialFunctionUpdateConfigurationUnary,
-             SpecialFunctionUpdateConfigurationBinary);
+             SpecialFunctionConfigurationUpdateUnary,
+             SpecialFunctionConfigurationUpdateBinary);
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
                          NormalSpecialFunction,
