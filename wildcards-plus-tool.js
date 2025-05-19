@@ -7243,15 +7243,15 @@ const SpecialFunctionUpdateConfigurationUnary =
 // -------------------------------------------------------------------------------------------------
 const NormalSpecialFunction             = choice(SpecialFunctionSetPickSingle,
                                                  SpecialFunctionSetPickMultiple,
-                                                  SpecialFunctionRevertPickSingle,
-                                                  SpecialFunctionRevertPickMultiple,
-                                                  SpecialFunctionUpdateConfigurationUnary,
-                                                  SpecialFunctionUpdateConfigurationBinary);
+                                                 SpecialFunctionRevertPickSingle,
+                                                 SpecialFunctionRevertPickMultiple,
+                                                 SpecialFunctionUpdateConfigurationUnary,
+                                                 SpecialFunctionUpdateConfigurationBinary);
 const SpecialFunctionNotInclude         = NormalSpecialFunction;
 const AnySpecialFunction                = choice((dt_hosted
                                                   ? UnexpectedSpecialFunctionInclude
                                                   : SpecialFunctionInclude),
-                                                   NormalSpecialFunction);
+                                                 SpecialFunctionNotInclude);
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
