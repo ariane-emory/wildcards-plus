@@ -8,9 +8,9 @@
 // template config flags to enable model families or other features:
 // -------------------------------------------------------------------------------------------------
 
-#flux_on
-// #hidream_full_on
-// #hidream_fast_on
+#flux
+// #hidream.full
+// #hidream.fast
 
 // -------------------------------------------------------------------------------------------------
 // force an artist from this small list instead of picking from all of the 1000-plus
@@ -101,7 +101,7 @@
 %conf.loras     = [] // uncure any LoRAs that are cured in the DT UI first.
 %conf.neg       = { signature, watermmark, text, }
 
-{6 ?flux_on
+{6 ?flux
 // Flux finetunes:
 
 { 1 %conf += { "width": 1088,  "height": 1088, "steps": 50  } // 1.183 mpx, 12,162 cu
@@ -121,11 +121,11 @@
 %conf.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
 %conf.n_iter    = 2
 
-| 2 ?hidream_fast_on,hidream_full_on
+| 2 ?hidream.fast,hidream.full
 // Hidream with some basic settings that seem to work alright:
 
-%conf.model     = { ?hidream_fast_on hidream_i1_fast_q5p
-                  | ?hidream_full_on hidream_i1_full_q5p } 
+%conf.model     = { ?hidream.fast hidream.i1_fast_q5p
+                  | ?hidream.full hidream.i1_full_q5p } 
 %conf.sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
 %conf.cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
 %conf.shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
@@ -149,12 +149,12 @@
 @ship_term     = {starship|spacecraft|space ship|shuttle}
 @ship_late_adj = {space|interstellar}
 @ship_term2    = {starship|spacecraft|@ship_late_adj ship|{|interplanetary} shuttle
-                  |@ship_late_adj frigate
-                  |@ship_late_adj battleship|@ship_late_adj destroyer
-                  |{|@ship_late_adj} merchant vessel
-                  |{|@ship_late_adj} freighter
-                  |{|@ship_late_adj} liner
-                  |{|@ship_late_adj} vessel}
+                 |@ship_late_adj frigate
+                 |@ship_late_adj battleship|@ship_late_adj destroyer
+                 |{|@ship_late_adj} merchant vessel
+                 |{|@ship_late_adj} freighter
+                 |{|@ship_late_adj} liner
+                 |{|@ship_late_adj} vessel}
 
 // -------------------------------------------------------------------------------------------------
 // 'level 2' places, for phrases like 'in $place in a $largerPlace':
