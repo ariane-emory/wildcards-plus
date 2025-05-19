@@ -205,7 +205,7 @@ function process_includes(thing, context = new Context()) {
 let inspect_fun = (thing, no_break = false) => util.inspect(thing, no_break ? { breakLength: Infinity } : {});
 let clone_fun   = structuredClone;
 let dt_hosted   = true;
-// dt_hosted       = true; // uncomment to lie and force use of the DT-legal syntax/configs for debugging
+dt_hosted       = true; // uncomment to lie and force use of the DT-legal syntax/configs for debugging
 // =================================================================================================
 
 
@@ -2729,6 +2729,42 @@ const config_key_names = [
 // }
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
+  console.log(`\nLOOKING UP A1111 NAME FOR DT NAME ${inspect_fun(name)}`);
+
+  let name_lc = name.toLowerCase();
+  let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
+    dt_name.toLowerCase() === name_lc);
+
+  console.log(`GOT: ${inspect_fun(got)}`);
+
+  if (got) {
+    const [dt_name, automatic1111_name] = got;
+    
+    console.log(`got A1111 name for ${inspect_fun(name)}: ${inspect_fun(automatic1111_name)}`);
+    console.log(`RETURNING DT_NAME ${inspect_fun(dt_name)}\n`);
+    
+    return automatic1111_name;
+  }
+  
+  console.log(`did not find automatic1111 name for ${inspect_fun(name)} yet`);
+
+  got = config_key_names.find(([dt_name, automatic1111_name]) =>
+    automatic1111_name.toLowerCase() === name_lc);
+  
+  if (got) {
+    const [dt_name, automatic1111_name] = got;
+    
+    console.log(`RETURNING CASE-CORRECTED AUTOMATIC1111_NAME ${inspect_fun(automatic1111_name)}\n`);
+    
+    return automatic1111_name;
+  } else { // could be an error case?
+    console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
+    
+    return name;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function get_dt_name(name) {
   console.log(`\nLOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
 
   let name_lc = name.toLowerCase();
@@ -2755,7 +2791,6 @@ function get_automatic1111_name(name) {
     const [dt_name, automatic1111_name] = got;
     
     console.log(`RETURNING CASE-CORRECTED DT_NAME ${inspect_fun(dt_name)}\n`);
-
     
     return dt_name;
   } else { // could be an error case?
@@ -2763,43 +2798,7 @@ function get_automatic1111_name(name) {
     
     return name;
   }
-  }
-  function get_dt_name(name) {
-    console.log(`\nLOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
-
-    let name_lc = name.toLowerCase();
-    let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
-      automatic1111_name.toLowerCase() === name_lc);
-
-    console.log(`GOT: ${inspect_fun(got)}`);
-
-    if (got) {
-      const [dt_name, automatic1111_name] = got;
-      
-      console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(dt_name)}`);
-      console.log(`RETURNING DT_NAME ${inspect_fun(dt_name)}\n`);
-      
-      return dt_name;
-    }
-    
-    console.log(`did not find dt name for ${inspect_fun(name)} yet`);
-
-    got = config_key_names.find(([dt_name, automatic1111_name]) =>
-      dt_name.toLowerCase() === name_lc);
-    
-    if (got) {
-      const [dt_name, automatic1111_name] = got;
-      
-      console.log(`RETURNING CASE-CORRECTED DT_NAME ${inspect_fun(dt_name)}\n`);
-
-      
-      return dt_name;
-    } else { // could be an error case?
-      console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
-      
-      return name;
-    }
-  }
+}
   // -------------------------------------------------------------------------------------------------
   function get_our_name(name) {
     const res = (dt_hosted
