@@ -7209,10 +7209,10 @@ const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_b
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude           = xform(arr => new ASTInclude(arr[1]),
-                                               c_funcall('include',
-                                                         first(wst_seq(DiscardedComments,
-                                                                       json_string,
-                                                                       DiscardedComments))))
+                                               c_funcall('include',                          // [0]
+                                                         first(wst_seq(DiscardedComments,    // -
+                                                                       json_string,          // [1]
+                                                                       DiscardedComments)))) // -
 const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     () => "%include is only supported when " +
                                                     "using wildcards-plus-tool.js, NOT when " +
