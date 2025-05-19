@@ -2370,7 +2370,9 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 // -------------------------------------------------------------------------------------------------
 const config_key_names = [
   // [ dt_name, automatic1111_name ],
+  // -----------------------------------------------------------------------------------------------
   // identical keys:
+  // -----------------------------------------------------------------------------------------------
   [ 'controls',                          'controls'                                   ],
   [ 'fps',                               'fps'                                        ],
   [ 'height',                            'height'                                     ],
@@ -2384,7 +2386,9 @@ const config_key_names = [
   [ 'width',                             'width'                                      ],
   [ 'upscaler',                          'upscaler'                                   ],
   [ 'sampler',                           'sampler'                                    ], // ordering significant?
+  // -----------------------------------------------------------------------------------------------
   // differing keys:
+  // -----------------------------------------------------------------------------------------------
   [ 'aestheticScore',                    'aesthetic_score'                            ],
   [ 'batchCount',                        'batch_count'                                ],
   [ 'batchCount',                        'n_iter'                                     ],
