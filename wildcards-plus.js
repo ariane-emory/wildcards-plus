@@ -2512,6 +2512,12 @@ function get_automatic1111_name(name) {
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
+  const lc_name = name.toLowerCase();
+  const lc_got = config_key_names.find(([dt_name, automatic1111_name]) =>
+    dt_name === lc_name);
+  if (lc_got && lc_got[0] !== name)
+    return lc_got[0];
+  
   const got = config_key_names.find(([dt_name, automatic1111_name]) =>
     automatic1111_name === name);
   if (got) {
