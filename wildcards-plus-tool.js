@@ -2738,7 +2738,9 @@ function get_dt_name(name) {
   console.log(`GOT: ${inspect_fun(got)}`);
 
   if (got) {
-    console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(got[0])}`);
+    const [dt_name, automatic1111_name] = got;
+    
+    console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(dt_name)}`);
 
     console.log();
     return got[0];
