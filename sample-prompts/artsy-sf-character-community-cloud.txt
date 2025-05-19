@@ -160,9 +160,10 @@
 // 'level 2' places, for phrases like 'in $place in a $largerPlace':
 // -------------------------------------------------------------------------------------------------
 
-@l2_place     = {on a @l2_place_adj {?ship @ship_term2|?station space station
-                |?planet planet|?planet world|?moon moon}}
-@l2_place_adj = 
+@context_place     = {on a @context_place_adj
+                      {?ship @ship_term2|?station space station
+                      |?planet planet|?planet world|?moon moon}}
+@context_place_adj = 
 {
 |strange
 |exotic
@@ -177,13 +178,15 @@
 |!#highly-detailed highly-detailed
 |!#greebled {|highly} greebled
 }
-@l2_orbit_obj_adj   = {dim|distant|huge|luminous|shining}
-@l2_orbit_obj       = {2 !planet {|ringed} planet|!planet !moon ship
-                      |!planet !moon space station|!planet !moon asteroid
-                      |!planet comet|2 {|2 yellow|2 red|green} star|black hole
-                      |!planet !moon satellite}
-@l2_orbit_phrase    = {@l2_orbit_obj_adj @l2_orbit_obj}
-@l2_place_phrase    = {@l2_place {|2 orbiting a @l2_orbit_phrase}}
+@context_place_orbit_object_adj = {dim|distant|huge|luminous|shining}
+@context_place_orbit_object     = {2 !planet {|ringed} planet|!planet !moon ship
+                                  |!planet !moon space station|!planet !moon asteroid
+                                  |!planet comet|2 {|2 yellow|2 red|green} star|black hole
+                                  |!planet !moon satellite}
+@context_place_orbit_phrase     = {orbiting a
+                                   @context_place_orbit_object_adj
+                                   @context_place_orbit_object}
+@context_place_phrase           = {@context_place {|2 @context_place_orbit_phrase}}
 
 // -------------------------------------------------------------------------------------------------
 // places to be 'in' or 'at':
@@ -310,7 +313,7 @@
 // -------------------------------------------------------------------------------------------------
 
 @tool_adj    = {!#advanced advanced|intricate|alien|!#high-tech high-tech|holographic
-|!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
+               |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
 @tool_phrase = {{2 holding|using} @pro_pos_rand @tool_adj @tool}
 @tool =
 {hydrospanner
@@ -433,17 +436,17 @@
 }                   
 
 @alien_feature_sentence       = {?alien !eafs @^pro_3rd_subj has @1-2&alien_features . }
-@early_alien_feature_sentence = {?alien #eafs with @1-2&alien_features }
+@early_alien_feature_sentence = {?alien #eafs with               @1-2&alien_features   }
 
 // -------------------------------------------------------------------------------------------------
 // things in the sky:
 // -------------------------------------------------------------------------------------------------
 
-@late_sky_verb_frag       = {in the sky above|overhead}
-@early_sky_verb_frag      = {can be seen|hangs|looms}
-@early_sky_verb_frag_no_s = {can be seen|hang|loom}
-@sky_sentence = {?outdoors {
-2 {Two|Three} {3 moons|suns} @early_sky_verb_frag_no_s @late_sky_verb_frag.
+@early_sky_verb_frag        = {can be seen|hangs|looms}
+@early_sky_verb_frag_plural = {can be seen|hang|loom}
+@late_sky_verb_frag         = {in the sky above|overhead}
+@sky_sentence =
+{2 {Two|Three} {3 moons|suns} @early_sky_verb_frag_plural @late_sky_verb_frag.
 |2 A {binary|trinary} { 2 star|sun} @early_sky_verb_frag @late_sky_verb_frag.
 |3 ?moon The {planet|gas giant} that this @setting_word is orbiting @early_sky_verb_frag @late_sky_verb_frag. 
 |The planet's ring can be seen arching over @late_sky_verb_frag.
@@ -451,12 +454,12 @@
 |A {planet|gas giant} @early_sky_verb_frag @late_sky_verb_frag.
 |Falling meteors can be seen @late_sky_verb_frag.
 |An orbiting space station @early_sky_verb_frag @late_sky_verb_frag.
-|Strangely coloured lights @early_sky_verb_frag_no_s @late_sky_verb_frag.
+|Strangely coloured lights @early_sky_verb_frag_plural @late_sky_verb_frag.
 |Strange lights {can be seen|hang} @late_sky_verb_frag.
 |Flocks of {|2 alien} {2 birds|insects} can be seen @late_sky_verb_frag.
 |Flying vehicles can be seen @late_sky_verb_frag.
 |A {|huge|gigantic} {2 |2 red|2 yellow|green} {2 sun|star going {nova|supernova}} @early_sky_verb_frag @late_sky_verb_frag.
-}}
+}
 
 // -------------------------------------------------------------------------------------------------
 // colour palette/lighting stuff:
@@ -485,12 +488,13 @@
 // generate the prompt body:
 // =================================================================================================
 
-A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
-    {which depicts|depicting} a }
+A
+{?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
+                 {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
 {2|@early_alien_feature_sentence}
 {2|@early_cyborg_feature_sentence}
-@place_phrase {|3 @l2_place_phrase|5 ?outdoors @l2_place_phrase}
+@place_phrase {|3 @context_place_phrase|5 ?outdoors @context_place_phrase}
 {|6 ?weapon @weapon_phrase}
 {|6 ?tool   @tool_phrase}
 .
@@ -498,7 +502,7 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 {|6 @clothing_sentence}
 {|6 @cyborg_feature_sentence}
 {|6 @alien_feature_sentence}
-{|8 @sky_sentence}
+{|8 ?outdoors @sky_sentence}
 
 {?wizards_artist By @wizards_artists. }
 
