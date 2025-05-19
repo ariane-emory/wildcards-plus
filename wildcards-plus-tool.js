@@ -2638,7 +2638,8 @@ const config_key_names = [
   { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
   { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
   // -----------------------------------------------------------------------------------------------
-  { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt'                            },
+  { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
+    shorthands: ['neg', 'negative' ] },
   // shorthands:
   { dt_name: 'neg',                               automatic1111_name: 'negative_prompt'                            }, 
   { dt_name: 'negativePrompt',                    automatic1111_name: 'neg'                                        },
@@ -2647,7 +2648,8 @@ const config_key_names = [
   // -----------------------------------------------------------------------------------------------
   { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
   // -----------------------------------------------------------------------------------------------
-  { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text'                           },
+  { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
+    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg' ] },
   // shorthands:
   { dt_name: 'clipGText',                         automatic1111_name: 'open_clip_g_text'                           },
   { dt_name: 'openClipGText',                     automatic1111_name: 'clipGText'                                  },
