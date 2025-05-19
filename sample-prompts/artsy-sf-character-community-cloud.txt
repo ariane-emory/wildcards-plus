@@ -99,7 +99,7 @@
 
 // -------------------------------------------------------------------------------------------------
 %loras     = [] // uncure any LoRAs that are cured in the DT UI first.
-%neg       = { signature, watermmark, text, }
+%neg       = { signature, watermark, text, }
 
 {6 ?flux
 // Flux finetunes:
