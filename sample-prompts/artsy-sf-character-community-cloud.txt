@@ -507,11 +507,11 @@ A
 
 {?wizards_artist By @wizards_artists. }
 
-%foo += { foo }
-%foo += { bar }
-%foo += { baz } 
+// %foo += { foo }
+// %foo += { bar }
+// %foo += { baz } 
 
-$foo += { Foo }
-$foo += { Bar }
-$foo += { Baz }
-$foo
+// $foo += { Foo }
+// $foo += { Bar }
+// $foo += { Baz }
+// $foo
