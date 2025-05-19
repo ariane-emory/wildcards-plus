@@ -7247,7 +7247,8 @@ const NormalSpecialFunction             = choice(SpecialFunctionSetPickSingle,
                                                  SpecialFunctionRevertPickMultiple,
                                                  SpecialFunctionUpdateConfigurationUnary,
                                                  SpecialFunctionUpdateConfigurationBinary);
-const SpecialFunctionNotInclude         = second(seq('%', NormalSpecialFunction,
+const SpecialFunctionNotInclude         = second(seq('%',
+                                                     NormalSpecialFunction,
                                                      lws(optional(';'))));
 const AnySpecialFunction                = choice((dt_hosted
                                                   ? UnexpectedSpecialFunctionInclude
