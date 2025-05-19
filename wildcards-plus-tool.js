@@ -7230,29 +7230,27 @@ const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             '%revert_multi_pick');
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
-            cutting_seq(/%c(?:onf(?:ig)?)?\./,                           // [0]
-                        seq(ident,                                       // [1][0]
-                            wst_seq(choice(incr_assignment_operator,
-                                           assignment_operator),         // [1][1][0]
-                                    choice(rJsonc,
-                                           () => LimitedContent)))));    // [1][1][1]
+      xform(arr => new ASTUpdateConfigBinary(arr[1], arr[2][1], arr[2][0] == '='),
+            cutting_seq('%',
+                        ident,                                                         // [1]
+                        wst_seq(choice(incr_assignment_operator, assignment_operator), // [2][0]
+                                choice(rJsonc, () => LimitedContent))));               // [2][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq(/%c(?:onf(?:ig)?)?/,                 // [0][0]
+            wst_cutting_seq(wst_seq(/%c(?:onf(?:ig)?)?/,                  // [0][0]
                                     choice(incr_assignment_operator,
-                                           assignment_operator)),        // [0][1]
+                                           assignment_operator)),         // [0][1]
                             choice(rJsoncObject, () => LimitedContent))); // [1]   
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary,
                                                   //SpecialFunctionUpdateNegativePrompt
                                                  );
-const SpecialFunctionNotInclude          = choice(SpecialFunctionUpdateConfiguration,
-                                                  // SpecialFunctionSetConfiguration,
-                                                  SpecialFunctionSetPickSingle,
+const SpecialFunctionNotInclude          = choice(SpecialFunctionSetPickSingle,
                                                   SpecialFunctionSetPickMultiple,
                                                   SpecialFunctionRevertPickSingle,
-                                                  SpecialFunctionRevertPickMultiple);
+                                                  SpecialFunctionRevertPickMultiple,
+                                                  SpecialFunctionUpdateConfiguration,
+                                                 );
 const AnySpecialFunction                  = choice((dt_hosted
                                                     ? UnexpectedSpecialFunctionInclude
                                                     : SpecialFunctionInclude),
