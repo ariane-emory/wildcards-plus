@@ -2575,11 +2575,29 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 // -------------------------------------------------------------------------------------------------
 const config_key_names = [
   // [ dt_name, automatic1111_name ],
-  // shorthand, not a real field name:
-  [ 'neg',                               'negative_prompt'                            ],
-  [ 'negative',                          'negative_prompt'                            ],
+  // shorthands, not real field names:
+  // -----------------------------------------------------------------------------------------------
+  [ 'neg',                               'negative_prompt'                            ], 
   [ 'negativePrompt',                    'neg'                                        ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'negative',                          'negative_prompt'                            ],
   [ 'negativePrompt',                    'negative'                                   ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'clip_l',                            'clip_l_text'                                 ],
+  [ 'clipLText',                         'clip_l'                                      ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'clipl',                             'clip_l_text'                                 ],
+  [ 'clipLText',                         'clipl'                                      ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'clip_g',                            'clip_g_text'                                 ],
+  [ 'openClipGText',                     'clip_g'                                      ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'clipg',                             'clip_g_text'                                 ],
+  [ 'openClipGText',                     'clipg'                                       ],
+  // -----------------------------------------------------------------------------------------------
+  [ 't5',                               't5_text'                                     ],
+  [ 't5Text',                           't5'                                          ],
+  // -----------------------------------------------------------------------------------------------
   // identical keys:
   [ 'controls',                          'controls'                                   ],
   [ 'fps',                               'fps'                                        ],
@@ -2631,8 +2649,8 @@ const config_key_names = [
   [ 'negativeOriginalWidth',             'negative_original_width'                    ],
   [ 'negativePrompt',                    'negative_prompt'                            ],
   [ 'negativePromptForImagePrior',       'negative_prompt_for_image_prior'            ],
-  [ 'openClipGText',                     'clip_g_text'                                ],  
   [ 'openClipGText',                     'open_clip_g_text'                           ],
+  [ 'openClipGText',                     'clip_g_text'                                ],  
   [ 'originalHeight',                    'original_height'                            ],
   [ 'originalWidth',                     'original_width'                             ],
   [ 'preserveOriginalAfterInpaint',      'preserve_original_after_inpaint'            ],
@@ -7351,7 +7369,6 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                       () => LimitedContent,
                                                       DiscardedComments,
                                                       lws(optional(';'))));
-
 const LimitedContent          = choice(NamedWildcardReference,
                                        AnonWildcardNoLoras,
                                        ScalarReference);
