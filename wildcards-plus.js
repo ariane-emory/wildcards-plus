@@ -2370,11 +2370,39 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 // -------------------------------------------------------------------------------------------------
 const config_key_names = [
   // [ dt_name, automatic1111_name ],
-  // shorthand, not a real field name:
-  [ 'neg',                               'negative_prompt'                            ],
-  [ 'negative',                          'negative_prompt'                            ],
+  // -----------------------------------------------------------------------------------------------
+  // shorthands, not real field names:
+  // -----------------------------------------------------------------------------------------------
+  [ 'neg',                               'negative_prompt'                            ], 
   [ 'negativePrompt',                    'neg'                                        ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'negative',                          'negative_prompt'                            ],
   [ 'negativePrompt',                    'negative'                                   ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'clip_l',                            'clip_l_text'                                ],
+  [ 'clipLText',                         'clip_l'                                     ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'clipl',                             'clip_l_text'                                ],
+  [ 'clipLText',                         'clipl'                                      ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'clip_g',                            'open_clip_g_text'                           ],
+  [ 'openClipGText',                     'clip_g'                                     ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'clipg',                             'open_clip_g_text'                           ],
+  [ 'openClipGText',                     'clipg'                                      ],
+  // -----------------------------------------------------------------------------------------------
+  [ 't5',                                't5_text'                                    ],
+  [ 't5Text',                            't5'                                         ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'separate_clipl',                    'separate_clip_l'                            ],
+  [ 'separateClipL',                     'separate_clipl'                             ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'separate_clipg',                    'separate_open_clip_g'                       ],
+  [ 'separateOpenClipG',                 'separate_clipg'                             ],
+  // -----------------------------------------------------------------------------------------------
+  [ 'separate_clip_g',                   'separate_open_clip_g'                       ],
+  [ 'separateOpenClipG',                 'separate_clip_g'                            ],
+  // -----------------------------------------------------------------------------------------------
   // identical keys:
   [ 'controls',                          'controls'                                   ],
   [ 'fps',                               'fps'                                        ],
@@ -2426,8 +2454,8 @@ const config_key_names = [
   [ 'negativeOriginalWidth',             'negative_original_width'                    ],
   [ 'negativePrompt',                    'negative_prompt'                            ],
   [ 'negativePromptForImagePrior',       'negative_prompt_for_image_prior'            ],
-  [ 'openClipGText',                     'clip_g_text'                                ],  
   [ 'openClipGText',                     'open_clip_g_text'                           ],
+  [ 'openClipGText',                     'clip_g_text'                                ],  
   [ 'originalHeight',                    'original_height'                            ],
   [ 'originalWidth',                     'original_width'                             ],
   [ 'preserveOriginalAfterInpaint',      'preserve_original_after_inpaint'            ],
@@ -7007,7 +7035,8 @@ const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
             c_funcall('include',                          // [0]
                       first(wst_seq(DiscardedComments,    // -
-                                    json_string))))       // [1]
+                                    json_string,          // [1]
+                                    DiscardedComments)))) // -
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  () => "%include is only supported when " +
@@ -7034,14 +7063,14 @@ const SpecialFunctionRevertPickSingle =
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             'revert_multi_pick');
-const SpecialFunctionUpdateConfigurationBinary =
+const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(ident,                                                         // [0]
                 wst_seq(DiscardedComments,                                     // -
                         choice(incr_assignment_operator, assignment_operator), // [1][0]
                         DiscardedComments,                                     // -
                         choice(rJsonc, () => LimitedContent))));               // [1][1]
-const SpecialFunctionUpdateConfigurationUnary =
+const SpecialFunctionConfigurationUpdateUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                 // [0]
                 wst_seq(DiscardedComments,                                     // -
@@ -7054,8 +7083,8 @@ const NormalSpecialFunction =
              SpecialFunctionSetPickMultiple,
              SpecialFunctionRevertPickSingle,
              SpecialFunctionRevertPickMultiple,
-             SpecialFunctionUpdateConfigurationUnary,
-             SpecialFunctionUpdateConfigurationBinary);
+             SpecialFunctionConfigurationUpdateUnary,
+             SpecialFunctionConfigurationUpdateBinary);
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
                          NormalSpecialFunction,
@@ -7072,48 +7101,47 @@ const AnySpecialFunction =
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 () => ContentStar));
-const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 () => ContentStarNoLoras));
-const AnonWildcard                   = xform(arr => new ASTAnonWildcard(arr),
-                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const AnonWildcardNoLoras            = xform(arr => new ASTAnonWildcard(arr),
-                                             brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-const NamedWildcardReference         = xform(seq(discard('@'),
-                                                 optional('^'),                             // [0]
-                                                 optional(xform(parseInt, /\d+/)),          // [1]
-                                                 optional(xform(parseInt,
-                                                                second(seq('-', /\d+/)))),  // [2]
-                                                 optional(/[,&]/),                          // [3]
-                                                 ident),                                    // [4]
-                                             arr => {
-                                               const ident  = arr[4];
-                                               const min_ct = arr[1][0] ?? 1;
-                                               const max_ct = arr[2][0] ?? min_ct;
-                                               const join   = arr[3][0] ?? '';
-                                               const caret  = arr[0][0];
-                                               
-                                               return new ASTNamedWildcardReference(ident,
-                                                                                    join,
-                                                                                    caret,
-                                                                                    min_ct,
-                                                                                    max_ct);
-                                             });
+const AnonWildcardAlternative =
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                optional(wb_uint, 1),
+                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                () => ContentStar));
+const AnonWildcardAlternativeNoLoras =
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                optional(wb_uint, 1),
+                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                () => ContentStarNoLoras));
+const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+const NamedWildcardReference  = xform(seq(discard('@'),
+                                          optional('^'),                             // [0]
+                                          optional(xform(parseInt, /\d+/)),          // [1]
+                                          optional(xform(parseInt,
+                                                         second(seq('-', /\d+/)))),  // [2]
+                                          optional(/[,&]/),                          // [3]
+                                          ident),                                    // [4]
+                                      arr => {
+                                        const ident  = arr[4];
+                                        const min_ct = arr[1][0] ?? 1;
+                                        const max_ct = arr[2][0] ?? min_ct;
+                                        const join   = arr[3][0] ?? '';
+                                        const caret  = arr[0][0];
+                                        
+                                        return new ASTNamedWildcardReference(ident,
+                                                                             join,
+                                                                             caret,
+                                                                             min_ct,
+                                                                             max_ct);
+                                      });
 const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
                                       wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
                                                               assignment_operator),    // -
+                                                      DiscardedComments,
                                                       AnonWildcard));                  // [1]
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
@@ -7137,29 +7165,29 @@ const ScalarReference         = xform(seq('$', optional('^'), ident),
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == '=='),
+                                                                 arr[0][1] == '='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
+                                                              DiscardedComments,
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      () => LimitedContent));               // [1]
-const LimitedContent          = choice(
-  NamedWildcardReference,
-  AnonWildcardNoLoras,
-  ScalarReference,
-);
-const ContentNoLoras          = choice(
-  NamedWildcardReference,
-  NamedWildcardUsage,
-  SetFlag,
-  UnsetFlag,
-  escaped_brc,
-  AnonWildcard,
-  ScalarUpdate,
-  ScalarReference,
-  comment,
-  SpecialFunctionNotInclude,
-  plaintext,
-);
+                                                      DiscardedComments,                    // [1]
+                                                      () => LimitedContent,
+                                                      DiscardedComments,
+                                                      lws(optional(';'))));
+const LimitedContent          = choice(NamedWildcardReference,
+                                       AnonWildcardNoLoras,
+                                       ScalarReference);
+const ContentNoLoras          = choice(comment,
+                                       NamedWildcardReference,
+                                       NamedWildcardUsage,
+                                       SetFlag,
+                                       UnsetFlag,
+                                       escaped_brc,
+                                       AnonWildcard,
+                                       ScalarUpdate,
+                                       ScalarReference,
+                                       SpecialFunctionNotInclude,
+                                       plaintext);
 const Content                 = choice(A1111StyleLora, ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
