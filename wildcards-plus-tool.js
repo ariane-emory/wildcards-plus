@@ -7249,8 +7249,7 @@ const SpecialFunctionNotInclude          = choice(SpecialFunctionSetPickSingle,
                                                   SpecialFunctionSetPickMultiple,
                                                   SpecialFunctionRevertPickSingle,
                                                   SpecialFunctionRevertPickMultiple,
-                                                  SpecialFunctionUpdateConfiguration,
-                                                 );
+                                                  SpecialFunctionUpdateConfiguration);
 const AnySpecialFunction                  = choice((dt_hosted
                                                     ? UnexpectedSpecialFunctionInclude
                                                     : SpecialFunctionInclude),
