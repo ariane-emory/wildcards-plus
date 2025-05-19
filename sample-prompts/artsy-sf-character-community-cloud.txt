@@ -108,7 +108,7 @@
 | 4 %conf += { "width": 1536,  "height": 768,  "steps": 50  } // 1.179 mpx, 12,082 ci
 }
 
-%conf.model     = { 6 juggernaut_xl_ragnarok %conf.steps = 100
+%conf.model     = { // 6 juggernaut_xl_ragnarok %conf.steps = 100
                   | 6 shuttle_v3.1_aesthetic_q5p_svd
                   | 6 artsy_vibe_v1_q5p_svd
                   | 6 pixelwave_flux_1_schnell_04_q5p_svd
@@ -455,7 +455,10 @@
 // generate the prompt body:
 // =================================================================================================
 
-// {2|@aris_defaults,}
+%conf.separate_clip_l = true
+
+%conf.clip_l_text = {
+{|@aris_defaults,}
 {3|3 illustration,|2 sketch,|1 drawing,}
 science fiction,
 {3|greebles,|greeblies,}
@@ -467,11 +470,14 @@ science fiction,
 // {2|infinite focus,}
 {|extremely detailed,}
 // {2|100-hour render time,}
-{2|@0-2,colour_modifiers}
+{@0-2,colour_modifiers}
 .
+}
 
-\n\n
+// \n\n
 
+// %conf.t5_text =
+{
 A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
     {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
@@ -488,19 +494,4 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 {|8 @sky_sentence}
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
-
-// %conf.foo += 1
-// %conf.foo += 2
-// %conf.foo += 3
-// %conf.bar += [ 2, 3, 4 ]
-// %conf.bar += [ 5, 6, 7 ]
-// %conf.baz += "foo"
-// %conf.baz += "bar"
-// %conf.baz += "baz"
-// %conf.quux = { "foo": 456, "bar" : 789 }
-// %conf.quux += { "baz": 111, "corge": 222 }
-
-// %conf.negativePrompt =  "FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR_FOOBAR,"
-// %n                  += { CORGE, GRAULT, }
-
-%single_pick = true_randomness
+}
