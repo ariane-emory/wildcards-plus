@@ -2689,7 +2689,8 @@ const config_key_names = [
   { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
   { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
   // -----------------------------------------------------------------------------------------------
-  { dt_name: 't5Text',                            automatic1111_name: 't5_text'                                    },
+  { dt_name: 't5Text',                            automatic1111_name: 't5_text',
+    shorthands: [ 't5' ] },
   // shorthands:
   { dt_name: 't5',                                automatic1111_name: 't5_text'                                    },
   { dt_name: 't5Text',                            automatic1111_name: 't5'                                         },
