@@ -7254,11 +7254,15 @@ const NormalSpecialFunction             = choice(SpecialFunctionSetPickSingle,
                                                  SpecialFunctionUpdateConfigurationBinary);
 const SpecialFunctionNotInclude         = second(seq('%',
                                                      NormalSpecialFunction,
+                                                     DiscardedComments,
                                                      lws(optional(';'))));
-const AnySpecialFunction                = choice((dt_hosted
-                                                  ? UnexpectedSpecialFunctionInclude
-                                                  : SpecialFunctionInclude),
-                                                 SpecialFunctionNotInclude);
+const AnySpecialFunction                = second(seq('%',
+                                                     choice((dt_hosted
+                                                             ? UnexpectedSpecialFunctionInclude
+                                                             : SpecialFunctionInclude),
+                                                            NormalSpecialFunction),
+                                                     DiscardedComments,
+                                                     lws(optional(';'))));
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
