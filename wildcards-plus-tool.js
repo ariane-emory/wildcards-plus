@@ -2708,8 +2708,8 @@ const config_key_names = [
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
   const name_lc = name.toLowerCase();
-  const got_lc = config_key_names.find(([dt_name, automatic1111_name]) =>
-    automatic1111_name === name_lc);
+  const got_lc  = config_key_names.find(([dt_name, automatic1111_name]) =>
+    automatic1111_name.toLowerCase() === name_lc);
 
   if (got_lc && got_lc[0] !== name)
     name = got_lc[0];
@@ -2728,8 +2728,8 @@ function get_automatic1111_name(name) {
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
   const name_lc = name.toLowerCase();
-  const got_lc = config_key_names.find(([dt_name, automatic1111_name]) =>
-    dt_name === name_lc);
+  const got_lc  = config_key_names.find(([dt_name, automatic1111_name]) =>
+    dt_name.toLowerCase() === name_lc);
 
   if (got_lc && got_lc[0] !== name)
     name = got_lc[0];

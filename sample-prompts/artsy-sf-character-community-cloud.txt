@@ -471,7 +471,7 @@
 // generate separate ClipL text:
 // =================================================================================================
 
-%separate_Clip_L = true
+%Separate_Clip_L = true
 %clip_l          = {
  {3|@aris_defaults,}
  {3|3 illustration,|2 sketch,|1 drawing,}
