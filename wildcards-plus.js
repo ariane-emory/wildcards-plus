@@ -2394,8 +2394,8 @@ const config_key_names = [
   [ 't5',                                't5_text'                                    ],
   [ 't5Text',                            't5'                                         ],
   // // -----------------------------------------------------------------------------------------------
-  // [ 'separate_clipl',                    'separate_clip_l'                            ],
-  // [ 'separateClipL',                     'separate_clipl'                             ],
+  [ 'separateClipL',                     'separate_clipl'                             ],
+  [ 'separate_clipl',                    'separate_clip_l'                            ],
   // // -----------------------------------------------------------------------------------------------
   // [ 'separate_clipg',                    'separate_open_clip_g'                       ],
   // [ 'separateOpenClipG',                 'separate_clipg'                             ],
