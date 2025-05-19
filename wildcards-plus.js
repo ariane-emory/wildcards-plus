@@ -2394,15 +2394,8 @@ const config_key_names = [
   { dt_name: 'batchCount',                        automatic1111_name: 'batch_count'                                },
   { dt_name: 'batchCount',                        automatic1111_name: 'n_iter'                                     },
   { dt_name: 'batchSize',                         automatic1111_name: 'batch_size'                                 },
-  // -----------------------------------------------------------------------------------------------
   { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text',
-    shorthands: [ 'clip_l', 'clipl']},
-  // // shorthands:
-  // { dt_name: 'clip_l',                            automatic1111_name: 'clip_l_text'                                },
-  // { dt_name: 'clipLText',                         automatic1111_name: 'clip_l'                                     },
-  // { dt_name: 'clipl',                             automatic1111_name: 'clip_l_text'                                },
-  // { dt_name: 'clipLText',                         automatic1111_name: 'clipl'                                      },
-  // -----------------------------------------------------------------------------------------------
+    shorthands: [ 'clip_l', 'clipl' ] },
   { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip'                                  },
   { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight'                                },
   { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left'                                  },
@@ -2432,29 +2425,11 @@ const config_key_names = [
   { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
   { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
   { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
-  // -----------------------------------------------------------------------------------------------
   { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
     shorthands: ['neg', 'negative' ] },
-  // // shorthands:
-  // { dt_name: 'neg',                               automatic1111_name: 'negative_prompt'                            }, 
-  // { dt_name: 'negativePrompt',                    automatic1111_name: 'neg'                                        },
-  // { dt_name: 'negative',                          automatic1111_name: 'negative_prompt'                            },
-  // { dt_name: 'negativePrompt',                    automatic1111_name: 'negative'                                   },
-  // -----------------------------------------------------------------------------------------------
   { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
-  // -----------------------------------------------------------------------------------------------
   { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
-    shorthands: ['clipGText', 'clip_g_text', 'clip_g', 'clipg' ] },
-  // // shorthands:
-  // { dt_name: 'clipGText',                         automatic1111_name: 'open_clip_g_text'                           },
-  // { dt_name: 'openClipGText',                     automatic1111_name: 'clipGText'                                  },
-  // { dt_name: 'clip_g_text',                       automatic1111_name: 'open_clip_g_text'                           },
-  // { dt_name: 'openClipGText',                     automatic1111_name: 'clip_g_text'                                },
-  // { dt_name: 'clip_g',                            automatic1111_name: 'open_clip_g_text'                           },
-  // { dt_name: 'openClipGText',                     automatic1111_name: 'clip_g'                                     },
-  // { dt_name: 'clipg',                             automatic1111_name: 'open_clip_g_text'                           },
-  // { dt_name: 'openClipGText',                     automatic1111_name: 'clipg'                                      },
-  // -----------------------------------------------------------------------------------------------
+    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg' ] },
   { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
   { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
   { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
@@ -2464,21 +2439,9 @@ const config_key_names = [
   { dt_name: 'sampler',                           automatic1111_name: 'sampler_index'                              },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler_name'                               },
   { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
-  // -----------------------------------------------------------------------------------------------
-  { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
-    shorthands: [ 'separate_clipl' ] },
-  // // shorthands:
-  // { dt_name: 'separate_clipl',                    automatic1111_name: 'separate_clip_l'                            },
-  // { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clipl'                             },
-  // -----------------------------------------------------------------------------------------------
-  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g'
-    shorthands : [ 'separate_clipg', 'separate_clip_g' ] },
-  // // shorthands:
-  // { dt_name: 'separate_clipg',                    automatic1111_name: 'separate_open_clip_g'                       },
-  // { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_clipg'                             },
-  // { dt_name: 'separate_clip_g',                   automatic1111_name: 'separate_open_clip_g'                       },
-  // { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_clip_g'                            },
-  // -----------------------------------------------------------------------------------------------
+  { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l'                            },
+  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
+    shorthands: [ 'separate_clipg', 'separate_clip_g' ] },
   { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
   { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
   { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
@@ -2487,13 +2450,8 @@ const config_key_names = [
   { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
   { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
   { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
-  // -----------------------------------------------------------------------------------------------
   { dt_name: 't5Text',                            automatic1111_name: 't5_text',
-    shorthands: [ 'tx5' ] },
-  // // shorthands:
-  // { dt_name: 't5',                                automatic1111_name: 't5_text'                                    },
-  // { dt_name: 't5Text',                            automatic1111_name: 't5'                                         },
-  // -----------------------------------------------------------------------------------------------
+    shorthands: [ 't5' ] },
   { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
   { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
   { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
@@ -2508,90 +2466,76 @@ const config_key_names = [
   { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
 ];
 // -------------------------------------------------------------------------------------------------
-function get_automatic1111_name(name) {
+function get_other_name(return_key, find_key, find_value) {
   if (log_name_lookups_enabled)
-    console.log(`\nLOOKING UP A1111 NAME FOR DT NAME ${inspect_fun(name)}`);
+    console.log(`\nLOOKING UP ${return_key} FOR ${inspect_fun(find_key)} ` +
+                `${inspect_fun(find_value)}`);
 
-  let name_lc = name.toLowerCase();
-  let got     = config_key_names.find(([dt_name, automatic1111_name]) =>
-    got.dt_name.toLowerCase() === name_lc);
+  let find_value_lc = find_value.toLowerCase();
+
+  // -----------------------------------------------------------------------------------------------
+  // is find_value a shorthand?
+  let got     = config_key_names.find(obj => 
+    obj?.shorthands?.includes(find_value_lc))
+
+  if (got) {
+    if (log_name_lookups_enabled)
+      console.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+
+    return got[return_key];
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // is it just miscapitalized?
+  got = config_key_names.find(obj => {
+    if (log_name_lookups_enabled)
+      console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
+                  `${inspect_fun(find_value_lc)} = ` +
+                  `${obj[return_key].toLowerCase() === find_value_lc}`);
+    return obj[return_key].toLowerCase() === find_value_lc;
+  });
+
+  if (log_name_lookups_enabled)
+    console.log(`GOT ${return_key} ${inspect_fun(got)}`);
+  
+  if (got) {
+    if (log_name_lookups_enabled)
+      console.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
+    
+    return got[return_key];
+  } 
+
+  // -----------------------------------------------------------------------------------------------
+  // look up the alternate key:
+  got     = config_key_names.find(obj => 
+    obj[find_key].toLowerCase() === find_value_lc);
 
   if (log_name_lookups_enabled)
     console.log(`GOT: ${inspect_fun(got)}`);
 
   if (got) {
-    const [got.dt_name, got.automatic1111_name] = got;
+    if (log_name_lookups_enabled)
+      console.log(`GOT ${return_key} FOR ` +
+                  `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
     
-    if (log_name_lookups_enabled) {
-      console.log(`got A1111 name for ${inspect_fun(name)}: ${inspect_fun(got.automatic1111_name)}`);
-      console.log(`RETURNING GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
-    }
-    
-    return got.automatic1111_name;
+    return got[return_key];
   }
-  
-  if (log_name_lookups_enabled)
-    console.log(`did not find automatic1111 name for ${inspect_fun(name)} yet`);
 
-  got = config_key_names.find(([got.dt_name, got.automatic1111_name]) =>
-    got.automatic1111_name.toLowerCase() === name_lc);
-  
-  if (got) {
-    const [got.dt_name, got.automatic1111_name] = got;
-    
-    if (log_name_lookups_enabled)
-      console.log(`RETURNING CASE-CORRECTED GOT.AUTOMATIC1111_NAME ${inspect_fun(got.automatic1111_name)}\n`);
-    
-    return got.automatic1111_name;
-  } else { // could be an error case?
-    if (log_name_lookups_enabled)
-      console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
-    
-    return name;
-  }
+  // -----------------------------------------------------------------------------------------------
+  // didn't find it on either sise, just return the argument:
+  if (log_name_lookups_enabled) 
+    console.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
+
+  // possibly an error? maybe not always.
+  return find_value;
 }
 // -------------------------------------------------------------------------------------------------
-function get_got.dt_name(name) {
-  if (log_name_lookups_enabled)
-    console.log(`\nLOOKING UP DT NAME FOR A1111 NAME ${inspect_fun(name)}`);
-
-  let name_lc = name.toLowerCase();
-  let got     = config_key_names.find(([got.dt_name, got.automatic1111_name]) =>
-    got.automatic1111_name.toLowerCase() === name_lc);
-
-  if (log_name_lookups_enabled)
-    console.log(`GOT: ${inspect_fun(got)}`);
-
-  if (got) {
-    const [got.dt_name, got.automatic1111_name] = got;
-
-    if (log_name_lookups_enabled) {
-      console.log(`got DT name for ${inspect_fun(name)}: ${inspect_fun(got.dt_name)}`);
-      console.log(`RETURNING GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
-    }
-    
-    return got.dt_name;
-  }
-  
-  if (log_name_lookups_enabled)
-    console.log(`did not find dt name for ${inspect_fun(name)} yet`);
-
-  got = config_key_names.find(([got.dt_name, got.automatic1111_name]) =>
-    got.dt_name.toLowerCase() === name_lc);
-  
-  if (got) {
-    const [got.dt_name, got.automatic1111_name] = got;
-    
-    if (log_name_lookups_enabled)
-      console.log(`RETURNING CASE-CORRECTED GOT.DT_NAME ${inspect_fun(got.dt_name)}\n`);
-    
-    return got.dt_name;
-  } else { // could be an error case?
-    if (log_name_lookups_enabled)
-      console.log(`RETURNING ARGUMENT ${inspect_fun(name)}\n`);
-    
-    return name;
-  }
+function get_dt_name(name) {
+  return get_other_name('dt_name',            'automatic1111_name', name);
+}
+// -------------------------------------------------------------------------------------------------
+function get_automatic1111_name(name) {
+  return get_other_name('automatic1111_name', 'dt_name',            name);
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
