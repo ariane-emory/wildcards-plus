@@ -2729,7 +2729,7 @@ function get_automatic1111_name(name) {
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
-  console.log(`\nLOOKING UP '${name}'`);
+  console.log(`\nLOOKING UP DT_NAME FOR '${name}'`);
   
   let   name_lc = name.toLowerCase();
   const got_lc  = config_key_names.find(([dt_name, automatic1111_name]) =>
