@@ -6852,6 +6852,10 @@ const escaped_brc              = second(choice('\\{', '\\}'));
 const filename                 = /[A-Za-z0-9 ._\-()]+/;
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
+// discard comments:
+// -------------------------------------------------------------------------------------------------
+const DiscardedComments        = discard(wst_star(comment));
+// -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
 // const unarySpecialFunction = (prefix, rule, xform_func) =>
@@ -6999,59 +7003,72 @@ const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_b
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const DiscardedComments                = discard(wst_star(comment));
-const SpecialFunctionInclude           = xform(arr => new ASTInclude(arr[1]),
-                                               c_funcall('%include',
-                                                         first(wst_seq(DiscardedComments,
-                                                                       json_string,
-                                                                       DiscardedComments))))
-const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
-                                                    () => "%include is only supported when " +
-                                                    "using wildcards-plus-tool.js, NOT when " +
-                                                    "running the wildcards-plus.js script " +
-                                                    "inside Draw Things!");
+const SpecialFunctionInclude =
+      xform(arr => new ASTInclude(arr[1]),
+            c_funcall('include',                          // [0]
+                      first(wst_seq(DiscardedComments,    // -
+                                    json_string))))       // [1]
+const UnexpectedSpecialFunctionInclude =
+      unexpected(SpecialFunctionInclude,
+                 () => "%include is only supported when " +
+                 "using wildcards-plus-tool.js, NOT when " +
+                 "running the wildcards-plus.js script " +
+                 "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      xform(arr => new ASTSetPickSingle(arr[1]),
-            wst_cutting_seq(wst_seq('%single_pick', assignment_operator),
-                            choice(() => LimitedContent, /[a-z_]+/)));
+      xform(arr => new ASTSetPickSingle(arr[1][1]),
+            seq('single_pick',                                      // [0]
+                wst_seq(DiscardedComments,                          // -
+                        assignment_operator,                        // [1][0]
+                        DiscardedComments,                          // -
+                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionSetPickMultiple =
-      xform(arr => new ASTSetPickMultiple(arr[1]),
-            wst_cutting_seq(wst_seq('%multi_pick', assignment_operator),
-                            choice(() => LimitedContent, /[a-z_]+/)));
+      xform(arr => new ASTSetPickSingle(arr[1][1]),
+            seq('multi_pick',                                       // [0]
+                wst_seq(DiscardedComments,                          // -
+                        assignment_operator,                        // [1][0]
+                        DiscardedComments,                          // -
+                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            '%revert_single_pick');
+            'revert_single_pick');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            '%revert_multi_pick');
+            'revert_multi_pick');
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
-            cutting_seq(/%c(?:onf(?:ig)?)?\./,                           // [0]
-                        seq(ident,                                       // [1][0]
-                            wst_seq(choice(incr_assignment_operator,
-                                           assignment_operator),         // [1][1][0]
-                                    choice(rJsonc,
-                                           () => LimitedContent)))));    // [1][1][1]
+      xform(arr => new ASTUpdateConfigBinary(arr[0], arr[1][1], arr[1][0] == '='),
+            seq(ident,                                                         // [0]
+                wst_seq(DiscardedComments,                                     // -
+                        choice(incr_assignment_operator, assignment_operator), // [1][0]
+                        DiscardedComments,                                     // -
+                        choice(rJsonc, () => LimitedContent))));               // [1][1]
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq(/%c(?:onf(?:ig)?)?/,                 // [0][0]
-                                    choice(incr_assignment_operator,
-                                           assignment_operator)),        // [0][1]
-                            choice(rJsoncObject, () => LimitedContent))); // [1]   
-const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
-                                                  SpecialFunctionUpdateConfigurationBinary,
-                                                  //SpecialFunctionUpdateNegativePrompt
-                                                 );
-const SpecialFunctionNotInclude          = choice(SpecialFunctionUpdateConfiguration,
-                                                  // SpecialFunctionSetConfiguration,
-                                                  SpecialFunctionSetPickSingle,
-                                                  SpecialFunctionSetPickMultiple,
-                                                  SpecialFunctionRevertPickSingle,
-                                                  SpecialFunctionRevertPickMultiple);
-const AnySpecialFunction                  = choice((dt_hosted
-                                                    ? UnexpectedSpecialFunctionInclude
-                                                    : SpecialFunctionInclude),
-                                                   SpecialFunctionNotInclude);
+      xform(arr => new ASTUpdateConfigUnary(arr[1][1], arr[1][0] == '='),
+            seq(/conf(?:ig)?/,                                                 // [0]
+                wst_seq(DiscardedComments,                                     // -
+                        choice(incr_assignment_operator, assignment_operator), // [1][0]
+                        DiscardedComments,                                     // -
+                        choice(rJsoncObject, () => LimitedContent))));         // [1][1]   
+// -------------------------------------------------------------------------------------------------
+const NormalSpecialFunction =
+      choice(SpecialFunctionSetPickSingle,
+             SpecialFunctionSetPickMultiple,
+             SpecialFunctionRevertPickSingle,
+             SpecialFunctionRevertPickMultiple,
+             SpecialFunctionUpdateConfigurationUnary,
+             SpecialFunctionUpdateConfigurationBinary);
+const SpecialFunctionNotInclude =
+      second(cutting_seq('%',
+                         NormalSpecialFunction,
+                         DiscardedComments,
+                         lws(optional(';'))));
+const AnySpecialFunction =
+      second(cutting_seq('%',
+                         choice((dt_hosted
+                                 ? UnexpectedSpecialFunctionInclude
+                                 : SpecialFunctionInclude),
+                                NormalSpecialFunction),
+                         DiscardedComments,
+                         lws(optional(';'))));
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------

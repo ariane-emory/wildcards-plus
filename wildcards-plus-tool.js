@@ -7225,16 +7225,14 @@ const SpecialFunctionSetPickSingle =
                 wst_seq(DiscardedComments,                          // -
                         assignment_operator,                        // [1][0]
                         DiscardedComments,                          // -
-                        choice(() => LimitedContent, /[a-z_]+/),    // [1][1]
-                        DiscardedComments)));                       // -
+                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi_pick',                                       // [0]
                 wst_seq(DiscardedComments,                          // -
                         assignment_operator,                        // [1][0]
                         DiscardedComments,                          // -
-                        choice(() => LimitedContent, /[a-z_]+/),    // [1][1]
-                        DiscardedComments)));                       // -
+                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             'revert_single_pick');
@@ -7256,26 +7254,26 @@ const SpecialFunctionUpdateConfigurationUnary =
                         DiscardedComments,                                     // -
                         choice(rJsoncObject, () => LimitedContent))));         // [1][1]   
 // -------------------------------------------------------------------------------------------------
-const NormalSpecialFunction
-      = choice(SpecialFunctionSetPickSingle,
-               SpecialFunctionSetPickMultiple,
-               SpecialFunctionRevertPickSingle,
-               SpecialFunctionRevertPickMultiple,
-               SpecialFunctionUpdateConfigurationUnary,
-               SpecialFunctionUpdateConfigurationBinary);
-const SpecialFunctionNotInclude
-      = second(cutting_seq('%',
-                           NormalSpecialFunction,
-                           DiscardedComments,
-                           lws(optional(';'))));
-const AnySpecialFunction
-      = second(cutting_seq('%',
-                           choice((dt_hosted
-                                   ? UnexpectedSpecialFunctionInclude
-                                   : SpecialFunctionInclude),
-                                  NormalSpecialFunction),
-                           DiscardedComments,
-                           lws(optional(';'))));
+const NormalSpecialFunction =
+      choice(SpecialFunctionSetPickSingle,
+             SpecialFunctionSetPickMultiple,
+             SpecialFunctionRevertPickSingle,
+             SpecialFunctionRevertPickMultiple,
+             SpecialFunctionUpdateConfigurationUnary,
+             SpecialFunctionUpdateConfigurationBinary);
+const SpecialFunctionNotInclude =
+      second(cutting_seq('%',
+                         NormalSpecialFunction,
+                         DiscardedComments,
+                         lws(optional(';'))));
+const AnySpecialFunction =
+      second(cutting_seq('%',
+                         choice((dt_hosted
+                                 ? UnexpectedSpecialFunctionInclude
+                                 : SpecialFunctionInclude),
+                                NormalSpecialFunction),
+                         DiscardedComments,
+                         lws(optional(';'))));
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
