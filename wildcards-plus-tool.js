@@ -2711,7 +2711,7 @@ function get_other_name(return_key, find_key, find_value) {
   } 
 
   // -----------------------------------------------------------------------------------------------
-  // look up the other key
+  // look up the alternate key:
   got     = config_key_names.find(obj => 
     obj[find_key].toLowerCase() === find_value_lc);
 
@@ -2727,6 +2727,7 @@ function get_other_name(return_key, find_key, find_value) {
   }
 
   // -----------------------------------------------------------------------------------------------
+  // didn't find it on either sise, just return the argument:
   if (log_name_lookups_enabled) 
     console.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
 
