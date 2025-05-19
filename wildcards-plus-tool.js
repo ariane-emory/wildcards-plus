@@ -2671,7 +2671,7 @@ const config_key_names = [
   { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
 ];
 // -------------------------------------------------------------------------------------------------
-function get_alternate_name(return_key, find_key, find_value) {
+function get_other_name(return_key, find_key, find_value) {
   if (log_name_lookups_enabled)
     console.log(`\nLOOKING UP ${return_key} FOR ${inspect_fun(find_key)} ` +
                 `${inspect_fun(find_value)}`);
@@ -2711,7 +2711,7 @@ function get_alternate_name(return_key, find_key, find_value) {
   } 
 
   // -----------------------------------------------------------------------------------------------
-  // look up the alternate key
+  // look up the other key
   got     = config_key_names.find(obj => 
     obj[find_key].toLowerCase() === find_value_lc);
 
@@ -2720,13 +2720,15 @@ function get_alternate_name(return_key, find_key, find_value) {
 
   if (got) {
     if (log_name_lookups_enabled) {
-      console.log(`got ${return_key} for ${inspect_fun(find_value)}: ${inspect_fun(got[return_key])}`);
+      console.log(`got ${return_key} for ` +
+                  `${inspect_fun(find_value)}: ${inspect_fun(got[return_key])}`);
       console.log(`RETURNING ${return_key} ${inspect_fun(got[return_key])}\n`);
     }
     
     return got[return_key];
   }
 
+  // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
     console.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
 
@@ -2735,11 +2737,11 @@ function get_alternate_name(return_key, find_key, find_value) {
 }
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
-  return get_alternate_name('automatic1111_name', 'dt_name', name);
+  return get_other_name('automatic1111_name', 'dt_name', name);
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
-  return get_alternate_name('dt_name', 'automatic1111_name', name);
+  return get_other_name('dt_name', 'automatic1111_name', name);
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
