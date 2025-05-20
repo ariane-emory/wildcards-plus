@@ -7268,14 +7268,14 @@ const UnexpectedSpecialFunctionInclude =
                  "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single_pick',                                      // [0]
+            seq('single-pick',                                      // [0]
                 wst_seq(DiscardedComments,                          // -
                         assignment_operator,                        // [1][0]
                         DiscardedComments,                          // -
                         choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('multi_pick',                                       // [0]
+            seq('multi-pick',                                       // [0]
                 wst_seq(DiscardedComments,                          // -
                         assignment_operator,                        // [1][0]
                         DiscardedComments,                          // -
