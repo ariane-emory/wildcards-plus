@@ -6492,7 +6492,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         if (context.noisy)
-          console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
+          console.log(`NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
 
         return '';
       }
