@@ -881,21 +881,12 @@ class CuttingEnclosed extends Enclosed {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    if (string_input_mode_enabled) {
-      throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
-                      `after ${this.start_rule} at ` +
-                      `char ${index}` +
-                      `, found: ` +
-                      `"${abbreviate(input.substring(start_rule_result.index))}"`);
-    }
-    else {
-      throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
-                      `after ${this.start_rule} at ` +
-                      `char ${input[start_rule_result.index].start}` +
-                      `, found: ` +
-                      `[ ${input.slice(start_rule_result.index).join(", ")}` +
-                      ` ]`);
-    }
+    throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
+                    `after ${this.start_rule} at ` +
+                    `char ${index}` +
+                    `, found: ` +
+                    `"${abbreviate(input.substring(start_rule_result.index))}"`);
+    
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
