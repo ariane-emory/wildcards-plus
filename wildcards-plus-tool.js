@@ -200,10 +200,10 @@ function process_includes(thing, context = new Context()) {
 
 
 // =================================================================================================
-// set inspect_fun and clone_fun appropriately for node.js:
+// set inspect_fun appropriately for node.js:
 // =================================================================================================
 const inspect_fun = (thing, no_break = false) => util.inspect(thing, no_break ? { breakLength: Infinity } : {});
-const clone_fun   = structuredClone;
+// const clone_fun   = structured_clone;
 const dt_hosted   = false;
 //  dt_hosted       = true; // uncomment to lie and force use of the DT-legal syntax/configs for debugging
 // =================================================================================================
@@ -215,43 +215,7 @@ if (false)
   // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
   // ===============================================================================================
 {
-  // -----------------------------------------------------------------------------------------------
-  // DT's env doesn't seem to have structuredClone, so we'll define this early:
-  // -----------------------------------------------------------------------------------------------
-  function structured_clone(thing) {
-    if (thing === null || typeof thing !== "object") {
-      return thing;
-    }
-    else if (Array.isArray(thing)) {
-      return thing.map(structured_clone);
-    }
-    else if (thing instanceof Set) {
-      const result = new Set();
-      for (const value of thing.values()) {
-        result.add(structured_clone(value));
-      }
-      return result;
-    }
-    else if (thing instanceof Map) {
-      const result = new Map();
-      for (const [key, value] of thing.entries()) {
-        result.set(structured_clone(key), structured_clone(value));
-      }
-      return result;
-    }
-    else {
-      const copy = {};
-      for (const key in thing) {
-        if (Object.prototype.hasOwnProperty.call(thing, key)) {
-          copy[key] = structured_clone(thing[key]);
-        }
-      }
-      return copy;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
   inspect_fun = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
-  clone_fun   = structured_clone;
   dt_hosted   = true;
 }
 // -------------------------------------------------------------------------------------------------
@@ -887,10 +851,10 @@ class CuttingEnclosed extends Enclosed {
                         input, index) {
     throw new Error(// `(#1) ` +
       `expected (${this.body_rule} ${this.end_rule}) ` +
-                    `after ${this.start_rule} at ` +
-                    `char ${index}` +
-                    `, found:\n` +
-                    `${abbreviate(input.substring(start_rule_result.index))}`);
+        `after ${this.start_rule} at ` +
+        `char ${index}` +
+        `, found:\n` +
+        `${abbreviate(input.substring(start_rule_result.index))}`);
     
   }
   // -----------------------------------------------------------------------------------------------
@@ -1153,10 +1117,10 @@ class CuttingSequence extends Sequence {
                         input, index) {
     throw new Error(// `(#2) ` +
       `expected (${this.elements.slice(1).join(" ")}) ` +
-                    `after ${this.elements[0]} at ` +
-                    `char ${index}` +
-                    `, found:\n` +
-                    `${abbreviate(input.substr(start_rule_result.index))}`);
+        `after ${this.elements[0]} at ` +
+        `char ${index}` +
+        `, found:\n` +
+        `${abbreviate(input.substr(start_rule_result.index))}`);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -1251,10 +1215,10 @@ class Expect extends Rule {
       else {
         throw new Error(// `(#3) ` +
           `expected ${this.rule} at ` +
-                        `char ${input[index].start}` +
-                        `, found:\n` +
-                        `[ ${input.slice(index).join(", ")}` +
-                        ` ]`);
+            `char ${input[index].start}` +
+            `, found:\n` +
+            `[ ${input.slice(index).join(", ")}` +
+            ` ]`);
       }
     };
 
@@ -1302,10 +1266,10 @@ class Unexpected extends Rule {
 
         throw new Error(// `(#4) ` +
           `unexpected ${this.rule} at ` +
-                        `char ${index}` +
-                        `, found:\n` +
-                        input.substring(index, index + 20) +
-                        `...`);
+            `char ${index}` +
+            `, found:\n` +
+            input.substring(index, index + 20) +
+            `...`);
         foo(bar(baz(quux(corge(grault())))));                      
       }
     };
@@ -1342,11 +1306,11 @@ class Fail extends Rule {
     throw this.error_func
       ? this.error_func(this, index, input)
       : new Error(// `(#5) ` +
-                  `unexpected ${this.rule} at ` +
-                  `char ${input[index].start}` +
-                  `, found:\n` +
-                  `[ ${input.slice(index).join(", ")}` +
-                  ` ]`);
+        `unexpected ${this.rule} at ` +
+          `char ${input[index].start}` +
+          `, found:\n` +
+          `[ ${input.slice(index).join(", ")}` +
+          ` ]`);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
@@ -2248,6 +2212,54 @@ class WeightedPicker {
 //   return prefix_arr.every((val, idx) => val === full_arr[idx]);
 // }
 // -------------------------------------------------------------------------------------------------
+// DT's env doesn't seem to have structuredClone, so we'll define our own:
+// -------------------------------------------------------------------------------------------------
+var structured_clone_indent = 0;
+
+function structured_clone(thing) {
+  //throw new Error(`CLONING ${inspect_fun(thing)}`);
+  
+  console.log(`${' '.repeat(structured_clone_indent*2)}CLONING ${inspect_fun(thing)}`);
+
+  structured_clone_indent += 1;
+  
+  if (thing === null || typeof thing !== "object") {
+    structured_clone_indent -= 1;
+    console.log(`CLONED ${inspect_fun(thing)}`);
+    return thing;
+  }
+  else if (Array.isArray(thing)) {
+    structured_clone_indent -= 1;
+    return [ ...thing.map(structured_clone) ];
+  }
+  else if (thing instanceof Set) {
+    const result = new Set();
+    for (const value of thing.values()) {
+      result.add(structured_clone(value));
+    }
+    structured_clone_indent -= 1;
+    return result;
+  }
+  else if (thing instanceof Map) {
+    const result = new Map();
+    for (const [key, value] of thing.entries()) {
+      result.set(structured_clone(key), structured_clone(value));
+    }
+    structured_clone_indent -= 1;
+    return result;
+  }
+  else {
+    const copy = {};
+    for (const key in thing) {
+      if (Object.prototype.hasOwnProperty.call(thing, key)) {
+        copy[key] = structured_clone(thing[key]);
+      }
+    }
+    structured_clone_indent -= 1;
+    return copy;
+  }
+}
+// -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
@@ -2743,16 +2755,18 @@ function get_our_name(name) {
 }
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
-  config = clone_fun(config);
+  console.log(`MUNGING ${inspect_fun(this)}`);
+  
+  config = structured_clone(config);
 
   if (is_empty_object(config))
-    return config;
+               return config;
 
-  if (config.model === '') {
-    console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
-                `what you meant to do, your prompt template may contain an error!`);
-    delete config.model;
-  }
+             if (config.model === '') {
+               console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
+                           `what you meant to do, your prompt template may contain an error!`);
+               delete config.model;
+             }
   else if (config.model) {
     config.model = config.model.toLowerCase();
 
@@ -2992,13 +3006,13 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    return new Context({
+    const copy = new Context({
       flags:                        this.flags.map(arr => [...arr]),
       scalar_variables:             new Map(this.scalar_variables),
       named_wildcards:              new Map(this.named_wildcards),
       noisy:                        this.noisy,
       files:                        [ ...this.files ],
-      config:                       { ...this.config }, /// ???
+      config:                       structured_clone(this.config),
       // add_loras:                    [ ...this.add_loras
       //                                 .map(o => ({ file: o.file, weigh: o.weight })) ],
       top_file:                     this.top_file,
@@ -3007,6 +3021,13 @@ class Context {
       pick_multiple_priority:       this.pick_multiple_priority,      
       prior_pick_multiple_priority: this.pick_multiple_priority,
     });
+
+    if (this.config.loras && copy.config.loras &&
+        this.config.loras === copy.config.loras)
+      throw new Error("oh no");
+    
+    return copy;
+
   }
   // -----------------------------------------------------------------------------------------------
   shallow_copy() {
@@ -3016,7 +3037,7 @@ class Context {
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
       files:                        this.files,
-      config:                       this.config,
+      config:                       structured_clone(this.config),
       // add_loras:                    this.add_loras,
       top_file:                     false, // deliberately not copied!
       pick_one_priority:            this.pick_one_priority,
@@ -7556,7 +7577,7 @@ async function main() {
   const stash_priors = () => {
     prior_positive_prompt = positive_prompt;
     // prior_negative_prompt = negative_prompt;
-    prior_config = clone_fun(config);
+    prior_config = structured_clone(config);
   };
 
   const restore_priors = () => {
@@ -7579,24 +7600,24 @@ async function main() {
     positive_prompt  = expand_wildcards(AST, context);
     // negative_prompt  = context.negative_prompt;
     config           = munge_config(context.config);
-    const have_loras = context.add_loras && context.add_loras.length > 0;
+    // const have_loras = context.add_loras && context.add_loras.length > 0;
 
     if (log_flags_enabled || log_config_enabled)
       console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
     
-    if (have_loras) {
-      console.log('-----------------------------------------------------------------------------------------');
-      if (log_config_enabled)
-        console.log(`Found ${context.add_loras.length} LoRAs in context.add_loras:`);
-      
-      config.loras ||= [];
+    // if (have_loras) {
+    //   console.log('-----------------------------------------------------------------------------------------');
+    //   if (log_config_enabled)
+    //     console.log(`Found ${context.add_loras.length} LoRAs in context.add_loras:`);
+    
+    //   config.loras ||= [];
 
-      for (const lora of context.add_loras)
-        add_lora_to_array(lora, config.loras, "config.loras");
+    //   for (const lora of context.add_loras)
+    //     add_lora_to_array(lora, config.loras, "config.loras");
 
-      if (log_config_enabled) 
-        console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
-    }
+    //   if (log_config_enabled) 
+    //     console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
+    // }
     
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
