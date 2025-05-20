@@ -888,7 +888,7 @@ class CuttingEnclosed extends Enclosed {
     throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
                     `after ${this.start_rule} at ` +
                     `char ${index}` +
-                    `, found: ` +
+                    `, found:\n` +
                     `"${abbreviate(input.substring(start_rule_result.index))}"`);
     
   }
@@ -1153,7 +1153,7 @@ class CuttingSequence extends Sequence {
     throw new Error(`expected (${this.elements.slice(1).join(" ")}) ` +
                     `after ${this.elements[0]} at ` +
                     `char ${index}` +
-                    `, found: ` +
+                    `, found:\n` +
                     `'${abbreviate(input.substr(start_rule_result.index))}'`);
   }
   // -----------------------------------------------------------------------------------------------
@@ -1249,7 +1249,7 @@ class Expect extends Rule {
       else {
         throw new Error(`expected ${this.rule} at ` +
                         `char ${input[index].start}` +
-                        `, found: ` +
+                        `, found:\n` +
                         `[ ${input.slice(index).join(", ")}` +
                         ` ]`);
       }
@@ -1299,7 +1299,7 @@ class Unexpected extends Rule {
 
         throw new Error(`unexpected ${this.rule} at ` +
                         `char ${index}` +
-                        `, found: "` +
+                        `, found:\n"` +
                         input.substring(index, index + 20) +
                         `..."`);
         foo(bar(baz(quux(corge(grault())))));                      
@@ -1339,7 +1339,7 @@ class Fail extends Rule {
       ? this.error_func(this, index, input)
       : new Error(`unexpected ${this.rule} at ` +
                   `char ${input[index].start}` +
-                  `, found: ` +
+                  `, found:\n` +
                   `[ ${input.slice(index).join(", ")}` +
                   ` ]`);
   }

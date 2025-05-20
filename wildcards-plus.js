@@ -7339,14 +7339,13 @@ for (let ix = 0; ix < batch_count; ix++) {
   const generated_configuration = { ...clone_fun(pipeline_configuration),
                                     seed: -1,
                                     ...munge_config(context.config) };
-  const add_loras               = context.add_loras;
   // const negative_prompt         = context.negative_prompt;
   // const added_loras_files       = [];
 
-  if (add_loras.length > 0) {
-    if (log_config_enabled && add_loras.length !== 0) {
+  if (context.add_loras.length > 0) {
+    if (log_config_enabled && context.add_loras.length !== 0) {
       console.log(`-----------------------------------------------------------------------------------------------------------------`);
-      console.log(`Found add_loras in Context: ${inspect_fun(add_loras)} in Context.`);
+      console.log(`Found add_loras in Context: ${inspect_fun(context.add_loras)} in Context.`);
     }
 
     // console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
@@ -7357,7 +7356,7 @@ for (let ix = 0; ix < batch_count; ix++) {
     else 
       generated_configuration.loras ||= [];
 
-    for (const lora of add_loras) {
+    for (const lora of context.add_loras) {
       const already_have_this_lora = pipeline.configuration.loras
             .filter(l => l.file === lora.file).length > 0;
 
