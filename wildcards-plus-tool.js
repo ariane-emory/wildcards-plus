@@ -2876,7 +2876,7 @@ class Context {
     noisy                        = false,
     files                        = [],
     config                       = {},
-    add_loras                    = [],
+    //add_loras                    = [],
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
@@ -2890,7 +2890,7 @@ class Context {
     this.noisy                        = noisy;
     this.files                        = files;
     this.config                       = config;
-    this.add_loras                    = add_loras;
+    //this.add_loras                    = add_loras;
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
@@ -3001,8 +3001,8 @@ class Context {
       noisy:                        this.noisy,
       files:                        [ ...this.files ],
       config:                       { ...this.config }, /// ???
-      add_loras:                    [ ...this.add_loras
-                                      .map(o => ({ file: o.file, weigh: o.weight })) ],
+      // add_loras:                    [ ...this.add_loras
+      //                                 .map(o => ({ file: o.file, weigh: o.weight })) ],
       top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
@@ -3019,7 +3019,7 @@ class Context {
       noisy:                        this.noisy,
       files:                        this.files,
       config:                       this.config,
-      add_loras:                    this.add_loras,
+      // add_loras:                    this.add_loras,
       top_file:                     false, // deliberately not copied!
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
@@ -6796,9 +6796,11 @@ function expand_wildcards(thing, context = new Context()) {
 
       const weight = weight_match_result.value;
 
+      context.config.loras ||= [];
+
       add_lora_to_array({ file: file, weight: weight },
-                        context.add_loras,
-                        "context.add_loras");
+                        context.config.loras,
+                        "context.config.loras");
       
       return '';
     }
