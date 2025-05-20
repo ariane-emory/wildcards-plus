@@ -318,13 +318,14 @@ let print_ast_enabled           = false;
 let print_ast_json_enabled      = false;
 let string_input_mode_enabled   = true;
 let log_enabled                 = true;
-let log_flags_enabled           = false;
 let log_config_enabled          = true;
-let log_post_enabled            = true;
-let log_join_enabled            = false;
-let log_name_lookups_enabled    = false;
 let log_finalize_enabled        = false;
+let log_flags_enabled           = false;
+let log_join_enabled            = false;
 let log_match_enabled           = false;
+let log_name_lookups_enabled    = false;
+let log_picker_enabled          = false;
+let log_post_enabled            = true;
 let disable_prelude             = false;
 let print_before_ast_enabled    = false;
 let print_after_ast_enabled     = false;
@@ -2016,19 +2017,17 @@ class WeightedPicker {
         priority === picker_priority.avoid_repetition_short)
       this.__clear_used_indices();
     
-    // console.log(`PICK ${min_count}-${max_count}`);
+    if (log_picker_enabled)
+      console.log(`PICK ${min_count}-${max_count}`);
+    
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
-
     const res = [];
     
-    for (let ix = 0; ix < count; ix++) {
-      const pick = this.pick_one(allow_if, forbid_if, priority);
+    for (let ix = 0; ix < count; ix++)
+      res.push(this.pick_one(allow_if, forbid_if, priority));
 
-      // if (pick)
-      res.push(pick);
-    }
-
-    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+    if (log_picker_enabled)
+      console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
 
     return res;
   }
@@ -2051,12 +2050,16 @@ class WeightedPicker {
   __clear_used_indices() {
     this.used_indices.clear();
     this.last_pick_index = null;
-    // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+
+    if (log_picker_enabled)
+      console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -----------------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
-    // console.log(`this.options      = ${inspect_fun(this.options)}`);
-    // console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+    if (log_picker_enabled) {
+      console.log(`this.options      = ${inspect_fun(this.options)}`);
+      console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+    }
     
     if (! priority)
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
@@ -2110,35 +2113,41 @@ class WeightedPicker {
       throw Error("unexpected priority");
     }
 
-    // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+    if (log_picker_enabled)
+      console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
     return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, priority) {
-    // console.log(`PICK ONE =================================================================================`);
-    // console.log(`PRIORITY        = ${inspect_fun(priority)}`);
-    // console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
-    // console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
-
+    if (log_picker_enabled) {
+      console.log(`PICK ONE =================================================================================`);
+      console.log(`PRIORITY        = ${inspect_fun(priority)}`);
+      console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+      console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+    }
+    
     if (! (priority && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-    
-    const noisy = false;
 
-    // // console.log(`PICK_ONE!`);
-    
-    // // console.log(`PICK FROM ${JSON.stringify(this)}`);
+    if (log_picker_enabled) {
+      console.log(`PICK_ONE!`);
+      console.log(`PICK FROM ${JSON.stringify(this)}`);
+    }
 
     if (this.options.length === 0) {
-      // // console.log(`PICK_ONE: NO OPTIONS 1!`);
+      if (log_picker_enabled)
+        console.log(`PICK_ONE: NO OPTIONS 1!`);
+      
       return null;
     }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
     if (this.__indices_are_exhausted(legal_option_indices, priority)) {
-      // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      if (log_picker_enabled)
+        console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      
       if (priority === picker_priority.avoid_repetition_long) {
         if (this.last_pick_index !== null) {
           const last_pick_index = this.last_pick_index;
@@ -2152,26 +2161,34 @@ class WeightedPicker {
       else {
         this.__clear_used_indices();
       }
-      
-      // console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+
+      if (log_picker_enabled)
+        console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
       
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
-      // // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
-      // console.log(`BEFORE BAIL 1: ${inspect_fun(this.used_indices)}`);
+      if (log_picker_enabled)
+        console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+
       return null;
     }
 
     if (legal_option_indices.length === 1) {
-      // // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      if (log_picker_enabled)
+        console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      
       this.__record_index_usage(legal_option_indices[0]);
-      // console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+
+      if (log_picker_enabled)
+        console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+      
       return this.options[legal_option_indices[0]].value;
     }
 
-    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    if (log_picker_enabled)
+      console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
@@ -2200,23 +2217,17 @@ class WeightedPicker {
 ), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
 
-      if (noisy) {
-        // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
-      }
+      // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
     }
     
-    if (noisy) {
-      // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
-    }
+    // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
     
     let random = Math.random() * total_weight;
 
-    if (noisy) {
-      // console.log(`----------------------------------------------------------------------------------`);
-      // console.log(`RANDOM IS ${random}`);
-      // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-      // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
-    }
+    // console.log(`----------------------------------------------------------------------------------`);
+    // console.log(`RANDOM IS ${random}`);
+    // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+    // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const option          = this.options[legal_option_ix];
@@ -2224,10 +2235,8 @@ class WeightedPicker {
 
       if (adjusted_weight === 0)
         continue;
-
-      if (noisy) {
-        // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
-      }
+      
+      // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -2236,9 +2245,7 @@ class WeightedPicker {
 
       random -= adjusted_weight;
 
-      if (noisy) {
-        // console.log(`RANDOM IS NOW ${random}`);
-      }
+      // console.log(`RANDOM IS NOW ${random}`);
     }
 
     throw new Error("random selection failed");
