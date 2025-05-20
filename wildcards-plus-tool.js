@@ -7282,10 +7282,10 @@ const SpecialFunctionSetPickMultiple =
                         choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            'revert_single_pick');
+            'revert-single-pick');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            'revert_multi_pick');
+            'revert-multi-pick');
 const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(ident,                                                         // [0]

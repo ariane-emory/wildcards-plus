@@ -2368,8 +2368,8 @@ const config_key_names = [
   { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
   { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
   { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
-  { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
   { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
+  { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
   { dt_name: 'width',                             automatic1111_name: 'width'                                      },
   { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler'                                    }, // ordering significant?
@@ -7077,10 +7077,10 @@ const SpecialFunctionSetPickMultiple =
                         choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            'revert_single_pick');
+            'revert-single-pick');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            'revert_multi_pick');
+            'revert-multi-pick');
 const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(ident,                                                         // [0]
