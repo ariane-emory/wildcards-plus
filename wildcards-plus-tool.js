@@ -94,7 +94,7 @@ function post_prompt({ prompt = '', config = {}, hostname = '127.0.0.1', port = 
 
       let printed = false;
       
-      if (fire_and_forget_post) {
+      if (fire_and_forget_post_enabled) {
         socket.destroy(); // don't wait for the response.
       }
       else {
@@ -260,7 +260,7 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
-let fire_and_forget_post              = false;
+let fire_and_forget_post_enabled      = true;
 let unnecessary_choice_is_error       = false;
 let print_ast_enabled                 = false;
 let print_ast_json_enabled            = false;
@@ -7395,7 +7395,9 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
                                                       DiscardedComments,                    // [1]
-                                                      choice(() => LimitedContent, plaintext),
+                                                      choice(() => LimitedContent,
+                                                             json_string,
+                                                             plaintext),
                                                       DiscardedComments,
                                                       lws(optional(';'))));
 const LimitedContent          = choice(NamedWildcardReference,
