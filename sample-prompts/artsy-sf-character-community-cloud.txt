@@ -473,8 +473,10 @@
 // generate separate ClipL text:
 // =================================================================================================
 
-%Separate_ClipL = true
-%clipl          = {
+// %Separate_ClipL = true
+// %clipl          =
+
+{
  {3|@aris_defaults,}
  {3|3 illustration,|2 sketch,|1 drawing,}
  science fiction,

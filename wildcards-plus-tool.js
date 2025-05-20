@@ -7574,8 +7574,7 @@ async function main() {
     positive_prompt  = expand_wildcards(AST, context);
     // negative_prompt  = context.negative_prompt;
     config           = munge_config(context.config);
-    const add_loras  = context.add_loras;
-    const have_loras = add_loras && add_loras.length > 0;
+    const have_loras = context.add_loras && context.add_loras.length > 0;
 
     if (log_flags_enabled || log_config_enabled)
       console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
@@ -7583,11 +7582,11 @@ async function main() {
     if (have_loras) {
       console.log('-----------------------------------------------------------------------------------------');
       if (log_config_enabled)
-        console.log(`Found ${add_loras.length} LoRAs in context.add_loras:`);
+        console.log(`Found ${context.add_loras.length} LoRAs in context.add_loras:`);
       
       config.loras ||= [];
 
-      for (const lora of add_loras)
+      for (const lora of context.add_loras)
         add_lora_to_array(lora, config.loras, "config.loras");
 
       if (log_config_enabled) 
