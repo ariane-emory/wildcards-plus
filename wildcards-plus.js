@@ -55,7 +55,7 @@
 // -------------------------------------------------------------------------------------------------
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
-let fire_and_forget_post              = false;
+let fire_and_forget_post_enabled      = true;
 let unnecessary_choice_is_error       = false;
 let print_ast_enabled                 = false;
 let print_ast_json_enabled            = false;
@@ -6472,7 +6472,6 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSetPickSingle || 
              thing instanceof ASTSetPickMultiple) {
-      const walked = picker_priority[expand_wildcards(thing.limited_content, context)];
       const cur_key = thing instanceof ASTSetPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -6481,6 +6480,8 @@ function expand_wildcards(thing, context = new Context()) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
+      const walked    = picker_priority[expand_wildcards(thing.limited_content,
+                                                         context).toLowerCase()];
 
       // if (log_config_enabled)
       //   console.log(`SET PICK DATA: ` +
@@ -7083,18 +7084,18 @@ const SpecialFunctionRevertPickMultiple =
             'revert-multi-pick');
 const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                         // [0]
-                wst_seq(DiscardedComments,                                     // -
-                        choice(incr_assignment_operator, assignment_operator), // [1][0]
-                        DiscardedComments,                                     // -
-                        choice(rJsonc, () => LimitedContent))));               // [1][1]
+            seq(c_ident,                                                          // [0]
+                wst_seq(DiscardedComments,                                        // -
+                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
+                        DiscardedComments,                                        // -
+                        choice(rJsonc, () => LimitedContent, plaintext))));       // [1][1]
 const SpecialFunctionConfigurationUpdateUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                 // [0]
-                wst_seq(DiscardedComments,                                     // -
-                        choice(incr_assignment_operator, assignment_operator), // [1][0]
-                        DiscardedComments,                                     // -
-                        choice(rJsoncObject, () => LimitedContent))));         // [1][1]   
+            seq(/conf(?:ig)?/,                                                    // [0]
+                wst_seq(DiscardedComments,                                        // -
+                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
+                        DiscardedComments,                                        // -
+                        choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
 // -------------------------------------------------------------------------------------------------
 const NormalSpecialFunction =
       choice(SpecialFunctionSetPickSingle,
