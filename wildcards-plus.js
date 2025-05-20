@@ -7338,15 +7338,15 @@ for (let ix = 0; ix < batch_count; ix++) {
   const context                 = base_context.clone();
   const generated_prompt        = expand_wildcards(AST, context);
   const munged_config           = munge_config(context.config);
-  const generated_loras         = [ ...pipeline_configuration.loras ];
+  const combined_loras          = [ ...pipeline_configuration.loras ];
 
   for (const lora of munged_config.loras)
-    add_lora_to_array(lora, generated_loras, "generated_loras");
+    add_lora_to_array(lora, combined_loras, "combined_loras");
 
-  munged_config.loras = generated_loras;
+  munged_config.loras = combined_loras;
   
   const generated_configuration = { ...clone_fun(pipeline_configuration),
-                                    // seed: -1, // maybe
+                                    // seed: -1, // maybe not here?
                                     ...munged_config };
   
   // const negative_prompt         = context.negative_prompt;
