@@ -680,11 +680,12 @@ class CuttingEnclosed extends Enclosed {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
-                    `after ${this.start_rule} at ` +
-                    `char ${index}` +
-                    `, found: ` +
-                    `"${abbreviate(input.substring(start_rule_result.index))}"`);
+    throw new Error(// `(#1) ` +
+      `expected (${this.body_rule} ${this.end_rule}) ` +
+        `after ${this.start_rule} at ` +
+        `char ${index}` +
+        `, found:\n` +
+        `${abbreviate(input.substring(start_rule_result.index))}`);
     
   }
   // -----------------------------------------------------------------------------------------------
@@ -945,11 +946,12 @@ class CuttingSequence extends Sequence {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    throw new Error(`expected (${this.elements.slice(1).join(" ")}) ` +
-                    `after ${this.elements[0]} at ` +
-                    `char ${index}` +
-                    `, found: ` +
-                    `'${abbreviate(input.substr(start_rule_result.index))}'`);
+    throw new Error(// `(#2) ` +
+      `expected (${this.elements.slice(1).join(" ")}) ` +
+        `after ${this.elements[0]} at ` +
+        `char ${index}` +
+        `, found:\n` +
+        `${abbreviate(input.substr(start_rule_result.index))}`);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -1042,11 +1044,12 @@ class Expect extends Rule {
         throw this.error_func(this, index, input)
       }
       else {
-        throw new Error(`expected ${this.rule} at ` +
-                        `char ${input[index].start}` +
-                        `, found: ` +
-                        `[ ${input.slice(index).join(", ")}` +
-                        ` ]`);
+        throw new Error(// `(#3) ` +
+          `expected ${this.rule} at ` +
+            `char ${input[index].start}` +
+            `, found:\n` +
+            `[ ${input.slice(index).join(", ")}` +
+            ` ]`);
       }
     };
 
@@ -1092,11 +1095,12 @@ class Unexpected extends Rule {
       else {
         foo(bar(baz(quux(corge(grault())))));
 
-        throw new Error(`unexpected ${this.rule} at ` +
-                        `char ${index}` +
-                        `, found: "` +
-                        input.substring(index, index + 20) +
-                        `..."`);
+        throw new Error(// `(#4) ` +
+          `unexpected ${this.rule} at ` +
+            `char ${index}` +
+            `, found:\n` +
+            input.substring(index, index + 20) +
+            `...`);
         foo(bar(baz(quux(corge(grault())))));                      
       }
     };
@@ -1132,11 +1136,12 @@ class Fail extends Rule {
   __match(indent, input, index) {
     throw this.error_func
       ? this.error_func(this, index, input)
-      : new Error(`unexpected ${this.rule} at ` +
-                  `char ${input[index].start}` +
-                  `, found: ` +
-                  `[ ${input.slice(index).join(", ")}` +
-                  ` ]`);
+      : new Error(// `(#5) ` +
+        `unexpected ${this.rule} at ` +
+          `char ${input[index].start}` +
+          `, found:\n` +
+          `[ ${input.slice(index).join(", ")}` +
+          ` ]`);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
@@ -1335,7 +1340,7 @@ class MatchResult {
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
 function abbreviate(s, len = 100) {
-  return s.length < 100 ? s : `"${s.substring(0, len).replace("\n","").trim()}..."`;
+  return s.length < 100 ? s : `${s.substring(0, len).replace("\n","").trim()}...`;
 }
 // -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
@@ -2666,7 +2671,7 @@ class Context {
     noisy                        = false,
     files                        = [],
     config                       = {},
-    add_loras                    = [],
+    //add_loras                    = [],
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
@@ -2680,7 +2685,7 @@ class Context {
     this.noisy                        = noisy;
     this.files                        = files;
     this.config                       = config;
-    this.add_loras                    = add_loras;
+    //this.add_loras                    = add_loras;
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
@@ -2791,8 +2796,8 @@ class Context {
       noisy:                        this.noisy,
       files:                        [ ...this.files ],
       config:                       { ...this.config }, /// ???
-      add_loras:                    [ ...this.add_loras
-                                      .map(o => ({ file: o.file, weigh: o.weight })) ],
+      // add_loras:                    [ ...this.add_loras
+      //                                 .map(o => ({ file: o.file, weigh: o.weight })) ],
       top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
@@ -2809,7 +2814,7 @@ class Context {
       noisy:                        this.noisy,
       files:                        this.files,
       config:                       this.config,
-      add_loras:                    this.add_loras,
+      // add_loras:                    this.add_loras,
       top_file:                     false, // deliberately not copied!
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
@@ -6586,9 +6591,11 @@ function expand_wildcards(thing, context = new Context()) {
 
       const weight = weight_match_result.value;
 
+      context.config.loras ||= [];
+
       add_lora_to_array({ file: file, weight: weight },
-                        context.add_loras,
-                        "context.add_loras");
+                        context.config.loras,
+                        "context.config.loras");
       
       return '';
     }
@@ -7329,49 +7336,52 @@ for (let ix = 0; ix < batch_count; ix++) {
   // expand the wildcards using a cloned context and generate a new configuration:
   
   const context                 = base_context.clone();
-
-  // console.log(`CLONED: ${inspect_fun(context)}`);
-  
-  // console.log(`PL_C.L: ${inspect_fun(pipeline_configuration.loras)}`);
-  // console.log(`PL.C.L: ${inspect_fun(pipeline.configuration.loras)}`);
-
   const generated_prompt        = expand_wildcards(AST, context);
+  const munged_config           = munge_config(context.config);
+  const generated_loras         = [ ...pipeline_configuration.loras ];
+
+  for (const lora of munge_config.loras)
+    add_lora_to_array(lora, generated_loras, "generated_loras");
+
+  munged_config.loras = generated_loras;
+  
   const generated_configuration = { ...clone_fun(pipeline_configuration),
-                                    seed: -1,
-                                    ...munge_config(context.config) };
+                                    // seed: -1, // maybe
+                                    ...munged_config };
+  
   // const negative_prompt         = context.negative_prompt;
   // const added_loras_files       = [];
 
-  if (context.add_loras.length > 0) {
-    if (log_config_enabled && context.add_loras.length !== 0) {
-      console.log(`-----------------------------------------------------------------------------------------------------------------`);
-      console.log(`Found add_loras in Context: ${inspect_fun(context.add_loras)} in Context.`);
-    }
+  // if (context.add_loras.length > 0) {
+  //   if (log_config_enabled && context.add_loras.length !== 0) {
+  //     console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  //     console.log(`Found add_loras in Context: ${inspect_fun(context.add_loras)} in Context.`);
+  //   }
 
-    // console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
-    //             `${JSON.stringify(generated_configuration)}`);
-    
-    if (generated_configuration.loras && generated_configuration.length > 0)
-      generated_configuration.loras = [ ...generated_configuration.loras ];
-    else 
-      generated_configuration.loras ||= [];
+  //   // console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
+  //   //             `${JSON.stringify(generated_configuration)}`);
+  
+  //   if (generated_configuration.loras && generated_configuration.length > 0)
+  //     generated_configuration.loras = [ ...generated_configuration.loras ];
+  //   else 
+  //     generated_configuration.loras ||= [];
 
-    for (const lora of context.add_loras) {
-      const already_have_this_lora = pipeline.configuration.loras
-            .filter(l => l.file === lora.file).length > 0;
+  //   for (const lora of context.add_loras) {
+  //     const already_have_this_lora = pipeline.configuration.loras
+  //           .filter(l => l.file === lora.file).length > 0;
 
-      // console.log(`THIS: ${already_have_this_lora}`);
-      
-      if (! already_have_this_lora) {
-        // added_loras_files.push(lora.file);
-        // console.log(`RECORDED ${inspect_fun(added_loras_files)}.`);
-        add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
-      }
-      
-      // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
-      //             `${JSON.stringify(generated_configuration)}`);
-    }
-  }
+  //     // console.log(`THIS: ${already_have_this_lora}`);
+  
+  //     if (! already_have_this_lora) {
+  //       // added_loras_files.push(lora.file);
+  //       // console.log(`RECORDED ${inspect_fun(added_loras_files)}.`);
+  //       add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
+  //     }
+  
+  //     // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
+  //     //             `${JSON.stringify(generated_configuration)}`);
+  //   }
+  // }
 
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`GENERATED CONFIGURATION:`);
