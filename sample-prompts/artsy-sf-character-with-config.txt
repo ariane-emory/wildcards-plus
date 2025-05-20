@@ -7,7 +7,7 @@
 // template config flags to enable model families or other features:
 // ---------------------------------------------------------------------------------------
 
-%config.loras = []
+%loras = []
 
 #sdxl_on
 // #flux_on
@@ -72,19 +72,19 @@
 // Flux config:
 // =================================================================================================
 { 4 ?flux_on #flux_selected
-  { %config.model = "devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt"
-  | %config.model = "devmode8stepsflux1dev_v03fp8_f16.ckpt"
+  { %model = "devmode8stepsflux1dev_v03gguidancefp8_f16.ckpt"
+  | %model = "devmode8stepsflux1dev_v03fp8_f16.ckpt"
   }
 
   { @1-2lora | @1-3lora }
   
-  %config.n_iter    = 2
-  %config.steps = { { \8 | \9 | \10 }
+  %n_iter    = 2
+  %steps = { { \8 | \9 | \10 }
                    | ?flux_high_steps { \11 | \12 | \13 } }
   
   // don't worry, capitalization will be automatically fixed to "Euler A":
-  %config.sampler = { "DDIM Trailing" | 3 "Euler A" | "Euler A Trailing" }
-  %config.cfg_scale = { \1.0 | \1.5 | \2.0 | \2.5 }
+  %sampler = { "DDIM Trailing" | 3 "Euler A" | "Euler A Trailing" }
+  %cfg_scale = { \1.0 | \1.5 | \2.0 | \2.5 }
 
   // possible resolutions:
   { // 3 %config += { "width": 1024, "height": 512 }
@@ -99,16 +99,16 @@
 // HiDream config:
 // =================================================================================================
 | 4 ?hidream_fast_on,hidream_full_on #hidream_selected
-  %config.model = { ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
+  %model = { ?hidream_fast_on "hidream_i1_fast_q5p.ckpt"
                 | ?hidream_full_on "hidream_i1_full_q5p.ckpt" }
   
-  %config.n_iter = 2
-  %config.shift = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
-  %config.sampler = { 2 "DDIM Trailing" | "Euler A" | 2 "Euler A Trailing" }
-  %config.cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
+  %n_iter = 2
+  %shift = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+  %sampler = { 2 "DDIM Trailing" | "Euler A" | 2 "Euler A Trailing" }
+  %cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
 
   // 9-18 steps, equally likely:
-  %config.steps = { { \9 | \10 | \11 | \12 | \13 }
+  %steps = { { \9 | \10 | \11 | \12 | \13 }
                 | ?hidream_high_steps { \14 | \15 | \16 | \17 | \18 } }
 
   // possible resolutions:
@@ -124,13 +124,13 @@
 // SDXL config:
 // =================================================================================================
 | 4 ?sdxl_on #sdxl_selected
-  { ?sdxl_lightning_on { 1 <lora:sdxl_lightning_4step_lora:1.0> %config.steps = 4
-                       | 2 <lora:sdxl_lightning_8step_lora:1.0> %config.steps = 8 } }
+  { ?sdxl_lightning_on { 1 <lora:sdxl_lightning_4step_lora:1.0> %steps = 4
+                       | 2 <lora:sdxl_lightning_8step_lora:1.0> %steps = 8 } }
 
   { @1-2lora | @1-3lora }
 
-  { !sdxl_lightning_on %config.steps = { \35 | \40 | \45 } }
-  // { !sdxl_lightning_on %config.steps = 30 }   
+  { !sdxl_lightning_on %steps = { \35 | \40 | \45 } }
+  // { !sdxl_lightning_on %steps = 30 }   
   
   // possible resolutions:
   { 4            %config += { "width": 1280, "height": 640  }
@@ -141,30 +141,30 @@
   | 3 ?square_on %config += { "width": 640,  "height": 640  }
   }
 
-  %config.n_iter    = 2
+  %n_iter    = 2
 
   // three possible 'shift' values:
-  %config.shift = { \1.00 | \1.10 | \1.20 }
+  %shift = { \1.00 | \1.10 | \1.20 }
 
   // two sampler possibilities:
-  { ?sdxl_lightning_on %config.sampler = "LCM" }
-  { !sdxl_lightning_on { %config.sampler = "DPM++ SDE Karras" | %config.sampler = "DPM++ 2M Karras" | %config.sampler = "Euler A" } }
+  { ?sdxl_lightning_on %sampler = "LCM" }
+  { !sdxl_lightning_on { %sampler = "DPM++ SDE Karras" | %sampler = "DPM++ 2M Karras" | %sampler = "Euler A" } }
 
   // eight possible CFG values:
-  %config.cfg_scale = { \3.0 | \4.0 | \5.0 | \6.0 | \7.0 | \8.0 | \9.0 | \10.0 }
+  %cfg_scale = { \3.0 | \4.0 | \5.0 | \6.0 | \7.0 | \8.0 | \9.0 | \10.0 }
 
   // lots of models pick from:
-  { 4 %config.model = "bookIllustrationChar_v10"
-  | 4 %config.model = "challengexlv10yoursecret_v10"
-  | 0 %config.model = "cyberrealisticpony_v10" {@pony_score_7_up|@pony_score_8_up}
-  | 0 %config.model = "cyberrealisticpony_v90alt1"
-  | 0 %config.model = "cyberrealisticxl_v57"
-  | 4 %config.model = "nightvisionxl_v900"
-  | 8 %config.model = "oldmaster_v30"
-  | 4 %config.model = "zavychromaxl_v100"
-  | 4 %config.model = "comicbookxl_v10"
-  | 4 %config.model = "plantmilkmodelsuite_hempii"
-  | 4 %config.model = "juggernautxl_ragnarokby"
+  { 4 %model = "bookIllustrationChar_v10"
+  | 4 %model = "challengexlv10yoursecret_v10"
+  | 0 %model = "cyberrealisticpony_v100" {@pony_score_7_up|@pony_score_8_up}
+  | 0 %model = "cyberrealisticpony_catalyst_v11_clip_vit_l14"
+  | 0 %model = "cyberrealisticxl_v57"
+  | 4 %model = "nightvisionxl_v900"
+  | 8 %model = "oldmaster_v30"
+  | 4 %model = "zavychromaxl_v100"
+  | 4 %model = "comicbookxl_v10"
+  | 4 %model = "plantmilkmodelsuite_hempii"
+  | 4 %model = "juggernaut_xl_ragnarok"
   }
 }
 
