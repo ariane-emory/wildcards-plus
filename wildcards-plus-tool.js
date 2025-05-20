@@ -889,7 +889,7 @@ class CuttingEnclosed extends Enclosed {
                     `after ${this.start_rule} at ` +
                     `char ${index}` +
                     `, found:\n` +
-                    `"${abbreviate(input.substring(start_rule_result.index))}"`);
+                    `${abbreviate(input.substring(start_rule_result.index))}`);
     
   }
   // -----------------------------------------------------------------------------------------------
@@ -1154,7 +1154,7 @@ class CuttingSequence extends Sequence {
                     `after ${this.elements[0]} at ` +
                     `char ${index}` +
                     `, found:\n` +
-                    `'${abbreviate(input.substr(start_rule_result.index))}'`);
+                    `${abbreviate(input.substr(start_rule_result.index))}`);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -1299,9 +1299,9 @@ class Unexpected extends Rule {
 
         throw new Error(`unexpected ${this.rule} at ` +
                         `char ${index}` +
-                        `, found:\n"` +
+                        `, found:\n` +
                         input.substring(index, index + 20) +
-                        `..."`);
+                        `...`);
         foo(bar(baz(quux(corge(grault())))));                      
       }
     };
