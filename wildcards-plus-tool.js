@@ -2855,8 +2855,8 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     }
   }
 
-  //if (log_config_enabled)
-  console.log(`Munged config is: ${inspect_fun(config, null, 2)}`);
+  if (log_config_enabled)
+    console.log(`Munged config is: ${inspect_fun(config, null, 2)}`);
 
   return config;
 }
@@ -2876,7 +2876,6 @@ class Context {
     noisy                        = false,
     files                        = [],
     config                       = {},
-    //add_loras                    = [],
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
@@ -2890,7 +2889,6 @@ class Context {
     this.noisy                        = noisy;
     this.files                        = files;
     this.config                       = config;
-    //this.add_loras                    = add_loras;
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
