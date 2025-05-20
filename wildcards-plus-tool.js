@@ -2218,18 +2218,16 @@ class WeightedPicker {
   ]
 ), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
-
-      // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
     }
-    
-    // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
     
     let random = Math.random() * total_weight;
 
-    // console.log(`----------------------------------------------------------------------------------`);
-    // console.log(`RANDOM IS ${random}`);
-    // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-    // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+    if (log_picker_enabled) {
+      console.log(`----------------------------------------------------------------------------------`);
+      console.log(`RANDOM IS ${random}`);
+      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+    }
     
     for (const legal_option_ix of legal_option_indices) {
       const option          = this.options[legal_option_ix];
@@ -2238,7 +2236,8 @@ class WeightedPicker {
       if (adjusted_weight === 0)
         continue;
       
-      // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+      if (log_picker_enabled)
+        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -2246,8 +2245,6 @@ class WeightedPicker {
       }
 
       random -= adjusted_weight;
-
-      // console.log(`RANDOM IS NOW ${random}`);
     }
 
     throw new Error("random selection failed");
