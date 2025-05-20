@@ -2673,7 +2673,8 @@ const config_key_names = [
 // -------------------------------------------------------------------------------------------------
 function get_other_name(return_key, find_key, find_value) {
   if (log_name_lookups_enabled)
-    console.log(`\nLOOKING UP ${return_key} FOR ${inspect_fun(find_key)} ` +
+    console.log(`\nLOOKING UP ${return_key} FOR ` +
+                `${inspect_fun(find_key)} ` +
                 `${inspect_fun(find_value)}`);
 
   let find_value_lc = find_value.toLowerCase();
