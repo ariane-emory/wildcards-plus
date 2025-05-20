@@ -98,28 +98,28 @@
 }
 
 // -------------------------------------------------------------------------------------------------
-%loras     = [] // clear any LoRAs that are set up the DT UI first.
-%neg       = { signature, watermark, text, }
+%Loras     = [] // clear any LoRAs that are set up the DT UI first.
+%Neg       = { signature, watermark, text, }
 
 {6 ?flux
 // Flux finetunes:
 
-{ 1 %width = 1088; %height = 1088; %steps = 50; // 1.183 mpx, 12,162 cu
-| 2 %width = 1152; %height = 1024; %steps = 50; // 1.179 mpx, 12,082 cu
-| 4 %width = 1536; %height = 768;  %steps = 50; // 1.179 mpx, 12,082 cu
+{ 1 %Width = 1088; %Height = 1088; %Steps = 50; // 1.183 mpx, 12,162 cu
+| 2 %Width = 1152; %Height = 1024; %Steps = 50; // 1.179 mpx, 12,082 cu
+| 4 %Width = 1536; %Height = 768;  %Steps = 50; // 1.179 mpx, 12,082 cu
 }
 
-%model     = { // 6 juggernaut_xl_ragnarok %steps = 100
+%Model     = { // 6 juggernaut_xl_ragnarok %Steps = 100
              | 6 shuttle_v3.1_aesthetic_q5p_svd
              | 6 artsy_vibe_v1_q5p_svd
              | 6 pixelwave_flux_1_schnell_04_q5p_svd
              | 2 devmode_v0.3_turbo_q5p_svd
              | 2 flux_1_dev_q8p 
              }
-%sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
-%cfg_scale = { 1 1.0 | 2 1.5 | 3 2.0 | 4 2.5| 5 3.0 | 4 3.5| 3 4.0 | 2 4.5 | 1 5.0 }
-%shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
-%n_iter    = 2
+%Sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
+%CFG_Scale = { 1 1.0 | 2 1.5 | 3 2.0 | 4 2.5| 5 3.0 | 4 3.5| 3 4.0 | 2 4.5 | 1 5.0 }
+%Shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+%N_Iter    = 2
 
 | 2 ?hidream.fast,hidream.full
 // Hidream with some basic settings that seem to work alright:
