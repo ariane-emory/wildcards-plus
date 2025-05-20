@@ -51,6 +51,30 @@
 }
 // -------------------------------------------------------------------------------------------------
 
+
+// -------------------------------------------------------------------------------------------------
+// GLOBAL VARIABLES:
+// -------------------------------------------------------------------------------------------------
+let fire_and_forget_post              = false;
+let unnecessary_choice_is_error       = false;
+let print_ast_enabled                 = false;
+let print_ast_json_enabled            = false;
+let log_enabled                       = true;
+let log_config_enabled                = true;
+let log_finalize_enabled              = false;
+let log_flags_enabled                 = false;
+let log_match_enabled                 = false;
+let log_name_lookups_enabled          = false;
+let log_picker_enabled                = false;
+let log_post_enabled                  = true;
+let log_smart_join_enabled            = false;
+let disable_prelude                   = false;
+let print_ast_before_includes_enabled = false;
+let print_ast_after_includes_enabled  = false;
+let save_post_requests_enable         = true;
+// =================================================================================================
+
+
 // =================================================================================================
 // GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
@@ -105,26 +129,6 @@
 // MatchResult
 //
 // -------------------------------------------------------------------------------------------------
-// variables:
-// -------------------------------------------------------------------------------------------------
-let fire_and_forget_post        = false;
-let unnecessary_choice_is_error = false;
-let print_ast_enabled           = false;
-let print_ast_json_enabled      = false;
-let string_input_mode_enabled   = true;
-let log_enabled                 = true;
-let log_flags_enabled           = false;
-let log_config_enabled          = true;
-let log_post_enabled            = true;
-let log_join_enabled            = false;
-let log_name_lookups_enabled    = false;
-let log_finalize_enabled        = false;
-let log_match_enabled           = false;
-let disable_prelude             = false;
-let print_before_ast_enabled    = false;
-let print_after_ast_enabled     = false;
-let save_post_requests_enable   = true;
-// -------------------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // -------------------------------------------------------------------------------------------------
 
@@ -156,7 +160,7 @@ class Rule {
       else 
         log(indent,
             `Matching ${this.constructor.name} ${this.toString()} at ` +
-            `char ${string_input_mode_enabled ? index : input[index]?.start}, ` +
+            `char ${index}, ` +
             `token #${index}: ` +
             `${abbreviate(input.substring(index))}`)
     }
@@ -676,21 +680,12 @@ class CuttingEnclosed extends Enclosed {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    if (string_input_mode_enabled) {
-      throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
-                      `after ${this.start_rule} at ` +
-                      `char ${index}` +
-                      `, found: ` +
-                      `"${abbreviate(input.substring(start_rule_result.index))}"`);
-    }
-    else {
-      throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
-                      `after ${this.start_rule} at ` +
-                      `char ${input[start_rule_result.index].start}` +
-                      `, found: ` +
-                      `[ ${input.slice(start_rule_result.index).join(", ")}` +
-                      ` ]`);
-    }
+    throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
+                    `after ${this.start_rule} at ` +
+                    `char ${index}` +
+                    `, found: ` +
+                    `"${abbreviate(input.substring(start_rule_result.index))}"`);
+    
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -1372,21 +1367,6 @@ function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
 // -------------------------------------------------------------------------------------------------
 let make_rule_func = maybe_make_RE_or_Literal_from_Regexp_or_string
 // -------------------------------------------------------------------------------------------------
-function set_string_input_mode_enabled(state) {
-  string_input_mode_enabled = state;
-  return make_rule_func = state
-    ? maybe_make_RE_or_Literal_from_Regexp_or_string
-    : maybe_make_TokenLabel_from_string;
-}
-// -------------------------------------------------------------------------------------------------
-function set_log_finalize_enabled(state) {
-  return log_finalize_enabled = state;
-}
-// -------------------------------------------------------------------------------------------------
-function set_log_match_enabled(state) {
-  return log_match_enabled = state;
-}
-// -------------------------------------------------------------------------------------------------
 function compose_funs(...fns) {
   return fns.length === 0
     ? x => x
@@ -1811,19 +1791,17 @@ class WeightedPicker {
         priority === picker_priority.avoid_repetition_short)
       this.__clear_used_indices();
     
-    // console.log(`PICK ${min_count}-${max_count}`);
+    if (log_picker_enabled)
+      console.log(`PICK ${min_count}-${max_count}`);
+    
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
-
     const res = [];
     
-    for (let ix = 0; ix < count; ix++) {
-      const pick = this.pick_one(allow_if, forbid_if, priority);
+    for (let ix = 0; ix < count; ix++)
+      res.push(this.pick_one(allow_if, forbid_if, priority));
 
-      // if (pick)
-      res.push(pick);
-    }
-
-    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+    if (log_picker_enabled)
+      console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
 
     return res;
   }
@@ -1846,12 +1824,16 @@ class WeightedPicker {
   __clear_used_indices() {
     this.used_indices.clear();
     this.last_pick_index = null;
-    // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+
+    if (log_picker_enabled)
+      console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -----------------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
-    // console.log(`this.options      = ${inspect_fun(this.options)}`);
-    // console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+    if (log_picker_enabled) {
+      console.log(`this.options      = ${inspect_fun(this.options)}`);
+      console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+    }
     
     if (! priority)
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
@@ -1905,35 +1887,41 @@ class WeightedPicker {
       throw Error("unexpected priority");
     }
 
-    // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+    if (log_picker_enabled)
+      console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
     return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, priority) {
-    // console.log(`PICK ONE =================================================================================`);
-    // console.log(`PRIORITY        = ${inspect_fun(priority)}`);
-    // console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
-    // console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
-
+    if (log_picker_enabled) {
+      console.log(`PICK ONE =================================================================================`);
+      console.log(`PRIORITY        = ${inspect_fun(priority)}`);
+      console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+      console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+    }
+    
     if (! (priority && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-    
-    const noisy = false;
 
-    // // console.log(`PICK_ONE!`);
-    
-    // // console.log(`PICK FROM ${JSON.stringify(this)}`);
+    if (log_picker_enabled) {
+      console.log(`PICK_ONE!`);
+      console.log(`PICK FROM ${JSON.stringify(this)}`);
+    }
 
     if (this.options.length === 0) {
-      // // console.log(`PICK_ONE: NO OPTIONS 1!`);
+      if (log_picker_enabled)
+        console.log(`PICK_ONE: NO OPTIONS 1!`);
+      
       return null;
     }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
     if (this.__indices_are_exhausted(legal_option_indices, priority)) {
-      // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      if (log_picker_enabled)
+        console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      
       if (priority === picker_priority.avoid_repetition_long) {
         if (this.last_pick_index !== null) {
           const last_pick_index = this.last_pick_index;
@@ -1947,44 +1935,54 @@ class WeightedPicker {
       else {
         this.__clear_used_indices();
       }
-      
-      // console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+
+      if (log_picker_enabled)
+        console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
       
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
-      // // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
-      // console.log(`BEFORE BAIL 1: ${inspect_fun(this.used_indices)}`);
+      if (log_picker_enabled)
+        console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+
       return null;
     }
 
     if (legal_option_indices.length === 1) {
-      // // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      if (log_picker_enabled)
+        console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      
       this.__record_index_usage(legal_option_indices[0]);
-      // console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+
+      if (log_picker_enabled)
+        console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+      
       return this.options[legal_option_indices[0]].value;
     }
 
-    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    if (log_picker_enabled)
+      console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
-    // console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
+    if (log_picker_enabled)
+      console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
-      // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-      // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
-      // console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+
+      if (log_picker_enabled) {
+        console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+        console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+        console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+      }
+      
       total_weight += adjusted_weight;
     }
-    // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
-    // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
-    
-    // Since we now avoid adding options with a weight of 0, this shoul dnever be true:
+
+    // Since we now avoid adding options with a weight of 0, this should never be true:
     if (total_weight === 0) {
-      // return '';
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
                       `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
   [
@@ -1994,23 +1992,15 @@ class WeightedPicker {
   ]
 ), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
-
-      if (noisy) {
-        // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
-      }
-    }
-    
-    if (noisy) {
-      // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
     }
     
     let random = Math.random() * total_weight;
 
-    if (noisy) {
-      // console.log(`----------------------------------------------------------------------------------`);
-      // console.log(`RANDOM IS ${random}`);
-      // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-      // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+    if (log_picker_enabled) {
+      console.log(`----------------------------------------------------------------------------------`);
+      console.log(`RANDOM IS ${random}`);
+      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
     }
     
     for (const legal_option_ix of legal_option_indices) {
@@ -2019,10 +2009,9 @@ class WeightedPicker {
 
       if (adjusted_weight === 0)
         continue;
-
-      if (noisy) {
-        // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
-      }
+      
+      if (log_picker_enabled)
+        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -2030,10 +2019,6 @@ class WeightedPicker {
       }
 
       random -= adjusted_weight;
-
-      if (noisy) {
-        // console.log(`RANDOM IS NOW ${random}`);
-      }
     }
 
     throw new Error("random selection failed");
@@ -2178,7 +2163,7 @@ function smart_join(arr) {
   if (arr.length === 0) // investigate why this is necessary.
     return '';
   
-  if (log_join_enabled)
+  if (log_smart_join_enabled)
     console.log(`JOINING ${inspect_fun(arr)}`);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
@@ -2206,7 +2191,7 @@ function smart_join(arr) {
     let next_char            = null;
 
     const add_a_space = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`SPACE!`);
 
       prev_char  = ' ';
@@ -2214,7 +2199,7 @@ function smart_join(arr) {
     }
 
     const chomp_left_side = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`CHOMP LEFT!`);
       
       str      = str.slice(0, -1);
@@ -2224,7 +2209,7 @@ function smart_join(arr) {
     };
     
     const chomp_right_side = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`CHOMP RIGHT!`);
 
       arr[ix] = arr[ix].slice(1);
@@ -2233,7 +2218,7 @@ function smart_join(arr) {
     }
 
     const consume_right_word = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`CONSUME ${inspect_fun(right_word)}!`);
 
       left_word  = right_word;
@@ -2241,7 +2226,7 @@ function smart_join(arr) {
     }
 
     const move_chars_left = (n) => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`SHIFT ${n} CHARACTERS!`);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
@@ -2261,7 +2246,7 @@ function smart_join(arr) {
       next_char            = right_word[0] ?? '';
       next_char_is_escaped = right_word[0] === '\\';
 
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`ix = ${inspect_fun(ix)}, ` +
                     `str = ${inspect_fun(str)}, ` +
                     `left_word = ${inspect_fun(left_word)}, ` +         
@@ -2275,7 +2260,7 @@ function smart_join(arr) {
     update_pos_vars();
     
     if (right_word === '') {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`JUMP EMPTY!`);
 
       continue;
@@ -2311,7 +2296,7 @@ function smart_join(arr) {
     }
 
     if (right_word === '') {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`JUMP EMPTY (LATE)!`);
 
       continue;
@@ -2333,7 +2318,7 @@ function smart_join(arr) {
     consume_right_word();
   }
 
-  if (log_join_enabled)
+  if (log_smart_join_enabled)
     console.log(`JOINED ${inspect_fun(str)}`);
   
   return str;
@@ -2468,13 +2453,15 @@ const config_key_names = [
 // -------------------------------------------------------------------------------------------------
 function get_other_name(return_key, find_key, find_value) {
   if (log_name_lookups_enabled)
-    console.log(`\nLOOKING UP ${return_key} FOR ${inspect_fun(find_key)} ` +
+    console.log(`\nLOOKING UP ${return_key} FOR ` +
+                `${inspect_fun(find_key)} ` +
                 `${inspect_fun(find_value)}`);
 
   let find_value_lc = find_value.toLowerCase();
 
   // -----------------------------------------------------------------------------------------------
   // is find_value a shorthand?
+  // -----------------------------------------------------------------------------------------------
   let got     = config_key_names.find(obj => 
     obj?.shorthands?.includes(find_value_lc))
 
@@ -2487,6 +2474,7 @@ function get_other_name(return_key, find_key, find_value) {
 
   // -----------------------------------------------------------------------------------------------
   // is it just miscapitalized?
+  // -----------------------------------------------------------------------------------------------
   got = config_key_names.find(obj => {
     if (log_name_lookups_enabled)
       console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
@@ -2495,9 +2483,6 @@ function get_other_name(return_key, find_key, find_value) {
     return obj[return_key].toLowerCase() === find_value_lc;
   });
 
-  if (log_name_lookups_enabled)
-    console.log(`GOT ${return_key} ${inspect_fun(got)}`);
-  
   if (got) {
     if (log_name_lookups_enabled)
       console.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
@@ -2507,11 +2492,8 @@ function get_other_name(return_key, find_key, find_value) {
 
   // -----------------------------------------------------------------------------------------------
   // look up the alternate key:
-  got     = config_key_names.find(obj => 
-    obj[find_key].toLowerCase() === find_value_lc);
-
-  if (log_name_lookups_enabled)
-    console.log(`GOT: ${inspect_fun(got)}`);
+  // -----------------------------------------------------------------------------------------------
+  got = config_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
 
   if (got) {
     if (log_name_lookups_enabled)
@@ -2523,6 +2505,7 @@ function get_other_name(return_key, find_key, find_value) {
 
   // -----------------------------------------------------------------------------------------------
   // didn't find it on either sise, just return the argument:
+  // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
     console.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
 
@@ -6283,7 +6266,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         if (context.noisy)
-          console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
+          console.log(`NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
 
         return '';
       }
