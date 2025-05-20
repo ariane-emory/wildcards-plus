@@ -7083,7 +7083,7 @@ const SpecialFunctionRevertPickMultiple =
             'revert-multi-pick');
 const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(ident,                                                         // [0]
+            seq(c_ident,                                                         // [0]
                 wst_seq(DiscardedComments,                                     // -
                         choice(incr_assignment_operator, assignment_operator), // [1][0]
                         DiscardedComments,                                     // -
