@@ -885,7 +885,8 @@ class CuttingEnclosed extends Enclosed {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
+    throw new Error(// `(#1) ` +
+      `expected (${this.body_rule} ${this.end_rule}) ` +
                     `after ${this.start_rule} at ` +
                     `char ${index}` +
                     `, found:\n` +
@@ -1150,7 +1151,8 @@ class CuttingSequence extends Sequence {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    throw new Error(`expected (${this.elements.slice(1).join(" ")}) ` +
+    throw new Error(// `(#2) ` +
+      `expected (${this.elements.slice(1).join(" ")}) ` +
                     `after ${this.elements[0]} at ` +
                     `char ${index}` +
                     `, found:\n` +
@@ -1247,7 +1249,8 @@ class Expect extends Rule {
         throw this.error_func(this, index, input)
       }
       else {
-        throw new Error(`expected ${this.rule} at ` +
+        throw new Error(// `(#3) ` +
+          `expected ${this.rule} at ` +
                         `char ${input[index].start}` +
                         `, found:\n` +
                         `[ ${input.slice(index).join(", ")}` +
@@ -1297,7 +1300,8 @@ class Unexpected extends Rule {
       else {
         foo(bar(baz(quux(corge(grault())))));
 
-        throw new Error(`unexpected ${this.rule} at ` +
+        throw new Error(// `(#4) ` +
+          `unexpected ${this.rule} at ` +
                         `char ${index}` +
                         `, found:\n` +
                         input.substring(index, index + 20) +
@@ -1337,7 +1341,8 @@ class Fail extends Rule {
   __match(indent, input, index) {
     throw this.error_func
       ? this.error_func(this, index, input)
-      : new Error(`unexpected ${this.rule} at ` +
+      : new Error(// `(#5) ` +
+                  `unexpected ${this.rule} at ` +
                   `char ${input[index].start}` +
                   `, found:\n` +
                   `[ ${input.slice(index).join(", ")}` +
@@ -1540,7 +1545,7 @@ class MatchResult {
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
 function abbreviate(s, len = 100) {
-  return s.length < 100 ? s : `"${s.substring(0, len).replace("\n","").trim()}..."`;
+  return s.length < 100 ? s : `${s.substring(0, len).replace("\n","").trim()}...`;
 }
 // -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
