@@ -7607,9 +7607,8 @@ async function main() {
       for (const lora of add_loras)
         add_lora_to_array(lora, config.loras, "config.loras");
 
-      if (log_config_enabled) {
+      if (log_config_enabled) 
         console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
-      }
     }
     
     console.log(`------------------------------------------------------------------------------------------`);
@@ -7622,21 +7621,8 @@ async function main() {
       console.log(`Expanded negative prompt:`);
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(context.config.negative_prompt);
-    } // else {
-    //   console.log(`------------------------------------------------------------------------------------------`);
-    //   console.log(`No negative prompt.`);
-    // }
-
-    // if (context.config.negativePrompt || context.config.negativePrompt === '') {
-    //   console.log(`------------------------------------------------------------------------------------------`);
-    //   console.log(`#3: Expanded negative prompt in context.config.negativePrompt:`);
-    //   console.log(`------------------------------------------------------------------------------------------`);
-    //   console.log(context.config.negativePrompt);
-    // } else {
-    //   console.log(`------------------------------------------------------------------------------------------`);
-    //   console.log(`#3: No negative prompt in context.config.negativePrompt!`);
-    // }
-
+    }
+    
     if (!post) {
       posted_count += 1; // a lie to make the counter correct.
     }
