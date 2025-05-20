@@ -256,6 +256,30 @@ if (false)
 }
 // -------------------------------------------------------------------------------------------------
 
+
+// -------------------------------------------------------------------------------------------------
+// GLOBAL VARIABLES:
+// -------------------------------------------------------------------------------------------------
+let fire_and_forget_post              = false;
+let unnecessary_choice_is_error       = false;
+let print_ast_enabled                 = false;
+let print_ast_json_enabled            = false;
+let log_enabled                       = true;
+let log_config_enabled                = true;
+let log_finalize_enabled              = false;
+let log_flags_enabled                 = false;
+let log_match_enabled                 = false;
+let log_name_lookups_enabled          = false;
+let log_picker_enabled                = false;
+let log_post_enabled                  = true;
+let log_smart_join_enabled            = false;
+let disable_prelude                   = false;
+let print_ast_before_includes_enabled = false;
+let print_ast_after_includes_enabled  = false;
+let save_post_requests_enable         = true;
+// =================================================================================================
+
+
 // =================================================================================================
 // GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
@@ -309,26 +333,6 @@ if (false)
 // LabeledValue
 // MatchResult
 //
-// -------------------------------------------------------------------------------------------------
-// variables:
-// -------------------------------------------------------------------------------------------------
-let fire_and_forget_post              = false;
-let unnecessary_choice_is_error       = false;
-let print_ast_enabled                 = false;
-let print_ast_json_enabled            = false;
-let log_enabled                       = true;
-let log_config_enabled                = true;
-let log_finalize_enabled              = false;
-let log_flags_enabled                 = false;
-let log_match_enabled                 = false;
-let log_name_lookups_enabled          = false;
-let log_picker_enabled                = false;
-let log_post_enabled                  = true;
-let log_smart_join_enabled            = false;
-let disable_prelude                   = false;
-let print_ast_before_includes_enabled = false;
-let print_ast_after_includes_enabled  = false;
-let save_post_requests_enable         = true;
 // -------------------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // -------------------------------------------------------------------------------------------------
