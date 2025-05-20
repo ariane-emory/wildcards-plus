@@ -312,23 +312,23 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
-let fire_and_forget_post        = false;
-let unnecessary_choice_is_error = false;
-let print_ast_enabled           = false;
-let print_ast_json_enabled      = false;
-let log_enabled                 = true;
-let log_config_enabled          = true;
-let log_finalize_enabled        = false;
-let log_flags_enabled           = false;
-let log_join_enabled            = false;
-let log_match_enabled           = false;
-let log_name_lookups_enabled    = false;
-let log_picker_enabled          = false;
-let log_post_enabled            = true;
-let disable_prelude             = false;
-let print_before_ast_enabled    = false;
-let print_after_ast_enabled     = false;
-let save_post_requests_enable   = true;
+let fire_and_forget_post              = false;
+let unnecessary_choice_is_error       = false;
+let print_ast_enabled                 = false;
+let print_ast_json_enabled            = false;
+let log_enabled                       = true;
+let log_config_enabled                = true;
+let log_finalize_enabled              = false;
+let log_flags_enabled                 = false;
+let log_match_enabled                 = false;
+let log_name_lookups_enabled          = false;
+let log_picker_enabled                = false;
+let log_post_enabled                  = true;
+let log_smart_join_enabled            = false;
+let disable_prelude                   = false;
+let print_ast_before_includes_enabled = false;
+let print_ast_after_includes_enabled  = false;
+let save_post_requests_enable         = true;
 // -------------------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // -------------------------------------------------------------------------------------------------
@@ -2364,7 +2364,7 @@ function smart_join(arr) {
   if (arr.length === 0) // investigate why this is necessary.
     return '';
   
-  if (log_join_enabled)
+  if (log_smart_join_enabled)
     console.log(`JOINING ${inspect_fun(arr)}`);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
@@ -2392,7 +2392,7 @@ function smart_join(arr) {
     let next_char            = null;
 
     const add_a_space = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`SPACE!`);
 
       prev_char  = ' ';
@@ -2400,7 +2400,7 @@ function smart_join(arr) {
     }
 
     const chomp_left_side = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`CHOMP LEFT!`);
       
       str      = str.slice(0, -1);
@@ -2410,7 +2410,7 @@ function smart_join(arr) {
     };
     
     const chomp_right_side = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`CHOMP RIGHT!`);
 
       arr[ix] = arr[ix].slice(1);
@@ -2419,7 +2419,7 @@ function smart_join(arr) {
     }
 
     const consume_right_word = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`CONSUME ${inspect_fun(right_word)}!`);
 
       left_word  = right_word;
@@ -2427,7 +2427,7 @@ function smart_join(arr) {
     }
 
     const move_chars_left = (n) => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`SHIFT ${n} CHARACTERS!`);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
@@ -2447,7 +2447,7 @@ function smart_join(arr) {
       next_char            = right_word[0] ?? '';
       next_char_is_escaped = right_word[0] === '\\';
 
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`ix = ${inspect_fun(ix)}, ` +
                     `str = ${inspect_fun(str)}, ` +
                     `left_word = ${inspect_fun(left_word)}, ` +         
@@ -2461,7 +2461,7 @@ function smart_join(arr) {
     update_pos_vars();
     
     if (right_word === '') {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`JUMP EMPTY!`);
 
       continue;
@@ -2497,7 +2497,7 @@ function smart_join(arr) {
     }
 
     if (right_word === '') {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`JUMP EMPTY (LATE)!`);
 
       continue;
@@ -2519,7 +2519,7 @@ function smart_join(arr) {
     consume_right_word();
   }
 
-  if (log_join_enabled)
+  if (log_smart_join_enabled)
     console.log(`JOINED ${inspect_fun(str)}`);
   
   return str;
@@ -7508,7 +7508,7 @@ async function main() {
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   let   AST          = result.value;
   
-  if (print_before_ast_enabled) {
+  if (print_ast_before_includes_enabled) {
     console.log('------------------------------------------------------------------------------------------');
     console.log(`before process_includes:`);
     console.log('------------------------------------------------------------------------------------------');
@@ -7521,7 +7521,7 @@ async function main() {
 
   AST = process_includes(AST, base_context);
 
-  if (print_after_ast_enabled) { 
+  if (print_ast_after_includes_enabled) { 
     console.log('------------------------------------------------------------------------------------------');
     console.log(`after process_includes:`);
     console.log('------------------------------------------------------------------------------------------');
