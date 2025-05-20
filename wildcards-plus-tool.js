@@ -2680,6 +2680,7 @@ function get_other_name(return_key, find_key, find_value) {
 
   // -----------------------------------------------------------------------------------------------
   // is find_value a shorthand?
+  // -----------------------------------------------------------------------------------------------
   let got     = config_key_names.find(obj => 
     obj?.shorthands?.includes(find_value_lc))
 
@@ -2692,6 +2693,7 @@ function get_other_name(return_key, find_key, find_value) {
 
   // -----------------------------------------------------------------------------------------------
   // is it just miscapitalized?
+  // -----------------------------------------------------------------------------------------------
   got = config_key_names.find(obj => {
     if (log_name_lookups_enabled)
       console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
@@ -2700,9 +2702,6 @@ function get_other_name(return_key, find_key, find_value) {
     return obj[return_key].toLowerCase() === find_value_lc;
   });
 
-  if (log_name_lookups_enabled)
-    console.log(`GOT ${return_key} ${inspect_fun(got)}`);
-  
   if (got) {
     if (log_name_lookups_enabled)
       console.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
@@ -2712,11 +2711,8 @@ function get_other_name(return_key, find_key, find_value) {
 
   // -----------------------------------------------------------------------------------------------
   // look up the alternate key:
-  got     = config_key_names.find(obj => 
-    obj[find_key].toLowerCase() === find_value_lc);
-
-  if (log_name_lookups_enabled)
-    console.log(`GOT: ${inspect_fun(got)}`);
+  // -----------------------------------------------------------------------------------------------
+  got = config_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
 
   if (got) {
     if (log_name_lookups_enabled)
@@ -2728,6 +2724,7 @@ function get_other_name(return_key, find_key, find_value) {
 
   // -----------------------------------------------------------------------------------------------
   // didn't find it on either sise, just return the argument:
+  // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
     console.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
 
