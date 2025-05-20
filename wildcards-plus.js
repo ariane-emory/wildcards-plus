@@ -7340,7 +7340,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   const munged_config           = munge_config(context.config);
   const generated_loras         = [ ...pipeline_configuration.loras ];
 
-  for (const lora of munge_config.loras)
+  for (const lora of munged_config.loras)
     add_lora_to_array(lora, generated_loras, "generated_loras");
 
   munged_config.loras = generated_loras;
