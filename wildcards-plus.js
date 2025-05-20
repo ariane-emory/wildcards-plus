@@ -2365,6 +2365,8 @@ const config_key_names = [
   { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
   { dt_name: 'model',                             automatic1111_name: 'model'                                      },
   { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
+  { dt_name: 'sampler',                           automatic1111_name: 'sampler',
+    shorthands: ['sampler_index', 'sampler_name',                                                                ] },  
   { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
   { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
   { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
@@ -2372,7 +2374,6 @@ const config_key_names = [
   { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
   { dt_name: 'width',                             automatic1111_name: 'width'                                      },
   { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
-  { dt_name: 'sampler',                           automatic1111_name: 'sampler'                                    }, // ordering significant?
   // -----------------------------------------------------------------------------------------------
   // differing keys:
   // -----------------------------------------------------------------------------------------------
@@ -2422,8 +2423,6 @@ const config_key_names = [
   { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
   { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
   { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
-  { dt_name: 'sampler',                           automatic1111_name: 'sampler_index'                              },
-  { dt_name: 'sampler',                           automatic1111_name: 'sampler_name'                               },
   { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
   { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
     shorthands: [ 'separate_clipl' ] },
