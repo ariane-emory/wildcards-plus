@@ -2218,45 +2218,52 @@ var structured_clone_indent = 0;
 
 function structured_clone(thing) {
   //throw new Error(`CLONING ${inspect_fun(thing)}`);
-  
-  console.log(`${' '.repeat(structured_clone_indent*2)}CLONING ${inspect_fun(thing)}`);
+
+  const log = msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`);
+
+  log(`CLONING ${inspect_fun(thing)}`);
 
   structured_clone_indent += 1;
-  
+
   if (thing === null || typeof thing !== "object") {
     structured_clone_indent -= 1;
-    console.log(`CLONED ${inspect_fun(thing)}`);
+    log(`CLONED ${inspect_fun(thing)}`);
     return thing;
   }
   else if (Array.isArray(thing)) {
+    const cloned =  [ ...thing.map(structured_clone) ];
     structured_clone_indent -= 1;
-    return [ ...thing.map(structured_clone) ];
+    log(`CLONED ${inspect_fun(cloned)}`);
+    return cloned;
   }
   else if (thing instanceof Set) {
-    const result = new Set();
+    const cloned = new Set();
     for (const value of thing.values()) {
-      result.add(structured_clone(value));
+      cloned.add(structured_clone(value));
     }
     structured_clone_indent -= 1;
-    return result;
+    log(`CLONED ${inspect_fun(cloned)}`);
+    return cloned;
   }
   else if (thing instanceof Map) {
-    const result = new Map();
+    const cloned = new Map();
     for (const [key, value] of thing.entries()) {
-      result.set(structured_clone(key), structured_clone(value));
+      cloned.set(structured_clone(key), structured_clone(value));
     }
     structured_clone_indent -= 1;
-    return result;
+    log(`CLONED ${inspect_fun(cloned)}`);
+    return cloned;
   }
   else {
-    const copy = {};
+    const cloned = {};
     for (const key in thing) {
       if (Object.prototype.hasOwnProperty.call(thing, key)) {
-        copy[key] = structured_clone(thing[key]);
+        cloned[key] = structured_clone(thing[key]);
       }
     }
     structured_clone_indent -= 1;
-    return copy;
+    log(`CLONED ${inspect_fun(cloned)}`);
+    return cloned;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -2760,13 +2767,13 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   config = structured_clone(config);
 
   if (is_empty_object(config))
-               return config;
+    return config;
 
-             if (config.model === '') {
-               console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
-                           `what you meant to do, your prompt template may contain an error!`);
-               delete config.model;
-             }
+  if (config.model === '') {
+    console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
+                `what you meant to do, your prompt template may contain an error!`);
+    delete config.model;
+  }
   else if (config.model) {
     config.model = config.model.toLowerCase();
 
