@@ -1578,21 +1578,6 @@ function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
 // -------------------------------------------------------------------------------------------------
 let make_rule_func = maybe_make_RE_or_Literal_from_Regexp_or_string
 // -------------------------------------------------------------------------------------------------
-function set_string_input_mode_enabled(state) {
-  string_input_mode_enabled = state;
-  return make_rule_func = state
-    ? maybe_make_RE_or_Literal_from_Regexp_or_string
-    : maybe_make_TokenLabel_from_string;
-}
-// -------------------------------------------------------------------------------------------------
-function set_log_finalize_enabled(state) {
-  return log_finalize_enabled = state;
-}
-// -------------------------------------------------------------------------------------------------
-function set_log_match_enabled(state) {
-  return log_match_enabled = state;
-}
-// -------------------------------------------------------------------------------------------------
 function compose_funs(...fns) {
   return fns.length === 0
     ? x => x
