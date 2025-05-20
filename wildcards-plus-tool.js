@@ -2192,21 +2192,23 @@ class WeightedPicker {
 
     let total_weight = 0;
 
-    // console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
+    if (log_picker_enabled)
+      console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
-      // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-      // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
-      // console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+
+      if (log_picker_enabled) {
+        console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+        console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+        console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+      }
+      
       total_weight += adjusted_weight;
     }
-    // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
-    // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
-    
-    // Since we now avoid adding options with a weight of 0, this shoul dnever be true:
+
+    // Since we now avoid adding options with a weight of 0, this should never be true:
     if (total_weight === 0) {
-      // return '';
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
                       `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
   [
