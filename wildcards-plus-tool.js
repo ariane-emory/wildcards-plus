@@ -2574,6 +2574,7 @@ const config_key_names = [
   { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
   { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
   { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
+  { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
   { dt_name: 'width',                             automatic1111_name: 'width'                                      },
   { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler'                                    }, // ordering significant?

@@ -2368,6 +2368,7 @@ const config_key_names = [
   { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
   { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
   { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
+  { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
   { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
   { dt_name: 'width',                             automatic1111_name: 'width'                                      },
   { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
