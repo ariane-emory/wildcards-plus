@@ -316,7 +316,6 @@ let fire_and_forget_post        = false;
 let unnecessary_choice_is_error = false;
 let print_ast_enabled           = false;
 let print_ast_json_enabled      = false;
-let string_input_mode_enabled   = true;
 let log_enabled                 = true;
 let log_config_enabled          = true;
 let log_finalize_enabled        = false;
@@ -362,7 +361,7 @@ class Rule {
       else 
         log(indent,
             `Matching ${this.constructor.name} ${this.toString()} at ` +
-            `char ${string_input_mode_enabled ? index : input[index]?.start}, ` +
+            `char ${index}, ` +
             `token #${index}: ` +
             `${abbreviate(input.substring(index))}`)
     }
