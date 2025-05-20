@@ -2621,7 +2621,7 @@ const config_key_names = [
     shorthands: ['neg', 'negative' ] },
   { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
   { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
-    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg' ] },
+    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
   { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
   { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
   { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
