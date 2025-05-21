@@ -3028,9 +3028,11 @@ class Context {
     this.config.loras ||= [];
     const index = this.config.loras.findIndex(existing => existing.file === lora.file);
 
-    if (index !== -1) 
+    if (index !== -1) {
+      if (! replace) return;
       this.config.splice(index, 1); // Remove the existing entry
-
+    }
+    
     this.config.loras.push(lora);
 
     if (log_config_enabled)
