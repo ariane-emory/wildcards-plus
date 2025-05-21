@@ -7228,14 +7228,6 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// class ASTUpdateNegativePrompt extends ASTNode {
-//   constructor(value, assign) {
-//     super();
-//     this.value  = value
-//     this.assign = assign;
-//   }
-// }
-// -------------------------------------------------------------------------------------------------
 class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
     super();
