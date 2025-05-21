@@ -7701,8 +7701,8 @@ async function main() {
   if (! result.is_finished)
     throw new Error(`error parsing prompt at ${result.index}!`);
 
-  const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   let   AST          = result.value;
+  const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   
   if (print_ast_before_includes_enabled) {
     console.log('------------------------------------------------------------------------------------------');
@@ -7728,15 +7728,12 @@ async function main() {
     console.log(`${JSON.stringify(AST)}`);
   }
   
-  // base_context.reset_temporaries(); // might not need to do this here after all?
-
-  let posted_count = 0;
-  let prior_prompt = null;
+  let posted_count        = 0;
+  let prior_prompt        = null;
   let prior_configuration = null;
   
   const stash_priors = (prompt, configuration) => {
-    prior_prompt = prompt;
-    // prior_negative_prompt = negative_prompt;
+    prior_prompt        = prompt;
     prior_configuration = structured_clone(configuration);
   };
 
@@ -7791,7 +7788,7 @@ async function main() {
         const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
               `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
               `POST the prior prompt)? `;
-        const answer = await ask(question);
+        const answer   = await ask(question);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
           stash_priors(prompt, context.configuration);
@@ -7804,7 +7801,7 @@ async function main() {
             [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
             
             console.log(`POSTing prior prompt '${prompt}'`);
-
+            
             do_post(prompt, context.configuration);
             
             continue;
@@ -7817,8 +7814,6 @@ async function main() {
           console.log(`------------------------------------------------------------------------------------------`);
           const parsed    = parseInt(answer);
           const gen_count = isNaN(parsed) ? 1 : parsed;  
-          
-          // console.log(`parsed = '${parsed}', count = '${count}'`);
           
           for (let iix = 0; iix < gen_count; iix++)
             do_post(prompt, context.configuration);
@@ -7839,11 +7834,3 @@ main().catch(err => {
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
-
-// console.log();
-// console.log(json_number.match('0.7'));
-// console.log(optional(json_exponentPart, 1).match(''));
-
-// console.log(json_number.match('0.8'));
-// console.log(optional(json_exponentPart, 1).match(''));
-
