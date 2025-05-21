@@ -1828,10 +1828,7 @@ const json_number = xform(reify_json_number,
                                 // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
                                 return parseFloat(arr[0]);
                               }, optional(json_fractionalPart, 0.0)),
-                              xform(x => {
-                                console.log(`PARSEINT(${typeof x} ${inspect_fun(x)})`);
-                                return parseInt(x);
-                              }, first(optional(json_exponentPart, 1)))));
+                              xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // -------------------------------------------------------------------------------------------------
