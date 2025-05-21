@@ -2707,130 +2707,6 @@ function get_our_name(name) {
   
   return res;
 }
-// -------------------------------------------------------------------------------------------------
-function munge_configuration(configuration, is_dt_hosted = dt_hosted) {
-  // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
-  
-  const munged_configuration = structured_clone(configuration);
-
-  if (configuration.loras && munged_configuration.loras && configuration.loras === munged_configuration.loras)
-    throw new Exception("Oh no, configuration.loras === munged_configuration.loras!");
-  
-  if (is_empty_object(munged_configuration))
-    return munged_configuration;
-
-  if (munged_configuration.model === '') {
-    console.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-                `what you meant to do, your prompt template may contain an error!`);
-    delete munged_configuration.model;
-  }
-  else if (munged_configuration.model) {
-    munged_configuration.model = munged_configuration.model.toLowerCase();
-
-    if (munged_configuration.model.endsWith('.ckpt')) {
-      // do nothing
-    }
-    else if (munged_configuration.model.endsWith('_svd')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else if (munged_configuration.model.endsWith('_q5p')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else if (munged_configuration.model.endsWith('_q8p')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else if (munged_configuration.model.endsWith('_f16')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else {
-      munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
-    }
-  }
-  
-  // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-  if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
-    const lc = munged_configuration.sampler.toLowerCase();
-    // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
-    const got = dt_samplers_caps_correction.get(lc);
-
-    if (got)
-      munged_configuration.sampler = got;
-  }
-  
-  if (is_dt_hosted) { // running in DT, sampler needs to be an index:
-    if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-      console.log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-                  `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
-      munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
-    }
-    const corrected = new Set();
-    
-    // for (const [dt_name, automatic1111_name] of munged_configuration_key_names) {
-    //   if (munged_configuration[automatic1111_name] !== undefined) {
-    //     if (corrected.has(dt_name))
-    //       continue;
-    
-    //     corrected.add(dt_name);
-
-    //     if (automatic1111_name === dt_name)
-    //       continue;
-    
-    //     console.log(`Correcting munged_configuration.${automatic1111_name} = ` +
-    //                 `${munged_configuration[automatic1111_name]} to ` +
-    //                 `munged_configuration.${dt_name} = ${munged_configuration[automatic1111_name]}.`);
-    //     munged_configuration[dt_name] = munged_configuration[automatic1111_name];
-    //     delete munged_configuration[automatic1111_name];
-    //   }
-    // }
-  }
-  else { // running in Node.js, sampler needs to be a string:
-    if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-                  `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
-      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
-    }
-
-    // const corrected = new Set();
-    
-    // for (const [dt_name, automatic1111_name] of munged_configuration_key_names) {      
-    //   if (munged_configuration[dt_name] !== undefined) {
-    //     if (corrected.has(dt_name))
-    //       continue;
-    
-    //     corrected.add(dt_name);
-
-    //     if (automatic1111_name === dt_name)
-    //       continue;
-    
-    //     console.log(`Correcting munged_configuration.${dt_name} = ` +
-    //                 `${inspect_fun(munged_configuration[dt_name])} to ` +
-    //                 `munged_configuration.${automatic1111_name} = ${inspect_fun(munged_configuration[dt_name])}.`);
-    //     munged_configuration[automatic1111_name] = munged_configuration[dt_name];
-    //     delete munged_configuration[dt_name];
-    //   }
-    // }
-  }
-
-  // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if (! munged_configuration.seed) {
-    const n_iter_key = get_our_name('n_iter');
-
-    if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
-      if (log_configuration_enabled)
-        console.log(`Fixing seed to -1 due to n_iter > 1.`);
-
-      munged_configuration.seed = -1;
-    }
-    else if (typeof munged_configuration.seed !== 'number') {
-      munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
-    }
-  }
-
-  if (log_configuration_enabled)
-    console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
-
-  return munged_configuration;
-}
 // =================================================================================================
 // END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
 // =================================================================================================
@@ -2867,7 +2743,7 @@ class Context {
     this.named_wildcards              = named_wildcards;
     this.noisy                        = noisy;
     this.files                        = files;
-    this.configuration                = configuration;
+    this.configuration                = structured_clone(configuration, { unshare: true });
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
@@ -3022,8 +2898,7 @@ class Context {
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
       files:                        this.files,
-      configuration:                       structured_clone(this.configuration),
-      // add_loras:                    this.add_loras,
+      configuration:                this.configuration,
       top_file:                     false, // deliberately not copied!
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
@@ -3031,6 +2906,88 @@ class Context {
       prior_pick_multiple_priority: this.pick_multiple_priority,      
       negative_prompt:              this.negative_prompt,
     });
+  }
+  // -------------------------------------------------------------------------------------------------
+  munge_configuration(is_dt_hosted = dt_hosted) {
+    // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
+    
+    const munged_configuration = structured_clone(this.configuration);
+
+    if (is_empty_object(munged_configuration))
+      return munged_configuration;
+
+    if (munged_configuration.model === '') {
+      console.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
+                  `what you meant to do, your prompt template may contain an error!`);
+      delete munged_configuration.model;
+    }
+    else if (munged_configuration.model) {
+      munged_configuration.model = munged_configuration.model.toLowerCase();
+
+      if (munged_configuration.model.endsWith('.ckpt')) {
+        // do nothing
+      }
+      else if (munged_configuration.model.endsWith('_svd')) {
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      }
+      else if (munged_configuration.model.endsWith('_q5p')) {
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      }
+      else if (munged_configuration.model.endsWith('_q8p')) {
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      }
+      else if (munged_configuration.model.endsWith('_f16')) {
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      }
+      else {
+        munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
+      }
+    }
+    
+    // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
+    if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
+      const lc = munged_configuration.sampler.toLowerCase();
+      // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
+      const got = dt_samplers_caps_correction.get(lc);
+
+      if (got)
+        munged_configuration.sampler = got;
+    }
+    
+    if (is_dt_hosted) { // running in DT, sampler needs to be an index:
+      if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
+        console.log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+                    `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
+        munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
+      }
+      const corrected = new Set();
+    }
+    // when running in Node.js, sampler needs to be a string::
+    else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
+      console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+                  `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
+    }
+
+    // 'fix' seed if n_iter > 1, doing this seems convenient?
+    if (! munged_configuration.seed) {
+      const n_iter_key = get_our_name('n_iter');
+
+      if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
+        if (log_configuration_enabled)
+          console.log(`Fixing seed to -1 due to n_iter > 1.`);
+
+        munged_configuration.seed = -1;
+      }
+      else if (typeof munged_configuration.seed !== 'number') {
+        munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
+      }
+    }
+
+    if (log_configuration_enabled)
+      console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+
+    this.configuration =  munged_configuration;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -7663,9 +7620,9 @@ for (let ix = 0; ix < batch_count; ix++) {
 
   // expand the wildcards using a cloned context and generate a new configuration:
   
-  const context          = base_context.clone();
-  const prompt = expand_wildcards(AST, context);
-  context.configuration         = munge_configuration(context.configuration);
+  const context = base_context.clone();
+  const prompt  = expand_wildcards(AST, context);
+  context.munge_configuration();
 
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`GENERATED CONFIGURATION:`);
