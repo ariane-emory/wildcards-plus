@@ -127,48 +127,48 @@
 // =================================================================================================
 //|
   4 ?sdxl_on #sdxl_selected
-  { ?sdxl_lightning_on { 1 <lora:sdxl_lightning_4step_lora:1.0> %steps = 4
-                       | 2 <lora:sdxl_lightning_8step_lora:1.0> %steps = 8 } }
+  // { ?sdxl_lightning_on { 1 <lora:sdxl_lightning_4step_lora:1.0> %steps = 4
+  //                      | 2 <lora:sdxl_lightning_8step_lora:1.0> %steps = 8 } }
 
   { @1-2lora | @1-3lora }
 
-  { !sdxl_lightning_on %steps = { \35 | \40 | \45 } }
+  // { !sdxl_lightning_on %steps = { \35 | \40 | \45 } }
   // { !sdxl_lightning_on %steps = 30 }   
   
   // possible resolutions:
-  { 4            %config += { "width": 1280, "height": 640  }
-  | 4            %config += { "width": 1152, "height": 576  }
-  | 4            %config += { "width": 1024, "height": 512  }
-  | 3 ?square_on %config += { "width": 1024, "height": 1024 }
-  | 3 ?square_on %config += { "width": 768,  "height": 768  }
-  | 3 ?square_on %config += { "width": 640,  "height": 640  }
-  }
+  // { 4            %config += { "width": 1280, "height": 640  }
+  // | 4            %config += { "width": 1152, "height": 576  }
+  // | 4            %config += { "width": 1024, "height": 512  }
+  // | 3 ?square_on %config += { "width": 1024, "height": 1024 }
+  // | 3 ?square_on %config += { "width": 768,  "height": 768  }
+  // | 3 ?square_on %config += { "width": 640,  "height": 640  }
+  // }
 
-  %n_iter    = 2
+  // %n_iter    = 2
 
-  // three possible 'shift' values:
-  %shift = { \1.00 | \1.10 | \1.20 }
+  // // three possible 'shift' values:
+  // %shift = { \1.00 | \1.10 | \1.20 }
 
-  // two sampler possibilities:
-  { ?sdxl_lightning_on %sampler = "LCM" }
-  { !sdxl_lightning_on { %sampler = "DPM++ SDE Karras" | %sampler = "DPM++ 2M Karras" | %sampler = "Euler A" } }
+  // // two sampler possibilities:
+  // { ?sdxl_lightning_on %sampler = "LCM" }
+  // { !sdxl_lightning_on { %sampler = "DPM++ SDE Karras" | %sampler = "DPM++ 2M Karras" | %sampler = "Euler A" } }
 
-  // eight possible CFG values:
-  %cfg_scale = { \3.0 | \4.0 | \5.0 | \6.0 | \7.0 | \8.0 | \9.0 | \10.0 }
+  // // eight possible CFG values:
+  // %cfg_scale = { \3.0 | \4.0 | \5.0 | \6.0 | \7.0 | \8.0 | \9.0 | \10.0 }
 
-  // lots of models pick from:
-  { 4 %model = "bookIllustrationChar_v10"
-  | 4 %model = "challengexlv10yoursecret_v10"
-  | 0 %model = "cyberrealisticpony_v100" {@pony_score_7_up|@pony_score_8_up}
-  | 0 %model = "cyberrealisticpony_catalyst_v11_clip_vit_l14"
-  | 0 %model = "cyberrealisticxl_v57"
-  | 4 %model = "nightvisionxl_v900"
-  | 8 %model = "oldmaster_v30"
-  | 4 %model = "zavychromaxl_v100"
-  | 4 %model = "comicbookxl_v10"
-  | 4 %model = "plantmilkmodelsuite_hempii"
-  | 4 %model = "juggernaut_xl_ragnarok"
-  }
+  // // lots of models pick from:
+  // { 4 %model = "bookIllustrationChar_v10"
+  // | 4 %model = "challengexlv10yoursecret_v10"
+  // | 0 %model = "cyberrealisticpony_v100" {@pony_score_7_up|@pony_score_8_up}
+  // | 0 %model = "cyberrealisticpony_catalyst_v11_clip_vit_l14"
+  // | 0 %model = "cyberrealisticxl_v57"
+  // | 4 %model = "nightvisionxl_v900"
+  // | 8 %model = "oldmaster_v30"
+  // | 4 %model = "zavychromaxl_v100"
+  // | 4 %model = "comicbookxl_v10"
+  // | 4 %model = "plantmilkmodelsuite_hempii"
+  // | 4 %model = "juggernaut_xl_ragnarok"
+  // }
 }
 
 // // =======================================================================================
