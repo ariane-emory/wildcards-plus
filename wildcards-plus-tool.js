@@ -2382,9 +2382,8 @@ function add_lora_to_context(lora, context, indent = 0) {
   const arr   = context.config.loras??[];
   const index = arr.findIndex(existing => existing.file === lora.file);
 
-  if (index !== -1) {
+  if (index !== -1) 
     arr.splice(index, 1); // Remove the existing entry
-  }
   
   context.config.loras = [ ...arr, lora ];
 
