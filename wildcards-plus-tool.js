@@ -202,8 +202,10 @@ function process_includes(thing, context = new Context()) {
 // =================================================================================================
 // set inspect_fun appropriately for node.js:
 // =================================================================================================
-const inspect_fun = (thing, no_break = false) => util.inspect(thing, no_break ? { breakLength: Infinity } : {});
-const dt_hosted   = false;
+const inspect_fun           = (thing, no_break = false) =>
+      util.inspect(thing, no_break ? { breakLength: Infinity } : {});
+const dt_hosted             = false;
+const test_structured_clone = true;
 // =================================================================================================
 
 
@@ -213,8 +215,9 @@ if (false)
   // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
   // ===============================================================================================
 {
-  inspect_fun = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
-  dt_hosted   = true;
+  inspect_fun           = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
+  dt_hosted             = true;
+  test_structured_clone = false;
 }
 // -------------------------------------------------------------------------------------------------
 
