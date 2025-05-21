@@ -31,7 +31,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_structured_clone_enabled      = true;
+let log_structured_clone_enabled      = false;
 let log_smart_join_enabled            = false;
 let log_expand_and_walk_enabled       = false;
 let disable_prelude                   = false;
@@ -2710,7 +2710,6 @@ function get_our_name(name) {
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   // console.log(`MUNGING (with ${config?.loras?.length} loras) ${inspect_fun(config)}`);
-  console.log(`MUNGING CONFIG...`);
   
   const munged_config = structured_clone(config);
 
