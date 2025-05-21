@@ -6508,7 +6508,6 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   };
   // -----------------------------------------------------------------------------------------------
   const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
-  /* : msg => undefined */;
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
