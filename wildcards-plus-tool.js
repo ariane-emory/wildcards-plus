@@ -2818,7 +2818,7 @@ function get_our_name(name) {
 
 
 // =================================================================================================
-// HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
+// Context CLASS AND HELPER FUNCTIONS FOR DEALING WITH THE PRELUDE:
 // =================================================================================================
 var last_context_id = 0;
 // -------------------------------------------------------------------------------------------------
@@ -6370,7 +6370,7 @@ function load_prelude(into_context = new Context()) {
   return into_context;
 }
 // =================================================================================================
-// END OF HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE SECTION.
+// END OF Context CLASS AND HELPER FUNCTIONS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 
 
