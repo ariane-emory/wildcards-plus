@@ -203,7 +203,6 @@ function process_includes(thing, context = new Context()) {
 // set inspect_fun appropriately for node.js:
 // =================================================================================================
 const inspect_fun = (thing, no_break = false) => util.inspect(thing, no_break ? { breakLength: Infinity } : {});
-// const clone_fun   = structured_clone;
 const dt_hosted   = false;
 //  dt_hosted       = true; // uncomment to lie and force use of the DT-legal syntax/configs for debugging
 // =================================================================================================
