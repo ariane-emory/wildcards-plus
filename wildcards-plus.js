@@ -7569,8 +7569,6 @@ Prompt.finalize();
 // -------------------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
-// v DT's env doesn't seem to have structuredClone :(
-const pipeline_configuration      = structured_clone(pipeline.configuration);
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "";
 let   prompt_string               = ui_prompt;
@@ -7627,12 +7625,14 @@ console.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
 // -------------------------------------------------------------------------------------------------
 // parse the prompt_string here:
 // -------------------------------------------------------------------------------------------------
+
 const parse_result     = Prompt.match(prompt_string);
 
 if (! parse_result.is_finished)
   throw new Error(`error parsing prompt!`);
 
 const AST              = parse_result.value;
+
 // -------------------------------------------------------------------------------------------------
 
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
@@ -7665,7 +7665,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   // expand the wildcards using a cloned context and generate a new configuration:
   
   const context          = base_context.clone();
-  context.config         = { ...structured_clone(pipeline_configuration, { unshare: true }),
+  context.config         = { ...structured_clone(pipeline.configuration, { unshare: true }),
                              ...context.config }
   const generated_prompt = expand_wildcards(AST, context);
   context.config         = munge_config(context.config);
