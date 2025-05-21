@@ -2223,13 +2223,11 @@ class WeightedPicker {
 // =================================================================================================
 // DT's env doesn't seem to have structuredClone, so we'll define our own:
 // -------------------------------------------------------------------------------------------------
-function structured_clone(value, options = {}) {
-  const {
-    seen = new WeakMap(),           // For shared reference reuse
-    ancestors = new WeakSet(),      // For cycle detection
-    unshare = false
-  } = options;
-
+function structured_clone(value, {
+  seen = new WeakMap(),           // For shared reference reuse
+  ancestors = new WeakSet(),      // For cycle detection
+  unshare = false
+} = {}) {
   if (value === null || typeof value !== "object") {
     return value;
   }
