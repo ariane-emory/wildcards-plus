@@ -7548,12 +7548,12 @@ async function main() {
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
   let posted_count = 0;
-  let prompt       = undefined; // not null
-  let config       = null;
+  // let prompt       = undefined; // not null
+  // let config       = null;
   let prior_prompt = null;
   let prior_config = null;
   
-  const stash_priors = () => {
+  const stash_priors = (prompt, config) => {
     prior_prompt = prompt;
     // prior_negative_prompt = negative_prompt;
     prior_config = clone_fun(config);
@@ -7576,9 +7576,9 @@ async function main() {
     console.log('==========================================================================================');
 
     const context    = base_context.clone();
-    prompt  = expand_wildcards(AST, context);
+    const prompt     = expand_wildcards(AST, context);
     // negative_prompt  = context.negative_prompt;
-    config           = munge_config(context.config);
+    const config     = munge_config(context.config);
     const have_loras = context.add_loras && context.add_loras.length > 0;
 
     if (log_flags_enabled || log_config_enabled)
@@ -7628,7 +7628,7 @@ async function main() {
         const answer = await ask(question);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
-          stash_priors();
+          stash_priors(prompt, config);
           continue;
         }
 
@@ -7661,7 +7661,7 @@ async function main() {
       }
     }
     
-    stash_priors();
+    stash_priors(prompt, config);
   }
 
   console.log('==========================================================================================');
