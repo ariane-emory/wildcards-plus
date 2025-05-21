@@ -2918,9 +2918,6 @@ function munge_configuration(configuration, is_dt_hosted = dt_hosted) {
   
   const munged_configuration = structured_clone(configuration);
 
-  if (configuration.loras && munged_configuration.loras && configuration.loras === munged_configuration.loras)
-    throw new Exception("Oh no, configuration.loras === munged_configuration.loras!");
-  
   if (is_empty_object(munged_configuration))
     return munged_configuration;
 
@@ -2969,51 +2966,12 @@ function munge_configuration(configuration, is_dt_hosted = dt_hosted) {
       munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
     }
     const corrected = new Set();
-    
-    // for (const [dt_name, automatic1111_name] of munged_configuration_key_names) {
-    //   if (munged_configuration[automatic1111_name] !== undefined) {
-    //     if (corrected.has(dt_name))
-    //       continue;
-    
-    //     corrected.add(dt_name);
-
-    //     if (automatic1111_name === dt_name)
-    //       continue;
-    
-    //     console.log(`Correcting munged_configuration.${automatic1111_name} = ` +
-    //                 `${munged_configuration[automatic1111_name]} to ` +
-    //                 `munged_configuration.${dt_name} = ${munged_configuration[automatic1111_name]}.`);
-    //     munged_configuration[dt_name] = munged_configuration[automatic1111_name];
-    //     delete munged_configuration[automatic1111_name];
-    //   }
-    // }
   }
-  else { // running in Node.js, sampler needs to be a string:
-    if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-                  `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
-      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
-    }
-
-    // const corrected = new Set();
-    
-    // for (const [dt_name, automatic1111_name] of munged_configuration_key_names) {      
-    //   if (munged_configuration[dt_name] !== undefined) {
-    //     if (corrected.has(dt_name))
-    //       continue;
-    
-    //     corrected.add(dt_name);
-
-    //     if (automatic1111_name === dt_name)
-    //       continue;
-    
-    //     console.log(`Correcting munged_configuration.${dt_name} = ` +
-    //                 `${inspect_fun(munged_configuration[dt_name])} to ` +
-    //                 `munged_configuration.${automatic1111_name} = ${inspect_fun(munged_configuration[dt_name])}.`);
-    //     munged_configuration[automatic1111_name] = munged_configuration[dt_name];
-    //     delete munged_configuration[dt_name];
-    //   }
-    // }
+  // when running in Node.js, sampler needs to be a string::
+  else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
+    console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+                `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+    munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
   }
 
   // 'fix' seed if n_iter > 1, doing this seems convenient?
