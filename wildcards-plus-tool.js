@@ -7072,7 +7072,7 @@ class ASTUpdateScalar extends ASTNode  {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `$${this.destination} ${this.assign? '==' : '+='} ${this.destination}`;
+    return `$${this.destination} ${this.assign? '=' : '+='} ${this.destination}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7099,6 +7099,10 @@ class ASTLatchNamedWildcard extends ASTNode {
     super();
     this.name = name;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@#${this.name}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Unlatch a NamedWildcard:
@@ -7107,6 +7111,10 @@ class ASTUnlatchNamedWildcard extends ASTNode {
   constructor(name) {
     super();
     this.name = name;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@!${this.name}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7118,7 +7126,7 @@ class ASTNamedWildcardDefinition extends ASTNode {
     this.destination = destination;
     this.wildcard    = wildcard;
   }
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `@${this.destination} = ${this.wildcard}`;
   }
@@ -7131,6 +7139,10 @@ class ASTLatchedNamedWildcardedValue extends ASTNode {
     super();
     this.latched_value  = latched_value;
     this.original_value = original_value;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return this.original_value.tosTring();
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7145,18 +7157,18 @@ class ASTAnonWildcard  extends ASTNode {
     // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
-    // return `{ ${this.picker.options.map(x => `${x.value.constructor.name} ${x.value}`  ).join(" | ")} }`;
-    // return `{ ${this.picker.options.map(x => `${typeof x === 'object' ? x.constructor.name : typeof x} ${x.value.toString()}`).join(" | ")} }`;
-  }
-  // -----------------------------------------------------------------------------------------------
   pick(...args) {
     return this.picker.pick(...args);
   }
   // -----------------------------------------------------------------------------------------------
   pick_one(...args) {
     return this.picker.pick_one(...args);
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
+    // return `{ ${this.picker.options.map(x => `${x.value.constructor.name} ${x.value}`  ).join(" | ")} }`;
+    // return `{ ${this.picker.options.map(x => `${typeof x === 'object' ? x.constructor.name : typeof x} ${x.value.toString()}`).join(" | ")} }`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7196,13 +7208,17 @@ class ASTAnonWildcardAlternative extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Directives:
+// ASTInclude:
 // -------------------------------------------------------------------------------------------------
 class ASTInclude extends ASTNode {
   constructor(args) {
     super();
     // this.directive = directive;
     this.args      = args;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `include(${this.args})`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7211,6 +7227,11 @@ class ASTUpdateConfigurationUnary extends ASTNode {
     super();
     this.value = value;
     this.assign = assign; // otherwise update
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%config ${this.assign? '=' : '+='} ` +
+      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7233,6 +7254,10 @@ class ASTSetPickMultiple extends ASTNode {
     super();
     this.limited_content = limited_content;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%set-pick-multiple = ${this.limited_content}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTSetPickSingle extends ASTNode {
@@ -7240,17 +7265,29 @@ class ASTSetPickSingle extends ASTNode {
     super();
     this.limited_content = limited_content;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%set-pick-single = ${this.limited_content}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTRevertPickMultiple extends ASTNode {
   constructor() {
     super();
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%revert-pick-multiple`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTRevertPickSingle extends ASTNode {
   constructor() {
     super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%revert-pick-single`;
   }
 }
 // =================================================================================================
