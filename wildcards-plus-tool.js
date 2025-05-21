@@ -2326,13 +2326,8 @@ function add_lora_to_context(lora, context, indent = 0) {
   if (index !== -1) {
     arr.splice(index, 1); // Remove the existing entry
   }
-
-  arr.push(lora); // Add the new entry at the end
-
-  if (arr !== context.config.loras)
-    throw new Error("add_lora_to_context: arr !== array");
-
-  context.config.loras = arr;
+  
+  context.config.loras = [ ...arr, lora ];
 
   log(`ADDED ${inspect_fun(lora)} TO ${context}`);
 }
