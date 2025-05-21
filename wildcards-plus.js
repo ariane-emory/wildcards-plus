@@ -2020,65 +2020,163 @@ class WeightedPicker {
 // =================================================================================================
 // DT's env doesn't seem to have structuredClone, so we'll define our own:
 // -------------------------------------------------------------------------------------------------
-let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =>  {
+// let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =>  {
+//   if (value === null || typeof value !== "object") {
+//     return value;
+//   }
+
+//   if (!unshare) {
+//     if (seen.has(value)) {
+//       return seen.get(value); // Reuse existing clone
+//     }
+//   }
+
+//   // Handle Array
+//   if (Array.isArray(value)) {
+//     const clone = [];
+//     if (!unshare) seen.set(value, clone);
+//     for (const item of value) {
+//       clone.push(structured_clone(item, { seen, unshare }));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Set
+//   if (value instanceof Set) {
+//     const clone = new Set();
+//     if (!unshare) seen.set(value, clone);
+//     for (const item of value) {
+//       clone.add(structured_clone(item, { seen, unshare }));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Map
+//   if (value instanceof Map) {
+//     const clone = new Map();
+//     if (!unshare) seen.set(value, clone);
+//     for (const [k, v] of value.entries()) {
+//       clone.set(structured_clone(k, { seen, unshare }),
+//                 structured_clone(v, { seen, unshare }));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Date
+//   if (value instanceof Date) {
+//     return new Date(value);
+//   }
+
+//   // Handle RegExp
+//   if (value instanceof RegExp) {
+//     return new RegExp(value);
+//   }
+
+//   // Handle plain Object
+//   const clone = {};
+//   if (!unshare) seen.set(value, clone);
+//   for (const key of Object.keys(value)) {
+//     clone[key] = structured_clone(value[key], { seen, unshare });
+//   }
+//   return clone;
+// }
+// -------------------------------------------------------------------------------------------------
+function structured_clone(value, options = {}) {
+  const {
+    seen = new WeakMap(),           // For shared reference reuse
+    ancestors = new WeakSet(),      // For cycle detection
+    unshare = false
+  } = options;
+
   if (value === null || typeof value !== "object") {
     return value;
   }
 
-  if (!unshare) {
-    if (seen.has(value)) {
-      return seen.get(value); // Reuse existing clone
-    }
+  if (ancestors.has(value)) {
+    throw new TypeError("Cannot clone cyclic structure");
   }
 
-  // Handle Array
+  if (!unshare && seen.has(value)) {
+    return seen.get(value);
+  }
+
+  ancestors.add(value); // Add to call stack tracking
+
+  let clone;
+
   if (Array.isArray(value)) {
-    const clone = [];
+    clone = [];
     if (!unshare) seen.set(value, clone);
     for (const item of value) {
-      clone.push(structured_clone(item, { seen, unshare }));
+      clone.push(structured_clone(item, { seen, ancestors, unshare }));
     }
-    return clone;
-  }
-
-  // Handle Set
-  if (value instanceof Set) {
-    const clone = new Set();
+  } else if (value instanceof Set) {
+    clone = new Set();
     if (!unshare) seen.set(value, clone);
     for (const item of value) {
-      clone.add(structured_clone(item, { seen, unshare }));
+      clone.add(structured_clone(item, { seen, ancestors, unshare }));
     }
-    return clone;
-  }
-
-  // Handle Map
-  if (value instanceof Map) {
-    const clone = new Map();
+  } else if (value instanceof Map) {
+    clone = new Map();
     if (!unshare) seen.set(value, clone);
     for (const [k, v] of value.entries()) {
-      clone.set(structured_clone(k, { seen, unshare }),
-                structured_clone(v, { seen, unshare }));
+      clone.set(
+        structured_clone(k, { seen, ancestors, unshare }),
+        structured_clone(v, { seen, ancestors, unshare })
+      );
     }
-    return clone;
+  } else if (value instanceof Date) {
+    clone = new Date(value);
+  } else if (value instanceof RegExp) {
+    clone = new RegExp(value);
+  } else {
+    clone = {};
+    if (!unshare) seen.set(value, clone);
+    for (const key of Object.keys(value)) {
+      clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
+    }
   }
 
-  // Handle Date
-  if (value instanceof Date) {
-    return new Date(value);
-  }
+  ancestors.delete(value); // Cleanup recursion tracking
 
-  // Handle RegExp
-  if (value instanceof RegExp) {
-    return new RegExp(value);
-  }
-
-  // Handle plain Object
-  const clone = {};
-  if (!unshare) seen.set(value, clone);
-  for (const key of Object.keys(value)) {
-    clone[key] = structured_clone(value[key], { seen, unshare });
-  }
   return clone;
+}
+// -------------------------------------------------------------------------------------------------
+if (false) {
+  const shared = { msg: "hi" };
+  let obj = { a: shared, b: shared };
+  // test #1: preserve shared references, this one seems to work:
+  {
+    const clone = structured_clone(obj);
+    if (clone.a !== clone.b)
+      throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
+    console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
+  }
+  // test #2: break shared references (unshare), this one seems to work:
+  {
+    const clone = structured_clone(obj, { unshare: true });
+    if (clone.a === clone.b)
+      throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
+    console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
+  }
+  // test #4: should fail do to cycle, with unshare = false:
+  try {
+    obj = {};
+    obj.self = obj; // Create a cycle
+    structured_clone(obj);
+    throw new Error(`test #3 should have failed.`);
+  } catch {
+    console.log(`test #3 failed as intended.`);
+  }
+  // test #4: should fail do to cycle, with unshare = true:
+  try {
+    obj = {};
+    obj.self = obj; // Create a cycle
+    structured_clone(obj, { unshare: true }); 
+    throw new Error(`test #4 should have failed.`);
+  } catch {
+    console.log(`test #4 failed as intended.`);
+  }
 }
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
