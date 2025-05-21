@@ -2859,12 +2859,15 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
-    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     this.configuration.loras ||= [];
+
+    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
 
     if (index !== -1) {
-      if (! replace) return;
+      if (! replace)
+        return;
+      
       this.configuration.splice(index, 1); // Remove the existing entry
     }
     
@@ -2875,41 +2878,19 @@ class Context {
   }
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
-    // if (! Array.isArray(test_flag))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
-
-    // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
-    // console.log(msg);
-    // const ret = this.flags.includes(test_flag);
-    
     let res = false;
 
     for (const flag of this.flags) {
-      // console.log(`${inspect_fun(flag)} === ` +
-      //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
-      
       if (arr_is_prefix_of_arr(test_flag, flag)) {
-        // console.log (`FOUND IT!`);
         res = true;
         break;
       }
     }
-
-    // if (! r)
-    //   console.log(`DIDN'T FIND IT...`);
-    
-    // if (ret  !== r)
-    //   throw new Error(`${msg} ret = ${inspect_fun(ret)}, r = ${inspect_fun(r)}`);
     
     return res;
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(new_flag) {
-    // if (! Array.isArray(new_flag))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(new_flag)}`);
-
-    // log_flags_enabled = true;
-    
     if (log_flags_enabled)
       console.log(`\nADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
 
@@ -2940,15 +2921,10 @@ class Context {
       return true;
     });
 
-    // log_flags_enabled = false;
-
     this.flags.push(new_flag);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
-    // if (! Array.isArray(flag))
-    //   throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
-
     if (log_flags_enabled)
       console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
@@ -2956,10 +2932,7 @@ class Context {
 
     if (log_flags_enabled)
       console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-    
-    // if (this.flags.includes(undefined))
-    //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-  }
+      }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
     this.flags = [];
@@ -2990,7 +2963,6 @@ class Context {
     console.log(`CLONED CONTEXT`);
     
     return copy;
-
   }
   // -----------------------------------------------------------------------------------------------
   shallow_copy() {
@@ -3029,40 +3001,34 @@ class Context {
       if (munged_configuration.model.endsWith('.ckpt')) {
         // do nothing
       }
-      else if (munged_configuration.model.endsWith('_svd')) {
+      else if (munged_configuration.model.endsWith('_svd')) 
         munged_configuration.model = `${munged_configuration.model}.ckpt`;
-      }
-      else if (munged_configuration.model.endsWith('_q5p')) {
+      else if (munged_configuration.model.endsWith('_q5p')) 
         munged_configuration.model = `${munged_configuration.model}.ckpt`;
-      }
-      else if (munged_configuration.model.endsWith('_q8p')) {
+      else if (munged_configuration.model.endsWith('_q8p')) 
         munged_configuration.model = `${munged_configuration.model}.ckpt`;
-      }
-      else if (munged_configuration.model.endsWith('_f16')) {
+      else if (munged_configuration.model.endsWith('_f16')) 
         munged_configuration.model = `${munged_configuration.model}.ckpt`;
-      }
-      else {
+      else 
         munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
-      }
+      
     }
     
     // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
     if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
-      const lc = munged_configuration.sampler.toLowerCase();
-      // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
+      const lc  = munged_configuration.sampler.toLowerCase();
       const got = dt_samplers_caps_correction.get(lc);
 
       if (got)
         munged_configuration.sampler = got;
     }
     
-    if (is_dt_hosted) { // running in DT, sampler needs to be an index:
+    if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
       if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
         console.log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
                     `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
         munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
       }
-      const corrected = new Set();
     }
     // when running in Node.js, sampler needs to be a string::
     else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
