@@ -2293,7 +2293,7 @@ function structured_clone(value, {
   return clone;
 }
 // -------------------------------------------------------------------------------------------------
-if (true) {
+if (test_structured_clone) {
   const shared = { msg: "hi" };
   let obj = { a: shared, b: shared };
   // test #1: preserve shared references, this one seems to work:
