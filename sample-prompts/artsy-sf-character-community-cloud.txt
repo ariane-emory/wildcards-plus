@@ -486,7 +486,7 @@
  {|futuristic,}
  {|extremely detailed,}
  {@0-2,colour_modifiers,}
- {?wizards_artist in the style of @wizards_artists, @wizards_artist_styles,}
+ // {?wizards_artist in the style of @wizards_artists, @wizards_artist_styles,}
 }
 
 // =================================================================================================
