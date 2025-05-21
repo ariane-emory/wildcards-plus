@@ -2292,19 +2292,19 @@ class WeightedPicker {
 //   }
 // }
 // -------------------------------------------------------------------------------------------------
-function structured_clone(value, seen = new WeakMap()) {
+let structured_clone = (value, seen = new WeakMap()) => {
   if (value === null || typeof value !== "object") {
     return value;
   }
 
   if (seen.has(value)) {
-    throw new TypeError("Cannot clone cyclic structures");
+    return seen.get(value); // Return existing clone, not an error
   }
 
-  // Handle arrays
+  // Handle Array
   if (Array.isArray(value)) {
     const clone = [];
-    seen.set(value, clone);
+    seen.set(value, clone); // Store early to support self-reference
     for (const item of value) {
       clone.push(structured_clone(item, seen));
     }
@@ -2341,7 +2341,7 @@ function structured_clone(value, seen = new WeakMap()) {
     return new RegExp(value);
   }
 
-  // Handle plain objects
+  // Handle plain object
   const clone = {};
   seen.set(value, clone);
   for (const key of Object.keys(value)) {

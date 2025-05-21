@@ -4,7 +4,7 @@
 // v0.9
 // Draw Things 1.20240502.2
 // =================================================================================================
-
+console.log(`START!`);
 
 // ===============================================================================================
 // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
@@ -31,7 +31,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_structured_clone_enabled      = false;
+let log_structured_clone_enabled      = true;
 let log_smart_join_enabled            = false;
 let log_expand_and_walk_enabled       = false;
 let disable_prelude                   = false;
@@ -2087,19 +2087,19 @@ class WeightedPicker {
 //   }
 // }
 // -------------------------------------------------------------------------------------------------
-function structured_clone(value, seen = new WeakMap()) {
+let structured_clone = (value, seen = new WeakMap()) => {
   if (value === null || typeof value !== "object") {
     return value;
   }
 
   if (seen.has(value)) {
-    throw new TypeError(`Cannot clone cyclic structure ${inspect_fun(value)}`);
+    return seen.get(value); // Return existing clone, not an error
   }
 
-  // Handle arrays
+  // Handle Array
   if (Array.isArray(value)) {
     const clone = [];
-    seen.set(value, clone);
+    seen.set(value, clone); // Store early to support self-reference
     for (const item of value) {
       clone.push(structured_clone(item, seen));
     }
@@ -2136,7 +2136,7 @@ function structured_clone(value, seen = new WeakMap()) {
     return new RegExp(value);
   }
 
-  // Handle plain objects
+  // Handle plain object
   const clone = {};
   seen.set(value, clone);
   for (const key of Object.keys(value)) {
@@ -2928,7 +2928,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    // if (log_structured_clone_enabled)
+    if (log_structured_clone_enabled)
       console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
@@ -7511,7 +7511,11 @@ Prompt.finalize();
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 // v DT's env doesn't seem to have structuredClone :(
+console.log(`CLONE PLC!`);
 const pipeline_configuration      = structured_clone(pipeline.configuration);
+
+console.log(`DONE CLONE PLC!`);
+
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "";
 let   prompt_string               = ui_prompt;
