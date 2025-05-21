@@ -2301,17 +2301,23 @@ function is_flag_set(test_flag, set_flags) {
   return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
 }
 // -------------------------------------------------------------------------------------------------
-function add_lora_to_context(lora, context) {
-  console.log(`ADDING ${inspect_fun(lora)} TO ${context}`);
+function add_lora_to_context(lora, context, indent = 0) {
+  const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
   const arr   = context.config.loras??[];
   const index = arr.findIndex(existing => existing.file === lora.file);
+
   if (index !== -1) {
     arr.splice(index, 1); // Remove the existing entry
   }
+
   arr.push(lora); // Add the new entry at the end
+
   if (arr !== context.config.loras)
     throw new Error("add_lora_to_context: arr !== array");
+
   context.config.loras = arr;
+
+  log(`ADDED ${inspect_fun(lora)} TO ${context}`);
 }
 // -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
@@ -3083,7 +3089,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `Context<ID = ${this.context_id}, ${this.config?.loras?.length??0} loras>}`;
+    return `Context<#${this.context_id}, ${this.config?.loras?.length??0} loras>}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6400,7 +6406,7 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
-function expand_wildcards(thing, context = new Context()) {
+function expand_wildcards(thing, context = new Context(), indent = 0) {
   // ---------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
@@ -6431,35 +6437,40 @@ function expand_wildcards(thing, context = new Context()) {
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
-  function walk(thing) {
+  const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+  /* : msg => undefined */;
+  // -----------------------------------------------------------------------------------------------
+  function walk(thing, indent = 0) {
+    const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+    log(`Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} @ ${indent}` );
+    
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
     // ---------------------------------------------------------------------------------------------
     if (typeof thing === 'string')
-      return thing;
-    // ---------------------------------------------------------------------------------------------
-    else if (Array.isArray(thing)) {
-      const ret = [];
+          return thing;
+        // ---------------------------------------------------------------------------------------------
+        else if (Array.isArray(thing)) {
+          const ret = [];
 
-      for (const t of thing) {
-        if (context.noisy)
-          console.log(`WALKING ` +
-                      typeof t === 'object'
-                      ? inspect_fun(t)
-                      : `${typeof t} '${t}'`);
-        
-        ret.push(walk(t));
-      }
+          for (const t of thing) {
+            // if (context.noisy)
+            //   log(`WALKING ` +
+            //       typeof t === 'object'
+            //       ? inspect_fun(t)
+            //       : `${typeof t} '${t}'`);
+            ret.push(walk(t, indent + 1));
+          }
 
-      // console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
-      
-      return ret;
-    }
-    // ---------------------------------------------------------------------------------------------
-    // flags:
-    // ---------------------------------------------------------------------------------------------
+          // log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
+          
+          return ret;
+        }
+        // ---------------------------------------------------------------------------------------------
+        // flags:
+        // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSetFlag) {
-      // console.log(`SET FLAG '${thing.name}'.`);
+      // log(`SET FLAG '${thing.name}'.`);
       
       context.set_flag(thing.flag);
 
@@ -6468,7 +6479,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUnsetFlag) {
       if (log_flags_enabled)
-        console.log(`UNSETTING FLAG '${thing.flag}'.`);
+        log(`UNSETTING FLAG '${thing.flag}'.`);
 
       context.unset_flag(thing.flag);
       
@@ -6487,7 +6498,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(expand_wildcards(got, context)); // not walk!
+          res.push(expand_wildcards(got, context, indent + 1)); // not walk!
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
@@ -6498,7 +6509,7 @@ function expand_wildcards(thing, context = new Context()) {
                                allow_fun, forbid_fun,
                                priority);
         
-        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context))); // not walk!
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context, indent + 1))); // not walk!
       }
       
       res = res.filter(s => s !== '');
@@ -6534,15 +6545,15 @@ function expand_wildcards(thing, context = new Context()) {
 
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         if (context.noisy)
-          console.log(`NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
+          log(`NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
 
         return '';
       }
 
-      const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got, indent + 1), got);
 
       if (context.noisy)
-        console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+        log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
       
       context.named_wildcards.set(thing.name, latched);
 
@@ -6561,14 +6572,14 @@ function expand_wildcards(thing, context = new Context()) {
       context.named_wildcards.set(thing.name, got.original_value);
 
       if (context.noisy)
-        console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+        log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
 
       return ''; // produce no text.
     } 
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination))
-        console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
+        log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
 
       context.named_wildcards.set(thing.destination, thing.wildcard);
 
@@ -6585,12 +6596,12 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateScalar) {
       if (context.noisy) {
-        console.log();
-        console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
+        log();
+        log(`ASSIGNING ${inspect_fun(thing.source)} ` +
                     `TO '${thing.destination.name}'`);
       }
 
-      let   new_val  = walk(thing.source);
+      let   new_val  = walk(thing.source, indent + 1);
       const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
       if (! thing.assign)
@@ -6599,8 +6610,8 @@ function expand_wildcards(thing, context = new Context()) {
       context.scalar_variables.set(thing.destination.name, new_val);
 
       if (context.noisy) {
-        console.log(`ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
-        console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+        log(`ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
+        log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
       }
       
       return '';
@@ -6615,17 +6626,17 @@ function expand_wildcards(thing, context = new Context()) {
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
       
-      return walk(pick);
+      return walk(pick, indent + 1);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateConfigUnary ||
              thing instanceof ASTUpdateConfigBinary) {
-      // console.log(`WALK ${inspect_fun(thing)}`);
+      // log(`WALK ${inspect_fun(thing)}`);
 
       let value = thing.value;
 
       if (value instanceof ASTNode) {
-        const expanded_value = expand_wildcards(thing.value, context); // not walk!
+        const expanded_value = expand_wildcards(thing.value, context, indent + 1); // not walk!
         const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
                                               ? rJsoncObject
                                               : rJsonc).match(expanded_value);
@@ -6654,7 +6665,7 @@ function expand_wildcards(thing, context = new Context()) {
           : { ...context.config, ...new_obj };
 
         if (log_config_enabled)
-          console.log(`config ${thing.assign ? '=' : '+='} ` +
+          log(`config ${thing.assign ? '=' : '+='} ` +
                       `${inspect_fun(new_obj, true)}, ` +
                       `config is now: ` +
                       `${inspect_fun(context.config, true)}`);
@@ -6674,7 +6685,7 @@ function expand_wildcards(thing, context = new Context()) {
                               `to non-array ${inspect_fun(tmp_arr)}`);
             
             const new_arr = [ ...tmp_arr, ...value ];
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            // log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by array ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun(new_arr)}`);
             context.config[our_name] = new_arr;
@@ -6687,7 +6698,7 @@ function expand_wildcards(thing, context = new Context()) {
                               `to non-object ${inspect_fun(tmp_obj)}`);
 
             const new_obj = { ...tmp_obj, ...value };
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            // log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by object ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun(new_obj)}`);
             context.config[our_name] = new_obj;
@@ -6699,7 +6710,7 @@ function expand_wildcards(thing, context = new Context()) {
               throw new Error(`can't add number ${inspect_fun(value)} `+
                               `to non-number ${inspect_fun(tmp_num)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            // log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by number ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun((context.config[our_name]??0) + value)}`);
             context.config[our_name] = tmp_num + value;
@@ -6711,14 +6722,14 @@ function expand_wildcards(thing, context = new Context()) {
               throw new Error(`can't add string ${inspect_fun(value)} `+
                               `to non-string ${inspect_fun(tmp_str)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            // log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by string ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun((context.config[our_name]??'') + value)}`);
             context.config[our_name] = smart_join([tmp_str, value]);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            // log(`current value ${inspect_fun(context.config[our_name])}, ` +
             //             `increment by unknown ${inspect_fun(value)}, ` +
             //             `total ${inspect_fun(context.config[our_name]??null + value)}`);
             context.config[our_name] = (context.config[our_name]??null) + value;
@@ -6726,7 +6737,7 @@ function expand_wildcards(thing, context = new Context()) {
         }
 
         if (log_config_enabled)
-          console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
+          log(// `${thing.assign ? "Set" : "Incremented"} ` +
             `config.${our_name} ` +
               `${thing.assign ? '=' : '+='} ` +
               `${inspect_fun(value, true)}, ` +
@@ -6748,10 +6759,10 @@ function expand_wildcards(thing, context = new Context()) {
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
       const walked    = picker_priority[expand_wildcards(thing.limited_content,
-                                                         context).toLowerCase()];
+                                                         context, indent + 1).toLowerCase()];
 
       // if (log_config_enabled)
-      //   console.log(`SET PICK DATA: ` +
+      //   log(`SET PICK DATA: ` +
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val,
       //                               walked: walked})}`);
@@ -6763,10 +6774,10 @@ function expand_wildcards(thing, context = new Context()) {
       context[cur_key]   = walked;
 
       if (log_config_enabled)
-        // console.log(
+        // log(
         //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
         // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
-        console.log(
+        log(
           `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
             `${inspect_fun(walked)}.`);
       
@@ -6785,15 +6796,15 @@ function expand_wildcards(thing, context = new Context()) {
       const prior_val = context[prior_key];
 
       // if (log_config_enabled)
-      //   console.log(`REVERT PICK DATA: ` +
+      //   log(`REVERT PICK DATA: ` +
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val })}`);
       
       if (log_config_enabled)
-        // console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
         //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
-        console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                    `${inspect_fun(prior_val)}.`);
+        log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+            `${inspect_fun(prior_val)}.`);
       
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
@@ -6804,11 +6815,11 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      console.log(`ENCOUNTERED LORA ${thing} IN ${context}`);
+      log(`ENCOUNTERED LORA ${thing} IN ${context}`);
       
-      let walked_file = expand_wildcards(thing.file, context); // not walk!
+      let walked_file = expand_wildcards(thing.file, context, indent + 1); // not walk!
 
-      // console.log(`walked_file is ${typeof walked_file} ` +
+      // log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
       //             `${inspect_fun(walked_file)} ` +
       //             `${Array.isArray(walked_file)}`);
@@ -6816,9 +6827,9 @@ function expand_wildcards(thing, context = new Context()) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = expand_wildcards(thing.weight, context); // not walk!
+      let walked_weight = expand_wildcards(thing.weight, context, indent + 1); // not walk!
 
-      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      // log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
       //             `${inspect_fun(walked_weight)} ` +
       //             `${Array.isArray(walked_weight)}`);
@@ -6855,7 +6866,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       context.config.loras ||= [];
 
-      add_lora_to_context({ file: file, weight: weight }, context);
+      add_lora_to_context({ file: file, weight: weight }, context, indent);
       
       return '';
     }
@@ -6864,7 +6875,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     // else if (thing instanceof ASTUpdateNegativePrompt) {
     //   const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
-    //   return expand_wildcards(temporaryNode, context);
+    //   return expand_wildcards(temporaryNode, context, indent + 1);
     // }
     // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
@@ -6878,8 +6889,10 @@ function expand_wildcards(thing, context = new Context()) {
                       inspect_fun(thing));
     }
   }
+
+  log(`Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} @ ${indent}`);
   
-  const ret = unescape(smart_join(walk(thing)));
+  const ret = unescape(smart_join(walk(thing, indent)));
 
   // if (ret === undefined)
   //   throw new Error("what");
@@ -7027,7 +7040,7 @@ class ASTLora extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString(with_types = false ) {
-    return `<lora:${with_types ? `${this.file.constructor.name} ` : ``}:${this.file}: ` +
+    return `<lora:${with_types ? `${this.file.constructor.name} ` : ``}${this.file}: ` +
       `${with_types ? `${this.weight.constructor.name} ` : ``}${this.weight}>`;
   }
 }
