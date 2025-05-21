@@ -67,7 +67,6 @@ function post_prompt({ prompt = '', configuration = {}, hostname = '127.0.0.1', 
   // console.log(`POSTing with configuration: ${JSON.stringify(configuration)}`);
 
   const data        = { prompt: prompt, ...configuration };
-  
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
