@@ -3196,11 +3196,11 @@ class Context {
       console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
-      flags:                        this.flags.map(arr => [...arr]),
-      scalar_variables:             new Map(this.scalar_variables),
-      named_wildcards:              new Map(this.named_wildcards),
+      flags:                        structured_clone(this.flags),
+      scalar_variables:             new Map(this.scalar_variables), // slightly shared
+      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
       noisy:                        this.noisy,
-      files:                        stuctured_clonnd(this.files),
+      files:                        structured_clone(this.files),
       configuration:                structured_clone(this.configuration, { unshare: true }),
       top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
