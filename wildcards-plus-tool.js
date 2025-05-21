@@ -7633,13 +7633,20 @@ async function main() {
     const context       = base_context.clone();
 
     console.log(`BASE_CONTEXT.CONFIG.LORAS.LENGTH = ${base_context.config?.loras?.length}`
-                + ` IN ${inspect_fun(base_context.config)}`
+                + ` IN ${base_context}`
                );
     console.log(`CONTEXT     .CONFIG.LORAS.LENGTH = ${context     .config?.loras?.length}`
-                + ` IN ${inspect_fun(context.config)}`
+                + ` IN ${context}`
                );
     
     const prompt        = expand_wildcards(AST, context);
+
+
+    console.log(`EXPANDING ADDDED ` +
+                // `${base_context.config.loras?.length??0} - ` +
+                // `${context     .config.loras?.length??0} = ` +
+                `${(context.config.loras?.length??0) - (base_context.config.loras?.length??0)} LORAS!`);
+
     const munged_config = munge_config(context.config);
 
     if (munged_config === prior_config)
@@ -7651,8 +7658,8 @@ async function main() {
     console.log(`MUNGED_CONFIG.LORAS.LENGTH = ${munged_config?.loras?.length}`);
 
     console.log(`MUNGING ADDDED ` +
-                `${munged_config .loras.length??0} - ` +
-                `${context.config.loras.length??0} = ` +
+                // `${munged_config .loras?.length??0} - ` +
+                // `${context.config.loras?.length??0} = ` +
                 `${(munged_config.loras.length??0) - (context.config.loras.length??0)} LORAS!`);
     
     if (log_flags_enabled || log_config_enabled)
