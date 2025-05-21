@@ -6849,9 +6849,13 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
+
+      log(`WALKED_WEIGHT IS ${inspect_fun(walked_weight)}`);
       
       const weight_match_result = json_number.match(walked_weight);
 
+      log(`WEIGHT MR IS ${inspect_fun(weight_match_result)}`);
+      
       if (!weight_match_result || !weight_match_result.is_finished)
         throw new Error(`LoRA weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
@@ -6876,7 +6880,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       }
 
       const weight = weight_match_result.value;
-
+      
       context.config.loras ||= [];
 
       add_lora_to_context({ file: file, weight: weight }, context, indent);
@@ -6907,6 +6911,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   
   const ret = unescape(smart_join(walk(thing, indent + 1)));
 
+  log(`Expanded into ${inspect_fun(ret)}`);
+ 
   // if (ret === undefined)
   //   throw new Error("what");
   
@@ -6938,6 +6944,10 @@ class ASTSetFlag extends ASTNode {
     // if (this.flag === undefined)
     //   throw new Error("stop after constructing ASTSetFlag");
   }
+  // --------------------------------------------------------------------------------------------------
+  toString() {
+    return `#${this.flag.join('.')}`;
+  }
 }
 // --------------------------------------------------------------------------------------------------
 class ASTUnsetFlag extends ASTNode {
@@ -6948,6 +6958,10 @@ class ASTUnsetFlag extends ASTNode {
 
     super();
     this.flag = flag_arr;
+  }
+  // --------------------------------------------------------------------------------------------------
+  toString() {
+    return `#!${this.flag.join('.')}`;
   }
 }
 // --------------------------------------------------------------------------------------------------
@@ -6970,8 +6984,12 @@ class ASTCheckFlags extends ASTNode {
   toString() {
     let str = '?';
 
+    const flag_strs = [];
+    
     for (const flag of this.flags)
-      str += flag.join('.');
+      flag_strs.push(flag.join('.'));
+
+    str += flag_strs.join(',');
 
     return str;
     // return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
@@ -7176,15 +7194,17 @@ class ASTAnonWildcardAlternative extends ASTNode {
     for (const check of this.check_flags)
       bits.push(check.toString());
     
-    for (const not of this.check_flags)
+    for (const not of this.not_flags)
       bits.push(not.toString());
     
-    for (const thing of this.body)
+    for (const thing of this.body) {
+      // console.log(`push bit ${thing.toString()} (${thing.toString().length})`)
       bits.push(thing.toString());
+    }
 
     str += bits.join(' ');
 
-    console.log(`BITS: ${inspect_fun(bits)}`);
+    // console.log(`BITS: ${inspect_fun(bits)}`);
     
     return str;
   }

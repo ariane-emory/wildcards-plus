@@ -7,11 +7,15 @@
 // template config flags to enable model families or other features:
 // ---------------------------------------------------------------------------------------
 
-@high_digit             = {\\5|\\6|\\7|\\8|\\9}
+@high_digit             = {\5|\6|\7|\8|\9}
 @lowish_random_weight   = {0.< @high_digit}
 %loras = []
 
 #sdxl_on
+
+
+
+
 
 // // #flux_on
 // // #hidream_fast_on
@@ -523,3 +527,5 @@
 // {|8 @sky_sentence}
 
 // {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
+
+// @3,lowish_random_weight 
