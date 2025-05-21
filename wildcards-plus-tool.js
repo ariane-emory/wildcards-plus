@@ -7548,8 +7548,6 @@ async function main() {
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
   let posted_count = 0;
-  // let prompt       = undefined; // not null
-  // let config       = null;
   let prior_prompt = null;
   let prior_config = null;
   
@@ -7559,10 +7557,10 @@ async function main() {
     prior_config = clone_fun(config);
   };
 
-  const restore_priors = () => {
-    [ prompt, prior_prompt ] = [ prior_prompt, prompt ];
-    [ config, prior_config ] = [ prior_config, config ];
-    // [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ];
+  const restore_priors = (prompt, config) => {
+    const ret = [ prior_prompt, prior_config ];
+    [ prior_prompt, prior_config ] = [ prompt, config ];
+    return ret;
   };
 
   const do_post = () => {
@@ -7574,29 +7572,30 @@ async function main() {
     console.log('==========================================================================================');
     console.log(`Expansion #${posted_count + 1} of ${count}:`);
     console.log('==========================================================================================');
-
-    const context    = base_context.clone();
-    const prompt     = expand_wildcards(AST, context);
-    // negative_prompt  = context.negative_prompt;
-    const config     = munge_config(context.config);
-    const have_loras = context.add_loras && context.add_loras.length > 0;
-
-    if (log_flags_enabled || log_config_enabled)
-      console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
     
-    if (have_loras) {
-      console.log('-----------------------------------------------------------------------------------------');
-      if (log_config_enabled)
-        console.log(`Found ${context.add_loras.length} LoRAs in context.add_loras:`);
-      
-      config.loras ||= [];
+    const context       = base_context.clone();
+    const prompt        = expand_wildcards(AST, context);
+    // negative_prompt  = context.negative_prompt;
+    const munged_config = munge_config(context.config);
 
-      for (const lora of context.add_loras)
-        add_lora_to_array(lora, config.loras, "config.loras");
+    // const have_loras    = context.add_loras && context.add_loras.length > 0;
 
-      if (log_config_enabled) 
-        console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
-    }
+    // if (log_flags_enabled || log_config_enabled)
+    //   console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
+    
+    // if (have_loras) {
+    //   console.log('-----------------------------------------------------------------------------------------');
+    //   if (log_config_enabled)
+    //     console.log(`Found ${context.add_loras.length} LoRAs in context.add_loras:`);
+    
+    //   config.loras ||= [];
+
+    //   for (const lora of context.add_loras)
+    //     add_lora_to_array(lora, config.loras, "config.loras");
+
+    //   if (log_config_enabled) 
+    //     console.log(`Config after adding LoRAs: ${inspect_fun(config)}`);
+    // }
     
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
@@ -7628,15 +7627,14 @@ async function main() {
         const answer = await ask(question);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
-          stash_priors(prompt, config);
+          stash_priors(prompt, munged_config);
           continue;
         }
 
         if (answer.match(/^p.*/i)) {
           if (prior_prompt) { 
             console.log(`------------------------------------------------------------------------------------------`);
-            // untested!
-            restore_priors();
+            [ prompt, munged_config ] = restore_priors(prompt, munged_config);
             
             console.log(`POSTing prior prompt '${prompt}'`);
 
@@ -7661,7 +7659,7 @@ async function main() {
       }
     }
     
-    stash_priors(prompt, config);
+    stash_priors(prompt, munged_config);
   }
 
   console.log('==========================================================================================');
