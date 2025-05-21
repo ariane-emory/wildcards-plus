@@ -130,7 +130,7 @@
   // { ?sdxl_lightning_on { 1 <lora:sdxl_lightning_4step_lora:1.0> %steps = 4
   //                      | 2 <lora:sdxl_lightning_8step_lora:1.0> %steps = 8 } }
 
-  { @1-2lora | @1-3lora }
+  @2lora
 
   // { !sdxl_lightning_on %steps = { \35 | \40 | \45 } }
   // { !sdxl_lightning_on %steps = 30 }   
