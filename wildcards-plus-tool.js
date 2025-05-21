@@ -2283,84 +2283,94 @@ class WeightedPicker {
 //   }
 //   return clone;
 // }
-const structured_clone = (value, options = {})  => {
-  const { seen = undefined, unshare = false } = options;
+// -------------------------------------------------------------------------------------------------
+function structured_clone(value, options = {}) {
+  const {
+    seen = new WeakMap(),           // For shared reference reuse
+    ancestors = new WeakSet(),      // For cycle detection
+    unshare = false
+  } = options;
 
   if (value === null || typeof value !== "object") {
     return value;
   }
 
-  // Initialize correct tracking object
-  let localSeen = seen;
-  if (!localSeen) {
-    localSeen = unshare ? new WeakSet() : new WeakMap();
+  if (ancestors.has(value)) {
+    throw new TypeError("Cannot clone cyclic structure");
   }
 
-  // Cycle detection / shared reference reuse
-  if (unshare) {
-    if (localSeen.has(value)) {
-      throw new TypeError("Cannot clone cyclic structure");
-    }
-    localSeen.add(value);
-  } else {
-    if (localSeen.has(value)) {
-      return localSeen.get(value); // Reuse shared clone
-    }
+  if (!unshare && seen.has(value)) {
+    return seen.get(value);
   }
+
+  ancestors.add(value); // Add to call stack tracking
 
   let clone;
 
-  // Array
   if (Array.isArray(value)) {
     clone = [];
-    if (!unshare) localSeen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const item of value) {
-      clone.push(structured_clone(item, { seen: localSeen, unshare }));
+      clone.push(structured_clone(item, { seen, ancestors, unshare }));
     }
-    return clone;
-  }
-
-  // Set
-  if (value instanceof Set) {
+  } else if (value instanceof Set) {
     clone = new Set();
-    if (!unshare) localSeen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const item of value) {
-      clone.add(structured_clone(item, { seen: localSeen, unshare }));
+      clone.add(structured_clone(item, { seen, ancestors, unshare }));
     }
-    return clone;
-  }
-
-  // Map
-  if (value instanceof Map) {
+  } else if (value instanceof Map) {
     clone = new Map();
-    if (!unshare) localSeen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const [k, v] of value.entries()) {
       clone.set(
-        structured_clone(k, { seen: localSeen, unshare }),
-        structured_clone(v, { seen: localSeen, unshare })
+        structured_clone(k, { seen, ancestors, unshare }),
+        structured_clone(v, { seen, ancestors, unshare })
       );
     }
-    return clone;
+  } else if (value instanceof Date) {
+    clone = new Date(value);
+  } else if (value instanceof RegExp) {
+    clone = new RegExp(value);
+  } else {
+    clone = {};
+    if (!unshare) seen.set(value, clone);
+    for (const key of Object.keys(value)) {
+      clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
+    }
   }
 
-  // Date
-  if (value instanceof Date) {
-    return new Date(value);
-  }
+  ancestors.delete(value); // Cleanup recursion tracking
 
-  // RegExp
-  if (value instanceof RegExp) {
-    return new RegExp(value);
-  }
-
-  // Plain object
-  clone = {};
-  if (!unshare) localSeen.set(value, clone);
-  for (const key of Object.keys(value)) {
-    clone[key] = structured_clone(value[key], { seen: localSeen, unshare });
-  }
   return clone;
 }
+// -------------------------------------------------------------------------------------------------
+
+const shared = { msg: "hi" };
+let obj = { a: shared, b: shared };
+
+// Preserve shared references, this one seems to work:
+const clone1 = structured_clone(obj);
+console.log(clone1.a === clone1.b); // true
+
+// Break shared references (unshare), this one seems to work:
+const clone2 = structured_clone(obj, { unshare: true });
+console.log(clone2.a === clone2.b); // false
+
+try {
+  obj = {};
+  obj.self = obj; // Create a cycle
+  structured_clone(obj); // Should fail immediately but recurses infinitely and blows th call stack instead
+
+  throw new Error(`#3 should have failed.`);
+} catch {
+  console.log(`#3 failed as intended.`);
+}
+
+obj = {};
+obj.self = obj; // Create a cycle
+structured_clone(obj, { unshare: true }); // Should fail immediately but recurses infinitely and blows th call stack instead
+
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
@@ -3116,7 +3126,7 @@ class Context {
     return `Context<#${this.context_id}, ${this.configuration?.loras?.length??0} loras>}`;
   }
 }
-// -------------------------------------------------------------------------------------------------
+                         // -------------------------------------------------------------------------------------------------
 const prelude_text = disable_prelude ? '' : `
 @__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
                            |?male   #gender.male
@@ -7893,3 +7903,4 @@ main().catch(err => {
 
 // console.log(json_number.match('0.8'));
 // console.log(optional(json_exponentPart, 1).match(''));
+
