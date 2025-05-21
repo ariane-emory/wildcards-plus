@@ -213,8 +213,9 @@ if (false)
   // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
   // ===============================================================================================
 {
-  inspect_fun = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
-  dt_hosted   = true;
+  inspect_fun           = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
+  dt_hosted             = true;
+  test_structured_clone = false;
 }
 // -------------------------------------------------------------------------------------------------
 
@@ -240,6 +241,7 @@ let disable_prelude                   = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
+let test_structured_clone             = true;
 // =================================================================================================
 
 
@@ -2290,9 +2292,12 @@ function structured_clone(value, {
   return clone;
 }
 // -------------------------------------------------------------------------------------------------
-if (true) {
+if (test_structured_clone) {
+  console.log("testing structured_clone...");
+
   const shared = { msg: "hi" };
   let obj = { a: shared, b: shared };
+
   // test #1: preserve shared references, this one seems to work:
   {
     const clone = structured_clone(obj);
@@ -2340,6 +2345,8 @@ if (true) {
       console.log(`test #3 failed as intended.`);
     }
   }
+
+  console.log("structured_clone tests passed.");
 }
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
