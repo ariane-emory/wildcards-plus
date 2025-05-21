@@ -7782,6 +7782,13 @@ async function main() {
     const context = base_context.clone();
     const prompt  = expand_wildcards(AST, context);
 
+    if (log_flags_enabled || log_configuration_enabled) {
+      console.log(`------------------------------------------------------------------------------------------`);
+      console.log(`Flags after:`);
+      console.log(`------------------------------------------------------------------------------------------`);
+      console.log(`${inspect_fun(context.flags)}`);
+    }
+
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(`Final config is is:`);
     console.log(`------------------------------------------------------------------------------------------`);
@@ -7797,13 +7804,6 @@ async function main() {
       console.log(`Expanded negative prompt:`);
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(context.configuration.negative_prompt);
-    }
-
-    if (log_flags_enabled || log_configuration_enabled) {
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`Flags after:`);
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`${inspect_fun(context.flags)}`);
     }
 
     if (!post) {
