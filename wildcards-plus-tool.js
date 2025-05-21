@@ -254,6 +254,7 @@ Array.prototype.toString = function() {
 // =================================================================================================
 
 
+
 // =================================================================================================
 // GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
@@ -1816,8 +1817,9 @@ const reify_json_number = arr => {
   const exponent        = arr[3];
   const number          = multiplier * ((integer_part + fractional_part)**exponent);
 
+  console.log(`ARR: ${inspect_fun(arr)}`);
   return number;
-  return arr;
+  // return arr;
 };
 const json_number = xform(reify_json_number,
                           seq(optional(json_minus),
@@ -1826,7 +1828,10 @@ const json_number = xform(reify_json_number,
                                 // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
                                 return parseFloat(arr[0]);
                               }, optional(json_fractionalPart, 0.0)),
-                              xform(parseInt, optional(json_exponentPart, 1))));
+                              xform(x => {
+                                console.log(`PARSEINT(${typeof x} ${inspect_fun(x)})`);
+                                return parseInt(x);
+                              }, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // -------------------------------------------------------------------------------------------------
@@ -6840,8 +6845,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
+      // if (Array.isArray(thing.weight))
+      //   throw new Error("boom");
+      
       let walked_weight = expand_wildcards(thing.weight, context, indent + 1); // not walk!
-
+      
+      // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
+      //   throw "bomb";
+      
       // log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
       //             `${inspect_fun(walked_weight)} ` +
@@ -6850,7 +6861,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
 
-      log(`WALKED_WEIGHT IS ${inspect_fun(walked_weight)}`);
+      log(`WALKED_WEIGHT IS ${typeof walked_weight} ${inspect_fun(walked_weight)}`);
       
       const weight_match_result = json_number.match(walked_weight);
 
@@ -6912,7 +6923,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   const ret = unescape(smart_join(walk(thing, indent + 1)));
 
   log(`Expanded into ${inspect_fun(ret)}`);
- 
+  
   // if (ret === undefined)
   //   throw new Error("what");
   
@@ -7871,3 +7882,10 @@ main().catch(err => {
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
+
+console.log();
+console.log(json_number.match('0.7'));
+console.log(optional(json_exponentPart, 1).match(''));
+
+console.log(json_number.match('0.8'));
+console.log(optional(json_exponentPart, 1).match(''));
