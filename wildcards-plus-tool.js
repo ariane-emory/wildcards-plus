@@ -63,16 +63,15 @@ function parse_file(filename) {
   return result;
 }
 // -------------------------------------------------------------------------------------------------
-function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 }) {
-  console.log(`POSTing with config: ${JSON.stringify(config)}`);
+function post_prompt({ prompt = '', config = {}, hostname = '127.0.0.1', port = 7860 }) {
+  // console.log(`POSTing with config: ${JSON.stringify(config)}`);
 
-  const data = { prompt: prompt,  ...config };
-
+  const data        = { prompt: prompt, ...config };
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
-    console.log(`POST data is: ${JSON.stringify(data, null, 2)}`);
-
+    console.log(`POST data is: ${inspect_fun(data)}`);
+  
   const options = {
     hostname: hostname,
     port: port,
@@ -92,7 +91,20 @@ function post_prompt(prompt, { config = {}, hostname = '127.0.0.1', port = 7860 
     socket.on('connect', () => {
       req.write(string_data);
       req.end();
-      socket.destroy(); // don't wait for the response.
+
+      let printed = false;
+      
+      if (fire_and_forget_post) {
+        socket.destroy(); // don't wait for the response.
+      }
+      else {
+        console.log(`POSTing..`);
+        socket.on('data', chunk => {
+          if (! printed)
+            console.log(`Response: ${abbreviate(chunk.toString(), 1000)}`);
+          printed = true;
+        });
+      }
     });
   });
 
@@ -125,7 +137,7 @@ function save_post_request(options, data) {
 
   try {
     fs.writeFileSync(filename, file_data);
-    console.log(`Saved  POST data to '${filename}'.`);
+    console.log(`Saved  POST data.`);
     
     return true;
   }
@@ -142,7 +154,8 @@ function process_includes(thing, context = new Context()) {
       const current_file = context.files[context.files.length - 1];
       const res = []
 
-      console.log(`INSPECT: ${inspect_fun(thing, null, 2)}`);
+      // console.log(`INSPECT: ${inspect_fun(thing, null, 2)}`);
+      
       for (let filename of thing.args) {
         if (typeof filename !== 'string')
           throw new Error(`include's arguments must be strings, got ${inspect_fun(filename)}`);
@@ -189,7 +202,7 @@ function process_includes(thing, context = new Context()) {
 // =================================================================================================
 // set inspect_fun and clone_fun appropriately for node.js:
 // =================================================================================================
-let inspect_fun = util.inspect;
+let inspect_fun = (thing, no_break = false) => util.inspect(thing, no_break ? { breakLength: Infinity } : {});
 let clone_fun   = structuredClone;
 let dt_hosted   = false;
 // dt_hosted       = true; // uncomment to lie and force use of the DT-legal syntax/configs for debugging
@@ -237,7 +250,7 @@ if (false)
     }
   }
   // -------------------------------------------------------------------------------------------------
-  inspect_fun = JSON.stringify;
+  inspect_fun = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
   clone_fun   = structured_clone;
   dt_hosted   = true;
 }
@@ -299,6 +312,7 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // variables:
 // -------------------------------------------------------------------------------------------------
+let fire_and_forget_post        = false;
 let unnecessary_choice_is_error = false;
 let print_ast_enabled           = false;
 let print_ast_json_enabled      = false;
@@ -729,17 +743,18 @@ class Element extends Rule {
     if (! rule_match_result)
       return null;
 
-    if (log_match_enabled) {
-      log(indent, `taking elem ${this.index} from ` +
-          `${JSON.stringify(rule_match_result)}'s value.`);
-    }
+    // if (log_match_enabled) {
+    //   log(indent, `taking elem ${this.index} from ` +
+    //       `${inspect_fun(rule_match_result)}'s value.`);
+    // }
 
     const ret = rule_match_result.value[this.index] === undefined
           ? DISCARD
           : rule_match_result.value[this.index];
     
     if (log_match_enabled) {
-      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result)} = ${typeof ret === 'symbol' ? ret.toString() : ret}`);
+      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result.value)} = ` +
+          `${typeof ret === 'symbol' ? ret.toString() : inspect_fun(ret)}`);
     }
     
     rule_match_result.value = ret;
@@ -1882,9 +1897,9 @@ const JsoncObject =
         xform(arr => ({}), wst_seq('{', '}')),
         xform(arr => {
           // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
-          const arr2 = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
           // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
-          return Object.fromEntries(arr2);
+          return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
                 wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
@@ -1909,6 +1924,47 @@ const JsoncObject =
 Jsonc.finalize(); 
 // =================================================================================================
 // END OF JSONC GRAMMAR SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
+// =================================================================================================
+const rJsonc = second(wst_seq(JsoncComments,
+                              choice(() => rJsoncObject,  () => JsoncArray,
+                                     () => json_string,   () => json_true, () => json_false,
+                                     () => json_null,     () => json_number),
+                              JsoncComments));
+const rJsoncObject =
+      choice(
+        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => {
+          const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          return Object.fromEntries(new_arr);
+        },
+              wst_cutting_seq(
+                wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
+                JsoncComments,
+                Jsonc,
+                JsoncComments,
+                optional(second(wst_seq(',',
+                                        wst_star(
+                                          xform(arr =>  [arr[1], arr[5]],
+                                                wst_seq(JsoncComments,
+                                                        choice(json_string, c_ident),
+                                                        JsoncComments,
+                                                        ':',
+                                                        JsoncComments,
+                                                        Jsonc, 
+                                                        JsoncComments
+                                                       ))             
+                                          , ',')),
+                               )),
+                '{}'[1]))); // dumb hack for rainbow brackets sake
+// -------------------------------------------------------------------------------------------------
+rJsonc.finalize(); 
+// =================================================================================================
+// END OF 'relaxed' JSONC GRAMMAR SECTION.
 // =================================================================================================
 
 
@@ -2520,92 +2576,95 @@ const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase
 const config_key_names = [
   // [ dt_name, automatic1111_name ],
   // shorthand, not a real field name:
-  [ 'neg',                          'negative_prompt'                            ],
-  [ 'negative',                     'negative_prompt'                            ],
-  [ 'negativePrompt',               'neg'                                        ],
-  [ 'negativePrompt',               'negative'                                   ],
+  [ 'neg',                               'negative_prompt'                            ],
+  [ 'negative',                          'negative_prompt'                            ],
+  [ 'negativePrompt',                    'neg'                                        ],
+  [ 'negativePrompt',                    'negative'                                   ],
   // identical keys:
-  [ 'controls',                     'controls'                                   ],
-  [ 'fps',                          'fps'                                        ],
-  [ 'height',                       'height'                                     ],
-  [ 'loras',                        'loras'                                      ],
-  [ 'model',                        'model'                                      ],
-  [ 'prompt',                       'prompt'                                     ],
-  [ 'seed',                         'seed'                                       ],
-  [ 'sharpness',                    'sharpness'                                  ],
-  [ 'shift',                        'shift'                                      ],
-  [ 'strength',                     'strength'                                   ],
-  [ 'width',                        'width'                                      ],
-  [ 'upscaler',                     'upscaler'                                   ],
-  [ 'sampler',                      'sampler'                                    ], // ordering significant
+  [ 'controls',                          'controls'                                   ],
+  [ 'fps',                               'fps'                                        ],
+  [ 'height',                            'height'                                     ],
+  [ 'loras',                             'loras'                                      ],
+  [ 'model',                             'model'                                      ],
+  [ 'prompt',                            'prompt'                                     ],
+  [ 'seed',                              'seed'                                       ],
+  [ 'sharpness',                         'sharpness'                                  ],
+  [ 'shift',                             'shift'                                      ],
+  [ 'strength',                          'strength'                                   ],
+  [ 'width',                             'width'                                      ],
+  [ 'upscaler',                          'upscaler'                                   ],
+  [ 'sampler',                           'sampler'                                    ], // ordering significant?
   // differing keys:
-  [ 'aestheticScore',               'aesthetic_score'                            ],
-  [ 'batchCount',                   'batch_count'                                ],
-  [ 'batchCount',                   'n_iter'                                     ],
-  [ 'batchSize',                    'batch_size'                                 ],
-  [ 'clipLText',                    'separate_open_clip_g'                       ],
-  [ 'clipSkip',                     'clip_skip'                                  ],
-  [ 'clipWeight',                   'clip_weight'                                ],
-  [ 'cropLeft',                     'crop_left'                                  ],
-  [ 'cropTop',                      'crop_top'                                   ],
-  [ 'decodingTileHeight',           'decoding_tile_height' /* _explanation' */   ],
-  [ 'decodingTileOverlap',          'decoding_tile_overlap' /* _explanation' */  ],
-  [ 'decodingTileWidth',            'decoding_tile_width' /* _explanation' */    ],
-  [ 'diffusionTileHeight',          'diffusion_tile_height' /* _explanation' */  ],
-  [ 'diffusionTileOverlap',         'diffusion_tile_overlap' /* _explanation' */ ],
-  [ 'diffusionTileWidth',           'diffusion_tile_width' /* _explanation' */   ],
-  [ 'guidanceEmbed',                'guidance_embed'                             ],
-  [ 'guidanceScale',                'cfg_scale'                                  ],
-  [ 'guidanceScale',                'guidance'                                   ],
-  [ 'guidingFrameNoise',            'cond_aug'                                   ],
-  [ 'hiresFix',                     'enable_hr'                                  ],
-  [ 'hiresFix',                     'high_resolution_fix'                        ],
-  [ 'hiresFixHeight',               'firstphase_height'                          ],
-  [ 'hiresFixHeight',               'hires_first_pass_height_explanation'        ],
-  [ 'hiresFixStrength',             'hires_second_pass_strength_detail'          ],
-  [ 'hiresFixWidth',                'firstphase_width'                           ],
-  [ 'hiresFixWidth',                'hires_first_pass_width_explanation'         ],
-  [ 'imageGuidanceScale',           'image_guidance'                             ],
-  [ 'imagePriorSteps',              'image_prior_steps'                          ],
-  [ 'maskBlur',                     'mask_blur'                                  ],
-  [ 'maskBlurOutset',               'mask_blur_outset'                           ],
-  [ 'motionScale',                  'motion_scale'                               ],
-  [ 'negativeAestheticScore',       'negative_aesthetic_score'                   ],
-  [ 'negativeOriginalHeight',       'negative_original_height'                   ],
-  [ 'negativeOriginalWidth',        'negative_original_width'                    ],
-  [ 'negativePrompt',               'negative_prompt'                            ],
-  [ 'negativePromptForImagePrior',  'negative_prompt_for_image_prior'            ],
-  [ 'openClipGText',                'speed_up_with_guidance_embed'               ],
-  [ 'originalHeight',               'original_height'                            ],
-  [ 'originalWidth',                'original_width'                             ],
-  [ 'preserveOriginalAfterInpaint', 'preserve_original_after_inpaint'            ],
-  [ 'refinerModel',                 'num_frames'                                 ],
-  [ 'refinerStart',                 'refiner_start'                              ],
-  [ 'resolutionDependentShift',     'resolution_dependent_shift'                 ],
-  [ 'sampler',                      'sampler_index'                              ],
-  [ 'sampler',                      'sampler_name'                               ],
-  [ 'seedMode',                     'seed_mode'                                  ],
-  [ 'separateClipL',                'separate_clip_l'                            ],
-  [ 'separateT5',                   'separate_t5'                                ],
-  [ 'stage2Cfg',                    'stage_2_cfg'                                ],
-  [ 'stage2Shift',                  'stage_2_shift'                              ],
-  [ 'stage2Steps',                  'stage_2_steps'                              ],
-  [ 'startFrameGuidance',           'start_frame_guidance'                       ],
-  [ 'stochasticSamplingGamma',      'strategic_stochastic_sampling'              ],
-  [ 'strength',                     'denoising_strength'                         ],
-  [ 't5Text',                       't5_text'                                    ],
-  [ 't5TextEncoder',                't5_text_encoder'                            ],
-  [ 'targetHeight',                 'target_height'                              ],
-  [ 'targetWidth',                  'target_width'                               ],
-  [ 'teaCache',                     'tea_cache'                                  ],
-  [ 'teaCacheEnd',                  'tea_cache_end'                              ],
-  [ 'teaCacheMaxSkipSteps',         'tea_cache_max_skip_steps'                   ],
-  [ 'teaCacheStart',                'tea_cache_start'                            ],
-  [ 'teaCacheThreshold',            'tea_cache_threshold'                        ],
-  [ 'tiledDecoding',                'tiled_decoding'                             ],
-  [ 'tiledDiffusion',               'tiled_diffusion'                            ],
-  [ 'upscalerScaleFactor',          'upscaler_scale_factor'                      ],
-  [ 'zeroNegativePrompt',           'zero_negative_prompt'                       ],
+  [ 'aestheticScore',                    'aesthetic_score'                            ],
+  [ 'batchCount',                        'batch_count'                                ],
+  [ 'batchCount',                        'n_iter'                                     ],
+  [ 'batchSize',                         'batch_size'                                 ],
+  [ 'clipLText',                         'clip_l_text'                                ],
+  [ 'clipSkip',                          'clip_skip'                                  ],
+  [ 'clipWeight',                        'clip_weight'                                ],
+  [ 'cropLeft',                          'crop_left'                                  ],
+  [ 'cropTop',                           'crop_top'                                   ],
+  [ 'decodingTileHeight',                'decoding_tile_height' /* _explanation' */   ],
+  [ 'decodingTileOverlap',               'decoding_tile_overlap' /* _explanation' */  ],
+  [ 'decodingTileWidth',                 'decoding_tile_width' /* _explanation' */    ],
+  [ 'diffusionTileHeight',               'diffusion_tile_height' /* _explanation' */  ],
+  [ 'diffusionTileOverlap',              'diffusion_tile_overlap' /* _explanation' */ ],
+  [ 'diffusionTileWidth',                'diffusion_tile_width' /* _explanation' */   ],
+  [ 'guidanceEmbed',                     'guidance_embed'                             ],
+  [ 'guidanceScale',                     'cfg_scale'                                  ],
+  [ 'guidanceScale',                     'guidance'                                   ],
+  [ 'guidingFrameNoise',                 'cond_aug'                                   ],
+  [ 'hiresFix',                          'enable_hr'                                  ],
+  [ 'hiresFix',                          'high_resolution_fix'                        ],
+  [ 'hiresFixHeight',                    'firstphase_height'                          ],
+  [ 'hiresFixHeight',                    'hires_first_pass_height_explanation'        ],
+  [ 'hiresFixStrength',                  'hires_second_pass_strength_detail'          ],
+  [ 'hiresFixWidth',                     'firstphase_width'                           ],
+  [ 'hiresFixWidth',                     'hires_first_pass_width_explanation'         ],
+  [ 'imageGuidanceScale',                'image_guidance'                             ],
+  [ 'imagePriorSteps',                   'image_prior_steps'                          ],
+  [ 'maskBlur',                          'mask_blur'                                  ],
+  [ 'maskBlurOutset',                    'mask_blur_outset'                           ],
+  [ 'motionScale',                       'motion_scale'                               ],
+  [ 'negativeAestheticScore',            'negative_aesthetic_score'                   ],
+  [ 'negativeOriginalHeight',            'negative_original_height'                   ],
+  [ 'negativeOriginalWidth',             'negative_original_width'                    ],
+  [ 'negativePrompt',                    'negative_prompt'                            ],
+  [ 'negativePromptForImagePrior',       'negative_prompt_for_image_prior'            ],
+  [ 'openClipGText',                     'clip_g_text'                                ],  
+  [ 'openClipGText',                     'open_clip_g_text'                           ],
+  [ 'originalHeight',                    'original_height'                            ],
+  [ 'originalWidth',                     'original_width'                             ],
+  [ 'preserveOriginalAfterInpaint',      'preserve_original_after_inpaint'            ],
+  [ 'refinerModel',                      'num_frames'                                 ],
+  [ 'refinerStart',                      'refiner_start'                              ],
+  [ 'resolutionDependentShift',          'resolution_dependent_shift'                 ],
+  [ 'sampler',                           'sampler_index'                              ],
+  [ 'sampler',                           'sampler_name'                               ],
+  [ 'seedMode',                          'seed_mode'                                  ],
+  [ 'separateClipL',                     'separate_clip_l'                            ],
+  [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
+  [ 'separateT5',                        'separate_t5'                                ],
+  [ 'speedUpWithGuidanceEmbedParameter', 'speed_up_with_guidance_embed'               ],
+  [ 'stage2Cfg',                         'stage_2_cfg'                                ],
+  [ 'stage2Shift',                       'stage_2_shift'                              ],
+  [ 'stage2Steps',                       'stage_2_steps'                              ],
+  [ 'startFrameGuidance',                'start_frame_guidance'                       ],
+  [ 'stochasticSamplingGamma',           'strategic_stochastic_sampling'              ],
+  [ 'strength',                          'denoising_strength'                         ],
+  [ 't5Text',                            't5_text'                                    ],
+  [ 't5TextEncoder',                     't5_text_encoder'                            ],
+  [ 'targetHeight',                      'target_height'                              ],
+  [ 'targetWidth',                       'target_width'                               ],
+  [ 'teaCache',                          'tea_cache'                                  ],
+  [ 'teaCacheEnd',                       'tea_cache_end'                              ],
+  [ 'teaCacheMaxSkipSteps',              'tea_cache_max_skip_steps'                   ],
+  [ 'teaCacheStart',                     'tea_cache_start'                            ],
+  [ 'teaCacheThreshold',                 'tea_cache_threshold'                        ],
+  [ 'tiledDecoding',                     'tiled_decoding'                             ],
+  [ 'tiledDiffusion',                    'tiled_diffusion'                            ],
+  [ 'upscalerScaleFactor',               'upscaler_scale_factor'                      ],
+  [ 'zeroNegativePrompt',                'zero_negative_prompt'                       ],
 ];
 // -------------------------------------------------------------------------------------------------
 function get_automatic111_name(dt_name) {
@@ -2746,7 +2805,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   }
 
   //if (log_config_enabled)
-  console.log(`Munged config is: ${JSON.stringify(config, null, 2)}`);
+  console.log(`Munged config is: ${inspect_fun(config, null, 2)}`);
 
   return config;
 }
@@ -6460,8 +6519,8 @@ function expand_wildcards(thing, context = new Context()) {
       if (value instanceof ASTNode) {
         const expanded_value = expand_wildcards(thing.value, context); // not walk!
         const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
-                                              ? JsoncObject
-                                              : Jsonc).match(expanded_value);
+                                              ? rJsoncObject
+                                              : rJsonc).match(expanded_value);
 
         if (thing instanceof ASTUpdateConfigBinary) {
           value = jsconc_parsed_expanded_value?.is_finished
@@ -6470,7 +6529,7 @@ function expand_wildcards(thing, context = new Context()) {
         }
         else { // ASTUpdateConfigUnary
           throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                          `JSONC object, Jsonc.match(...) result was ` +
+                          `rJSONC object, rJsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_expanded_value));
         }
       }
@@ -6488,9 +6547,9 @@ function expand_wildcards(thing, context = new Context()) {
 
         if (log_config_enabled)
           console.log(`config ${thing.assign ? '=' : '+='} ` +
-                      `${JSON.stringify(new_obj)}, ` +
+                      `${inspect_fun(new_obj, true)}, ` +
                       `config is now: ` +
-                      `${JSON.stringify(context.config)}`);
+                      `${inspect_fun(context.config, true)}`);
       }
       else { // ASTUpdateConfigBinary
         const our_name = get_our_name(thing.key); 
@@ -6562,9 +6621,9 @@ function expand_wildcards(thing, context = new Context()) {
           console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
             `config.${our_name} ` +
               `${thing.assign ? '=' : '+='} ` +
-              `${inspect_fun(value)}, ` +
+              `${inspect_fun(value, true)}, ` +
               `config is now: ` +
-              `${JSON.stringify(context.config)}`);
+              `${inspect_fun(context.config, true)}`);
       }
       
       return '';
@@ -6982,7 +7041,10 @@ class ASTRevertPickSingle extends ASTNode {
 // terminals:
 // -------------------------------------------------------------------------------------------------
 const word_break               = /(?=\s|[{|}]|$)/;
-const plaintext                = /(?:\\\s|[^\s{|}])+/;
+// const plaintext                = /(?:\\\s|[^\s{|}])+/;
+// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
+// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
+const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 // const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
@@ -7074,9 +7136,13 @@ const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), 
 
                                             return new ASTCheckFlags(...args);
                                           });
-const CheckFlagWithSetConsequent  = xform(seq('?', plus(ident, '.'), '.#', plus(ident, '.'), word_break ),
+const CheckFlagWithSetConsequent  = xform(seq('?',              // [0]
+                                              plus(ident, '.'), // [1]
+                                              '.#',             // [2]
+                                              plus(ident, '.'), // [3]
+                                              word_break),      // [-]
                                           arr => {
-                                            const args = [[ arr[1] ], arr[3]];
+                                            const args = [ [ arr[1] ], arr[3] ]; 
 
                                             if (log_flags_enabled) {
                                               console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
@@ -7142,7 +7208,7 @@ const DiscardedComments                = discard(wst_star(comment));
 const SpecialFunctionInclude           = xform(arr => new ASTInclude(arr[1]),
                                                c_funcall('%include',
                                                          first(wst_seq(DiscardedComments,
-                                                                       Jsonc,
+                                                                       json_string,
                                                                        DiscardedComments))))
 const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
                                                     () => "%include is only supported when " +
@@ -7163,26 +7229,20 @@ const SpecialFunctionRevertPickSingle =
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             '%revert_multi_pick');
-// const SpecialFunctionUpdateNegativePrompt = 
-//       xform(arr => new ASTUpdateNegativePrompt(arr[1], arr[0][1] == '='),
-//             wst_cutting_seq(wst_seq(/%n(?:eg(?:ative)?)?/,            // [0][0]
-//                                     choice(incr_assignment_operator,
-//                                            assignment_operator)),     // [0][1]
-//                             () => LimitedContent));                   // [1]
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
             cutting_seq(/%c(?:onf(?:ig)?)?\./,                           // [0]
                         seq(ident,                                       // [1][0]
                             wst_seq(choice(incr_assignment_operator,
                                            assignment_operator),         // [1][1][0]
-                                    choice(Jsonc,
+                                    choice(rJsonc,
                                            () => LimitedContent)))));    // [1][1][1]
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
             wst_cutting_seq(wst_seq(/%c(?:onf(?:ig)?)?/,                 // [0][0]
                                     choice(incr_assignment_operator,
                                            assignment_operator)),        // [0][1]
-                            choice(JsoncObject, () => LimitedContent))); // [1]   
+                            choice(rJsoncObject, () => LimitedContent))); // [1]   
 const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
                                                   SpecialFunctionUpdateConfigurationBinary,
                                                   //SpecialFunctionUpdateNegativePrompt
@@ -7201,14 +7261,18 @@ const AnySpecialFunction                  = choice((dt_hosted
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                             seq(wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                                 wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  () => ContentStar));
 const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                             seq(wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                                                 wst_star(choice(comment, TestFlag,
+                                                                 SetFlag, UnsetFlag)),
                                                  () => ContentStarNoLoras));
 const AnonWildcard                   = xform(arr => new ASTAnonWildcard(arr),
                                              brc_enc(wst_star(AnonWildcardAlternative, '|')));
@@ -7265,10 +7329,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      () => LimitedContent));       // [1]
-// const ScalarUpdateSource      = choice(NamedWildcardReference,
-//                                        AnonWildcard,
-//                                        ScalarReference,);
+                                                      () => LimitedContent));               // [1]
 const LimitedContent          = choice(
   NamedWildcardReference,
   AnonWildcardNoLoras,
@@ -7434,7 +7495,7 @@ async function main() {
   };
 
   const do_post = () => {
-    post_prompt(positive_prompt, { config: config });
+    post_prompt({ prompt: positive_prompt,  config: config });
     posted_count += 1; 
   };
 
