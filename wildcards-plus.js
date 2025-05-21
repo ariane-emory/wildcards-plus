@@ -2026,6 +2026,18 @@ class WeightedPicker {
 //   return prefix_arr.every((val, idx) => val === full_arr[idx]);
 // }
 // -------------------------------------------------------------------------------------------------
+function arr_is_prefix_of_arr(prefix_arr, full_arr) {
+  if (prefix_arr.length > full_arr.length)
+    return false;
+
+  for (let ix = 0; ix < prefix_arr.length; ix++)
+    if (prefix_arr[ix] !== full_arr[ix])
+      return false;
+  
+  return true;
+}
+
+// -------------------------------------------------------------------------------------------------
 // DT's env doesn't seem to have structuredClone, so we'll define our own:
 // -------------------------------------------------------------------------------------------------
 // var structured_clone_indent = 0;
@@ -2087,21 +2099,24 @@ class WeightedPicker {
 //   }
 // }
 // -------------------------------------------------------------------------------------------------
-function structured_clone(value, seen = new WeakMap()) {
+// -------------------------------------------------------------------------------------------------
+let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =>  {
   if (value === null || typeof value !== "object") {
     return value;
   }
 
-  if (seen.has(value)) {
-    throw new TypeError("Cannot clone cyclic structures");
+  if (!unshare) {
+    if (seen.has(value)) {
+      return seen.get(value); // Reuse existing clone
+    }
   }
 
-  // Handle arrays
+  // Handle Array
   if (Array.isArray(value)) {
     const clone = [];
-    seen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const item of value) {
-      clone.push(structured_clone(item, seen));
+      clone.push(structured_clone(item, { seen, unshare }));
     }
     return clone;
   }
@@ -2109,9 +2124,9 @@ function structured_clone(value, seen = new WeakMap()) {
   // Handle Set
   if (value instanceof Set) {
     const clone = new Set();
-    seen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const item of value) {
-      clone.add(structured_clone(item, seen));
+      clone.add(structured_clone(item, { seen, unshare }));
     }
     return clone;
   }
@@ -2119,9 +2134,10 @@ function structured_clone(value, seen = new WeakMap()) {
   // Handle Map
   if (value instanceof Map) {
     const clone = new Map();
-    seen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const [k, v] of value.entries()) {
-      clone.set(structured_clone(k, seen), structured_clone(v, seen));
+      clone.set(structured_clone(k, { seen, unshare }),
+                structured_clone(v, { seen, unshare }));
     }
     return clone;
   }
@@ -2136,25 +2152,82 @@ function structured_clone(value, seen = new WeakMap()) {
     return new RegExp(value);
   }
 
-  // Handle plain objects
+  // Handle plain Object
   const clone = {};
-  seen.set(value, clone);
+  if (!unshare) seen.set(value, clone);
   for (const key of Object.keys(value)) {
-    clone[key] = structured_clone(value[key], seen);
+    clone[key] = structured_clone(value[key], { seen, unshare });
   }
   return clone;
 }
-// -------------------------------------------------------------------------------------------------
-function arr_is_prefix_of_arr(prefix_arr, full_arr) {
-  if (prefix_arr.length > full_arr.length)
-    return false;
+// function structured_clone(value, seen = new WeakMap()) {
+//   if (value === null || typeof value !== "object") {
+//     return value;
+//   }
 
-  for (let ix = 0; ix < prefix_arr.length; ix++)
-    if (prefix_arr[ix] !== full_arr[ix])
-      return false;
-  
-  return true;
-}
+//   if (seen.has(value)) {
+//     throw new TypeError("Cannot clone cyclic structures");
+//   }
+
+//   // Handle arrays
+//   if (Array.isArray(value)) {
+//     const clone = [];
+//     seen.set(value, clone);
+//     for (const item of value) {
+//       clone.push(structured_clone(item, seen));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Set
+//   if (value instanceof Set) {
+//     const clone = new Set();
+//     seen.set(value, clone);
+//     for (const item of value) {
+//       clone.add(structured_clone(item, seen));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Map
+//   if (value instanceof Map) {
+//     const clone = new Map();
+//     seen.set(value, clone);
+//     for (const [k, v] of value.entries()) {
+//       clone.set(structured_clone(k, seen), structured_clone(v, seen));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Date
+//   if (value instanceof Date) {
+//     return new Date(value);
+//   }
+
+//   // Handle RegExp
+//   if (value instanceof RegExp) {
+//     return new RegExp(value);
+//   }
+
+//   // Handle plain objects
+//   const clone = {};
+//   seen.set(value, clone);
+//   for (const key of Object.keys(value)) {
+//     clone[key] = structured_clone(value[key], seen);
+//   }
+//   return clone;
+// }
+// // -------------------------------------------------------------------------------------------------
+// function arr_is_prefix_of_arr(prefix_arr, full_arr) {
+//   if (prefix_arr.length > full_arr.length)
+//     return false;
+
+//   for (let ix = 0; ix < prefix_arr.length; ix++)
+//     if (prefix_arr[ix] !== full_arr[ix])
+//       return false;
+
+//   return true;
+// }
 // // -------------------------------------------------------------------------------------------------
 // function equal_arrs(this_arr, that_arr) {
 //   if (this_arr.length != that_arr.length)
@@ -7605,7 +7678,8 @@ for (let ix = 0; ix < batch_count; ix++) {
   // expand the wildcards using a cloned context and generate a new configuration:
   
   const context          = base_context.clone();
-  context.config         = { ...structured_clone(pipeline_configuration), ...context.config }
+  context.config         = { ...structured_clone(pipeline_configuration, { unshare: true }),
+                             ...context.config }
   const generated_prompt = expand_wildcards(AST, context);
   context.config         = munge_config(context.config);
   console.log(`CONTEXT: ${inspect_fun(context)}`);
