@@ -238,6 +238,7 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_structured_clone_enabled      = false;
 let log_smart_join_enabled            = false;
+let log_expand_and_walk_enabled       = false;
 let disable_prelude                   = true;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
@@ -6507,11 +6508,19 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
-  const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+  const log = (guard_bool, msg) => {
+    if (! msg) throw new Error("bomb 1");
+    if (guard_bool) console.log(`${' '.repeat(indent*2)}${msg}`);
+  };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
-    const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
-    log(`Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ${thing}` +
+    const log = (guard_bool, msg) => {
+      if (! msg) throw new Error("bomb 2");
+      if (guard_bool) console.log(`${' '.repeat(indent*2)}${msg}`);
+    };
+    
+    log(log_expand_and_walk_enabled,
+        `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ${thing}` +
         ` @ ${indent} in ${context}` );
     
     // ---------------------------------------------------------------------------------------------
@@ -6523,17 +6532,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     else if (Array.isArray(thing)) {
       const ret = [];
 
-      for (const t of thing) {
-        // if (context.noisy)
-        //   log(`WALKING ` +
-        //       typeof t === 'object'
-        //       ? inspect_fun(t)
-        //       : `${typeof t} '${t}'`);
+      for (const t of thing) 
         ret.push(walk(t, indent + 1));
-      }
 
-      // log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
-      
       return ret;
     }
     // ---------------------------------------------------------------------------------------------
@@ -6548,8 +6549,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUnsetFlag) {
-      if (log_flags_enabled)
-        log(`UNSETTING FLAG '${thing.flag}'.`);
+      log(log_flags_enabled,
+          `UNSETTING FLAG '${thing.flag}'.`);
 
       context.unset_flag(thing.flag);
       
@@ -6614,16 +6615,16 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
         return `<ERROR: Named wildcard ${thing.name} not found!>`;
 
       if (got instanceof ASTLatchedNamedWildcardedValue) {
-        if (context.noisy)
-          log(`NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
+        log(context.noisy,
+            `NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
 
         return '';
       }
 
       const latched = new ASTLatchedNamedWildcardedValue(walk(got, indent + 1), got);
 
-      if (context.noisy)
-        log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+      log(context.noisy,
+          `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
       
       context.named_wildcards.set(thing.name, latched);
 
@@ -6641,15 +6642,15 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
       context.named_wildcards.set(thing.name, got.original_value);
 
-      if (context.noisy)
-        log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+      log(context.noisy,
+          `UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
 
       return ''; // produce no text.
     } 
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination))
-        log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
+        log(true, `WARNING: redefining named wildcard '${thing.destination.name}'.`);
 
       context.named_wildcards.set(thing.destination, thing.wildcard);
 
@@ -6665,13 +6666,12 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // scalar assignment:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateScalar) {
-      if (context.noisy) {
-        log();
-        log(`ASSIGNING ${inspect_fun(thing.source)} ` +
-            `TO '${thing.destination.name}'`);
-      }
-
-      let   new_val  = walk(thing.source, indent + 1);
+      log(context.noisy, '');
+      log(context.noisy,
+          `ASSIGNING ${inspect_fun(thing.source)} ` +
+          `TO '${thing.destination.name}'`);
+      
+      let   new_val = walk(thing.source, indent + 1);
       const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
       if (! thing.assign)
@@ -6679,10 +6679,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       
       context.scalar_variables.set(thing.destination.name, new_val);
 
-      if (context.noisy) {
-        log(`ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
-        log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
-      }
+      log(context.noisy,
+          `ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
+      log(context.noisy,
+          `VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
       
       return '';
     }
@@ -6701,8 +6701,6 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateConfigUnary ||
              thing instanceof ASTUpdateConfigBinary) {
-      // log(`WALK ${inspect_fun(thing)}`);
-
       let value = thing.value;
 
       if (value instanceof ASTNode) {
@@ -6734,11 +6732,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           ? new_obj
           : { ...context.config, ...new_obj };
 
-        if (log_config_enabled)
-          log(`config ${thing.assign ? '=' : '+='} ` +
-              `${inspect_fun(new_obj, true)}, ` +
-              `config is now: ` +
-              `${inspect_fun(context.config, true)}`);
+        log(log_config_enabled,
+            `config ${thing.assign ? '=' : '+='} ` +
+            `${inspect_fun(new_obj, true)}, ` +
+            `config is now: ` +
+            `${inspect_fun(context.config, true)}`);
       }
       else { // ASTUpdateConfigBinary
         const our_name = get_our_name(thing.key); 
@@ -6755,9 +6753,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
                               `to non-array ${inspect_fun(tmp_arr)}`);
             
             const new_arr = [ ...tmp_arr, ...value ];
-            // log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by array ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(new_arr)}`);
+            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            //           `increment by array ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun(new_arr)}`);
             context.config[our_name] = new_arr;
           }
           else if (typeof value === 'object') {
@@ -6768,9 +6766,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
                               `to non-object ${inspect_fun(tmp_obj)}`);
 
             const new_obj = { ...tmp_obj, ...value };
-            // log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by object ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(new_obj)}`);
+            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            //           `increment by object ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun(new_obj)}`);
             context.config[our_name] = new_obj;
           }
           else if (typeof value === 'number') {
@@ -6780,9 +6778,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
               throw new Error(`can't add number ${inspect_fun(value)} `+
                               `to non-number ${inspect_fun(tmp_num)}`);
 
-            // log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by number ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[our_name]??0) + value)}`);
+            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            //           `increment by number ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun((context.config[our_name]??0) + value)}`);
             context.config[our_name] = tmp_num + value;
           }
           else if (typeof value === 'string') {
@@ -6792,27 +6790,26 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
               throw new Error(`can't add string ${inspect_fun(value)} `+
                               `to non-string ${inspect_fun(tmp_str)}`);
 
-            // log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by string ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[our_name]??'') + value)}`);
+            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            //           `increment by string ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun((context.config[our_name]??'') + value)}`);
             context.config[our_name] = smart_join([tmp_str, value]);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
-            // log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by unknown ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(context.config[our_name]??null + value)}`);
+            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            //           `increment by unknown ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun(context.config[our_name]??null + value)}`);
             context.config[our_name] = (context.config[our_name]??null) + value;
           }
         }
 
-        if (log_config_enabled)
-          log(// `${thing.assign ? "Set" : "Incremented"} ` +
+        log(log_config_enabled,
             `config.${our_name} ` +
-              `${thing.assign ? '=' : '+='} ` +
-              `${inspect_fun(value, true)}, ` +
-              `config is now: ` +
-              `${inspect_fun(context.config, true)}`);
+            `${thing.assign ? '=' : '+='} ` +
+            `${inspect_fun(value, true)}, ` +
+            `config is now: ` +
+            `${inspect_fun(context.config, true)}`);
       }
       
       return '';
@@ -6843,13 +6840,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       context[prior_key] = context[cur_key];
       context[cur_key]   = walked;
 
-      if (log_config_enabled)
-        // log(
-        //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-        // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
-        log(
+      log(log_config_enabled,
           `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(walked)}.`);
+          `${inspect_fun(walked)}.`);
       
       return '';
     }
@@ -6870,11 +6863,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val })}`);
       
-      if (log_config_enabled)
-        // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
-        log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(prior_val)}.`);
+      // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+      //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
+      log(log_config_enabled,
+          `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+          `${inspect_fun(prior_val)}.`);
       
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
@@ -6885,7 +6878,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ASTLora:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      log(`ENCOUNTERED LORA ${thing} IN ${context}`);
+      log(log_expand_and_walk_enabled,
+          `ENCOUNTERED LORA ${thing} IN ${context}`);
       
       let walked_file = expand_wildcards(thing.file, context, indent + 1); // not walk!
 
@@ -6966,12 +6960,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     }
   }
 
-  log(`Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} ` +
+  log(log_expand_and_walk_enabled,
+      `Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} ` +
       `@ ${indent} in ${context}`);
   
   const ret = unescape(smart_join(walk(thing, indent + 1)));
 
-  log(`Expanded into ${inspect_fun(ret)}`);
+  log(log_expand_and_walk_enabled,
+      `Expanded into ${inspect_fun(ret)}`);
   
   // if (ret === undefined)
   //   throw new Error("what");
