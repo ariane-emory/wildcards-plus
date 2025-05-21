@@ -3058,7 +3058,7 @@ class Context {
     named_wildcards              = new Map(),
     noisy                        = false,
     files                        = [],
-    configuration                       = {},
+    configuration                = {},
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
@@ -3072,7 +3072,7 @@ class Context {
     this.named_wildcards              = named_wildcards;
     this.noisy                        = noisy;
     this.files                        = files;
-    this.configuration                       = configuration;
+    this.configuration                = configuration;
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
@@ -3200,10 +3200,8 @@ class Context {
       scalar_variables:             new Map(this.scalar_variables),
       named_wildcards:              new Map(this.named_wildcards),
       noisy:                        this.noisy,
-      files:                        [ ...this.files ],
-      configuration:                       structured_clone(this.configuration),
-      // add_loras:                    [ ...this.add_loras
-      //                                 .map(o => ({ file: o.file, weigh: o.weight })) ],
+      files:                        stuctured_clonnd(this.files),
+      configuration:                structured_clone(this.configuration, { unshare: true }),
       top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
