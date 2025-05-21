@@ -2362,9 +2362,9 @@ try {
   obj.self = obj; // Create a cycle
   structured_clone(obj); // Should fail immediately but recurses infinitely and blows th call stack instead
 
-  throw new Error(`#3 should have failed.`);
+  throw new Error(`test #3 should have failed.`);
 } catch {
-  console.log(`#3 failed as intended.`);
+  console.log(`test #3 failed as intended.`);
 }
 
 try {
@@ -2372,9 +2372,9 @@ try {
   obj.self = obj; // Create a cycle
   structured_clone(obj, { unshare: true }); // Should fail immediately but recurses infinitely and blows th call stack instead
 
-  throw new Error(`#4 should have failed.`);
+  throw new Error(`test #4 should have failed.`);
 } catch {
-  console.log(`#4 failed as intended.`);
+  console.log(`test #4 failed as intended.`);
 }
 
 // -------------------------------------------------------------------------------------------------
