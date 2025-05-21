@@ -7240,6 +7240,11 @@ class ASTUpdateConfigBinary extends ASTNode {
     this.value  = value;
     this.assign = assign;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%${this.key} ${this.assign? '=' : '+='} ` +
+      `${this.value instanceof ASTNode ? this.value : inspect_fun(this.value)}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // class ASTUpdateNegativePrompt extends ASTNode {
