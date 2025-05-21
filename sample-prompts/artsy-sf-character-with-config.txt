@@ -88,11 +88,11 @@
 
   // possible resolutions:
   { // 3 %config += { "width": 1024, "height": 512 }
-  | 3 %config += { "width": 768,  "height": 384 }
-  | 3 %config += { "width": 640,  "height": 320 }
-  | 3 ?square_on %config += { "width": 768,  "height": 768 }
-  | 3 ?square_on %config += { "width": 640,  "height": 640 }
-  | 3 ?square_on %config += { "width": 512,  "height": 512 }
+  | 3 %width = 768; %height = 384;
+  | 3 %width = 640; %height = 320;
+  // | 3 ?square_on %width = 768; %height = 768;
+  // | 3 ?square_on %width = 640; %height = 640;
+  // | 3 ?square_on %width = 512; %height = 512;
   }
 
 // =================================================================================================
@@ -518,3 +518,4 @@ A { ?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
 {|8 @sky_sentence}
 
 {?wizards_artist By @wizards_artists, @wizards_artist_styles. }
+  

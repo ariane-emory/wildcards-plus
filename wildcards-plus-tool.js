@@ -229,7 +229,7 @@ let unnecessary_choice_is_error       = false;
 let print_ast_enabled                 = false;
 let print_ast_json_enabled            = false;
 let log_enabled                       = true;
-let log_configuration_enabled                = true;
+let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
@@ -3072,7 +3072,7 @@ class Context {
     this.named_wildcards              = named_wildcards;
     this.noisy                        = noisy;
     this.files                        = files;
-    this.configuration                = configuration;
+    this.configuration                = structured_clone(configuration, { unshare: true });
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;

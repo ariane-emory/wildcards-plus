@@ -24,7 +24,7 @@ let unnecessary_choice_is_error       = false;
 let print_ast_enabled                 = false;
 let print_ast_json_enabled            = false;
 let log_enabled                       = true;
-let log_configuration_enabled                = true;
+let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
@@ -7647,7 +7647,7 @@ console.log(`-------------------------------------------------------------------
 console.log(`${prompt_string}`);
 
 const base_context = load_prelude();
-base_context.configuration                 = pipeline.configuration;
+base_context.configuration          = pipeline.configuration;
 base_context.pick_one_priority      = user_selected_pick_one_priority;
 base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 
