@@ -7756,38 +7756,11 @@ async function main() {
     console.log(`Expansion #${posted_count + 1} of ${count}:`);
     console.log('==========================================================================================');
     
-    const context       = base_context.clone();
-
-    // console.log(`BASE_CONTEXT.CONFIGURATION.LORAS.LENGTH = ${base_context.configuration?.loras?.length}`
-    //             + ` IN ${base_context}`
-    //            );
-    // console.log(`CONTEXT     .CONFIGURATION.LORAS.LENGTH = ${context     .configuration?.loras?.length}`
-    //             + ` IN ${context}`
-    //            );
-    
-    let prompt        = expand_wildcards(AST, context);
-
-
-    // console.log(`EXPANDING ADDDED ` +
-    //             // `${base_context.configuration.loras?.length??0} - ` +
-    //             // `${context     .configuration.loras?.length??0} = ` +
-    //             `${(context.configuration.loras?.length??0) - (base_context.configuration.loras?.length??0)} LORAS!`);
+    const context = base_context.clone();
+    const prompt  = expand_wildcards(AST, context);
 
     context.munge_configuration();
 
-    if (context.configuration === prior_configuration)
-      throw new Error("wtf");
-    
-    if (/* munged_configuration.loras && prior_configuration.loras && */ context.configuration.loras === prior_configuration?.loras)
-      throw new Error("wtf 2");
-    
-    // console.log(`MUNGED_CONFIGURATION.LORAS.LENGTH = ${munged_configuration?.loras?.length}`);
-
-    // console.log(`MUNGING ADDDED ` +
-    //             // `${munged_configuration .loras?.length??0} - ` +
-    //             // `${context.configuration.loras?.length??0} = ` +
-    //             `${(munged_configuration.loras.length??0) - (context.configuration.loras.length??0)} LORAS!`);
-    
     if (log_flags_enabled || log_configuration_enabled)
       console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
     
