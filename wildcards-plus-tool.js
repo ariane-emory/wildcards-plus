@@ -6457,7 +6457,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   function walk(thing, indent = 0) {
     const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
     log(`Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ${thing}` +
-        ` @ ${indent}` );
+        ` @ ${indent} in ${context}` );
     
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
@@ -6858,12 +6858,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
 
-      log(`WALKED_WEIGHT IS ${typeof walked_weight} ${inspect_fun(walked_weight)}`);
-      
       const weight_match_result = json_number.match(walked_weight);
 
-      log(`WEIGHT MR IS ${inspect_fun(weight_match_result)}`);
-      
       if (!weight_match_result || !weight_match_result.is_finished)
         throw new Error(`LoRA weight must be a number, got ` +
                         `${inspect_fun(walked_weight)}`);
@@ -6915,7 +6911,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     }
   }
 
-  log(`Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} @ ${indent}`);
+  log(`Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} ` +
+      `@ ${indent} in ${context}`);
   
   const ret = unescape(smart_join(walk(thing, indent + 1)));
 
