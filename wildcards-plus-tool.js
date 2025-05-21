@@ -7070,6 +7070,10 @@ class ASTUpdateScalar extends ASTNode  {
     this.source      = source;
     this.assign      = assign;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `$${this.destination} ${this.assign? '==' : '+='} ${this.destination}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // A1111-style Loras:
