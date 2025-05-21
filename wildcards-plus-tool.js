@@ -7548,25 +7548,25 @@ async function main() {
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
   let posted_count          = 0;
-  let positive_prompt       = undefined; // not null
+  let prompt       = undefined; // not null
   let config                = null;
-  let prior_positive_prompt = null;
+  let prior_prompt = null;
   let prior_config          = null;
   
   const stash_priors = () => {
-    prior_positive_prompt = positive_prompt;
+    prior_prompt = prompt;
     // prior_negative_prompt = negative_prompt;
     prior_config = clone_fun(config);
   };
 
   const restore_priors = () => {
-    [ positive_prompt, prior_positive_prompt ] = [ prior_positive_prompt, positive_prompt ];
-    [ config,          prior_config          ] = [ prior_config,          config          ];
+    [ prompt, prior_prompt ] = [ prior_prompt, prompt ];
+    [ config, prior_config ] = [ prior_config, config ];
     // [ negative_prompt, prior_negative_prompt ] = [ prior_negative_prompt, negative_prompt ];
   };
 
   const do_post = () => {
-    post_prompt({ prompt: positive_prompt,  config: config });
+    post_prompt({ prompt: prompt,  config: config });
     posted_count += 1; 
   };
 
@@ -7576,7 +7576,7 @@ async function main() {
     console.log('==========================================================================================');
 
     const context    = base_context.clone();
-    positive_prompt  = expand_wildcards(AST, context);
+    prompt  = expand_wildcards(AST, context);
     // negative_prompt  = context.negative_prompt;
     config           = munge_config(context.config);
     const have_loras = context.add_loras && context.add_loras.length > 0;
@@ -7601,7 +7601,7 @@ async function main() {
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
     console.log(`------------------------------------------------------------------------------------------`);
-    console.log(positive_prompt);
+    console.log(prompt);
 
     if (context.config.negative_prompt || context.config.negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
@@ -7633,12 +7633,12 @@ async function main() {
         }
 
         if (answer.match(/^p.*/i)) {
-          if (prior_positive_prompt) { 
+          if (prior_prompt) { 
             console.log(`------------------------------------------------------------------------------------------`);
             // untested!
             restore_priors();
             
-            console.log(`POSTing prior prompt '${positive_prompt}'`);
+            console.log(`POSTing prior prompt '${prompt}'`);
 
             do_post();
             
