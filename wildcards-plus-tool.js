@@ -7612,12 +7612,14 @@ async function main() {
     console.log('==========================================================================================');
     
     const context       = base_context.clone();
+
+    console.log(`CONTEXT.CONFIG.LORAS.LENGTH = ${context.config?.loras?.length}`);
+    
     const prompt        = expand_wildcards(AST, context);
-    // negative_prompt  = context.negative_prompt;
     const munged_config = munge_config(context.config);
 
-    // const have_loras    = context.add_loras && context.add_loras.length > 0;
-
+    console.log(`MUNGED_CONFIG.LORAS.LENGTH = ${munged_config?.loras?.length}`);
+    
     if (log_flags_enabled || log_config_enabled)
       console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
         
