@@ -7547,11 +7547,11 @@ async function main() {
   
   // base_context.reset_temporaries(); // might not need to do this here after all?
 
-  let posted_count          = 0;
+  let posted_count = 0;
   let prompt       = undefined; // not null
-  let config                = null;
+  let config       = null;
   let prior_prompt = null;
-  let prior_config          = null;
+  let prior_config = null;
   
   const stash_priors = () => {
     prior_prompt = prompt;
