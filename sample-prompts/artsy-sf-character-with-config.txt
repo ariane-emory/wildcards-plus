@@ -133,12 +133,12 @@
   // { !sdxl_lightning_on %steps = 30 }   
   
   // possible resolutions:
-  { 4            %config += { "width": 1280, "height": 640  }
-  | 4            %config += { "width": 1152, "height": 576  }
-  | 4            %config += { "width": 1024, "height": 512  }
-  | 3 ?square_on %config += { "width": 1024, "height": 1024 }
-  | 3 ?square_on %config += { "width": 768,  "height": 768  }
-  | 3 ?square_on %config += { "width": 640,  "height": 640  }
+  { 4            %width = 1280; %height = 640;
+  | 4            %width = 1152; %height = 576;
+  | 4            %width = 1024; %height = 512;
+  | 3 ?square_on %width = 1024; %height = 1024;
+  | 3 ?square_on %width = 768;  %height = 768;
+  | 3 ?square_on %width = 640;  %height = 640;
   }
 
   %n_iter    = 2
