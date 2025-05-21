@@ -6867,6 +6867,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   
   const ret = unescape(smart_join(walk(thing, indent + 1)));
 
+  context.munge_configuration();
+  
   log(log_expand_and_walk_enabled,
       `Expanded into ${inspect_fun(ret)}`);
   
@@ -7722,8 +7724,6 @@ async function main() {
     
     const context = base_context.clone();
     const prompt  = expand_wildcards(AST, context);
-
-    context.munge_configuration();
 
     if (log_flags_enabled || log_configuration_enabled)
       console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
