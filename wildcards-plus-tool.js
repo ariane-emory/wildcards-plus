@@ -2379,15 +2379,16 @@ function is_flag_set(test_flag, set_flags) {
 // -------------------------------------------------------------------------------------------------
 function add_lora_to_context(lora, context, indent = 0) {
   const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
-  const arr   = context.config.loras??[];
-  const index = arr.findIndex(existing => existing.file === lora.file);
+  context.config.loras ||= [];
+  const index = context.config.loras.findIndex(existing => existing.file === lora.file);
 
   if (index !== -1) 
-    arr.splice(index, 1); // Remove the existing entry
+    context.config.splice(index, 1); // Remove the existing entry
 
-  context.config.loras = [ ...arr, lora ];
+  context.config.loras.push(lora);
 
-  log(`ADDED ${inspect_fun(lora)} TO ${context}`);
+  if (log_config_enabled)
+    log(`ADDED ${inspect_fun(lora)} TO ${context}`);
 }
 // -------------------------------------------------------------------------------------------------
 // function add_lora_to_context(lora, context, indent = 0) {
@@ -2867,7 +2868,7 @@ function get_our_name(name) {
 }
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
-  console.log(`MUNGING (with ${config?.loras?.length} loras) ${inspect_fun(config)}`);
+  // console.log(`MUNGING (with ${config?.loras?.length} loras) ${inspect_fun(config)}`);
   
   const munged_config = structured_clone(config);
 
