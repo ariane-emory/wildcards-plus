@@ -202,10 +202,10 @@ function process_includes(thing, context = new Context()) {
 // =================================================================================================
 // set inspect_fun appropriately for node.js:
 // =================================================================================================
-const inspect_fun           = (thing, no_break = false) =>
-      util.inspect(thing, no_break ? { breakLength: Infinity } : {});
-const dt_hosted             = false;
-const test_structured_clone = true;
+let inspect_fun           = (thing, no_break = false) =>
+    util.inspect(thing, no_break ? { breakLength: Infinity } : {});
+let dt_hosted             = false;
+let test_structured_clone = true;
 // =================================================================================================
 
 
@@ -220,6 +220,10 @@ if (false)
   test_structured_clone = false;
 }
 // -------------------------------------------------------------------------------------------------
+
+console.log(inspect_fun);
+console.log(dt_hosted);
+console.log(test_structured_clone);
 
 
 // -------------------------------------------------------------------------------------------------
@@ -249,6 +253,7 @@ let save_post_requests_enable         = true;
 
 // =================================================================================================
 // find a better spot for this: 
+// =================================================================================================
 Array.prototype.toString = function() {
   return this.length > 0 ? compress(`[ ${this.join(", ")} ]`) : '[]';
 }
@@ -1617,813 +1622,813 @@ const sint               = r(/[+-]?\d+/)
 const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
 const plus_comma_sep     = rule => plus(rule, /\s*\,\s*/);
 const star_whites_sep    = rule => star(rule, whites_plus);
-const plus_whites_sep    = rule => plus(rule, whites_plus);
-// -------------------------------------------------------------------------------------------------
-// string-like terminals:
-const stringlike         = quote => r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
-const dq_string          = stringlike('"');
-const sq_string          = stringlike("'");
-const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
-const raw_dq_string      = r(/r"[^"]*"/);
-const template_string    = r(/`(?:[^\\`]|\\.)*`/);
-// -------------------------------------------------------------------------------------------------
-// keyword helper:
-const keyword            = word => {
-  if (word instanceof Regex)
-    return keyword(word.regexp);
+            const plus_whites_sep    = rule => plus(rule, whites_plus);
+            // -------------------------------------------------------------------------------------------------
+            // string-like terminals:
+            const stringlike         = quote => r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
+            const dq_string          = stringlike('"');
+            const sq_string          = stringlike("'");
+            const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
+            const raw_dq_string      = r(/r"[^"]*"/);
+            const template_string    = r(/`(?:[^\\`]|\\.)*`/);
+            // -------------------------------------------------------------------------------------------------
+            // keyword helper:
+            const keyword            = word => {
+              if (word instanceof Regex)
+                return keyword(word.regexp);
 
-  if (word instanceof RegExp)
-    return keyword(word.source);
-  
-  return r(new RegExp(String.raw(`\b${word}\b`)));
-};
-// -------------------------------------------------------------------------------------------------
-// parenthesis-like terminals:
-const lpar               = l('(');
-const rpar               = l(')');
-const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
-const rbrc               = l('{}'[1]); 
-const lsqr               = l('[]'[0]);
-const rsqr               = l('[]'[1]);
-const lt                 = l('<');
-const gt                 = l('>');
-// -------------------------------------------------------------------------------------------------
-// common enclosed rules:
-const par_enc            = rule => cutting_enc(lpar, rule, rpar);
-const brc_enc            = rule => cutting_enc(lbrc, rule, rbrc);
-const sqr_enc            = rule => cutting_enc(lsqr, rule, rsqr);
-const tri_enc            = rule => cutting_enc(lt,   rule, gt);
-const wse                = rule => enc(whites_star, rule, whites_star);
-// -------------------------------------------------------------------------------------------------
-// basic arithmetic ops:
-const factor_op          = r(/[\/\*\%]/);
-const term_op            = r(/[\+\-]/);
-// -------------------------------------------------------------------------------------------------
-// Pascal-like terminals:
-const pascal_assign_op   = l('=');
-// -------------------------------------------------------------------------------------------------
-// Python-like terminals:
-const python_exponent_op = l('**');
-const python_logic_word  = r(/and|or|not|xor/);
-// -------------------------------------------------------------------------------------------------
-// common punctuation:
-const ampersand          = l('&');
-const asterisk           = l('*');
-const bang               = l('!');
-const bslash             = l('\\');
-const caret              = l('^');
-const colon              = l(':');
-const comma              = l(',');
-const dash_arrow         = l('->');
-const dot                = l('.');
-const eq_arrow           = l('=>');
-const ellipsis           = l('...');
-const equals             = l('=');
-const percent            = l('%');
-const pipe               = l('|');
-const pound              = l('#');
-const question           = l('?');
-const range              = l('..');
-const semicolon          = l(';');
-const slash              = l('/');
-// -------------------------------------------------------------------------------------------------
-// C-like numbers:
-const c_sint             = sint;
-const c_uint             = uint;
-const c_bin              = r(/0b[01]/);
-const c_char             = r(/'\\?[^\']'/);
-const c_hex              = r(/0x[0-9a-f]+/);
-const c_octal            = r(/0o[0-7]+/);
-const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
-const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
-const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
-const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
-const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
-// -------------------------------------------------------------------------------------------------
-// other C-like terminals:
-const c_bool             = choice('true', 'false');
-const c_arith_assign     = r(/\+=|\-=|\*=|\/=|\%=/)
-const c_bitwise_and      = l('&');
-const c_bitwise_bool_ops = r(/&&|\|\|/);
-const c_bitwise_not      = l('~');
-const c_bitwise_or       = l('|');
-const c_bitwise_xor      = caret; 
-const c_ccomparison_op   = r(/<=?|>=?|[!=]/);
-const c_incr_decr        = r(/\+\+|--/);
-const c_shift            = r(/<<|>>/);
-const c_shift_assign     = r(/<<=|>>=/);
-const c_unicode_ident    = r(/[\p{L}_][\p{L}\p{N}_]*/u);
-// -------------------------------------------------------------------------------------------------
-// dotted chains:
-const dot_chain          = rule => plus(rule, dot); 
-// -------------------------------------------------------------------------------------------------
-// common comment styles:
-const c_line_comment     = r(/\/\/[^\n]*/);
-const py_line_comment    = r(/#[^\n]*/);
-const c_block_comment    = r(/\/\*[^]*?\*\//);
-// -------------------------------------------------------------------------------------------------
-// ternary helper combinator:
-const ternary            =
-      ((cond_rule, then_rule = cond_rule, else_rule = then_rule) =>
-        xform(seq(cond_rule, question, then_rule, colon, else_rule),
-              arr => [ arr[0], arr[2], arr[4] ]));
-// -------------------------------------------------------------------------------------------------
-// misc unsorted Rules:
-const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
-// -------------------------------------------------------------------------------------------------
-// C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = '(', close = ')', sep = ',') =>
-      seq(fun_rule,
-          wst_cutting_enc(open,
-                          wst_star(arg_rule, sep),
-                          close));
-// -------------------------------------------------------------------------------------------------
-// whitespace tolerant combinators:
-// -------------------------------------------------------------------------------------------------
-const __make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(wse(rule), sep));
-const __make_wst_quantified_combinator_alt = base_combinator =>
-      ((rule, sep = null) =>
-        lws(base_combinator(tws(rule),
-                            sep ? seq(sep, whites_star) : null)));
-const __make_wst_seq_combinator = base_combinator =>
-      //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
-      (...rules) => base_combinator(...rules.map(x => lws(x)));
-// -------------------------------------------------------------------------------------------------
-const wst_choice      = (...options) => wse(choice(...options));
-const wst_star        = __make_wst_quantified_combinator(star);
-const wst_plus        = __make_wst_quantified_combinator(plus);
-const wst_star_alt    = __make_wst_quantified_combinator_alt(star);
-const wst_plus_alt    = __make_wst_quantified_combinator_alt(plus);
-const wst_seq         = __make_wst_seq_combinator(seq);
-const wst_enc         = __make_wst_seq_combinator(enc);
-const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
-const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => cutting_enc(wse(lpar), rule, wse(rpar));
-const wst_brc_enc     = rule => cutting_enc(wse(lbrc), rule, wse(rbrc));
-const wst_sqr_enc     = rule => cutting_enc(wse(lsqr), rule, wse(rsqr));
-const wst_tri_enc     = rule => cutting_enc(wse(lt),   rule, wse(gt));
-// -------------------------------------------------------------------------------------------------
-// convenience combinators:
-// -------------------------------------------------------------------------------------------------
-const push            = ((value, rule) =>
-  xform(rule, arr => [value, ...arr]));
-const enclosing       = (left, enclosed, right) =>
-      xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
-// =================================================================================================
-// END of COMMON-GRAMMAR.JS CONTENT SECTION.
-// =================================================================================================
+              if (word instanceof RegExp)
+                return keyword(word.source);
+              
+              return r(new RegExp(String.raw(`\b${word}\b`)));
+            };
+            // -------------------------------------------------------------------------------------------------
+            // parenthesis-like terminals:
+            const lpar               = l('(');
+            const rpar               = l(')');
+            const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
+            const rbrc               = l('{}'[1]); 
+            const lsqr               = l('[]'[0]);
+            const rsqr               = l('[]'[1]);
+            const lt                 = l('<');
+            const gt                 = l('>');
+            // -------------------------------------------------------------------------------------------------
+            // common enclosed rules:
+            const par_enc            = rule => cutting_enc(lpar, rule, rpar);
+            const brc_enc            = rule => cutting_enc(lbrc, rule, rbrc);
+            const sqr_enc            = rule => cutting_enc(lsqr, rule, rsqr);
+            const tri_enc            = rule => cutting_enc(lt,   rule, gt);
+            const wse                = rule => enc(whites_star, rule, whites_star);
+            // -------------------------------------------------------------------------------------------------
+            // basic arithmetic ops:
+            const factor_op          = r(/[\/\*\%]/);
+            const term_op            = r(/[\+\-]/);
+            // -------------------------------------------------------------------------------------------------
+            // Pascal-like terminals:
+            const pascal_assign_op   = l('=');
+            // -------------------------------------------------------------------------------------------------
+            // Python-like terminals:
+            const python_exponent_op = l('**');
+            const python_logic_word  = r(/and|or|not|xor/);
+            // -------------------------------------------------------------------------------------------------
+            // common punctuation:
+            const ampersand          = l('&');
+            const asterisk           = l('*');
+            const bang               = l('!');
+            const bslash             = l('\\');
+            const caret              = l('^');
+            const colon              = l(':');
+            const comma              = l(',');
+            const dash_arrow         = l('->');
+            const dot                = l('.');
+            const eq_arrow           = l('=>');
+            const ellipsis           = l('...');
+            const equals             = l('=');
+            const percent            = l('%');
+            const pipe               = l('|');
+            const pound              = l('#');
+            const question           = l('?');
+            const range              = l('..');
+            const semicolon          = l(';');
+            const slash              = l('/');
+            // -------------------------------------------------------------------------------------------------
+            // C-like numbers:
+            const c_sint             = sint;
+            const c_uint             = uint;
+            const c_bin              = r(/0b[01]/);
+            const c_char             = r(/'\\?[^\']'/);
+            const c_hex              = r(/0x[0-9a-f]+/);
+            const c_octal            = r(/0o[0-7]+/);
+            const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
+            const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
+            const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
+            const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
+            const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
+            // -------------------------------------------------------------------------------------------------
+            // other C-like terminals:
+            const c_bool             = choice('true', 'false');
+            const c_arith_assign     = r(/\+=|\-=|\*=|\/=|\%=/)
+            const c_bitwise_and      = l('&');
+            const c_bitwise_bool_ops = r(/&&|\|\|/);
+            const c_bitwise_not      = l('~');
+            const c_bitwise_or       = l('|');
+            const c_bitwise_xor      = caret; 
+            const c_ccomparison_op   = r(/<=?|>=?|[!=]/);
+            const c_incr_decr        = r(/\+\+|--/);
+            const c_shift            = r(/<<|>>/);
+            const c_shift_assign     = r(/<<=|>>=/);
+            const c_unicode_ident    = r(/[\p{L}_][\p{L}\p{N}_]*/u);
+            // -------------------------------------------------------------------------------------------------
+            // dotted chains:
+            const dot_chain          = rule => plus(rule, dot); 
+            // -------------------------------------------------------------------------------------------------
+            // common comment styles:
+            const c_line_comment     = r(/\/\/[^\n]*/);
+            const py_line_comment    = r(/#[^\n]*/);
+            const c_block_comment    = r(/\/\*[^]*?\*\//);
+            // -------------------------------------------------------------------------------------------------
+            // ternary helper combinator:
+            const ternary            =
+                  ((cond_rule, then_rule = cond_rule, else_rule = then_rule) =>
+                    xform(seq(cond_rule, question, then_rule, colon, else_rule),
+                          arr => [ arr[0], arr[2], arr[4] ]));
+            // -------------------------------------------------------------------------------------------------
+            // misc unsorted Rules:
+            const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
+            // -------------------------------------------------------------------------------------------------
+            // C-like function calls:
+            const c_funcall = (fun_rule, arg_rule, open = '(', close = ')', sep = ',') =>
+                  seq(fun_rule,
+                      wst_cutting_enc(open,
+                                      wst_star(arg_rule, sep),
+                                      close));
+            // -------------------------------------------------------------------------------------------------
+            // whitespace tolerant combinators:
+            // -------------------------------------------------------------------------------------------------
+            const __make_wst_quantified_combinator = base_combinator => 
+                  ((rule, sep = null) => base_combinator(wse(rule), sep));
+            const __make_wst_quantified_combinator_alt = base_combinator =>
+                  ((rule, sep = null) =>
+                    lws(base_combinator(tws(rule),
+                                        sep ? seq(sep, whites_star) : null)));
+            const __make_wst_seq_combinator = base_combinator =>
+                  //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
+                  (...rules) => base_combinator(...rules.map(x => lws(x)));
+            // -------------------------------------------------------------------------------------------------
+            const wst_choice      = (...options) => wse(choice(...options));
+            const wst_star        = __make_wst_quantified_combinator(star);
+            const wst_plus        = __make_wst_quantified_combinator(plus);
+            const wst_star_alt    = __make_wst_quantified_combinator_alt(star);
+            const wst_plus_alt    = __make_wst_quantified_combinator_alt(plus);
+            const wst_seq         = __make_wst_seq_combinator(seq);
+            const wst_enc         = __make_wst_seq_combinator(enc);
+            const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
+            const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
+            const wst_par_enc     = rule => cutting_enc(wse(lpar), rule, wse(rpar));
+            const wst_brc_enc     = rule => cutting_enc(wse(lbrc), rule, wse(rbrc));
+            const wst_sqr_enc     = rule => cutting_enc(wse(lsqr), rule, wse(rsqr));
+            const wst_tri_enc     = rule => cutting_enc(wse(lt),   rule, wse(gt));
+            // -------------------------------------------------------------------------------------------------
+            // convenience combinators:
+            // -------------------------------------------------------------------------------------------------
+            const push            = ((value, rule) =>
+              xform(rule, arr => [value, ...arr]));
+            const enclosing       = (left, enclosed, right) =>
+                  xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
+            // =================================================================================================
+            // END of COMMON-GRAMMAR.JS CONTENT SECTION.
+            // =================================================================================================
 
 
-// =================================================================================================
-// BASIC JSON GRAMMAR SECTION:
-// =================================================================================================
-// JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
-const json = choice(() => JsonObject,  () => JsonArray,
-                    () => json_string, () => json_true,   () => json_false,
-                    () => json_null,   () => json_number);
-// Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
-const JsonObject = xform(arr =>  Object.fromEntries(arr), 
-                         wst_cutting_enc('{',
-                                         wst_star(
-                                           xform(arr => [arr[0], arr[2]],
-                                                 wst_seq(() => json_string, ':', json)),
+            // =================================================================================================
+            // BASIC JSON GRAMMAR SECTION:
+            // =================================================================================================
+            // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
+            const json = choice(() => JsonObject,  () => JsonArray,
+                                () => json_string, () => json_true,   () => json_false,
+                                () => json_null,   () => json_number);
+            // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
+            const JsonObject = xform(arr =>  Object.fromEntries(arr), 
+                                     wst_cutting_enc('{',
+                                                     wst_star(
+                                                       xform(arr => [arr[0], arr[2]],
+                                                             wst_seq(() => json_string, ':', json)),
+                                                       ','),
+                                                     '}'));
+            // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
+            const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
+            // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
+            const json_string = xform(JSON.parse,
+                                      /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
+            // UnicodeEscape ← "u" [0-9A-Fa-f]{4}
+            const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
+            // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
+            const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
+            // True ← "true"
+            const json_true = xform(x => true, 'true');
+            // False ← "false"
+            const json_false = xform(x => false, 'false');
+            // Null ← "null"
+            const json_null = xform(x => null, 'null');
+            // Minus ← "-"
+            const json_minus = l('-');
+            // IntegralPart ← "0" / [1-9] [0-9]*
+            const json_integralPart = r(/0|[1-9][0-9]*/);
+            // FractionalPart ← "." [0-9]+
+            const json_fractionalPart = r(/\.[0-9]+/);
+            // ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
+            const json_exponentPart = r(/[eE][+-]?\d+/);
+            // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
+            const reify_json_number = arr => {
+              const multiplier      = arr[0].length > 0 ? -1 : 1;
+              const integer_part    = arr[1];
+              const fractional_part = arr[2];
+              const exponent        = arr[3];
+              const number          = multiplier * ((integer_part + fractional_part)**exponent);
+
+              // console.log(`ARR: ${inspect_fun(arr)}`);
+              return number;
+              // return arr;
+            };
+            const json_number = xform(reify_json_number,
+                                      seq(optional(json_minus),
+                                          xform(parseInt, json_integralPart), 
+                                          xform(arr => {
+                                            // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
+                                            return parseFloat(arr[0]);
+                                          }, optional(json_fractionalPart, 0.0)),
+                                          xform(parseInt, first(optional(json_exponentPart, 1)))));
+            // S ← [ U+0009 U+000A U+000D U+0020 ]+
+            const json_S = whites_plus;
+            // -------------------------------------------------------------------------------------------------
+            json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
+            // =================================================================================================
+            // END OF BASIC JSON GRAMMAR SECTION.
+            // =================================================================================================
+
+
+            // =================================================================================================
+            // JSONC GRAMMAR SECTION:
+            // =================================================================================================
+            const JsoncComments = wst_star(choice(c_block_comment, c_line_comment));
+            const Jsonc = second(wst_seq(JsoncComments,
+                                         choice(() => JsoncObject,  () => JsoncArray,
+                                                () => json_string,  () => json_true, () => json_false,
+                                                () => json_null,    () => json_number),
+                                         JsoncComments));
+            const JsoncArray =
+                  wst_cutting_enc('[',
+                                  wst_star(second(seq(JsoncComments,
+                                                      Jsonc,
+                                                      JsoncComments)),
                                            ','),
-                                         '}'));
-// Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
-// String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
-const json_string = xform(JSON.parse,
-                          /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
-// UnicodeEscape ← "u" [0-9A-Fa-f]{4}
-const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
-// Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
-const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
-// True ← "true"
-const json_true = xform(x => true, 'true');
-// False ← "false"
-const json_false = xform(x => false, 'false');
-// Null ← "null"
-const json_null = xform(x => null, 'null');
-// Minus ← "-"
-const json_minus = l('-');
-// IntegralPart ← "0" / [1-9] [0-9]*
-const json_integralPart = r(/0|[1-9][0-9]*/);
-// FractionalPart ← "." [0-9]+
-const json_fractionalPart = r(/\.[0-9]+/);
-// ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
-const json_exponentPart = r(/[eE][+-]?\d+/);
-// Number ← Minus? IntegralPart FractionalPart? ExponentPart?
-const reify_json_number = arr => {
-  const multiplier      = arr[0].length > 0 ? -1 : 1;
-  const integer_part    = arr[1];
-  const fractional_part = arr[2];
-  const exponent        = arr[3];
-  const number          = multiplier * ((integer_part + fractional_part)**exponent);
-
-  // console.log(`ARR: ${inspect_fun(arr)}`);
-  return number;
-  // return arr;
-};
-const json_number = xform(reify_json_number,
-                          seq(optional(json_minus),
-                              xform(parseInt, json_integralPart), 
-                              xform(arr => {
-                                // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
-                                return parseFloat(arr[0]);
-                              }, optional(json_fractionalPart, 0.0)),
-                              xform(parseInt, first(optional(json_exponentPart, 1)))));
-// S ← [ U+0009 U+000A U+000D U+0020 ]+
-const json_S = whites_plus;
-// -------------------------------------------------------------------------------------------------
-json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
-// =================================================================================================
-// END OF BASIC JSON GRAMMAR SECTION.
-// =================================================================================================
+                                  ']');
+            const JsoncObject =
+                  choice(
+                    xform(arr => ({}), wst_seq('{', '}')),
+                    xform(arr => {
+                      // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
+                      const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
+                      // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
+                      return Object.fromEntries(new_arr);
+                    },
+                          wst_cutting_seq(
+                            wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
+                            JsoncComments,
+                            Jsonc,
+                            JsoncComments,
+                            optional(second(wst_seq(',',
+                                                    wst_star(
+                                                      xform(arr =>  [arr[1], arr[5]],
+                                                            wst_seq(JsoncComments,
+                                                                    () => json_string,
+                                                                    JsoncComments,
+                                                                    ':',
+                                                                    JsoncComments,
+                                                                    Jsonc, 
+                                                                    JsoncComments
+                                                                   ))             
+                                                      , ',')),
+                                           )),
+                            '{}'[1]))); // dumb hack for rainbow brackets sake
+            // -------------------------------------------------------------------------------------------------
+            Jsonc.finalize(); 
+            // =================================================================================================
+            // END OF JSONC GRAMMAR SECTION.
+            // =================================================================================================
 
 
-// =================================================================================================
-// JSONC GRAMMAR SECTION:
-// =================================================================================================
-const JsoncComments = wst_star(choice(c_block_comment, c_line_comment));
-const Jsonc = second(wst_seq(JsoncComments,
-                             choice(() => JsoncObject,  () => JsoncArray,
-                                    () => json_string,  () => json_true, () => json_false,
-                                    () => json_null,    () => json_number),
-                             JsoncComments));
-const JsoncArray =
-      wst_cutting_enc('[',
-                      wst_star(second(seq(JsoncComments,
-                                          Jsonc,
-                                          JsoncComments)),
-                               ','),
-                      ']');
-const JsoncObject =
-      choice(
-        xform(arr => ({}), wst_seq('{', '}')),
-        xform(arr => {
-          // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
-          const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
-          // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
-          return Object.fromEntries(new_arr);
-        },
-              wst_cutting_seq(
-                wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
-                JsoncComments,
-                Jsonc,
-                JsoncComments,
-                optional(second(wst_seq(',',
-                                        wst_star(
-                                          xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(JsoncComments,
-                                                        () => json_string,
-                                                        JsoncComments,
-                                                        ':',
-                                                        JsoncComments,
-                                                        Jsonc, 
-                                                        JsoncComments
-                                                       ))             
-                                          , ',')),
-                               )),
-                '{}'[1]))); // dumb hack for rainbow brackets sake
-// -------------------------------------------------------------------------------------------------
-Jsonc.finalize(); 
-// =================================================================================================
-// END OF JSONC GRAMMAR SECTION.
-// =================================================================================================
+            // =================================================================================================
+            // 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
+            // =================================================================================================
+            const rJsonc = second(wst_seq(JsoncComments,
+                                          choice(() => rJsoncObject,  () => JsoncArray,
+                                                 () => json_string,   () => json_true, () => json_false,
+                                                 () => json_null,     () => json_number),
+                                          JsoncComments));
+            const rJsoncObject =
+                  choice(
+                    xform(arr => ({}), wst_seq('{', '}')),
+                    xform(arr => {
+                      const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+                      return Object.fromEntries(new_arr);
+                    },
+                          wst_cutting_seq(
+                            wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
+                            JsoncComments,
+                            Jsonc,
+                            JsoncComments,
+                            optional(second(wst_seq(',',
+                                                    wst_star(
+                                                      xform(arr =>  [arr[1], arr[5]],
+                                                            wst_seq(JsoncComments,
+                                                                    choice(json_string, c_ident),
+                                                                    JsoncComments,
+                                                                    ':',
+                                                                    JsoncComments,
+                                                                    Jsonc, 
+                                                                    JsoncComments
+                                                                   ))             
+                                                      , ',')),
+                                           )),
+                            '{}'[1]))); // dumb hack for rainbow brackets sake
+            // -------------------------------------------------------------------------------------------------
+            rJsonc.finalize(); 
+            // =================================================================================================
+            // END OF 'relaxed' JSONC GRAMMAR SECTION.
+            // =================================================================================================
 
 
-// =================================================================================================
-// 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
-// =================================================================================================
-const rJsonc = second(wst_seq(JsoncComments,
-                              choice(() => rJsoncObject,  () => JsoncArray,
-                                     () => json_string,   () => json_true, () => json_false,
-                                     () => json_null,     () => json_number),
-                              JsoncComments));
-const rJsoncObject =
-      choice(
-        xform(arr => ({}), wst_seq('{', '}')),
-        xform(arr => {
-          const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
-          return Object.fromEntries(new_arr);
-        },
-              wst_cutting_seq(
-                wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
-                JsoncComments,
-                Jsonc,
-                JsoncComments,
-                optional(second(wst_seq(',',
-                                        wst_star(
-                                          xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(JsoncComments,
-                                                        choice(json_string, c_ident),
-                                                        JsoncComments,
-                                                        ':',
-                                                        JsoncComments,
-                                                        Jsonc, 
-                                                        JsoncComments
-                                                       ))             
-                                          , ',')),
-                               )),
-                '{}'[1]))); // dumb hack for rainbow brackets sake
-// -------------------------------------------------------------------------------------------------
-rJsonc.finalize(); 
-// =================================================================================================
-// END OF 'relaxed' JSONC GRAMMAR SECTION.
-// =================================================================================================
+            // =================================================================================================
+            const always = () => true;
+            const never  = () => false;
+            const picker_priority = Object.freeze({
+              avoid_repetition_short:        'Avoiding repetition (short term only)',
+              avoid_repetition_long:         'Avoiding repetition', 
+              ensure_weighted_distribution:  'Ensuring a weighted distribution',
+              true_randomness:               'Just plain old randomness',
+            });
+            const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
+            const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
+            // const picker_priority_descriptions_to_names = new Map(
+            //   Object.entries(picker_priority).map(([k, v]) => [v, k])
+            // );
+            // -------------------------------------------------------------------------------------------------
+            class WeightedPicker {
+              // -----------------------------------------------------------------------------------------------
+              constructor(initialOptions = []) {
+                // console.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
+                
+                this.options = []; // array of [weight, value]
+                this.used_indices = new Map();
+                this.last_pick_index = null;
 
+                for (const [weight, value] of initialOptions)
+                  this.add(weight, value);
+              }
+              // -----------------------------------------------------------------------------------------------
+              add(weight, value) {
+                if (! value instanceof ASTAnonWildcardAlternative)
+                  throw new Error(`bad value: ${inspect_fun(value)}`);
+                
+                this.options.push({weight: weight, value: value });
+              }
+              // -----------------------------------------------------------------------------------------------
+              __record_index_usage(index) {
+                this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+                this.last_pick_index = index;
+              }
+              // -----------------------------------------------------------------------------------------------
+              pick(min_count = 1, max_count = min_count,
+                   allow_if = always, forbid_if = never,
+                   priority = null) {
+                if (! priority)
+                  throw new Error("no priority");
 
-// =================================================================================================
-const always = () => true;
-const never  = () => false;
-const picker_priority = Object.freeze({
-  avoid_repetition_short:        'Avoiding repetition (short term only)',
-  avoid_repetition_long:         'Avoiding repetition', 
-  ensure_weighted_distribution:  'Ensuring a weighted distribution',
-  true_randomness:               'Just plain old randomness',
-});
-const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
-const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
-// const picker_priority_descriptions_to_names = new Map(
-//   Object.entries(picker_priority).map(([k, v]) => [v, k])
-// );
-// -------------------------------------------------------------------------------------------------
-class WeightedPicker {
-  // -----------------------------------------------------------------------------------------------
-  constructor(initialOptions = []) {
-    // console.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
-    
-    this.options = []; // array of [weight, value]
-    this.used_indices = new Map();
-    this.last_pick_index = null;
+                if ((min_count > 1 || max_count > 1) && 
+                    priority === picker_priority.avoid_repetition_short)
+                  this.__clear_used_indices();
+                
+                if (log_picker_enabled)
+                  console.log(`PICK ${min_count}-${max_count}`);
+                
+                const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+                const res = [];
+                
+                for (let ix = 0; ix < count; ix++)
+                  res.push(this.pick_one(allow_if, forbid_if, priority));
 
-    for (const [weight, value] of initialOptions)
-      this.add(weight, value);
-  }
-  // -----------------------------------------------------------------------------------------------
-  add(weight, value) {
-    if (! value instanceof ASTAnonWildcardAlternative)
-      throw new Error(`bad value: ${inspect_fun(value)}`);
-    
-    this.options.push({weight: weight, value: value });
-  }
-  // -----------------------------------------------------------------------------------------------
-  __record_index_usage(index) {
-    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
-    this.last_pick_index = index;
-  }
-  // -----------------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count,
-       allow_if = always, forbid_if = never,
-       priority = null) {
-    if (! priority)
-      throw new Error("no priority");
+                if (log_picker_enabled)
+                  console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
 
-    if ((min_count > 1 || max_count > 1) && 
-        priority === picker_priority.avoid_repetition_short)
-      this.__clear_used_indices();
-    
-    if (log_picker_enabled)
-      console.log(`PICK ${min_count}-${max_count}`);
-    
-    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
-    const res = [];
-    
-    for (let ix = 0; ix < count; ix++)
-      res.push(this.pick_one(allow_if, forbid_if, priority));
+                return res;
+              }
+              // -----------------------------------------------------------------------------------------------
+              __gather_legal_option_indices(allow_if, forbid_if) {
+                const legal_option_indices = [];
+                
+                for (let ix = 0; ix < this.options.length; ix++) {
+                  const option = this.options[ix];
+                  
+                  if (option.weight !== 0 &&
+                      allow_if(option.value) &&
+                      !forbid_if(option.value))
+                    legal_option_indices.push(ix);
+                }
 
-    if (log_picker_enabled)
-      console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+                return legal_option_indices;
+              }
+              // -----------------------------------------------------------------------------------------------
+              __clear_used_indices() {
+                this.used_indices.clear();
+                this.last_pick_index = null;
 
-    return res;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __gather_legal_option_indices(allow_if, forbid_if) {
-    const legal_option_indices = [];
-    
-    for (let ix = 0; ix < this.options.length; ix++) {
-      const option = this.options[ix];
-      
-      if (option.weight !== 0 &&
-          allow_if(option.value) &&
-          !forbid_if(option.value))
-        legal_option_indices.push(ix);
-    }
+                if (log_picker_enabled)
+                  console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+              }
+              // -----------------------------------------------------------------------------------------------  
+              __indices_are_exhausted(option_indices, priority) {
+                if (log_picker_enabled) {
+                  console.log(`this.options      = ${inspect_fun(this.options)}`);
+                  console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+                }
+                
+                if (! priority)
+                  throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
-    return legal_option_indices;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __clear_used_indices() {
-    this.used_indices.clear();
-    this.last_pick_index = null;
+                if (this.used_indices.size == 0)
+                  return false;
 
-    if (log_picker_enabled)
-      console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
-  }
-  // -----------------------------------------------------------------------------------------------  
-  __indices_are_exhausted(option_indices, priority) {
-    if (log_picker_enabled) {
-      console.log(`this.options      = ${inspect_fun(this.options)}`);
-      console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
-    }
-    
-    if (! priority)
-      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+                let exhausted_indices = null;
+                
+                if (priority === picker_priority.avoid_repetition_long ||
+                    priority === picker_priority.avoid_repetition_short) {
+                  exhausted_indices = new Set(this.used_indices.keys());
+                }
+                else if (priority == picker_priority.ensure_weighted_distribution) {
+                  exhausted_indices = new Set();
 
-    if (this.used_indices.size == 0)
-      return false;
+                  for (const [used_index, usage_count] of this.used_indices) {
+                    const option = this.options[used_index];
 
-    let exhausted_indices = null;
-    
-    if (priority === picker_priority.avoid_repetition_long ||
-        priority === picker_priority.avoid_repetition_short) {
-      exhausted_indices = new Set(this.used_indices.keys());
-    }
-    else if (priority == picker_priority.ensure_weighted_distribution) {
-      exhausted_indices = new Set();
+                    if (usage_count >= option.weight)
+                      exhausted_indices.add(used_index);
+                  }
+                }
+                else if (priority === picker_priority.true_randomness) {
+                  return false;
+                }
+                else {
+                  throw new Error(`bad priority: ${inspect_fun(priority)}`);
+                }
+                
+                return exhausted_indices.isSupersetOf(new Set(option_indices));
+              }
+              // -----------------------------------------------------------------------------------------------
+              __effective_weight(option_index, priority) {
+                if (! ((option_index || option_index === 0) && priority))
+                  throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+                
+                let ret = null;
+                
+                if (priority === picker_priority.avoid_repetition_long ||
+                    priority === picker_priority.avoid_repetition_short) {
+                  ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+                }
+                else if (priority === picker_priority.ensure_weighted_distribution) {
+                  ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+                }
+                else if (priority === picker_priority.true_randomness) {
+                  ret = this.options[option_index].weight;
+                }
+                else {
+                  throw Error("unexpected priority");
+                }
 
-      for (const [used_index, usage_count] of this.used_indices) {
-        const option = this.options[used_index];
+                if (log_picker_enabled)
+                  console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+                
+                return Math.max(0, ret);
+              };
+              // -----------------------------------------------------------------------------------------------
+              pick_one(allow_if, forbid_if, priority) {
+                if (log_picker_enabled) {
+                  console.log(`PICK ONE =================================================================================`);
+                  console.log(`PRIORITY        = ${inspect_fun(priority)}`);
+                  console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+                  console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+                }
+                
+                if (! (priority && allow_if && forbid_if))
+                  throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
-        if (usage_count >= option.weight)
-          exhausted_indices.add(used_index);
-      }
-    }
-    else if (priority === picker_priority.true_randomness) {
-      return false;
-    }
-    else {
-      throw new Error(`bad priority: ${inspect_fun(priority)}`);
-    }
-    
-    return exhausted_indices.isSupersetOf(new Set(option_indices));
-  }
-  // -----------------------------------------------------------------------------------------------
-  __effective_weight(option_index, priority) {
-    if (! ((option_index || option_index === 0) && priority))
-      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-    
-    let ret = null;
-    
-    if (priority === picker_priority.avoid_repetition_long ||
-        priority === picker_priority.avoid_repetition_short) {
-      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    }
-    else if (priority === picker_priority.ensure_weighted_distribution) {
-      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-    }
-    else if (priority === picker_priority.true_randomness) {
-      ret = this.options[option_index].weight;
-    }
-    else {
-      throw Error("unexpected priority");
-    }
+                if (log_picker_enabled) {
+                  console.log(`PICK_ONE!`);
+                  console.log(`PICK FROM ${JSON.stringify(this)}`);
+                }
 
-    if (log_picker_enabled)
-      console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
-    
-    return Math.max(0, ret);
-  };
-  // -----------------------------------------------------------------------------------------------
-  pick_one(allow_if, forbid_if, priority) {
-    if (log_picker_enabled) {
-      console.log(`PICK ONE =================================================================================`);
-      console.log(`PRIORITY        = ${inspect_fun(priority)}`);
-      console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
-      console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
-    }
-    
-    if (! (priority && allow_if && forbid_if))
-      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+                if (this.options.length === 0) {
+                  if (log_picker_enabled)
+                    console.log(`PICK_ONE: NO OPTIONS 1!`);
+                  
+                  return null;
+                }
 
-    if (log_picker_enabled) {
-      console.log(`PICK_ONE!`);
-      console.log(`PICK FROM ${JSON.stringify(this)}`);
-    }
+                let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+                
+                if (this.__indices_are_exhausted(legal_option_indices, priority)) {
+                  if (log_picker_enabled)
+                    console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+                  
+                  if (priority === picker_priority.avoid_repetition_long) {
+                    if (this.last_pick_index !== null) {
+                      const last_pick_index = this.last_pick_index;
+                      this.__clear_used_indices();
+                      this.__record_index_usage(last_pick_index);
+                    }
+                    else /* ensure_weighted_distribution, true_randomness */ {
+                      this.__clear_used_indices();
+                    }
+                  }
+                  else {
+                    this.__clear_used_indices();
+                  }
 
-    if (this.options.length === 0) {
-      if (log_picker_enabled)
-        console.log(`PICK_ONE: NO OPTIONS 1!`);
-      
-      return null;
-    }
+                  if (log_picker_enabled)
+                    console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+                  
+                  legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+                }
+                
+                if (legal_option_indices.length === 0) {
+                  if (log_picker_enabled)
+                    console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
 
-    let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
-    
-    if (this.__indices_are_exhausted(legal_option_indices, priority)) {
-      if (log_picker_enabled)
-        console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-      
-      if (priority === picker_priority.avoid_repetition_long) {
-        if (this.last_pick_index !== null) {
-          const last_pick_index = this.last_pick_index;
-          this.__clear_used_indices();
-          this.__record_index_usage(last_pick_index);
-        }
-        else /* ensure_weighted_distribution, true_randomness */ {
-          this.__clear_used_indices();
-        }
-      }
-      else {
-        this.__clear_used_indices();
-      }
+                  return null;
+                }
 
-      if (log_picker_enabled)
-        console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
-      
-      legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
-    }
-    
-    if (legal_option_indices.length === 0) {
-      if (log_picker_enabled)
-        console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+                if (legal_option_indices.length === 1) {
+                  if (log_picker_enabled)
+                    console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+                  
+                  this.__record_index_usage(legal_option_indices[0]);
 
-      return null;
-    }
+                  if (log_picker_enabled)
+                    console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+                  
+                  return this.options[legal_option_indices[0]].value;
+                }
 
-    if (legal_option_indices.length === 1) {
-      if (log_picker_enabled)
-        console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
-      
-      this.__record_index_usage(legal_option_indices[0]);
+                if (log_picker_enabled)
+                  console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
-      if (log_picker_enabled)
-        console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
-      
-      return this.options[legal_option_indices[0]].value;
-    }
+                let total_weight = 0;
 
-    if (log_picker_enabled)
-      console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+                if (log_picker_enabled)
+                  console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
+                
+                for (const legal_option_ix of legal_option_indices) {
+                  const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
 
-    let total_weight = 0;
+                  if (log_picker_enabled) {
+                    console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+                    console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+                    console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+                  }
+                  
+                  total_weight += adjusted_weight;
+                }
 
-    if (log_picker_enabled)
-      console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
-    
-    for (const legal_option_ix of legal_option_indices) {
-      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
-
-      if (log_picker_enabled) {
-        console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-        console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
-        console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
-      }
-      
-      total_weight += adjusted_weight;
-    }
-
-    // Since we now avoid adding options with a weight of 0, this should never be true:
-    if (total_weight === 0) {
-      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
+                // Since we now avoid adding options with a weight of 0, this should never be true:
+                if (total_weight === 0) {
+                  throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
+                                  `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
   [
     ix,
     this.__effective_weight(ix, priority),
     this.options[ix]
   ]
 ), null, 2)}, ` +
-                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
-    }
-    
-    let random = Math.random() * total_weight;
+                                  `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
+                }
+                
+                let random = Math.random() * total_weight;
 
-    if (log_picker_enabled) {
-      console.log(`----------------------------------------------------------------------------------`);
-      console.log(`RANDOM IS ${random}`);
-      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
-    }
-    
-    for (const legal_option_ix of legal_option_indices) {
-      const option          = this.options[legal_option_ix];
-      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+                if (log_picker_enabled) {
+                  console.log(`----------------------------------------------------------------------------------`);
+                  console.log(`RANDOM IS ${random}`);
+                  console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+                  console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+                }
+                
+                for (const legal_option_ix of legal_option_indices) {
+                  const option          = this.options[legal_option_ix];
+                  const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
 
-      if (adjusted_weight === 0)
-        continue;
-      
-      if (log_picker_enabled)
-        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
-      
-      if (random < adjusted_weight) {
-        this.__record_index_usage(legal_option_ix);
-        return option.value;
-      }
+                  if (adjusted_weight === 0)
+                    continue;
+                  
+                  if (log_picker_enabled)
+                    console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+                  
+                  if (random < adjusted_weight) {
+                    this.__record_index_usage(legal_option_ix);
+                    return option.value;
+                  }
 
-      random -= adjusted_weight;
-    }
+                  random -= adjusted_weight;
+                }
 
-    throw new Error("random selection failed");
-  }
-}
-// =================================================================================================
+                throw new Error("random selection failed");
+              }
+            }
+            // =================================================================================================
 
 
-// =================================================================================================
-// HELPER FUNCTIONS SECTION:
-// =================================================================================================
-// DT's env doesn't seem to have structuredClone, so we'll define our own version:
-// -------------------------------------------------------------------------------------------------
-function structured_clone(value, {
-  seen = new WeakMap(),           // For shared reference reuse
-  ancestors = new WeakSet(),      // For cycle detection
-  unshare = false
-} = {}) {
-  if (value === null || typeof value !== "object")
-    return value;
+            // =================================================================================================
+            // HELPER FUNCTIONS SECTION:
+            // =================================================================================================
+            // DT's env doesn't seem to have structuredClone, so we'll define our own version:
+            // -------------------------------------------------------------------------------------------------
+            function structured_clone(value, {
+              seen = new WeakMap(),           // For shared reference reuse
+              ancestors = new WeakSet(),      // For cycle detection
+              unshare = false
+            } = {}) {
+              if (value === null || typeof value !== "object")
+                return value;
 
-  if (ancestors.has(value))
-    throw new TypeError("Cannot clone cyclic structure");
-  
-  if (!unshare && seen.has(value))
-    return seen.get(value);
+              if (ancestors.has(value))
+                throw new TypeError("Cannot clone cyclic structure");
+              
+              if (!unshare && seen.has(value))
+                return seen.get(value);
 
-  ancestors.add(value); // Add to call stack tracking
+              ancestors.add(value); // Add to call stack tracking
 
-  let clone;
+              let clone;
 
-  if (Array.isArray(value)) {
-    clone = [];
+              if (Array.isArray(value)) {
+                clone = [];
 
-    if (!unshare)
-      seen.set(value, clone);
+                if (!unshare)
+                  seen.set(value, clone);
 
-    for (const item of value) 
-      clone.push(structured_clone(item, { seen, ancestors, unshare }));
-  }
-  else if (value instanceof Set) {
-    clone = new Set();
+                for (const item of value) 
+                  clone.push(structured_clone(item, { seen, ancestors, unshare }));
+              }
+              else if (value instanceof Set) {
+                clone = new Set();
 
-    if (!unshare)
-      seen.set(value, clone);
+                if (!unshare)
+                  seen.set(value, clone);
 
-    for (const item of value) 
-      clone.add(structured_clone(item, { seen, ancestors, unshare }));    
-  }
-  else if (value instanceof Map) {
-    clone = new Map();
+                for (const item of value) 
+                  clone.add(structured_clone(item, { seen, ancestors, unshare }));    
+              }
+              else if (value instanceof Map) {
+                clone = new Map();
 
-    if (!unshare)
-      seen.set(value, clone);
-    
-    for (const [k, v] of value.entries()) 
-      clone.set(structured_clone(k, { seen, ancestors, unshare }),
-                structured_clone(v, { seen, ancestors, unshare }));
-    
-  }
-  else if (value instanceof Date) {
-    clone = new Date(value);
-  }
-  else if (value instanceof RegExp) {
-    clone = new RegExp(value);
-  }
-  else {
-    clone = {};
+                if (!unshare)
+                  seen.set(value, clone);
+                
+                for (const [k, v] of value.entries()) 
+                  clone.set(structured_clone(k, { seen, ancestors, unshare }),
+                            structured_clone(v, { seen, ancestors, unshare }));
+                
+              }
+              else if (value instanceof Date) {
+                clone = new Date(value);
+              }
+              else if (value instanceof RegExp) {
+                clone = new RegExp(value);
+              }
+              else {
+                clone = {};
 
-    if (!unshare)
-      seen.set(value, clone);
+                if (!unshare)
+                  seen.set(value, clone);
 
-    for (const key of Object.keys(value)) 
-      clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
-  }
+                for (const key of Object.keys(value)) 
+                  clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
+              }
 
-  ancestors.delete(value); // Cleanup recursion tracking
+              ancestors.delete(value); // Cleanup recursion tracking
 
-  return clone;
-}
-// -------------------------------------------------------------------------------------------------
-if (test_structured_clone) {
-  const shared = { msg: "hi" };
-  let obj = { a: shared, b: shared };
-  // test #1: preserve shared references, this one seems to work:
-  {
-    const clone = structured_clone(obj);
+              return clone;
+            }
+            // -------------------------------------------------------------------------------------------------
+            if (test_structured_clone) {
+              const shared = { msg: "hi" };
+              let obj = { a: shared, b: shared };
+              // test #1: preserve shared references, this one seems to work:
+              {
+                const clone = structured_clone(obj);
 
-    if (clone.a !== clone.b)
-      throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
+                if (clone.a !== clone.b)
+                  throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
 
-    console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
-  }
-  // test #2: break shared references (unshare), this one seems to work:
-  {
-    const clone = structured_clone(obj, { unshare: true });
+                console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
+              }
+              // test #2: break shared references (unshare), this one seems to work:
+              {
+                const clone = structured_clone(obj, { unshare: true });
 
-    if (clone.a === clone.b)
-      throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
+                if (clone.a === clone.b)
+                  throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
 
-    console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
-  }
-  // test #4: should fail do to cycle, with unshare = false:
-  try {
-    obj = {};
-    obj.self = obj; // Create a cycle
-    structured_clone(obj);
+                console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
+              }
+              // test #4: should fail do to cycle, with unshare = false:
+              try {
+                obj = {};
+                obj.self = obj; // Create a cycle
+                structured_clone(obj);
 
-    // If we get here, no error was thrown = fail
-    throw new Error(`test #3 should have failed.`);
-  } catch (err) {
-    if (err.message === 'test #3 should have failed.')
-      throw err;
-    else 
-      console.log(`test #3 failed as intended.`);
-  }
-  // test #4: should fail do to cycle, with unshare = true:
-  try {
-    obj = {};
-    obj.self = obj; // Create a cycle
-    structured_clone(obj, { unshare: true }); 
+                // If we get here, no error was thrown = fail
+                throw new Error(`test #3 should have failed.`);
+              } catch (err) {
+                if (err.message === 'test #3 should have failed.')
+                  throw err;
+                else 
+                  console.log(`test #3 failed as intended.`);
+              }
+              // test #4: should fail do to cycle, with unshare = true:
+              try {
+                obj = {};
+                obj.self = obj; // Create a cycle
+                structured_clone(obj, { unshare: true }); 
 
-    throw new Error(`test #4 should have failed.`);
-  } catch (err) {
-    if (err.message === 'test #4 should have failed.') 
-      throw err;
-    else
-      console.log(`test #3 failed as intended.`);
-  }
-}
-// -------------------------------------------------------------------------------------------------
-function arr_is_prefix_of_arr(prefix_arr, full_arr) {
-  if (prefix_arr.length > full_arr.length)
-    return false;
+                throw new Error(`test #4 should have failed.`);
+              } catch (err) {
+                if (err.message === 'test #4 should have failed.') 
+                  throw err;
+                else
+                  console.log(`test #3 failed as intended.`);
+              }
+            }
+            // -------------------------------------------------------------------------------------------------
+            function arr_is_prefix_of_arr(prefix_arr, full_arr) {
+              if (prefix_arr.length > full_arr.length)
+                return false;
 
-  for (let ix = 0; ix < prefix_arr.length; ix++)
-    if (prefix_arr[ix] !== full_arr[ix])
-      return false;
-  
-  return true;
-}
-// -------------------------------------------------------------------------------------------------
-function is_empty_object(obj) {
-  return obj && typeof obj === 'object' &&
-    Object.keys(obj).length === 0 &&
-    obj.constructor === Object;
-}
-// -------------------------------------------------------------------------------------------------
-function rand_int(x, y) {
-  y ||= x;
-  const min = Math.min(x, y);
-  const max = Math.max(x, y);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-// -------------------------------------------------------------------------------------------------
-function pretty_list(arr) {
-  const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
+              for (let ix = 0; ix < prefix_arr.length; ix++)
+                if (prefix_arr[ix] !== full_arr[ix])
+                  return false;
+              
+              return true;
+            }
+            // -------------------------------------------------------------------------------------------------
+            function is_empty_object(obj) {
+              return obj && typeof obj === 'object' &&
+                Object.keys(obj).length === 0 &&
+                obj.constructor === Object;
+            }
+            // -------------------------------------------------------------------------------------------------
+            function rand_int(x, y) {
+              y ||= x;
+              const min = Math.min(x, y);
+              const max = Math.max(x, y);
+              return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+            // -------------------------------------------------------------------------------------------------
+            function pretty_list(arr) {
+              const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
 
-  if (items.length === 0) return "";
-  if (items.length === 1) return items[0];
-  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+              if (items.length === 0) return "";
+              if (items.length === 1) return items[0];
+              if (items.length === 2) return `${items[0]} and ${items[1]}`;
 
-  const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
-  
-  return ret;
-}
-// -------------------------------------------------------------------------------------------------
-function capitalize(string) {
-  // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-// -------------------------------------------------------------------------------------------------
-function choose_indefinite_article(word) {
-  if (!word)
-    return 'a'; // fallback
+              const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+              
+              return ret;
+            }
+            // -------------------------------------------------------------------------------------------------
+            function capitalize(string) {
+              // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
+              return string.charAt(0).toUpperCase() + string.slice(1);
+            }
+            // -------------------------------------------------------------------------------------------------
+            function choose_indefinite_article(word) {
+              if (!word)
+                return 'a'; // fallback
 
-  const lower = word.toLowerCase();
+              const lower = word.toLowerCase();
 
-  // Words that begin with vowel *sounds*
-  const vowelSoundExceptions = [
-    /^e[uw]/,          // eulogy, Europe
-    /^onc?e\b/,        // once
-    /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
-    /^u[bcfhjkqrstn]/, // unicorn, useful, usual
-    /^uk/,             // UK (spoken "you-kay")
-    /^ur[aeiou]/,      // uranium
-  ];
+              // Words that begin with vowel *sounds*
+              const vowelSoundExceptions = [
+                /^e[uw]/,          // eulogy, Europe
+                /^onc?e\b/,        // once
+                /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
+                /^u[bcfhjkqrstn]/, // unicorn, useful, usual
+                /^uk/,             // UK (spoken "you-kay")
+                /^ur[aeiou]/,      // uranium
+              ];
 
-  const silentHWords = [
-    'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
-  ];
+              const silentHWords = [
+                'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
+              ];
 
-  const acronymStartsWithVowelSound = /^[aeiou]/i;
-  const consonantYooSound = /^u[bcfhjkqrstn]/i;
+              const acronymStartsWithVowelSound = /^[aeiou]/i;
+              const consonantYooSound = /^u[bcfhjkqrstn]/i;
 
-  if (silentHWords.includes(lower))
-    return 'an';
+              if (silentHWords.includes(lower))
+                return 'an';
 
-  if (vowelSoundExceptions.some(re => re.test(lower)))
-    return 'a';
+              if (vowelSoundExceptions.some(re => re.test(lower)))
+                return 'a';
 
-  // Words beginning with vowel letters
-  if ('aeiou'.includes(lower[0]))
-    return 'an';
+              // Words beginning with vowel letters
+              if ('aeiou'.includes(lower[0]))
+                return 'an';
 
-  return 'a';
-}
-// -------------------------------------------------------------------------------------------------
-function unescape(str) {
-  if (typeof str !== 'string')
-    return str;
-  
+              return 'a';
+            }
+            // -------------------------------------------------------------------------------------------------
+            function unescape(str) {
+              if (typeof str !== 'string')
+                return str;
+              
   return str
     .replace(/\\n/g,   '\n')
     .replace(/\\ /g,   ' ')
