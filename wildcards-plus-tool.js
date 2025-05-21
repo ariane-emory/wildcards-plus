@@ -2912,88 +2912,6 @@ function get_our_name(name) {
   
   return res;
 }
-// -------------------------------------------------------------------------------------------------
-function munge_configuration(configuration, is_dt_hosted = dt_hosted) {
-  // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
-  
-  const munged_configuration = structured_clone(configuration);
-
-  if (is_empty_object(munged_configuration))
-    return munged_configuration;
-
-  if (munged_configuration.model === '') {
-    console.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-                `what you meant to do, your prompt template may contain an error!`);
-    delete munged_configuration.model;
-  }
-  else if (munged_configuration.model) {
-    munged_configuration.model = munged_configuration.model.toLowerCase();
-
-    if (munged_configuration.model.endsWith('.ckpt')) {
-      // do nothing
-    }
-    else if (munged_configuration.model.endsWith('_svd')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else if (munged_configuration.model.endsWith('_q5p')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else if (munged_configuration.model.endsWith('_q8p')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else if (munged_configuration.model.endsWith('_f16')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else {
-      munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
-    }
-  }
-  
-  // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-  if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
-    const lc = munged_configuration.sampler.toLowerCase();
-    // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
-    const got = dt_samplers_caps_correction.get(lc);
-
-    if (got)
-      munged_configuration.sampler = got;
-  }
-  
-  if (is_dt_hosted) { // running in DT, sampler needs to be an index:
-    if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-      console.log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-                  `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
-      munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
-    }
-    const corrected = new Set();
-  }
-  // when running in Node.js, sampler needs to be a string::
-  else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-    console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-                `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
-    munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
-  }
-
-  // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if (! munged_configuration.seed) {
-    const n_iter_key = get_our_name('n_iter');
-
-    if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
-      if (log_configuration_enabled)
-        console.log(`Fixing seed to -1 due to n_iter > 1.`);
-
-      munged_configuration.seed = -1;
-    }
-    else if (typeof munged_configuration.seed !== 'number') {
-      munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
-    }
-  }
-
-  if (log_configuration_enabled)
-    console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
-
-  return munged_configuration;
-}
 // =================================================================================================
 // END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
 // =================================================================================================
@@ -3194,6 +3112,88 @@ class Context {
       prior_pick_multiple_priority: this.pick_multiple_priority,      
       negative_prompt:              this.negative_prompt,
     });
+  }
+  // -------------------------------------------------------------------------------------------------
+  munge_configuration(is_dt_hosted = dt_hosted) {
+    // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
+    
+    const munged_configuration = structured_clone(this.configuration);
+
+    if (is_empty_object(munged_configuration))
+      return munged_configuration;
+
+    if (munged_configuration.model === '') {
+      console.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
+                  `what you meant to do, your prompt template may contain an error!`);
+      delete munged_configuration.model;
+    }
+    else if (munged_configuration.model) {
+      munged_configuration.model = munged_configuration.model.toLowerCase();
+
+      if (munged_configuration.model.endsWith('.ckpt')) {
+        // do nothing
+      }
+      else if (munged_configuration.model.endsWith('_svd')) {
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      }
+      else if (munged_configuration.model.endsWith('_q5p')) {
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      }
+      else if (munged_configuration.model.endsWith('_q8p')) {
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      }
+      else if (munged_configuration.model.endsWith('_f16')) {
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      }
+      else {
+        munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
+      }
+    }
+    
+    // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
+    if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
+      const lc = munged_configuration.sampler.toLowerCase();
+      // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
+      const got = dt_samplers_caps_correction.get(lc);
+
+      if (got)
+        munged_configuration.sampler = got;
+    }
+    
+    if (is_dt_hosted) { // running in DT, sampler needs to be an index:
+      if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
+        console.log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+                    `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
+        munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
+      }
+      const corrected = new Set();
+    }
+    // when running in Node.js, sampler needs to be a string::
+    else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
+      console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+                  `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
+    }
+
+    // 'fix' seed if n_iter > 1, doing this seems convenient?
+    if (! munged_configuration.seed) {
+      const n_iter_key = get_our_name('n_iter');
+
+      if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
+        if (log_configuration_enabled)
+          console.log(`Fixing seed to -1 due to n_iter > 1.`);
+
+        munged_configuration.seed = -1;
+      }
+      else if (typeof munged_configuration.seed !== 'number') {
+        munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
+      }
+    }
+
+    if (log_configuration_enabled)
+      console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+
+    this.configuration =  munged_configuration;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -7850,7 +7850,7 @@ async function main() {
     return ret;
   };
 
-  const do_post = () => {
+  const do_post = (prompt, configuration) => {
     post_prompt({ prompt: prompt,  configuration: configuration });
     posted_count += 1; 
   };
@@ -7869,7 +7869,7 @@ async function main() {
     //             + ` IN ${context}`
     //            );
     
-    const prompt        = expand_wildcards(AST, context);
+    let prompt        = expand_wildcards(AST, context);
 
 
     // console.log(`EXPANDING ADDDED ` +
@@ -7877,12 +7877,12 @@ async function main() {
     //             // `${context     .configuration.loras?.length??0} = ` +
     //             `${(context.configuration.loras?.length??0) - (base_context.configuration.loras?.length??0)} LORAS!`);
 
-    const munged_configuration = munge_configuration(context.configuration);
+    context.munge_configuration();
 
-    if (munged_configuration === prior_configuration)
+    if (context.configuration === prior_configuration)
       throw new Error("wtf");
     
-    if (/* munged_configuration.loras && prior_configuration.loras && */ munged_configuration.loras === prior_configuration?.loras)
+    if (/* munged_configuration.loras && prior_configuration.loras && */ context.configuration.loras === prior_configuration?.loras)
       throw new Error("wtf 2");
     
     // console.log(`MUNGED_CONFIGURATION.LORAS.LENGTH = ${munged_configuration?.loras?.length}`);
@@ -7900,11 +7900,11 @@ async function main() {
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(prompt);
 
-    if (munged_configuration.negative_prompt || munged_configuration.negative_prompt === '') {
+    if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(`Expanded negative prompt:`);
       console.log(`------------------------------------------------------------------------------------------`);
-      console.log(munged_configuration.negative_prompt);
+      console.log(context.configuration.negative_prompt);
     }
     
     if (!post) {
@@ -7913,7 +7913,7 @@ async function main() {
     else {
       if (!confirm) {
         console.log(`------------------------------------------------------------------------------------------`);
-        do_post();
+        do_post(prompt, context.configuration);
         posted_count += 1;
       }
       else  {
@@ -7925,18 +7925,18 @@ async function main() {
         const answer = await ask(question);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
-          stash_priors(prompt, munged_configuration);
+          stash_priors(prompt, context.configuration);
           continue;
         }
 
         if (answer.match(/^p.*/i)) {
           if (prior_prompt) { 
             console.log(`------------------------------------------------------------------------------------------`);
-            [ prompt, munged_configuration ] = restore_priors(prompt, munged_configuration);
+            [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
             
             console.log(`POSTing prior prompt '${prompt}'`);
 
-            do_post();
+            do_post(prompt, context.configuration);
             
             continue;
           }
@@ -7952,12 +7952,12 @@ async function main() {
           // console.log(`parsed = '${parsed}', count = '${count}'`);
           
           for (let iix = 0; iix < gen_count; iix++)
-            do_post();
+            do_post(prompt, context.configuration);
         }
       }
     }
     
-    stash_priors(prompt, munged_configuration);
+    stash_priors(prompt, context.configuration);
   }
 
   console.log('==========================================================================================');
