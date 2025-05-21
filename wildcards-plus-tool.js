@@ -2384,11 +2384,30 @@ function add_lora_to_context(lora, context, indent = 0) {
 
   if (index !== -1) 
     arr.splice(index, 1); // Remove the existing entry
-  
+
   context.config.loras = [ ...arr, lora ];
 
   log(`ADDED ${inspect_fun(lora)} TO ${context}`);
 }
+// -------------------------------------------------------------------------------------------------
+// function add_lora_to_context(lora, context, indent = 0) {
+//   const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+//   const arr   = context.config.loras??[];
+//   const index = arr.findIndex(existing => existing.file === lora.file);
+
+//   if (index !== -1) {
+//     arr.splice(index, 1); // Remove the existing entry
+//   }
+
+//   arr.push(lora); // Add the new entry at the end
+
+//   if (arr !== context.config.loras)
+//     throw new Error("add_lora_to_context: arr !== array");
+
+//   context.config.loras = arr;
+
+//   log(`ADDED ${inspect_fun(lora)} TO ${context}`);
+// }
 // -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
