@@ -2087,21 +2087,23 @@ class WeightedPicker {
 //   }
 // }
 // -------------------------------------------------------------------------------------------------
-let structured_clone = (value, seen = new WeakMap()) => {
+let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =>  {
   if (value === null || typeof value !== "object") {
     return value;
   }
 
-  if (seen.has(value)) {
-    return seen.get(value); // Return existing clone, not an error
+  if (!unshare) {
+    if (seen.has(value)) {
+      return seen.get(value); // Reuse existing clone
+    }
   }
 
   // Handle Array
   if (Array.isArray(value)) {
     const clone = [];
-    seen.set(value, clone); // Store early to support self-reference
+    if (!unshare) seen.set(value, clone);
     for (const item of value) {
-      clone.push(structured_clone(item, seen));
+      clone.push(structured_clone(item, { seen, unshare }));
     }
     return clone;
   }
@@ -2109,9 +2111,9 @@ let structured_clone = (value, seen = new WeakMap()) => {
   // Handle Set
   if (value instanceof Set) {
     const clone = new Set();
-    seen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const item of value) {
-      clone.add(structured_clone(item, seen));
+      clone.add(structured_clone(item, { seen, unshare }));
     }
     return clone;
   }
@@ -2119,9 +2121,10 @@ let structured_clone = (value, seen = new WeakMap()) => {
   // Handle Map
   if (value instanceof Map) {
     const clone = new Map();
-    seen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const [k, v] of value.entries()) {
-      clone.set(structured_clone(k, seen), structured_clone(v, seen));
+      clone.set(structured_clone(k, { seen, unshare }),
+                structured_clone(v, { seen, unshare }));
     }
     return clone;
   }
@@ -2136,14 +2139,71 @@ let structured_clone = (value, seen = new WeakMap()) => {
     return new RegExp(value);
   }
 
-  // Handle plain object
+  // Handle plain Object
   const clone = {};
-  seen.set(value, clone);
+  if (!unshare) seen.set(value, clone);
   for (const key of Object.keys(value)) {
-    clone[key] = structured_clone(value[key], seen);
+    clone[key] = structured_clone(value[key], { seen, unshare });
   }
   return clone;
 }
+// let structured_clone = (value, seen = new WeakMap()) => {
+//   if (value === null || typeof value !== "object") {
+//     return value;
+//   }
+
+//   if (seen.has(value)) {
+//     return seen.get(value); // Return existing clone, not an error
+//   }
+
+//   // Handle Array
+//   if (Array.isArray(value)) {
+//     const clone = [];
+//     seen.set(value, clone); // Store early to support self-reference
+//     for (const item of value) {
+//       clone.push(structured_clone(item, seen));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Set
+//   if (value instanceof Set) {
+//     const clone = new Set();
+//     seen.set(value, clone);
+//     for (const item of value) {
+//       clone.add(structured_clone(item, seen));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Map
+//   if (value instanceof Map) {
+//     const clone = new Map();
+//     seen.set(value, clone);
+//     for (const [k, v] of value.entries()) {
+//       clone.set(structured_clone(k, seen), structured_clone(v, seen));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Date
+//   if (value instanceof Date) {
+//     return new Date(value);
+//   }
+
+//   // Handle RegExp
+//   if (value instanceof RegExp) {
+//     return new RegExp(value);
+//   }
+
+//   // Handle plain object
+//   const clone = {};
+//   seen.set(value, clone);
+//   for (const key of Object.keys(value)) {
+//     clone[key] = structured_clone(value[key], seen);
+//   }
+//   return clone;
+// }
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
@@ -7512,7 +7572,7 @@ Prompt.finalize();
 const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 // v DT's env doesn't seem to have structuredClone :(
 console.log(`CLONE PLC!`);
-const pipeline_configuration      = structured_clone(pipeline.configuration);
+const pipeline_configuration      = structured_clone(pipeline.configuration, { unshare: true });
 
 console.log(`DONE CLONE PLC!`);
 
