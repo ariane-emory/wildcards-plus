@@ -7618,23 +7618,29 @@ async function main() {
     const prompt        = expand_wildcards(AST, context);
     const munged_config = munge_config(context.config);
 
+    if (munged_config === prior_config)
+      throw new Error("wtf");
+    
+    if (/* munged_config.loras && prior_config.loras && */ munged_config.loras === prior_config?.loras)
+      throw new Error("wtf 2");
+   
     console.log(`MUNGED_CONFIG.LORAS.LENGTH = ${munged_config?.loras?.length}`);
     
     if (log_flags_enabled || log_config_enabled)
-      console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
+          console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
         
-    console.log(`------------------------------------------------------------------------------------------`);
-    console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
-    console.log(`------------------------------------------------------------------------------------------`);
-    console.log(prompt);
+        console.log(`------------------------------------------------------------------------------------------`);
+        console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
+        console.log(`------------------------------------------------------------------------------------------`);
+        console.log(prompt);
 
-    if (munged_config.negative_prompt || munged_config.negative_prompt === '') {
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(`Expanded negative prompt:`);
-      console.log(`------------------------------------------------------------------------------------------`);
-      console.log(munged_config.negative_prompt);
-    }
-    
+        if (munged_config.negative_prompt || munged_config.negative_prompt === '') {
+          console.log(`------------------------------------------------------------------------------------------`);
+          console.log(`Expanded negative prompt:`);
+          console.log(`------------------------------------------------------------------------------------------`);
+          console.log(munged_config.negative_prompt);
+        }
+        
     if (!post) {
       posted_count += 1; // a lie to make the counter correct.
     }
