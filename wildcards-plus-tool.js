@@ -2232,63 +2232,121 @@ class WeightedPicker {
 // -------------------------------------------------------------------------------------------------
 // DT's env doesn't seem to have structuredClone, so we'll define our own:
 // -------------------------------------------------------------------------------------------------
-var structured_clone_indent = 0;
+// var structured_clone_indent = 0;
 
-function structured_clone(thing) {
-  //throw new Error(`CLONING ${JSON.stringify(thing)}`);
+// function structured_clone(thing) {
+//   //throw new Error(`CLONING ${JSON.stringify(thing)}`);
 
-  const log = log_structured_clone_enabled
-        ? msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`)
-        : msg => undefined;
-  
-  const log_enter = ()  => {
-    log(`CLONE ${JSON.stringify(thing)}`);
-    structured_clone_indent += 1;
+//   const log = log_structured_clone_enabled
+//         ? msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`)
+//         : msg => undefined;
+
+//   const log_enter = ()  => {
+//     log(`CLONE ${JSON.stringify(thing)}`);
+//     structured_clone_indent += 1;
+//   }
+
+//   if (thing === null || typeof thing !== "object") {
+//     log(`COPIED ${JSON.stringify(thing)}`);
+//     return thing;
+//   }
+//   else if (Array.isArray(thing)) {
+//     log_enter();
+//     const cloned =  [ ...thing.map(structured_clone) ];
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+//   else if (thing instanceof Set) {
+//     log_enter();
+//     const cloned = new Set();
+//     for (const value of thing.values()) {
+//       cloned.add(structured_clone(value));
+//     }
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+//   else if (thing instanceof Map) {
+//     log_enter();
+//     const cloned = new Map();
+//     for (const [key, value] of thing.entries()) {
+//       cloned.set(structured_clone(key), structured_clone(value));
+//     }
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+//   else {
+//     log_enter();
+//     const cloned = {};
+//     for (const key in thing) {
+//       if (Object.prototype.hasOwnProperty.call(thing, key)) {
+//         cloned[structured_clone(key)] = structured_clone(thing[key]);
+//       }
+//     }
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+// }
+// -------------------------------------------------------------------------------------------------
+function structured_clone(value, seen = new WeakMap()) {
+  if (value === null || typeof value !== "object") {
+    return value;
   }
-  
-  if (thing === null || typeof thing !== "object") {
-    log(`COPIED ${JSON.stringify(thing)}`);
-    return thing;
+
+  if (seen.has(value)) {
+    throw new TypeError("Cannot clone cyclic structures");
   }
-  else if (Array.isArray(thing)) {
-    log_enter();
-    const cloned =  [ ...thing.map(structured_clone) ];
-    structured_clone_indent -= 1;
-    log(`CLONED ${JSON.stringify(cloned)}`);
-    return cloned;
-  }
-  else if (thing instanceof Set) {
-    log_enter();
-    const cloned = new Set();
-    for (const value of thing.values()) {
-      cloned.add(structured_clone(value));
+
+  // Handle arrays
+  if (Array.isArray(value)) {
+    const clone = [];
+    seen.set(value, clone);
+    for (const item of value) {
+      clone.push(structured_clone(item, seen));
     }
-    structured_clone_indent -= 1;
-    log(`CLONED ${JSON.stringify(cloned)}`);
-    return cloned;
+    return clone;
   }
-  else if (thing instanceof Map) {
-    log_enter();
-    const cloned = new Map();
-    for (const [key, value] of thing.entries()) {
-      cloned.set(structured_clone(key), structured_clone(value));
+
+  // Handle Set
+  if (value instanceof Set) {
+    const clone = new Set();
+    seen.set(value, clone);
+    for (const item of value) {
+      clone.add(structured_clone(item, seen));
     }
-    structured_clone_indent -= 1;
-    log(`CLONED ${JSON.stringify(cloned)}`);
-    return cloned;
+    return clone;
   }
-  else {
-    log_enter();
-    const cloned = {};
-    for (const key in thing) {
-      if (Object.prototype.hasOwnProperty.call(thing, key)) {
-        cloned[structured_clone(key)] = structured_clone(thing[key]);
-      }
+
+  // Handle Map
+  if (value instanceof Map) {
+    const clone = new Map();
+    seen.set(value, clone);
+    for (const [k, v] of value.entries()) {
+      clone.set(structured_clone(k, seen), structured_clone(v, seen));
     }
-    structured_clone_indent -= 1;
-    log(`CLONED ${JSON.stringify(cloned)}`);
-    return cloned;
+    return clone;
   }
+
+  // Handle Date
+  if (value instanceof Date) {
+    return new Date(value);
+  }
+
+  // Handle RegExp
+  if (value instanceof RegExp) {
+    return new RegExp(value);
+  }
+
+  // Handle plain objects
+  const clone = {};
+  seen.set(value, clone);
+  for (const key of Object.keys(value)) {
+    clone[key] = structured_clone(value[key], seen);
+  }
+  return clone;
 }
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
