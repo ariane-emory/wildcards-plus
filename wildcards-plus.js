@@ -7639,10 +7639,10 @@ console.log(`-------------------------------------------------------------------
 console.log(`pipeline.configuration is:`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
-console.log(`pipeline.prompts is:`);
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
-console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
+// console.log(`-----------------------------------------------------------------------------------------------------------------`);
+// console.log(`pipeline.prompts is:`);
+// console.log(`-----------------------------------------------------------------------------------------------------------------`);
+// console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`The wildcards-plus prompt is:`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
@@ -7651,6 +7651,7 @@ console.log(`${prompt_string}`);
 const base_context = load_prelude();
 base_context.pick_one_priority      = user_selected_pick_one_priority;
 base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
+base_context.config = structured_clone(pipeline.configuration, { unshare: true });
 
 // -------------------------------------------------------------------------------------------------
 // main loop:
@@ -7665,8 +7666,8 @@ for (let ix = 0; ix < batch_count; ix++) {
   // expand the wildcards using a cloned context and generate a new configuration:
   
   const context          = base_context.clone();
-  context.config         = { ...structured_clone(pipeline.configuration, { unshare: true }),
-                             ...context.config }
+  // context.config         = { ...structured_clone(pipeline.configuration, { unshare: true }),
+  //                            ...context.config }
   const generated_prompt = expand_wildcards(AST, context);
   context.config         = munge_config(context.config);
 
