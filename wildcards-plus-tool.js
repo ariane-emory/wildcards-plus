@@ -2350,14 +2350,19 @@ const shared = { msg: "hi" };
 let obj = { a: shared, b: shared };
 
 // test #1: preserve shared references, this one seems to work:
-{const clone1 = structured_clone(obj);
- console.log(clone1.a === clone1.b); // true
+{
+  const clone = structured_clone(obj);
+  if (clone.a !== clone.b)
+    throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
+  console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
 }
 
 // test #2: break shared references (unshare), this one seems to work:
 {
-  const clone2 = structured_clone(obj, { unshare: true });
-  console.log(clone2.a === clone2.b); // false
+  const clone = structured_clone(obj, { unshare: true });
+  if (clone.a === clone.b)
+    throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
+  console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
 }
 
 // test #4: should fail do to cycle, with unshare = true:
@@ -2365,7 +2370,6 @@ try {
   obj = {};
   obj.self = obj; // Create a cycle
   structured_clone(obj);
-
   throw new Error(`test #3 should have failed.`);
 } catch {
   console.log(`test #3 failed as intended.`);
@@ -2376,7 +2380,6 @@ try {
   obj = {};
   obj.self = obj; // Create a cycle
   structured_clone(obj, { unshare: true }); 
-
   throw new Error(`test #4 should have failed.`);
 } catch {
   console.log(`test #4 failed as intended.`);
