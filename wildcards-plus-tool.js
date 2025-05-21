@@ -7628,11 +7628,11 @@ async function main() {
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(prompt);
 
-    if (context.config.negative_prompt || context.config.negative_prompt === '') {
+    if (munged_config.negative_prompt || munged_config.negative_prompt === '') {
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(`Expanded negative prompt:`);
       console.log(`------------------------------------------------------------------------------------------`);
-      console.log(context.config.negative_prompt);
+      console.log(munged_config.negative_prompt);
     }
     
     if (!post) {
