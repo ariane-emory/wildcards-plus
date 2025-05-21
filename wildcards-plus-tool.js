@@ -234,7 +234,6 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_structured_clone_enabled      = false;
 let log_smart_join_enabled            = false;
 let log_expand_and_walk_enabled       = false;
 let disable_prelude                   = false;
@@ -2221,7 +2220,7 @@ class WeightedPicker {
 // =================================================================================================
 // HELPER FUNCTIONS SECTION:
 // =================================================================================================
-// DT's env doesn't seem to have structuredClone, so we'll define our own:
+// DT's env doesn't seem to have structuredClone, so we'll define our own version:
 // -------------------------------------------------------------------------------------------------
 function structured_clone(value, {
   seen = new WeakMap(),           // For shared reference reuse
@@ -2272,9 +2271,8 @@ function structured_clone(value, {
   } else {
     clone = {};
     if (!unshare) seen.set(value, clone);
-    for (const key of Object.keys(value)) {
+    for (const key of Object.keys(value)) 
       clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
-    }
   }
 
   ancestors.delete(value); // Cleanup recursion tracking
@@ -2282,7 +2280,7 @@ function structured_clone(value, {
   return clone;
 }
 // -------------------------------------------------------------------------------------------------
-if (false) {
+if (true) {
   const shared = { msg: "hi" };
   let obj = { a: shared, b: shared };
   // test #1: preserve shared references, this one seems to work:
@@ -2942,8 +2940,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    if (log_structured_clone_enabled)
-      console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
       flags:                        structured_clone(this.flags),
@@ -2963,8 +2960,7 @@ class Context {
         this.configuration.loras === copy.configuration.loras)
       throw new Error("oh no");
 
-    if (log_structured_clone_enabled)
-      console.log(`CLONED CONTEXT`);
+    console.log(`CLONED CONTEXT`);
     
     return copy;
 
