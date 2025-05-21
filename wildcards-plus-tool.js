@@ -2301,16 +2301,17 @@ function is_flag_set(test_flag, set_flags) {
   return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
 }
 // -------------------------------------------------------------------------------------------------
-function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
-  console.log(`ADDING ${inspect_fun(lora)} TO ${array.length} loras in ${to_description}`);
-  const arr   = array;
+function add_lora_to_context(lora, context) {
+  console.log(`ADDING ${inspect_fun(lora)} TO ${context.config.loras.length??0} LORAS IN CONTEXT`);
+  const arr   = context.config.loras??[];
   const index = arr.findIndex(existing => existing.file === lora.file);
   if (index !== -1) {
     arr.splice(index, 1); // Remove the existing entry
   }
   arr.push(lora); // Add the new entry at the end
-  if (arr !== array)
-    throw new Error("add_lora_to_array: arr !== array");
+  if (arr !== context.config.loras)
+    throw new Error("add_lora_to_context: arr !== array");
+  context.config.loras = arr;
 }
 // -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
@@ -6842,9 +6843,7 @@ function expand_wildcards(thing, context = new Context()) {
 
       context.config.loras ||= [];
 
-      add_lora_to_array({ file: file, weight: weight },
-                        context.config.loras,
-                        "context.config.loras");
+      add_lora_to_context({ file: file, weight: weight }, context);
       
       return '';
     }
