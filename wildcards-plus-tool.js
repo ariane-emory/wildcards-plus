@@ -238,7 +238,7 @@ let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
-let log_expand_and_walk_enabled       = false;
+let log_expand_and_walk_enabled       = true;
 let disable_prelude                   = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
@@ -6875,7 +6875,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   }
 
   log(log_expand_and_walk_enabled,
-      `Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} ` +
+      `Expanding wildcards in ${thing.constructor.name} ` +
+      `${abbreviate(thing.toString())} in ${context} ` +
       `@ ${indent} in ${context}`);
   
   const ret = unescape(smart_join(walk(thing, indent + 1)));
@@ -7782,17 +7783,18 @@ async function main() {
     const context = base_context.clone();
     const prompt  = expand_wildcards(AST, context);
 
+    console.log(`------------------------------------------------------------------------------------------`);
+    console.log(`Final config is is:`);
+    console.log(`------------------------------------------------------------------------------------------`);
+    console.log(inspect_fun(context.configuration));
+
+    
     if (log_flags_enabled || log_configuration_enabled) {
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(`Flags after:`);
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(`${inspect_fun(context.flags)}`);
     }
-
-    console.log(`------------------------------------------------------------------------------------------`);
-    console.log(`Final config is is:`);
-    console.log(`------------------------------------------------------------------------------------------`);
-    console.log(inspect_fun(context.configuration));
 
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
