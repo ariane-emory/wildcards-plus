@@ -2317,9 +2317,15 @@ if (true) {
     obj.self = obj; // Create a cycle
     structured_clone(obj);
 
+    // If we get here, no error was thrown = fail
     throw new Error(`test #3 should have failed.`);
-  } catch {
-    console.log(`test #3 failed as intended.`);
+  } catch (err) {
+    if (err.message === 'test #3 should have failed.') {
+      // Re-throw our own error
+      throw err;
+    } else {
+      console.log(`test #3 failed as intended.`);
+    }
   }
   // test #4: should fail do to cycle, with unshare = true:
   try {
@@ -2328,8 +2334,13 @@ if (true) {
     structured_clone(obj, { unshare: true }); 
 
     throw new Error(`test #4 should have failed.`);
-  } catch {
-    console.log(`test #4 failed as intended.`);
+  } catch (err) {
+    if (err.message === 'test #4 should have failed.') {
+      // Re-throw our own error
+      throw err;
+    } else {
+      console.log(`test #3 failed as intended.`);
+    }
   }
 }
 // -------------------------------------------------------------------------------------------------
