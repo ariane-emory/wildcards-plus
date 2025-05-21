@@ -2026,18 +2026,6 @@ class WeightedPicker {
 //   return prefix_arr.every((val, idx) => val === full_arr[idx]);
 // }
 // -------------------------------------------------------------------------------------------------
-function arr_is_prefix_of_arr(prefix_arr, full_arr) {
-  if (prefix_arr.length > full_arr.length)
-    return false;
-
-  for (let ix = 0; ix < prefix_arr.length; ix++)
-    if (prefix_arr[ix] !== full_arr[ix])
-      return false;
-  
-  return true;
-}
-
-// -------------------------------------------------------------------------------------------------
 // DT's env doesn't seem to have structuredClone, so we'll define our own:
 // -------------------------------------------------------------------------------------------------
 // var structured_clone_indent = 0;
@@ -2099,7 +2087,6 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
 //   }
 // }
 // -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
 let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =>  {
   if (value === null || typeof value !== "object") {
     return value;
@@ -2160,19 +2147,19 @@ let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =
   }
   return clone;
 }
-// function structured_clone(value, seen = new WeakMap()) {
+// let structured_clone = (value, seen = new WeakMap()) => {
 //   if (value === null || typeof value !== "object") {
 //     return value;
 //   }
 
 //   if (seen.has(value)) {
-//     throw new TypeError("Cannot clone cyclic structures");
+//     return seen.get(value); // Return existing clone, not an error
 //   }
 
-//   // Handle arrays
+//   // Handle Array
 //   if (Array.isArray(value)) {
 //     const clone = [];
-//     seen.set(value, clone);
+//     seen.set(value, clone); // Store early to support self-reference
 //     for (const item of value) {
 //       clone.push(structured_clone(item, seen));
 //     }
@@ -2209,7 +2196,7 @@ let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =
 //     return new RegExp(value);
 //   }
 
-//   // Handle plain objects
+//   // Handle plain object
 //   const clone = {};
 //   seen.set(value, clone);
 //   for (const key of Object.keys(value)) {
@@ -2217,17 +2204,17 @@ let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =
 //   }
 //   return clone;
 // }
-// // -------------------------------------------------------------------------------------------------
-// function arr_is_prefix_of_arr(prefix_arr, full_arr) {
-//   if (prefix_arr.length > full_arr.length)
-//     return false;
+// -------------------------------------------------------------------------------------------------
+function arr_is_prefix_of_arr(prefix_arr, full_arr) {
+  if (prefix_arr.length > full_arr.length)
+    return false;
 
-//   for (let ix = 0; ix < prefix_arr.length; ix++)
-//     if (prefix_arr[ix] !== full_arr[ix])
-//       return false;
-
-//   return true;
-// }
+  for (let ix = 0; ix < prefix_arr.length; ix++)
+    if (prefix_arr[ix] !== full_arr[ix])
+      return false;
+  
+  return true;
+}
 // // -------------------------------------------------------------------------------------------------
 // function equal_arrs(this_arr, that_arr) {
 //   if (this_arr.length != that_arr.length)
