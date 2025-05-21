@@ -2224,28 +2224,20 @@ class WeightedPicker {
 // =================================================================================================
 // DT's env doesn't seem to have structuredClone, so we'll define our own:
 // -------------------------------------------------------------------------------------------------
-const structured_clone = (value, options = {})  => {
-  const { seen = undefined, unshare = false } = options;
-
+const structured_clone = (value, { unshare = false, seen = unshare ? new WeakSet() : new WeakMap() } = {})  => {
   if (value === null || typeof value !== "object") {
     return value;
   }
 
-  // Initialize correct tracking object
-  let localSeen = seen;
-  if (!localSeen) {
-    localSeen = unshare ? new WeakSet() : new WeakMap();
-  }
-
   // Cycle detection / shared reference reuse
   if (unshare) {
-    if (localSeen.has(value)) {
+    if (seen.has(value)) {
       throw new TypeError("Cannot clone cyclic structure");
     }
-    localSeen.add(value);
+    seen.add(value);
   } else {
-    if (localSeen.has(value)) {
-      return localSeen.get(value); // Reuse shared clone
+    if (seen.has(value)) {
+      return seen.get(value); // Reuse shared clone
     }
   }
 
@@ -2254,9 +2246,9 @@ const structured_clone = (value, options = {})  => {
   // Array
   if (Array.isArray(value)) {
     clone = [];
-    if (!unshare) localSeen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const item of value) {
-      clone.push(structured_clone(item, { seen: localSeen, unshare }));
+      clone.push(structured_clone(item, { seen: seen, unshare }));
     }
     return clone;
   }
@@ -2264,9 +2256,9 @@ const structured_clone = (value, options = {})  => {
   // Set
   if (value instanceof Set) {
     clone = new Set();
-    if (!unshare) localSeen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const item of value) {
-      clone.add(structured_clone(item, { seen: localSeen, unshare }));
+      clone.add(structured_clone(item, { seen: seen, unshare }));
     }
     return clone;
   }
@@ -2274,11 +2266,11 @@ const structured_clone = (value, options = {})  => {
   // Map
   if (value instanceof Map) {
     clone = new Map();
-    if (!unshare) localSeen.set(value, clone);
+    if (!unshare) seen.set(value, clone);
     for (const [k, v] of value.entries()) {
       clone.set(
-        structured_clone(k, { seen: localSeen, unshare }),
-        structured_clone(v, { seen: localSeen, unshare })
+        structured_clone(k, { seen: seen, unshare }),
+        structured_clone(v, { seen: seen, unshare })
       );
     }
     return clone;
@@ -2296,9 +2288,9 @@ const structured_clone = (value, options = {})  => {
 
   // Plain object
   clone = {};
-  if (!unshare) localSeen.set(value, clone);
+  if (!unshare) seen.set(value, clone);
   for (const key of Object.keys(value)) {
-    clone[key] = structured_clone(value[key], { seen: localSeen, unshare });
+    clone[key] = structured_clone(value[key], { seen: seen, unshare });
   }
   return clone;
 }
