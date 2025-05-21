@@ -2710,7 +2710,7 @@ function smart_join(arr) {
 
 
 // =================================================================================================
-// HELPER FUNCTION FOR MUNGING THE CONFIGURATION:
+// HELPER FUNCTIONS/VARS USED BY THE Context.munge_configuration() METHOD:
 // =================================================================================================
 // var values adapted from the file config.fbs in
 // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
@@ -2913,7 +2913,7 @@ function get_our_name(name) {
   return res;
 }
 // =================================================================================================
-// END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
+// END of HELPER FUNCTIONS/VARS USED BY THE Context.munge_configuration() METHOD.
 // =================================================================================================
 
 
