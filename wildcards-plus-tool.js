@@ -6374,421 +6374,421 @@ const prelude_text = disable_prelude ? '' : `
 | ?wizards_artist.boris_vallejo fantasy, science-fiction, magic, nature, muscles, femininity,
 }}
 `;
-                             // -------------------------------------------------------------------------------------------------
-                             let prelude_parse_result = null;
-                             // -------------------------------------------------------------------------------------------------
-                             function load_prelude(into_context = new Context()) {
-                               if (! prelude_parse_result) {
-                                 const old_log_match_enabled = log_match_enabled;
-                                 log_match_enabled = false; 
-                                 prelude_parse_result = Prompt.match(prelude_text);
-                                 log_match_enabled = old_log_match_enabled;
-                               }
-                               
-                               const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+// -------------------------------------------------------------------------------------------------
+let prelude_parse_result = null;
+// -------------------------------------------------------------------------------------------------
+function load_prelude(into_context = new Context()) {
+  if (! prelude_parse_result) {
+    const old_log_match_enabled = log_match_enabled;
+    log_match_enabled = false; 
+    prelude_parse_result = Prompt.match(prelude_text);
+    log_match_enabled = old_log_match_enabled;
+  }
+  
+  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
-                               if (ignored === undefined)
-                                 throw new Error("crap");
-                               
-                               return into_context;
-                             }
-                             // =================================================================================================
-                             // END OF HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE SECTION.
-                             // =================================================================================================
+  if (ignored === undefined)
+    throw new Error("crap");
+  
+  return into_context;
+}
+// =================================================================================================
+// END OF HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE SECTION.
+// =================================================================================================
 
 
-                             // =================================================================================================
-                             // THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
-                             // =================================================================================================
-                             function expand_wildcards(thing, context = new Context()) {
-                               // ---------------------------------------------------------------------------------------------
-                               function forbid_fun(option) {
-                                 for (const not_flag of option.not_flags)
-                                   if (context.flag_is_set(not_flag.flag))
-                                     return true;
-                                 return false;
-                               };
-                               // -----------------------------------------------------------------------------------------------
-                               function allow_fun(option) {
-                                 let allowed = true;
-                                 
-                                 for (const check_flag of option.check_flags) {
-                                   let found = false;
-                                   
-                                   for (const flag of check_flag.flags) {
-                                     if (context.flag_is_set(flag)) {
-                                       found = true;
-                                       break;
-                                     }
-                                   }
-                                   
-                                   if (!found) {
-                                     allowed = false;
-                                     break;
-                                   }
-                                 }
-                                 
-                                 return allowed;
-                               };
-                               // -----------------------------------------------------------------------------------------------
-                               function walk(thing) {
-                                 // ---------------------------------------------------------------------------------------------
-                                 // basic types (strings and Arrays):
-                                 // ---------------------------------------------------------------------------------------------
-                                 if (typeof thing === 'string')
-                                   return thing;
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (Array.isArray(thing)) {
-                                   const ret = [];
+// =================================================================================================
+// THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
+// =================================================================================================
+function expand_wildcards(thing, context = new Context()) {
+  // ---------------------------------------------------------------------------------------------
+  function forbid_fun(option) {
+    for (const not_flag of option.not_flags)
+      if (context.flag_is_set(not_flag.flag))
+        return true;
+    return false;
+  };
+  // -----------------------------------------------------------------------------------------------
+  function allow_fun(option) {
+    let allowed = true;
+    
+    for (const check_flag of option.check_flags) {
+      let found = false;
+      
+      for (const flag of check_flag.flags) {
+        if (context.flag_is_set(flag)) {
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        allowed = false;
+        break;
+      }
+    }
+    
+    return allowed;
+  };
+  // -----------------------------------------------------------------------------------------------
+  function walk(thing) {
+    // ---------------------------------------------------------------------------------------------
+    // basic types (strings and Arrays):
+    // ---------------------------------------------------------------------------------------------
+    if (typeof thing === 'string')
+      return thing;
+    // ---------------------------------------------------------------------------------------------
+    else if (Array.isArray(thing)) {
+      const ret = [];
 
-                                   for (const t of thing) {
-                                     if (context.noisy)
-                                       console.log(`WALKING ` +
-                                                   typeof t === 'object'
-                                                   ? inspect_fun(t)
-                                                   : `${typeof t} '${t}'`);
-                                     
-                                     ret.push(walk(t));
-                                   }
+      for (const t of thing) {
+        if (context.noisy)
+          console.log(`WALKING ` +
+                      typeof t === 'object'
+                      ? inspect_fun(t)
+                      : `${typeof t} '${t}'`);
+        
+        ret.push(walk(t));
+      }
 
-                                   // console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
-                                   
-                                   return ret;
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 // flags:
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTSetFlag) {
-                                   // console.log(`SET FLAG '${thing.name}'.`);
-                                   
-                                   context.set_flag(thing.flag);
+      // console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
+      
+      return ret;
+    }
+    // ---------------------------------------------------------------------------------------------
+    // flags:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTSetFlag) {
+      // console.log(`SET FLAG '${thing.name}'.`);
+      
+      context.set_flag(thing.flag);
 
-                                   return ''; // produce nothing
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTUnsetFlag) {
-                                   if (log_flags_enabled)
-                                     console.log(`UNSETTING FLAG '${thing.flag}'.`);
+      return ''; // produce nothing
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUnsetFlag) {
+      if (log_flags_enabled)
+        console.log(`UNSETTING FLAG '${thing.flag}'.`);
 
-                                   context.unset_flag(thing.flag);
-                                   
-                                   return ''; // produce nothing
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 // references:
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTNamedWildcardReference) {
-                                   const got = context.named_wildcards.get(thing.name);
+      context.unset_flag(thing.flag);
+      
+      return ''; // produce nothing
+    }
+    // ---------------------------------------------------------------------------------------------
+    // references:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTNamedWildcardReference) {
+      const got = context.named_wildcards.get(thing.name);
 
-                                   if (!got)
-                                     return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
+      if (!got)
+        return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
 
-                                   let res = [];
-                                   
-                                   if (got instanceof ASTLatchedNamedWildcardedValue) {
-                                     for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-                                       res.push(expand_wildcards(got, context)); // not walk!
-                                   }
-                                   else {
-                                     const priority = thing.min_count === 1 && thing.max_count === 1
-                                           ? context.pick_one_priority
-                                           : context.pick_multiple_priority;
-                                     
-                                     const picks = got.pick(thing.min_count, thing.max_count,
-                                                            allow_fun, forbid_fun,
-                                                            priority);
-                                     
-                                     res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context))); // not walk!
-                                   }
-                                   
-                                   res = res.filter(s => s !== '');
+      let res = [];
+      
+      if (got instanceof ASTLatchedNamedWildcardedValue) {
+        for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
+          res.push(expand_wildcards(got, context)); // not walk!
+      }
+      else {
+        const priority = thing.min_count === 1 && thing.max_count === 1
+              ? context.pick_one_priority
+              : context.pick_multiple_priority;
+        
+        const picks = got.pick(thing.min_count, thing.max_count,
+                               allow_fun, forbid_fun,
+                               priority);
+        
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context))); // not walk!
+      }
+      
+      res = res.filter(s => s !== '');
 
-                                   if (thing.capitalize && res.length > 0) {
-                                     res[0] = capitalize(res[0]);
-                                   }
+      if (thing.capitalize && res.length > 0) {
+        res[0] = capitalize(res[0]);
+      }
 
-                                   return thing.joiner == ','
-                                     ? res.join(", ")
-                                     : (thing.joiner == '&'
-                                        ? pretty_list(res)
-                                        : res.join(" "));
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTScalarReference) {
-                                   let got = context.scalar_variables.get(thing.name) ??
-                                       `SCALAR '${thing.name}' NOT FOUND}`;
+      return thing.joiner == ','
+        ? res.join(", ")
+        : (thing.joiner == '&'
+           ? pretty_list(res)
+           : res.join(" "));
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTScalarReference) {
+      let got = context.scalar_variables.get(thing.name) ??
+          `SCALAR '${thing.name}' NOT FOUND}`;
 
-                                   if (thing.capitalize)
-                                     got = capitalize(got);
+      if (thing.capitalize)
+        got = capitalize(got);
 
-                                   return got;
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 // NamedWildcards:
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTLatchNamedWildcard) {
-                                   const got = context.named_wildcards.get(thing.name);
-                                   
-                                   if (!got)
-                                     return `<ERROR: Named wildcard ${thing.name} not found!>`;
+      return got;
+    }
+    // ---------------------------------------------------------------------------------------------
+    // NamedWildcards:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTLatchNamedWildcard) {
+      const got = context.named_wildcards.get(thing.name);
+      
+      if (!got)
+        return `<ERROR: Named wildcard ${thing.name} not found!>`;
 
-                                   if (got instanceof ASTLatchedNamedWildcardedValue) {
-                                     if (context.noisy)
-                                       console.log(`NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
+      if (got instanceof ASTLatchedNamedWildcardedValue) {
+        if (context.noisy)
+          console.log(`NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
 
-                                     return '';
-                                   }
+        return '';
+      }
 
-                                   const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
 
-                                   if (context.noisy)
-                                     console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
-                                   
-                                   context.named_wildcards.set(thing.name, latched);
+      if (context.noisy)
+        console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+      
+      context.named_wildcards.set(thing.name, latched);
 
-                                   return '';
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTUnlatchNamedWildcard) {
-                                   let got = context.named_wildcards.get(thing.name);
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUnlatchNamedWildcard) {
+      let got = context.named_wildcards.get(thing.name);
 
-                                   if (!got)
-                                     return `ERROR: Named wildcard ${thing.name} not found!`;
+      if (!got)
+        return `ERROR: Named wildcard ${thing.name} not found!`;
 
-                                   if (! (got instanceof ASTLatchedNamedWildcardedValue))
-                                     throw new Error(`NOT LATCHED: '${thing.name}'`);
+      if (! (got instanceof ASTLatchedNamedWildcardedValue))
+        throw new Error(`NOT LATCHED: '${thing.name}'`);
 
-                                   context.named_wildcards.set(thing.name, got.original_value);
+      context.named_wildcards.set(thing.name, got.original_value);
 
-                                   if (context.noisy)
-                                     console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+      if (context.noisy)
+        console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
 
-                                   return ''; // produce no text.
-                                 } 
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTNamedWildcardDefinition) {
-                                   if (context.named_wildcards.has(thing.destination))
-                                     console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
+      return ''; // produce no text.
+    } 
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTNamedWildcardDefinition) {
+      if (context.named_wildcards.has(thing.destination))
+        console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
 
-                                   context.named_wildcards.set(thing.destination, thing.wildcard);
+      context.named_wildcards.set(thing.destination, thing.wildcard);
 
-                                   return '';
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 // internal objects:
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTLatchedNamedWildcardedValue) {
-                                   return thing.latched_value;
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 // scalar assignment:
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTUpdateScalar) {
-                                   if (context.noisy) {
-                                     console.log();
-                                     console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
-                                                 `TO '${thing.destination.name}'`);
-                                   }
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    // internal objects:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTLatchedNamedWildcardedValue) {
+      return thing.latched_value;
+    }
+    // ---------------------------------------------------------------------------------------------
+    // scalar assignment:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUpdateScalar) {
+      if (context.noisy) {
+        console.log();
+        console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
+                    `TO '${thing.destination.name}'`);
+      }
 
-                                   let   new_val  = walk(thing.source);
-                                   const old_val = context.scalar_variables.get(thing.destination.name)??'';
+      let   new_val  = walk(thing.source);
+      const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
-                                   if (! thing.assign)
-                                     new_val = smart_join([ old_val, new_val ]);
-                                   
-                                   context.scalar_variables.set(thing.destination.name, new_val);
+      if (! thing.assign)
+        new_val = smart_join([ old_val, new_val ]);
+      
+      context.scalar_variables.set(thing.destination.name, new_val);
 
-                                   if (context.noisy) {
-                                     console.log(`ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
-                                     console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
-                                   }
-                                   
-                                   return '';
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 // AnonWildcards:
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTAnonWildcard) {
-                                   const pick = thing.pick_one(allow_fun, forbid_fun,
-                                                               context.pick_one_priority)?.body;
+      if (context.noisy) {
+        console.log(`ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
+        console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+      }
+      
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    // AnonWildcards:
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTAnonWildcard) {
+      const pick = thing.pick_one(allow_fun, forbid_fun,
+                                  context.pick_one_priority)?.body;
 
-                                   if (! pick)
-                                     return ''; // inelegant... investigate why this is necessary?
-                                   
-                                   return walk(pick);
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTUpdateConfigUnary ||
-                                          thing instanceof ASTUpdateConfigBinary) {
-                                   // console.log(`WALK ${inspect_fun(thing)}`);
+      if (! pick)
+        return ''; // inelegant... investigate why this is necessary?
+      
+      return walk(pick);
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUpdateConfigUnary ||
+             thing instanceof ASTUpdateConfigBinary) {
+      // console.log(`WALK ${inspect_fun(thing)}`);
 
-                                   let value = thing.value;
+      let value = thing.value;
 
-                                   if (value instanceof ASTNode) {
-                                     const expanded_value = expand_wildcards(thing.value, context); // not walk!
-                                     const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
-                                                                           ? rJsoncObject
-                                                                           : rJsonc).match(expanded_value);
+      if (value instanceof ASTNode) {
+        const expanded_value = expand_wildcards(thing.value, context); // not walk!
+        const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
+                                              ? rJsoncObject
+                                              : rJsonc).match(expanded_value);
 
-                                     if (thing instanceof ASTUpdateConfigBinary) {
-                                       value = jsconc_parsed_expanded_value?.is_finished
-                                         ? jsconc_parsed_expanded_value.value
-                                         : expanded_value;
-                                     }
-                                     else { // ASTUpdateConfigUnary
-                                       throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                                                       `rJSONC object, rJsonc.match(...) result was ` +
-                                                       inspect_fun(jsconc_parsed_expanded_value));
-                                     }
-                                   }
+        if (thing instanceof ASTUpdateConfigBinary) {
+          value = jsconc_parsed_expanded_value?.is_finished
+            ? jsconc_parsed_expanded_value.value
+            : expanded_value;
+        }
+        else { // ASTUpdateConfigUnary
+          throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
+                          `rJSONC object, rJsonc.match(...) result was ` +
+                          inspect_fun(jsconc_parsed_expanded_value));
+        }
+      }
 
-                                   if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
-                                     let new_obj = value;
+      if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
+        let new_obj = value;
 
-                                     for (const key of Object.keys(value)) {
-                                       new_obj[get_our_name(key)??key] = value[key]
-                                     }
-                                     
-                                     context.config = thing.assign
-                                       ? new_obj
-                                       : { ...context.config, ...new_obj };
+        for (const key of Object.keys(value)) {
+          new_obj[get_our_name(key)??key] = value[key]
+        }
+        
+        context.config = thing.assign
+          ? new_obj
+          : { ...context.config, ...new_obj };
 
-                                     if (log_config_enabled)
-                                       console.log(`config ${thing.assign ? '=' : '+='} ` +
-                                                   `${inspect_fun(new_obj, true)}, ` +
-                                                   `config is now: ` +
-                                                   `${inspect_fun(context.config, true)}`);
-                                   }
-                                   else { // ASTUpdateConfigBinary
-                                     const our_name = get_our_name(thing.key); 
-                                     
-                                     if (thing.assign) {
-                                       context.config[our_name] = value;
-                                     }
-                                     else { // increment
-                                       if (Array.isArray(value)) {
-                                         const tmp_arr = context.config[our_name]??[];
+        if (log_config_enabled)
+          console.log(`config ${thing.assign ? '=' : '+='} ` +
+                      `${inspect_fun(new_obj, true)}, ` +
+                      `config is now: ` +
+                      `${inspect_fun(context.config, true)}`);
+      }
+      else { // ASTUpdateConfigBinary
+        const our_name = get_our_name(thing.key); 
+        
+        if (thing.assign) {
+          context.config[our_name] = value;
+        }
+        else { // increment
+          if (Array.isArray(value)) {
+            const tmp_arr = context.config[our_name]??[];
 
-                                         if (! Array.isArray(tmp_arr))
-                                           throw new Error(`can't add array ${inspect_fun(value)} ` +
-                                                           `to non-array ${inspect_fun(tmp_arr)}`);
-                                         
-                                         const new_arr = [ ...tmp_arr, ...value ];
-                                         // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-                                         //             `increment by array ${inspect_fun(value)}, ` +
-                                         //             `total ${inspect_fun(new_arr)}`);
-                                         context.config[our_name] = new_arr;
-                                       }
-                                       else if (typeof value === 'object') {
-                                         const tmp_obj = context.config[our_name]??{};
+            if (! Array.isArray(tmp_arr))
+              throw new Error(`can't add array ${inspect_fun(value)} ` +
+                              `to non-array ${inspect_fun(tmp_arr)}`);
+            
+            const new_arr = [ ...tmp_arr, ...value ];
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            //             `increment by array ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(new_arr)}`);
+            context.config[our_name] = new_arr;
+          }
+          else if (typeof value === 'object') {
+            const tmp_obj = context.config[our_name]??{};
 
-                                         if (typeof tmp_obj !== 'object')
-                                           throw new Error(`can't add object ${inspect_fun(value)} `+
-                                                           `to non-object ${inspect_fun(tmp_obj)}`);
+            if (typeof tmp_obj !== 'object')
+              throw new Error(`can't add object ${inspect_fun(value)} `+
+                              `to non-object ${inspect_fun(tmp_obj)}`);
 
-                                         const new_obj = { ...tmp_obj, ...value };
-                                         // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-                                         //             `increment by object ${inspect_fun(value)}, ` +
-                                         //             `total ${inspect_fun(new_obj)}`);
-                                         context.config[our_name] = new_obj;
-                                       }
-                                       else if (typeof value === 'number') {
-                                         const tmp_num = context.config[our_name]??0;
-                                         
-                                         if (typeof tmp_num !== 'number')
-                                           throw new Error(`can't add number ${inspect_fun(value)} `+
-                                                           `to non-number ${inspect_fun(tmp_num)}`);
+            const new_obj = { ...tmp_obj, ...value };
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            //             `increment by object ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(new_obj)}`);
+            context.config[our_name] = new_obj;
+          }
+          else if (typeof value === 'number') {
+            const tmp_num = context.config[our_name]??0;
+            
+            if (typeof tmp_num !== 'number')
+              throw new Error(`can't add number ${inspect_fun(value)} `+
+                              `to non-number ${inspect_fun(tmp_num)}`);
 
-                                         // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-                                         //             `increment by number ${inspect_fun(value)}, ` +
-                                         //             `total ${inspect_fun((context.config[our_name]??0) + value)}`);
-                                         context.config[our_name] = tmp_num + value;
-                                       }
-                                       else if (typeof value === 'string') {
-                                         const tmp_str = context.config[our_name]??'';
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            //             `increment by number ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun((context.config[our_name]??0) + value)}`);
+            context.config[our_name] = tmp_num + value;
+          }
+          else if (typeof value === 'string') {
+            const tmp_str = context.config[our_name]??'';
 
-                                         if (typeof tmp_str !== 'string')
-                                           throw new Error(`can't add string ${inspect_fun(value)} `+
-                                                           `to non-string ${inspect_fun(tmp_str)}`);
+            if (typeof tmp_str !== 'string')
+              throw new Error(`can't add string ${inspect_fun(value)} `+
+                              `to non-string ${inspect_fun(tmp_str)}`);
 
-                                         // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-                                         //             `increment by string ${inspect_fun(value)}, ` +
-                                         //             `total ${inspect_fun((context.config[our_name]??'') + value)}`);
-                                         context.config[our_name] = smart_join([tmp_str, value]);
-                                       }
-                                       else {
-                                         // probly won't work most of the time, but let's try anyhow, I guess.
-                                         // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-                                         //             `increment by unknown ${inspect_fun(value)}, ` +
-                                         //             `total ${inspect_fun(context.config[our_name]??null + value)}`);
-                                         context.config[our_name] = (context.config[our_name]??null) + value;
-                                       }
-                                     }
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            //             `increment by string ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun((context.config[our_name]??'') + value)}`);
+            context.config[our_name] = smart_join([tmp_str, value]);
+          }
+          else {
+            // probly won't work most of the time, but let's try anyhow, I guess.
+            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
+            //             `increment by unknown ${inspect_fun(value)}, ` +
+            //             `total ${inspect_fun(context.config[our_name]??null + value)}`);
+            context.config[our_name] = (context.config[our_name]??null) + value;
+          }
+        }
 
-                                     if (log_config_enabled)
-                                       console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
-                                         `config.${our_name} ` +
-                                           `${thing.assign ? '=' : '+='} ` +
-                                           `${inspect_fun(value, true)}, ` +
-                                           `config is now: ` +
-                                           `${inspect_fun(context.config, true)}`);
-                                   }
-                                   
-                                   return '';
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTSetPickSingle || 
-                                          thing instanceof ASTSetPickMultiple) {
-                                   const cur_key = thing instanceof ASTSetPickSingle
-                                         ? 'pick_one_priority'
-                                         : 'pick_multiple_priority';
-                                   const prior_key = thing instanceof ASTSetPickSingle
-                                         ? 'prior_pick_one_priority'
-                                         : 'prior_pick_multiple_priority';
-                                   const cur_val   = context[cur_key];
-                                   const prior_val = context[prior_key];
-                                   const walked    = picker_priority[expand_wildcards(thing.limited_content,
-                                                                                      context).toLowerCase()];
+        if (log_config_enabled)
+          console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
+            `config.${our_name} ` +
+              `${thing.assign ? '=' : '+='} ` +
+              `${inspect_fun(value, true)}, ` +
+              `config is now: ` +
+              `${inspect_fun(context.config, true)}`);
+      }
+      
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTSetPickSingle || 
+             thing instanceof ASTSetPickMultiple) {
+      const cur_key = thing instanceof ASTSetPickSingle
+            ? 'pick_one_priority'
+            : 'pick_multiple_priority';
+      const prior_key = thing instanceof ASTSetPickSingle
+            ? 'prior_pick_one_priority'
+            : 'prior_pick_multiple_priority';
+      const cur_val   = context[cur_key];
+      const prior_val = context[prior_key];
+      const walked    = picker_priority[expand_wildcards(thing.limited_content,
+                                                         context).toLowerCase()];
 
-                                   // if (log_config_enabled)
-                                   //   console.log(`SET PICK DATA: ` +
-                                   //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-                                   //                               cur_val: cur_val, prior_val: prior_val,
-                                   //                               walked: walked})}`);
-                                   
-                                   if (! picker_priority_descriptions.includes(walked))
-                                     throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+      // if (log_config_enabled)
+      //   console.log(`SET PICK DATA: ` +
+      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+      //                               cur_val: cur_val, prior_val: prior_val,
+      //                               walked: walked})}`);
+      
+      if (! picker_priority_descriptions.includes(walked))
+        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
-                                   context[prior_key] = context[cur_key];
-                                   context[cur_key]   = walked;
+      context[prior_key] = context[cur_key];
+      context[cur_key]   = walked;
 
-                                   if (log_config_enabled)
-                                     // console.log(
-                                     //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                                     // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
-                                     console.log(
-                                       `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                                         `${inspect_fun(walked)}.`);
-                                   
-                                   return '';
-                                 }
-                                 // ---------------------------------------------------------------------------------------------
-                                 else if (thing instanceof ASTRevertPickSingle || 
-                                          thing instanceof ASTRevertPickMultiple) {
-                                   const cur_key = thing instanceof ASTRevertPickSingle
-                                         ? 'pick_one_priority'
-                                         : 'pick_multiple_priority';
-                                   const prior_key = thing instanceof ASTRevertPickSingle
-                                         ? 'prior_pick_one_priority'
-                                         : 'prior_pick_multiple_priority';
-                                   const cur_val   = context[cur_key];
-                                   const prior_val = context[prior_key];
+      if (log_config_enabled)
+        // console.log(
+        //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
+        console.log(
+          `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+            `${inspect_fun(walked)}.`);
+      
+      return '';
+    }
+    // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTRevertPickSingle || 
+             thing instanceof ASTRevertPickMultiple) {
+      const cur_key = thing instanceof ASTRevertPickSingle
+            ? 'pick_one_priority'
+            : 'pick_multiple_priority';
+      const prior_key = thing instanceof ASTRevertPickSingle
+            ? 'prior_pick_one_priority'
+            : 'prior_pick_multiple_priority';
+      const cur_val   = context[cur_key];
+      const prior_val = context[prior_key];
 
-                                   // if (log_config_enabled)
-                                   //   console.log(`REVERT PICK DATA: ` +
-                                   //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-                                   //                               cur_val: cur_val, prior_val: prior_val })}`);
-                                   
+      // if (log_config_enabled)
+      //   console.log(`REVERT PICK DATA: ` +
+      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+      //                               cur_val: cur_val, prior_val: prior_val })}`);
+      
       if (log_config_enabled)
         // console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
         //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
@@ -6804,7 +6804,7 @@ const prelude_text = disable_prelude ? '' : `
     // ASTLora:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      console.log(`ENCOUNTERED LORA ${thing} IN ${context}`);
       
       let walked_file = expand_wildcards(thing.file, context); // not walk!
 
@@ -7009,6 +7009,10 @@ class ASTLora extends ASTNode {
     this.weight = weight;
     // console.log(`Constructed LoRa ${this}!`);
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `<lora:${this.file.constructor.name}:${this.file} : ${this.weight.constructor.name} ${this.weight}>`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Latch a NamedWildcard:
@@ -7058,6 +7062,10 @@ class ASTAnonWildcard  extends ASTNode {
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `{ ${this.picker.options.join(" | ")} }`;
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
