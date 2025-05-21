@@ -2093,7 +2093,7 @@ function structured_clone(value, seen = new WeakMap()) {
   }
 
   if (seen.has(value)) {
-    throw new TypeError("Cannot clone cyclic structures");
+    throw new TypeError(`Cannot clone cyclic structure ${inspect_fun(value)}`);
   }
 
   // Handle arrays
@@ -2650,6 +2650,7 @@ function get_our_name(name) {
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
   // console.log(`MUNGING (with ${config?.loras?.length} loras) ${inspect_fun(config)}`);
+  console.log(`MUNGING CONFIG...`);
   
   const munged_config = structured_clone(config);
 
@@ -2927,7 +2928,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    if (log_structured_clone_enabled)
+    // if (log_structured_clone_enabled)
       console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
