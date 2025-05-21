@@ -2220,23 +2220,24 @@ function structured_clone(thing) {
   //throw new Error(`CLONING ${inspect_fun(thing)}`);
 
   const log = msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`);
-
-  log(`CLONING ${inspect_fun(thing)}`);
-
-  structured_clone_indent += 1;
-
+  const log_enter = ()  => {
+    log(`CLONING ${inspect_fun(thing)}`);
+    structured_clone_indent += 1;
+  }
+  
   if (thing === null || typeof thing !== "object") {
-    structured_clone_indent -= 1;
     log(`CLONED ${inspect_fun(thing)}`);
     return thing;
   }
   else if (Array.isArray(thing)) {
+    log_enter();
     const cloned =  [ ...thing.map(structured_clone) ];
     structured_clone_indent -= 1;
     log(`CLONED ${inspect_fun(cloned)}`);
     return cloned;
   }
   else if (thing instanceof Set) {
+    log_enter();
     const cloned = new Set();
     for (const value of thing.values()) {
       cloned.add(structured_clone(value));
@@ -2246,6 +2247,7 @@ function structured_clone(thing) {
     return cloned;
   }
   else if (thing instanceof Map) {
+    log_enter();
     const cloned = new Map();
     for (const [key, value] of thing.entries()) {
       cloned.set(structured_clone(key), structured_clone(value));
@@ -2255,6 +2257,7 @@ function structured_clone(thing) {
     return cloned;
   }
   else {
+    log_enter();
     const cloned = {};
     for (const key in thing) {
       if (Object.prototype.hasOwnProperty.call(thing, key)) {
