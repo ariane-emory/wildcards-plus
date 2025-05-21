@@ -3103,7 +3103,7 @@ class Context {
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
       files:                        this.files,
-      configuration:                       structured_clone(this.configuration),
+      configuration:                this.configuration,
       // add_loras:                    this.add_loras,
       top_file:                     false, // deliberately not copied!
       pick_one_priority:            this.pick_one_priority,
