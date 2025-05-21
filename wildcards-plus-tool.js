@@ -2221,12 +2221,12 @@ function structured_clone(thing) {
 
   const log = msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`);
   const log_enter = ()  => {
-    log(`CLONING ${JSON.stringify(thing)}`);
+    log(`CLONE ${JSON.stringify(thing)}`);
     structured_clone_indent += 1;
   }
   
   if (thing === null || typeof thing !== "object") {
-    log(`CLONED ${JSON.stringify(thing)}`);
+    log(`COPIED ${JSON.stringify(thing)}`);
     return thing;
   }
   else if (Array.isArray(thing)) {
@@ -2261,7 +2261,7 @@ function structured_clone(thing) {
     const cloned = {};
     for (const key in thing) {
       if (Object.prototype.hasOwnProperty.call(thing, key)) {
-        cloned[key] = structured_clone(thing[key]);
+        cloned[structured_clone(key)] = structured_clone(thing[key]);
       }
     }
     structured_clone_indent -= 1;
@@ -3016,6 +3016,8 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
+    console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    
     const copy = new Context({
       flags:                        this.flags.map(arr => [...arr]),
       scalar_variables:             new Map(this.scalar_variables),
@@ -3034,7 +3036,9 @@ class Context {
 
     if (this.config.loras && copy.config.loras &&
         this.config.loras === copy.config.loras)
-      throw new Error("oh no");
+                  throw new Error("oh no");
+
+    console.log(`CLONED CONTEXT`);
     
     return copy;
 
