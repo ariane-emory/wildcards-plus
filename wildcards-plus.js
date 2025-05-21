@@ -7669,49 +7669,6 @@ for (let ix = 0; ix < batch_count; ix++) {
                              ...context.config }
   const generated_prompt = expand_wildcards(AST, context);
   context.config         = munge_config(context.config);
-  console.log(`CONTEXT: ${inspect_fun(context)}`);
-  // for (const lora of munged_config.loras)
-  //   add_lora_to_array(lora, combined_loras, "combined_loras");
-
-  // munged_config.loras = combined_loras;
-  
-  // const generated_configuration = { ...structured_clone(pipeline_configuration),
-  //                                   // seed: -1, // maybe not here?
-  //                                   ...munged_config };
-  
-  // const negative_prompt         = context.negative_prompt;
-  // const added_loras_files       = [];
-
-  // if (context.add_loras.length > 0) {
-  //   if (log_config_enabled && context.add_loras.length !== 0) {
-  //     console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  //     console.log(`Found add_loras in Context: ${inspect_fun(context.add_loras)} in Context.`);
-  //   }
-
-  //   // console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
-  //   //             `${JSON.stringify(generated_configuration)}`);
-  
-  //   if (generated_configuration.loras && generated_configuration.length > 0)
-  //     generated_configuration.loras = [ ...generated_configuration.loras ];
-  //   else 
-  //     generated_configuration.loras ||= [];
-
-  //   for (const lora of context.add_loras) {
-  //     const already_have_this_lora = pipeline.configuration.loras
-  //           .filter(l => l.file === lora.file).length > 0;
-
-  //     // console.log(`THIS: ${already_have_this_lora}`);
-  
-  //     if (! already_have_this_lora) {
-  //       // added_loras_files.push(lora.file);
-  //       // console.log(`RECORDED ${inspect_fun(added_loras_files)}.`);
-  //       add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
-  //     }
-  
-  //     // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
-  //     //             `${JSON.stringify(generated_configuration)}`);
-  //   }
-  // }
 
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`GENERATED CONFIGURATION:`);
@@ -7720,18 +7677,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`The expanded prompt is:`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`${generated_prompt}`);
-  // console.log(`-----------------------------------------------------------------------------------------------------------------`);
-
-  // if (context.config.negative_prompt || context.config.negative_prompt === '') {
-  //   console.log(`------------------------------------------------------------------------------------------`);
-  //   console.log(`#1: Expanded negative prompt in context.config.negative_prompt:`);
-  //   console.log(`------------------------------------------------------------------------------------------`);
-  //   console.log(context.config.negative_prompt);
-  // } else {
-  //   console.log(`------------------------------------------------------------------------------------------`);
-  //   console.log(`#1: No negative prompt!`);
-  // }
-
+  
   if (context.config.negativePrompt || context.config.negativePrompt === '') {
     console.log(`-----------------------------------------------------------------------------------------------------------------`);
     console.log(`Expanded negative prompt:`);
