@@ -2217,23 +2217,23 @@ class WeightedPicker {
 var structured_clone_indent = 0;
 
 function structured_clone(thing) {
-  //throw new Error(`CLONING ${inspect_fun(thing)}`);
+  //throw new Error(`CLONING ${JSON.stringify(thing)}`);
 
   const log = msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`);
   const log_enter = ()  => {
-    log(`CLONING ${inspect_fun(thing)}`);
+    log(`CLONING ${JSON.stringify(thing)}`);
     structured_clone_indent += 1;
   }
   
   if (thing === null || typeof thing !== "object") {
-    log(`CLONED ${inspect_fun(thing)}`);
+    log(`CLONED ${JSON.stringify(thing)}`);
     return thing;
   }
   else if (Array.isArray(thing)) {
     log_enter();
     const cloned =  [ ...thing.map(structured_clone) ];
     structured_clone_indent -= 1;
-    log(`CLONED ${inspect_fun(cloned)}`);
+    log(`CLONED ${JSON.stringify(cloned)}`);
     return cloned;
   }
   else if (thing instanceof Set) {
@@ -2243,7 +2243,7 @@ function structured_clone(thing) {
       cloned.add(structured_clone(value));
     }
     structured_clone_indent -= 1;
-    log(`CLONED ${inspect_fun(cloned)}`);
+    log(`CLONED ${JSON.stringify(cloned)}`);
     return cloned;
   }
   else if (thing instanceof Map) {
@@ -2253,7 +2253,7 @@ function structured_clone(thing) {
       cloned.set(structured_clone(key), structured_clone(value));
     }
     structured_clone_indent -= 1;
-    log(`CLONED ${inspect_fun(cloned)}`);
+    log(`CLONED ${JSON.stringify(cloned)}`);
     return cloned;
   }
   else {
@@ -2265,7 +2265,7 @@ function structured_clone(thing) {
       }
     }
     structured_clone_indent -= 1;
-    log(`CLONED ${inspect_fun(cloned)}`);
+    log(`CLONED ${JSON.stringify(cloned)}`);
     return cloned;
   }
 }
@@ -2765,7 +2765,7 @@ function get_our_name(name) {
 }
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
-  console.log(`MUNGING ${inspect_fun(this)}`);
+  console.log(`MUNGING ${inspect_fun(config)}`);
   
   config = structured_clone(config);
 
