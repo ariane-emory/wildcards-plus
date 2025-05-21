@@ -6452,7 +6452,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   function walk(thing, indent = 0) {
     const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
     log(`Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ${thing}` +
-        `@ ${indent}` );
+        ` @ ${indent}` );
     
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
@@ -7008,7 +7008,11 @@ class ASTNamedWildcardReference extends ASTNode {
       str += this.capitalize;
 
     if (this.min_count != 1  || this.max_count != 1) {
-      str += `${this.min_count}-${this.max_count}`;
+      if (this.min_count !== this.max_count)
+        str += `${this.min_count}-${this.max_count}`;
+      else
+        str += `${this.max_count}`;
+
       str += this.joiner;
     }
 
@@ -7081,6 +7085,10 @@ class ASTNamedWildcardDefinition extends ASTNode {
     this.destination = destination;
     this.wildcard    = wildcard;
   }
+  // -------------------------------------------------------------------------------------------------
+  toString() {
+    return `@${this.destination} = ${this.wildcard}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Internal usage.. might not /really/ be part of the AST per se?
@@ -7105,7 +7113,7 @@ class ASTAnonWildcard  extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `{ ${this.picker.options.join(" | ")} }`;
+    return `{ ${this.picker.options.map(x => x.toString()).join(" | ")} }`;
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
@@ -7124,6 +7132,28 @@ class ASTAnonWildcardAlternative extends ASTNode {
     this.check_flags = check_flags;
     this.not_flags   = not_flags;
     this.body        = body;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    var str = '';
+
+    if (this.weight !== 1)
+      str += `${this.weight} `;
+
+    var bits = [];
+
+    for (const check in this.check_flags)
+      bits.push(check.toString());
+    
+    for (const not in this.check_flags)
+      bits.push(not.toString());
+    
+    for (const thing in this.body)
+      bits.push(thing.toString());
+
+    str += bits.join(' ');
+
+    return str;
   }
 }
 // -------------------------------------------------------------------------------------------------
