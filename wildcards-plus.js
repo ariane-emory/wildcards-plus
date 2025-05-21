@@ -7604,19 +7604,19 @@ for (let ix = 0; ix < batch_count; ix++) {
 
   // expand the wildcards using a cloned context and generate a new configuration:
   
-  const context                 = base_context.clone();
-  const generated_prompt        = expand_wildcards(AST, context);
-  const munged_config           = munge_config(context.config);
-  const combined_loras          = [ ...pipeline_configuration.loras ];
+  const context          = base_context.clone();
+  context.config         = { ...structured_clone(pipeline_configuration), ...context.config }
+  const generated_prompt = expand_wildcards(AST, context);
+  context.config         = munge_config(context.config);
+  console.log(`CONTEXT: ${inspect_fun(context)}`);
+  // for (const lora of munged_config.loras)
+  //   add_lora_to_array(lora, combined_loras, "combined_loras");
 
-  for (const lora of munged_config.loras)
-    add_lora_to_array(lora, combined_loras, "combined_loras");
-
-  munged_config.loras = combined_loras;
+  // munged_config.loras = combined_loras;
   
-  const generated_configuration = { ...structured_clone(pipeline_configuration),
-                                    // seed: -1, // maybe not here?
-                                    ...munged_config };
+  // const generated_configuration = { ...structured_clone(pipeline_configuration),
+  //                                   // seed: -1, // maybe not here?
+  //                                   ...munged_config };
   
   // const negative_prompt         = context.negative_prompt;
   // const added_loras_files       = [];
@@ -7654,7 +7654,7 @@ for (let ix = 0; ix < batch_count; ix++) {
 
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`GENERATED CONFIGURATION:`);
-  console.log(`${JSON.stringify(generated_configuration, null, 2)}`);
+  console.log(`${JSON.stringify(context.config, null, 2)}`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`The expanded prompt is:`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
@@ -7688,11 +7688,11 @@ for (let ix = 0; ix < batch_count; ix++) {
   // -----------------------------------------------------------------------------------------------
   canvas.clear();
 
-  const negative_prompt = generated_configuration.negativePrompt;
-  delete generated_configuration.negativePrompt;
+  const negative_prompt = context.config.negativePrompt;
+  delete context.config.negativePrompt;
   
   pipeline.run({
-    configuration: generated_configuration,
+    configuration: context.config,
     prompt: generated_prompt,
     negativePrompt: negative_prompt,
   });
