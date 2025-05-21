@@ -7666,7 +7666,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   // expand the wildcards using a cloned context and generate a new configuration:
   
   const context          = base_context.clone();
-  const generated_prompt = expand_wildcards(AST, context);
+  const prompt = expand_wildcards(AST, context);
   context.config         = munge_config(context.config);
 
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
@@ -7675,7 +7675,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`The expanded prompt is:`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  console.log(`${generated_prompt}`);
+  console.log(`${prompt}`);
   
   if (context.config.negativePrompt || context.config.negativePrompt === '') {
     console.log(`-----------------------------------------------------------------------------------------------------------------`);
@@ -7699,7 +7699,7 @@ for (let ix = 0; ix < batch_count; ix++) {
   
   pipeline.run({
     configuration: context.config,
-    prompt: generated_prompt,
+    prompt: prompt,
     negativePrompt: negative_prompt,
   });
 
