@@ -2765,7 +2765,8 @@ function get_our_name(name) {
 }
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
-  console.log(`MUNGING ${inspect_fun(config)}`);
+  console.log(`MUNGING (${config?.loras?.length} loras) ${inspect_fun(config)}`);
+
   
   config = structured_clone(config);
 
