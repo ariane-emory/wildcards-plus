@@ -6720,6 +6720,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
                           inspect_fun(jsconc_parsed_expanded_value));
         }
       }
+      else {
+        value = structured_clone(value);
+      }
 
       if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
         let new_obj = value;
