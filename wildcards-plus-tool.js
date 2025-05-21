@@ -2609,7 +2609,8 @@ function smart_join(arr) {
 
 
 // =================================================================================================
-// HELPER FUNCTIONS/VARS USED BY THE Context.munge_configuration() METHOD:
+// HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111,
+// used by the context.munge_configuration() method and some walk cases.
 // =================================================================================================
 // var values adapted from the file config.fbs in
 // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
@@ -2812,7 +2813,7 @@ function get_our_name(name) {
   return res;
 }
 // =================================================================================================
-// END of HELPER FUNCTIONS/VARS USED BY THE Context.munge_configuration() METHOD.
+// END OF HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111.
 // =================================================================================================
 
 
