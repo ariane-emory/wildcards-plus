@@ -7877,9 +7877,9 @@ main().catch(err => {
 // END OF MAIN SECTION.
 // =================================================================================================
 
-console.log();
-console.log(json_number.match('0.7'));
-console.log(optional(json_exponentPart, 1).match(''));
+// console.log();
+// console.log(json_number.match('0.7'));
+// console.log(optional(json_exponentPart, 1).match(''));
 
-console.log(json_number.match('0.8'));
-console.log(optional(json_exponentPart, 1).match(''));
+// console.log(json_number.match('0.8'));
+// console.log(optional(json_exponentPart, 1).match(''));
