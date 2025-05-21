@@ -7618,7 +7618,7 @@ async function main() {
     
     prompt  = expand_wildcards(AST, context);
     // negative_prompt  = context.negative_prompt;
-    config           = munge_config(context.config);
+    context.config  = munge_config(context.config);
     // const have_loras = context.add_loras && context.add_loras.length > 0;
 
     if (log_flags_enabled || log_config_enabled)
