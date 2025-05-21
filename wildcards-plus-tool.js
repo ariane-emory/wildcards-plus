@@ -2302,7 +2302,7 @@ function is_flag_set(test_flag, set_flags) {
 }
 // -------------------------------------------------------------------------------------------------
 function add_lora_to_context(lora, context) {
-  console.log(`ADDING ${inspect_fun(lora)} TO ${context.config.loras.length??0} LORAS`);
+  console.log(`ADDING ${inspect_fun(lora)} TO ${context}`);
   const arr   = context.config.loras??[];
   const index = arr.findIndex(existing => existing.file === lora.file);
   if (index !== -1) {
