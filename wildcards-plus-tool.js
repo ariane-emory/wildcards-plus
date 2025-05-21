@@ -245,6 +245,15 @@ let save_post_requests_enable         = true;
 // =================================================================================================
 
 
+
+// =================================================================================================
+// find a better spot for this: 
+Array.prototype.toString = function() {
+  return this.length > 0 ? `[ ${this.join(", ")} ]` : '[]';
+}
+// =================================================================================================
+
+
 // =================================================================================================
 // GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
@@ -2896,7 +2905,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   }
 
   if (log_config_enabled)
-    console.log(`Munged config is: ${inspect_fun(munged_config, null, 2)}`);
+    console.log(`MUNGED CONFIG IS: ${inspect_fun(munged_config, null, 2)}`);
 
   return munged_config;
 }
@@ -6442,33 +6451,34 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
-    log(`Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} @ ${indent}` );
+    log(`Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ${thing}` +
+        `@ ${indent}` );
     
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
     // ---------------------------------------------------------------------------------------------
     if (typeof thing === 'string')
-          return thing;
-        // ---------------------------------------------------------------------------------------------
-        else if (Array.isArray(thing)) {
-          const ret = [];
+      return thing;
+    // ---------------------------------------------------------------------------------------------
+    else if (Array.isArray(thing)) {
+      const ret = [];
 
-          for (const t of thing) {
-            // if (context.noisy)
-            //   log(`WALKING ` +
-            //       typeof t === 'object'
-            //       ? inspect_fun(t)
-            //       : `${typeof t} '${t}'`);
-            ret.push(walk(t, indent + 1));
-          }
+      for (const t of thing) {
+        // if (context.noisy)
+        //   log(`WALKING ` +
+        //       typeof t === 'object'
+        //       ? inspect_fun(t)
+        //       : `${typeof t} '${t}'`);
+        ret.push(walk(t, indent + 1));
+      }
 
-          // log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
-          
-          return ret;
-        }
-        // ---------------------------------------------------------------------------------------------
-        // flags:
-        // ---------------------------------------------------------------------------------------------
+      // log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
+      
+      return ret;
+    }
+    // ---------------------------------------------------------------------------------------------
+    // flags:
+    // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSetFlag) {
       // log(`SET FLAG '${thing.name}'.`);
       
@@ -6598,7 +6608,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (context.noisy) {
         log();
         log(`ASSIGNING ${inspect_fun(thing.source)} ` +
-                    `TO '${thing.destination.name}'`);
+            `TO '${thing.destination.name}'`);
       }
 
       let   new_val  = walk(thing.source, indent + 1);
@@ -6666,9 +6676,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
         if (log_config_enabled)
           log(`config ${thing.assign ? '=' : '+='} ` +
-                      `${inspect_fun(new_obj, true)}, ` +
-                      `config is now: ` +
-                      `${inspect_fun(context.config, true)}`);
+              `${inspect_fun(new_obj, true)}, ` +
+              `config is now: ` +
+              `${inspect_fun(context.config, true)}`);
       }
       else { // ASTUpdateConfigBinary
         const our_name = get_our_name(thing.key); 
@@ -6892,7 +6902,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
   log(`Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} @ ${indent}`);
   
-  const ret = unescape(smart_join(walk(thing, indent)));
+  const ret = unescape(smart_join(walk(thing, indent + 1)));
 
   // if (ret === undefined)
   //   throw new Error("what");
