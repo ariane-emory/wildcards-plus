@@ -249,7 +249,7 @@ let save_post_requests_enable         = true;
 // =================================================================================================
 // find a better spot for this: 
 Array.prototype.toString = function() {
-  return this.length > 0 ? `[ ${this.join(", ")} ]` : '[]';
+  return this.length > 0 ? compress(`[ ${this.join(", ")} ]`) : '[]';
 }
 // =================================================================================================
 
@@ -866,7 +866,6 @@ class CuttingEnclosed extends Enclosed {
         `char ${index}` +
         `, found:\n` +
         `${abbreviate(input.substring(start_rule_result.index))}`);
-    
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -1519,6 +1518,10 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
+function compress(str) {
+  return str.replace(/\s+/g, ' ');
+}
+// -------------------------------------------------------------------------------------------------
 function abbreviate(s, len = 100) {
   return s.length < 100 ? s : `${s.substring(0, len).replace("\n","").trim()}...`;
 }
@@ -1817,7 +1820,7 @@ const reify_json_number = arr => {
   const exponent        = arr[3];
   const number          = multiplier * ((integer_part + fractional_part)**exponent);
 
-  console.log(`ARR: ${inspect_fun(arr)}`);
+  // console.log(`ARR: ${inspect_fun(arr)}`);
   return number;
   // return arr;
 };
@@ -7243,7 +7246,7 @@ class ASTUpdateConfigBinary extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     return `%${this.key} ${this.assign? '=' : '+='} ` +
-      `${this.value instanceof ASTNode ? this.value : inspect_fun(this.value)}`;
+      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
