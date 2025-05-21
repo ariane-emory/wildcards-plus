@@ -236,6 +236,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
+let log_structured_clone_enabled      = false;
 let log_smart_join_enabled            = false;
 let disable_prelude                   = false;
 let print_ast_before_includes_enabled = false;
@@ -2219,7 +2220,10 @@ var structured_clone_indent = 0;
 function structured_clone(thing) {
   //throw new Error(`CLONING ${JSON.stringify(thing)}`);
 
-  const log = msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`);
+  const log = log_structured_clone_enabled
+        ? msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`)
+        : msg => undefined;
+  
   const log_enter = ()  => {
     log(`CLONE ${JSON.stringify(thing)}`);
     structured_clone_indent += 1;
@@ -2883,7 +2887,7 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   }
 
   if (log_config_enabled)
-    console.log(`Munged munged_config is: ${inspect_fun(munged_config, null, 2)}`);
+    console.log(`Munged config is: ${inspect_fun(munged_config, null, 2)}`);
 
   return munged_config;
 }
@@ -3019,7 +3023,8 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    if (log_structured_clone_enabled)
+      console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
       flags:                        this.flags.map(arr => [...arr]),
@@ -3041,7 +3046,8 @@ class Context {
         this.config.loras === copy.config.loras)
       throw new Error("oh no");
 
-    console.log(`CLONED CONTEXT`);
+    if (log_structured_clone_enabled)
+      console.log(`CLONED CONTEXT`);
     
     return copy;
 
@@ -7613,7 +7619,8 @@ async function main() {
     
     const context       = base_context.clone();
 
-    console.log(`CONTEXT.CONFIG.LORAS.LENGTH = ${context.config?.loras?.length}`);
+    console.log(`BASE_CONTEXT.CONFIG.LORAS.LENGTH = ${base_context.config?.loras?.length}`);
+    console.log(`CONTEXT     .CONFIG.LORAS.LENGTH = ${context     .config?.loras?.length}`);
     
     const prompt        = expand_wildcards(AST, context);
     const munged_config = munge_config(context.config);
@@ -7626,7 +7633,10 @@ async function main() {
     
     console.log(`MUNGED_CONFIG.LORAS.LENGTH = ${munged_config?.loras?.length}`);
 
-    console.log(`MUNGING ADDDED ${(munged_config.loras.length??0) - (context.config.loras.length??0)} LORAS!`);
+    console.log(`MUNGING ADDDED ` +
+                `${munged_config .loras.length??0} - ` +
+                `${context.config.loras.length??0} = ` +
+                `${(munged_config.loras.length??0) - (context.config.loras.length??0)} LORAS!`);
     
     if (log_flags_enabled || log_config_enabled)
       console.log(`FLAGS AFTER: ${inspect_fun(context.flags)}`);
