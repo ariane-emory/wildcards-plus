@@ -24,7 +24,7 @@ let unnecessary_choice_is_error       = false;
 let print_ast_enabled                 = false;
 let print_ast_json_enabled            = false;
 let log_enabled                       = true;
-let log_config_enabled                = true;
+let log_configuration_enabled                = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
@@ -2234,7 +2234,7 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
 // -------------------------------------------------------------------------------------------------
 // function add_lora_to_context(lora, context, indent = 0) {
 //   const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
-//   const arr   = context.config.loras??[];
+//   const arr   = context.configuration.loras??[];
 //   const index = arr.findIndex(existing => existing.file === lora.file);
 
 //   if (index !== -1) {
@@ -2243,10 +2243,10 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
 
 //   arr.push(lora); // Add the new entry at the end
 
-//   if (arr !== context.config.loras)
+//   if (arr !== context.configuration.loras)
 //     throw new Error("add_lora_to_context: arr !== array");
 
-//   context.config.loras = arr;
+//   context.configuration.loras = arr;
 
 //   log(`ADDED ${inspect_fun(lora)} TO ${context}`);
 // }
@@ -2530,7 +2530,7 @@ const dt_samplers = [   // order is significant, do not rearrange!
 ];
 const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
 // -------------------------------------------------------------------------------------------------
-const config_key_names = [
+const configuration_key_names = [
   // [ dt_name, automatic1111_name ],
   // -----------------------------------------------------------------------------------------------
   // identical keys:
@@ -2639,7 +2639,7 @@ function get_other_name(return_key, find_key, find_value) {
   // -----------------------------------------------------------------------------------------------
   // is find_value a shorthand?
   // -----------------------------------------------------------------------------------------------
-  let got     = config_key_names.find(obj => 
+  let got     = configuration_key_names.find(obj => 
     obj?.shorthands?.includes(find_value_lc))
 
   if (got) {
@@ -2652,7 +2652,7 @@ function get_other_name(return_key, find_key, find_value) {
   // -----------------------------------------------------------------------------------------------
   // is it just miscapitalized?
   // -----------------------------------------------------------------------------------------------
-  got = config_key_names.find(obj => {
+  got = configuration_key_names.find(obj => {
     if (log_name_lookups_enabled)
       console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
                   `${inspect_fun(find_value_lc)} = ` +
@@ -2670,7 +2670,7 @@ function get_other_name(return_key, find_key, find_value) {
   // -----------------------------------------------------------------------------------------------
   // look up the alternate key:
   // -----------------------------------------------------------------------------------------------
-  got = config_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
+  got = configuration_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
 
   if (got) {
     if (log_name_lookups_enabled)
@@ -2708,65 +2708,65 @@ function get_our_name(name) {
   return res;
 }
 // -------------------------------------------------------------------------------------------------
-function munge_config(config, is_dt_hosted = dt_hosted) {
-  // console.log(`MUNGING (with ${config?.loras?.length} loras) ${inspect_fun(config)}`);
+function munge_configuration(configuration, is_dt_hosted = dt_hosted) {
+  // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
   
-  const munged_config = structured_clone(config);
+  const munged_configuration = structured_clone(configuration);
 
-  if (config.loras && munged_config.loras && config.loras === munged_config.loras)
-    throw new Exception("Oh no, config.loras === munged_config.loras!");
+  if (configuration.loras && munged_configuration.loras && configuration.loras === munged_configuration.loras)
+    throw new Exception("Oh no, configuration.loras === munged_configuration.loras!");
   
-  if (is_empty_object(munged_config))
-    return munged_config;
+  if (is_empty_object(munged_configuration))
+    return munged_configuration;
 
-  if (munged_config.model === '') {
-    console.log(`WARNING: munged_config.model is an empty string, deleting key! This probably isn't ` +
+  if (munged_configuration.model === '') {
+    console.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
                 `what you meant to do, your prompt template may contain an error!`);
-    delete munged_config.model;
+    delete munged_configuration.model;
   }
-  else if (munged_config.model) {
-    munged_config.model = munged_config.model.toLowerCase();
+  else if (munged_configuration.model) {
+    munged_configuration.model = munged_configuration.model.toLowerCase();
 
-    if (munged_config.model.endsWith('.ckpt')) {
+    if (munged_configuration.model.endsWith('.ckpt')) {
       // do nothing
     }
-    else if (munged_config.model.endsWith('_svd')) {
-      munged_config.model = `${munged_config.model}.ckpt`;
+    else if (munged_configuration.model.endsWith('_svd')) {
+      munged_configuration.model = `${munged_configuration.model}.ckpt`;
     }
-    else if (munged_config.model.endsWith('_q5p')) {
-      munged_config.model = `${munged_config.model}.ckpt`;
+    else if (munged_configuration.model.endsWith('_q5p')) {
+      munged_configuration.model = `${munged_configuration.model}.ckpt`;
     }
-    else if (munged_config.model.endsWith('_q8p')) {
-      munged_config.model = `${munged_config.model}.ckpt`;
+    else if (munged_configuration.model.endsWith('_q8p')) {
+      munged_configuration.model = `${munged_configuration.model}.ckpt`;
     }
-    else if (munged_config.model.endsWith('_f16')) {
-      munged_config.model = `${munged_config.model}.ckpt`;
+    else if (munged_configuration.model.endsWith('_f16')) {
+      munged_configuration.model = `${munged_configuration.model}.ckpt`;
     }
     else {
-      munged_config.model= `${munged_config.model}_f16.ckpt`;
+      munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
     }
   }
   
   // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-  if (munged_config.sampler && typeof munged_config.sampler === 'string') {
-    const lc = munged_config.sampler.toLowerCase();
+  if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
+    const lc = munged_configuration.sampler.toLowerCase();
     // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
     const got = dt_samplers_caps_correction.get(lc);
 
     if (got)
-      munged_config.sampler = got;
+      munged_configuration.sampler = got;
   }
   
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
-    if (munged_config.sampler !== undefined && typeof munged_config.sampler === 'string') {
-      console.log(`Correcting munged_config.sampler = ${inspect_fun(munged_config.sampler)} to ` +
-                  `munged_config.sampler = ${dt_samplers.indexOf(munged_config.sampler)}.`);
-      munged_config.sampler = dt_samplers.indexOf(munged_config.sampler);
+    if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
+      console.log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+                  `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
+      munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
     }
     const corrected = new Set();
     
-    // for (const [dt_name, automatic1111_name] of munged_config_key_names) {
-    //   if (munged_config[automatic1111_name] !== undefined) {
+    // for (const [dt_name, automatic1111_name] of munged_configuration_key_names) {
+    //   if (munged_configuration[automatic1111_name] !== undefined) {
     //     if (corrected.has(dt_name))
     //       continue;
     
@@ -2775,25 +2775,25 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     //     if (automatic1111_name === dt_name)
     //       continue;
     
-    //     console.log(`Correcting munged_config.${automatic1111_name} = ` +
-    //                 `${munged_config[automatic1111_name]} to ` +
-    //                 `munged_config.${dt_name} = ${munged_config[automatic1111_name]}.`);
-    //     munged_config[dt_name] = munged_config[automatic1111_name];
-    //     delete munged_config[automatic1111_name];
+    //     console.log(`Correcting munged_configuration.${automatic1111_name} = ` +
+    //                 `${munged_configuration[automatic1111_name]} to ` +
+    //                 `munged_configuration.${dt_name} = ${munged_configuration[automatic1111_name]}.`);
+    //     munged_configuration[dt_name] = munged_configuration[automatic1111_name];
+    //     delete munged_configuration[automatic1111_name];
     //   }
     // }
   }
   else { // running in Node.js, sampler needs to be a string:
-    if (munged_config.sampler !== undefined && typeof munged_config.sampler ===  'number') {
-      console.log(`Correcting munged_config.sampler = ${munged_config.sampler} to ` +
-                  `munged_config.sampler = ${inspect_fun(dt_samplers[munged_config.sampler])}.`);
-      munged_config.sampler = dt_samplers[munged_config.sampler];
+    if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
+      console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+                  `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
 
     // const corrected = new Set();
     
-    // for (const [dt_name, automatic1111_name] of munged_config_key_names) {      
-    //   if (munged_config[dt_name] !== undefined) {
+    // for (const [dt_name, automatic1111_name] of munged_configuration_key_names) {      
+    //   if (munged_configuration[dt_name] !== undefined) {
     //     if (corrected.has(dt_name))
     //       continue;
     
@@ -2802,34 +2802,34 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     //     if (automatic1111_name === dt_name)
     //       continue;
     
-    //     console.log(`Correcting munged_config.${dt_name} = ` +
-    //                 `${inspect_fun(munged_config[dt_name])} to ` +
-    //                 `munged_config.${automatic1111_name} = ${inspect_fun(munged_config[dt_name])}.`);
-    //     munged_config[automatic1111_name] = munged_config[dt_name];
-    //     delete munged_config[dt_name];
+    //     console.log(`Correcting munged_configuration.${dt_name} = ` +
+    //                 `${inspect_fun(munged_configuration[dt_name])} to ` +
+    //                 `munged_configuration.${automatic1111_name} = ${inspect_fun(munged_configuration[dt_name])}.`);
+    //     munged_configuration[automatic1111_name] = munged_configuration[dt_name];
+    //     delete munged_configuration[dt_name];
     //   }
     // }
   }
 
   // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if (! munged_config.seed) {
+  if (! munged_configuration.seed) {
     const n_iter_key = get_our_name('n_iter');
 
-    if (munged_config[n_iter_key] && (typeof munged_config[n_iter_key] === 'number') && munged_config[n_iter_key] > 1) {
-      if (log_config_enabled)
+    if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
+      if (log_configuration_enabled)
         console.log(`Fixing seed to -1 due to n_iter > 1.`);
 
-      munged_config.seed = -1;
+      munged_configuration.seed = -1;
     }
-    else if (typeof munged_config.seed !== 'number') {
-      munged_config.seed = Math.floor(Math.random() * (2 ** 32));
+    else if (typeof munged_configuration.seed !== 'number') {
+      munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
     }
   }
 
-  if (log_config_enabled)
-    console.log(`MUNGED CONFIG IS: ${inspect_fun(munged_config, null, 2)}`);
+  if (log_configuration_enabled)
+    console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
 
-  return munged_config;
+  return munged_configuration;
 }
 // =================================================================================================
 // END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
@@ -2853,7 +2853,7 @@ class Context {
     named_wildcards              = new Map(),
     noisy                        = false,
     files                        = [],
-    config                       = {},
+    configuration                = {},
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
@@ -2867,7 +2867,7 @@ class Context {
     this.named_wildcards              = named_wildcards;
     this.noisy                        = noisy;
     this.files                        = files;
-    this.config                       = config;
+    this.configuration                = configuration;
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
@@ -2880,17 +2880,17 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
     const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-    this.config.loras ||= [];
-    const index = this.config.loras.findIndex(existing => existing.file === lora.file);
+    this.configuration.loras ||= [];
+    const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
 
     if (index !== -1) {
       if (! replace) return;
-      this.config.splice(index, 1); // Remove the existing entry
+      this.configuration.splice(index, 1); // Remove the existing entry
     }
     
-    this.config.loras.push(lora);
+    this.configuration.loras.push(lora);
 
-    if (log_config_enabled)
+    if (log_configuration_enabled)
       log(`ADDED ${compress(inspect_fun(lora))} TO ${this}`);
   }
   // -------------------------------------------------------------------------------------------------
@@ -2991,14 +2991,12 @@ class Context {
       console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
-      flags:                        this.flags.map(arr => [...arr]),
-      scalar_variables:             new Map(this.scalar_variables),
-      named_wildcards:              new Map(this.named_wildcards),
+      flags:                        structured_clone(this.flags),
+      scalar_variables:             new Map(this.scalar_variables), // slightly shared
+      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
       noisy:                        this.noisy,
-      files:                        [ ...this.files ],
-      config:                       structured_clone(this.config, { unshare: true }),
-      // add_loras:                    [ ...this.add_loras
-      //                                 .map(o => ({ file: o.file, weigh: o.weight })) ],
+      files:                        structured_clone(this.files),
+      configuration:                structured_clone(this.configuration, { unshare: true }),
       top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
@@ -3006,8 +3004,8 @@ class Context {
       prior_pick_multiple_priority: this.pick_multiple_priority,
     });
 
-    if (this.config.loras && copy.config.loras &&
-        this.config.loras === copy.config.loras)
+    if (this.configuration.loras && copy.configuration.loras &&
+        this.configuration.loras === copy.configuration.loras)
       throw new Error("oh no");
 
     if (log_structured_clone_enabled)
@@ -3024,7 +3022,7 @@ class Context {
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
       files:                        this.files,
-      config:                       structured_clone(this.config),
+      configuration:                       structured_clone(this.configuration),
       // add_loras:                    this.add_loras,
       top_file:                     false, // deliberately not copied!
       pick_one_priority:            this.pick_one_priority,
@@ -3036,7 +3034,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `Context<#${this.context_id}, ${this.config?.loras?.length??0} loras>}`;
+    return `Context<#${this.context_id}, ${this.configuration?.loras?.length??0} loras>}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6575,22 +6573,22 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       return walk(pick, indent + 1);
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUpdateConfigUnary ||
-             thing instanceof ASTUpdateConfigBinary) {
+    else if (thing instanceof ASTUpdateConfigurationUnary ||
+             thing instanceof ASTUpdateConfigurationBinary) {
       let value = thing.value;
 
       if (value instanceof ASTNode) {
         const expanded_value = expand_wildcards(thing.value, context, indent + 1); // not walk!
-        const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
+        const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                               ? rJsoncObject
                                               : rJsonc).match(expanded_value);
 
-        if (thing instanceof ASTUpdateConfigBinary) {
+        if (thing instanceof ASTUpdateConfigurationBinary) {
           value = jsconc_parsed_expanded_value?.is_finished
             ? jsconc_parsed_expanded_value.value
             : expanded_value;
         }
-        else { // ASTUpdateConfigUnary
+        else { // ASTUpdateConfigurationUnary
           throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
                           `rJSONC object, rJsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_expanded_value));
@@ -6600,95 +6598,95 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
         value = structured_clone(value);
       }
 
-      if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
+      if (thing instanceof ASTUpdateConfigurationUnary) { // ASTUpdateConfigurationUnary
         let new_obj = value;
 
         for (const key of Object.keys(value)) {
           new_obj[get_our_name(key)??key] = value[key]
         }
         
-        context.config = thing.assign
+        context.configuration = thing.assign
           ? new_obj
-          : { ...context.config, ...new_obj };
+          : { ...context.configuration, ...new_obj };
 
-        log(log_config_enabled,
-            `config ${thing.assign ? '=' : '+='} ` +
+        log(log_configuration_enabled,
+            `configuration ${thing.assign ? '=' : '+='} ` +
             `${inspect_fun(new_obj, true)}, ` +
-            `config is now: ` +
-            `${inspect_fun(context.config, true)}`);
+            `configuration is now: ` +
+            `${inspect_fun(context.configuration, true)}`);
       }
-      else { // ASTUpdateConfigBinary
+      else { // ASTUpdateConfigurationBinary
         const our_name = get_our_name(thing.key); 
         
         if (thing.assign) {
-          context.config[our_name] = value;
+          context.configuration[our_name] = value;
         }
         else { // increment
           if (Array.isArray(value)) {
-            const tmp_arr = context.config[our_name]??[];
+            const tmp_arr = context.configuration[our_name]??[];
 
             if (! Array.isArray(tmp_arr))
               throw new Error(`can't add array ${inspect_fun(value)} ` +
                               `to non-array ${inspect_fun(tmp_arr)}`);
             
             const new_arr = [ ...tmp_arr, ...value ];
-            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
             //           `increment by array ${inspect_fun(value)}, ` +
             //           `total ${inspect_fun(new_arr)}`);
-            context.config[our_name] = new_arr;
+            context.configuration[our_name] = new_arr;
           }
           else if (typeof value === 'object') {
-            const tmp_obj = context.config[our_name]??{};
+            const tmp_obj = context.configuration[our_name]??{};
 
             if (typeof tmp_obj !== 'object')
               throw new Error(`can't add object ${inspect_fun(value)} `+
                               `to non-object ${inspect_fun(tmp_obj)}`);
 
             const new_obj = { ...tmp_obj, ...value };
-            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
             //           `increment by object ${inspect_fun(value)}, ` +
             //           `total ${inspect_fun(new_obj)}`);
-            context.config[our_name] = new_obj;
+            context.configuration[our_name] = new_obj;
           }
           else if (typeof value === 'number') {
-            const tmp_num = context.config[our_name]??0;
+            const tmp_num = context.configuration[our_name]??0;
             
             if (typeof tmp_num !== 'number')
               throw new Error(`can't add number ${inspect_fun(value)} `+
                               `to non-number ${inspect_fun(tmp_num)}`);
 
-            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
             //           `increment by number ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun((context.config[our_name]??0) + value)}`);
-            context.config[our_name] = tmp_num + value;
+            //           `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+            context.configuration[our_name] = tmp_num + value;
           }
           else if (typeof value === 'string') {
-            const tmp_str = context.config[our_name]??'';
+            const tmp_str = context.configuration[our_name]??'';
 
             if (typeof tmp_str !== 'string')
               throw new Error(`can't add string ${inspect_fun(value)} `+
                               `to non-string ${inspect_fun(tmp_str)}`);
 
-            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
             //           `increment by string ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun((context.config[our_name]??'') + value)}`);
-            context.config[our_name] = smart_join([tmp_str, value]);
+            //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+            context.configuration[our_name] = smart_join([tmp_str, value]);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
-            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
             //           `increment by unknown ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun(context.config[our_name]??null + value)}`);
-            context.config[our_name] = (context.config[our_name]??null) + value;
+            //           `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+            context.configuration[our_name] = (context.configuration[our_name]??null) + value;
           }
         }
 
-        log(log_config_enabled,
-            `config.${our_name} ` +
+        log(log_configuration_enabled,
+            `configuration.${our_name} ` +
             `${thing.assign ? '=' : '+='} ` +
             `${inspect_fun(value, true)}, ` +
-            `config is now: ` +
-            `${inspect_fun(context.config, true)}`);
+            `configuration is now: ` +
+            `${inspect_fun(context.configuration, true)}`);
       }
       
       return '';
@@ -6707,7 +6705,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const walked    = picker_priority[expand_wildcards(thing.limited_content,
                                                          context, indent + 1).toLowerCase()];
 
-      // if (log_config_enabled)
+      // if (log_configuration_enabled)
       //   log(`SET PICK DATA: ` +
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val,
@@ -6719,7 +6717,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       context[prior_key] = context[cur_key];
       context[cur_key]   = walked;
 
-      log(log_config_enabled,
+      log(log_configuration_enabled,
           `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
           `${inspect_fun(walked)}.`);
       
@@ -6737,14 +6735,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
 
-      // if (log_config_enabled)
+      // if (log_configuration_enabled)
       //   log(`REVERT PICK DATA: ` +
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val })}`);
       
       // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
       //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
-      log(log_config_enabled,
+      log(log_configuration_enabled,
           `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
           `${inspect_fun(prior_val)}.`);
       
@@ -6821,7 +6819,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ASTUpdateNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     // else if (thing instanceof ASTUpdateNegativePrompt) {
-    //   const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
+    //   const temporaryNode = new ASTUpdateConfigurationBinary("negative_prompt", thing.value, thing.assign);
     //   return expand_wildcards(temporaryNode, context, indent + 1);
     // }
     // ---------------------------------------------------------------------------------------------
@@ -7153,7 +7151,7 @@ class ASTInclude extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTUpdateConfigUnary extends ASTNode {
+class ASTUpdateConfigurationUnary extends ASTNode {
   constructor(value, assign) {
     super();
     this.value = value;
@@ -7161,7 +7159,7 @@ class ASTUpdateConfigUnary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTUpdateConfigBinary extends ASTNode {
+class ASTUpdateConfigurationBinary extends ASTNode {
   constructor(key, value, assign) {
     super();
     this.key    = key;
@@ -7419,14 +7417,14 @@ const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             'revert-multi-pick');
 const SpecialFunctionConfigurationUpdateBinary =
-      xform(arr => new ASTUpdateConfigBinary(arr[0], arr[1][1], arr[1][0] == '='),
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                          // [0]
                 wst_seq(DiscardedComments,                                        // -
                         choice(incr_assignment_operator, assignment_operator),    // [1][0]
                         DiscardedComments,                                        // -
                         choice(rJsonc, () => LimitedContent, plaintext))));       // [1][1]
 const SpecialFunctionConfigurationUpdateUnary =
-      xform(arr => new ASTUpdateConfigUnary(arr[1][1], arr[1][0] == '='),
+      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                    // [0]
                 wst_seq(DiscardedComments,                                        // -
                         choice(incr_assignment_operator, assignment_operator),    // [1][0]
@@ -7649,7 +7647,7 @@ console.log(`-------------------------------------------------------------------
 console.log(`${prompt_string}`);
 
 const base_context = load_prelude();
-base_context.config                 = pipeline.configuration;
+base_context.configuration                 = pipeline.configuration;
 base_context.pick_one_priority      = user_selected_pick_one_priority;
 base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 
@@ -7667,21 +7665,21 @@ for (let ix = 0; ix < batch_count; ix++) {
   
   const context          = base_context.clone();
   const prompt = expand_wildcards(AST, context);
-  context.config         = munge_config(context.config);
+  context.configuration         = munge_configuration(context.configuration);
 
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`GENERATED CONFIGURATION:`);
-  console.log(`${JSON.stringify(context.config, null, 2)}`);
+  console.log(`${JSON.stringify(context.configuration, null, 2)}`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`The expanded prompt is:`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`${prompt}`);
   
-  if (context.config.negativePrompt || context.config.negativePrompt === '') {
+  if (context.configuration.negativePrompt || context.configuration.negativePrompt === '') {
     console.log(`-----------------------------------------------------------------------------------------------------------------`);
     console.log(`Expanded negative prompt:`);
     console.log(`-----------------------------------------------------------------------------------------------------------------`);
-    console.log(context.config.negativePrompt);
+    console.log(context.configuration.negativePrompt);
   } else {
     console.log(`-----------------------------------------------------------------------------------------------------------------`);
     console.log(`No negative prompt/`);
@@ -7694,11 +7692,11 @@ for (let ix = 0; ix < batch_count; ix++) {
   // -----------------------------------------------------------------------------------------------
   canvas.clear();
 
-  const negative_prompt = context.config.negativePrompt;
-  delete context.config.negativePrompt;
+  const negative_prompt = context.configuration.negativePrompt;
+  delete context.configuration.negativePrompt;
   
   pipeline.run({
-    configuration: context.config,
+    configuration: context.configuration,
     prompt: prompt,
     negativePrompt: negative_prompt,
   });
