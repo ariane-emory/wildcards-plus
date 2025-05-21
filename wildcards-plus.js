@@ -10,43 +10,7 @@
 // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
 // ===============================================================================================
 {
-  // -----------------------------------------------------------------------------------------------
-  // DT's env doesn't seem to have structuredClone, so we'll define this early:
-  // -----------------------------------------------------------------------------------------------
-  function structured_clone(thing) {
-    if (thing === null || typeof thing !== "object") {
-      return thing;
-    }
-    else if (Array.isArray(thing)) {
-      return thing.map(structured_clone);
-    }
-    else if (thing instanceof Set) {
-      const result = new Set();
-      for (const value of thing.values()) {
-        result.add(structured_clone(value));
-      }
-      return result;
-    }
-    else if (thing instanceof Map) {
-      const result = new Map();
-      for (const [key, value] of thing.entries()) {
-        result.set(structured_clone(key), structured_clone(value));
-      }
-      return result;
-    }
-    else {
-      const copy = {};
-      for (const key in thing) {
-        if (Object.prototype.hasOwnProperty.call(thing, key)) {
-          copy[key] = structured_clone(thing[key]);
-        }
-      }
-      return copy;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
   inspect_fun = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
-  clone_fun   = structured_clone;
   dt_hosted   = true;
 }
 // -------------------------------------------------------------------------------------------------
@@ -67,12 +31,24 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
+let log_structured_clone_enabled      = false;
 let log_smart_join_enabled            = false;
+let log_expand_and_walk_enabled       = false;
 let disable_prelude                   = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
 // =================================================================================================
+
+
+
+// =================================================================================================
+// find a better spot for this: 
+Array.prototype.toString = function() {
+  return this.length > 0 ? compress(`[ ${this.join(", ")} ]`) : '[]';
+}
+// =================================================================================================
+
 
 
 // =================================================================================================
@@ -686,7 +662,6 @@ class CuttingEnclosed extends Enclosed {
         `char ${index}` +
         `, found:\n` +
         `${abbreviate(input.substring(start_rule_result.index))}`);
-    
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -1339,6 +1314,10 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
+function compress(str) {
+  return str.replace(/\s+/g, ' ');
+}
+// -------------------------------------------------------------------------------------------------
 function abbreviate(s, len = 100) {
   return s.length < 100 ? s : `${s.substring(0, len).replace("\n","").trim()}...`;
 }
@@ -1637,8 +1616,9 @@ const reify_json_number = arr => {
   const exponent        = arr[3];
   const number          = multiplier * ((integer_part + fractional_part)**exponent);
 
+  // console.log(`ARR: ${inspect_fun(arr)}`);
   return number;
-  return arr;
+  // return arr;
 };
 const json_number = xform(reify_json_number,
                           seq(optional(json_minus),
@@ -1647,7 +1627,7 @@ const json_number = xform(reify_json_number,
                                 // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
                                 return parseFloat(arr[0]);
                               }, optional(json_fractionalPart, 0.0)),
-                              xform(parseInt, optional(json_exponentPart, 1))));
+                              xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // -------------------------------------------------------------------------------------------------
@@ -1778,6 +1758,9 @@ class WeightedPicker {
   }
   // -----------------------------------------------------------------------------------------------
   add(weight, value) {
+    if (! value instanceof ASTAnonWildcardAlternative)
+      throw new Error(`bad value: ${inspect_fun(value)}`);
+    
     this.options.push({weight: weight, value: value });
   }
   // -----------------------------------------------------------------------------------------------
@@ -2043,6 +2026,125 @@ class WeightedPicker {
 //   return prefix_arr.every((val, idx) => val === full_arr[idx]);
 // }
 // -------------------------------------------------------------------------------------------------
+// DT's env doesn't seem to have structuredClone, so we'll define our own:
+// -------------------------------------------------------------------------------------------------
+// var structured_clone_indent = 0;
+
+// function structured_clone(thing) {
+//   //throw new Error(`CLONING ${JSON.stringify(thing)}`);
+
+//   const log = log_structured_clone_enabled
+//         ? msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`)
+//         : msg => undefined;
+
+//   const log_enter = ()  => {
+//     log(`CLONE ${JSON.stringify(thing)}`);
+//     structured_clone_indent += 1;
+//   }
+
+//   if (thing === null || typeof thing !== "object") {
+//     log(`COPIED ${JSON.stringify(thing)}`);
+//     return thing;
+//   }
+//   else if (Array.isArray(thing)) {
+//     log_enter();
+//     const cloned =  [ ...thing.map(structured_clone) ];
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+//   else if (thing instanceof Set) {
+//     log_enter();
+//     const cloned = new Set();
+//     for (const value of thing.values()) {
+//       cloned.add(structured_clone(value));
+//     }
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+//   else if (thing instanceof Map) {
+//     log_enter();
+//     const cloned = new Map();
+//     for (const [key, value] of thing.entries()) {
+//       cloned.set(structured_clone(key), structured_clone(value));
+//     }
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+//   else {
+//     log_enter();
+//     const cloned = {};
+//     for (const key in thing) {
+//       if (Object.prototype.hasOwnProperty.call(thing, key)) {
+//         cloned[structured_clone(key)] = structured_clone(thing[key]);
+//       }
+//     }
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+// }
+// -------------------------------------------------------------------------------------------------
+function structured_clone(value, seen = new WeakMap()) {
+  if (value === null || typeof value !== "object") {
+    return value;
+  }
+
+  if (seen.has(value)) {
+    throw new TypeError("Cannot clone cyclic structures");
+  }
+
+  // Handle arrays
+  if (Array.isArray(value)) {
+    const clone = [];
+    seen.set(value, clone);
+    for (const item of value) {
+      clone.push(structured_clone(item, seen));
+    }
+    return clone;
+  }
+
+  // Handle Set
+  if (value instanceof Set) {
+    const clone = new Set();
+    seen.set(value, clone);
+    for (const item of value) {
+      clone.add(structured_clone(item, seen));
+    }
+    return clone;
+  }
+
+  // Handle Map
+  if (value instanceof Map) {
+    const clone = new Map();
+    seen.set(value, clone);
+    for (const [k, v] of value.entries()) {
+      clone.set(structured_clone(k, seen), structured_clone(v, seen));
+    }
+    return clone;
+  }
+
+  // Handle Date
+  if (value instanceof Date) {
+    return new Date(value);
+  }
+
+  // Handle RegExp
+  if (value instanceof RegExp) {
+    return new RegExp(value);
+  }
+
+  // Handle plain objects
+  const clone = {};
+  seen.set(value, clone);
+  for (const key of Object.keys(value)) {
+    clone[key] = structured_clone(value[key], seen);
+  }
+  return clone;
+}
+// -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
@@ -2065,20 +2167,29 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
 //   return true;
 // }
 // -------------------------------------------------------------------------------------------------
-function is_flag_set(test_flag, set_flags) {
-  // GPT's idea, clearly inadequate.
-  return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
-}
+// function is_flag_set(test_flag, set_flags) {
+//   // GPT's idea, clearly inadequate.
+//   return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
+// }
 // -------------------------------------------------------------------------------------------------
-function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
-  console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
-  
-  const index = array.findIndex(existing => existing.file === lora.file);
-  if (index !== -1) {
-    array.splice(index, 1); // Remove the existing entry
-  }
-  array.push(lora); // Add the new entry at the end
-}
+// function add_lora_to_context(lora, context, indent = 0) {
+//   const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+//   const arr   = context.config.loras??[];
+//   const index = arr.findIndex(existing => existing.file === lora.file);
+
+//   if (index !== -1) {
+//     arr.splice(index, 1); // Remove the existing entry
+//   }
+
+//   arr.push(lora); // Add the new entry at the end
+
+//   if (arr !== context.config.loras)
+//     throw new Error("add_lora_to_context: arr !== array");
+
+//   context.config.loras = arr;
+
+//   log(`ADDED ${inspect_fun(lora)} TO ${context}`);
+// }
 // -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
@@ -2538,59 +2649,64 @@ function get_our_name(name) {
 }
 // -------------------------------------------------------------------------------------------------
 function munge_config(config, is_dt_hosted = dt_hosted) {
-  config = clone_fun(config);
+  // console.log(`MUNGING (with ${config?.loras?.length} loras) ${inspect_fun(config)}`);
+  
+  const munged_config = structured_clone(config);
 
-  if (is_empty_object(config))
-    return config;
+  if (config.loras && munged_config.loras && config.loras === munged_config.loras)
+    throw new Exception("Oh no, config.loras === munged_config.loras!");
+  
+  if (is_empty_object(munged_config))
+    return munged_config;
 
-  if (config.model === '') {
-    console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
+  if (munged_config.model === '') {
+    console.log(`WARNING: munged_config.model is an empty string, deleting key! This probably isn't ` +
                 `what you meant to do, your prompt template may contain an error!`);
-    delete config.model;
+    delete munged_config.model;
   }
-  else if (config.model) {
-    config.model = config.model.toLowerCase();
+  else if (munged_config.model) {
+    munged_config.model = munged_config.model.toLowerCase();
 
-    if (config.model.endsWith('.ckpt')) {
+    if (munged_config.model.endsWith('.ckpt')) {
       // do nothing
     }
-    else if (config.model.endsWith('_svd')) {
-      config.model = `${config.model}.ckpt`;
+    else if (munged_config.model.endsWith('_svd')) {
+      munged_config.model = `${munged_config.model}.ckpt`;
     }
-    else if (config.model.endsWith('_q5p')) {
-      config.model = `${config.model}.ckpt`;
+    else if (munged_config.model.endsWith('_q5p')) {
+      munged_config.model = `${munged_config.model}.ckpt`;
     }
-    else if (config.model.endsWith('_q8p')) {
-      config.model = `${config.model}.ckpt`;
+    else if (munged_config.model.endsWith('_q8p')) {
+      munged_config.model = `${munged_config.model}.ckpt`;
     }
-    else if (config.model.endsWith('_f16')) {
-      config.model = `${config.model}.ckpt`;
+    else if (munged_config.model.endsWith('_f16')) {
+      munged_config.model = `${munged_config.model}.ckpt`;
     }
     else {
-      config.model= `${config.model}_f16.ckpt`;
+      munged_config.model= `${munged_config.model}_f16.ckpt`;
     }
   }
   
   // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-  if (config.sampler && typeof config.sampler === 'string') {
-    const lc = config.sampler.toLowerCase();
+  if (munged_config.sampler && typeof munged_config.sampler === 'string') {
+    const lc = munged_config.sampler.toLowerCase();
     // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
     const got = dt_samplers_caps_correction.get(lc);
 
     if (got)
-      config.sampler = got;
+      munged_config.sampler = got;
   }
   
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
-    if (config.sampler !== undefined && typeof config.sampler === 'string') {
-      console.log(`Correcting config.sampler = ${inspect_fun(config.sampler)} to ` +
-                  `config.sampler = ${dt_samplers.indexOf(config.sampler)}.`);
-      config.sampler = dt_samplers.indexOf(config.sampler);
+    if (munged_config.sampler !== undefined && typeof munged_config.sampler === 'string') {
+      console.log(`Correcting munged_config.sampler = ${inspect_fun(munged_config.sampler)} to ` +
+                  `munged_config.sampler = ${dt_samplers.indexOf(munged_config.sampler)}.`);
+      munged_config.sampler = dt_samplers.indexOf(munged_config.sampler);
     }
     const corrected = new Set();
     
-    // for (const [dt_name, automatic1111_name] of config_key_names) {
-    //   if (config[automatic1111_name] !== undefined) {
+    // for (const [dt_name, automatic1111_name] of munged_config_key_names) {
+    //   if (munged_config[automatic1111_name] !== undefined) {
     //     if (corrected.has(dt_name))
     //       continue;
     
@@ -2599,25 +2715,25 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     //     if (automatic1111_name === dt_name)
     //       continue;
     
-    //     console.log(`Correcting config.${automatic1111_name} = ` +
-    //                 `${config[automatic1111_name]} to ` +
-    //                 `config.${dt_name} = ${config[automatic1111_name]}.`);
-    //     config[dt_name] = config[automatic1111_name];
-    //     delete config[automatic1111_name];
+    //     console.log(`Correcting munged_config.${automatic1111_name} = ` +
+    //                 `${munged_config[automatic1111_name]} to ` +
+    //                 `munged_config.${dt_name} = ${munged_config[automatic1111_name]}.`);
+    //     munged_config[dt_name] = munged_config[automatic1111_name];
+    //     delete munged_config[automatic1111_name];
     //   }
     // }
   }
   else { // running in Node.js, sampler needs to be a string:
-    if (config.sampler !== undefined && typeof config.sampler ===  'number') {
-      console.log(`Correcting config.sampler = ${config.sampler} to ` +
-                  `config.sampler = ${inspect_fun(dt_samplers[config.sampler])}.`);
-      config.sampler = dt_samplers[config.sampler];
+    if (munged_config.sampler !== undefined && typeof munged_config.sampler ===  'number') {
+      console.log(`Correcting munged_config.sampler = ${munged_config.sampler} to ` +
+                  `munged_config.sampler = ${inspect_fun(dt_samplers[munged_config.sampler])}.`);
+      munged_config.sampler = dt_samplers[munged_config.sampler];
     }
 
     // const corrected = new Set();
     
-    // for (const [dt_name, automatic1111_name] of config_key_names) {      
-    //   if (config[dt_name] !== undefined) {
+    // for (const [dt_name, automatic1111_name] of munged_config_key_names) {      
+    //   if (munged_config[dt_name] !== undefined) {
     //     if (corrected.has(dt_name))
     //       continue;
     
@@ -2626,34 +2742,34 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     //     if (automatic1111_name === dt_name)
     //       continue;
     
-    //     console.log(`Correcting config.${dt_name} = ` +
-    //                 `${inspect_fun(config[dt_name])} to ` +
-    //                 `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
-    //     config[automatic1111_name] = config[dt_name];
-    //     delete config[dt_name];
+    //     console.log(`Correcting munged_config.${dt_name} = ` +
+    //                 `${inspect_fun(munged_config[dt_name])} to ` +
+    //                 `munged_config.${automatic1111_name} = ${inspect_fun(munged_config[dt_name])}.`);
+    //     munged_config[automatic1111_name] = munged_config[dt_name];
+    //     delete munged_config[dt_name];
     //   }
     // }
   }
 
   // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if (! config.seed) {
+  if (! munged_config.seed) {
     const n_iter_key = get_our_name('n_iter');
 
-    if (config[n_iter_key] && (typeof config[n_iter_key] === 'number') && config[n_iter_key] > 1) {
+    if (munged_config[n_iter_key] && (typeof munged_config[n_iter_key] === 'number') && munged_config[n_iter_key] > 1) {
       if (log_config_enabled)
         console.log(`Fixing seed to -1 due to n_iter > 1.`);
 
-      config.seed = -1;
+      munged_config.seed = -1;
     }
-    else if (typeof config.seed !== 'number') {
-      config.seed = Math.floor(Math.random() * (2 ** 32));
+    else if (typeof munged_config.seed !== 'number') {
+      munged_config.seed = Math.floor(Math.random() * (2 ** 32));
     }
   }
 
-  //if (log_config_enabled)
-  console.log(`Munged config is: ${inspect_fun(config, null, 2)}`);
+  if (log_config_enabled)
+    console.log(`MUNGED CONFIG IS: ${inspect_fun(munged_config, null, 2)}`);
 
-  return config;
+  return munged_config;
 }
 // =================================================================================================
 // END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
@@ -2663,6 +2779,13 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 // =================================================================================================
 // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
 // =================================================================================================
+var last_context_id = 0;
+// -------------------------------------------------------------------------------------------------
+function get_next_context_id() {
+  last_context_id += 1;
+  return last_context_id;
+}
+// -------------------------------------------------------------------------------------------------
 class Context {
   constructor({ 
     flags                        = [], 
@@ -2671,7 +2794,6 @@ class Context {
     noisy                        = false,
     files                        = [],
     config                       = {},
-    //add_loras                    = [],
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
@@ -2679,13 +2801,13 @@ class Context {
     prior_pick_multiple_priority = pick_multiple_priority,
     negative_prompt              = null,
   } = {}) {
+    this.context_id                   = get_next_context_id();
     this.flags                        = flags;
     this.scalar_variables             = scalar_variables;
     this.named_wildcards              = named_wildcards;
     this.noisy                        = noisy;
     this.files                        = files;
     this.config                       = config;
-    //this.add_loras                    = add_loras;
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
@@ -2696,6 +2818,20 @@ class Context {
       this.set_flag(["dt_hosted"]);
   }
   // -----------------------------------------------------------------------------------------------
+  add_lora_uniquely(lora, indent = 0) {
+    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    this.config.loras ||= [];
+    const index = this.config.loras.findIndex(existing => existing.file === lora.file);
+
+    if (index !== -1) 
+      this.config.splice(index, 1); // Remove the existing entry
+
+    this.config.loras.push(lora);
+
+    if (log_config_enabled)
+      log(`ADDED ${compress(inspect_fun(lora))} TO ${this}`);
+  }
+  // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
     // if (! Array.isArray(test_flag))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
@@ -2789,13 +2925,16 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    return new Context({
+    if (log_structured_clone_enabled)
+      console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    
+    const copy = new Context({
       flags:                        this.flags.map(arr => [...arr]),
       scalar_variables:             new Map(this.scalar_variables),
       named_wildcards:              new Map(this.named_wildcards),
       noisy:                        this.noisy,
       files:                        [ ...this.files ],
-      config:                       { ...this.config }, /// ???
+      config:                       structured_clone(this.config),
       // add_loras:                    [ ...this.add_loras
       //                                 .map(o => ({ file: o.file, weigh: o.weight })) ],
       top_file:                     this.top_file,
@@ -2804,6 +2943,16 @@ class Context {
       pick_multiple_priority:       this.pick_multiple_priority,      
       prior_pick_multiple_priority: this.pick_multiple_priority,
     });
+
+    if (this.config.loras && copy.config.loras &&
+        this.config.loras === copy.config.loras)
+      throw new Error("oh no");
+
+    if (log_structured_clone_enabled)
+      console.log(`CLONED CONTEXT`);
+    
+    return copy;
+
   }
   // -----------------------------------------------------------------------------------------------
   shallow_copy() {
@@ -2813,7 +2962,7 @@ class Context {
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
       files:                        this.files,
-      config:                       this.config,
+      config:                       structured_clone(this.config),
       // add_loras:                    this.add_loras,
       top_file:                     false, // deliberately not copied!
       pick_one_priority:            this.pick_one_priority,
@@ -2822,6 +2971,10 @@ class Context {
       prior_pick_multiple_priority: this.pick_multiple_priority,      
       negative_prompt:              this.negative_prompt,
     });
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `Context<#${this.context_id}, ${this.config?.loras?.length??0} loras>}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6138,7 +6291,7 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
-function expand_wildcards(thing, context = new Context()) {
+function expand_wildcards(thing, context = new Context(), indent = 0) {
   // ---------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
@@ -6169,7 +6322,21 @@ function expand_wildcards(thing, context = new Context()) {
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
-  function walk(thing) {
+  const log = (guard_bool, msg) => { 
+    if (! msg) throw new Error("bomb 1");
+    if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+  };
+  // -----------------------------------------------------------------------------------------------
+  function walk(thing, indent = 0) {
+    const log = (guard_bool, msg) => {
+      if (! msg) throw new Error("bomb 2");
+      if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    };
+    
+    log(log_expand_and_walk_enabled,
+        `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ${thing}` +
+        ` @ ${indent} in ${context}` );
+    
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
     // ---------------------------------------------------------------------------------------------
@@ -6179,25 +6346,16 @@ function expand_wildcards(thing, context = new Context()) {
     else if (Array.isArray(thing)) {
       const ret = [];
 
-      for (const t of thing) {
-        if (context.noisy)
-          console.log(`WALKING ` +
-                      typeof t === 'object'
-                      ? inspect_fun(t)
-                      : `${typeof t} '${t}'`);
-        
-        ret.push(walk(t));
-      }
+      for (const t of thing) 
+        ret.push(walk(t, indent + 1));
 
-      // console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
-      
       return ret;
     }
     // ---------------------------------------------------------------------------------------------
     // flags:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSetFlag) {
-      // console.log(`SET FLAG '${thing.name}'.`);
+      // log(`SET FLAG '${thing.name}'.`);
       
       context.set_flag(thing.flag);
 
@@ -6205,8 +6363,8 @@ function expand_wildcards(thing, context = new Context()) {
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUnsetFlag) {
-      if (log_flags_enabled)
-        console.log(`UNSETTING FLAG '${thing.flag}'.`);
+      log(log_flags_enabled,
+          `UNSETTING FLAG '${thing.flag}'.`);
 
       context.unset_flag(thing.flag);
       
@@ -6225,7 +6383,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(expand_wildcards(got, context)); // not walk!
+          res.push(expand_wildcards(got, context, indent + 1)); // not walk!
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
@@ -6236,7 +6394,7 @@ function expand_wildcards(thing, context = new Context()) {
                                allow_fun, forbid_fun,
                                priority);
         
-        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context))); // not walk!
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context, indent + 1))); // not walk!
       }
       
       res = res.filter(s => s !== '');
@@ -6271,16 +6429,16 @@ function expand_wildcards(thing, context = new Context()) {
         return `<ERROR: Named wildcard ${thing.name} not found!>`;
 
       if (got instanceof ASTLatchedNamedWildcardedValue) {
-        if (context.noisy)
-          console.log(`NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
+        log(context.noisy,
+            `NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
 
         return '';
       }
 
-      const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got, indent + 1), got);
 
-      if (context.noisy)
-        console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+      log(context.noisy,
+          `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
       
       context.named_wildcards.set(thing.name, latched);
 
@@ -6298,15 +6456,15 @@ function expand_wildcards(thing, context = new Context()) {
 
       context.named_wildcards.set(thing.name, got.original_value);
 
-      if (context.noisy)
-        console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+      log(context.noisy,
+          `UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
 
       return ''; // produce no text.
     } 
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination))
-        console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
+        log(true, `WARNING: redefining named wildcard '${thing.destination.name}'.`);
 
       context.named_wildcards.set(thing.destination, thing.wildcard);
 
@@ -6322,13 +6480,12 @@ function expand_wildcards(thing, context = new Context()) {
     // scalar assignment:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateScalar) {
-      if (context.noisy) {
-        console.log();
-        console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
-                    `TO '${thing.destination.name}'`);
-      }
-
-      let   new_val  = walk(thing.source);
+      log(context.noisy, '');
+      log(context.noisy,
+          `ASSIGNING ${inspect_fun(thing.source)} ` +
+          `TO '${thing.destination.name}'`);
+      
+      let   new_val = walk(thing.source, indent + 1);
       const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
       if (! thing.assign)
@@ -6336,10 +6493,10 @@ function expand_wildcards(thing, context = new Context()) {
       
       context.scalar_variables.set(thing.destination.name, new_val);
 
-      if (context.noisy) {
-        console.log(`ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
-        console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
-      }
+      log(context.noisy,
+          `ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
+      log(context.noisy,
+          `VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
       
       return '';
     }
@@ -6353,17 +6510,15 @@ function expand_wildcards(thing, context = new Context()) {
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
       
-      return walk(pick);
+      return walk(pick, indent + 1);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateConfigUnary ||
              thing instanceof ASTUpdateConfigBinary) {
-      // console.log(`WALK ${inspect_fun(thing)}`);
-
       let value = thing.value;
 
       if (value instanceof ASTNode) {
-        const expanded_value = expand_wildcards(thing.value, context); // not walk!
+        const expanded_value = expand_wildcards(thing.value, context, indent + 1); // not walk!
         const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
                                               ? rJsoncObject
                                               : rJsonc).match(expanded_value);
@@ -6379,6 +6534,9 @@ function expand_wildcards(thing, context = new Context()) {
                           inspect_fun(jsconc_parsed_expanded_value));
         }
       }
+      else {
+        value = structured_clone(value);
+      }
 
       if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
         let new_obj = value;
@@ -6391,11 +6549,11 @@ function expand_wildcards(thing, context = new Context()) {
           ? new_obj
           : { ...context.config, ...new_obj };
 
-        if (log_config_enabled)
-          console.log(`config ${thing.assign ? '=' : '+='} ` +
-                      `${inspect_fun(new_obj, true)}, ` +
-                      `config is now: ` +
-                      `${inspect_fun(context.config, true)}`);
+        log(log_config_enabled,
+            `config ${thing.assign ? '=' : '+='} ` +
+            `${inspect_fun(new_obj, true)}, ` +
+            `config is now: ` +
+            `${inspect_fun(context.config, true)}`);
       }
       else { // ASTUpdateConfigBinary
         const our_name = get_our_name(thing.key); 
@@ -6412,9 +6570,9 @@ function expand_wildcards(thing, context = new Context()) {
                               `to non-array ${inspect_fun(tmp_arr)}`);
             
             const new_arr = [ ...tmp_arr, ...value ];
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by array ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(new_arr)}`);
+            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            //           `increment by array ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun(new_arr)}`);
             context.config[our_name] = new_arr;
           }
           else if (typeof value === 'object') {
@@ -6425,9 +6583,9 @@ function expand_wildcards(thing, context = new Context()) {
                               `to non-object ${inspect_fun(tmp_obj)}`);
 
             const new_obj = { ...tmp_obj, ...value };
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by object ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(new_obj)}`);
+            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            //           `increment by object ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun(new_obj)}`);
             context.config[our_name] = new_obj;
           }
           else if (typeof value === 'number') {
@@ -6437,9 +6595,9 @@ function expand_wildcards(thing, context = new Context()) {
               throw new Error(`can't add number ${inspect_fun(value)} `+
                               `to non-number ${inspect_fun(tmp_num)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by number ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[our_name]??0) + value)}`);
+            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            //           `increment by number ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun((context.config[our_name]??0) + value)}`);
             context.config[our_name] = tmp_num + value;
           }
           else if (typeof value === 'string') {
@@ -6449,27 +6607,26 @@ function expand_wildcards(thing, context = new Context()) {
               throw new Error(`can't add string ${inspect_fun(value)} `+
                               `to non-string ${inspect_fun(tmp_str)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by string ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[our_name]??'') + value)}`);
+            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            //           `increment by string ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun((context.config[our_name]??'') + value)}`);
             context.config[our_name] = smart_join([tmp_str, value]);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by unknown ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(context.config[our_name]??null + value)}`);
+            // log(true, `current value ${inspect_fun(context.config[our_name])}, ` +
+            //           `increment by unknown ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun(context.config[our_name]??null + value)}`);
             context.config[our_name] = (context.config[our_name]??null) + value;
           }
         }
 
-        if (log_config_enabled)
-          console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
+        log(log_config_enabled,
             `config.${our_name} ` +
-              `${thing.assign ? '=' : '+='} ` +
-              `${inspect_fun(value, true)}, ` +
-              `config is now: ` +
-              `${inspect_fun(context.config, true)}`);
+            `${thing.assign ? '=' : '+='} ` +
+            `${inspect_fun(value, true)}, ` +
+            `config is now: ` +
+            `${inspect_fun(context.config, true)}`);
       }
       
       return '';
@@ -6486,10 +6643,10 @@ function expand_wildcards(thing, context = new Context()) {
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
       const walked    = picker_priority[expand_wildcards(thing.limited_content,
-                                                         context).toLowerCase()];
+                                                         context, indent + 1).toLowerCase()];
 
       // if (log_config_enabled)
-      //   console.log(`SET PICK DATA: ` +
+      //   log(`SET PICK DATA: ` +
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val,
       //                               walked: walked})}`);
@@ -6500,13 +6657,9 @@ function expand_wildcards(thing, context = new Context()) {
       context[prior_key] = context[cur_key];
       context[cur_key]   = walked;
 
-      if (log_config_enabled)
-        // console.log(
-        //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-        // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
-        console.log(
+      log(log_config_enabled,
           `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(walked)}.`);
+          `${inspect_fun(walked)}.`);
       
       return '';
     }
@@ -6523,15 +6676,15 @@ function expand_wildcards(thing, context = new Context()) {
       const prior_val = context[prior_key];
 
       // if (log_config_enabled)
-      //   console.log(`REVERT PICK DATA: ` +
+      //   log(`REVERT PICK DATA: ` +
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val })}`);
       
-      if (log_config_enabled)
-        // console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
-        console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                    `${inspect_fun(prior_val)}.`);
+      // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+      //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
+      log(log_config_enabled,
+          `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+          `${inspect_fun(prior_val)}.`);
       
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
@@ -6542,11 +6695,12 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      log(log_expand_and_walk_enabled,
+          `ENCOUNTERED LORA ${thing} IN ${context}`);
       
-      let walked_file = expand_wildcards(thing.file, context); // not walk!
+      let walked_file = expand_wildcards(thing.file, context, indent + 1); // not walk!
 
-      // console.log(`walked_file is ${typeof walked_file} ` +
+      // log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
       //             `${inspect_fun(walked_file)} ` +
       //             `${Array.isArray(walked_file)}`);
@@ -6554,16 +6708,22 @@ function expand_wildcards(thing, context = new Context()) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = expand_wildcards(thing.weight, context); // not walk!
-
-      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      // if (Array.isArray(thing.weight))
+      //   throw new Error("boom");
+      
+      let walked_weight = expand_wildcards(thing.weight, context, indent + 1); // not walk!
+      
+      // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
+      //   throw "bomb";
+      
+      // log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
       //             `${inspect_fun(walked_weight)} ` +
       //             `${Array.isArray(walked_weight)}`);
       
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
-      
+
       const weight_match_result = json_number.match(walked_weight);
 
       if (!weight_match_result || !weight_match_result.is_finished)
@@ -6590,12 +6750,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
 
       const weight = weight_match_result.value;
-
-      context.config.loras ||= [];
-
-      add_lora_to_array({ file: file, weight: weight },
-                        context.config.loras,
-                        "context.config.loras");
+      
+      context.add_lora_uniquely({ file: file, weight: weight }, indent);
       
       return '';
     }
@@ -6604,7 +6760,7 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     // else if (thing instanceof ASTUpdateNegativePrompt) {
     //   const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
-    //   return expand_wildcards(temporaryNode, context);
+    //   return expand_wildcards(temporaryNode, context, indent + 1);
     // }
     // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
@@ -6618,9 +6774,16 @@ function expand_wildcards(thing, context = new Context()) {
                       inspect_fun(thing));
     }
   }
-  
-  const ret = unescape(smart_join(walk(thing)));
 
+  log(log_expand_and_walk_enabled,
+      `Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} ` +
+      `@ ${indent} in ${context}`);
+  
+  const ret = unescape(smart_join(walk(thing, indent + 1)));
+
+  log(log_expand_and_walk_enabled,
+      `Expanded into ${inspect_fun(ret)}`);
+  
   // if (ret === undefined)
   //   throw new Error("what");
   
@@ -6652,6 +6815,10 @@ class ASTSetFlag extends ASTNode {
     // if (this.flag === undefined)
     //   throw new Error("stop after constructing ASTSetFlag");
   }
+  // --------------------------------------------------------------------------------------------------
+  toString() {
+    return `#${this.flag.join('.')}`;
+  }
 }
 // --------------------------------------------------------------------------------------------------
 class ASTUnsetFlag extends ASTNode {
@@ -6662,6 +6829,10 @@ class ASTUnsetFlag extends ASTNode {
 
     super();
     this.flag = flag_arr;
+  }
+  // --------------------------------------------------------------------------------------------------
+  toString() {
+    return `#!${this.flag.join('.')}`;
   }
 }
 // --------------------------------------------------------------------------------------------------
@@ -6679,6 +6850,20 @@ class ASTCheckFlags extends ASTNode {
 
     if (log_flags_enabled)
       console.log(`constructed ${inspect_fun(this)}`)
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    let str = '?';
+
+    const flag_strs = [];
+    
+    for (const flag of this.flags)
+      flag_strs.push(flag.join('.'));
+
+    str += flag_strs.join(',');
+
+    return str;
+    // return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6703,6 +6888,22 @@ class ASTNotFlag extends ASTNode  {
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
+  // -------------------------------------------------------------------------------------------------
+  toString() {
+    let str = `!`;
+
+    if (this.set_immediately)
+      str += '#';
+
+    str += this.flag.join('.');
+
+    if (this.consequently_set_flag_tail) {
+      str += '#';
+      str += this.consequently_set_flag_tail.join('.');
+    }
+
+    return str;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // NamedWildcard references:
@@ -6717,6 +6918,26 @@ class ASTNamedWildcardReference extends ASTNode {
     this.capitalize = capitalize;
     // console.log(`BUILT ${inspect_fun(this)}`);
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    var str = '@';
+
+    if (this.capitalize)
+      str += this.capitalize;
+
+    if (this.min_count != 1  || this.max_count != 1) {
+      if (this.min_count !== this.max_count)
+        str += `${this.min_count}-${this.max_count}`;
+      else
+        str += `${this.max_count}`;
+
+      str += this.joiner;
+    }
+
+    str += this.name;
+    
+    return str;
+  };
 }
 // -------------------------------------------------------------------------------------------------
 // Scalar references:
@@ -6749,6 +6970,11 @@ class ASTLora extends ASTNode {
     this.weight = weight;
     // console.log(`Constructed LoRa ${this}!`);
   }
+  // -----------------------------------------------------------------------------------------------
+  toString(with_types = false ) {
+    return `<lora:${with_types ? `${this.file.constructor.name} ` : ``}${this.file}: ` +
+      `${with_types ? `${this.weight.constructor.name} ` : ``}${this.weight}>`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Latch a NamedWildcard:
@@ -6777,6 +7003,10 @@ class ASTNamedWildcardDefinition extends ASTNode {
     this.destination = destination;
     this.wildcard    = wildcard;
   }
+  // -------------------------------------------------------------------------------------------------
+  toString() {
+    return `@${this.destination} = ${this.wildcard}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Internal usage.. might not /really/ be part of the AST per se?
@@ -6800,6 +7030,12 @@ class ASTAnonWildcard  extends ASTNode {
     // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
+    // return `{ ${this.picker.options.map(x => `${x.value.constructor.name} ${x.value}`  ).join(" | ")} }`;
+    // return `{ ${this.picker.options.map(x => `${typeof x === 'object' ? x.constructor.name : typeof x} ${x.value.toString()}`).join(" | ")} }`;
+  }
+  // -----------------------------------------------------------------------------------------------
   pick(...args) {
     return this.picker.pick(...args);
   }
@@ -6816,6 +7052,32 @@ class ASTAnonWildcardAlternative extends ASTNode {
     this.check_flags = check_flags;
     this.not_flags   = not_flags;
     this.body        = body;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    var str = '';
+
+    if (this.weight !== 1)
+      str += `${this.weight} `;
+
+    var bits = [];
+
+    for (const check of this.check_flags)
+      bits.push(check.toString());
+    
+    for (const not of this.not_flags)
+      bits.push(not.toString());
+    
+    for (const thing of this.body) {
+      // console.log(`push bit ${thing.toString()} (${thing.toString().length})`)
+      bits.push(thing.toString());
+    }
+
+    str += bits.join(' ');
+
+    // console.log(`BITS: ${inspect_fun(bits)}`);
+    
+    return str;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6843,6 +7105,11 @@ class ASTUpdateConfigBinary extends ASTNode {
     this.key    = key;
     this.value  = value;
     this.assign = assign;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%${this.key} ${this.assign? '=' : '+='} ` +
+      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7241,7 +7508,7 @@ Prompt.finalize();
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 // v DT's env doesn't seem to have structuredClone :(
-const pipeline_configuration      = clone_fun(pipeline.configuration);
+const pipeline_configuration      = structured_clone(pipeline.configuration);
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "";
 let   prompt_string               = ui_prompt;
@@ -7345,7 +7612,7 @@ for (let ix = 0; ix < batch_count; ix++) {
 
   munged_config.loras = combined_loras;
   
-  const generated_configuration = { ...clone_fun(pipeline_configuration),
+  const generated_configuration = { ...structured_clone(pipeline_configuration),
                                     // seed: -1, // maybe not here?
                                     ...munged_config };
   

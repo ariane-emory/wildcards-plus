@@ -3023,7 +3023,7 @@ class Context {
       this.set_flag(["dt_hosted"]);
   }
   // -----------------------------------------------------------------------------------------------
-  add_lora_uniquely(lora, indent = 0) {
+  add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
     const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     this.config.loras ||= [];
     const index = this.config.loras.findIndex(existing => existing.file === lora.file);
@@ -6956,7 +6956,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
       const weight = weight_match_result.value;
       
-      context.add_lora_uniquely({ file: file, weight: weight }, indent);
+      context.add_lora_uniquely({ file: file, weight: weight }, { indent: indent });
       
       return '';
     }
