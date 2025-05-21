@@ -2223,63 +2223,141 @@ class WeightedPicker {
 // =================================================================================================
 // DT's env doesn't seem to have structuredClone, so we'll define our own:
 // -------------------------------------------------------------------------------------------------
-let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =>  {
+// let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =>  {
+//   if (value === null || typeof value !== "object") {
+//     return value;
+//   }
+
+//   if (!unshare) {
+//     if (seen.has(value)) {
+//       return seen.get(value); // Reuse existing clone
+//     }
+//   }
+
+//   // Handle Array
+//   if (Array.isArray(value)) {
+//     const clone = [];
+//     if (!unshare) seen.set(value, clone);
+//     for (const item of value) {
+//       clone.push(structured_clone(item, { seen, unshare }));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Set
+//   if (value instanceof Set) {
+//     const clone = new Set();
+//     if (!unshare) seen.set(value, clone);
+//     for (const item of value) {
+//       clone.add(structured_clone(item, { seen, unshare }));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Map
+//   if (value instanceof Map) {
+//     const clone = new Map();
+//     if (!unshare) seen.set(value, clone);
+//     for (const [k, v] of value.entries()) {
+//       clone.set(structured_clone(k, { seen, unshare }),
+//                 structured_clone(v, { seen, unshare }));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Date
+//   if (value instanceof Date) {
+//     return new Date(value);
+//   }
+
+//   // Handle RegExp
+//   if (value instanceof RegExp) {
+//     return new RegExp(value);
+//   }
+
+//   // Handle plain Object
+//   const clone = {};
+//   if (!unshare) seen.set(value, clone);
+//   for (const key of Object.keys(value)) {
+//     clone[key] = structured_clone(value[key], { seen, unshare });
+//   }
+//   return clone;
+// }
+const structured_clone = (value, options = {})  => {
+  const { seen = undefined, unshare = false } = options;
+
   if (value === null || typeof value !== "object") {
     return value;
   }
 
-  if (!unshare) {
-    if (seen.has(value)) {
-      return seen.get(value); // Reuse existing clone
+  // Initialize correct tracking object
+  let localSeen = seen;
+  if (!localSeen) {
+    localSeen = unshare ? new WeakSet() : new WeakMap();
+  }
+
+  // Cycle detection / shared reference reuse
+  if (unshare) {
+    if (localSeen.has(value)) {
+      throw new TypeError("Cannot clone cyclic structure");
+    }
+    localSeen.add(value);
+  } else {
+    if (localSeen.has(value)) {
+      return localSeen.get(value); // Reuse shared clone
     }
   }
 
-  // Handle Array
+  let clone;
+
+  // Array
   if (Array.isArray(value)) {
-    const clone = [];
-    if (!unshare) seen.set(value, clone);
+    clone = [];
+    if (!unshare) localSeen.set(value, clone);
     for (const item of value) {
-      clone.push(structured_clone(item, { seen, unshare }));
+      clone.push(structured_clone(item, { seen: localSeen, unshare }));
     }
     return clone;
   }
 
-  // Handle Set
+  // Set
   if (value instanceof Set) {
-    const clone = new Set();
-    if (!unshare) seen.set(value, clone);
+    clone = new Set();
+    if (!unshare) localSeen.set(value, clone);
     for (const item of value) {
-      clone.add(structured_clone(item, { seen, unshare }));
+      clone.add(structured_clone(item, { seen: localSeen, unshare }));
     }
     return clone;
   }
 
-  // Handle Map
+  // Map
   if (value instanceof Map) {
-    const clone = new Map();
-    if (!unshare) seen.set(value, clone);
+    clone = new Map();
+    if (!unshare) localSeen.set(value, clone);
     for (const [k, v] of value.entries()) {
-      clone.set(structured_clone(k, { seen, unshare }),
-                structured_clone(v, { seen, unshare }));
+      clone.set(
+        structured_clone(k, { seen: localSeen, unshare }),
+        structured_clone(v, { seen: localSeen, unshare })
+      );
     }
     return clone;
   }
 
-  // Handle Date
+  // Date
   if (value instanceof Date) {
     return new Date(value);
   }
 
-  // Handle RegExp
+  // RegExp
   if (value instanceof RegExp) {
     return new RegExp(value);
   }
 
-  // Handle plain Object
-  const clone = {};
-  if (!unshare) seen.set(value, clone);
+  // Plain object
+  clone = {};
+  if (!unshare) localSeen.set(value, clone);
   for (const key of Object.keys(value)) {
-    clone[key] = structured_clone(value[key], { seen, unshare });
+    clone[key] = structured_clone(value[key], { seen: localSeen, unshare });
   }
   return clone;
 }
