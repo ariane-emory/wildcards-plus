@@ -2367,9 +2367,15 @@ try {
   console.log(`#3 failed as intended.`);
 }
 
-obj = {};
-obj.self = obj; // Create a cycle
-structured_clone(obj, { unshare: true }); // Should fail immediately but recurses infinitely and blows th call stack instead
+try {
+  obj = {};
+  obj.self = obj; // Create a cycle
+  structured_clone(obj, { unshare: true }); // Should fail immediately but recurses infinitely and blows th call stack instead
+
+  throw new Error(`#4 should have failed.`);
+} catch {
+  console.log(`#4 failed as intended.`);
+}
 
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
@@ -2424,397 +2430,397 @@ function choose_indefinite_article(word) {
     /^e[uw]/,          // eulogy, Europe
     /^onc?e\b/,        // once
     /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
-    /^u[bcfhjkqrstn]/, // unicorn, useful, usual
-    /^uk/,             // UK (spoken "you-kay")
-    /^ur[aeiou]/,      // uranium
-  ];
+      /^u[bcfhjkqrstn]/, // unicorn, useful, usual
+      /^uk/,             // UK (spoken "you-kay")
+      /^ur[aeiou]/,      // uranium
+    ];
 
-  const silentHWords = [
-    'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
-  ];
+    const silentHWords = [
+      'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
+    ];
 
-  const acronymStartsWithVowelSound = /^[aeiou]/i;
-  const consonantYooSound = /^u[bcfhjkqrstn]/i;
+    const acronymStartsWithVowelSound = /^[aeiou]/i;
+    const consonantYooSound = /^u[bcfhjkqrstn]/i;
 
-  if (silentHWords.includes(lower))
-    return 'an';
+    if (silentHWords.includes(lower))
+      return 'an';
 
-  if (vowelSoundExceptions.some(re => re.test(lower)))
+    if (vowelSoundExceptions.some(re => re.test(lower)))
+      return 'a';
+
+    // Words beginning with vowel letters
+    if ('aeiou'.includes(lower[0]))
+      return 'an';
+
     return 'a';
-
-  // Words beginning with vowel letters
-  if ('aeiou'.includes(lower[0]))
-    return 'an';
-
-  return 'a';
-}
-// -------------------------------------------------------------------------------------------------
-function unescape(str) {
-  if (typeof str !== 'string')
-    return str;
-  
-  return str
-    .replace(/\\n/g,   '\n')
-    .replace(/\\ /g,   ' ')
-    .replace(/\\(.)/g, '$1')
-};
-// -------------------------------------------------------------------------------------------------
-function smart_join(arr) {
-  if (! arr)
-    return arr;
-  
-  if (typeof arr === 'string')
-    return arr;
-  
-  arr = [...arr.flat(Infinity).filter(x=> x)];
-
-  if (arr.length === 0) // investigate why this is necessary.
-    return '';
-  
-  if (log_smart_join_enabled)
-    console.log(`JOINING ${inspect_fun(arr)}`);
-
-  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
-  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-  const linkingp     = (ch)  => "_-".includes(ch);
-  // const whitep       = (ch)  => " \n".includes(ch);
-  
-  // handle "a" → "an" if necessary:
-  const articleCorrection = (originalArticle, nextWord) => {
-    const expected = choose_indefinite_article(nextWord);
-    if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-      return originalArticle === 'A' ? 'An' : 'an';
-    }
-    return originalArticle;
+  }
+  // -------------------------------------------------------------------------------------------------
+  function unescape(str) {
+    if (typeof str !== 'string')
+      return str;
+    
+    return str
+      .replace(/\\n/g,   '\n')
+      .replace(/\\ /g,   ' ')
+      .replace(/\\(.)/g, '$1')
   };
-  
-  let left_word = arr[0]; // ?.toString() ?? "";
-  let str       = left_word;
-  
-  for (let ix = 1; ix < arr.length; ix++)  {
-    let right_word           = null;
-    let prev_char            = null;
-    let prev_char_is_escaped = null;
-    let next_char_is_escaped = null;
-    let next_char            = null;
+  // -------------------------------------------------------------------------------------------------
+  function smart_join(arr) {
+    if (! arr)
+      return arr;
+    
+    if (typeof arr === 'string')
+      return arr;
+    
+    arr = [...arr.flat(Infinity).filter(x=> x)];
 
-    const add_a_space = () => {
-      if (log_smart_join_enabled)
-        console.log(`SPACE!`);
+    if (arr.length === 0) // investigate why this is necessary.
+      return '';
+    
+    if (log_smart_join_enabled)
+      console.log(`JOINING ${inspect_fun(arr)}`);
 
-      prev_char  = ' ';
-      str       += ' ';
-    }
-
-    const chomp_left_side = () => {
-      if (log_smart_join_enabled)
-        console.log(`CHOMP LEFT!`);
-      
-      str      = str.slice(0, -1);
-      left_word = left_word.slice(0, -1);
-      
-      update_pos_vars();
+    // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
+    const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
+    const linkingp     = (ch)  => "_-".includes(ch);
+    // const whitep       = (ch)  => " \n".includes(ch);
+    
+    // handle "a" → "an" if necessary:
+    const articleCorrection = (originalArticle, nextWord) => {
+      const expected = choose_indefinite_article(nextWord);
+      if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
+        return originalArticle === 'A' ? 'An' : 'an';
+      }
+      return originalArticle;
     };
     
-    const chomp_right_side = () => {
-      if (log_smart_join_enabled)
-        console.log(`CHOMP RIGHT!`);
+    let left_word = arr[0]; // ?.toString() ?? "";
+    let str       = left_word;
+    
+    for (let ix = 1; ix < arr.length; ix++)  {
+      let right_word           = null;
+      let prev_char            = null;
+      let prev_char_is_escaped = null;
+      let next_char_is_escaped = null;
+      let next_char            = null;
 
-      arr[ix] = arr[ix].slice(1);
+      const add_a_space = () => {
+        if (log_smart_join_enabled)
+          console.log(`SPACE!`);
 
-      update_pos_vars();
-    }
+        prev_char  = ' ';
+        str       += ' ';
+      }
 
-    const consume_right_word = () => {
-      if (log_smart_join_enabled)
-        console.log(`CONSUME ${inspect_fun(right_word)}!`);
+      const chomp_left_side = () => {
+        if (log_smart_join_enabled)
+          console.log(`CHOMP LEFT!`);
+        
+        str      = str.slice(0, -1);
+        left_word = left_word.slice(0, -1);
+        
+        update_pos_vars();
+      };
+      
+      const chomp_right_side = () => {
+        if (log_smart_join_enabled)
+          console.log(`CHOMP RIGHT!`);
 
-      left_word  = right_word;
-      str       += left_word;
-    }
+        arr[ix] = arr[ix].slice(1);
 
-    const move_chars_left = (n) => {
-      if (log_smart_join_enabled)
-        console.log(`SHIFT ${n} CHARACTERS!`);
+        update_pos_vars();
+      }
 
-      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-      const shifted_str = right_word.substring(0, n);
+      const consume_right_word = () => {
+        if (log_smart_join_enabled)
+          console.log(`CONSUME ${inspect_fun(right_word)}!`);
 
-      arr[ix]   = right_word.substring(n);
-      str       = str.substring(0, str.length - overcut) + shifted_str;
-      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
+        left_word  = right_word;
+        str       += left_word;
+      }
+
+      const move_chars_left = (n) => {
+        if (log_smart_join_enabled)
+          console.log(`SHIFT ${n} CHARACTERS!`);
+
+        const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+        const shifted_str = right_word.substring(0, n);
+
+        arr[ix]   = right_word.substring(n);
+        str       = str.substring(0, str.length - overcut) + shifted_str;
+        left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
+        
+        update_pos_vars();
+      };
+      
+      const update_pos_vars = () => {
+        right_word           = arr[ix]; // ?.toString() ?? "";
+        prev_char            = left_word[left_word.length - 1] ?? "";
+        prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
+        next_char            = right_word[0] ?? '';
+        next_char_is_escaped = right_word[0] === '\\';
+
+        if (log_smart_join_enabled)
+          console.log(`ix = ${inspect_fun(ix)}, ` +
+                      `str = ${inspect_fun(str)}, ` +
+                      `left_word = ${inspect_fun(left_word)}, ` +         
+                      `right_word = ${inspect_fun(right_word)}, ` +       
+                      `prev_char = ${inspect_fun(prev_char)}, ` +         
+                      `next_char = ${inspect_fun(next_char)}, ` + 
+                      `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+                      `next_char_is_escaped = ${next_char_is_escaped}`);
+      };
       
       update_pos_vars();
-    };
-    
-    const update_pos_vars = () => {
-      right_word           = arr[ix]; // ?.toString() ?? "";
-      prev_char            = left_word[left_word.length - 1] ?? "";
-      prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-      next_char            = right_word[0] ?? '';
-      next_char_is_escaped = right_word[0] === '\\';
+      
+      if (right_word === '') {
+        if (log_smart_join_enabled)
+          console.log(`JUMP EMPTY!`);
 
-      if (log_smart_join_enabled)
-        console.log(`ix = ${inspect_fun(ix)}, ` +
-                    `str = ${inspect_fun(str)}, ` +
-                    `left_word = ${inspect_fun(left_word)}, ` +         
-                    `right_word = ${inspect_fun(right_word)}, ` +       
-                    `prev_char = ${inspect_fun(prev_char)}, ` +         
-                    `next_char = ${inspect_fun(next_char)}, ` + 
-                    `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-                    `next_char_is_escaped = ${next_char_is_escaped}`);
-    };
-    
-    update_pos_vars();
-    
-    if (right_word === '') {
-      if (log_smart_join_enabled)
-        console.log(`JUMP EMPTY!`);
+        continue;
+      }
 
-      continue;
+      while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
+        move_chars_left(3);
+      
+      while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
+        move_chars_left(1);
+      
+      // Normalize article if needed:
+      const article_match = str.match(/(?:^|\s)([Aa])$/);
+      
+      if (article_match) {
+        const originalArticle = article_match[1];
+        const updatedArticle = articleCorrection(originalArticle, right_word);
+
+        if (updatedArticle !== originalArticle) 
+          str = str.slice(0, -originalArticle.length) + updatedArticle;
+      }
+
+      let chomped = false;
+
+      if (!prev_char_is_escaped && prev_char === '<') {
+        chomp_left_side();
+        chomped = true;
+      }
+      
+      if (right_word.startsWith('<')) {
+        chomp_right_side();
+        chomped = true;
+      }
+
+      if (right_word === '') {
+        if (log_smart_join_enabled)
+          console.log(`JUMP EMPTY (LATE)!`);
+
+        continue;
+      }
+
+      if (!chomped &&
+          (prev_char_is_escaped && !' n'.includes(prev_char) || 
+           (!(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+            // !(next_char_is_escaped && ",.!?".includes(right_word[1])) && 
+            !right_word.startsWith('\\n') &&
+            !right_word.startsWith('\\ ') && 
+            !punctuationp (next_char)     && 
+            !linkingp     (prev_char)     &&
+            !linkingp     (next_char)     &&
+            !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
+            !'([])'.substring(2,4).includes(next_char))))
+        add_a_space();
+
+      consume_right_word();
     }
 
-    while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
-      move_chars_left(3);
+    if (log_smart_join_enabled)
+      console.log(`JOINED ${inspect_fun(str)}`);
     
-    while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
-      move_chars_left(1);
-    
-    // Normalize article if needed:
-    const article_match = str.match(/(?:^|\s)([Aa])$/);
-    
-    if (article_match) {
-      const originalArticle = article_match[1];
-      const updatedArticle = articleCorrection(originalArticle, right_word);
-
-      if (updatedArticle !== originalArticle) 
-        str = str.slice(0, -originalArticle.length) + updatedArticle;
-    }
-
-    let chomped = false;
-
-    if (!prev_char_is_escaped && prev_char === '<') {
-      chomp_left_side();
-      chomped = true;
-    }
-    
-    if (right_word.startsWith('<')) {
-      chomp_right_side();
-      chomped = true;
-    }
-
-    if (right_word === '') {
-      if (log_smart_join_enabled)
-        console.log(`JUMP EMPTY (LATE)!`);
-
-      continue;
-    }
-
-    if (!chomped &&
-        (prev_char_is_escaped && !' n'.includes(prev_char) || 
-         (!(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-          // !(next_char_is_escaped && ",.!?".includes(right_word[1])) && 
-          !right_word.startsWith('\\n') &&
-          !right_word.startsWith('\\ ') && 
-          !punctuationp (next_char)     && 
-          !linkingp     (prev_char)     &&
-          !linkingp     (next_char)     &&
-          !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-          !'([])'.substring(2,4).includes(next_char))))
-      add_a_space();
-
-    consume_right_word();
+    return str;
   }
-
-  if (log_smart_join_enabled)
-    console.log(`JOINED ${inspect_fun(str)}`);
-  
-  return str;
-}
-// =================================================================================================
-// END OF HELPER FUNCTIONS SECTION.
-// =================================================================================================
+  // =================================================================================================
+  // END OF HELPER FUNCTIONS SECTION.
+  // =================================================================================================
 
 
-// =================================================================================================
-// HELPER FUNCTIONS/VARS USED BY THE Context.munge_configuration() METHOD:
-// =================================================================================================
-// var values adapted from the file config.fbs in
-// https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
-const dt_samplers = [   // order is significant, do not rearrange!
-  'DPM++ 2M Karras',    // 0
-  'Euler a',            // 1
-  'DDIM',               // 2
-  'PLMS',               // 3
-  'DPM++ SDE Karras',   // 4
-  'UniPC',              // 5
-  'LCM',                // 6
-  'Euler A Substep',    // 7
-  'DPM++ SDE Substep',  // 8
-  'TCD',                // 9
-  'Euler A Trailing',   // 10
-  'DPM++ SDE Trailing', // 11
-  'DPM++ 2M AYS',       // 12
-  'Euler A AYS',        // 13
-  'DPM++ SDE AYS',      // 14
-  'DPM++ 2M Trailing',  // 15
-  'DDIM Trailing',      // 16
-];
-const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
-// -------------------------------------------------------------------------------------------------
-const configuration_key_names = [
-  // [ dt_name, automatic1111_name ],
-  // -----------------------------------------------------------------------------------------------
-  // identical keys:
-  // -----------------------------------------------------------------------------------------------
-  { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
-  { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
-  { dt_name: 'height',                            automatic1111_name: 'height'                                     },
-  { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
-  { dt_name: 'model',                             automatic1111_name: 'model'                                      },
-  { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
-  { dt_name: 'sampler',                           automatic1111_name: 'sampler',
-    shorthands: ['sampler_index', 'sampler_name',                                                                ] },
-  { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
-  { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
-  { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
-  { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
-  { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
-  { dt_name: 'width',                             automatic1111_name: 'width'                                      },
-  { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
-  // -----------------------------------------------------------------------------------------------
-  // differing keys:
-  // -----------------------------------------------------------------------------------------------
-  { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score'                            },
-  { dt_name: 'batchCount',                        automatic1111_name: 'batch_count'                                },
-  { dt_name: 'batchCount',                        automatic1111_name: 'n_iter'                                     },
-  { dt_name: 'batchSize',                         automatic1111_name: 'batch_size'                                 },
-  { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text',
-    shorthands: [ 'clip_l', 'clipl' ] },
-  { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip'                                  },
-  { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight'                                },
-  { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left'                                  },
-  { dt_name: 'cropTop',                           automatic1111_name: 'crop_top'                                   },
-  { dt_name: 'decodingTileHeight',                automatic1111_name: 'decoding_tile_height' /* _explanation' */   },
-  { dt_name: 'decodingTileOverlap',               automatic1111_name: 'decoding_tile_overlap' /* _explanation' */  },
-  { dt_name: 'decodingTileWidth',                 automatic1111_name: 'decoding_tile_width' /* _explanation' */    },
-  { dt_name: 'diffusionTileHeight',               automatic1111_name: 'diffusion_tile_height' /* _explanation' */  },
-  { dt_name: 'diffusionTileOverlap',              automatic1111_name: 'diffusion_tile_overlap' /* _explanation' */ },
-  { dt_name: 'diffusionTileWidth',                automatic1111_name: 'diffusion_tile_width' /* _explanation' */   },
-  { dt_name: 'guidanceEmbed',                     automatic1111_name: 'guidance_embed'                             },
-  { dt_name: 'guidanceScale',                     automatic1111_name: 'cfg_scale',
-    shorthands: [ 'guidance',                                                                                    ] },
-  { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug'                                   },
-  { dt_name: 'hiresFix',                          automatic1111_name: 'high_resolution_fix',
-    shorthands: [ 'enable_hr',                                                                                   ] },
-  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height_explanation',
-    shorthands: [ 'firstphase_height',                                                                           ] },
-  { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail'          },
-  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width_explanation',
-    shorthands: [ 'firstphase_width',                                                                            ] },
-  { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
-  { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
-  { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
-  { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
-  { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
-  { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
-  { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
-  { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
-  { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
-    shorthands: ['neg', 'negative' ] },
-  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
-  { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
-    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
-  { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
-  { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
-  { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
-  { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
-  { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
-  { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
-  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
-  { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
-    shorthands: [ 'separate_clipl',                                                                              ] },  
-  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
-    shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
-  { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
-  { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
-  { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
-  { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
-  { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
-  { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
-  { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
-  { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
-  { dt_name: 't5Text',                            automatic1111_name: 't5_text',
-    shorthands: [ 't5' ] },
-  { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
-  { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
-  { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
-  { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
-  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
-  { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
-  { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
-  { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
-  { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
-  { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
-  { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
-  { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
-];
-// -------------------------------------------------------------------------------------------------
-function get_other_name(return_key, find_key, find_value) {
-  if (log_name_lookups_enabled)
-    console.log(`\nLOOKING UP ${return_key} FOR ` +
-                `${inspect_fun(find_key)} ` +
-                `${inspect_fun(find_value)}`);
-
-  let find_value_lc = find_value.toLowerCase();
-
-  // -----------------------------------------------------------------------------------------------
-  // is find_value a shorthand?
-  // -----------------------------------------------------------------------------------------------
-  let got     = configuration_key_names.find(obj => 
-    obj?.shorthands?.includes(find_value_lc))
-
-  if (got) {
+  // =================================================================================================
+  // HELPER FUNCTIONS/VARS USED BY THE Context.munge_configuration() METHOD:
+  // =================================================================================================
+  // var values adapted from the file config.fbs in
+  // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
+  const dt_samplers = [   // order is significant, do not rearrange!
+    'DPM++ 2M Karras',    // 0
+    'Euler a',            // 1
+    'DDIM',               // 2
+    'PLMS',               // 3
+    'DPM++ SDE Karras',   // 4
+    'UniPC',              // 5
+    'LCM',                // 6
+    'Euler A Substep',    // 7
+    'DPM++ SDE Substep',  // 8
+    'TCD',                // 9
+    'Euler A Trailing',   // 10
+    'DPM++ SDE Trailing', // 11
+    'DPM++ 2M AYS',       // 12
+    'Euler A AYS',        // 13
+    'DPM++ SDE AYS',      // 14
+    'DPM++ 2M Trailing',  // 15
+    'DDIM Trailing',      // 16
+  ];
+  const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
+  // -------------------------------------------------------------------------------------------------
+  const configuration_key_names = [
+    // [ dt_name, automatic1111_name ],
+    // -----------------------------------------------------------------------------------------------
+    // identical keys:
+    // -----------------------------------------------------------------------------------------------
+    { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
+    { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
+    { dt_name: 'height',                            automatic1111_name: 'height'                                     },
+    { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
+    { dt_name: 'model',                             automatic1111_name: 'model'                                      },
+    { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
+    { dt_name: 'sampler',                           automatic1111_name: 'sampler',
+      shorthands: ['sampler_index', 'sampler_name',                                                                ] },
+    { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
+    { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
+    { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
+    { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
+    { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
+    { dt_name: 'width',                             automatic1111_name: 'width'                                      },
+    { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
+    // -----------------------------------------------------------------------------------------------
+    // differing keys:
+    // -----------------------------------------------------------------------------------------------
+    { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score'                            },
+    { dt_name: 'batchCount',                        automatic1111_name: 'batch_count'                                },
+    { dt_name: 'batchCount',                        automatic1111_name: 'n_iter'                                     },
+    { dt_name: 'batchSize',                         automatic1111_name: 'batch_size'                                 },
+    { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text',
+      shorthands: [ 'clip_l', 'clipl' ] },
+    { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip'                                  },
+    { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight'                                },
+    { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left'                                  },
+    { dt_name: 'cropTop',                           automatic1111_name: 'crop_top'                                   },
+    { dt_name: 'decodingTileHeight',                automatic1111_name: 'decoding_tile_height' /* _explanation' */   },
+    { dt_name: 'decodingTileOverlap',               automatic1111_name: 'decoding_tile_overlap' /* _explanation' */  },
+    { dt_name: 'decodingTileWidth',                 automatic1111_name: 'decoding_tile_width' /* _explanation' */    },
+    { dt_name: 'diffusionTileHeight',               automatic1111_name: 'diffusion_tile_height' /* _explanation' */  },
+    { dt_name: 'diffusionTileOverlap',              automatic1111_name: 'diffusion_tile_overlap' /* _explanation' */ },
+    { dt_name: 'diffusionTileWidth',                automatic1111_name: 'diffusion_tile_width' /* _explanation' */   },
+    { dt_name: 'guidanceEmbed',                     automatic1111_name: 'guidance_embed'                             },
+    { dt_name: 'guidanceScale',                     automatic1111_name: 'cfg_scale',
+      shorthands: [ 'guidance',                                                                                    ] },
+    { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug'                                   },
+    { dt_name: 'hiresFix',                          automatic1111_name: 'high_resolution_fix',
+      shorthands: [ 'enable_hr',                                                                                   ] },
+    { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height_explanation',
+      shorthands: [ 'firstphase_height',                                                                           ] },
+    { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail'          },
+    { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width_explanation',
+      shorthands: [ 'firstphase_width',                                                                            ] },
+    { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
+    { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
+    { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
+    { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
+    { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
+    { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
+    { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
+    { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
+    { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
+      shorthands: ['neg', 'negative' ] },
+    { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
+    { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
+      shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
+    { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
+    { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
+    { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
+    { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
+    { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
+    { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
+    { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
+    { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
+      shorthands: [ 'separate_clipl',                                                                              ] },  
+    { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
+      shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
+    { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
+    { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
+    { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
+    { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
+    { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
+    { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
+    { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
+    { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
+    { dt_name: 't5Text',                            automatic1111_name: 't5_text',
+      shorthands: [ 't5' ] },
+    { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
+    { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
+    { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
+    { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
+    { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
+    { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
+    { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
+    { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
+    { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
+    { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
+    { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
+    { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
+  ];
+  // -------------------------------------------------------------------------------------------------
+  function get_other_name(return_key, find_key, find_value) {
     if (log_name_lookups_enabled)
-      console.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+      console.log(`\nLOOKING UP ${return_key} FOR ` +
+                  `${inspect_fun(find_key)} ` +
+                  `${inspect_fun(find_value)}`);
 
-    return got[return_key];
-  }
+    let find_value_lc = find_value.toLowerCase();
 
-  // -----------------------------------------------------------------------------------------------
-  // is it just miscapitalized?
-  // -----------------------------------------------------------------------------------------------
-  got = configuration_key_names.find(obj => {
-    if (log_name_lookups_enabled)
-      console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
-                  `${inspect_fun(find_value_lc)} = ` +
-                  `${obj[return_key].toLowerCase() === find_value_lc}`);
-    return obj[return_key].toLowerCase() === find_value_lc;
-  });
+    // -----------------------------------------------------------------------------------------------
+    // is find_value a shorthand?
+    // -----------------------------------------------------------------------------------------------
+    let got     = configuration_key_names.find(obj => 
+      obj?.shorthands?.includes(find_value_lc))
 
-  if (got) {
-    if (log_name_lookups_enabled)
-      console.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
-    
-    return got[return_key];
-  } 
+    if (got) {
+      if (log_name_lookups_enabled)
+        console.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
 
-  // -----------------------------------------------------------------------------------------------
-  // look up the alternate key:
-  // -----------------------------------------------------------------------------------------------
-  got = configuration_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
+      return got[return_key];
+    }
 
-  if (got) {
-    if (log_name_lookups_enabled)
-      console.log(`GOT ${return_key} FOR ` +
-                  `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
-    
-    return got[return_key];
-  }
+    // -----------------------------------------------------------------------------------------------
+    // is it just miscapitalized?
+    // -----------------------------------------------------------------------------------------------
+    got = configuration_key_names.find(obj => {
+      if (log_name_lookups_enabled)
+        console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
+                    `${inspect_fun(find_value_lc)} = ` +
+                    `${obj[return_key].toLowerCase() === find_value_lc}`);
+      return obj[return_key].toLowerCase() === find_value_lc;
+    });
 
-  // -----------------------------------------------------------------------------------------------
-  // didn't find it on either sise, just return the argument:
-  // -----------------------------------------------------------------------------------------------
+    if (got) {
+      if (log_name_lookups_enabled)
+        console.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
+      
+      return got[return_key];
+    } 
+
+    // -----------------------------------------------------------------------------------------------
+    // look up the alternate key:
+    // -----------------------------------------------------------------------------------------------
+    got = configuration_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
+
+    if (got) {
+      if (log_name_lookups_enabled)
+        console.log(`GOT ${return_key} FOR ` +
+                    `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
+      
+      return got[return_key];
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // didn't find it on either sise, just return the argument:
+    // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
     console.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
 
@@ -2822,134 +2828,134 @@ function get_other_name(return_key, find_key, find_value) {
   return find_value;
 }
 // -------------------------------------------------------------------------------------------------
-function get_dt_name(name) {
-  return get_other_name('dt_name',            'automatic1111_name', name);
-}
-// -------------------------------------------------------------------------------------------------
-function get_automatic1111_name(name) {
-  return get_other_name('automatic1111_name', 'dt_name',            name);
-}
-// -------------------------------------------------------------------------------------------------
-function get_our_name(name) {
-  const res = (dt_hosted
-               ? get_dt_name
-               : get_automatic1111_name)(name);
+                                                                                                                        function get_dt_name(name) {
+                                                                                                                          return get_other_name('dt_name',            'automatic1111_name', name);
+                                                                                                                        }
+                                                                                                                        // -------------------------------------------------------------------------------------------------
+                                                                                                                        function get_automatic1111_name(name) {
+                                                                                                                          return get_other_name('automatic1111_name', 'dt_name',            name);
+                                                                                                                        }
+                                                                                                                        // -------------------------------------------------------------------------------------------------
+                                                                                                                        function get_our_name(name) {
+                                                                                                                          const res = (dt_hosted
+                                                                                                                                       ? get_dt_name
+                                                                                                                                       : get_automatic1111_name)(name);
 
-  // console.log(`got our name for ${name}: ${res}`);
-  
-  return res;
-}
-// =================================================================================================
-// END of HELPER FUNCTIONS/VARS USED BY THE Context.munge_configuration() METHOD.
-// =================================================================================================
+                                                                                                                          // console.log(`got our name for ${name}: ${res}`);
+                                                                                                                          
+                                                                                                                          return res;
+                                                                                                                        }
+                                                                                                                        // =================================================================================================
+                                                                                                                        // END of HELPER FUNCTIONS/VARS USED BY THE Context.munge_configuration() METHOD.
+                                                                                                                        // =================================================================================================
 
 
-// =================================================================================================
-// HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
-// =================================================================================================
-var last_context_id = 0;
-// -------------------------------------------------------------------------------------------------
-function get_next_context_id() {
-  last_context_id += 1;
-  return last_context_id;
-}
-// -------------------------------------------------------------------------------------------------
-class Context {
-  constructor({ 
-    flags                        = [], 
-    scalar_variables             = new Map(),
-    named_wildcards              = new Map(),
-    noisy                        = false,
-    files                        = [],
-    configuration                = {},
-    top_file                     = true,
-    pick_one_priority            = picker_priority.ensure_weighted_distribution,
-    pick_multiple_priority       = picker_priority.avoid_repetition_short,
-    prior_pick_one_priority      = pick_one_priority,
-    prior_pick_multiple_priority = pick_multiple_priority,
-    negative_prompt              = null,
-  } = {}) {
-    this.context_id                   = get_next_context_id();
-    this.flags                        = flags;
-    this.scalar_variables             = scalar_variables;
-    this.named_wildcards              = named_wildcards;
-    this.noisy                        = noisy;
-    this.files                        = files;
-    this.configuration                = structured_clone(configuration, { unshare: true });
-    this.top_file                     = top_file;
-    this.pick_one_priority            = pick_one_priority;
-    this.prior_pick_one_priority      = prior_pick_one_priority;
-    this.pick_multiple_priority       = pick_multiple_priority;
-    this.prior_pick_multiple_priority = prior_pick_multiple_priority;
+                                                                                                                        // =================================================================================================
+                                                                                                                        // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
+                                                                                                                        // =================================================================================================
+                                                                                                                        var last_context_id = 0;
+                                                                                                                        // -------------------------------------------------------------------------------------------------
+                                                                                                                        function get_next_context_id() {
+                                                                                                                          last_context_id += 1;
+                                                                                                                          return last_context_id;
+                                                                                                                        }
+                                                                                                                        // -------------------------------------------------------------------------------------------------
+                                                                                                                        class Context {
+                                                                                                                          constructor({ 
+                                                                                                                            flags                        = [], 
+                                                                                                                            scalar_variables             = new Map(),
+                                                                                                                            named_wildcards              = new Map(),
+                                                                                                                            noisy                        = false,
+                                                                                                                            files                        = [],
+                                                                                                                            configuration                = {},
+                                                                                                                            top_file                     = true,
+                                                                                                                            pick_one_priority            = picker_priority.ensure_weighted_distribution,
+                                                                                                                            pick_multiple_priority       = picker_priority.avoid_repetition_short,
+                                                                                                                            prior_pick_one_priority      = pick_one_priority,
+                                                                                                                            prior_pick_multiple_priority = pick_multiple_priority,
+                                                                                                                            negative_prompt              = null,
+                                                                                                                          } = {}) {
+                                                                                                                            this.context_id                   = get_next_context_id();
+                                                                                                                            this.flags                        = flags;
+                                                                                                                            this.scalar_variables             = scalar_variables;
+                                                                                                                            this.named_wildcards              = named_wildcards;
+                                                                                                                            this.noisy                        = noisy;
+                                                                                                                            this.files                        = files;
+                                                                                                                            this.configuration                = structured_clone(configuration, { unshare: true });
+                                                                                                                            this.top_file                     = top_file;
+                                                                                                                            this.pick_one_priority            = pick_one_priority;
+                                                                                                                            this.prior_pick_one_priority      = prior_pick_one_priority;
+                                                                                                                            this.pick_multiple_priority       = pick_multiple_priority;
+                                                                                                                            this.prior_pick_multiple_priority = prior_pick_multiple_priority;
 
-    if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
-      this.set_flag(["dt_hosted"]);
-  }
-  // -----------------------------------------------------------------------------------------------
-  add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
-    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-    this.configuration.loras ||= [];
-    const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
+                                                                                                                            if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
+                                                                                                                              this.set_flag(["dt_hosted"]);
+                                                                                                                          }
+                                                                                                                          // -----------------------------------------------------------------------------------------------
+                                                                                                                          add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
+                                                                                                                            const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+                                                                                                                            this.configuration.loras ||= [];
+                                                                                                                            const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
 
-    if (index !== -1) {
-      if (! replace) return;
-      this.configuration.splice(index, 1); // Remove the existing entry
-    }
-    
-    this.configuration.loras.push(lora);
+                                                                                                                            if (index !== -1) {
+                                                                                                                              if (! replace) return;
+                                                                                                                              this.configuration.splice(index, 1); // Remove the existing entry
+                                                                                                                            }
+                                                                                                                            
+                                                                                                                            this.configuration.loras.push(lora);
 
-    if (log_configuration_enabled)
-      log(`ADDED ${compress(inspect_fun(lora))} TO ${this}`);
-  }
-  // -------------------------------------------------------------------------------------------------
-  flag_is_set(test_flag) {
-    // if (! Array.isArray(test_flag))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
+                                                                                                                            if (log_configuration_enabled)
+                                                                                                                              log(`ADDED ${compress(inspect_fun(lora))} TO ${this}`);
+                                                                                                                          }
+                                                                                                                          // -------------------------------------------------------------------------------------------------
+                                                                                                                          flag_is_set(test_flag) {
+                                                                                                                            // if (! Array.isArray(test_flag))
+                                                                                                                            //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
 
-    // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
-    // console.log(msg);
-    // const ret = this.flags.includes(test_flag);
-    
-    let res = false;
+                                                                                                                            // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
+                                                                                                                            // console.log(msg);
+                                                                                                                            // const ret = this.flags.includes(test_flag);
+                                                                                                                            
+                                                                                                                            let res = false;
 
-    for (const flag of this.flags) {
-      // console.log(`${inspect_fun(flag)} === ` +
-      //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
-      
-      if (arr_is_prefix_of_arr(test_flag, flag)) {
-        // console.log (`FOUND IT!`);
-        res = true;
-        break;
-      }
-    }
+                                                                                                                            for (const flag of this.flags) {
+                                                                                                                              // console.log(`${inspect_fun(flag)} === ` +
+                                                                                                                              //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
+                                                                                                                              
+                                                                                                                              if (arr_is_prefix_of_arr(test_flag, flag)) {
+                                                                                                                                // console.log (`FOUND IT!`);
+                                                                                                                                res = true;
+                                                                                                                                break;
+                                                                                                                              }
+                                                                                                                            }
 
-    // if (! r)
-    //   console.log(`DIDN'T FIND IT...`);
-    
-    // if (ret  !== r)
-    //   throw new Error(`${msg} ret = ${inspect_fun(ret)}, r = ${inspect_fun(r)}`);
-    
-    return res;
-  }
-  // -----------------------------------------------------------------------------------------------
-  set_flag(new_flag) {
-    // if (! Array.isArray(new_flag))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(new_flag)}`);
+                                                                                                                            // if (! r)
+                                                                                                                            //   console.log(`DIDN'T FIND IT...`);
+                                                                                                                            
+                                                                                                                            // if (ret  !== r)
+                                                                                                                            //   throw new Error(`${msg} ret = ${inspect_fun(ret)}, r = ${inspect_fun(r)}`);
+                                                                                                                            
+                                                                                                                            return res;
+                                                                                                                          }
+                                                                                                                          // -----------------------------------------------------------------------------------------------
+                                                                                                                          set_flag(new_flag) {
+                                                                                                                            // if (! Array.isArray(new_flag))
+                                                                                                                            //   throw new Error(`NOT AN ARRAY: ${inspect_fun(new_flag)}`);
 
-    // log_flags_enabled = true;
-    
-    if (log_flags_enabled)
-      console.log(`\nADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
+                                                                                                                            // log_flags_enabled = true;
+                                                                                                                            
+                                                                                                                            if (log_flags_enabled)
+                                                                                                                              console.log(`\nADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
 
-    // skip already set flags:
-    if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
-      if (log_flags_enabled)
-        console.log(`SKIPPING, ALREADY SET`);
-      return;
-    }
+                                                                                                                            // skip already set flags:
+                                                                                                                            if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
+                                                                                                                              if (log_flags_enabled)
+                                                                                                                                console.log(`SKIPPING, ALREADY SET`);
+                                                                                                                              return;
+                                                                                                                            }
 
-    const new_flag_head = new_flag.slice(0, -1);
-    
+                                                                                                                            const new_flag_head = new_flag.slice(0, -1);
+                                                                                                                            
     this.flags = this.flags.filter(existing_flag => {
       if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
         if (log_flags_enabled)
