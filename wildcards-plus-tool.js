@@ -6968,7 +6968,13 @@ class ASTCheckFlags extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
+    let str = '?';
+
+    for (const flag of this.flags)
+      str += flag.join('.');
+
+    return str;
+    // return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
