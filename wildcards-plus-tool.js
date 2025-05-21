@@ -2367,6 +2367,7 @@ try {
   console.log(`test #3 failed as intended.`);
 }
 
+
 try {
   obj = {};
   obj.self = obj; // Create a cycle
