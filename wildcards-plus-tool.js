@@ -6977,6 +6977,22 @@ class ASTNamedWildcardReference extends ASTNode {
     this.capitalize = capitalize;
     // console.log(`BUILT ${inspect_fun(this)}`);
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    var str = '@';
+
+    if (this.capitalize)
+      str += this.capitalize;
+
+    if (this.min_count != 1  || this.max_count != 1) {
+      str += `${this.min_count}-${this.max_count}`;
+      str += this.joiner;
+    }
+
+    str += this.name;
+    
+    return str;
+  };
 }
 // -------------------------------------------------------------------------------------------------
 // Scalar references:
@@ -7010,8 +7026,9 @@ class ASTLora extends ASTNode {
     // console.log(`Constructed LoRa ${this}!`);
   }
   // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `<lora:${this.file.constructor.name}:${this.file} : ${this.weight.constructor.name} ${this.weight}>`;
+  toString(with_types = false ) {
+    return `<lora:${with_types ? `${this.file.constructor.name} ` : ``}:${this.file}: ` +
+      `${with_types ? `${this.weight.constructor.name} ` : ``}${this.weight}>`;
   }
 }
 // -------------------------------------------------------------------------------------------------
