@@ -2320,11 +2320,10 @@ if (true) {
     // If we get here, no error was thrown = fail
     throw new Error(`test #3 should have failed.`);
   } catch (err) {
-    if (err.message === 'test #3 should have failed.') {
+    if (err.message === 'test #3 should have failed.')
       throw err;
-    } else {
+    else 
       console.log(`test #3 failed as intended.`);
-    }
   }
   // test #4: should fail do to cycle, with unshare = true:
   try {
@@ -2334,11 +2333,10 @@ if (true) {
 
     throw new Error(`test #4 should have failed.`);
   } catch (err) {
-    if (err.message === 'test #4 should have failed.') {
+    if (err.message === 'test #4 should have failed.') 
       throw err;
-    } else {
+    else
       console.log(`test #3 failed as intended.`);
-    }
   }
 }
 // -------------------------------------------------------------------------------------------------
