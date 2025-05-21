@@ -203,9 +203,7 @@ function process_includes(thing, context = new Context()) {
 // set inspect_fun appropriately for node.js:
 // =================================================================================================
 const inspect_fun = (thing, no_break = false) => util.inspect(thing, no_break ? { breakLength: Infinity } : {});
-// const clone_fun   = structured_clone;
 const dt_hosted   = false;
-//  dt_hosted       = true; // uncomment to lie and force use of the DT-legal syntax/configs for debugging
 // =================================================================================================
 
 
@@ -2223,74 +2221,7 @@ class WeightedPicker {
 // =================================================================================================
 // HELPER FUNCTIONS SECTION:
 // =================================================================================================
-// function arr_is_prefix_of_arr(prefix_arr, full_arr) {
-//   if (prefix_arr.length > full_arr.length)
-//     return false;
-
-//   // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
-//   return prefix_arr.every((val, idx) => val === full_arr[idx]);
-// }
-// -------------------------------------------------------------------------------------------------
 // DT's env doesn't seem to have structuredClone, so we'll define our own:
-// -------------------------------------------------------------------------------------------------
-// var structured_clone_indent = 0;
-
-// function structured_clone(thing) {
-//   //throw new Error(`CLONING ${JSON.stringify(thing)}`);
-
-//   const log = log_structured_clone_enabled
-//         ? msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`)
-//         : msg => undefined;
-
-//   const log_enter = ()  => {
-//     log(`CLONE ${JSON.stringify(thing)}`);
-//     structured_clone_indent += 1;
-//   }
-
-//   if (thing === null || typeof thing !== "object") {
-//     log(`COPIED ${JSON.stringify(thing)}`);
-//     return thing;
-//   }
-//   else if (Array.isArray(thing)) {
-//     log_enter();
-//     const cloned =  [ ...thing.map(structured_clone) ];
-//     structured_clone_indent -= 1;
-//     log(`CLONED ${JSON.stringify(cloned)}`);
-//     return cloned;
-//   }
-//   else if (thing instanceof Set) {
-//     log_enter();
-//     const cloned = new Set();
-//     for (const value of thing.values()) {
-//       cloned.add(structured_clone(value));
-//     }
-//     structured_clone_indent -= 1;
-//     log(`CLONED ${JSON.stringify(cloned)}`);
-//     return cloned;
-//   }
-//   else if (thing instanceof Map) {
-//     log_enter();
-//     const cloned = new Map();
-//     for (const [key, value] of thing.entries()) {
-//       cloned.set(structured_clone(key), structured_clone(value));
-//     }
-//     structured_clone_indent -= 1;
-//     log(`CLONED ${JSON.stringify(cloned)}`);
-//     return cloned;
-//   }
-//   else {
-//     log_enter();
-//     const cloned = {};
-//     for (const key in thing) {
-//       if (Object.prototype.hasOwnProperty.call(thing, key)) {
-//         cloned[structured_clone(key)] = structured_clone(thing[key]);
-//       }
-//     }
-//     structured_clone_indent -= 1;
-//     log(`CLONED ${JSON.stringify(cloned)}`);
-//     return cloned;
-//   }
-// }
 // -------------------------------------------------------------------------------------------------
 let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =>  {
   if (value === null || typeof value !== "object") {
@@ -2352,63 +2283,6 @@ let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =
   }
   return clone;
 }
-// let structured_clone = (value, seen = new WeakMap()) => {
-//   if (value === null || typeof value !== "object") {
-//     return value;
-//   }
-
-//   if (seen.has(value)) {
-//     return seen.get(value); // Return existing clone, not an error
-//   }
-
-//   // Handle Array
-//   if (Array.isArray(value)) {
-//     const clone = [];
-//     seen.set(value, clone); // Store early to support self-reference
-//     for (const item of value) {
-//       clone.push(structured_clone(item, seen));
-//     }
-//     return clone;
-//   }
-
-//   // Handle Set
-//   if (value instanceof Set) {
-//     const clone = new Set();
-//     seen.set(value, clone);
-//     for (const item of value) {
-//       clone.add(structured_clone(item, seen));
-//     }
-//     return clone;
-//   }
-
-//   // Handle Map
-//   if (value instanceof Map) {
-//     const clone = new Map();
-//     seen.set(value, clone);
-//     for (const [k, v] of value.entries()) {
-//       clone.set(structured_clone(k, seen), structured_clone(v, seen));
-//     }
-//     return clone;
-//   }
-
-//   // Handle Date
-//   if (value instanceof Date) {
-//     return new Date(value);
-//   }
-
-//   // Handle RegExp
-//   if (value instanceof RegExp) {
-//     return new RegExp(value);
-//   }
-
-//   // Handle plain object
-//   const clone = {};
-//   seen.set(value, clone);
-//   for (const key of Object.keys(value)) {
-//     clone[key] = structured_clone(value[key], seen);
-//   }
-//   return clone;
-// }
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
@@ -2420,41 +2294,6 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   
   return true;
 }
-// // -------------------------------------------------------------------------------------------------
-// function equal_arrs(this_arr, that_arr) {
-//   if (this_arr.length != that_arr.length)
-//     return false;
-
-//   for (let ix = 0; ix < this_arr.length; ix++)
-//     if (this_arr[ix] !== that_arr[ix])
-//       return false;
-
-//   return true;
-// }
-// -------------------------------------------------------------------------------------------------
-// function is_flag_set(test_flag, set_flags) {
-//   // GPT's idea, clearly inadequate.
-//   return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
-// }
-// -------------------------------------------------------------------------------------------------
-// function add_lora_to_context(lora, context, indent = 0) {
-//   const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
-//   const arr   = context.configuration.loras??[];
-//   const index = arr.findIndex(existing => existing.file === lora.file);
-
-//   if (index !== -1) {
-//     arr.splice(index, 1); // Remove the existing entry
-//   }
-
-//   arr.push(lora); // Add the new entry at the end
-
-//   if (arr !== context.configuration.loras)
-//     throw new Error("add_lora_to_context: arr !== array");
-
-//   context.configuration.loras = arr;
-
-//   log(`ADDED ${inspect_fun(lora)} TO ${context}`);
-// }
 // -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
