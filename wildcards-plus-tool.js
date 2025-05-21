@@ -2372,24 +2372,10 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
 //   return true;
 // }
 // -------------------------------------------------------------------------------------------------
-function is_flag_set(test_flag, set_flags) {
-  // GPT's idea, clearly inadequate.
-  return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
-}
-// -------------------------------------------------------------------------------------------------
-function add_lora_to_context(lora, context, indent = 0) {
-  const log   = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-  context.config.loras ||= [];
-  const index = context.config.loras.findIndex(existing => existing.file === lora.file);
-
-  if (index !== -1) 
-    context.config.splice(index, 1); // Remove the existing entry
-
-  context.config.loras.push(lora);
-
-  if (log_config_enabled)
-    log(`ADDED ${compress(inspect_fun(lora))} TO ${context}`);
-}
+// function is_flag_set(test_flag, set_flags) {
+//   // GPT's idea, clearly inadequate.
+//   return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
+// }
 // -------------------------------------------------------------------------------------------------
 // function add_lora_to_context(lora, context, indent = 0) {
 //   const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
@@ -3037,6 +3023,20 @@ class Context {
       this.set_flag(["dt_hosted"]);
   }
   // -----------------------------------------------------------------------------------------------
+  add_lora_uniquely(lora, indent = 0) {
+    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    this.config.loras ||= [];
+    const index = this.config.loras.findIndex(existing => existing.file === lora.file);
+
+    if (index !== -1) 
+      this.config.splice(index, 1); // Remove the existing entry
+
+    this.config.loras.push(lora);
+
+    if (log_config_enabled)
+      log(`ADDED ${compress(inspect_fun(lora))} TO ${this}`);
+  }
+  // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
     // if (! Array.isArray(test_flag))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
@@ -6956,9 +6956,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
       const weight = weight_match_result.value;
       
-      context.config.loras ||= [];
-
-      add_lora_to_context({ file: file, weight: weight }, context, indent);
+      context.add_lora_uniquely({ file: file, weight: weight }, indent);
       
       return '';
     }
