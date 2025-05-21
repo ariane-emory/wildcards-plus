@@ -229,7 +229,7 @@ let unnecessary_choice_is_error       = false;
 let print_ast_enabled                 = false;
 let print_ast_json_enabled            = false;
 let log_enabled                       = true;
-let log_config_enabled                = true;
+let log_config_enabled                = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
@@ -2302,13 +2302,15 @@ function is_flag_set(test_flag, set_flags) {
 }
 // -------------------------------------------------------------------------------------------------
 function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
-  console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
-  
-  const index = array.findIndex(existing => existing.file === lora.file);
+  console.log(`ADDING ${inspect_fun(lora)} TO ${array.length} loras in ${to_description}`);
+  const arr   = array;
+  const index = arr.findIndex(existing => existing.file === lora.file);
   if (index !== -1) {
-    array.splice(index, 1); // Remove the existing entry
+    arr.splice(index, 1); // Remove the existing entry
   }
-  array.push(lora); // Add the new entry at the end
+  arr.push(lora); // Add the new entry at the end
+  if (arr !== array)
+    throw new Error("add_lora_to_array: arr !== array");
 }
 // -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
@@ -7619,8 +7621,12 @@ async function main() {
     
     const context       = base_context.clone();
 
-    console.log(`BASE_CONTEXT.CONFIG.LORAS.LENGTH = ${base_context.config?.loras?.length}`);
-    console.log(`CONTEXT     .CONFIG.LORAS.LENGTH = ${context     .config?.loras?.length}`);
+    console.log(`BASE_CONTEXT.CONFIG.LORAS.LENGTH = ${base_context.config?.loras?.length}`
+                + ` IN ${inspect_fun(base_context.config)}`
+               );
+    console.log(`CONTEXT     .CONFIG.LORAS.LENGTH = ${context     .config?.loras?.length}`
+                + ` IN ${inspect_fun(context.config)}`
+               );
     
     const prompt        = expand_wildcards(AST, context);
     const munged_config = munge_config(context.config);
