@@ -2946,7 +2946,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    // console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
       flags:                        structured_clone(this.flags),
@@ -2966,7 +2966,7 @@ class Context {
         this.configuration.loras === copy.configuration.loras)
       throw new Error("oh no");
 
-    console.log(`CLONED CONTEXT`);
+    // console.log(`CLONED CONTEXT`);
     
     return copy;
   }
@@ -3058,8 +3058,8 @@ class Context {
       }
     }
 
-    if (log_configuration_enabled)
-      console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+    // if (log_configuration_enabled)
+    //   console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
 
     this.configuration =  munged_configuration;
   }
@@ -7142,7 +7142,7 @@ class ASTLatchedNamedWildcardedValue extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return this.original_value.tosTring();
+    return this.original_value.toString();
   }
 }
 // -------------------------------------------------------------------------------------------------
