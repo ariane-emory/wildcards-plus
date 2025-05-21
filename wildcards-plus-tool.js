@@ -2305,41 +2305,6 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   
   return true;
 }
-// // -------------------------------------------------------------------------------------------------
-// function equal_arrs(this_arr, that_arr) {
-//   if (this_arr.length != that_arr.length)
-//     return false;
-
-//   for (let ix = 0; ix < this_arr.length; ix++)
-//     if (this_arr[ix] !== that_arr[ix])
-//       return false;
-
-//   return true;
-// }
-// -------------------------------------------------------------------------------------------------
-// function is_flag_set(test_flag, set_flags) {
-//   // GPT's idea, clearly inadequate.
-//   return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
-// }
-// -------------------------------------------------------------------------------------------------
-// function add_lora_to_context(lora, context, indent = 0) {
-//   const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
-//   const arr   = context.configuration.loras??[];
-//   const index = arr.findIndex(existing => existing.file === lora.file);
-
-//   if (index !== -1) {
-//     arr.splice(index, 1); // Remove the existing entry
-//   }
-
-//   arr.push(lora); // Add the new entry at the end
-
-//   if (arr !== context.configuration.loras)
-//     throw new Error("add_lora_to_context: arr !== array");
-
-//   context.configuration.loras = arr;
-
-//   log(`ADDED ${inspect_fun(lora)} TO ${context}`);
-// }
 // -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
