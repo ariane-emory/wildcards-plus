@@ -2769,8 +2769,8 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
   
   const munged_config = structured_clone(config);
 
-  if (config.loras && munged_config.lora && config.loras === munged_config.loras)
-    throw new Exception("Oh no!");
+  if (config.loras && munged_config.loras && config.loras === munged_config.loras)
+    throw new Exception("Oh no, config.loras === munged_config.loras!");
   
   if (is_empty_object(munged_config))
     return munged_config;
