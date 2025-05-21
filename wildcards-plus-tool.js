@@ -7113,7 +7113,8 @@ class ASTAnonWildcard  extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `{ ${this.picker.options.map(x => x.toString()).join(" | ")} }`;
+    return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
+    // return `{ ${this.picker.options.map(x => `${typeof x === 'object' ? x.constructor.name : typeof x} ${x.value.toString()}`).join(" | ")} }`;
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
