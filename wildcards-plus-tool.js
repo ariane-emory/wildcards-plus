@@ -2378,7 +2378,7 @@ function is_flag_set(test_flag, set_flags) {
 }
 // -------------------------------------------------------------------------------------------------
 function add_lora_to_context(lora, context, indent = 0) {
-  const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+  const log   = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   context.config.loras ||= [];
   const index = context.config.loras.findIndex(existing => existing.file === lora.file);
 
@@ -2388,7 +2388,7 @@ function add_lora_to_context(lora, context, indent = 0) {
   context.config.loras.push(lora);
 
   if (log_config_enabled)
-    log(`ADDED ${inspect_fun(lora)} TO ${context}`);
+    log(`ADDED ${compress(inspect_fun(lora))} TO ${context}`);
 }
 // -------------------------------------------------------------------------------------------------
 // function add_lora_to_context(lora, context, indent = 0) {
@@ -6527,15 +6527,15 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
-  const log = (guard_bool, msg) => {
+  const log = (guard_bool, msg) => { 
     if (! msg) throw new Error("bomb 1");
-    if (guard_bool) console.log(`${' '.repeat(indent*2)}${msg}`);
+    if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = (guard_bool, msg) => {
       if (! msg) throw new Error("bomb 2");
-      if (guard_bool) console.log(`${' '.repeat(indent*2)}${msg}`);
+      if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     };
     
     log(log_expand_and_walk_enabled,
