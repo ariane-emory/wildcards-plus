@@ -238,7 +238,7 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_structured_clone_enabled      = false;
 let log_smart_join_enabled            = false;
-let disable_prelude                   = false;
+let disable_prelude                   = true;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
@@ -1957,6 +1957,9 @@ class WeightedPicker {
   }
   // -----------------------------------------------------------------------------------------------
   add(weight, value) {
+    if (! value instanceof ASTAnonWildcardAlternative)
+      throw new Error(`bad value: ${inspect_fun(value)}`);
+    
     this.options.push({weight: weight, value: value });
   }
   // -----------------------------------------------------------------------------------------------
@@ -6963,6 +6966,10 @@ class ASTCheckFlags extends ASTNode {
     if (log_flags_enabled)
       console.log(`constructed ${inspect_fun(this)}`)
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTNotFlag extends ASTNode  { 
@@ -6985,6 +6992,22 @@ class ASTNotFlag extends ASTNode  {
     
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
+  }
+  // -------------------------------------------------------------------------------------------------
+  toString() {
+    let str = `!`;
+
+    if (this.set_immediately)
+      str += '#';
+
+    str += this.flag.join('.');
+
+    if (this.consequently_set_flag_tail) {
+      str += '#';
+      str += this.consequently_set_flag_tail.join('.');
+    }
+
+    return str;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7114,6 +7137,7 @@ class ASTAnonWildcard  extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
+    // return `{ ${this.picker.options.map(x => `${x.value.constructor.name} ${x.value}`  ).join(" | ")} }`;
     // return `{ ${this.picker.options.map(x => `${typeof x === 'object' ? x.constructor.name : typeof x} ${x.value.toString()}`).join(" | ")} }`;
   }
   // -----------------------------------------------------------------------------------------------
@@ -7143,17 +7167,19 @@ class ASTAnonWildcardAlternative extends ASTNode {
 
     var bits = [];
 
-    for (const check in this.check_flags)
+    for (const check of this.check_flags)
       bits.push(check.toString());
     
-    for (const not in this.check_flags)
+    for (const not of this.check_flags)
       bits.push(not.toString());
     
-    for (const thing in this.body)
+    for (const thing of this.body)
       bits.push(thing.toString());
 
     str += bits.join(' ');
 
+    console.log(`BITS: ${inspect_fun(bits)}`);
+    
     return str;
   }
 }
