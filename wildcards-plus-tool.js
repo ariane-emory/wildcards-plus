@@ -2321,7 +2321,6 @@ if (true) {
     throw new Error(`test #3 should have failed.`);
   } catch (err) {
     if (err.message === 'test #3 should have failed.') {
-      // Re-throw our own error
       throw err;
     } else {
       console.log(`test #3 failed as intended.`);
@@ -2336,7 +2335,6 @@ if (true) {
     throw new Error(`test #4 should have failed.`);
   } catch (err) {
     if (err.message === 'test #4 should have failed.') {
-      // Re-throw our own error
       throw err;
     } else {
       console.log(`test #3 failed as intended.`);
