@@ -493,6 +493,7 @@
 // generate the prompt body:
 // =================================================================================================
 
+\n
 A
 {?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
                  {featuring|which depicts|depicting} a }
