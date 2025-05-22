@@ -410,10 +410,19 @@ class Rule {
     if (visited.has(this))
       return `#${visited.get(this)}`;
 
-    next_id.value += 1;
+    if (false) {
+      next_id.value += 1;
     visited.set(this, next_id.value);
     
     return this.__impl_toString(visited, next_id).replace('() => ', '');
+    } else { // possibly change this to: 
+      const ret = this.__impl_toString(visited, next_id).replace('() => ', '');
+
+      next_id.value += 1;
+      visited.set(this, next_id.value);
+      
+      return ret;
+    }
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -7934,3 +7943,5 @@ main().catch(err => {
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
+
+console.log(`${Prompt.toString()}`)
