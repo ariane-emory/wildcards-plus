@@ -452,7 +452,6 @@ class Rule {
 
       console.log('}');
     }
-    // console.log(`REF_COUNTS: ${inspect_fun(ref_counts)}`);
 
     return this.__toString(new Map(), { value: 0 }).replace('() => ', '');
   }
