@@ -3071,7 +3071,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `Context<#${this.context_id}>}`;
+    return `Context<#${this.context_id}>`;
   }
 }
 // =================================================================================================
@@ -6436,11 +6436,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (! msg) throw new Error("bomb 2");
       if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     };
+
+    // log(log_expand_and_walk_enabled,
+    //     `walk thing: ${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())}`);
     
     log(log_expand_and_walk_enabled,
         `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ` +
-        `${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())} ` +
-        `in ${context} ` // +
+        `${abbreviate(Array.isArray(thing) ? thing.join(' ') : typeof thing === 'string' ? inspect_fun(thing) : thing.toString())} ` +
+        `in ${context}` // +
         // `@ ${indent}`
        );
     
@@ -6448,19 +6451,19 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // basic types (strings and Arrays):
     // ---------------------------------------------------------------------------------------------
     if (typeof thing === 'string')
-      return thing;
-    // ---------------------------------------------------------------------------------------------
-    else if (Array.isArray(thing)) {
-      const ret = [];
+          return thing;
+        // ---------------------------------------------------------------------------------------------
+        else if (Array.isArray(thing)) {
+          const ret = [];
 
-      for (const t of thing) 
-        ret.push(walk(t, indent + 1));
+          for (const t of thing) 
+            ret.push(walk(t, indent + 1));
 
-      return ret;
-    }
-    // ---------------------------------------------------------------------------------------------
-    // flags:
-    // ---------------------------------------------------------------------------------------------
+          return ret;
+        }
+        // ---------------------------------------------------------------------------------------------
+        // flags:
+        // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSetFlag) {
       // log(`SET FLAG '${thing.name}'.`);
       
@@ -6882,10 +6885,13 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     }
   }
 
+  // log(log_expand_and_walk_enabled,
+  //     `expand thing: ${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())}`);
+
   log(log_expand_and_walk_enabled,
       `Expanding wildcards in ${thing.constructor.name} ` +
-      `${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())} in ${context} ` +
-      `in ${context} ` // +
+      `${abbreviate(Array.isArray(thing) ? thing.join(' ') : typeof thing === 'string' ? inspect_fun(thing) : thing.toString())} ` +
+      `in ${context}` // +
       // `@ ${indent}`
      );
   
