@@ -10,46 +10,46 @@
 // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
 // ===============================================================================================
 {
-  // -----------------------------------------------------------------------------------------------
-  // DT's env doesn't seem to have structuredClone, so we'll define this early:
-  // -----------------------------------------------------------------------------------------------
-  function structured_clone(thing) {
-    if (thing === null || typeof thing !== "object") {
-      return thing;
-    }
-    else if (Array.isArray(thing)) {
-      return thing.map(structured_clone);
-    }
-    else if (thing instanceof Set) {
-      const result = new Set();
-      for (const value of thing.values()) {
-        result.add(structured_clone(value));
-      }
-      return result;
-    }
-    else if (thing instanceof Map) {
-      const result = new Map();
-      for (const [key, value] of thing.entries()) {
-        result.set(structured_clone(key), structured_clone(value));
-      }
-      return result;
-    }
-    else {
-      const copy = {};
-      for (const key in thing) {
-        if (Object.prototype.hasOwnProperty.call(thing, key)) {
-          copy[key] = structured_clone(thing[key]);
-        }
-      }
-      return copy;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
   inspect_fun = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
-  clone_fun   = structured_clone;
   dt_hosted   = true;
 }
 // -------------------------------------------------------------------------------------------------
+
+
+// -------------------------------------------------------------------------------------------------
+// GLOBAL VARIABLES:
+// -------------------------------------------------------------------------------------------------
+let fire_and_forget_post_enabled      = true;
+let unnecessary_choice_is_error       = false;
+let print_ast_enabled                 = false;
+let print_ast_json_enabled            = false;
+let log_enabled                       = true;
+let log_configuration_enabled         = true;
+let log_finalize_enabled              = false;
+let log_flags_enabled                 = false;
+let log_match_enabled                 = false;
+let log_name_lookups_enabled          = false;
+let log_picker_enabled                = false;
+let log_post_enabled                  = true;
+let log_structured_clone_enabled      = false;
+let log_smart_join_enabled            = false;
+let log_expand_and_walk_enabled       = false;
+let disable_prelude                   = false;
+let print_ast_before_includes_enabled = false;
+let print_ast_after_includes_enabled  = false;
+let save_post_requests_enable         = true;
+// =================================================================================================
+
+
+
+// =================================================================================================
+// find a better spot for this: 
+Array.prototype.toString = function() {
+  return this.length > 0 ? compress(`[ ${this.join(", ")} ]`) : '[]';
+}
+// =================================================================================================
+
+
 
 // =================================================================================================
 // GRAMMAR.JS CONTENT SECTION:
@@ -105,25 +105,6 @@
 // MatchResult
 //
 // -------------------------------------------------------------------------------------------------
-// variables:
-// -------------------------------------------------------------------------------------------------
-let fire_and_forget_post        = false;
-let unnecessary_choice_is_error = false;
-let print_ast_enabled           = false;
-let print_ast_json_enabled      = false;
-let string_input_mode_enabled   = true;
-let log_enabled                 = true;
-let log_flags_enabled           = false;
-let log_config_enabled          = true;
-let log_post_enabled            = true;
-let log_join_enabled            = false;
-let log_finalize_enabled        = false;
-let log_match_enabled           = false;
-let disable_prelude             = false;
-let print_before_ast_enabled    = false;
-let print_after_ast_enabled     = false;
-let save_post_requests_enable   = true;
-// -------------------------------------------------------------------------------------------------
 const DISCARD = Symbol('DISCARD');
 // -------------------------------------------------------------------------------------------------
 
@@ -155,7 +136,7 @@ class Rule {
       else 
         log(indent,
             `Matching ${this.constructor.name} ${this.toString()} at ` +
-            `char ${string_input_mode_enabled ? index : input[index]?.start}, ` +
+            `char ${index}, ` +
             `token #${index}: ` +
             `${abbreviate(input.substring(index))}`)
     }
@@ -675,21 +656,12 @@ class CuttingEnclosed extends Enclosed {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    if (string_input_mode_enabled) {
-      throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
-                      `after ${this.start_rule} at ` +
-                      `char ${index}` +
-                      `, found: ` +
-                      `"${abbreviate(input.substring(start_rule_result.index))}"`);
-    }
-    else {
-      throw new Error(`expected (${this.body_rule} ${this.end_rule}) ` +
-                      `after ${this.start_rule} at ` +
-                      `char ${input[start_rule_result.index].start}` +
-                      `, found: ` +
-                      `[ ${input.slice(start_rule_result.index).join(", ")}` +
-                      ` ]`);
-    }
+    throw new Error(// `(#1) ` +
+      `expected (${this.body_rule} ${this.end_rule}) ` +
+        `after ${this.start_rule} at ` +
+        `char ${index}` +
+        `, found:\n` +
+        `${abbreviate(input.substring(start_rule_result.index))}`);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -949,11 +921,12 @@ class CuttingSequence extends Sequence {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    throw new Error(`expected (${this.elements.slice(1).join(" ")}) ` +
-                    `after ${this.elements[0]} at ` +
-                    `char ${index}` +
-                    `, found: ` +
-                    `'${abbreviate(input.substr(start_rule_result.index))}'`);
+    throw new Error(// `(#2) ` +
+      `expected (${this.elements.slice(1).join(" ")}) ` +
+        `after ${this.elements[0]} at ` +
+        `char ${index}` +
+        `, found:\n` +
+        `${abbreviate(input.substr(start_rule_result.index))}`);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -1046,11 +1019,12 @@ class Expect extends Rule {
         throw this.error_func(this, index, input)
       }
       else {
-        throw new Error(`expected ${this.rule} at ` +
-                        `char ${input[index].start}` +
-                        `, found: ` +
-                        `[ ${input.slice(index).join(", ")}` +
-                        ` ]`);
+        throw new Error(// `(#3) ` +
+          `expected ${this.rule} at ` +
+            `char ${input[index].start}` +
+            `, found:\n` +
+            `[ ${input.slice(index).join(", ")}` +
+            ` ]`);
       }
     };
 
@@ -1096,11 +1070,12 @@ class Unexpected extends Rule {
       else {
         foo(bar(baz(quux(corge(grault())))));
 
-        throw new Error(`unexpected ${this.rule} at ` +
-                        `char ${index}` +
-                        `, found: "` +
-                        input.substring(index, index + 20) +
-                        `..."`);
+        throw new Error(// `(#4) ` +
+          `unexpected ${this.rule} at ` +
+            `char ${index}` +
+            `, found:\n` +
+            input.substring(index, index + 20) +
+            `...`);
         foo(bar(baz(quux(corge(grault())))));                      
       }
     };
@@ -1136,11 +1111,12 @@ class Fail extends Rule {
   __match(indent, input, index) {
     throw this.error_func
       ? this.error_func(this, index, input)
-      : new Error(`unexpected ${this.rule} at ` +
-                  `char ${input[index].start}` +
-                  `, found: ` +
-                  `[ ${input.slice(index).join(", ")}` +
-                  ` ]`);
+      : new Error(// `(#5) ` +
+        `unexpected ${this.rule} at ` +
+          `char ${input[index].start}` +
+          `, found:\n` +
+          `[ ${input.slice(index).join(", ")}` +
+          ` ]`);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
@@ -1338,8 +1314,12 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
+function compress(str) {
+  return str.replace(/\s+/g, ' ');
+}
+// -------------------------------------------------------------------------------------------------
 function abbreviate(s, len = 100) {
-  return s.length < 100 ? s : `"${s.substring(0, len).replace("\n","").trim()}..."`;
+  return s.length < 100 ? s : `${s.substring(0, len).replace("\n","").trim()}...`;
 }
 // -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
@@ -1370,21 +1350,6 @@ function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
 }
 // -------------------------------------------------------------------------------------------------
 let make_rule_func = maybe_make_RE_or_Literal_from_Regexp_or_string
-// -------------------------------------------------------------------------------------------------
-function set_string_input_mode_enabled(state) {
-  string_input_mode_enabled = state;
-  return make_rule_func = state
-    ? maybe_make_RE_or_Literal_from_Regexp_or_string
-    : maybe_make_TokenLabel_from_string;
-}
-// -------------------------------------------------------------------------------------------------
-function set_log_finalize_enabled(state) {
-  return log_finalize_enabled = state;
-}
-// -------------------------------------------------------------------------------------------------
-function set_log_match_enabled(state) {
-  return log_match_enabled = state;
-}
 // -------------------------------------------------------------------------------------------------
 function compose_funs(...fns) {
   return fns.length === 0
@@ -1651,8 +1616,9 @@ const reify_json_number = arr => {
   const exponent        = arr[3];
   const number          = multiplier * ((integer_part + fractional_part)**exponent);
 
+  // console.log(`ARR: ${inspect_fun(arr)}`);
   return number;
-  return arr;
+  // return arr;
 };
 const json_number = xform(reify_json_number,
                           seq(optional(json_minus),
@@ -1661,7 +1627,7 @@ const json_number = xform(reify_json_number,
                                 // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
                                 return parseFloat(arr[0]);
                               }, optional(json_fractionalPart, 0.0)),
-                              xform(parseInt, optional(json_exponentPart, 1))));
+                              xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
 // -------------------------------------------------------------------------------------------------
@@ -1792,6 +1758,9 @@ class WeightedPicker {
   }
   // -----------------------------------------------------------------------------------------------
   add(weight, value) {
+    if (! value instanceof ASTAnonWildcardAlternative)
+      throw new Error(`bad value: ${inspect_fun(value)}`);
+    
     this.options.push({weight: weight, value: value });
   }
   // -----------------------------------------------------------------------------------------------
@@ -1810,19 +1779,17 @@ class WeightedPicker {
         priority === picker_priority.avoid_repetition_short)
       this.__clear_used_indices();
     
-    // console.log(`PICK ${min_count}-${max_count}`);
+    if (log_picker_enabled)
+      console.log(`PICK ${min_count}-${max_count}`);
+    
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
-
     const res = [];
     
-    for (let ix = 0; ix < count; ix++) {
-      const pick = this.pick_one(allow_if, forbid_if, priority);
+    for (let ix = 0; ix < count; ix++)
+      res.push(this.pick_one(allow_if, forbid_if, priority));
 
-      // if (pick)
-      res.push(pick);
-    }
-
-    // console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+    if (log_picker_enabled)
+      console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
 
     return res;
   }
@@ -1845,12 +1812,16 @@ class WeightedPicker {
   __clear_used_indices() {
     this.used_indices.clear();
     this.last_pick_index = null;
-    // console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+
+    if (log_picker_enabled)
+      console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -----------------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
-    // console.log(`this.options      = ${inspect_fun(this.options)}`);
-    // console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+    if (log_picker_enabled) {
+      console.log(`this.options      = ${inspect_fun(this.options)}`);
+      console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+    }
     
     if (! priority)
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
@@ -1904,35 +1875,41 @@ class WeightedPicker {
       throw Error("unexpected priority");
     }
 
-    // console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+    if (log_picker_enabled)
+      console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
     return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
   pick_one(allow_if, forbid_if, priority) {
-    // console.log(`PICK ONE =================================================================================`);
-    // console.log(`PRIORITY        = ${inspect_fun(priority)}`);
-    // console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
-    // console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
-
+    if (log_picker_enabled) {
+      console.log(`PICK ONE =================================================================================`);
+      console.log(`PRIORITY        = ${inspect_fun(priority)}`);
+      console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+      console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+    }
+    
     if (! (priority && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-    
-    const noisy = false;
 
-    // // console.log(`PICK_ONE!`);
-    
-    // // console.log(`PICK FROM ${JSON.stringify(this)}`);
+    if (log_picker_enabled) {
+      console.log(`PICK_ONE!`);
+      console.log(`PICK FROM ${JSON.stringify(this)}`);
+    }
 
     if (this.options.length === 0) {
-      // // console.log(`PICK_ONE: NO OPTIONS 1!`);
+      if (log_picker_enabled)
+        console.log(`PICK_ONE: NO OPTIONS 1!`);
+      
       return null;
     }
 
     let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     
     if (this.__indices_are_exhausted(legal_option_indices, priority)) {
-      // // console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      if (log_picker_enabled)
+        console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+      
       if (priority === picker_priority.avoid_repetition_long) {
         if (this.last_pick_index !== null) {
           const last_pick_index = this.last_pick_index;
@@ -1946,44 +1923,54 @@ class WeightedPicker {
       else {
         this.__clear_used_indices();
       }
-      
-      // console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+
+      if (log_picker_enabled)
+        console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
       
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
-      // // console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
-      // console.log(`BEFORE BAIL 1: ${inspect_fun(this.used_indices)}`);
+      if (log_picker_enabled)
+        console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+
       return null;
     }
 
     if (legal_option_indices.length === 1) {
-      // // console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      if (log_picker_enabled)
+        console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      
       this.__record_index_usage(legal_option_indices[0]);
-      // console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+
+      if (log_picker_enabled)
+        console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+      
       return this.options[legal_option_indices[0]].value;
     }
 
-    // console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+    if (log_picker_enabled)
+      console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
-    // console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
+    if (log_picker_enabled)
+      console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
-      // // console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-      // console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
-      // console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+
+      if (log_picker_enabled) {
+        console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+        console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+        console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+      }
+      
       total_weight += adjusted_weight;
     }
-    // console.log(`TOTAL_WEIGHT =  ${total_weight}`);
-    // console.log(`USED_INDICES AFTER TOTAL_WEIGHT: ${inspect_fun(this.used_indices)}`);
-    
-    // Since we now avoid adding options with a weight of 0, this shoul dnever be true:
+
+    // Since we now avoid adding options with a weight of 0, this should never be true:
     if (total_weight === 0) {
-      // return '';
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
                       `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
   [
@@ -1993,23 +1980,15 @@ class WeightedPicker {
   ]
 ), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
-
-      if (noisy) {
-        // console.log(`PICK_ONE: TOTAL WEIGHT === 0 3!`);
-      }
-    }
-    
-    if (noisy) {
-      // console.log(`TOTAL WEIGHT = ${typeof total_weight} ${total_weight}`);
     }
     
     let random = Math.random() * total_weight;
 
-    if (noisy) {
-      // console.log(`----------------------------------------------------------------------------------`);
-      // console.log(`RANDOM IS ${random}`);
-      // console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-      // console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+    if (log_picker_enabled) {
+      console.log(`----------------------------------------------------------------------------------`);
+      console.log(`RANDOM IS ${random}`);
+      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
     }
     
     for (const legal_option_ix of legal_option_indices) {
@@ -2018,10 +1997,9 @@ class WeightedPicker {
 
       if (adjusted_weight === 0)
         continue;
-
-      if (noisy) {
-        // console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
-      }
+      
+      if (log_picker_enabled)
+        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -2029,10 +2007,6 @@ class WeightedPicker {
       }
 
       random -= adjusted_weight;
-
-      if (noisy) {
-        // console.log(`RANDOM IS NOW ${random}`);
-      }
     }
 
     throw new Error("random selection failed");
@@ -2050,6 +2024,185 @@ class WeightedPicker {
 
 //   // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
 //   return prefix_arr.every((val, idx) => val === full_arr[idx]);
+// }
+// -------------------------------------------------------------------------------------------------
+// DT's env doesn't seem to have structuredClone, so we'll define our own:
+// -------------------------------------------------------------------------------------------------
+// var structured_clone_indent = 0;
+
+// function structured_clone(thing) {
+//   //throw new Error(`CLONING ${JSON.stringify(thing)}`);
+
+//   const log = log_structured_clone_enabled
+//         ? msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`)
+//         : msg => undefined;
+
+//   const log_enter = ()  => {
+//     log(`CLONE ${JSON.stringify(thing)}`);
+//     structured_clone_indent += 1;
+//   }
+
+//   if (thing === null || typeof thing !== "object") {
+//     log(`COPIED ${JSON.stringify(thing)}`);
+//     return thing;
+//   }
+//   else if (Array.isArray(thing)) {
+//     log_enter();
+//     const cloned =  [ ...thing.map(structured_clone) ];
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+//   else if (thing instanceof Set) {
+//     log_enter();
+//     const cloned = new Set();
+//     for (const value of thing.values()) {
+//       cloned.add(structured_clone(value));
+//     }
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+//   else if (thing instanceof Map) {
+//     log_enter();
+//     const cloned = new Map();
+//     for (const [key, value] of thing.entries()) {
+//       cloned.set(structured_clone(key), structured_clone(value));
+//     }
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+//   else {
+//     log_enter();
+//     const cloned = {};
+//     for (const key in thing) {
+//       if (Object.prototype.hasOwnProperty.call(thing, key)) {
+//         cloned[structured_clone(key)] = structured_clone(thing[key]);
+//       }
+//     }
+//     structured_clone_indent -= 1;
+//     log(`CLONED ${JSON.stringify(cloned)}`);
+//     return cloned;
+//   }
+// }
+// -------------------------------------------------------------------------------------------------
+let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =>  {
+  if (value === null || typeof value !== "object") {
+    return value;
+  }
+
+  if (!unshare) {
+    if (seen.has(value)) {
+      return seen.get(value); // Reuse existing clone
+    }
+  }
+
+  // Handle Array
+  if (Array.isArray(value)) {
+    const clone = [];
+    if (!unshare) seen.set(value, clone);
+    for (const item of value) {
+      clone.push(structured_clone(item, { seen, unshare }));
+    }
+    return clone;
+  }
+
+  // Handle Set
+  if (value instanceof Set) {
+    const clone = new Set();
+    if (!unshare) seen.set(value, clone);
+    for (const item of value) {
+      clone.add(structured_clone(item, { seen, unshare }));
+    }
+    return clone;
+  }
+
+  // Handle Map
+  if (value instanceof Map) {
+    const clone = new Map();
+    if (!unshare) seen.set(value, clone);
+    for (const [k, v] of value.entries()) {
+      clone.set(structured_clone(k, { seen, unshare }),
+                structured_clone(v, { seen, unshare }));
+    }
+    return clone;
+  }
+
+  // Handle Date
+  if (value instanceof Date) {
+    return new Date(value);
+  }
+
+  // Handle RegExp
+  if (value instanceof RegExp) {
+    return new RegExp(value);
+  }
+
+  // Handle plain Object
+  const clone = {};
+  if (!unshare) seen.set(value, clone);
+  for (const key of Object.keys(value)) {
+    clone[key] = structured_clone(value[key], { seen, unshare });
+  }
+  return clone;
+}
+// let structured_clone = (value, seen = new WeakMap()) => {
+//   if (value === null || typeof value !== "object") {
+//     return value;
+//   }
+
+//   if (seen.has(value)) {
+//     return seen.get(value); // Return existing clone, not an error
+//   }
+
+//   // Handle Array
+//   if (Array.isArray(value)) {
+//     const clone = [];
+//     seen.set(value, clone); // Store early to support self-reference
+//     for (const item of value) {
+//       clone.push(structured_clone(item, seen));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Set
+//   if (value instanceof Set) {
+//     const clone = new Set();
+//     seen.set(value, clone);
+//     for (const item of value) {
+//       clone.add(structured_clone(item, seen));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Map
+//   if (value instanceof Map) {
+//     const clone = new Map();
+//     seen.set(value, clone);
+//     for (const [k, v] of value.entries()) {
+//       clone.set(structured_clone(k, seen), structured_clone(v, seen));
+//     }
+//     return clone;
+//   }
+
+//   // Handle Date
+//   if (value instanceof Date) {
+//     return new Date(value);
+//   }
+
+//   // Handle RegExp
+//   if (value instanceof RegExp) {
+//     return new RegExp(value);
+//   }
+
+//   // Handle plain object
+//   const clone = {};
+//   seen.set(value, clone);
+//   for (const key of Object.keys(value)) {
+//     clone[key] = structured_clone(value[key], seen);
+//   }
+//   return clone;
 // }
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
@@ -2074,20 +2227,29 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
 //   return true;
 // }
 // -------------------------------------------------------------------------------------------------
-function is_flag_set(test_flag, set_flags) {
-  // GPT's idea, clearly inadequate.
-  return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
-}
+// function is_flag_set(test_flag, set_flags) {
+//   // GPT's idea, clearly inadequate.
+//   return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
+// }
 // -------------------------------------------------------------------------------------------------
-function add_lora_to_array(lora, array, to_description = "<UNDESCRIBED ARRAY>") {
-  console.log(`Adding this LoRa to ${to_description}: ${inspect_fun(lora)}`);
-  
-  const index = array.findIndex(existing => existing.file === lora.file);
-  if (index !== -1) {
-    array.splice(index, 1); // Remove the existing entry
-  }
-  array.push(lora); // Add the new entry at the end
-}
+// function add_lora_to_context(lora, context, indent = 0) {
+//   const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+//   const arr   = context.configuration.loras??[];
+//   const index = arr.findIndex(existing => existing.file === lora.file);
+
+//   if (index !== -1) {
+//     arr.splice(index, 1); // Remove the existing entry
+//   }
+
+//   arr.push(lora); // Add the new entry at the end
+
+//   if (arr !== context.configuration.loras)
+//     throw new Error("add_lora_to_context: arr !== array");
+
+//   context.configuration.loras = arr;
+
+//   log(`ADDED ${inspect_fun(lora)} TO ${context}`);
+// }
 // -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
@@ -2177,7 +2339,7 @@ function smart_join(arr) {
   if (arr.length === 0) // investigate why this is necessary.
     return '';
   
-  if (log_join_enabled)
+  if (log_smart_join_enabled)
     console.log(`JOINING ${inspect_fun(arr)}`);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
@@ -2205,7 +2367,7 @@ function smart_join(arr) {
     let next_char            = null;
 
     const add_a_space = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`SPACE!`);
 
       prev_char  = ' ';
@@ -2213,7 +2375,7 @@ function smart_join(arr) {
     }
 
     const chomp_left_side = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`CHOMP LEFT!`);
       
       str      = str.slice(0, -1);
@@ -2223,7 +2385,7 @@ function smart_join(arr) {
     };
     
     const chomp_right_side = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`CHOMP RIGHT!`);
 
       arr[ix] = arr[ix].slice(1);
@@ -2232,7 +2394,7 @@ function smart_join(arr) {
     }
 
     const consume_right_word = () => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`CONSUME ${inspect_fun(right_word)}!`);
 
       left_word  = right_word;
@@ -2240,7 +2402,7 @@ function smart_join(arr) {
     }
 
     const move_chars_left = (n) => {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`SHIFT ${n} CHARACTERS!`);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
@@ -2260,7 +2422,7 @@ function smart_join(arr) {
       next_char            = right_word[0] ?? '';
       next_char_is_escaped = right_word[0] === '\\';
 
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`ix = ${inspect_fun(ix)}, ` +
                     `str = ${inspect_fun(str)}, ` +
                     `left_word = ${inspect_fun(left_word)}, ` +         
@@ -2274,7 +2436,7 @@ function smart_join(arr) {
     update_pos_vars();
     
     if (right_word === '') {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`JUMP EMPTY!`);
 
       continue;
@@ -2310,7 +2472,7 @@ function smart_join(arr) {
     }
 
     if (right_word === '') {
-      if (log_join_enabled)
+      if (log_smart_join_enabled)
         console.log(`JUMP EMPTY (LATE)!`);
 
       continue;
@@ -2332,7 +2494,7 @@ function smart_join(arr) {
     consume_right_word();
   }
 
-  if (log_join_enabled)
+  if (log_smart_join_enabled)
     console.log(`JOINED ${inspect_fun(str)}`);
   
   return str;
@@ -2368,178 +2530,243 @@ const dt_samplers = [   // order is significant, do not rearrange!
 ];
 const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
 // -------------------------------------------------------------------------------------------------
-const config_key_names = [
+const configuration_key_names = [
   // [ dt_name, automatic1111_name ],
-  // shorthand, not a real field name:
-  [ 'neg',                               'negative_prompt'                            ],
-  [ 'negative',                          'negative_prompt'                            ],
-  [ 'negativePrompt',                    'neg'                                        ],
-  [ 'negativePrompt',                    'negative'                                   ],
+  // -----------------------------------------------------------------------------------------------
   // identical keys:
-  [ 'controls',                          'controls'                                   ],
-  [ 'fps',                               'fps'                                        ],
-  [ 'height',                            'height'                                     ],
-  [ 'loras',                             'loras'                                      ],
-  [ 'model',                             'model'                                      ],
-  [ 'prompt',                            'prompt'                                     ],
-  [ 'seed',                              'seed'                                       ],
-  [ 'sharpness',                         'sharpness'                                  ],
-  [ 'shift',                             'shift'                                      ],
-  [ 'strength',                          'strength'                                   ],
-  [ 'width',                             'width'                                      ],
-  [ 'upscaler',                          'upscaler'                                   ],
-  [ 'sampler',                           'sampler'                                    ], // ordering significant?
+  // -----------------------------------------------------------------------------------------------
+  { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
+  { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
+  { dt_name: 'height',                            automatic1111_name: 'height'                                     },
+  { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
+  { dt_name: 'model',                             automatic1111_name: 'model'                                      },
+  { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
+  { dt_name: 'sampler',                           automatic1111_name: 'sampler',
+    shorthands: ['sampler_index', 'sampler_name',                                                                ] },
+  { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
+  { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
+  { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
+  { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
+  { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
+  { dt_name: 'width',                             automatic1111_name: 'width'                                      },
+  { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
+  // -----------------------------------------------------------------------------------------------
   // differing keys:
-  [ 'aestheticScore',                    'aesthetic_score'                            ],
-  [ 'batchCount',                        'batch_count'                                ],
-  [ 'batchCount',                        'n_iter'                                     ],
-  [ 'batchSize',                         'batch_size'                                 ],
-  [ 'clipLText',                         'clip_l_text'                                ],
-  [ 'clipSkip',                          'clip_skip'                                  ],
-  [ 'clipWeight',                        'clip_weight'                                ],
-  [ 'cropLeft',                          'crop_left'                                  ],
-  [ 'cropTop',                           'crop_top'                                   ],
-  [ 'decodingTileHeight',                'decoding_tile_height' /* _explanation' */   ],
-  [ 'decodingTileOverlap',               'decoding_tile_overlap' /* _explanation' */  ],
-  [ 'decodingTileWidth',                 'decoding_tile_width' /* _explanation' */    ],
-  [ 'diffusionTileHeight',               'diffusion_tile_height' /* _explanation' */  ],
-  [ 'diffusionTileOverlap',              'diffusion_tile_overlap' /* _explanation' */ ],
-  [ 'diffusionTileWidth',                'diffusion_tile_width' /* _explanation' */   ],
-  [ 'guidanceEmbed',                     'guidance_embed'                             ],
-  [ 'guidanceScale',                     'cfg_scale'                                  ],
-  [ 'guidanceScale',                     'guidance'                                   ],
-  [ 'guidingFrameNoise',                 'cond_aug'                                   ],
-  [ 'hiresFix',                          'enable_hr'                                  ],
-  [ 'hiresFix',                          'high_resolution_fix'                        ],
-  [ 'hiresFixHeight',                    'firstphase_height'                          ],
-  [ 'hiresFixHeight',                    'hires_first_pass_height_explanation'        ],
-  [ 'hiresFixStrength',                  'hires_second_pass_strength_detail'          ],
-  [ 'hiresFixWidth',                     'firstphase_width'                           ],
-  [ 'hiresFixWidth',                     'hires_first_pass_width_explanation'         ],
-  [ 'imageGuidanceScale',                'image_guidance'                             ],
-  [ 'imagePriorSteps',                   'image_prior_steps'                          ],
-  [ 'maskBlur',                          'mask_blur'                                  ],
-  [ 'maskBlurOutset',                    'mask_blur_outset'                           ],
-  [ 'motionScale',                       'motion_scale'                               ],
-  [ 'negativeAestheticScore',            'negative_aesthetic_score'                   ],
-  [ 'negativeOriginalHeight',            'negative_original_height'                   ],
-  [ 'negativeOriginalWidth',             'negative_original_width'                    ],
-  [ 'negativePrompt',                    'negative_prompt'                            ],
-  [ 'negativePromptForImagePrior',       'negative_prompt_for_image_prior'            ],
-  [ 'openClipGText',                     'clip_g_text'                                ],  
-  [ 'openClipGText',                     'open_clip_g_text'                           ],
-  [ 'originalHeight',                    'original_height'                            ],
-  [ 'originalWidth',                     'original_width'                             ],
-  [ 'preserveOriginalAfterInpaint',      'preserve_original_after_inpaint'            ],
-  [ 'refinerModel',                      'num_frames'                                 ],
-  [ 'refinerStart',                      'refiner_start'                              ],
-  [ 'resolutionDependentShift',          'resolution_dependent_shift'                 ],
-  [ 'sampler',                           'sampler_index'                              ],
-  [ 'sampler',                           'sampler_name'                               ],
-  [ 'seedMode',                          'seed_mode'                                  ],
-  [ 'separateClipL',                     'separate_clip_l'                            ],
-  [ 'separateOpenClipG',                 'separate_open_clip_g'                       ],
-  [ 'separateT5',                        'separate_t5'                                ],
-  [ 'speedUpWithGuidanceEmbedParameter', 'speed_up_with_guidance_embed'               ],
-  [ 'stage2Cfg',                         'stage_2_cfg'                                ],
-  [ 'stage2Shift',                       'stage_2_shift'                              ],
-  [ 'stage2Steps',                       'stage_2_steps'                              ],
-  [ 'startFrameGuidance',                'start_frame_guidance'                       ],
-  [ 'stochasticSamplingGamma',           'strategic_stochastic_sampling'              ],
-  [ 'strength',                          'denoising_strength'                         ],
-  [ 't5Text',                            't5_text'                                    ],
-  [ 't5TextEncoder',                     't5_text_encoder'                            ],
-  [ 'targetHeight',                      'target_height'                              ],
-  [ 'targetWidth',                       'target_width'                               ],
-  [ 'teaCache',                          'tea_cache'                                  ],
-  [ 'teaCacheEnd',                       'tea_cache_end'                              ],
-  [ 'teaCacheMaxSkipSteps',              'tea_cache_max_skip_steps'                   ],
-  [ 'teaCacheStart',                     'tea_cache_start'                            ],
-  [ 'teaCacheThreshold',                 'tea_cache_threshold'                        ],
-  [ 'tiledDecoding',                     'tiled_decoding'                             ],
-  [ 'tiledDiffusion',                    'tiled_diffusion'                            ],
-  [ 'upscalerScaleFactor',               'upscaler_scale_factor'                      ],
-  [ 'zeroNegativePrompt',                'zero_negative_prompt'                       ],
+  // -----------------------------------------------------------------------------------------------
+  { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score'                            },
+  { dt_name: 'batchCount',                        automatic1111_name: 'batch_count'                                },
+  { dt_name: 'batchCount',                        automatic1111_name: 'n_iter'                                     },
+  { dt_name: 'batchSize',                         automatic1111_name: 'batch_size'                                 },
+  { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text',
+    shorthands: [ 'clip_l', 'clipl' ] },
+  { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip'                                  },
+  { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight'                                },
+  { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left'                                  },
+  { dt_name: 'cropTop',                           automatic1111_name: 'crop_top'                                   },
+  { dt_name: 'decodingTileHeight',                automatic1111_name: 'decoding_tile_height' /* _explanation' */   },
+  { dt_name: 'decodingTileOverlap',               automatic1111_name: 'decoding_tile_overlap' /* _explanation' */  },
+  { dt_name: 'decodingTileWidth',                 automatic1111_name: 'decoding_tile_width' /* _explanation' */    },
+  { dt_name: 'diffusionTileHeight',               automatic1111_name: 'diffusion_tile_height' /* _explanation' */  },
+  { dt_name: 'diffusionTileOverlap',              automatic1111_name: 'diffusion_tile_overlap' /* _explanation' */ },
+  { dt_name: 'diffusionTileWidth',                automatic1111_name: 'diffusion_tile_width' /* _explanation' */   },
+  { dt_name: 'guidanceEmbed',                     automatic1111_name: 'guidance_embed'                             },
+  { dt_name: 'guidanceScale',                     automatic1111_name: 'cfg_scale',
+    shorthands: [ 'guidance',                                                                                    ] },
+  { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug'                                   },
+  { dt_name: 'hiresFix',                          automatic1111_name: 'high_resolution_fix',
+    shorthands: [ 'enable_hr',                                                                                   ] },
+  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height_explanation',
+    shorthands: [ 'firstphase_height',                                                                           ] },
+  { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail'          },
+  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width_explanation',
+    shorthands: [ 'firstphase_width',                                                                            ] },
+  { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
+  { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
+  { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
+  { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
+  { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
+  { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
+  { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
+  { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
+  { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
+    shorthands: ['neg', 'negative' ] },
+  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
+  { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
+    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
+  { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
+  { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
+  { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
+  { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
+  { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
+  { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
+  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
+  { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
+    shorthands: [ 'separate_clipl',                                                                              ] },  
+  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
+    shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
+  { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
+  { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
+  { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
+  { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
+  { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
+  { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
+  { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
+  { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
+  { dt_name: 't5Text',                            automatic1111_name: 't5_text',
+    shorthands: [ 't5' ] },
+  { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
+  { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
+  { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
+  { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
+  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
+  { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
+  { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
+  { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
+  { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
+  { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
+  { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
+  { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
 ];
 // -------------------------------------------------------------------------------------------------
-function get_automatic111_name(dt_name) {
-  const got = config_key_names.find(([dt_name2, automatic1111_name]) => dt_name2 === dt_name);
-  if (got)
-    return got[1];
-  return dt_name;
+function get_other_name(return_key, find_key, find_value) {
+  if (log_name_lookups_enabled)
+    console.log(`\nLOOKING UP ${return_key} FOR ` +
+                `${inspect_fun(find_key)} ` +
+                `${inspect_fun(find_value)}`);
+
+  let find_value_lc = find_value.toLowerCase();
+
+  // -----------------------------------------------------------------------------------------------
+  // is find_value a shorthand?
+  // -----------------------------------------------------------------------------------------------
+  let got     = configuration_key_names.find(obj => 
+    obj?.shorthands?.includes(find_value_lc))
+
+  if (got) {
+    if (log_name_lookups_enabled)
+      console.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+
+    return got[return_key];
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // is it just miscapitalized?
+  // -----------------------------------------------------------------------------------------------
+  got = configuration_key_names.find(obj => {
+    if (log_name_lookups_enabled)
+      console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
+                  `${inspect_fun(find_value_lc)} = ` +
+                  `${obj[return_key].toLowerCase() === find_value_lc}`);
+    return obj[return_key].toLowerCase() === find_value_lc;
+  });
+
+  if (got) {
+    if (log_name_lookups_enabled)
+      console.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
+    
+    return got[return_key];
+  } 
+
+  // -----------------------------------------------------------------------------------------------
+  // look up the alternate key:
+  // -----------------------------------------------------------------------------------------------
+  got = configuration_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
+
+  if (got) {
+    if (log_name_lookups_enabled)
+      console.log(`GOT ${return_key} FOR ` +
+                  `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
+    
+    return got[return_key];
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // didn't find it on either sise, just return the argument:
+  // -----------------------------------------------------------------------------------------------
+  if (log_name_lookups_enabled) 
+    console.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
+
+  // possibly an error? maybe not always.
+  return find_value;
 }
 // -------------------------------------------------------------------------------------------------
-function get_dt_name(automatic1111_name) {
-  const got = config_key_names.find(([dt_name, automatic1111_name2]) => automatic1111_name2 === automatic1111_name);
-  if (got)
-    return got[0];
-  return automatic1111_name;
+function get_dt_name(name) {
+  return get_other_name('dt_name',            'automatic1111_name', name);
+}
+// -------------------------------------------------------------------------------------------------
+function get_automatic1111_name(name) {
+  return get_other_name('automatic1111_name', 'dt_name',            name);
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
   const res = (dt_hosted
                ? get_dt_name
-               : get_automatic111_name)(name);
+               : get_automatic1111_name)(name);
 
   // console.log(`got our name for ${name}: ${res}`);
   
   return res;
 }
 // -------------------------------------------------------------------------------------------------
-function munge_config(config, is_dt_hosted = dt_hosted) {
-  config = clone_fun(config);
+function munge_configuration(configuration, is_dt_hosted = dt_hosted) {
+  // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
+  
+  const munged_configuration = structured_clone(configuration);
 
-  if (is_empty_object(config))
-    return config;
+  if (configuration.loras && munged_configuration.loras && configuration.loras === munged_configuration.loras)
+    throw new Exception("Oh no, configuration.loras === munged_configuration.loras!");
+  
+  if (is_empty_object(munged_configuration))
+    return munged_configuration;
 
-  if (config.model === '') {
-    console.log(`WARNING: config.model is an empty string, deleting key! This probably isn't ` +
+  if (munged_configuration.model === '') {
+    console.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
                 `what you meant to do, your prompt template may contain an error!`);
-    delete config.model;
+    delete munged_configuration.model;
   }
-  else if (config.model) {
-    config.model = config.model.toLowerCase();
+  else if (munged_configuration.model) {
+    munged_configuration.model = munged_configuration.model.toLowerCase();
 
-    if (config.model.endsWith('.ckpt')) {
+    if (munged_configuration.model.endsWith('.ckpt')) {
       // do nothing
     }
-    else if (config.model.endsWith('_svd')) {
-      config.model = `${config.model}.ckpt`;
+    else if (munged_configuration.model.endsWith('_svd')) {
+      munged_configuration.model = `${munged_configuration.model}.ckpt`;
     }
-    else if (config.model.endsWith('_q5p')) {
-      config.model = `${config.model}.ckpt`;
+    else if (munged_configuration.model.endsWith('_q5p')) {
+      munged_configuration.model = `${munged_configuration.model}.ckpt`;
     }
-    else if (config.model.endsWith('_q8p')) {
-      config.model = `${config.model}.ckpt`;
+    else if (munged_configuration.model.endsWith('_q8p')) {
+      munged_configuration.model = `${munged_configuration.model}.ckpt`;
     }
-    else if (config.model.endsWith('_f16')) {
-      config.model = `${config.model}.ckpt`;
+    else if (munged_configuration.model.endsWith('_f16')) {
+      munged_configuration.model = `${munged_configuration.model}.ckpt`;
     }
     else {
-      config.model= `${config.model}_f16.ckpt`;
+      munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
     }
   }
   
   // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-  if (config.sampler && typeof config.sampler === 'string') {
-    const lc = config.sampler.toLowerCase();
+  if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
+    const lc = munged_configuration.sampler.toLowerCase();
     // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
     const got = dt_samplers_caps_correction.get(lc);
 
     if (got)
-      config.sampler = got;
+      munged_configuration.sampler = got;
   }
   
   if (is_dt_hosted) { // running in DT, sampler needs to be an index:
-    if (config.sampler !== undefined && typeof config.sampler === 'string') {
-      console.log(`Correcting config.sampler = ${inspect_fun(config.sampler)} to ` +
-                  `config.sampler = ${dt_samplers.indexOf(config.sampler)}.`);
-      config.sampler = dt_samplers.indexOf(config.sampler);
+    if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
+      console.log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+                  `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
+      munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
     }
     const corrected = new Set();
     
-    // for (const [dt_name, automatic1111_name] of config_key_names) {
-    //   if (config[automatic1111_name] !== undefined) {
+    // for (const [dt_name, automatic1111_name] of munged_configuration_key_names) {
+    //   if (munged_configuration[automatic1111_name] !== undefined) {
     //     if (corrected.has(dt_name))
     //       continue;
     
@@ -2548,25 +2775,25 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     //     if (automatic1111_name === dt_name)
     //       continue;
     
-    //     console.log(`Correcting config.${automatic1111_name} = ` +
-    //                 `${config[automatic1111_name]} to ` +
-    //                 `config.${dt_name} = ${config[automatic1111_name]}.`);
-    //     config[dt_name] = config[automatic1111_name];
-    //     delete config[automatic1111_name];
+    //     console.log(`Correcting munged_configuration.${automatic1111_name} = ` +
+    //                 `${munged_configuration[automatic1111_name]} to ` +
+    //                 `munged_configuration.${dt_name} = ${munged_configuration[automatic1111_name]}.`);
+    //     munged_configuration[dt_name] = munged_configuration[automatic1111_name];
+    //     delete munged_configuration[automatic1111_name];
     //   }
     // }
   }
   else { // running in Node.js, sampler needs to be a string:
-    if (config.sampler !== undefined && typeof config.sampler ===  'number') {
-      console.log(`Correcting config.sampler = ${config.sampler} to ` +
-                  `config.sampler = ${inspect_fun(dt_samplers[config.sampler])}.`);
-      config.sampler = dt_samplers[config.sampler];
+    if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
+      console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+                  `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
 
     // const corrected = new Set();
     
-    // for (const [dt_name, automatic1111_name] of config_key_names) {      
-    //   if (config[dt_name] !== undefined) {
+    // for (const [dt_name, automatic1111_name] of munged_configuration_key_names) {      
+    //   if (munged_configuration[dt_name] !== undefined) {
     //     if (corrected.has(dt_name))
     //       continue;
     
@@ -2575,34 +2802,34 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
     //     if (automatic1111_name === dt_name)
     //       continue;
     
-    //     console.log(`Correcting config.${dt_name} = ` +
-    //                 `${inspect_fun(config[dt_name])} to ` +
-    //                 `config.${automatic1111_name} = ${inspect_fun(config[dt_name])}.`);
-    //     config[automatic1111_name] = config[dt_name];
-    //     delete config[dt_name];
+    //     console.log(`Correcting munged_configuration.${dt_name} = ` +
+    //                 `${inspect_fun(munged_configuration[dt_name])} to ` +
+    //                 `munged_configuration.${automatic1111_name} = ${inspect_fun(munged_configuration[dt_name])}.`);
+    //     munged_configuration[automatic1111_name] = munged_configuration[dt_name];
+    //     delete munged_configuration[dt_name];
     //   }
     // }
   }
 
   // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if (! config.seed) {
+  if (! munged_configuration.seed) {
     const n_iter_key = get_our_name('n_iter');
 
-    if (config[n_iter_key] && (typeof config[n_iter_key] === 'number') && config[n_iter_key] > 1) {
-      if (log_config_enabled)
+    if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
+      if (log_configuration_enabled)
         console.log(`Fixing seed to -1 due to n_iter > 1.`);
 
-      config.seed = -1;
+      munged_configuration.seed = -1;
     }
-    else if (typeof config.seed !== 'number') {
-      config.seed = Math.floor(Math.random() * (2 ** 32));
+    else if (typeof munged_configuration.seed !== 'number') {
+      munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
     }
   }
 
-  //if (log_config_enabled)
-  console.log(`Munged config is: ${inspect_fun(config, null, 2)}`);
+  if (log_configuration_enabled)
+    console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
 
-  return config;
+  return munged_configuration;
 }
 // =================================================================================================
 // END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
@@ -2612,6 +2839,13 @@ function munge_config(config, is_dt_hosted = dt_hosted) {
 // =================================================================================================
 // HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
 // =================================================================================================
+var last_context_id = 0;
+// -------------------------------------------------------------------------------------------------
+function get_next_context_id() {
+  last_context_id += 1;
+  return last_context_id;
+}
+// -------------------------------------------------------------------------------------------------
 class Context {
   constructor({ 
     flags                        = [], 
@@ -2619,8 +2853,7 @@ class Context {
     named_wildcards              = new Map(),
     noisy                        = false,
     files                        = [],
-    config                       = {},
-    add_loras                    = [],
+    configuration                = {},
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority       = picker_priority.avoid_repetition_short,
@@ -2628,13 +2861,13 @@ class Context {
     prior_pick_multiple_priority = pick_multiple_priority,
     negative_prompt              = null,
   } = {}) {
+    this.context_id                   = get_next_context_id();
     this.flags                        = flags;
     this.scalar_variables             = scalar_variables;
     this.named_wildcards              = named_wildcards;
     this.noisy                        = noisy;
     this.files                        = files;
-    this.config                       = config;
-    this.add_loras                    = add_loras;
+    this.configuration                = configuration;
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
@@ -2645,6 +2878,22 @@ class Context {
       this.set_flag(["dt_hosted"]);
   }
   // -----------------------------------------------------------------------------------------------
+  add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
+    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    this.configuration.loras ||= [];
+    const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
+
+    if (index !== -1) {
+      if (! replace) return;
+      this.configuration.splice(index, 1); // Remove the existing entry
+    }
+    
+    this.configuration.loras.push(lora);
+
+    if (log_configuration_enabled)
+      log(`ADDED ${compress(inspect_fun(lora))} TO ${this}`);
+  }
+  // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
     // if (! Array.isArray(test_flag))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
@@ -2738,21 +2987,32 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    return new Context({
-      flags:                        this.flags.map(arr => [...arr]),
-      scalar_variables:             new Map(this.scalar_variables),
-      named_wildcards:              new Map(this.named_wildcards),
+    if (log_structured_clone_enabled)
+      console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    
+    const copy = new Context({
+      flags:                        structured_clone(this.flags),
+      scalar_variables:             new Map(this.scalar_variables), // slightly shared
+      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
       noisy:                        this.noisy,
-      files:                        [ ...this.files ],
-      config:                       { ...this.config }, /// ???
-      add_loras:                    [ ...this.add_loras
-                                      .map(o => ({ file: o.file, weigh: o.weight })) ],
+      files:                        structured_clone(this.files),
+      configuration:                structured_clone(this.configuration, { unshare: true }),
       top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,      
       prior_pick_multiple_priority: this.pick_multiple_priority,
     });
+
+    if (this.configuration.loras && copy.configuration.loras &&
+        this.configuration.loras === copy.configuration.loras)
+      throw new Error("oh no");
+
+    if (log_structured_clone_enabled)
+      console.log(`CLONED CONTEXT`);
+    
+    return copy;
+
   }
   // -----------------------------------------------------------------------------------------------
   shallow_copy() {
@@ -2762,8 +3022,8 @@ class Context {
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
       files:                        this.files,
-      config:                       this.config,
-      add_loras:                    this.add_loras,
+      configuration:                       structured_clone(this.configuration),
+      // add_loras:                    this.add_loras,
       top_file:                     false, // deliberately not copied!
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
@@ -2771,6 +3031,10 @@ class Context {
       prior_pick_multiple_priority: this.pick_multiple_priority,      
       negative_prompt:              this.negative_prompt,
     });
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `Context<#${this.context_id}, ${this.configuration?.loras?.length??0} loras>}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6087,7 +6351,7 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
-function expand_wildcards(thing, context = new Context()) {
+function expand_wildcards(thing, context = new Context(), indent = 0) {
   // ---------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
@@ -6118,7 +6382,21 @@ function expand_wildcards(thing, context = new Context()) {
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
-  function walk(thing) {
+  const log = (guard_bool, msg) => { 
+    if (! msg) throw new Error("bomb 1");
+    if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+  };
+  // -----------------------------------------------------------------------------------------------
+  function walk(thing, indent = 0) {
+    const log = (guard_bool, msg) => {
+      if (! msg) throw new Error("bomb 2");
+      if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    };
+    
+    log(log_expand_and_walk_enabled,
+        `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ${thing}` +
+        ` @ ${indent} in ${context}` );
+    
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
     // ---------------------------------------------------------------------------------------------
@@ -6128,25 +6406,16 @@ function expand_wildcards(thing, context = new Context()) {
     else if (Array.isArray(thing)) {
       const ret = [];
 
-      for (const t of thing) {
-        if (context.noisy)
-          console.log(`WALKING ` +
-                      typeof t === 'object'
-                      ? inspect_fun(t)
-                      : `${typeof t} '${t}'`);
-        
-        ret.push(walk(t));
-      }
+      for (const t of thing) 
+        ret.push(walk(t, indent + 1));
 
-      // console.log(`WALKING ARRAY RETURNS ${inspect_fun(ret)}`);
-      
       return ret;
     }
     // ---------------------------------------------------------------------------------------------
     // flags:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSetFlag) {
-      // console.log(`SET FLAG '${thing.name}'.`);
+      // log(`SET FLAG '${thing.name}'.`);
       
       context.set_flag(thing.flag);
 
@@ -6154,8 +6423,8 @@ function expand_wildcards(thing, context = new Context()) {
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUnsetFlag) {
-      if (log_flags_enabled)
-        console.log(`UNSETTING FLAG '${thing.flag}'.`);
+      log(log_flags_enabled,
+          `UNSETTING FLAG '${thing.flag}'.`);
 
       context.unset_flag(thing.flag);
       
@@ -6174,7 +6443,7 @@ function expand_wildcards(thing, context = new Context()) {
       
       if (got instanceof ASTLatchedNamedWildcardedValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(expand_wildcards(got, context)); // not walk!
+          res.push(expand_wildcards(got, context, indent + 1)); // not walk!
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
@@ -6185,7 +6454,7 @@ function expand_wildcards(thing, context = new Context()) {
                                allow_fun, forbid_fun,
                                priority);
         
-        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context))); // not walk!
+        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context, indent + 1))); // not walk!
       }
       
       res = res.filter(s => s !== '');
@@ -6220,16 +6489,16 @@ function expand_wildcards(thing, context = new Context()) {
         return `<ERROR: Named wildcard ${thing.name} not found!>`;
 
       if (got instanceof ASTLatchedNamedWildcardedValue) {
-        if (context.noisy)
-          console.log(`FLAG ${thing.name} ALREADY LATCHED...`);
+        log(context.noisy,
+            `NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
 
         return '';
       }
 
-      const latched = new ASTLatchedNamedWildcardedValue(walk(got), got);
+      const latched = new ASTLatchedNamedWildcardedValue(walk(got, indent + 1), got);
 
-      if (context.noisy)
-        console.log(`LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+      log(context.noisy,
+          `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
       
       context.named_wildcards.set(thing.name, latched);
 
@@ -6247,15 +6516,15 @@ function expand_wildcards(thing, context = new Context()) {
 
       context.named_wildcards.set(thing.name, got.original_value);
 
-      if (context.noisy)
-        console.log(`UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+      log(context.noisy,
+          `UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
 
       return ''; // produce no text.
     } 
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination))
-        console.log(`WARNING: redefining named wildcard '${thing.destination.name}'.`);
+        log(true, `WARNING: redefining named wildcard '${thing.destination.name}'.`);
 
       context.named_wildcards.set(thing.destination, thing.wildcard);
 
@@ -6271,13 +6540,12 @@ function expand_wildcards(thing, context = new Context()) {
     // scalar assignment:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateScalar) {
-      if (context.noisy) {
-        console.log();
-        console.log(`ASSIGNING ${inspect_fun(thing.source)} ` +
-                    `TO '${thing.destination.name}'`);
-      }
-
-      let   new_val  = walk(thing.source);
+      log(context.noisy, '');
+      log(context.noisy,
+          `ASSIGNING ${inspect_fun(thing.source)} ` +
+          `TO '${thing.destination.name}'`);
+      
+      let   new_val = walk(thing.source, indent + 1);
       const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
       if (! thing.assign)
@@ -6285,10 +6553,10 @@ function expand_wildcards(thing, context = new Context()) {
       
       context.scalar_variables.set(thing.destination.name, new_val);
 
-      if (context.noisy) {
-        console.log(`ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
-        console.log(`VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
-      }
+      log(context.noisy,
+          `ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
+      log(context.noisy,
+          `VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
       
       return '';
     }
@@ -6302,123 +6570,123 @@ function expand_wildcards(thing, context = new Context()) {
       if (! pick)
         return ''; // inelegant... investigate why this is necessary?
       
-      return walk(pick);
+      return walk(pick, indent + 1);
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUpdateConfigUnary ||
-             thing instanceof ASTUpdateConfigBinary) {
-      // console.log(`WALK ${inspect_fun(thing)}`);
-
+    else if (thing instanceof ASTUpdateConfigurationUnary ||
+             thing instanceof ASTUpdateConfigurationBinary) {
       let value = thing.value;
 
       if (value instanceof ASTNode) {
-        const expanded_value = expand_wildcards(thing.value, context); // not walk!
-        const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigUnary
+        const expanded_value = expand_wildcards(thing.value, context, indent + 1); // not walk!
+        const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                               ? rJsoncObject
                                               : rJsonc).match(expanded_value);
 
-        if (thing instanceof ASTUpdateConfigBinary) {
+        if (thing instanceof ASTUpdateConfigurationBinary) {
           value = jsconc_parsed_expanded_value?.is_finished
             ? jsconc_parsed_expanded_value.value
             : expanded_value;
         }
-        else { // ASTUpdateConfigUnary
+        else { // ASTUpdateConfigurationUnary
           throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
                           `rJSONC object, rJsonc.match(...) result was ` +
                           inspect_fun(jsconc_parsed_expanded_value));
         }
       }
+      else {
+        value = structured_clone(value);
+      }
 
-      if (thing instanceof ASTUpdateConfigUnary) { // ASTUpdateConfigUnary
+      if (thing instanceof ASTUpdateConfigurationUnary) { // ASTUpdateConfigurationUnary
         let new_obj = value;
 
         for (const key of Object.keys(value)) {
           new_obj[get_our_name(key)??key] = value[key]
         }
         
-        context.config = thing.assign
+        context.configuration = thing.assign
           ? new_obj
-          : { ...context.config, ...new_obj };
+          : { ...context.configuration, ...new_obj };
 
-        if (log_config_enabled)
-          console.log(`config ${thing.assign ? '=' : '+='} ` +
-                      `${inspect_fun(new_obj, true)}, ` +
-                      `config is now: ` +
-                      `${inspect_fun(context.config, true)}`);
+        log(log_configuration_enabled,
+            `configuration ${thing.assign ? '=' : '+='} ` +
+            `${inspect_fun(new_obj, true)}, ` +
+            `configuration is now: ` +
+            `${inspect_fun(context.configuration, true)}`);
       }
-      else { // ASTUpdateConfigBinary
+      else { // ASTUpdateConfigurationBinary
         const our_name = get_our_name(thing.key); 
         
         if (thing.assign) {
-          context.config[our_name] = value;
+          context.configuration[our_name] = value;
         }
         else { // increment
           if (Array.isArray(value)) {
-            const tmp_arr = context.config[our_name]??[];
+            const tmp_arr = context.configuration[our_name]??[];
 
             if (! Array.isArray(tmp_arr))
               throw new Error(`can't add array ${inspect_fun(value)} ` +
                               `to non-array ${inspect_fun(tmp_arr)}`);
             
             const new_arr = [ ...tmp_arr, ...value ];
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by array ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(new_arr)}`);
-            context.config[our_name] = new_arr;
+            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+            //           `increment by array ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun(new_arr)}`);
+            context.configuration[our_name] = new_arr;
           }
           else if (typeof value === 'object') {
-            const tmp_obj = context.config[our_name]??{};
+            const tmp_obj = context.configuration[our_name]??{};
 
             if (typeof tmp_obj !== 'object')
               throw new Error(`can't add object ${inspect_fun(value)} `+
                               `to non-object ${inspect_fun(tmp_obj)}`);
 
             const new_obj = { ...tmp_obj, ...value };
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by object ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(new_obj)}`);
-            context.config[our_name] = new_obj;
+            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+            //           `increment by object ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun(new_obj)}`);
+            context.configuration[our_name] = new_obj;
           }
           else if (typeof value === 'number') {
-            const tmp_num = context.config[our_name]??0;
+            const tmp_num = context.configuration[our_name]??0;
             
             if (typeof tmp_num !== 'number')
               throw new Error(`can't add number ${inspect_fun(value)} `+
                               `to non-number ${inspect_fun(tmp_num)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by number ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[our_name]??0) + value)}`);
-            context.config[our_name] = tmp_num + value;
+            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+            //           `increment by number ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+            context.configuration[our_name] = tmp_num + value;
           }
           else if (typeof value === 'string') {
-            const tmp_str = context.config[our_name]??'';
+            const tmp_str = context.configuration[our_name]??'';
 
             if (typeof tmp_str !== 'string')
               throw new Error(`can't add string ${inspect_fun(value)} `+
                               `to non-string ${inspect_fun(tmp_str)}`);
 
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by string ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun((context.config[our_name]??'') + value)}`);
-            context.config[our_name] = smart_join([tmp_str, value]);
+            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+            //           `increment by string ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+            context.configuration[our_name] = smart_join([tmp_str, value]);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
-            // console.log(`current value ${inspect_fun(context.config[our_name])}, ` +
-            //             `increment by unknown ${inspect_fun(value)}, ` +
-            //             `total ${inspect_fun(context.config[our_name]??null + value)}`);
-            context.config[our_name] = (context.config[our_name]??null) + value;
+            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+            //           `increment by unknown ${inspect_fun(value)}, ` +
+            //           `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+            context.configuration[our_name] = (context.configuration[our_name]??null) + value;
           }
         }
 
-        if (log_config_enabled)
-          console.log(// `${thing.assign ? "Set" : "Incremented"} ` +
-            `config.${our_name} ` +
-              `${thing.assign ? '=' : '+='} ` +
-              `${inspect_fun(value, true)}, ` +
-              `config is now: ` +
-              `${inspect_fun(context.config, true)}`);
+        log(log_configuration_enabled,
+            `configuration.${our_name} ` +
+            `${thing.assign ? '=' : '+='} ` +
+            `${inspect_fun(value, true)}, ` +
+            `configuration is now: ` +
+            `${inspect_fun(context.configuration, true)}`);
       }
       
       return '';
@@ -6426,7 +6694,6 @@ function expand_wildcards(thing, context = new Context()) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSetPickSingle || 
              thing instanceof ASTSetPickMultiple) {
-      const walked = picker_priority[expand_wildcards(thing.limited_content, context)];
       const cur_key = thing instanceof ASTSetPickSingle
             ? 'pick_one_priority'
             : 'pick_multiple_priority';
@@ -6435,9 +6702,11 @@ function expand_wildcards(thing, context = new Context()) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
+      const walked    = picker_priority[expand_wildcards(thing.limited_content,
+                                                         context, indent + 1).toLowerCase()];
 
-      // if (log_config_enabled)
-      //   console.log(`SET PICK DATA: ` +
+      // if (log_configuration_enabled)
+      //   log(`SET PICK DATA: ` +
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val,
       //                               walked: walked})}`);
@@ -6448,13 +6717,9 @@ function expand_wildcards(thing, context = new Context()) {
       context[prior_key] = context[cur_key];
       context[cur_key]   = walked;
 
-      if (log_config_enabled)
-        // console.log(
-        //   `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-        // `${inspect_fun(walked)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);      
-        console.log(
+      log(log_configuration_enabled,
           `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(walked)}.`);
+          `${inspect_fun(walked)}.`);
       
       return '';
     }
@@ -6470,16 +6735,16 @@ function expand_wildcards(thing, context = new Context()) {
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
 
-      // if (log_config_enabled)
-      //   console.log(`REVERT PICK DATA: ` +
+      // if (log_configuration_enabled)
+      //   log(`REVERT PICK DATA: ` +
       //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
       //                               cur_val: cur_val, prior_val: prior_val })}`);
       
-      if (log_config_enabled)
-        // console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
-        console.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                    `${inspect_fun(prior_val)}.`);
+      // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+      //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
+      log(log_configuration_enabled,
+          `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+          `${inspect_fun(prior_val)}.`);
       
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
@@ -6490,11 +6755,12 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTLora:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      // console.log(`ENCOUNTERED ${inspect_fun(thing)}`);
+      log(log_expand_and_walk_enabled,
+          `ENCOUNTERED LORA ${thing} IN ${context}`);
       
-      let walked_file = expand_wildcards(thing.file, context); // not walk!
+      let walked_file = expand_wildcards(thing.file, context, indent + 1); // not walk!
 
-      // console.log(`walked_file is ${typeof walked_file} ` +
+      // log(`walked_file is ${typeof walked_file} ` +
       //             `${walked_file.constructor.name} ` +
       //             `${inspect_fun(walked_file)} ` +
       //             `${Array.isArray(walked_file)}`);
@@ -6502,16 +6768,22 @@ function expand_wildcards(thing, context = new Context()) {
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
-      let walked_weight = expand_wildcards(thing.weight, context); // not walk!
-
-      // console.log(`walked_weight is ${typeof walked_weight} ` +
+      // if (Array.isArray(thing.weight))
+      //   throw new Error("boom");
+      
+      let walked_weight = expand_wildcards(thing.weight, context, indent + 1); // not walk!
+      
+      // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
+      //   throw "bomb";
+      
+      // log(`walked_weight is ${typeof walked_weight} ` +
       //             `${walked_weight.constructor.name} ` +
       //             `${inspect_fun(walked_weight)} ` +
       //             `${Array.isArray(walked_weight)}`);
       
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
-      
+
       const weight_match_result = json_number.match(walked_weight);
 
       if (!weight_match_result || !weight_match_result.is_finished)
@@ -6538,10 +6810,8 @@ function expand_wildcards(thing, context = new Context()) {
       }
 
       const weight = weight_match_result.value;
-
-      add_lora_to_array({ file: file, weight: weight },
-                        context.add_loras,
-                        "context.add_loras");
+      
+      context.add_lora_uniquely({ file: file, weight: weight }, { indent: indent });
       
       return '';
     }
@@ -6549,8 +6819,8 @@ function expand_wildcards(thing, context = new Context()) {
     // ASTUpdateNegativePrompt:
     // ---------------------------------------------------------------------------------------------
     // else if (thing instanceof ASTUpdateNegativePrompt) {
-    //   const temporaryNode = new ASTUpdateConfigBinary("negative_prompt", thing.value, thing.assign);
-    //   return expand_wildcards(temporaryNode, context);
+    //   const temporaryNode = new ASTUpdateConfigurationBinary("negative_prompt", thing.value, thing.assign);
+    //   return expand_wildcards(temporaryNode, context, indent + 1);
     // }
     // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
@@ -6564,9 +6834,16 @@ function expand_wildcards(thing, context = new Context()) {
                       inspect_fun(thing));
     }
   }
-  
-  const ret = unescape(smart_join(walk(thing)));
 
+  log(log_expand_and_walk_enabled,
+      `Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} ` +
+      `@ ${indent} in ${context}`);
+  
+  const ret = unescape(smart_join(walk(thing, indent + 1)));
+
+  log(log_expand_and_walk_enabled,
+      `Expanded into ${inspect_fun(ret)}`);
+  
   // if (ret === undefined)
   //   throw new Error("what");
   
@@ -6598,6 +6875,10 @@ class ASTSetFlag extends ASTNode {
     // if (this.flag === undefined)
     //   throw new Error("stop after constructing ASTSetFlag");
   }
+  // --------------------------------------------------------------------------------------------------
+  toString() {
+    return `#${this.flag.join('.')}`;
+  }
 }
 // --------------------------------------------------------------------------------------------------
 class ASTUnsetFlag extends ASTNode {
@@ -6608,6 +6889,10 @@ class ASTUnsetFlag extends ASTNode {
 
     super();
     this.flag = flag_arr;
+  }
+  // --------------------------------------------------------------------------------------------------
+  toString() {
+    return `#!${this.flag.join('.')}`;
   }
 }
 // --------------------------------------------------------------------------------------------------
@@ -6625,6 +6910,20 @@ class ASTCheckFlags extends ASTNode {
 
     if (log_flags_enabled)
       console.log(`constructed ${inspect_fun(this)}`)
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    let str = '?';
+
+    const flag_strs = [];
+    
+    for (const flag of this.flags)
+      flag_strs.push(flag.join('.'));
+
+    str += flag_strs.join(',');
+
+    return str;
+    // return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6649,6 +6948,22 @@ class ASTNotFlag extends ASTNode  {
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
+  // -------------------------------------------------------------------------------------------------
+  toString() {
+    let str = `!`;
+
+    if (this.set_immediately)
+      str += '#';
+
+    str += this.flag.join('.');
+
+    if (this.consequently_set_flag_tail) {
+      str += '#';
+      str += this.consequently_set_flag_tail.join('.');
+    }
+
+    return str;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // NamedWildcard references:
@@ -6663,6 +6978,26 @@ class ASTNamedWildcardReference extends ASTNode {
     this.capitalize = capitalize;
     // console.log(`BUILT ${inspect_fun(this)}`);
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    var str = '@';
+
+    if (this.capitalize)
+      str += this.capitalize;
+
+    if (this.min_count != 1  || this.max_count != 1) {
+      if (this.min_count !== this.max_count)
+        str += `${this.min_count}-${this.max_count}`;
+      else
+        str += `${this.max_count}`;
+
+      str += this.joiner;
+    }
+
+    str += this.name;
+    
+    return str;
+  };
 }
 // -------------------------------------------------------------------------------------------------
 // Scalar references:
@@ -6695,6 +7030,11 @@ class ASTLora extends ASTNode {
     this.weight = weight;
     // console.log(`Constructed LoRa ${this}!`);
   }
+  // -----------------------------------------------------------------------------------------------
+  toString(with_types = false ) {
+    return `<lora:${with_types ? `${this.file.constructor.name} ` : ``}${this.file}: ` +
+      `${with_types ? `${this.weight.constructor.name} ` : ``}${this.weight}>`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Latch a NamedWildcard:
@@ -6723,6 +7063,10 @@ class ASTNamedWildcardDefinition extends ASTNode {
     this.destination = destination;
     this.wildcard    = wildcard;
   }
+  // -------------------------------------------------------------------------------------------------
+  toString() {
+    return `@${this.destination} = ${this.wildcard}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Internal usage.. might not /really/ be part of the AST per se?
@@ -6746,6 +7090,12 @@ class ASTAnonWildcard  extends ASTNode {
     // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
+    // return `{ ${this.picker.options.map(x => `${x.value.constructor.name} ${x.value}`  ).join(" | ")} }`;
+    // return `{ ${this.picker.options.map(x => `${typeof x === 'object' ? x.constructor.name : typeof x} ${x.value.toString()}`).join(" | ")} }`;
+  }
+  // -----------------------------------------------------------------------------------------------
   pick(...args) {
     return this.picker.pick(...args);
   }
@@ -6763,6 +7113,32 @@ class ASTAnonWildcardAlternative extends ASTNode {
     this.not_flags   = not_flags;
     this.body        = body;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    var str = '';
+
+    if (this.weight !== 1)
+      str += `${this.weight} `;
+
+    var bits = [];
+
+    for (const check of this.check_flags)
+      bits.push(check.toString());
+    
+    for (const not of this.not_flags)
+      bits.push(not.toString());
+    
+    for (const thing of this.body) {
+      // console.log(`push bit ${thing.toString()} (${thing.toString().length})`)
+      bits.push(thing.toString());
+    }
+
+    str += bits.join(' ');
+
+    // console.log(`BITS: ${inspect_fun(bits)}`);
+    
+    return str;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Directives:
@@ -6775,7 +7151,7 @@ class ASTInclude extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTUpdateConfigUnary extends ASTNode {
+class ASTUpdateConfigurationUnary extends ASTNode {
   constructor(value, assign) {
     super();
     this.value = value;
@@ -6783,12 +7159,17 @@ class ASTUpdateConfigUnary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTUpdateConfigBinary extends ASTNode {
+class ASTUpdateConfigurationBinary extends ASTNode {
   constructor(key, value, assign) {
     super();
     this.key    = key;
     this.value  = value;
     this.assign = assign;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%${this.key} ${this.assign? '=' : '+='} ` +
+      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6851,6 +7232,10 @@ const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(co
 const escaped_brc              = second(choice('\\{', '\\}'));
 const filename                 = /[A-Za-z0-9 ._\-()]+/;
 // ^ conservative regex, no unicode or weird symbols
+// -------------------------------------------------------------------------------------------------
+// discard comments:
+// -------------------------------------------------------------------------------------------------
+const DiscardedComments        = discard(wst_star(comment));
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
@@ -6999,104 +7384,117 @@ const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_b
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const DiscardedComments                = discard(wst_star(comment));
-const SpecialFunctionInclude           = xform(arr => new ASTInclude(arr[1]),
-                                               c_funcall('%include',
-                                                         first(wst_seq(DiscardedComments,
-                                                                       json_string,
-                                                                       DiscardedComments))))
-const UnexpectedSpecialFunctionInclude = unexpected(SpecialFunctionInclude,
-                                                    () => "%include is only supported when " +
-                                                    "using wildcards-plus-tool.js, NOT when " +
-                                                    "running the wildcards-plus.js script " +
-                                                    "inside Draw Things!");
+const SpecialFunctionInclude =
+      xform(arr => new ASTInclude(arr[1]),
+            c_funcall('include',                          // [0]
+                      first(wst_seq(DiscardedComments,    // -
+                                    json_string,          // [1]
+                                    DiscardedComments)))) // -
+const UnexpectedSpecialFunctionInclude =
+      unexpected(SpecialFunctionInclude,
+                 () => "%include is only supported when " +
+                 "using wildcards-plus-tool.js, NOT when " +
+                 "running the wildcards-plus.js script " +
+                 "inside Draw Things!");
 const SpecialFunctionSetPickSingle =
-      xform(arr => new ASTSetPickSingle(arr[1]),
-            wst_cutting_seq(wst_seq('%single_pick', assignment_operator),
-                            choice(() => LimitedContent, /[a-z_]+/)));
+      xform(arr => new ASTSetPickSingle(arr[1][1]),
+            seq('single-pick',                                      // [0]
+                wst_seq(DiscardedComments,                          // -
+                        assignment_operator,                        // [1][0]
+                        DiscardedComments,                          // -
+                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionSetPickMultiple =
-      xform(arr => new ASTSetPickMultiple(arr[1]),
-            wst_cutting_seq(wst_seq('%multi_pick', assignment_operator),
-                            choice(() => LimitedContent, /[a-z_]+/)));
+      xform(arr => new ASTSetPickSingle(arr[1][1]),
+            seq('multi-pick',                                       // [0]
+                wst_seq(DiscardedComments,                          // -
+                        assignment_operator,                        // [1][0]
+                        DiscardedComments,                          // -
+                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            '%revert_single_pick');
+            'revert-single-pick');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            '%revert_multi_pick');
-const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigBinary(arr[1][0], arr[1][1][1], arr[1][1][0] == '='),
-            cutting_seq(/%c(?:onf(?:ig)?)?\./,                           // [0]
-                        seq(ident,                                       // [1][0]
-                            wst_seq(choice(incr_assignment_operator,
-                                           assignment_operator),         // [1][1][0]
-                                    choice(rJsonc,
-                                           () => LimitedContent)))));    // [1][1][1]
-const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigUnary(arr[1], arr[0][1] == '='),
-            wst_cutting_seq(wst_seq(/%c(?:onf(?:ig)?)?/,                 // [0][0]
-                                    choice(incr_assignment_operator,
-                                           assignment_operator)),        // [0][1]
-                            choice(rJsoncObject, () => LimitedContent))); // [1]   
-const SpecialFunctionUpdateConfiguration = choice(SpecialFunctionUpdateConfigurationUnary,
-                                                  SpecialFunctionUpdateConfigurationBinary,
-                                                  //SpecialFunctionUpdateNegativePrompt
-                                                 );
-const SpecialFunctionNotInclude          = choice(SpecialFunctionUpdateConfiguration,
-                                                  // SpecialFunctionSetConfiguration,
-                                                  SpecialFunctionSetPickSingle,
-                                                  SpecialFunctionSetPickMultiple,
-                                                  SpecialFunctionRevertPickSingle,
-                                                  SpecialFunctionRevertPickMultiple);
-const AnySpecialFunction                  = choice((dt_hosted
-                                                    ? UnexpectedSpecialFunctionInclude
-                                                    : SpecialFunctionInclude),
-                                                   SpecialFunctionNotInclude);
+            'revert-multi-pick');
+const SpecialFunctionConfigurationUpdateBinary =
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
+            seq(c_ident,                                                          // [0]
+                wst_seq(DiscardedComments,                                        // -
+                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
+                        DiscardedComments,                                        // -
+                        choice(rJsonc, () => LimitedContent, plaintext))));       // [1][1]
+const SpecialFunctionConfigurationUpdateUnary =
+      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+            seq(/conf(?:ig)?/,                                                    // [0]
+                wst_seq(DiscardedComments,                                        // -
+                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
+                        DiscardedComments,                                        // -
+                        choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
+// -------------------------------------------------------------------------------------------------
+const NormalSpecialFunction =
+      choice(SpecialFunctionSetPickSingle,
+             SpecialFunctionSetPickMultiple,
+             SpecialFunctionRevertPickSingle,
+             SpecialFunctionRevertPickMultiple,
+             SpecialFunctionConfigurationUpdateUnary,
+             SpecialFunctionConfigurationUpdateBinary);
+const SpecialFunctionNotInclude =
+      second(cutting_seq('%',
+                         NormalSpecialFunction,
+                         DiscardedComments,
+                         lws(optional(';'))));
+const AnySpecialFunction =
+      second(cutting_seq('%',
+                         choice((dt_hosted
+                                 ? UnexpectedSpecialFunctionInclude
+                                 : SpecialFunctionInclude),
+                                NormalSpecialFunction),
+                         DiscardedComments,
+                         lws(optional(';'))));
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 () => ContentStar));
-const AnonWildcardAlternativeNoLoras = xform(make_ASTAnonWildcardAlternative,
-                                             seq(wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 optional(wb_uint, 1),
-                                                 wst_star(choice(comment, TestFlag,
-                                                                 SetFlag, UnsetFlag)),
-                                                 () => ContentStarNoLoras));
-const AnonWildcard                   = xform(arr => new ASTAnonWildcard(arr),
-                                             brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const AnonWildcardNoLoras            = xform(arr => new ASTAnonWildcard(arr),
-                                             brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-const NamedWildcardReference         = xform(seq(discard('@'),
-                                                 optional('^'),                             // [0]
-                                                 optional(xform(parseInt, /\d+/)),          // [1]
-                                                 optional(xform(parseInt,
-                                                                second(seq('-', /\d+/)))),  // [2]
-                                                 optional(/[,&]/),                          // [3]
-                                                 ident),                                    // [4]
-                                             arr => {
-                                               const ident  = arr[4];
-                                               const min_ct = arr[1][0] ?? 1;
-                                               const max_ct = arr[2][0] ?? min_ct;
-                                               const join   = arr[3][0] ?? '';
-                                               const caret  = arr[0][0];
-                                               
-                                               return new ASTNamedWildcardReference(ident,
-                                                                                    join,
-                                                                                    caret,
-                                                                                    min_ct,
-                                                                                    max_ct);
-                                             });
+const AnonWildcardAlternative =
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                optional(wb_uint, 1),
+                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                () => ContentStar));
+const AnonWildcardAlternativeNoLoras =
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                optional(wb_uint, 1),
+                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                () => ContentStarNoLoras));
+const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+const NamedWildcardReference  = xform(seq(discard('@'),
+                                          optional('^'),                             // [0]
+                                          optional(xform(parseInt, /\d+/)),          // [1]
+                                          optional(xform(parseInt,
+                                                         second(seq('-', /\d+/)))),  // [2]
+                                          optional(/[,&]/),                          // [3]
+                                          ident),                                    // [4]
+                                      arr => {
+                                        const ident  = arr[4];
+                                        const min_ct = arr[1][0] ?? 1;
+                                        const max_ct = arr[2][0] ?? min_ct;
+                                        const join   = arr[3][0] ?? '';
+                                        const caret  = arr[0][0];
+                                        
+                                        return new ASTNamedWildcardReference(ident,
+                                                                             join,
+                                                                             caret,
+                                                                             min_ct,
+                                                                             max_ct);
+                                      });
 const NamedWildcardDesignator = second(seq('@', ident)); 
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
                                       wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
                                                               assignment_operator),    // -
+                                                      DiscardedComments,
                                                       AnonWildcard));                  // [1]
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
@@ -7120,29 +7518,31 @@ const ScalarReference         = xform(seq('$', optional('^'), ident),
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == '=='),
+                                                                 arr[0][1] == '='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
+                                                              DiscardedComments,
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      () => LimitedContent));               // [1]
-const LimitedContent          = choice(
-  NamedWildcardReference,
-  AnonWildcardNoLoras,
-  ScalarReference,
-);
-const ContentNoLoras          = choice(
-  NamedWildcardReference,
-  NamedWildcardUsage,
-  SetFlag,
-  UnsetFlag,
-  escaped_brc,
-  AnonWildcard,
-  ScalarUpdate,
-  ScalarReference,
-  comment,
-  SpecialFunctionNotInclude,
-  plaintext,
-);
+                                                      DiscardedComments,                    // [1]
+                                                      choice(() => LimitedContent,
+                                                             json_string,
+                                                             plaintext),
+                                                      DiscardedComments,
+                                                      lws(optional(';'))));
+const LimitedContent          = choice(NamedWildcardReference,
+                                       AnonWildcardNoLoras,
+                                       ScalarReference);
+const ContentNoLoras          = choice(comment,
+                                       NamedWildcardReference,
+                                       NamedWildcardUsage,
+                                       SetFlag,
+                                       UnsetFlag,
+                                       escaped_brc,
+                                       AnonWildcard,
+                                       ScalarUpdate,
+                                       ScalarReference,
+                                       SpecialFunctionNotInclude,
+                                       plaintext);
 const Content                 = choice(A1111StyleLora, ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
@@ -7167,8 +7567,6 @@ Prompt.finalize();
 // -------------------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
-// v DT's env doesn't seem to have structuredClone :(
-const pipeline_configuration      = clone_fun(pipeline.configuration);
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "";
 let   prompt_string               = ui_prompt;
@@ -7225,28 +7623,31 @@ console.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
 // -------------------------------------------------------------------------------------------------
 // parse the prompt_string here:
 // -------------------------------------------------------------------------------------------------
+
 const parse_result     = Prompt.match(prompt_string);
 
 if (! parse_result.is_finished)
   throw new Error(`error parsing prompt!`);
 
 const AST              = parse_result.value;
+
 // -------------------------------------------------------------------------------------------------
 
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`pipeline.configuration is:`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
-console.log(`pipeline.prompts is:`);
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
-console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
+// console.log(`-----------------------------------------------------------------------------------------------------------------`);
+// console.log(`pipeline.prompts is:`);
+// console.log(`-----------------------------------------------------------------------------------------------------------------`);
+// console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`The wildcards-plus prompt is:`);
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
 console.log(`${prompt_string}`);
 
 const base_context = load_prelude();
+base_context.configuration          = pipeline.configuration;
 base_context.pick_one_priority      = user_selected_pick_one_priority;
 base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 
@@ -7262,76 +7663,23 @@ for (let ix = 0; ix < batch_count; ix++) {
 
   // expand the wildcards using a cloned context and generate a new configuration:
   
-  const context                 = base_context.clone();
-
-  // console.log(`CLONED: ${inspect_fun(context)}`);
-  
-  // console.log(`PL_C.L: ${inspect_fun(pipeline_configuration.loras)}`);
-  // console.log(`PL.C.L: ${inspect_fun(pipeline.configuration.loras)}`);
-
-  const generated_prompt        = expand_wildcards(AST, context);
-  const generated_configuration = { ...clone_fun(pipeline_configuration),
-                                    seed: -1,
-                                    ...munge_config(context.config) };
-  const add_loras               = context.add_loras;
-  // const negative_prompt         = context.negative_prompt;
-  // const added_loras_files       = [];
-
-  if (add_loras.length > 0) {
-    if (log_config_enabled && add_loras.length !== 0) {
-      console.log(`-----------------------------------------------------------------------------------------------------------------`);
-      console.log(`Found add_loras in Context: ${inspect_fun(add_loras)} in Context.`);
-    }
-
-    // console.log(`GENERATED CONFIGURATION BEFORE ADDING LORAS:\n` +
-    //             `${JSON.stringify(generated_configuration)}`);
-    
-    if (generated_configuration.loras && generated_configuration.length > 0)
-      generated_configuration.loras = [ ...generated_configuration.loras ];
-    else 
-      generated_configuration.loras ||= [];
-
-    for (const lora of add_loras) {
-      const already_have_this_lora = pipeline.configuration.loras
-            .filter(l => l.file === lora.file).length > 0;
-
-      // console.log(`THIS: ${already_have_this_lora}`);
-      
-      if (! already_have_this_lora) {
-        // added_loras_files.push(lora.file);
-        // console.log(`RECORDED ${inspect_fun(added_loras_files)}.`);
-        add_lora_to_array(lora, generated_configuration.loras, "generated_configuration");
-      }
-      
-      // console.log(`GENERATED CONFIGURATION AFTER ADDING A LORA:\n` +
-      //             `${JSON.stringify(generated_configuration)}`);
-    }
-  }
+  const context          = base_context.clone();
+  const prompt = expand_wildcards(AST, context);
+  context.configuration         = munge_configuration(context.configuration);
 
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`GENERATED CONFIGURATION:`);
-  console.log(`${JSON.stringify(generated_configuration, null, 2)}`);
+  console.log(`${JSON.stringify(context.configuration, null, 2)}`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`The expanded prompt is:`);
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
-  console.log(`${generated_prompt}`);
-  // console.log(`-----------------------------------------------------------------------------------------------------------------`);
-
-  // if (context.config.negative_prompt || context.config.negative_prompt === '') {
-  //   console.log(`------------------------------------------------------------------------------------------`);
-  //   console.log(`#1: Expanded negative prompt in context.config.negative_prompt:`);
-  //   console.log(`------------------------------------------------------------------------------------------`);
-  //   console.log(context.config.negative_prompt);
-  // } else {
-  //   console.log(`------------------------------------------------------------------------------------------`);
-  //   console.log(`#1: No negative prompt!`);
-  // }
-
-  if (context.config.negativePrompt || context.config.negativePrompt === '') {
+  console.log(`${prompt}`);
+  
+  if (context.configuration.negativePrompt || context.configuration.negativePrompt === '') {
     console.log(`-----------------------------------------------------------------------------------------------------------------`);
     console.log(`Expanded negative prompt:`);
     console.log(`-----------------------------------------------------------------------------------------------------------------`);
-    console.log(context.config.negativePrompt);
+    console.log(context.configuration.negativePrompt);
   } else {
     console.log(`-----------------------------------------------------------------------------------------------------------------`);
     console.log(`No negative prompt/`);
@@ -7344,12 +7692,12 @@ for (let ix = 0; ix < batch_count; ix++) {
   // -----------------------------------------------------------------------------------------------
   canvas.clear();
 
-  const negative_prompt = generated_configuration.negativePrompt;
-  delete generated_configuration.negativePrompt;
+  const negative_prompt = context.configuration.negativePrompt;
+  delete context.configuration.negativePrompt;
   
   pipeline.run({
-    configuration: generated_configuration,
-    prompt: generated_prompt,
+    configuration: context.configuration,
+    prompt: prompt,
     negativePrompt: negative_prompt,
   });
 
@@ -7357,30 +7705,6 @@ for (let ix = 0; ix < batch_count; ix++) {
   const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
   console.log(`... image generated in ${elapsed_time} seconds.`);
-
-  // if (added_loras_files.files === 0)
-  //   console.log(`DID NOT ADD ANYTHING!`);
-  // else
-  //   console.log(`To remove: ${inspect_fun(added_loras_files)}`);
-  
-  // for (let ix = 0; ix < added_loras_files.length; ix++) {
-  //   const lora_file = added_loras_files[ix];
-  
-  //   console.log(`Look for '${lora_file}' in ${JSON.stringify(pipeline.configuration.loras, null, 2)}...`);
-  
-  //   const other_loras = pipeline.configuration.loras.filter(l => l.file != lora_file);
-  //   console.log(`other_loras = ${inspect_fun(other_loras)}, p.c.l = ${inspect_fun(pipeline.configuration.loras)}`);
-  //   console.log(`other_loras.length = ${other_loras.length}, p.c.l.l = ${pipeline.configuration.loras.length}`);
-  
-  //   if (other_loras.length !== pipeline.configuration.loras.length) {
-  //     console.log(`Removing lora "${lora_file}".`);
-
-  //     pipeline.configuration.loras = other_loras;
-  //     console.log(`PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
-  //   }
-  // }
-  
-  // console.log(`END PIPELINE.CONFIGURATION.LORAS; = ${inspect_fun(pipeline.configuration.loras)}`)
 }
 
 console.log(`-----------------------------------------------------------------------------------------------------------------`);
