@@ -463,8 +463,10 @@ class Rule {
           .__impl_toString(visited, next_id, ref_counts)
           .replace('() => ', '');
     
-    if (this.direct_children().length == 0)
+    if (this.direct_children().length == 0) {
+      return __call_impl_toString();
       return abbreviate(__call_impl_toString(), 16);
+    }
     
     if (visited.has(this)) {
       const got_id = visited.get(this);
@@ -635,7 +637,10 @@ class Plus extends Quantified {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    return `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}+`;
+    return this.separator_rule
+      ? (`${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}` +
+         `/${this.separator_rule}+`)
+      : `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}+`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -658,7 +663,10 @@ class Star extends Quantified {
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
     // return `${this.__vivify(this.rule).__toString(visited, next_id)}*`;
-    return `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}*`;
+    return this.separator_rule
+      ? (`${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}` +
+         `/${this.separator_rule}*`)
+      : `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}*`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -8111,10 +8119,12 @@ const Z        = l('z');
 const TestRule = seq('x', Z, Z, () => TestRule); 
 // console.log(`${TestRule}`);
 // console.log(``);
-console.log(`${Prompt}`);
+// console.log(`${Prompt}`);
 
 // console.log(`${NormalSpecialFunction}`);
 // console.log(`${inspect_fun(NormalSpecialFunction.options)}`);
 
 // for (const [ix, option] of NormalSpecialFunction.options.entries())
 //   console.log(`#${ix}: ${option}`)
+// console.log(`${CheckFlagWithSetConsequent}`);
+console.log(`${CheckFlagWithOrAlternatives}`);
