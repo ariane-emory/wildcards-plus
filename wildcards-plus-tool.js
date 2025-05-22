@@ -6440,13 +6440,13 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
         typeof thing === 'object' ? thing.constructor.name : typeof thing;
   // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg) => { 
-    if (! msg) throw new Error("bomb 1");
+    if (! msg && msg !== '') throw new Error("bomb 1");
     if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = (guard_bool, msg) => {
-      if (! msg) throw new Error("bomb 2");
+      if (! msg && msg !== '') throw new Error("bomb 1");
       if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     };
 
