@@ -6451,19 +6451,19 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // basic types (strings and Arrays):
     // ---------------------------------------------------------------------------------------------
     if (typeof thing === 'string')
-          return thing;
-        // ---------------------------------------------------------------------------------------------
-        else if (Array.isArray(thing)) {
-          const ret = [];
+      return thing;
+    // ---------------------------------------------------------------------------------------------
+    else if (Array.isArray(thing)) {
+      const ret = [];
 
-          for (const t of thing) 
-            ret.push(walk(t, indent + 1));
+      for (const t of thing) 
+        ret.push(walk(t, indent + 1));
 
-          return ret;
-        }
-        // ---------------------------------------------------------------------------------------------
-        // flags:
-        // ---------------------------------------------------------------------------------------------
+      return ret;
+    }
+    // ---------------------------------------------------------------------------------------------
+    // flags:
+    // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSetFlag) {
       // log(`SET FLAG '${thing.name}'.`);
       
@@ -6888,7 +6888,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   // log(log_expand_and_walk_enabled,
   //     `expand thing: ${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())}`);
 
-  const str = abbreviate(Array.isArray(thing) ? thing.join(' ') : typeof thing === 'string' ? inspect_fun(thing) : thing.toString());
+  const str = abbreviate(Array.isArray(thing)
+                         ? thing.join(' ')
+                         : (typeof thing === 'string'
+                            ? inspect_fun(thing)
+                            : thing.toString()));
   
   log(log_expand_and_walk_enabled,
       `Expanding wildcards in ${thing.constructor.name} ` +
