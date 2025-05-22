@@ -850,7 +850,7 @@ class Enclosed extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
-    return [ this.start_rule, this.rule, this.end_rule ];
+    return [ this.start_rule, this.body_rule, this.end_rule ];
   }
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
