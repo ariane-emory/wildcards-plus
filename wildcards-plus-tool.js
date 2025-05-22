@@ -439,15 +439,11 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   toString() {
     const ref_counts = this.collect_ref_counts();
-
-
-    const next_id = { value: 0 };
+    const next_id    = { value: 0 };
 
     if (ref_counts.size > 0) {
       console.log(`REF_COUNTS:`);
-      
       console.log('{');
-
       
       for (const [key, value] of ref_counts)
         //if (value > 1)
@@ -487,7 +483,7 @@ class Rule {
         
     if (got > 1 && ! ret.match(/^#\d+/)) {
       console.log(`got: ${got}`);
-      ret = `#${next_id.value}=${ret}`;
+      ret = `#${next_id.value}#=${ret}`;
     }
     
     return ret;
