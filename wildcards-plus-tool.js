@@ -472,17 +472,25 @@ class Rule {
         visited.set(this, next_id.value);
       }
       
-      return `#${visited.get(this)}`;
+      return `#${got}`;
     }
-
+    
     visited.set(this, NaN); // next_id.value);
 
     let ret = this.__impl_toString(visited, next_id, ref_counts).replace('() => ', '');
 
-    const got = ref_counts.get(this);
+    const got_ref_count = ref_counts.get(this);
         
-    if (got > 1 && ! ret.match(/^#\d+/)) {
-      console.log(`got: ${got}`);
+    if (got_ref_count > 1 && ! ret.match(/^#\d+/)) {
+      console.log(`got_ref_count: ${got_ref_count}`);
+
+      const got = visited.get(this);
+
+      if (Object.is(got, NaN)) {
+        next_id.value += 1;
+        visited.set(this, next_id.value);
+      }
+
       ret = `#${next_id.value}#=${ret}`;
     }
     
