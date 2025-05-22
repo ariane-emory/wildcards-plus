@@ -440,11 +440,12 @@ class Rule {
   toString() {
     const ref_counts = this.collect_ref_counts();
 
-    console.log(`REF_COUNTS:`);
 
     const next_id = { value: 1 };
 
     if (ref_counts.size > 0) {
+      console.log(`REF_COUNTS:`);
+      
       console.log('{');
 
       
@@ -8098,5 +8099,5 @@ main().catch(err => {
 
 // just for demonstration... this is kind of a silly rule since it would only match an infinite series of 'x'-es:
 const TestRule = seq('x', () => TestRule); 
-// console.log(`${TestRule}`);
-console.log(`${Prompt}`);
+console.log(`${TestRule}`);
+// console.log(`${Prompt}`);
