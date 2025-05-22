@@ -471,14 +471,14 @@ class Rule {
       return `#${visited.get(this)}`;
     }
 
-    // Mark as visited (but not yet emitted)
+    // mark as visited (but not yet emitted)
     visited.set(this, NaN);
 
     const got_ref_count  = ref_counts.get(this);
     let should_assign_id = got_ref_count > 1;
 
     if (should_assign_id) {
-      // Pre-assign ID now so recursive calls can reference it
+      // pre-assign ID now so recursive calls can reference it
       next_id.value += 1;
       visited.set(this, next_id.value);
     }
@@ -7722,8 +7722,8 @@ const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick', word_break));
 const SpecialFunctionRevertPickMultiple =
-      xform(() => new ASTRevertPickMultiple(),
-            'revert-multi-pick', word_break);
+      xform(() => new ASTRevertPickSingle(),
+            seq('revert-multi-pick', word_break));
 const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                          // [0]
@@ -8097,6 +8097,12 @@ main().catch(err => {
 // just for demonstration... this is kind of a silly rule since it would only match an infinite series of 'x'-es:
 const Z        = l('z');
 const TestRule = seq('x', Z, Z, () => TestRule); 
-console.log(`${TestRule}`);
-console.log(``);
+// console.log(`${TestRule}`);
+// console.log(``);
 console.log(`${Prompt}`);
+
+// console.log(`${NormalSpecialFunction}`);
+// console.log(`${inspect_fun(NormalSpecialFunction.options)}`);
+
+// for (const [ix, option] of NormalSpecialFunction.options.entries())
+//   console.log(`#${ix}: ${option}`)
