@@ -6450,7 +6450,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     
     log(log_expand_and_walk_enabled,
         `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ` +
-        `${abbreviate(Array.isArray(thing) ? thing.join(' ') : typeof thing === 'string' ? inspect_fun(thing) : thing.toString())} ` +
+        `${thing_str_repr(thing)} ` + 
         `in ${context}` // +
         // `@ ${indent}`
        );
