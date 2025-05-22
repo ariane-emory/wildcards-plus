@@ -466,30 +466,30 @@ class Rule {
         next_id.value += 1;
         visited.set(this, next_id.value);
       }
-      
-      return `#${got}`;
+
+      return `#${visited.get(this)}`;
     }
-    
-    visited.set(this, NaN); // next_id.value);
 
-    let ret = this.__impl_toString(visited, next_id, ref_counts).replace('() => ', '');
+    // Mark as visited (but not yet emitted)
+    visited.set(this, NaN);
 
-    const got_ref_count = ref_counts.get(this);
-        
-    if (got_ref_count > 1 && ! ret.match(/^#\d+/)) {
-      console.log(`got_ref_count: ${got_ref_count}`);
+    const ref_count = ref_counts.get(this);
+    let shouldAssignId = ref_count > 1;
 
-      const got = visited.get(this);
-
-      if (Object.is(got, NaN)) {
-        next_id.value += 1;
-        visited.set(this, next_id.value);
-      }
-
-      ret = `#${next_id.value}=${ret}`;
+    if (shouldAssignId) {
+      // Pre-assign ID now so recursive calls can reference it
+      next_id.value += 1;
+      visited.set(this, next_id.value);
     }
-    
-    return ret;
+
+    let body = this.__impl_toString(visited, next_id, ref_counts)
+        .replace('() => ', '');
+
+    if (shouldAssignId) {
+      return `#${visited.get(this)}=${body}`;
+    } else {
+      return body;
+    }
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
