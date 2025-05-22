@@ -330,7 +330,12 @@ const trailing_separator_modes = Object.freeze({
 class Rule {
   // -----------------------------------------------------------------------------------------------
   direct_children() {
-    return this.__direct_children();
+    const ret = this.__direct_children();
+
+    if (ret.includes(undefined))
+      throw new Error(`__direct_children included undefined for ${this.constructor.name}`);
+
+    return ret;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -345,8 +350,8 @@ class Rule {
 
     ref_counts.set(this, 1);
 
-    for (const direct_child of this.__direct_children()) {
-      // console.log(`direct_child = ${inspect_fun(direct_child)}`);
+    for (const direct_child of this.direct_children()) {
+      console.log(`direct_child = ${inspect_fun(direct_child)}`);
       this.__vivify(direct_child).collect_ref_counts(ref_counts);
     }
 
