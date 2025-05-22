@@ -461,7 +461,7 @@ class Rule {
           .replace('() => ', '');
     
     if (this.direct_children().length == 0)
-      return abbreviate(__call_impl_toString(), 20);
+      return abbreviate(__call_impl_toString(), 16);
     
     if (ref_counts === undefined)
       throw new Error('got undefined!');
