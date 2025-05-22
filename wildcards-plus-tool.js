@@ -6655,7 +6655,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           : { ...context.configuration, ...new_obj };
 
         log(log_configuration_enabled,
-            `${thing.assign ? '=' : '+='} ` +
+            `config ${thing.assign ? '=' : '+='} ` +
             `${inspect_fun(new_obj, true)}, ` +
             `configuration is now: ` +
             `${inspect_fun(context.configuration, true)}`);
@@ -6727,7 +6727,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
         }
 
         log(log_configuration_enabled,
-            `configuration.${our_name} ` +
+            `config.${our_name} ` +
             `${thing.assign ? '=' : '+='} ` +
             `${inspect_fun(value, true)}, ` +
             `configuration is now: ` +
@@ -7252,7 +7252,7 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%${this.key} ${this.assign? '=' : '+='} ` +
+    return `%${get_our_name(this.key)} ${this.assign? '=' : '+='} ` +
       `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
