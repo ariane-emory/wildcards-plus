@@ -8051,5 +8051,6 @@ main().catch(err => {
 // console.log(`${Prompt}`);
 
 // just for demonstration... this is kind of a silly rule since it would only match an infinite series of 'x'-es:
-const TestRule = seq('x', () => TestRule); 
-console.log(`${TestRule}`);
+// const TestRule = seq('x', () => TestRule); 
+// console.log(`${TestRule}`);
+console.log(`${Prompt}`);
