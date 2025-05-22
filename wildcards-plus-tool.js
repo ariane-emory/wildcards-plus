@@ -446,14 +446,9 @@ class Rule {
       console.log('{');
       
       for (const [key, value] of ref_counts)
-        //if (value > 1)
         console.log(`  ${inspect_fun(key, true)} ` +
                     `=> ${value},`);
-      // console.log(`  ${key
-      //                      .__toString(new Map(), next_id, ref_counts)
-      //                      .replace('() => ', '')} ` +
-      //             `=> ${value},`);
-
+      
       console.log('}');
     }
     
@@ -491,7 +486,7 @@ class Rule {
         visited.set(this, next_id.value);
       }
 
-      ret = `#${next_id.value}#=${ret}`;
+      ret = `#${next_id.value}=${ret}`;
     }
     
     return ret;
