@@ -3052,15 +3052,17 @@ class Context {
 
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
-          log(`fixing seed to -1 due to n_iter > 1.`);
+          log(`%seed = -1 due to n_iter > 1`);
 
         munged_configuration.seed = -1;
       }
       else if (typeof munged_configuration.seed !== 'number') {
+        const random = Math.floor(Math.random() * (2 ** 32));
+        
         if (log_configuration_enabled)
-          log(`randomizing seed due to no seed.`);
+          log(`%seed = ${random} due to no seed`);
 
-        munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
+        munged_configuration.seed = random;
       }
     }
 
@@ -6673,9 +6675,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
         log(log_configuration_enabled,
             `%config ${thing.assign ? '=' : '+='} ` +
-            `${inspect_fun(new_obj, true)}, ` +
-            `configuration is now: ` +
-            `${inspect_fun(context.configuration, true)}`);
+            `${inspect_fun(new_obj, true)}`
+            // + `, configuration is now: ` +
+            // `${inspect_fun(context.configuration, true)}`
+           );
       }
       else { // ASTUpdateConfigurationBinary
         const our_name = get_our_name(thing.key); 
@@ -6746,9 +6749,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
         log(log_configuration_enabled,
             `%${our_name} ` +
             `${thing.assign ? '=' : '+='} ` +
-            `${inspect_fun(value, true)}, ` +
-            `configuration is now: ` +
-            `${inspect_fun(context.configuration, true)}`);
+            `${inspect_fun(value, true)}`
+            // + `, configuration is now: ` +
+            // `${inspect_fun(context.configuration, true)}`
+           );
       }
       
       return '';
