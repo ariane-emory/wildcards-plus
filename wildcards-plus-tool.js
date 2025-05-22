@@ -406,7 +406,7 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
     throw new Error(`__direct_children is not implemented by ${this.constructor.name}`);
-}
+  }
   // -----------------------------------------------------------------------------------------------
   toString() {
     return this.__toString(new Map(), { value: 0 }).replace('() => ', '');
