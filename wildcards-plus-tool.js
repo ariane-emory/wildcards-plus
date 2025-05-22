@@ -330,6 +330,7 @@ const trailing_separator_modes = Object.freeze({
 class Rule {
   // -----------------------------------------------------------------------------------------------
   direct_children() {
+    return this.__direct_children();
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -425,6 +426,9 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
+    throw new Error("bomb");
+    const ret_counts = this.collect_ref_counts();
+    console.log(`ref_countsl: ${inspect_fun(ref_counts)}`);
     return this.__toString(new Map(), { value: 0 }).replace('() => ', '');
   }
   // -----------------------------------------------------------------------------------------------
@@ -8046,5 +8050,5 @@ main().catch(err => {
 // console.log(`${Prompt}`);
 
 // just for demonstration... this is kind of a silly rule since it would only match an infinite series of 'x'-es:
-// const TestRule = seq('x', () => TestRule); 
-// console.log(`${TestRule}`);
+const TestRule = seq('x', () => TestRule); 
+console.log(`${TestRule}`);
