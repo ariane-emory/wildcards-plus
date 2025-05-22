@@ -346,11 +346,11 @@ class Rule {
     ref_counts.set(this, 1);
 
     for (const direct_child of this.__direct_children()) {
+      // console.log(`direct_child = ${inspect_fun(direct_child)}`);
       this.__vivify(direct_child).collect_ref_counts(ref_counts);
-      direct_child.collect_ref_counts(ref_counts);
     }
 
-    return counts;
+    return ref_counts;
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0) {
