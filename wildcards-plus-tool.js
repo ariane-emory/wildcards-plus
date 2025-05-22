@@ -7432,7 +7432,6 @@ class ASTAnonWildcardAlternative extends ASTNode {
 class ASTInclude extends ASTNode {
   constructor(args) {
     super();
-    // this.directive = directive;
     this.args      = args;
   }
   // -----------------------------------------------------------------------------------------------
