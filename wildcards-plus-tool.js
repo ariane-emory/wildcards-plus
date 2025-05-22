@@ -442,16 +442,16 @@ class Rule {
 
     console.log(`REF_COUNTS:`);
 
-    if (ref_counts.size > 0) {
-      console.log('{');
-      
-      for (const [key, value] of ref_counts)
-        if (value > 1)
-          console.log(`  ${key.__toString(new Map(), { value: 0 }).replace('() => ', '')} ` +
-                      `=> ${value},`);
+    // if (ref_counts.size > 0) {
+    //   console.log('{');
+    
+    //   for (const [key, value] of ref_counts)
+    //     if (value > 1)
+    //       console.log(`  ${key.__toString(new Map(), { value: 0 }).replace('() => ', '')} ` +
+    //                   `=> ${value},`);
 
-      console.log('}');
-    }
+    //   console.log('}');
+    // }
     
     return this.__toString(new Map(), { value: 0 }, ref_counts).replace('() => ', '');
   }
