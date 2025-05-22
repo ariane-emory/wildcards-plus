@@ -6888,9 +6888,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   // log(log_expand_and_walk_enabled,
   //     `expand thing: ${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())}`);
 
+  const str = abbreviate(Array.isArray(thing) ? thing.join(' ') : typeof thing === 'string' ? inspect_fun(thing) : thing.toString());
+  
   log(log_expand_and_walk_enabled,
       `Expanding wildcards in ${thing.constructor.name} ` +
-      `${abbreviate(Array.isArray(thing) ? thing.join(' ') : typeof thing === 'string' ? inspect_fun(thing) : thing.toString())} ` +
+      `${str} ` + 
       `in ${context}` // +
       // `@ ${indent}`
      );
