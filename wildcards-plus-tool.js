@@ -329,6 +329,29 @@ const trailing_separator_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 class Rule {
   // -----------------------------------------------------------------------------------------------
+  direct_children() {
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    throw new Error(`__direct_children is not implemented by ${this.constructor.name}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  collect_ref_counts(ref_counts = new Map()) {
+    if (ref_counts.has(this)) {
+      ref_counts.set(this, ref_counts.get(this) + 1);
+      return ref_counts;
+    }
+
+    ref_counts.set(this, 1);
+
+    for (const direct_child of this.__direct_children()) {
+      this.__vivify(direct_child).collect_ref_counts(ref_counts);
+      direct_child.collect_ref_counts(ref_counts);
+    }
+
+    return counts;
+  }
+  // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0) {
     if (typeof input !== 'string') {
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
@@ -399,13 +422,6 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     throw new Error(`__impl_finalize is not implemented by ${this.constructor.name}`);    
-  }
-  // -----------------------------------------------------------------------------------------------
-  direct_children() {
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    throw new Error(`__direct_children is not implemented by ${this.constructor.name}`);
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
