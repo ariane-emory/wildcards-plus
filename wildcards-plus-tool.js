@@ -460,9 +460,9 @@ class Rule {
       throw new Error('got undefined!');
 
     if (visited.has(this)) {
-      const got = visited.get(this);
+      const got_id = visited.get(this);
 
-      if (Object.is(got, NaN)) {
+      if (Object.is(got_id, NaN)) {
         next_id.value += 1;
         visited.set(this, next_id.value);
       }
