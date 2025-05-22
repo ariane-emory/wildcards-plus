@@ -7364,7 +7364,8 @@ const word_break               = /(?=\s|[{|}]|$)/;
 // const plaintext                = /(?:\\\s|[^\s{|}])+/;
 // const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
 // const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
-const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
+const plaintext                = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
+const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 // const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
