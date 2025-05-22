@@ -456,6 +456,9 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __toString(visited, next_id, ref_counts) {
+    if (ref_counts === undefined)
+      throw new Error('got undefined ref_counts!');
+
     const __call_impl_toString = () => this
           .__impl_toString(visited, next_id, ref_counts)
           .replace('() => ', '');
@@ -463,9 +466,6 @@ class Rule {
     if (this.direct_children().length == 0)
       return abbreviate(__call_impl_toString(), 16);
     
-    if (ref_counts === undefined)
-      throw new Error('got undefined!');
-
     if (visited.has(this)) {
       const got_id = visited.get(this);
       return `#${visited.get(this)}`;
