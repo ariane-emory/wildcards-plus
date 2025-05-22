@@ -442,18 +442,25 @@ class Rule {
 
     console.log(`REF_COUNTS:`);
 
-    // if (ref_counts.size > 0) {
-    //   console.log('{');
-    
-    //   for (const [key, value] of ref_counts)
-    //     if (value > 1)
-    //       console.log(`  ${key.__toString(new Map(), { value: 0 }).replace('() => ', '')} ` +
-    //                   `=> ${value},`);
+    const next_id = { value: 0 };
 
-    //   console.log('}');
-    // }
+    if (ref_counts.size > 0) {
+      console.log('{');
+
+      
+      for (const [key, value] of ref_counts)
+        //if (value > 1)
+        console.log(`  ${inspect_fun(key, true)} ` +
+                    `=> ${value},`);
+      // console.log(`  ${key
+      //                      .__toString(new Map(), next_id, ref_counts)
+      //                      .replace('() => ', '')} ` +
+      //             `=> ${value},`);
+
+      console.log('}');
+    }
     
-    return this.__toString(new Map(), { value: 0 }, ref_counts).replace('() => ', '');
+    return this.__toString(new Map(), next_id, ref_counts).replace('() => ', '');
   }
   // -----------------------------------------------------------------------------------------------
   __toString(visited, next_id, ref_counts) {
@@ -473,17 +480,19 @@ class Rule {
 
     visited.set(this, NaN); // next_id.value);
 
-    let ret = this.__impl_toString(visited, next_id).replace('() => ', '');
+    let ret = this.__impl_toString(visited, next_id, ref_counts).replace('() => ', '');
 
     const got = ref_counts.get(this);
-    
-    if (got > 1)
-      ret = `#${got}=${str}`;
+        
+    if (got > 1 && ! ret.match(/^#\d+/)) {
+      console.log(`got: ${got}`);
+      ret = `#${next_id.value}=${ret}`;
+    }
     
     return ret;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     throw new Error(`__impl_toString is not implemented by ` +
                     `${this.constructor.name}`);
   }
@@ -626,8 +635,8 @@ class Plus extends Quantified {
       : __quantified_match_result;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    return `${this.__vivify(this.rule).__toString(visited, next_id)}+`;
+  __impl_toString(visited, next_id, ref_counts) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}+`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -648,9 +657,9 @@ class Star extends Quantified {
     return this.__quantified_match(indent, input, index);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     // return `${this.__vivify(this.rule).__toString(visited, next_id)}*`;
-    return `${this.__vivify(this.rule).__toString(visited, next_id)}*`;
+    return `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}*`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -715,11 +724,11 @@ class Choice extends Rule  {
     return null;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     return `{ ${this.options
                 .map(x =>
                        this.__vivify(x)
-                       .__toString(visited, next_id)).join(" | ")} }`;
+                       .__toString(visited, next_id, ref_counts)).join(" | ")} }`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -775,8 +784,8 @@ class Discard extends Rule {
     return mr;
   } 
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    return `-${this.__vivify(this.rule).__toString(visited, next_id)}`;
+  __impl_toString(visited, next_id, ref_counts) {
+    return `-${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -830,9 +839,10 @@ class Element extends Rule {
     return rule_match_result
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     return `${this.__vivify(this.rule)?.__toString(visited,
-                                                   next_id)}[${this.index}]`;
+                                                   next_id,
+                                                   ref_counts)}[${this.index}]`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -929,10 +939,10 @@ class Enclosed extends Rule {
                            end_rule_match_result.index);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    return `[${this.__vivify(this.start_rule).__toString(visited, next_id)} ` +
-      `${this.__vivify(this.body_rule).__toString(visited, next_id)} ` +
-      `${this.__vivify(this.end_rule).__toString(visited, next_id)}]`;
+  __impl_toString(visited, next_id, ref_counts) {
+    return `[${this.__vivify(this.start_rule).__toString(visited, next_id, ref_counts)} ` +
+      `${this.__vivify(this.body_rule).__toString(visited, next_id, ref_counts)} ` +
+      `${this.__vivify(this.end_rule).__toString(visited, next_id, ref_counts)}]`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -960,10 +970,10 @@ class CuttingEnclosed extends Enclosed {
         `${abbreviate(input.substring(start_rule_result.index))}`);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    return `[${this.__vivify(this.start_rule).__toString(visited, next_id)}! ` +
-      `${this.__vivify(this.body_rule).__toString(visited, next_id)} ` +
-      `${this.__vivify(this.end_rule).__toString(visited, next_id)}]`
+  __impl_toString(visited, next_id, ref_counts) {
+    return `[${this.__vivify(this.start_rule).__toString(visited, next_id, ref_counts)}! ` +
+      `${this.__vivify(this.body_rule).__toString(visited, next_id, ref_counts)} ` +
+      `${this.__vivify(this.end_rule).__toString(visited, next_id, ref_counts)}]`
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1006,7 +1016,7 @@ class Label extends Rule {
       rule_match_result.index);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     return `L('${this.label}', ` +
       `${this.__vivify(this.rule).__toString(visited, next_id)})`;
   }
@@ -1038,7 +1048,7 @@ class NeverMatch extends Rule  {
     return null;
   } 
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     return `<NEVER MATCH>`;
   }
 }
@@ -1090,8 +1100,8 @@ class Optional extends Rule {
     this.rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    return `${this.__vivify(this.rule).__toString(visited, next_id)}?`;
+  __impl_toString(visited, next_id, ref_counts) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}?`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1210,9 +1220,10 @@ class Sequence extends Rule {
     return mr;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    const elem_strs = this.elements.map(x => this.__vivify(x)
-                                        .__toString(visited, next_id));
+  __impl_toString(visited, next_id, ref_counts) {
+    const elem_strs = this.elements.map(x => this.__vivify(x) .__toString(visited,
+                                                                          next_id,
+                                                                          ref_counts));
     const str       = elem_strs.join(' ');
     return `(${str})`;
   }
@@ -1242,10 +1253,10 @@ class CuttingSequence extends Sequence {
         `${abbreviate(input.substr(start_rule_result.index))}`);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    const first_str = `${this.__vivify(this.elements[0]).__toString(visited, next_id)}!`;
+  __impl_toString(visited, next_id, ref_counts) {
+    const first_str = `${this.__vivify(this.elements[0]).__toString(visited, next_id, ref_counts)}!`;
     const rest_strs = this.elements.slice(1).map(x => this.__vivify(x)
-                                                 .__toString(visited, next_id));
+                                                 .__toString(visited, next_id, ref_counts));
     const str       = [ first_str, ...rest_strs ].join(' ');
     return `(${str})`;
   }
@@ -1289,8 +1300,8 @@ class Xform extends Rule {
     return rule_match_result
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
-    return `${this.__vivify(this.rule).__toString(visited, next_id)}`;
+  __impl_toString(visited, next_id, ref_counts) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1359,7 +1370,7 @@ class Expect extends Rule {
     this.rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
   }
 }
@@ -1415,7 +1426,7 @@ class Unexpected extends Rule {
     this.rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     return `!${this.__vivify(this.rule).__toString(visited, next_id)}!`;
   }
 }
@@ -1454,7 +1465,7 @@ class Fail extends Rule {
     // do nothing
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     return `<FAIL!>`;
   }
 }
@@ -1496,7 +1507,7 @@ class TokenLabel extends Rule {
                            index + 1) // always matches just 1 token.
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     return `'${this.label}'`;
   }
 }
@@ -1536,7 +1547,7 @@ class Literal extends Rule {
                            index + this.string.length)
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     return `'${this.string}'`;
   }
 }
@@ -1595,7 +1606,7 @@ class Regex extends Rule {
                            index + match[0].length);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id) {
+  __impl_toString(visited, next_id, ref_counts) {
     return `${this.regexp.source}`;
   }
 }
@@ -8086,6 +8097,6 @@ main().catch(err => {
 // console.log(`${Prompt}`);
 
 // just for demonstration... this is kind of a silly rule since it would only match an infinite series of 'x'-es:
-// const TestRule = seq('x', () => TestRule); 
-// console.log(`${TestRule}`);
-console.log(`${Prompt}`);
+const TestRule = seq('x', () => TestRule); 
+console.log(`${TestRule}`);
+// console.log(`${Prompt}`);
