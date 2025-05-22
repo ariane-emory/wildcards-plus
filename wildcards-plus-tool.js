@@ -6427,11 +6427,13 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   };
   // -----------------------------------------------------------------------------------------------
   const thing_str_repr = thing => {
-    return abbreviate(Array.isArray(thing)
-                      ? thing.join(' ')
-                      : (typeof thing === 'string'
-                         ? inspect_fun(thing)
-                         : thing.toString()));
+    const type_str  = typeof thing === 'object' ? thing.constructor.name : typeof thing;
+    const thing_str = abbreviate(Array.isArray(thing)
+                                 ? thing.join(' ')
+                                 : (typeof thing === 'string'
+                                    ? inspect_fun(thing)
+                                    : thing.toString()));
+    return `${type_str} ${thing_str}`
   }
   // -----------------------------------------------------------------------------------------------
   const thing_type_str = thing =>
@@ -6453,7 +6455,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     
     log(log_expand_and_walk_enabled,
         `Walking ` +
-        `${thing_type_str(thing)} ` +
+        // `${thing_type_str(thing)} ` +
         `${thing_str_repr(thing)} in ` + 
         `${context}`);
     
@@ -6897,7 +6899,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
   log(log_expand_and_walk_enabled,
       `Expanding wildcards in ` +
-      `${thing_type_str(thing)} ` +
+      // `${thing_type_str(thing)} ` +
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
   
