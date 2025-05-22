@@ -486,7 +486,7 @@ class Rule {
     let ret = __call_impl_toString();
 
     if (should_assign_id) 
-      return `#${visited.get(this)}=${ret}`;
+      return `#${visited.get(this)}#=${ret}`;
     
     return ret;
   }
@@ -1279,7 +1279,7 @@ class Xform extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
-    return this.rule.direct_children();
+    return this.__vivify(this.rule).direct_children();
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
