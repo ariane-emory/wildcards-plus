@@ -458,6 +458,12 @@ class Quantified extends Rule {
     this.trailing_separator_mode = trailing_separator_mode;
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.separator_rule
+      ? [ this.rule, this.separator_rule ]
+      : [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     this.rule            = this.__vivify(this.rule);
     this.separator_rule  = this.__vivify(this.separator_rule);
@@ -610,6 +616,10 @@ class Choice extends Rule  {
     this.options = options.map(make_rule_func);
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.options;
+  }
+  // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     for (let ix = 0; ix < this.options.length; ix++) {
       this.options[ix] = this.__vivify(this.options[ix]);
@@ -681,6 +691,10 @@ class Discard extends Rule {
     this.rule = make_rule_func(rule);
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     this.rule = this.__vivify(this.rule);    
     this.rule?.__finalize(indent + 1, visited);
@@ -724,6 +738,10 @@ class Element extends Rule {
     super();
     this.index = index;
     this.rule  = make_rule_func(rule);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
@@ -800,6 +818,10 @@ class Enclosed extends Rule {
     
     if (! this.end_rule)
       this.end_rule = this.start_rule;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
@@ -906,6 +928,10 @@ class Label extends Rule {
     this.rule = make_rule_func(rule);
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     this.rule = this.__vivify(this.rule);
     this.rule.__finalize(indent + 1, visited);
@@ -944,6 +970,10 @@ class NeverMatch extends Rule  {
     super();
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ ];
+  }
+  // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     // do nothing.
   }
@@ -969,6 +999,10 @@ class Optional extends Rule {
     super();
     this.rule          = make_rule_func(rule);
     this.default_value = default_value;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index) {
@@ -1018,6 +1052,10 @@ class Sequence extends Rule {
   constructor(...elements) {
     super();
     this.elements = elements.map(make_rule_func);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.elements;
   }
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
@@ -1174,6 +1212,10 @@ class Xform extends Rule {
     this.rule       = make_rule_func(rule);
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     this.rule = this.__vivify(this.rule);
     this.rule.__finalize(indent + 1, visited);
@@ -1229,6 +1271,10 @@ class Expect extends Rule {
     this.error_func = error_func;
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
   __match(indent, input, index) {
     const match_result = this.rule.match(
       input,
@@ -1276,6 +1322,10 @@ class Unexpected extends Rule {
     super();
     this.rule       = make_rule_func(rule);
     this.error_func = error_func;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index) {
@@ -1329,6 +1379,10 @@ class Fail extends Rule {
     this.error_func = error_func;
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
   __match(indent, input, index) {
     throw this.error_func
       ? this.error_func(this, index, input)
@@ -1362,6 +1416,10 @@ class TokenLabel extends Rule {
   constructor(label) {
     super();
     this.label  = label;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
@@ -1400,6 +1458,10 @@ class Literal extends Rule {
   constructor(string) {
     super();
     this.string  = string;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
@@ -1449,6 +1511,10 @@ class Regex extends Rule {
       : new RegExp(regexp.source, regexp.flags + 'y');
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     // do nothing.
   }
@@ -1487,12 +1553,16 @@ function r(first_arg, second_arg) { // convenience constructor
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-// ForwardReference class
+// ForwardReference class, possibly delete this.
 // -------------------------------------------------------------------------------------------------
 class ForwardReference {
   // -----------------------------------------------------------------------------------------------
   constructor(func) {
     this.func = func;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.func() ];
   }
   // -----------------------------------------------------------------------------------------------
   __toString() {
@@ -1516,6 +1586,10 @@ class LabeledValue {
     this.label  = label;
     this.value  = value;
   }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
 }
 // -------------------------------------------------------------------------------------------------
 
@@ -1528,6 +1602,10 @@ class MatchResult {
     this.value       = value;
     this.index       = index; // a number.
     this.is_finished = index == input.length; 
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
   }
 }
 // -------------------------------------------------------------------------------------------------
