@@ -476,13 +476,13 @@ class Rule {
       visited.set(this, next_id.value);
     }
 
-    let body = this.__impl_toString(visited, next_id, ref_counts)
+    let ret = this.__impl_toString(visited, next_id, ref_counts)
         .replace('() => ', '');
 
     if (should_assign_id) 
-      return `#${visited.get(this)}=${body}`;
-    else 
-      return body;
+      ret =  `#${visited.get(this)}=${ret}`;
+    
+    return ret;
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
