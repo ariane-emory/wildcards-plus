@@ -407,22 +407,19 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __toString(visited, next_id) {
-    if (visited.has(this))
-      return `#${visited.get(this)}`;
+    if (visited.has(this)) {
+      const got = visited.get(this);
 
-    if (false) {
-      next_id.value += 1;
-    visited.set(this, next_id.value);
-    
-    return this.__impl_toString(visited, next_id).replace('() => ', '');
-    } else { // possibly change this to: 
-      const ret = this.__impl_toString(visited, next_id).replace('() => ', '');
-
-      next_id.value += 1;
-      visited.set(this, next_id.value);
+      if (Object.is(got, NaN)) {
+        next_id.value += 1;
+        visited.set(this, next_id.value);
+      }
       
-      return ret;
+      return `#${visited.get(this)}`;
     }
+
+    visited.set(this, NaN); // next_id.value);      
+    return this.__impl_toString(visited, next_id).replace('() => ', '');
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
@@ -880,9 +877,9 @@ class CuttingEnclosed extends Enclosed {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
-    return `[${this.__vivify(this.start_rule).__toString(visited, next_id)} ` +
-      `${this.__vivify(this.body_rule).__toString(visited, next_id)}! ` +
-      `${this.__vivify(this.end_rule).__toString(visited, next_id)}!]`
+    return `[${this.__vivify(this.start_rule).__toString(visited, next_id)}! ` +
+      `${this.__vivify(this.body_rule).__toString(visited, next_id)} ` +
+      `${this.__vivify(this.end_rule).__toString(visited, next_id)}]`
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7944,4 +7941,6 @@ main().catch(err => {
 // END OF MAIN SECTION.
 // =================================================================================================
 
-console.log(`${Prompt.toString()}`)
+const TestRule = seq('x', () => TestRule);
+console.log(`${Prompt}`);
+console.log(`${TestRule}`);
