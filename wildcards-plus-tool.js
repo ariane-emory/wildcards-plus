@@ -486,7 +486,7 @@ class Rule {
     let ret = __call_impl_toString();
 
     if (should_assign_id) 
-      ret = `#${visited.get(this)}#=${ret}`;
+      ret = `#${visited.get(this)}=${ret}`;
     
     return ret;
   }
