@@ -238,7 +238,7 @@ let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
-let log_expand_and_walk_enabled       = true;
+let log_expand_and_walk_enabled       = false;  
 let disable_prelude                   = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
@@ -3052,13 +3052,13 @@ class Context {
 
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
-          log(`Fixing seed to -1 due to n_iter > 1.`);
+          log(`fixing seed to -1 due to n_iter > 1.`);
 
         munged_configuration.seed = -1;
       }
       else if (typeof munged_configuration.seed !== 'number') {
         if (log_configuration_enabled)
-          log(`Randomizing seed due to no seed.`);
+          log(`randomizing seed due to no seed.`);
 
         munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
       }
@@ -6672,7 +6672,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           : { ...context.configuration, ...new_obj };
 
         log(log_configuration_enabled,
-            `config ${thing.assign ? '=' : '+='} ` +
+            `%config ${thing.assign ? '=' : '+='} ` +
             `${inspect_fun(new_obj, true)}, ` +
             `configuration is now: ` +
             `${inspect_fun(context.configuration, true)}`);
@@ -6744,7 +6744,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
         }
 
         log(log_configuration_enabled,
-            `config.${our_name} ` +
+            `%${our_name} ` +
             `${thing.assign ? '=' : '+='} ` +
             `${inspect_fun(value, true)}, ` +
             `configuration is now: ` +
