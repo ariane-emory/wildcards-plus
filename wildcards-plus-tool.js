@@ -443,8 +443,9 @@ class Rule {
     console.log(`REF_COUNTS:`);
     
     for (const [key, value] of ref_counts)
-      console.log(`${key.__toString(new Map(), { value: 0 }).replace('() => ', '')} ` +
-                  `=> ${value}`);
+      if (value > 1)
+        console.log(`${key.__toString(new Map(), { value: 0 }).replace('() => ', '')} ` +
+                    `=> ${value}`);
     
     // console.log(`REF_COUNTS: ${inspect_fun(ref_counts)}`);
 
