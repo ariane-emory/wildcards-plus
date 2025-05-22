@@ -6439,7 +6439,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     
     log(log_expand_and_walk_enabled,
         `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ` +
-        `${abbreviate(thing.toString())} ` +
+        `${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())} ` +
         `in ${context} ` // +
         // `@ ${indent}`
        );
@@ -6884,7 +6884,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
   log(log_expand_and_walk_enabled,
       `Expanding wildcards in ${thing.constructor.name} ` +
-      `${abbreviate(thing.toString())} in ${context} ` +
+      `${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())} in ${context} ` +
       `in ${context} ` // +
       // `@ ${indent}`
      );
