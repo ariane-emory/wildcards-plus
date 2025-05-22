@@ -206,6 +206,7 @@ let inspect_fun           = (thing, no_break = false) =>
     util.inspect(thing,
                  { breakLength: (no_break ? Infinity: 80),
                    maxArrayLength: Infinity,
+                   depth: 2,
                  });
 let dt_hosted             = false;
 let test_structured_clone = true;
