@@ -6988,6 +6988,11 @@ class ASTCheckFlags extends ASTNode {
 
     str += flag_strs.join(',');
 
+    if (this.consequently_set_flag_tail) {
+      str += '.#';
+      str += this.consequently_set_flag_tail.join('.');
+    }
+
     return str;
     // return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
   }
