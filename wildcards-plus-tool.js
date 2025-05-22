@@ -441,16 +441,16 @@ class Rule {
     const ref_counts = this.collect_ref_counts();
     const next_id    = { value: 0 };
 
-    if (ref_counts.size > 0) {
-      console.log(`REF_COUNTS:`);
-      console.log('{');
-      
-      for (const [key, value] of ref_counts)
-        console.log(`  ${inspect_fun(key, true)} ` +
-                    `=> ${value},`);
-      
-      console.log('}');
-    }
+    // if (ref_counts.size > 0) {
+    //   console.log(`REF_COUNTS:`);
+    //   console.log('{');
+    
+    //   for (const [key, value] of ref_counts)
+    //     console.log(`  ${inspect_fun(key, true)} ` +
+    //                 `=> ${value},`);
+    
+    //   console.log('}');
+    // }
     
     return this.__toString(new Map(), next_id, ref_counts).replace('() => ', '');
   }
@@ -460,20 +460,18 @@ class Rule {
           .__impl_toString(visited, next_id, ref_counts)
           .replace('() => ', '');
     
-    const direct_children = this.direct_children();
-
-    if (direct_children.length == 0)
+    if (this.direct_children().length == 0)
       return __call_impl_toString();
-      
+    
     if (ref_counts === undefined)
-          throw new Error('got undefined!');
+      throw new Error('got undefined!');
 
-        if (visited.has(this)) {
-          const got_id = visited.get(this);
-          return `#${visited.get(this)}`;
-        }
+    if (visited.has(this)) {
+      const got_id = visited.get(this);
+      return `#${visited.get(this)}`;
+    }
 
-        // Mark as visited (but not yet emitted)
+    // Mark as visited (but not yet emitted)
     visited.set(this, NaN);
 
     const got_ref_count  = ref_counts.get(this);
@@ -488,7 +486,7 @@ class Rule {
     let ret = __call_impl_toString();
 
     if (should_assign_id) 
-      ret =  `#${visited.get(this)}=${ret}`;
+      ret = `#${visited.get(this)}#=${ret}`;
     
     return ret;
   }
@@ -8100,4 +8098,5 @@ main().catch(err => {
 const Z        = l('z');
 const TestRule = seq('x', Z, Z, () => TestRule); 
 console.log(`${TestRule}`);
-// console.log(`${Prompt}`);
+console.log(``);
+console.log(`${Prompt}`);
