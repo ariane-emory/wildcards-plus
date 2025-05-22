@@ -7361,14 +7361,14 @@ class ASTRevertPickSingle extends ASTNode {
 // terminals:
 // -------------------------------------------------------------------------------------------------
 const word_break               = /(?=\s|[{|}]|$)/;
-// const plaintext                = /(?:\\\s|[^\s{|}])+/;
-// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
-// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
+// const plaintext             = /(?:\\\s|[^\s{|}])+/;
+// const plaintext             = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
+// const plaintext             = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
 const plaintext                = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
 const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
-// const plaintext                = /[^{|}\s]+/;
-// const plaintext_no_parens      = /[^{|}\s()]+/;
-// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const plaintext             = /[^{|}\s]+/;
+// const plaintext_no_parens   = /[^{|}\s()]+/;
+// const low_pri_text          = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                  = discard(choice(c_block_comment, c_line_comment));
@@ -7687,6 +7687,7 @@ const ContentNoLoras          = choice(comment,
                                        ScalarUpdate,
                                        ScalarReference,
                                        SpecialFunctionNotInclude,
+                                       low_pri_text,
                                        plaintext);
 const Content                 = choice(A1111StyleLora, ContentNoLoras);
 const ContentStar             = wst_star(Content);
