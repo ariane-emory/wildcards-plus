@@ -476,7 +476,8 @@ class Rule {
       visited.set(this, next_id.value);
     }
 
-    let ret = this.__impl_toString(visited, next_id, ref_counts)
+    let ret = this
+        .__impl_toString(visited, next_id, ref_counts)
         .replace('() => ', '');
 
     if (should_assign_id) 
