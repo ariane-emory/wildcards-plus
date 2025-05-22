@@ -456,15 +456,24 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __toString(visited, next_id, ref_counts) {
+    const __call_impl_toString = () => this
+          .__impl_toString(visited, next_id, ref_counts)
+          .replace('() => ', '');
+    
+    const direct_children = this.direct_children();
+
+    if (direct_children.length == 0)
+      return __call_impl_toString();
+      
     if (ref_counts === undefined)
-      throw new Error('got undefined!');
+          throw new Error('got undefined!');
 
-    if (visited.has(this)) {
-      const got_id = visited.get(this);
-      return `#${visited.get(this)}`;
-    }
+        if (visited.has(this)) {
+          const got_id = visited.get(this);
+          return `#${visited.get(this)}`;
+        }
 
-    // Mark as visited (but not yet emitted)
+        // Mark as visited (but not yet emitted)
     visited.set(this, NaN);
 
     const got_ref_count  = ref_counts.get(this);
@@ -476,9 +485,7 @@ class Rule {
       visited.set(this, next_id.value);
     }
 
-    let ret = this
-        .__impl_toString(visited, next_id, ref_counts)
-        .replace('() => ', '');
+    let ret = __call_impl_toString();
 
     if (should_assign_id) 
       ret =  `#${visited.get(this)}=${ret}`;
