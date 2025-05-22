@@ -10,7 +10,7 @@
 // -------------------------------------------------------------------------------------------------
 
 #flux
-// #hidream.full
+#hidream.full
 // #hidream.fast
 
 // -------------------------------------------------------------------------------------------------
@@ -130,14 +130,16 @@
 
 %model     = { ?hidream.fast hidream.i1_fast_q5p
              | ?hidream.full hidream.i1_full_q5p } 
+
 %sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
 %cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
 %shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
 %n_iter    = 2
+%clip_skip = 1
 
-{ 1 %conf += { "width": 960,   "height": 960, "steps": 40  }
-| 2 %conf += { "width": 1152,  "height": 768, "steps": 40  }
-| 6 %conf += { "width": 1280,  "height": 640, "steps": 45  }
+{ 1 %conf += { width: 960,   height: 960, steps: 40  }
+| 2 %conf += { width: 1152,  height: 768, steps: 40  }
+| 6 %conf += { width: 1280,  height: 640, steps: 45  }
 }
 }
 

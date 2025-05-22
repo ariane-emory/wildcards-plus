@@ -7847,12 +7847,6 @@ async function main() {
     const context = base_context.clone();
     const prompt  = expand_wildcards(AST, context);
 
-    console.log(`------------------------------------------------------------------------------------------`);
-    console.log(`Final config is is:`);
-    console.log(`------------------------------------------------------------------------------------------`);
-    console.log(inspect_fun(context.configuration));
-
-    
     if (log_flags_enabled || log_configuration_enabled) {
       console.log(`------------------------------------------------------------------------------------------`);
       console.log(`Flags after:`);
@@ -7860,6 +7854,12 @@ async function main() {
       console.log(`${inspect_fun(context.flags)}`);
     }
 
+    console.log(`------------------------------------------------------------------------------------------`);
+    console.log(`Final config is is:`);
+    console.log(`------------------------------------------------------------------------------------------`);
+    console.log(inspect_fun(context.configuration));
+
+    
     console.log(`------------------------------------------------------------------------------------------`);
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
     console.log(`------------------------------------------------------------------------------------------`);
