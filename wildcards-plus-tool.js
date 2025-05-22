@@ -333,7 +333,8 @@ class Rule {
     const ret = this.__direct_children();
 
     if (ret.includes(undefined))
-      throw new Error(`__direct_children included undefined for ${this.constructor.name}`);
+      throw new Error(`__direct_children included undefined for ` +
+                      `${inspect_fun(this)}`);
 
     return ret;
   }
@@ -833,9 +834,9 @@ class Enclosed extends Rule {
 
     if (! end_rule) {
       // if two args are supplied, they're (body_rule, enclosing_rule):
-      end_rule   = body_rule;
+      start_rule = body_rule;
       body_rule  = start_rule;
-      start_rule = end_rule;
+      // end_rule   = body_rule;
     }
     
     this.start_rule = make_rule_func(start_rule);
