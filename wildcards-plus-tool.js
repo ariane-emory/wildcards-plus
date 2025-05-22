@@ -7024,7 +7024,7 @@ class ASTNotFlag extends ASTNode  {
     str += this.flag.join('.');
 
     if (this.consequently_set_flag_tail) {
-      str += '#';
+      str += '.#';
       str += this.consequently_set_flag_tail.join('.');
     }
 
@@ -7195,11 +7195,28 @@ class ASTAnonWildcard  extends ASTNode {
     let str = '{';
 
     for (let ix = 0; ix < this.picker.options.length; ix++) {
-      const repr = this.picker.options[ix].value;
-      str += repr;
+      const option     = this.picker.options[ix];
+      const repr       = option.value.toString();
+      const has_weight = option.weight != 1;
+      const is_empty   = repr == '';
+      const is_last    = ix == (this.picker.options.length - 1);
+      const has_guards = (option.value.check_flags?.length > 0) || (option.value.not_flags?.length > 0);
+
+      // console.log(`option:     ${inspect_fun(option)}`);
+      // console.log(`cfs.l:      ${option.value.check_flags?.length}`);
+      // console.log(`nfs.l:      ${option.value.not_flags?.length}`);
+      // console.log(`has_guards: ${has_guards}`);
       
-      if (ix != (this.picker.options.length - 1))
-        str += ' | ';
+      if (!is_empty && !has_weight && !has_guards)
+        str += ' ';
+
+      str += repr;
+
+      if (!is_empty)
+        str += ' ';
+
+      if (!is_last)
+        str += '|';
     }
     
     str += '}';
