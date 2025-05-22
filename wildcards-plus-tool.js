@@ -398,9 +398,15 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
-    throw new Error(`__impl_finalize is not implemented by ` +
-                    `${this.constructor.name}`);    
+    throw new Error(`__impl_finalize is not implemented by ${this.constructor.name}`);    
   }
+  // -----------------------------------------------------------------------------------------------
+  direct_children() {
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    throw new Error(`__direct_children is not implemented by ${this.constructor.name}`);
+}
   // -----------------------------------------------------------------------------------------------
   toString() {
     return this.__toString(new Map(), { value: 0 }).replace('() => ', '');
