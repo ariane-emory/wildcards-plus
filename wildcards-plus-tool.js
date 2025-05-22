@@ -461,19 +461,13 @@ class Rule {
 
     if (visited.has(this)) {
       const got_id = visited.get(this);
-
-      if (Object.is(got_id, NaN)) {
-        next_id.value += 1;
-        visited.set(this, next_id.value);
-      }
-
       return `#${visited.get(this)}`;
     }
 
     // Mark as visited (but not yet emitted)
     visited.set(this, NaN);
 
-    const got_ref_count = ref_counts.get(this);
+    const got_ref_count  = ref_counts.get(this);
     let should_assign_id = got_ref_count > 1;
 
     if (should_assign_id) {
