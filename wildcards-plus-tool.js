@@ -441,12 +441,17 @@ class Rule {
     const ref_counts = this.collect_ref_counts();
 
     console.log(`REF_COUNTS:`);
-    
-    for (const [key, value] of ref_counts)
-      if (value > 1)
-        console.log(`${key.__toString(new Map(), { value: 0 }).replace('() => ', '')} ` +
-                    `=> ${value}`);
-    
+
+    if (ref_counts.size > 0) {
+      console.log('{');
+      
+      for (const [key, value] of ref_counts)
+        if (value > 1)
+          console.log(`  ${key.__toString(new Map(), { value: 0 }).replace('() => ', '')} ` +
+                      `=> ${value},`);
+
+      console.log('}');
+    }
     // console.log(`REF_COUNTS: ${inspect_fun(ref_counts)}`);
 
     return this.__toString(new Map(), { value: 0 }).replace('() => ', '');
