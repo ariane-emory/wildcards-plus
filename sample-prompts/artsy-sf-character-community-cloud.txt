@@ -3,7 +3,7 @@
 // use wildcards to randomize some parts of the configuration before we get on with the
 // actual textual content of the prompt:
 // =================================================================================================
-{|foo|?flag bar|2 baz}
+// {|foo|?flag bar|2 baz}
 
 // -------------------------------------------------------------------------------------------------
 // template config flags to enable model families or other features:
