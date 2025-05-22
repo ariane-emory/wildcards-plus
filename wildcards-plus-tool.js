@@ -426,9 +426,10 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    throw new Error("bomb");
-    const ret_counts = this.collect_ref_counts();
+    const ref_counts = this.collect_ref_counts();
+
     console.log(`ref_countsl: ${inspect_fun(ref_counts)}`);
+
     return this.__toString(new Map(), { value: 0 }).replace('() => ', '');
   }
   // -----------------------------------------------------------------------------------------------
