@@ -3055,6 +3055,9 @@ class Context {
         munged_configuration.seed = -1;
       }
       else if (typeof munged_configuration.seed !== 'number') {
+        if (log_configuration_enabled)
+          console.log(`Randomizing seed due to no seed.`);
+
         munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
       }
     }
@@ -6433,8 +6436,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     };
     
     log(log_expand_and_walk_enabled,
-        `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ${thing}` +
-        ` @ ${indent} in ${context}` );
+        `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ` +
+        `${abbreviate(thing.toString())} ` +
+        `@ ${indent} in ${context}` );
     
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
