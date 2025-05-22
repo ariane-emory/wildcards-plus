@@ -6434,6 +6434,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
                          : thing.toString()));
   }
   // -----------------------------------------------------------------------------------------------
+  const thing_type_str = thing =>
+        typeof thing === 'object' ? thing.constructor.name : typeof thing;
+  // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg) => { 
     if (! msg) throw new Error("bomb 1");
     if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
@@ -6449,11 +6452,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     //     `walk thing: ${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())}`);
     
     log(log_expand_and_walk_enabled,
-        `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ` +
-        `${thing_str_repr(thing)} ` + 
-        `in ${context}` // +
-        // `@ ${indent}`
-       );
+        `Walking ` +
+        `${thing_type_str(thing)} ` +
+        `${thing_str_repr(thing)} in ` + 
+        `${context}`);
     
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
@@ -6894,11 +6896,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   }
 
   log(log_expand_and_walk_enabled,
-      `Expanding wildcards in ${thing.constructor.name} ` +
-      `${thing_str_repr(thing)} ` + 
-      `in ${context}` // +
-      // `@ ${indent}`
-     );
+      `Expanding wildcards in ` +
+      `${thing_type_str(thing)} ` +
+      `${thing_str_repr(thing)} in ` + 
+      `${context}`);
   
   const ret = unescape(smart_join(walk(thing, indent + 1)));
 
