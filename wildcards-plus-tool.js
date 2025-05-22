@@ -1111,9 +1111,10 @@ class Sequence extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
-    return `(${this.elements
-               .map((x) => this.__vivify(x)
-                           .__toString(visited, next_id)).join(" ")})`;
+    const elem_strs = this.elements.map(x => this.__vivify(x)
+                                        .__toString(visited, next_id));
+    const str       = elem_strs.join(' ');
+    return `(${str})`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1142,9 +1143,11 @@ class CuttingSequence extends Sequence {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
-    return `${this.__vivify(this.elements[0]).__toString(visited, next_id)}=>` +
-      `${this.elements.slice(1)
-         .map(x => this.__vivify(x).__toString(visited, next_id))}`;
+    const first_str = `${this.__vivify(this.elements[0]).__toString(visited, next_id)}!`;
+    const rest_strs = this.elements.slice(1).map(x => this.__vivify(x)
+                                                 .__toString(visited, next_id));
+    const str       = [ first_str, ...rest_strs ].join(' ');
+    return `(${str})`;
   }
 }
 // -------------------------------------------------------------------------------------------------
