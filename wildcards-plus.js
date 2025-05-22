@@ -33,7 +33,7 @@ let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
-let log_expand_and_walk_enabled       = false;
+let log_expand_and_walk_enabled       = true;
 let disable_prelude                   = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
@@ -1731,6 +1731,8 @@ rJsonc.finalize();
 
 
 // =================================================================================================
+// WeightedPicker CLASS AND RELATED VARS:
+// =================================================================================================
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
@@ -2014,12 +2016,14 @@ class WeightedPicker {
   }
 }
 // =================================================================================================
+// END OF WeightedPicker CLASS AND RELATED VARS.
+// =================================================================================================
 
 
 // =================================================================================================
-// HELPER FUNCTIONS SECTION:
+// MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
-// DT's env doesn't seem to have structuredClone, so we'll define our own version:
+// DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
 // -------------------------------------------------------------------------------------------------
 function structured_clone(value, {
   seen = new WeakMap(),           // For shared reference reuse
@@ -2399,15 +2403,17 @@ function smart_join(arr) {
   return str;
 }
 // =================================================================================================
-// END OF HELPER FUNCTIONS SECTION.
+// END OF MISCELLANEOUS HELPER FUNCTIONS SECTION.
 // =================================================================================================
 
 
 // =================================================================================================
-// HELPER FUNCTIONS/VARS USED BY THE Context.munge_configuration() METHOD:
+// HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111,
 // =================================================================================================
+// these are used by the context.munge_configuration() method and some walk cases.
 // var values adapted from the file config.fbs in
 // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
+// ----------------------------------------------------------------------------------------------------
 const dt_samplers = [   // order is significant, do not rearrange!
   'DPM++ 2M Karras',    // 0
   'Euler a',            // 1
@@ -2607,12 +2613,12 @@ function get_our_name(name) {
   return res;
 }
 // =================================================================================================
-// END of HELPER FUNCTIONS/VARS USED BY THE Context.munge_configuration() METHOD.
+// END OF HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111.
 // =================================================================================================
 
 
 // =================================================================================================
-// HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
+// Context CLASS:
 // =================================================================================================
 var last_context_id = 0;
 // -------------------------------------------------------------------------------------------------
@@ -2735,7 +2741,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    // console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
       flags:                        structured_clone(this.flags),
@@ -2755,7 +2761,7 @@ class Context {
         this.configuration.loras === copy.configuration.loras)
       throw new Error("oh no");
 
-    console.log(`CLONED CONTEXT`);
+    // console.log(`CLONED CONTEXT`);
     
     return copy;
   }
@@ -2777,17 +2783,19 @@ class Context {
     });
   }
   // -------------------------------------------------------------------------------------------------
-  munge_configuration(is_dt_hosted = dt_hosted) {
+  munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
+    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+
     // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
-    
+
     const munged_configuration = structured_clone(this.configuration);
 
     if (is_empty_object(munged_configuration))
       return munged_configuration;
 
     if (munged_configuration.model === '') {
-      console.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-                  `what you meant to do, your prompt template may contain an error!`);
+      log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
+          `what you meant to do, your prompt template may contain an error!`);
       delete munged_configuration.model;
     }
     else if (munged_configuration.model) {
@@ -2820,44 +2828,55 @@ class Context {
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
       if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-        console.log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-                    `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
+        log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+            `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
         munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
       }
     }
     // when running in Node.js, sampler needs to be a string::
     else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-                  `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+      log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+          `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
       munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
 
     // 'fix' seed if n_iter > 1, doing this seems convenient?
-    if (! munged_configuration.seed) {
+    if (! munged_configuration.seed ||
+        (munged_configuration?.n_iter >1 && munged_configuration.seed !== -1)) {
       const n_iter_key = get_our_name('n_iter');
 
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
-          console.log(`Fixing seed to -1 due to n_iter > 1.`);
+          log(`Fixing seed to -1 due to n_iter > 1.`);
 
         munged_configuration.seed = -1;
       }
       else if (typeof munged_configuration.seed !== 'number') {
+        if (log_configuration_enabled)
+          log(`Randomizing seed due to no seed.`);
+
         munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
       }
     }
 
-    if (log_configuration_enabled)
-      console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+    // if (log_configuration_enabled)
+    //   log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
 
     this.configuration =  munged_configuration;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `Context<#${this.context_id}, ${this.configuration?.loras?.length??0} loras>}`;
+    return `Context<#${this.context_id}>`;
   }
 }
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
+// END OF Context CLASS.
+// =================================================================================================
+
+
+// =================================================================================================
+// HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
+// =================================================================================================
 const prelude_text = disable_prelude ? '' : `
 @__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
                            |?male   #gender.male
@@ -6164,7 +6183,7 @@ function load_prelude(into_context = new Context()) {
   return into_context;
 }
 // =================================================================================================
-// END OF HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE SECTION.
+// END OF PRELUDE HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 
 
@@ -6202,20 +6221,38 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
+  const thing_str_repr = thing => {
+    const type_str  = typeof thing === 'object' ? thing.constructor.name : typeof thing;
+    const thing_str = abbreviate(Array.isArray(thing)
+                                 ? thing.join(' ')
+                                 : (typeof thing === 'string'
+                                    ? inspect_fun(thing)
+                                    : thing.toString()));
+    return `${type_str} ${thing_str}`
+  }
+  // -----------------------------------------------------------------------------------------------
+  const thing_type_str = thing =>
+        typeof thing === 'object' ? thing.constructor.name : typeof thing;
+  // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg) => { 
-    if (! msg) throw new Error("bomb 1");
+    if (! msg && msg !== '') throw new Error("bomb 1");
     if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = (guard_bool, msg) => {
-      if (! msg) throw new Error("bomb 2");
+      if (! msg && msg !== '') throw new Error("bomb 1");
       if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     };
+
+    // log(log_expand_and_walk_enabled,
+    //     `walk thing: ${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())}`);
     
     log(log_expand_and_walk_enabled,
-        `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ${thing}` +
-        ` @ ${indent} in ${context}` );
+        `Walking ` +
+        // `${thing_type_str(thing)} ` +
+        `${thing_str_repr(thing)} in ` + 
+        `${context}`);
     
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
@@ -6430,7 +6467,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           : { ...context.configuration, ...new_obj };
 
         log(log_configuration_enabled,
-            `configuration ${thing.assign ? '=' : '+='} ` +
+            `config ${thing.assign ? '=' : '+='} ` +
             `${inspect_fun(new_obj, true)}, ` +
             `configuration is now: ` +
             `${inspect_fun(context.configuration, true)}`);
@@ -6502,7 +6539,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
         }
 
         log(log_configuration_enabled,
-            `configuration.${our_name} ` +
+            `config.${our_name} ` +
             `${thing.assign ? '=' : '+='} ` +
             `${inspect_fun(value, true)}, ` +
             `configuration is now: ` +
@@ -6656,11 +6693,15 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   }
 
   log(log_expand_and_walk_enabled,
-      `Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} ` +
-      `@ ${indent} in ${context}`);
+      `Expanding wildcards in ` +
+      // `${thing_type_str(thing)} ` +
+      `${thing_str_repr(thing)} in ` + 
+      `${context}`);
   
   const ret = unescape(smart_join(walk(thing, indent + 1)));
 
+  context.munge_configuration({indent: indent + 1});
+  
   log(log_expand_and_walk_enabled,
       `Expanded into ${inspect_fun(ret)}`);
   
@@ -6742,6 +6783,11 @@ class ASTCheckFlags extends ASTNode {
 
     str += flag_strs.join(',');
 
+    if (this.consequently_set_flag_tail) {
+      str += '.#';
+      str += this.consequently_set_flag_tail.join('.');
+    }
+
     return str;
     // return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
   }
@@ -6778,7 +6824,7 @@ class ASTNotFlag extends ASTNode  {
     str += this.flag.join('.');
 
     if (this.consequently_set_flag_tail) {
-      str += '#';
+      str += '.#';
       str += this.consequently_set_flag_tail.join('.');
     }
 
@@ -6828,6 +6874,17 @@ class ASTScalarReference extends ASTNode {
     this.name       = name;
     this.capitalize = capitalize;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    let str = '$';
+
+    if (this.capitalize)
+      str += this.capitalize;
+
+    str += this.name;
+    
+    return str;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Scalar assignment:
@@ -6838,6 +6895,10 @@ class ASTUpdateScalar extends ASTNode  {
     this.destination = destination;
     this.source      = source;
     this.assign      = assign;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `$${this.destination} ${this.assign? '=' : '+='} ${this.destination}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6864,6 +6925,10 @@ class ASTLatchNamedWildcard extends ASTNode {
     super();
     this.name = name;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@#${this.name}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Unlatch a NamedWildcard:
@@ -6872,6 +6937,10 @@ class ASTUnlatchNamedWildcard extends ASTNode {
   constructor(name) {
     super();
     this.name = name;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@!${this.name}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6883,7 +6952,7 @@ class ASTNamedWildcardDefinition extends ASTNode {
     this.destination = destination;
     this.wildcard    = wildcard;
   }
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `@${this.destination} = ${this.wildcard}`;
   }
@@ -6896,6 +6965,10 @@ class ASTLatchedNamedWildcardedValue extends ASTNode {
     super();
     this.latched_value  = latched_value;
     this.original_value = original_value;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return this.original_value.toString();
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6910,18 +6983,47 @@ class ASTAnonWildcard  extends ASTNode {
     // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
-    // return `{ ${this.picker.options.map(x => `${x.value.constructor.name} ${x.value}`  ).join(" | ")} }`;
-    // return `{ ${this.picker.options.map(x => `${typeof x === 'object' ? x.constructor.name : typeof x} ${x.value.toString()}`).join(" | ")} }`;
-  }
-  // -----------------------------------------------------------------------------------------------
   pick(...args) {
     return this.picker.pick(...args);
   }
   // -----------------------------------------------------------------------------------------------
   pick_one(...args) {
     return this.picker.pick_one(...args);
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    let str = '{';
+
+    for (let ix = 0; ix < this.picker.options.length; ix++) {
+      const option     = this.picker.options[ix];
+      const repr       = option.value.toString();
+      const has_weight = option.weight != 1;
+      const is_empty   = repr == '';
+      const is_last    = ix == (this.picker.options.length - 1);
+      const has_guards = (option.value.check_flags?.length > 0) || (option.value.not_flags?.length > 0);
+
+      // console.log(`option:     ${inspect_fun(option)}`);
+      // console.log(`cfs.l:      ${option.value.check_flags?.length}`);
+      // console.log(`nfs.l:      ${option.value.not_flags?.length}`);
+      // console.log(`has_guards: ${has_guards}`);
+      
+      if (!is_empty && !has_weight && !has_guards)
+        str += ' ';
+
+      str += repr;
+
+      if (!is_empty)
+        str += ' ';
+
+      if (!is_last)
+        str += '|';
+    }
+    
+    str += '}';
+    
+    return str;
+
+    // return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6961,13 +7063,17 @@ class ASTAnonWildcardAlternative extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Directives:
+// ASTInclude:
 // -------------------------------------------------------------------------------------------------
 class ASTInclude extends ASTNode {
   constructor(args) {
     super();
     // this.directive = directive;
     this.args      = args;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `include(${this.args})`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6976,6 +7082,11 @@ class ASTUpdateConfigurationUnary extends ASTNode {
     super();
     this.value = value;
     this.assign = assign; // otherwise update
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%config ${this.assign? '=' : '+='} ` +
+      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6988,23 +7099,19 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%${this.key} ${this.assign? '=' : '+='} ` +
+    return `%${get_our_name(this.key)} ${this.assign? '=' : '+='} ` +
       `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
-// -------------------------------------------------------------------------------------------------
-// class ASTUpdateNegativePrompt extends ASTNode {
-//   constructor(value, assign) {
-//     super();
-//     this.value  = value
-//     this.assign = assign;
-//   }
-// }
 // -------------------------------------------------------------------------------------------------
 class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%set-pick-multiple = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7013,17 +7120,29 @@ class ASTSetPickSingle extends ASTNode {
     super();
     this.limited_content = limited_content;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%set-pick-single = ${this.limited_content}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTRevertPickMultiple extends ASTNode {
   constructor() {
     super();
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%revert-pick-multiple`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTRevertPickSingle extends ASTNode {
   constructor() {
     super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%revert-pick-single`;
   }
 }
 // =================================================================================================
@@ -7037,13 +7156,14 @@ class ASTRevertPickSingle extends ASTNode {
 // terminals:
 // -------------------------------------------------------------------------------------------------
 const word_break               = /(?=\s|[{|}]|$)/;
-// const plaintext                = /(?:\\\s|[^\s{|}])+/;
-// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
-// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
-const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
-// const plaintext                = /[^{|}\s]+/;
-// const plaintext_no_parens      = /[^{|}\s()]+/;
-// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const plaintext             = /(?:\\\s|[^\s{|}])+/;
+// const plaintext             = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
+// const plaintext             = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
+const plaintext                = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
+const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const plaintext             = /[^{|}\s]+/;
+// const plaintext_no_parens   = /[^{|}\s()]+/;
+// const low_pri_text          = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                  = discard(choice(c_block_comment, c_line_comment));
@@ -7362,6 +7482,7 @@ const ContentNoLoras          = choice(comment,
                                        ScalarUpdate,
                                        ScalarReference,
                                        SpecialFunctionNotInclude,
+                                       low_pri_text,
                                        plaintext);
 const Content                 = choice(A1111StyleLora, ContentNoLoras);
 const ContentStar             = wst_star(Content);
