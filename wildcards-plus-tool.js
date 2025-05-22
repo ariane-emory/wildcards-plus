@@ -461,7 +461,7 @@ class Rule {
           .replace('() => ', '');
     
     if (this.direct_children().length == 0)
-      return __call_impl_toString();
+      return abbreviate(__call_impl_toString(), 20);
     
     if (ref_counts === undefined)
       throw new Error('got undefined!');
@@ -1606,7 +1606,7 @@ class Regex extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    return `${this.regexp.source}`;
+    return `/${this.regexp.source}/`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1683,8 +1683,20 @@ function compress(str) {
   return str.replace(/\s+/g, ' ');
 }
 // -------------------------------------------------------------------------------------------------
-function abbreviate(s, len = 100) {
-  return s.length < 100 ? s : `${s.substring(0, len).replace("\n","").trim()}...`;
+function abbreviate(str, len = 100) {
+  if (str.length < len) {
+    return str
+  }
+  else {
+    if (str.startsWith('/') && str.endsWith('/')) { // special case for regex source strings
+      // throw new Error(`bomb ${inspect_fun(str)}`);
+      const ret = `${str.substring(0, len - 2).replace("\n","").trim()}.../`;
+      // console.log(`re: ${str} =>\n    ${ret}`);
+      return ret;
+    } else {
+      return `${str.substring(0, len).replace("\n","").trim()}...`;
+    }
+  }
 }
 // -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
