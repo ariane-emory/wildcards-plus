@@ -649,6 +649,7 @@ class Star extends Quantified {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
+    // return `${this.__vivify(this.rule).__toString(visited, next_id)}*`;
     return `${this.__vivify(this.rule).__toString(visited, next_id)}*`;
   }
 }
