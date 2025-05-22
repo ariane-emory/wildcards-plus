@@ -6426,6 +6426,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
+  const thing_str_repr = thing => {
+    return abbreviate(Array.isArray(thing)
+                      ? thing.join(' ')
+                      : (typeof thing === 'string'
+                         ? inspect_fun(thing)
+                         : thing.toString()));
+  }
+  // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg) => { 
     if (! msg) throw new Error("bomb 1");
     if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
@@ -6888,15 +6896,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   // log(log_expand_and_walk_enabled,
   //     `expand thing: ${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())}`);
 
-  const thing_str = abbreviate(Array.isArray(thing)
-                               ? thing.join(' ')
-                               : (typeof thing === 'string'
-                                  ? inspect_fun(thing)
-                                  : thing.toString()));
-  
   log(log_expand_and_walk_enabled,
       `Expanding wildcards in ${thing.constructor.name} ` +
-      `${thing_str} ` + 
+      `${thing_str_repr(thing)} ` + 
       `in ${context}` // +
       // `@ ${indent}`
      );
