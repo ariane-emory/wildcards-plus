@@ -6893,9 +6893,6 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     }
   }
 
-  // log(log_expand_and_walk_enabled,
-  //     `expand thing: ${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())}`);
-
   log(log_expand_and_walk_enabled,
       `Expanding wildcards in ${thing.constructor.name} ` +
       `${thing_str_repr(thing)} ` + 
