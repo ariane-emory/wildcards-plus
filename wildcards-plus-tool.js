@@ -457,6 +457,9 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __toString(visited, next_id, ref_counts) {
+    if (ref_counts === undefined)
+      throw new Error('got undefined!');
+
     if (visited.has(this)) {
       const got = visited.get(this);
 
@@ -468,8 +471,16 @@ class Rule {
       return `#${visited.get(this)}`;
     }
 
-    visited.set(this, NaN); // next_id.value);      
-    return this.__impl_toString(visited, next_id).replace('() => ', '');
+    visited.set(this, NaN); // next_id.value);
+
+    let ret = this.__impl_toString(visited, next_id).replace('() => ', '');
+
+    const got = ref_counts.get(this);
+    
+    if (got > 1)
+      ret = `#${got}=${str}`;
+    
+    return ret;
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id) {
