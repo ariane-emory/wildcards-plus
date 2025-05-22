@@ -639,7 +639,7 @@ class Plus extends Quantified {
   __impl_toString(visited, next_id, ref_counts) {
     return this.separator_rule
       ? (`${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}` +
-         `/${this.separator_rule}+`)
+         `\\${this.separator_rule}+`)
       : `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}+`;
   }
 }
@@ -665,7 +665,7 @@ class Star extends Quantified {
     // return `${this.__vivify(this.rule).__toString(visited, next_id)}*`;
     return this.separator_rule
       ? (`${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}` +
-         `/${this.separator_rule}*`)
+         `\\${this.separator_rule}*`)
       : `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}*`;
   }
 }
