@@ -441,7 +441,7 @@ class Rule {
     const ref_counts = this.collect_ref_counts();
 
 
-    const next_id = { value: 1 };
+    const next_id = { value: 0 };
 
     if (ref_counts.size > 0) {
       console.log(`REF_COUNTS:`);
