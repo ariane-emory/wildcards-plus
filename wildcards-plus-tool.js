@@ -3071,7 +3071,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `Context<#${this.context_id}, ${this.configuration?.loras?.length??0} loras>}`;
+    return `Context<#${this.context_id}>}`;
   }
 }
 // =================================================================================================
@@ -6440,7 +6440,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     log(log_expand_and_walk_enabled,
         `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ` +
         `${abbreviate(thing.toString())} ` +
-        `@ ${indent} in ${context}` );
+        `in ${context} ` // +
+        // `@ ${indent}`
+       );
     
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
@@ -6883,7 +6885,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   log(log_expand_and_walk_enabled,
       `Expanding wildcards in ${thing.constructor.name} ` +
       `${abbreviate(thing.toString())} in ${context} ` +
-      `@ ${indent} in ${context}`);
+      `in ${context} ` // +
+      // `@ ${indent}`
+     );
   
   const ret = unescape(smart_join(walk(thing, indent + 1)));
 
