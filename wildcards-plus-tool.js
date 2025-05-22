@@ -473,10 +473,10 @@ class Rule {
     // Mark as visited (but not yet emitted)
     visited.set(this, NaN);
 
-    const ref_count = ref_counts.get(this);
-    let shouldAssignId = ref_count > 1;
+    const got_ref_count = ref_counts.get(this);
+    let should_assign_id = got_ref_count > 1;
 
-    if (shouldAssignId) {
+    if (should_assign_id) {
       // Pre-assign ID now so recursive calls can reference it
       next_id.value += 1;
       visited.set(this, next_id.value);
@@ -485,11 +485,10 @@ class Rule {
     let body = this.__impl_toString(visited, next_id, ref_counts)
         .replace('() => ', '');
 
-    if (shouldAssignId) {
+    if (should_assign_id) 
       return `#${visited.get(this)}=${body}`;
-    } else {
+    else 
       return body;
-    }
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
