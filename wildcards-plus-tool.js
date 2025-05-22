@@ -452,11 +452,11 @@ class Rule {
 
       console.log('}');
     }
-
-    return this.__toString(new Map(), { value: 0 }).replace('() => ', '');
+    
+    return this.__toString(new Map(), { value: 0 }, ref_counts).replace('() => ', '');
   }
   // -----------------------------------------------------------------------------------------------
-  __toString(visited, next_id) {
+  __toString(visited, next_id, ref_counts) {
     if (visited.has(this)) {
       const got = visited.get(this);
 
