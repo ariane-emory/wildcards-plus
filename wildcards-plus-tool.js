@@ -2988,17 +2988,19 @@ class Context {
     });
   }
   // -------------------------------------------------------------------------------------------------
-  munge_configuration(is_dt_hosted = dt_hosted) {
+  munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
+    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+
     // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
-    
+
     const munged_configuration = structured_clone(this.configuration);
 
     if (is_empty_object(munged_configuration))
       return munged_configuration;
 
     if (munged_configuration.model === '') {
-      console.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-                  `what you meant to do, your prompt template may contain an error!`);
+      log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
+          `what you meant to do, your prompt template may contain an error!`);
       delete munged_configuration.model;
     }
     else if (munged_configuration.model) {
@@ -3031,15 +3033,15 @@ class Context {
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
       if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-        console.log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-                    `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
+        log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+            `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
         munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
       }
     }
     // when running in Node.js, sampler needs to be a string::
     else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-                  `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+      log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+          `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
       munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
 
@@ -3050,20 +3052,20 @@ class Context {
 
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
-          console.log(`Fixing seed to -1 due to n_iter > 1.`);
+          log(`Fixing seed to -1 due to n_iter > 1.`);
 
         munged_configuration.seed = -1;
       }
       else if (typeof munged_configuration.seed !== 'number') {
         if (log_configuration_enabled)
-          console.log(`Randomizing seed due to no seed.`);
+          log(`Randomizing seed due to no seed.`);
 
         munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
       }
     }
 
     // if (log_configuration_enabled)
-    //   console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+    //   log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
 
     this.configuration =  munged_configuration;
   }
@@ -6653,7 +6655,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           : { ...context.configuration, ...new_obj };
 
         log(log_configuration_enabled,
-            `configuration ${thing.assign ? '=' : '+='} ` +
+            `${thing.assign ? '=' : '+='} ` +
             `${inspect_fun(new_obj, true)}, ` +
             `configuration is now: ` +
             `${inspect_fun(context.configuration, true)}`);
@@ -6885,7 +6887,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   
   const ret = unescape(smart_join(walk(thing, indent + 1)));
 
-  context.munge_configuration();
+  context.munge_configuration({indent: indent + 1});
   
   log(log_expand_and_walk_enabled,
       `Expanded into ${inspect_fun(ret)}`);
