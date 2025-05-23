@@ -1860,7 +1860,7 @@ const tws                = rule => {
 // common numbers:
 const udecimal           = r(/\d+\.\d+/); 
 const urational          = r(/\d+\/[1-9]\d*/);
-const uint               = r(/\d+/)
+const uint               = r(/\d+/);
 const sdecimal           = r(/[+-]?\d+\.\d+/);
 const srational          = r(/[+-]?\d+\/[1-9]\d*/);
 const sint               = r(/[+-]?\d+/)
@@ -7655,7 +7655,7 @@ const DiscardedComments        = discard(wst_star(comment));
 // -------------------------------------------------------------------------------------------------
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
-const A1111StyleLoraWeight = choice(/\d*\.\d+/, /\d+/);
+const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint);
 const A1111StyleLora       =
       xform(arr => new ASTLora(arr[3], arr[4][0]),
             wst_seq('<',                                    // [0]
@@ -7876,9 +7876,9 @@ const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
 const NamedWildcardReference  = xform(seq('@',                                       // [0]
                                           optional('^'),                             // [1]
-                                          optional(xform(parseInt, /\d+/)),          // [2]
+                                          optional(xform(parseInt, uint)),          // [2]
                                           optional(xform(parseInt,
-                                                         second(seq('-', /\d+/)))),  // [3]
+                                                         second(seq('-', uint)))),  // [3]
                                           optional(/[,&]/),                          // [4]
                                           ident),                                    // [5]
                                       arr => {
