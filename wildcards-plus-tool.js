@@ -865,9 +865,9 @@ function elem(index, rule) { // convenience constructor
 }
 // -------------------------------------------------------------------------------------------------
 function first(rule) {
-  const elem = new Element(0, rule);
+  rule = new Element(0, rule);
 
-  elem.__impl_toString = function(visited, next_id, ref_counts) {
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
     // const rule     = this.__vivify(this.rule);
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
@@ -876,13 +876,13 @@ function first(rule) {
     // return `first(${rule_str})`;
   }
   
-  return elem;
+  return rule;
 }
 // -------------------------------------------------------------------------------------------------
 function second(rule) {
-  const elem = new Element(1, rule);
+  rule = new Element(1, rule);
 
-  elem.__impl_toString = function(visited, next_id, ref_counts) {
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
     // const rule     = this.__vivify(this.rule);
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
@@ -891,13 +891,13 @@ function second(rule) {
     // return `second(${rule_str})`;
   }
   
-  return elem;
+  return rule;
 }
 // -------------------------------------------------------------------------------------------------
 function third(rule) {
-  const elem = new Element(2, rule);
+  rule = new Element(2, rule);
 
-  elem.__impl_toString = function(visited, next_id, ref_counts) {
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
     // const rule     = this.__vivify(this.rule);
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
@@ -906,7 +906,7 @@ function third(rule) {
     // return `third(${rule_str})`;
   }
   
-  return elem;
+  return rule;
 }
 // -------------------------------------------------------------------------------------------------
 
