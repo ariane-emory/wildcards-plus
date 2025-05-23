@@ -1784,10 +1784,10 @@ function log(indent, str = "", indent_str = "| ") {
   console.log(`${indent_str.repeat(indent)}${str}`);
 }
 // -------------------------------------------------------------------------------------------------
-function log_line(char = '-', width = log_line.line_width) {
+function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
   console.log(char.repeat(width));
 }
-log_line.line_width = 90;
+LOG_LINE.line_width = 90;
 // -------------------------------------------------------------------------------------------------
 function maybe_make_TokenLabel_from_string(thing) {
   if (typeof thing === 'string')
@@ -8188,26 +8188,26 @@ async function main() {
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   
   if (print_ast_before_includes_enabled) {
-    log_line();
+    LOG_LINE();
     console.log(`before process_includes:`);
-    log_line();
+    LOG_LINE();
     console.log(`${inspect_fun(AST)}`);
-    log_line();
+    LOG_LINE();
     console.log(`before process_includes (as JSON):`);
-    log_line();
+    LOG_LINE();
     console.log(`${JSON.stringify(AST)}`);
   }
 
   AST = process_includes(AST, base_context);
 
   if (print_ast_after_includes_enabled) { 
-    log_line();
+    LOG_LINE();
     console.log(`after process_includes:`);
-    log_line();
+    LOG_LINE();
     console.log(`${inspect_fun(AST)}`);
-    log_line();
+    LOG_LINE();
     console.log(`after process_includes (as JSON):`);
-    log_line();
+    LOG_LINE();
     console.log(`${JSON.stringify(AST)}`);
   }
   
@@ -8232,35 +8232,35 @@ async function main() {
   };
 
   while (posted_count < count) {
-    log_line('=');
+    LOG_LINE('=');
     console.log(`Expansion #${posted_count + 1} of ${count}:`);
-    log_line('=');
+    LOG_LINE('=');
     
     const context = base_context.clone();
     const prompt  = expand_wildcards(AST, context);
 
     if (log_flags_enabled || log_configuration_enabled) {
-      log_line();
+      LOG_LINE();
       console.log(`Flags after:`);
-      log_line();
+      LOG_LINE();
       console.log(`${inspect_fun(context.flags)}`);
     }
 
-    log_line();
+    LOG_LINE();
     console.log(`Final config is is:`);
-    log_line();
+    LOG_LINE();
     console.log(inspect_fun(context.configuration));
 
     
-    log_line();
+    LOG_LINE();
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
-    log_line();
+    LOG_LINE();
     console.log(prompt);
 
     if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
-      log_line();
+      LOG_LINE();
       console.log(`Expanded negative prompt:`);
-      log_line();
+      LOG_LINE();
       console.log(context.configuration.negative_prompt);
     }
 
@@ -8269,7 +8269,7 @@ async function main() {
     }
     else {
       if (!confirm) {
-        log_line();
+        LOG_LINE();
         do_post(prompt, context.configuration);
         posted_count += 1;
       }
@@ -8288,7 +8288,7 @@ async function main() {
 
         if (answer.match(/^p.*/i)) {
           if (prior_prompt) { 
-            log_line();
+            LOG_LINE();
             [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
             
             console.log(`POSTing prior prompt '${prompt}'`);
@@ -8302,7 +8302,7 @@ async function main() {
           }
         }
         else { // /^y.*/
-          log_line();
+          LOG_LINE();
           const parsed    = parseInt(answer);
           const gen_count = isNaN(parsed) ? 1 : parsed;  
           
@@ -8315,7 +8315,7 @@ async function main() {
     stash_priors(prompt, context.configuration);
   }
 
-  log_line('=');
+  LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
 main().catch(err => {

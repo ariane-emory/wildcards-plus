@@ -1575,10 +1575,10 @@ function log(indent, str = "", indent_str = "| ") {
   console.log(`${indent_str.repeat(indent)}${str}`);
 }
 // -------------------------------------------------------------------------------------------------
-function log_line(char = '-', width = log_line.line_width) {
+function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
   console.log(char.repeat(width));
 }
-log_line.line_width = 90;
+LOG_LINE.line_width = 90;
 // -------------------------------------------------------------------------------------------------
 function maybe_make_TokenLabel_from_string(thing) {
   if (typeof thing === 'string')
@@ -7892,7 +7892,7 @@ const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "";
 let   prompt_string               = ui_prompt;
 const default_batch_count         = 150;
-log_line.line_width               = 113;
+LOG_LINE.line_width               = 113;
 // -------------------------------------------------------------------------------------------------
 
 
@@ -7958,15 +7958,15 @@ const AST              = parse_result.value;
 console.log(`
 -----------------------------------------------------------------------------------------------------------------`);
 console.log(`pipeline.configuration is:`);
-log_line();
+LOG_LINE();
 console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
-// log_line();
+// LOG_LINE();
 // console.log(`pipeline.prompts is:`);
-// log_line();
+// LOG_LINE();
 // console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
-log_line();
+LOG_LINE();
 console.log(`The wildcards-plus prompt is:`);
-log_line();
+LOG_LINE();
 console.log(`${prompt_string}`);
 
 const base_context = load_prelude();
@@ -7980,9 +7980,9 @@ base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 for (let ix = 0; ix < batch_count; ix++) {
   const start_date = new Date();
 
-  log_line();
+  LOG_LINE();
   console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
-  log_line();
+  LOG_LINE();
 
   // expand the wildcards using a cloned context and generate a new configuration:
   
@@ -7990,24 +7990,24 @@ for (let ix = 0; ix < batch_count; ix++) {
   const prompt  = expand_wildcards(AST, context);
   context.munge_configuration();
 
-  log_line();
+  LOG_LINE();
   console.log(`GENERATED CONFIGURATION:`);
   console.log(`${JSON.stringify(context.configuration, null, 2)}`);
-  log_line();
+  LOG_LINE();
   console.log(`The expanded prompt is:`);
-  log_line();
+  LOG_LINE();
   console.log(`${prompt}`);
   
   if (context.configuration.negativePrompt || context.configuration.negativePrompt === '') {
-    log_line();
+    LOG_LINE();
     console.log(`Expanded negative prompt:`);
-    log_line();
+    LOG_LINE();
     console.log(context.configuration.negativePrompt);
   } else {
-    log_line();
+    LOG_LINE();
     console.log(`No negative prompt/`);
   }
-  log_line();
+  LOG_LINE();
   console.log(`Generating image #${ix+1} out of ${batch_count}...`);
 
   // -----------------------------------------------------------------------------------------------
@@ -8036,6 +8036,6 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`... image generated in ${elapsed_time} seconds.`);
 }
 
-log_line();
+LOG_LINE();
 console.log('Job complete. Open Console to see job report.');
 // -------------------------------------------------------------------------------------------------
