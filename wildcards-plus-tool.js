@@ -8034,8 +8034,8 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                       lws(optional(';'))));
 ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
-                                       AnonWildcardNoLoras,
-                                       ScalarReference);
+                                       ScalarReference,
+                                       AnonWildcardNoLoras);
 // LimitedContent.abbreviate_str_repr('LimitedContent');
 const ContentNoLoras          = choice(comment,
                                        NamedWildcardReference,
@@ -8043,9 +8043,9 @@ const ContentNoLoras          = choice(comment,
                                        SetFlag,
                                        UnsetFlag,
                                        escaped_brc,
-                                       AnonWildcard,
                                        ScalarUpdate,
                                        ScalarReference,
+                                       AnonWildcard, // sketchy, parent rule should be split into 2
                                        SpecialFunctionNotInclude,
                                        low_pri_text,
                                        plaintext);
