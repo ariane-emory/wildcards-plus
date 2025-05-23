@@ -7645,12 +7645,15 @@ ident.__impl_toString          = () => 'ident';
 const comment                  = discard(c_comment);
 comment.__impl_toString        = () => 'comment';
 const assignment_operator      = second(seq(wst_star(comment), '=', wst_star(comment)));
-assignment_operator.__impl_toString     = () => 'assignment_operator';
+assignment_operator
+  .__impl_toString             = () => 'assignment_operator';
 const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
-incr_assignment_operator.__impl_toString     = () => 'incr_assignment_operator';
+incr_assignment_operator
+  .__impl_toString             = () => 'incr_assignment_operator';
 incr_assignment_operator.__direct_children   = () => [];
 const escaped_brc              = second(choice('\\{', '\\}'));
-escaped_brc.__impl_toString    = () => 'escaped_brc';
+escaped_brc
+  .__impl_toString             = () => 'escaped_brc';
 const filename                 = /[A-Za-z0-9 ._\-()]+/;
 filename.__impl_toString       = () => 'filename';
 // ^ conservative regex, no unicode or weird symbols
