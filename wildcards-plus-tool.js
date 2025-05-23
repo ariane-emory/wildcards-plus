@@ -1917,7 +1917,18 @@ const par_enc            = rule => cutting_enc(lpar, rule, rpar);
 const brc_enc            = rule => cutting_enc(lbrc, rule, rbrc);
 const sqr_enc            = rule => cutting_enc(lsqr, rule, rsqr);
 const tri_enc            = rule => cutting_enc(lt,   rule, gt);
-const wse                = rule => enc(whites_star, rule, whites_star);
+// const wse                = rule => enc(whites_star, rule, whites_star);
+const wse                = rule => {
+  rule = enc(whites_star, rule, whites_star);
+  
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
+    const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
+    return `WSE(${rule_str})`;
+  }
+
+  return rule;
+};
+
 // -------------------------------------------------------------------------------------------------
 // basic arithmetic ops:
 const factor_op          = r(/[\/\*\%]/);
@@ -1975,30 +1986,44 @@ c_ufloat                 .abbreviate_str_repr('c_ufloat');
 c_uint                   .abbreviate_str_repr('c_uint');
 // -------------------------------------------------------------------------------------------------
 // other C-like terminals:
-const c_bool             = choice('true', 'false');
 const c_arith_assign     = r(/\+=|\-=|\*=|\/=|\%=/)
 const c_bitwise_and      = l('&');
-const c_bitwise_bool_ops = r(/&&|\|\|/);
+const c_bitwise_bool_op  = r(/&&|\|\|/);
 const c_bitwise_not      = l('~');
 const c_bitwise_or       = l('|');
 const c_bitwise_xor      = caret; 
+const c_bool             = choice('true', 'false');
 const c_ccomparison_op   = r(/<=?|>=?|[!=]/);
 const c_incr_decr        = r(/\+\+|--/);
 const c_shift            = r(/<<|>>/);
 const c_shift_assign     = r(/<<=|>>=/);
 const c_unicode_ident    = r(/[\p{L}_][\p{L}\p{N}_]*/u);
+c_arith_assign           .abbreviate_str_repr('c_arith_assign');
+c_bitwise_and            .abbreviate_str_repr('c_bitwise_and');
+c_bitwise_bool_op        .abbreviate_str_repr('c_bitwise_bool_ops');
+c_bitwise_not            .abbreviate_str_repr('c_bitwise_not');
+c_bitwise_or             .abbreviate_str_repr('c_bitwise_or');
+c_bitwise_xor            .abbreviate_str_repr('c_bitwise_xor');
+c_bool                   .abbreviate_str_repr('c_bool');
+c_ccomparison_op         .abbreviate_str_repr('c_ccomparison_op');
+c_incr_decr              .abbreviate_str_repr('c_incr_decr');
+c_shift                  .abbreviate_str_repr('c_shift');
+c_shift_assign           .abbreviate_str_repr('c_shift_assign');
+c_unicode_ident          .abbreviate_str_repr('c_unicode_ident');
 // -------------------------------------------------------------------------------------------------
 // dotted chains:
 const dot_chain          = rule => plus(rule, dot); 
 // -------------------------------------------------------------------------------------------------
 // common comment styles:
-const py_line_comment    = r(/#[^\n]*/); 
-const c_line_comment     = r(/\/\/[^\n]*/);
 const c_block_comment    = r(/\/\*[^]*?\*\//);
-const c_comment          = choice(c_line_comment, c_block_comment);
-c_line_comment.__impl_toString = () => `C_LINE_COMMENT`;
-c_block_comment.__impl_toString = () =>  `C_BLOCK_COMMENT`;
-c_comment.__impl_toString = () => `C_COMMENT`;
+const c_comment          = choice(() => c_line_comment,
+                                  () => c_block_comment);
+const c_line_comment     = r(/\/\/[^\n]*/);
+const py_line_comment    = r(/#[^\n]*/); 
+c_block_comment          .abbreviate_str_repr('C_BLOCK_COMMENT');
+c_comment                .abbreviate_str_repr('C_COMMENT');
+c_line_comment           .abbreviate_str_repr('C_LINE_COMMENT');
+py_line_comment          .abbreviate_str_repr('PY_LINE_COMMENT');
 // -------------------------------------------------------------------------------------------------
 // ternary helper combinator:
 const ternary            =
@@ -2008,6 +2033,7 @@ const ternary            =
 // -------------------------------------------------------------------------------------------------
 // misc unsorted Rules:
 const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
+kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
 const c_funcall = (fun_rule, arg_rule, open = '(', close = ')', sep = ',') =>
@@ -7690,7 +7716,6 @@ const DiscardedComments        = discard(wst_star(comment));
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint);
-A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora       =
       xform(arr => new ASTLora(arr[3], arr[4][0]),
             wst_seq('<',                                    // [0]
@@ -7702,6 +7727,8 @@ const A1111StyleLora       =
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
                     '>'));
+A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
+A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
@@ -7815,9 +7842,9 @@ const SetFlag                  = xform(second(seq('#', plus(ident, '.'), word_br
 const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_break)),
                                        arr => {
                                          if (log_flags_enabled)
-                                         if (arr.length > 1)
-                                         console.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                                     ` ${inspect_fun(arr)}`);
+                                           if (arr.length > 1)
+                                             console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                                         ` ${inspect_fun(arr)}`);
                                          return new ASTUnsetFlag(arr);
                                        });
 SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
@@ -7833,9 +7860,9 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
             c_funcall('include',                          // [0]
-                first(wst_seq(DiscardedComments,    // -
-                              json_string,          // [1]
-                              DiscardedComments)))) // -
+                      first(wst_seq(DiscardedComments,    // -
+                                    json_string,          // [1]
+                                    DiscardedComments)))) // -
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  () => "%include is only supported when " +
@@ -8260,3 +8287,4 @@ console.log(`${Prompt}`);
 // console.log(`${CheckFlagWithSetConsequent}`);
 // console.log(`${CheckFlagWithOrAlternatives}`);
 console.log(lws('a').toString());
+console.log(wst_star('a').toString());
