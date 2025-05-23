@@ -8119,7 +8119,7 @@ const Z        = l('z');
 const TestRule = seq('x', Z, Z, () => TestRule); 
 // console.log(`${TestRule}`);
 // console.log(``);
-// console.log(`${Prompt}`);
+console.log(`${Prompt}`);
 
 // console.log(`${NormalSpecialFunction}`);
 // console.log(`${inspect_fun(NormalSpecialFunction.options)}`);
@@ -8127,4 +8127,4 @@ const TestRule = seq('x', Z, Z, () => TestRule);
 // for (const [ix, option] of NormalSpecialFunction.options.entries())
 //   console.log(`#${ix}: ${option}`)
 // console.log(`${CheckFlagWithSetConsequent}`);
-console.log(`${CheckFlagWithOrAlternatives}`);
+// console.log(`${CheckFlagWithOrAlternatives}`);
