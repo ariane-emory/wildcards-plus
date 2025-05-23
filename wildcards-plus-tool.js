@@ -7723,7 +7723,7 @@ word_break                     .abbreviate_str_repr('word_break');
 // discard comments:
 // -------------------------------------------------------------------------------------------------
 const discarded_comments        = discard(wst_star(comment));
-discarded_comments.abbreviate_str_repr('-comment*');
+discarded_comments              .abbreviate_str_repr('-comment*');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
