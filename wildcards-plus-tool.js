@@ -1784,6 +1784,11 @@ function log(indent, str = "", indent_str = "| ") {
   console.log(`${indent_str.repeat(indent)}${str}`);
 }
 // -------------------------------------------------------------------------------------------------
+function log_line(char = '-', width = log_line.line_width) {
+  console.log(char.repeat(width));
+}
+log_line.line_width = 90;
+// -------------------------------------------------------------------------------------------------
 function maybe_make_TokenLabel_from_string(thing) {
   if (typeof thing === 'string')
     return new TokenLabel(thing);
@@ -7889,11 +7894,11 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude =
-xform(arr => new ASTInclude(arr[1]),
-      c_funcall('include',                          // [0]
-                first(wst_seq(discarded_comments,    // -
-                              json_string,          // [1]
-                              discarded_comments)))) // -
+      xform(arr => new ASTInclude(arr[1]),
+            c_funcall('include',                          // [0]
+                      first(wst_seq(discarded_comments,    // -
+                                    json_string,          // [1]
+                                    discarded_comments)))) // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8111,9 +8116,6 @@ async function main() {
   let   post       = false;
   let   confirm    = false;
   let   from_stdin = false;
-
-  const log_line = (char = '-', width = log_line.line_width) => console.log(char.repeat(width));
-  log_line.line_width = 90;
 
   if (args.length == 0) 
     throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
