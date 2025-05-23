@@ -1575,6 +1575,11 @@ function log(indent, str = "", indent_str = "| ") {
   console.log(`${indent_str.repeat(indent)}${str}`);
 }
 // -------------------------------------------------------------------------------------------------
+function log_line(char = '-', width = log_line.line_width) {
+  console.log(char.repeat(width));
+}
+log_line.line_width = 90;
+// -------------------------------------------------------------------------------------------------
 function maybe_make_TokenLabel_from_string(thing) {
   if (typeof thing === 'string')
     return new TokenLabel(thing);
@@ -7882,11 +7887,12 @@ Prompt.finalize();
 // MAIN SECTION: All of the Draw Things-specific code goes down here.
 // -------------------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
-const fallback_prompt            = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
+const fallback_prompt             = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_hint                     = "";
 let   prompt_string               = ui_prompt;
 const default_batch_count         = 150;
+log_line.line_width               = 113;
 // -------------------------------------------------------------------------------------------------
 
 
@@ -7924,12 +7930,10 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
 prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
 const clear_first = user_selection[2];
-
 const user_selected_pick_one_priority =
       picker_priority_descriptions[user_selection[3][0]];
 // console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
-
 const user_selected_pick_multiple_priority =
       picker_priority_descriptions[user_selection[4][0]];
 // console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
@@ -7951,17 +7955,18 @@ const AST              = parse_result.value;
 
 // -------------------------------------------------------------------------------------------------
 
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
+console.log(`
+-----------------------------------------------------------------------------------------------------------------`);
 console.log(`pipeline.configuration is:`);
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
+log_line();
 console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
-// console.log(`-----------------------------------------------------------------------------------------------------------------`);
+// log_line();
 // console.log(`pipeline.prompts is:`);
-// console.log(`-----------------------------------------------------------------------------------------------------------------`);
+// log_line();
 // console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
+log_line();
 console.log(`The wildcards-plus prompt is:`);
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
+log_line();
 console.log(`${prompt_string}`);
 
 const base_context = load_prelude();
@@ -7975,9 +7980,9 @@ base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 for (let ix = 0; ix < batch_count; ix++) {
   const start_date = new Date();
 
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  log_line();
   console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  log_line();
 
   // expand the wildcards using a cloned context and generate a new configuration:
   
@@ -7985,24 +7990,24 @@ for (let ix = 0; ix < batch_count; ix++) {
   const prompt  = expand_wildcards(AST, context);
   context.munge_configuration();
 
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  log_line();
   console.log(`GENERATED CONFIGURATION:`);
   console.log(`${JSON.stringify(context.configuration, null, 2)}`);
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  log_line();
   console.log(`The expanded prompt is:`);
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  log_line();
   console.log(`${prompt}`);
   
   if (context.configuration.negativePrompt || context.configuration.negativePrompt === '') {
-    console.log(`-----------------------------------------------------------------------------------------------------------------`);
+    log_line();
     console.log(`Expanded negative prompt:`);
-    console.log(`-----------------------------------------------------------------------------------------------------------------`);
+    log_line();
     console.log(context.configuration.negativePrompt);
   } else {
-    console.log(`-----------------------------------------------------------------------------------------------------------------`);
+    log_line();
     console.log(`No negative prompt/`);
   }
-  console.log(`-----------------------------------------------------------------------------------------------------------------`);
+  log_line();
   console.log(`Generating image #${ix+1} out of ${batch_count}...`);
 
   // -----------------------------------------------------------------------------------------------
@@ -8031,6 +8036,6 @@ for (let ix = 0; ix < batch_count; ix++) {
   console.log(`... image generated in ${elapsed_time} seconds.`);
 }
 
-console.log(`-----------------------------------------------------------------------------------------------------------------`);
+log_line();
 console.log('Job complete. Open Console to see job report.');
 // -------------------------------------------------------------------------------------------------
