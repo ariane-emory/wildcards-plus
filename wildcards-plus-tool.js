@@ -1845,20 +1845,20 @@ const d_whites_plus      = discard(whites_plus);
 // -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
 const lws                = rule => {
-  const new_rule = second(seq(whites_star, rule));
+  rule = second(seq(whites_star, rule));
   
-  new_rule.__impl_toString = function(visited, next_id, ref_counts) {
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
     return `Lws(${rule_str})`;
   }
 
-  return new_rule;
+  return rule;
 };
 const tws                = rule => {
   rule = first(seq(rule, whites_star));
 
   rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
     return `Tws(${rule_str})`;
   }
 };
