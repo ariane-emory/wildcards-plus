@@ -1841,7 +1841,7 @@ const lws                = rule => {
   
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-    return `LWS(${rule_str})`;
+    return `Lws(${rule_str})`;
   }
 
   return rule;
@@ -1851,7 +1851,7 @@ const tws                = rule => {
 
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-    return `TWS(${rule_str})`;
+    return `Tws(${rule_str})`;
   }
 };
 // -------------------------------------------------------------------------------------------------
