@@ -1832,8 +1832,12 @@ function pipe_funs(...fns) {
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
 // simple 'words':
-const alphas             = r(/[a-zA-Z_]+/);
-const alphacaps          = r(/[A-Z_]+/);
+const alpha_snake             = r(/[a-zA-Z_]+/);
+const lc_alpha_snake          = r(/[a-z_]+/);
+const uc_alpha_snake          = r(/[A-Z_]+/);
+alpha_snake.abbreviate_str_repr('alpha_snake');
+lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
+uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // -------------------------------------------------------------------------------------------------
 // whitespace:
 const whites_star        = r(/\s*/);
@@ -2203,6 +2207,9 @@ const JsoncObject =
                                           , ',')),
                                )),
                 '{}'[1]))); // dumb hack for rainbow brackets sake
+JsoncArray.abbreviate_str_repr('JsoncArray');
+JsoncComments.abbreviate_str_repr('JsoncComments');
+JsoncObject.abbreviate_str_repr('JsoncObject');
 // -------------------------------------------------------------------------------------------------
 Jsonc.finalize(); 
 // =================================================================================================
@@ -7888,14 +7895,14 @@ const SpecialFunctionSetPickSingle =
                 wst_seq(DiscardedComments,                          // -
                         assignment_operator,                        // [1][0]
                         DiscardedComments,                          // -
-                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
+                        choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                                       // [0]
                 wst_seq(DiscardedComments,                          // -
                         assignment_operator,                        // [1][0]
                         DiscardedComments,                          // -
-                        choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
+                        choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick', word_break));
