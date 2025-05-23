@@ -1840,16 +1840,20 @@ const lws                = rule => {
   rule = second(seq(whites_star, rule));
   
   rule.__impl_toString = function(visited, next_id, ref_counts) {
-    // const rule     = this.__vivify(this.rule);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-
     return `lws(${rule_str})`;
-    // return `first(${rule_str})`;
   }
 
   return rule;
 };
-const tws                = rule => first(seq(rule, whites_star));
+const tws                = rule => {
+  rule = first(seq(rule, whites_star));
+
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+    return `tws(${rule_str})`;
+  }
+};
 // -------------------------------------------------------------------------------------------------
 // common numbers:
 const udecimal           = r(/\d+\.\d+/); 
