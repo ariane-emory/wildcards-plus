@@ -7907,13 +7907,14 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
                  [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
     this.section("Batch count", "",
                  [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
+    this.switch(true, "Clear canvas before generating (maybe img2img):"),
     this.section("When picking a single item, prioritize:", "",
                  [ this.menu(picker_priority_descriptions.indexOf(picker_priority.ensure_weighted_distribution),
                              picker_priority_descriptions) ]),
     this.section("When picking multiple items, prioritize:", "",
                  [ this.menu(picker_priority_descriptions.indexOf(picker_priority.avoid_repetition),
                              picker_priority_descriptions) ]),
-	  this.section('about', doc_string, [])
+    this.section('about', doc_string, [])
   ];
 });
 
@@ -7922,14 +7923,15 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
 
 prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
+const clear_first = user_selection[2];
 
 const user_selected_pick_one_priority =
-      picker_priority_descriptions[user_selection[2][0]];
+      picker_priority_descriptions[user_selection[3][0]];
 // console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
 const user_selected_pick_multiple_priority =
-      picker_priority_descriptions[user_selection[3][0]];
+      picker_priority_descriptions[user_selection[4][0]];
 // console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
@@ -8006,7 +8008,13 @@ for (let ix = 0; ix < batch_count; ix++) {
   // -----------------------------------------------------------------------------------------------
   // run the pipeline:
   // -----------------------------------------------------------------------------------------------
-  canvas.clear();
+
+  if (clear_first) {
+    console.log(`Clearing canvas...`);
+    canvas.clear();
+  } else {
+    console.log(`Not clearing canvas`);
+  }
 
   const negative_prompt = context.configuration.negativePrompt;
   delete context.configuration.negativePrompt;
