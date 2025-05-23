@@ -7748,7 +7748,7 @@ const A1111StyleLora       =
                     choice(filename, () => LimitedContent), // [3]
                     optional(second(wst_seq(':',
                                             choice(A1111StyleLoraWeight,
-                                                   () => LimitedContent))),
+                                                  () => LimitedContent))),
                              "1.0"), // [4][0]
                     '>'));
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
@@ -8035,7 +8035,8 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
 ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
-                                       AnonWildcardNoLoras);
+                                       AnonWildcardNoLoras,
+                                       plaintext);
 // LimitedContent.abbreviate_str_repr('LimitedContent');
 const make_Content_rule          = (anon_wildcard_rule, ...prepended_rules) =>
       choice(...prepended_rules,
