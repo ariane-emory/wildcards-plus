@@ -1697,14 +1697,26 @@ function abbreviate(str, len = 100) {
     return str
   }
   else {
-    if (str.startsWith('/') && str.endsWith('/')) { // special case for regex source strings
-      // throw new Error(`bomb ${inspect_fun(str)}`);
-      const ret = `${str.substring(0, len - 2).replace("\n","").trim()}.../`;
-      // console.log(`re: ${str} =>\n    ${ret}`);
-      return ret;
-    } else {
-      return `${str.substring(0, len).replace("\n","").trim()}...`;
+    const bracing_pairs = [
+      ['/',  '/'],
+      ['(',  ')'],
+      ['[',  ']'],
+      ['{',  '}'],
+      ['<',  '>'],
+      ['λ(', ')'],
+    ];
+
+    for (const [left, right] of bracing_pairs) {
+      if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
+        // throw new Error(`bomb ${inspect_fun(str)}`);
+        str = str.substring(1, str.length - 1);
+        const ret = `${left}${str.replace("\n","").trim()}...${right}`;
+        // console.log(`re: ${str} =>\n    ${ret}`);
+        return ret;
+      }
     }
+    
+    return `${str.substring(0, len).replace("\n","").trim()}...`;
   }
 }
 // -------------------------------------------------------------------------------------------------
