@@ -7911,7 +7911,8 @@ const SpecialFunctionNotInclude =
                          NormalSpecialFunction,
                          discarded_comments,
                          lws(optional(';'))),
-             { abbreviate: 'SpecialFunctionNotInclude'});
+             // { abbreviate: 'SpecialFunctionNotInclude'}
+            );
 const AnySpecialFunction =
       second(cutting_seq('%',
                          choice((dt_hosted
@@ -7920,7 +7921,8 @@ const AnySpecialFunction =
                                 NormalSpecialFunction),
                          discarded_comments,
                          lws(optional(';'))),
-             { abbreviate: 'AnySpecialFunction'});
+             // { abbreviate: 'AnySpecialFunction'}
+            );
 // SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // AnySpecialFunction.abbreviate_str_repr('AnySpecialFunction');
 // -------------------------------------------------------------------------------------------------
