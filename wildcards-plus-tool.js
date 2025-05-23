@@ -1923,7 +1923,7 @@ const wse                = rule => {
   
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
-    return `WSE(${rule_str})`;
+    return `WSE[${rule_str}]`;
   }
 
   return rule;
