@@ -7658,17 +7658,17 @@ const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
 const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
-any_assignment_operator .abbreviate_str_repr('any_assignment_operator');
-assignment_operator     .abbreviate_str_repr('assignment_operator');
-comment                 .abbreviate_str_repr('comment');
-escaped_brc             .abbreviate_str_repr('escaped_brc');
-filename                .abbreviate_str_repr('filename');
-ident                   .abbreviate_str_repr('ident');
-incr_assignment_operator.abbreviate_str_repr('incr_assignment_operator');
-low_pri_text            .abbreviate_str_repr('low_pri_text');
-plaintext               .abbreviate_str_repr('plaintext');
-wb_uint                 .abbreviate_str_repr('wb_uint');
-word_break              .abbreviate_str_repr('word_break');
+any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
+assignment_operator            .abbreviate_str_repr('assignment_operator');
+comment                        .abbreviate_str_repr('comment');
+escaped_brc                    .abbreviate_str_repr('escaped_brc');
+filename                       .abbreviate_str_repr('filename');
+ident                          .abbreviate_str_repr('ident');
+incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
+low_pri_text                   .abbreviate_str_repr('low_pri_text');
+plaintext                      .abbreviate_str_repr('plaintext');
+wb_uint                        .abbreviate_str_repr('wb_uint');
+word_break                     .abbreviate_str_repr('word_break');
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
@@ -7815,20 +7815,27 @@ const SetFlag                  = xform(second(seq('#', plus(ident, '.'), word_br
 const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_break)),
                                        arr => {
                                          if (log_flags_enabled)
-                                           if (arr.length > 1)
-                                             console.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                                         ` ${inspect_fun(arr)}`);
+                                         if (arr.length > 1)
+                                         console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                                     ` ${inspect_fun(arr)}`);
                                          return new ASTUnsetFlag(arr);
                                        });
+SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
+CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
+CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
+NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
+TestFlag.abbreviate_str_repr('TestFlag');
+SetFlag.abbreviate_str_repr('SetFlag');
+UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
             c_funcall('include',                          // [0]
-                      first(wst_seq(DiscardedComments,    // -
-                                    json_string,          // [1]
-                                    DiscardedComments)))) // -
+                first(wst_seq(DiscardedComments,    // -
+                              json_string,          // [1]
+                              DiscardedComments)))) // -
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  () => "%include is only supported when " +
