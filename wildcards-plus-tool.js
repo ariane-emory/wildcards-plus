@@ -334,8 +334,22 @@ const trailing_separator_modes = Object.freeze({
 class Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(options = {}) {
-    if (options.abbreviate !== undefined)
+    console.log(`Rule constructor of ${this.constructor.name}: ${inspect_fun(options)}`);
+
+    if (options === null)
+      throw new Error(`got null options!`);
+    else
+      console.log(`options: ${inspect_fun(options)}`);
+    
+    if (options.abbreviate !== undefined) {
+      console.log(`options.abbreviate 1: ${inspect_fun(options.abbreviate)}`);
+
       this.abbreviate_str_repr(options.abbreviate);
+    }
+    else {
+      console.log(`options.abbreviate 2: ${inspect_fun(options.abbreviate)}`);
+      return;
+    }
   };
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
@@ -527,12 +541,11 @@ class Rule {
 // -------------------------------------------------------------------------------------------------
 class Quantified extends Rule {
   // -----------------------------------------------------------------------------------------------
-  constructor(rule, separator_rule = null,
-              trailing_separator_mode = trailing_separator_modes.forbidden) {
-    super();
+  constructor(rule, options = {}) {
+    super(options);
     this.rule                    = make_rule_func(rule);
-    this.separator_rule          = make_rule_func(separator_rule);
-    this.trailing_separator_mode = trailing_separator_mode;
+    this.separator_rule          = make_rule_func(options.separator_rule);
+    this.trailing_separator_mode = options.trailing_separator_mode;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -669,6 +682,11 @@ function plus(rule, // convenience constructor
 // Star class
 // -------------------------------------------------------------------------------------------------
 class Star extends Quantified {
+  // -----------------------------------------------------------------------------------------------
+  constructor(options = {}) {
+    super(options);
+    console.log(`Star constructor: ${inspect_fun(options)}`);
+  }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index) {
     return this.__quantified_match(indent, input, index);
