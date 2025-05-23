@@ -1979,6 +1979,7 @@ c_block_comment.__impl_toString = function(visited, next_id, ref_counts) {
   return `C_BLOCK_COMMENT`;
 }
 c_comment.__impl_toString = function(visited, next_id, ref_counts) {
+  // throw "bomb";
   return `C_COMMENT`;
 }
 // -------------------------------------------------------------------------------------------------
