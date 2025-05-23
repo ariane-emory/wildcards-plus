@@ -847,9 +847,8 @@ class Element extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    return `${this.__vivify(this.rule)?.__toString(visited,
-                                                   next_id,
-                                                   ref_counts)}[${this.index}]`;
+    return `[${this.index}]` +
+      `${this.__vivify(this.rule)?.__toString(visited, next_id, ref_counts)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
