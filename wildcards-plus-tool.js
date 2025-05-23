@@ -1972,6 +1972,15 @@ const py_line_comment    = r(/#[^\n]*/);
 const c_line_comment     = r(/\/\/[^\n]*/);
 const c_block_comment    = r(/\/\*[^]*?\*\//);
 const c_comment          = choice(c_line_comment, c_block_comment);
+c_line_comment.__impl_toString = function(visited, next_id, ref_counts) {
+  return `C_LINE_COMMENT`;
+}
+c_block_comment.__impl_toString = function(visited, next_id, ref_counts) {
+  return `C_BLOCK_COMMENT`;
+}
+c_comment.__impl_toString = function(visited, next_id, ref_counts) {
+  return `C_COMMENT`;
+}
 // -------------------------------------------------------------------------------------------------
 // ternary helper combinator:
 const ternary            =
