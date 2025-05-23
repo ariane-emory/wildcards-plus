@@ -8183,26 +8183,26 @@ async function main() {
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   
   if (print_ast_before_includes_enabled) {
-    console.log('------------------------------------------------------------------------------------------');
+    console.log('-'.repeat(90));
     console.log(`before process_includes:`);
-    console.log('------------------------------------------------------------------------------------------');
+    console.log('-'.repeat(90));
     console.log(`${inspect_fun(AST)}`);
-    console.log('------------------------------------------------------------------------------------------');
+    console.log('-'.repeat(90));
     console.log(`before process_includes (as JSON):`);
-    console.log('------------------------------------------------------------------------------------------');
+    console.log('-'.repeat(90));
     console.log(`${JSON.stringify(AST)}`);
   }
 
   AST = process_includes(AST, base_context);
 
   if (print_ast_after_includes_enabled) { 
-    console.log('------------------------------------------------------------------------------------------');
+    console.log('-'.repeat(90));
     console.log(`after process_includes:`);
-    console.log('------------------------------------------------------------------------------------------');
+    console.log('-'.repeat(90));
     console.log(`${inspect_fun(AST)}`);
-    console.log('------------------------------------------------------------------------------------------');
+    console.log('-'.repeat(90));
     console.log(`after process_includes (as JSON):`);
-    console.log('------------------------------------------------------------------------------------------');
+    console.log('-'.repeat(90));
     console.log(`${JSON.stringify(AST)}`);
   }
   

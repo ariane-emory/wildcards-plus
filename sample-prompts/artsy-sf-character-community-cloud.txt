@@ -525,4 +525,3 @@ A
 // %neg            += { first,  }
 // %nEgAtIvE       += { second, }
 // %nEgAtIvEpRoMpT += { third,  }
-#foo.
