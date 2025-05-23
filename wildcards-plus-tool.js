@@ -481,7 +481,7 @@ class Rule {
     
     if (visited.has(this)) {
       const got_id = visited.get(this);
-      return `#${visited.get(this)}`;
+      return `#${visited.get(this)}#`;
     }
 
     // mark as visited (but not yet emitted)
