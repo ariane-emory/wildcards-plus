@@ -2089,7 +2089,7 @@ const enclosing       = (left, enclosed, right) =>
 // BASIC JSON GRAMMAR SECTION:
 // =================================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
-const json = choice(() => JsonObject,  () => JsonArray,
+const Json = choice(() => JsonObject,  () => JsonArray,
                     () => json_string, () => json_true,   () => json_false,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
@@ -2097,11 +2097,11 @@ const JsonObject = xform(arr =>  Object.fromEntries(arr),
                          wst_cutting_enc('{',
                                          wst_star(
                                            xform(arr => [arr[0], arr[2]],
-                                                 wst_seq(() => json_string, ':', json)),
+                                                 wst_seq(() => json_string, ':', Json)),
                                            ','),
                                          '}'));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
+const JsonArray = wst_cutting_enc('[', wst_star(Json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -2145,6 +2145,7 @@ const json_number = xform(reify_json_number,
                               xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
+Json.abbreviate_str_repr('Json');
 JsonObject.abbreviate_str_repr('JsonObject');
 JsonArray.abbreviate_str_repr('JsonArray');
 json_string.__impl_toString = () => 'json_string';
@@ -2160,7 +2161,7 @@ json_exponentPart.abbreviate_str_repr('json_exponentPart');
 json_number.abbreviate_str_repr('json_number');
 json_S.abbreviate_str_repr('json_S');
 // -------------------------------------------------------------------------------------------------
-json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
+Json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
 // =================================================================================================
 // END OF BASIC JSON GRAMMAR SECTION.
 // =================================================================================================
@@ -2210,6 +2211,7 @@ const JsoncObject =
                                           , ',')),
                                )),
                 '{}'[1]))); // dumb hack for rainbow brackets sake
+Jsonc.abbreviate_str_repr('Jsonc');
 jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
 JsoncObject.abbreviate_str_repr('JsoncObject');
@@ -2254,6 +2256,7 @@ const rJsoncObject =
                                           , ',')),
                                )),
                 '{}'[1]))); // dumb hack for rainbow brackets sake
+rJsonc.abbreviate_str_repr('rJsonc');
 rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
 rJsonc.finalize(); 
@@ -7748,7 +7751,7 @@ const A1111StyleLora       =
                     choice(filename, () => LimitedContent), // [3]
                     optional(second(wst_seq(':',
                                             choice(A1111StyleLoraWeight,
-                                                  () => LimitedContent))),
+                                                   () => LimitedContent))),
                              "1.0"), // [4][0]
                     '>'));
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
