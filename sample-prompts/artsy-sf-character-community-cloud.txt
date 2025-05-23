@@ -101,9 +101,9 @@
 // -------------------------------------------------------------------------------------------------
 %Loras     = [] // clear any LoRAs that are set up the DT UI first.
 %Neg       = { signature, watermark, text, }
+%strength  = 1.0
 
-{6 ?flux
-// Flux finetunes:
+{6 ?flux // Flux finetunes:
 
 { 1 %Width = 1088; %Height = 1088; %Steps = 50; // 1.183 mpx, 12,162 cu
 | 2 %Width = 1152; %Height = 1024; %Steps = 50; // 1.179 mpx, 12,082 cu
