@@ -1845,14 +1845,14 @@ const d_whites_plus      = discard(whites_plus);
 // -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
 const lws                = rule => {
-  rule = second(seq(whites_star, rule));
+  const new_rule = second(seq(whites_star, rule));
   
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+  new_rule.__impl_toString = function(visited, next_id, ref_counts) {
+    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
     return `Lws(${rule_str})`;
   }
 
-  return rule;
+  return new_rule;
 };
 const tws                = rule => {
   rule = first(seq(rule, whites_star));
@@ -8228,3 +8228,4 @@ console.log(`${Prompt}`);
 //   console.log(`#${ix}: ${option}`)
 // console.log(`${CheckFlagWithSetConsequent}`);
 // console.log(`${CheckFlagWithOrAlternatives}`);
+console.log(lws('a').toString());
