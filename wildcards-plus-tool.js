@@ -732,10 +732,14 @@ class Choice extends Rule  {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    return `{ ${this.options
+    // return `{ ${this.options
+    //             .map(x =>
+    //                    this.__vivify(x)
+    //                    .__toString(visited, next_id, ref_counts)).join(' | ')} }`;
+    return `{${this.options
                 .map(x =>
                        this.__vivify(x)
-                       .__toString(visited, next_id, ref_counts)).join(" | ")} }`;
+                       .__toString(visited, next_id, ref_counts)).join('|')}}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -860,15 +864,45 @@ function elem(index, rule) { // convenience constructor
 }
 // -------------------------------------------------------------------------------------------------
 function first(rule) {
-  return new Element(0, rule);
+  const elem = new Element(0, rule);
+
+  elem.__impl_toString = function(visited, next_id, ref_counts) {
+    const rule     = this.__vivify(this.rule);
+    const rule_str = rule.__toString(visited, next_id, ref_counts);
+
+    return `1st(${rule_str})`;
+    // return `first(${rule_str})`;
+  }
+  
+  return elem;
 }
 // -------------------------------------------------------------------------------------------------
 function second(rule) {
-  return new Element(1, rule);
+  const elem = new Element(1, rule);
+
+  elem.__impl_toString = function(visited, next_id, ref_counts) {
+    const rule     = this.__vivify(this.rule);
+    const rule_str = rule.__toString(visited, next_id, ref_counts);
+
+    return `2nd(${rule_str})`;
+    // return `second(${rule_str})`;
+  }
+  
+  return elem;
 }
 // -------------------------------------------------------------------------------------------------
 function third(rule) {
-  return new Element(2, rule);
+  const elem = new Element(2, rule);
+
+  elem.__impl_toString = function(visited, next_id, ref_counts) {
+    const rule     = this.__vivify(this.rule);
+    const rule_str = rule.__toString(visited, next_id, ref_counts);
+
+    return `3rd(${rule_str})`;
+    // return `third(${rule_str})`;
+  }
+  
+  return elem;
 }
 // -------------------------------------------------------------------------------------------------
 
@@ -1915,7 +1949,7 @@ const dot_chain          = rule => plus(rule, dot);
 // -------------------------------------------------------------------------------------------------
 // common comment styles:
 const c_line_comment     = r(/\/\/[^\n]*/);
-const py_line_comment    = r(/#[^\n]*/);
+const py_line_comment    = r(/#[^\n]*/); 
 const c_block_comment    = r(/\/\*[^]*?\*\//);
 // -------------------------------------------------------------------------------------------------
 // ternary helper combinator:
