@@ -6832,7 +6832,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
       let res = [];
       
-      if (got instanceof ASTLatchedNamedWildcardedValue) {
+      if (got instanceof ASTLatchedNamedWildcardValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
           res.push(expand_wildcards(got, context, indent + 1)); // not walk!
       }
@@ -6879,14 +6879,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (!got)
         return `<ERROR: Named wildcard ${thing.name} not found!>`;
 
-      if (got instanceof ASTLatchedNamedWildcardedValue) {
+      if (got instanceof ASTLatchedNamedWildcardValue) {
         log(context.noisy,
             `NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
 
         return '';
       }
 
-      const latched = new ASTLatchedNamedWildcardedValue(walk(got, indent + 1), got);
+      const latched = new ASTLatchedNamedWildcardValue(walk(got, indent + 1), got);
 
       log(context.noisy,
           `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
@@ -6902,7 +6902,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (!got)
         return `ERROR: Named wildcard ${thing.name} not found!`;
 
-      if (! (got instanceof ASTLatchedNamedWildcardedValue))
+      if (! (got instanceof ASTLatchedNamedWildcardValue))
         throw new Error(`NOT LATCHED: '${thing.name}'`);
 
       context.named_wildcards.set(thing.name, got.original_value);
@@ -6924,7 +6924,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     // internal objects:
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTLatchedNamedWildcardedValue) {
+    else if (thing instanceof ASTLatchedNamedWildcardValue) {
       return thing.latched_value;
     }
     // ---------------------------------------------------------------------------------------------
@@ -7496,7 +7496,7 @@ class ASTNamedWildcardDefinition extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Internal usage.. might not /really/ be part of the AST per se?
 // -------------------------------------------------------------------------------------------------
-class ASTLatchedNamedWildcardedValue extends ASTNode {
+class ASTLatchedNamedWildcardValue extends ASTNode {
   constructor(latched_value, original_value) {
     super();
     this.latched_value  = latched_value;
@@ -7722,18 +7722,18 @@ word_break                     .abbreviate_str_repr('word_break');
 // -------------------------------------------------------------------------------------------------
 // discard comments:
 // -------------------------------------------------------------------------------------------------
-const DiscardedComments        = discard(wst_star(comment));
-DiscardedComments.abbreviate_str_repr('-Comments');
+const discarded_comments        = discard(wst_star(comment));
+discarded_comments.abbreviate_str_repr('-comment*');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
 // const unarySpecialFunction = (prefix, rule, xform_func) =>
 //       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
-//                                     DiscardedComments,     // -
+//                                     discarded_comments,     // -
 //                                     '(',                   // [0][1]
-//                                     DiscardedComments),    // -
+//                                     discarded_comments),    // -
 //                             rule,                          // [1]
-//                             DiscardedComments,             // -
+//                             discarded_comments,             // -
 //                             ')'),                          // [2]
 //             arr => xform_func(arr[1]));
 // -------------------------------------------------------------------------------------------------
@@ -7884,9 +7884,9 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
             c_funcall('include',                          // [0]
-                      first(wst_seq(DiscardedComments,    // -
+                      first(wst_seq(discarded_comments,    // -
                                     json_string,          // [1]
-                                    DiscardedComments)))) // -
+                                    discarded_comments)))) // -
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  () => "%include is only supported when " +
@@ -7896,16 +7896,16 @@ const UnexpectedSpecialFunctionInclude =
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                      // [0]
-                wst_seq(DiscardedComments,                          // -
+                wst_seq(discarded_comments,                          // -
                         assignment_operator,                        // [1][0]
-                        DiscardedComments,                          // -
+                        discarded_comments,                          // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                                       // [0]
-                wst_seq(DiscardedComments,                          // -
+                wst_seq(discarded_comments,                          // -
                         assignment_operator,                        // [1][0]
-                        DiscardedComments,                          // -
+                        discarded_comments,                          // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
@@ -7916,16 +7916,16 @@ const SpecialFunctionRevertPickMultiple =
 const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                          // [0]
-                wst_seq(DiscardedComments,                                        // -
+                wst_seq(discarded_comments,                                        // -
                         any_assignment_operator,                                  // [1][0]
-                        DiscardedComments,                                        // -
+                        discarded_comments,                                        // -
                         choice(rJsonc, () => LimitedContent, plaintext))));       // [1][1]
 const SpecialFunctionConfigurationUpdateUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                    // [0]
-                wst_seq(DiscardedComments,                                        // -
+                wst_seq(discarded_comments,                                        // -
                         choice(incr_assignment_operator, assignment_operator),    // [1][0]
-                        DiscardedComments,                                        // -
+                        discarded_comments,                                        // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
 // -------------------------------------------------------------------------------------------------
 const NormalSpecialFunction =
@@ -7938,7 +7938,7 @@ const NormalSpecialFunction =
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
                          NormalSpecialFunction,
-                         DiscardedComments,
+                         discarded_comments,
                          lws(optional(';'))));
 const AnySpecialFunction =
       second(cutting_seq('%',
@@ -7946,7 +7946,7 @@ const AnySpecialFunction =
                                  ? UnexpectedSpecialFunctionInclude
                                  : SpecialFunctionInclude),
                                 NormalSpecialFunction),
-                         DiscardedComments,
+                         discarded_comments,
                          lws(optional(';'))));
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
@@ -7993,7 +7993,7 @@ NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
                                       wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
                                                               assignment_operator),    // -
-                                                      DiscardedComments,
+                                                      discarded_comments,
                                                       AnonWildcard));                  // [1]
 NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
@@ -8023,14 +8023,14 @@ ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
                                                                  arr[0][1] == '='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
-                                                              DiscardedComments,
+                                                              discarded_comments,
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      DiscardedComments,                    // [1]
+                                                      discarded_comments,                    // [1]
                                                       choice(() => LimitedContent,
                                                              json_string,
                                                              plaintext),
-                                                      DiscardedComments,
+                                                      discarded_comments,
                                                       lws(optional(';'))));
 ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
