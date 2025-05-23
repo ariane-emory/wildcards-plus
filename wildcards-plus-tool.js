@@ -645,9 +645,9 @@ class Plus extends Quantified {
     return this.separator_rule
       ? (`${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}` +
          // `\\${this.separator_rule}+`)
-         `sep${this.separator_rule}+`)
-  : `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}+`;
-}
+         `::${this.separator_rule}+`)
+      : `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}+`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 function plus(rule, // convenience constructor
@@ -671,7 +671,7 @@ class Star extends Quantified {
     // return `${this.__vivify(this.rule).__toString(visited, next_id)}*`;
     return this.separator_rule
       ? (`${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}` +
-         `\\${this.separator_rule}*`)
+         `::${this.separator_rule}*`)
       : `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}*`;
   }
 }
@@ -1952,17 +1952,27 @@ const semicolon          = l(';');
 const slash              = l('/');
 // -------------------------------------------------------------------------------------------------
 // C-like numbers:
-const c_sint             = sint;
-const c_uint             = uint;
 const c_bin              = r(/0b[01]/);
 const c_char             = r(/'\\?[^\']'/);
 const c_hex              = r(/0x[0-9a-f]+/);
+const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
 const c_octal            = r(/0o[0-7]+/);
 const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
-const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
-const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
+const c_sint             = sint;
 const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
+const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
+const c_uint             = uint;
 const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
+c_bin                    .abbreviate_str_repr('c_bin');
+c_char                   .abbreviate_str_repr('c_char');
+c_hex                    .abbreviate_str_repr('c_hex');
+c_ident                  .abbreviate_str_repr('c_ident');
+c_octal                  .abbreviate_str_repr('c_octal');
+c_sfloat                 .abbreviate_str_repr('c_sfloat');
+c_sint                   .abbreviate_str_repr('c_sint');
+c_snumber                .abbreviate_str_repr('c_snumber');
+c_ufloat                 .abbreviate_str_repr('c_ufloat');
+c_uint                   .abbreviate_str_repr('c_uint');
 // -------------------------------------------------------------------------------------------------
 // other C-like terminals:
 const c_bool             = choice('true', 'false');
@@ -2432,190 +2442,190 @@ class WeightedPicker {
 
     if (log_picker_enabled)
       console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
-    
-    for (const legal_option_ix of legal_option_indices) {
-      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+                               
+                               for (const legal_option_ix of legal_option_indices) {
+                                 const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
 
-      if (log_picker_enabled) {
-        console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-        console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
-        console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
-      }
-      
-      total_weight += adjusted_weight;
-    }
+                                 if (log_picker_enabled) {
+                                   console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+                                   console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+                                   console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+                                 }
+                                 
+                                 total_weight += adjusted_weight;
+                               }
 
-    // Since we now avoid adding options with a weight of 0, this should never be true:
-    if (total_weight === 0) {
-      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
-  [
-    ix,
-    this.__effective_weight(ix, priority),
-    this.options[ix]
-  ]
-), null, 2)}, ` +
-                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
-    }
-    
-    let random = Math.random() * total_weight;
+                               // Since we now avoid adding options with a weight of 0, this should never be true:
+                               if (total_weight === 0) {
+                                 throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
+                                                 `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
+                                                   [
+                                                     ix,
+                                                     this.__effective_weight(ix, priority),
+                                                     this.options[ix]
+                                                   ]
+                                                 ), null, 2)}, ` +
+                                                 `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
+                               }
+                               
+                               let random = Math.random() * total_weight;
 
-    if (log_picker_enabled) {
-      console.log(`----------------------------------------------------------------------------------`);
-      console.log(`RANDOM IS ${random}`);
-      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
-    }
-    
-    for (const legal_option_ix of legal_option_indices) {
-      const option          = this.options[legal_option_ix];
-      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+                               if (log_picker_enabled) {
+                                 console.log(`----------------------------------------------------------------------------------`);
+                                 console.log(`RANDOM IS ${random}`);
+                                 console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+                                 console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+                               }
+                               
+                               for (const legal_option_ix of legal_option_indices) {
+                                 const option          = this.options[legal_option_ix];
+                                 const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
 
-      if (adjusted_weight === 0)
-        continue;
-      
-      if (log_picker_enabled)
-        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
-      
-      if (random < adjusted_weight) {
-        this.__record_index_usage(legal_option_ix);
-        return option.value;
-      }
+                                 if (adjusted_weight === 0)
+                                   continue;
+                                 
+                                 if (log_picker_enabled)
+                                   console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+                                 
+                                 if (random < adjusted_weight) {
+                                   this.__record_index_usage(legal_option_ix);
+                                   return option.value;
+                                 }
 
-      random -= adjusted_weight;
-    }
+                                 random -= adjusted_weight;
+                               }
 
-    throw new Error("random selection failed");
-  }
-}
-// =================================================================================================
-// END OF WeightedPicker CLASS AND RELATED VARS.
-// =================================================================================================
+                               throw new Error("random selection failed");
+                             }
+                           }
+                                                                     // =================================================================================================
+                                                                     // END OF WeightedPicker CLASS AND RELATED VARS.
+                                                                     // =================================================================================================
 
 
-// =================================================================================================
-// MISCELLANEOUS HELPER FUNCTIONS SECTION:
-// =================================================================================================
-// DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
-// -------------------------------------------------------------------------------------------------
-function structured_clone(value, {
-  seen = new WeakMap(),           // For shared reference reuse
-  ancestors = new WeakSet(),      // For cycle detection
-  unshare = false
-} = {}) {
-  if (value === null || typeof value !== "object")
-    return value;
+                                                                     // =================================================================================================
+                                                                     // MISCELLANEOUS HELPER FUNCTIONS SECTION:
+                                                                     // =================================================================================================
+                                                                     // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
+                                                                     // -------------------------------------------------------------------------------------------------
+                                                                     function structured_clone(value, {
+                                                                       seen = new WeakMap(),           // For shared reference reuse
+                                                                       ancestors = new WeakSet(),      // For cycle detection
+                                                                       unshare = false
+                                                                     } = {}) {
+                                                                       if (value === null || typeof value !== "object")
+                                                                         return value;
 
-  if (ancestors.has(value))
-    throw new TypeError("Cannot clone cyclic structure");
-  
-  if (!unshare && seen.has(value))
-    return seen.get(value);
+                                                                       if (ancestors.has(value))
+                                                                         throw new TypeError("Cannot clone cyclic structure");
+                                                                       
+                                                                       if (!unshare && seen.has(value))
+                                                                         return seen.get(value);
 
-  ancestors.add(value); // Add to call stack tracking
+                                                                       ancestors.add(value); // Add to call stack tracking
 
-  let clone;
+                                                                       let clone;
 
-  if (Array.isArray(value)) {
-    clone = [];
+                                                                       if (Array.isArray(value)) {
+                                                                         clone = [];
 
-    if (!unshare)
-      seen.set(value, clone);
+                                                                         if (!unshare)
+                                                                           seen.set(value, clone);
 
-    for (const item of value) 
-      clone.push(structured_clone(item, { seen, ancestors, unshare }));
-  }
-  else if (value instanceof Set) {
-    clone = new Set();
+                                                                         for (const item of value) 
+                                                                           clone.push(structured_clone(item, { seen, ancestors, unshare }));
+                                                                       }
+                                                                       else if (value instanceof Set) {
+                                                                         clone = new Set();
 
-    if (!unshare)
-      seen.set(value, clone);
+                                                                         if (!unshare)
+                                                                           seen.set(value, clone);
 
-    for (const item of value) 
-      clone.add(structured_clone(item, { seen, ancestors, unshare }));    
-  }
-  else if (value instanceof Map) {
-    clone = new Map();
+                                                                         for (const item of value) 
+                                                                           clone.add(structured_clone(item, { seen, ancestors, unshare }));    
+                                                                       }
+                                                                       else if (value instanceof Map) {
+                                                                         clone = new Map();
 
-    if (!unshare)
-      seen.set(value, clone);
-    
-    for (const [k, v] of value.entries()) 
-      clone.set(structured_clone(k, { seen, ancestors, unshare }),
-                structured_clone(v, { seen, ancestors, unshare }));
-    
-  }
-  else if (value instanceof Date) {
-    clone = new Date(value);
-  }
-  else if (value instanceof RegExp) {
-    clone = new RegExp(value);
-  }
-  else {
-    clone = {};
+                                                                         if (!unshare)
+                                                                           seen.set(value, clone);
+                                                                         
+                                                                         for (const [k, v] of value.entries()) 
+                                                                           clone.set(structured_clone(k, { seen, ancestors, unshare }),
+                                                                                     structured_clone(v, { seen, ancestors, unshare }));
+                                                                         
+                                                                       }
+                                                                       else if (value instanceof Date) {
+                                                                         clone = new Date(value);
+                                                                       }
+                                                                       else if (value instanceof RegExp) {
+                                                                         clone = new RegExp(value);
+                                                                       }
+                                                                       else {
+                                                                         clone = {};
 
-    if (!unshare)
-      seen.set(value, clone);
+                                                                         if (!unshare)
+                                                                           seen.set(value, clone);
 
-    for (const key of Object.keys(value)) 
-      clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
-  }
+                                                                         for (const key of Object.keys(value)) 
+                                                                           clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
+                                                                       }
 
-  ancestors.delete(value); // Cleanup recursion tracking
+                                                                       ancestors.delete(value); // Cleanup recursion tracking
 
-  return clone;
-}
-// -------------------------------------------------------------------------------------------------
-if (test_structured_clone) {
-  const shared = { msg: "hi" };
-  let obj = { a: shared, b: shared };
-  // test #1: preserve shared references, this one seems to work:
-  {
-    const clone = structured_clone(obj);
+                                                                       return clone;
+                                                                     }
+                                                                     // -------------------------------------------------------------------------------------------------
+                                                                     if (test_structured_clone) {
+                                                                       const shared = { msg: "hi" };
+                                                                       let obj = { a: shared, b: shared };
+                                                                       // test #1: preserve shared references, this one seems to work:
+                                                                       {
+                                                                         const clone = structured_clone(obj);
 
-    if (clone.a !== clone.b)
-      throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
+                                                                         if (clone.a !== clone.b)
+                                                                           throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
 
-    console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
-  }
-  // test #2: break shared references (unshare), this one seems to work:
-  {
-    const clone = structured_clone(obj, { unshare: true });
+                                                                         console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
+                                                                       }
+                                                                       // test #2: break shared references (unshare), this one seems to work:
+                                                                       {
+                                                                         const clone = structured_clone(obj, { unshare: true });
 
-    if (clone.a === clone.b)
-      throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
+                                                                         if (clone.a === clone.b)
+                                                                           throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
 
-    console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
-  }
-  // test #4: should fail do to cycle, with unshare = false:
-  try {
-    obj = {};
-    obj.self = obj; // Create a cycle
-    structured_clone(obj);
+                                                                         console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
+                                                                       }
+                                                                       // test #4: should fail do to cycle, with unshare = false:
+                                                                       try {
+                                                                         obj = {};
+                                                                         obj.self = obj; // Create a cycle
+                                                                         structured_clone(obj);
 
-    // If we get here, no error was thrown = fail
-    throw new Error(`test #3 should have failed.`);
-  } catch (err) {
-    if (err.message === 'test #3 should have failed.')
-      throw err;
-    else 
-      console.log(`test #3 failed as intended.`);
-  }
-  // test #4: should fail do to cycle, with unshare = true:
-  try {
-    obj = {};
-    obj.self = obj; // Create a cycle
-    structured_clone(obj, { unshare: true }); 
+                                                                         // If we get here, no error was thrown = fail
+                                                                         throw new Error(`test #3 should have failed.`);
+                                                                       } catch (err) {
+                                                                         if (err.message === 'test #3 should have failed.')
+                                                                           throw err;
+                                                                         else 
+                                                                           console.log(`test #3 failed as intended.`);
+                                                                       }
+                                                                       // test #4: should fail do to cycle, with unshare = true:
+                                                                       try {
+                                                                         obj = {};
+                                                                         obj.self = obj; // Create a cycle
+                                                                         structured_clone(obj, { unshare: true }); 
 
-    throw new Error(`test #4 should have failed.`);
-  } catch (err) {
-    if (err.message === 'test #4 should have failed.') 
-      throw err;
-    else
-      console.log(`test #3 failed as intended.`);
-  }
-}
-// -------------------------------------------------------------------------------------------------
+                                                                         throw new Error(`test #4 should have failed.`);
+                                                                       } catch (err) {
+                                                                         if (err.message === 'test #4 should have failed.') 
+                                                                           throw err;
+                                                                         else
+                                                                           console.log(`test #3 failed as intended.`);
+                                                                       }
+                                                                     }
+                                                                     // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
