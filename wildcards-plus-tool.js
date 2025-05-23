@@ -2098,7 +2098,6 @@ const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
-json_string.__impl_toString = () => 'json_string';
 // UnicodeEscape ← "u" [0-9A-Fa-f]{4}
 const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
 // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
@@ -2139,6 +2138,20 @@ const json_number = xform(reify_json_number,
                               xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
+JsonObject.abbreviate_str_repr('JsonObject');
+JsonArray.abbreviate_str_repr('JsonArray');
+json_string.__impl_toString = () => 'json_string';
+json_unicodeEscape.abbreviate_str_repr('json_unicodeEscape');
+json_escape.abbreviate_str_repr('json_escape');
+json_true.abbreviate_str_repr('json_true');
+json_false.abbreviate_str_repr('json_false');
+json_null.abbreviate_str_repr('json_null');
+json_minus.abbreviate_str_repr('json_minus');
+json_integralPart.abbreviate_str_repr('json_integralPart');
+json_fractionalPart.abbreviate_str_repr('json_fractionalPart');
+json_exponentPart.abbreviate_str_repr('json_exponentPart');
+json_number.abbreviate_str_repr('json_number');
+json_S.abbreviate_str_repr('json_S');
 // -------------------------------------------------------------------------------------------------
 json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
 // =================================================================================================
@@ -7685,7 +7698,7 @@ const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
 any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
 assignment_operator            .abbreviate_str_repr('assignment_operator');
-comment                        .abbreviate_str_repr('comment');
+// comment                        .abbreviate_str_repr('comment');
 escaped_brc                    .abbreviate_str_repr('escaped_brc');
 filename                       .abbreviate_str_repr('filename');
 ident                          .abbreviate_str_repr('ident');
@@ -7699,6 +7712,7 @@ word_break                     .abbreviate_str_repr('word_break');
 // discard comments:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments        = discard(wst_star(comment));
+DiscardedComments.abbreviate_str_repr('DiscardedComments');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
