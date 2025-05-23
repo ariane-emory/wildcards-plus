@@ -8037,18 +8037,19 @@ const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
                                        AnonWildcardNoLoras);
 // LimitedContent.abbreviate_str_repr('LimitedContent');
-const ContentNoLoras          = choice(comment,
-                                       NamedWildcardReference,
-                                       NamedWildcardUsage,
-                                       SetFlag,
-                                       UnsetFlag,
-                                       escaped_brc,
-                                       ScalarUpdate,
-                                       ScalarReference,
-                                       AnonWildcard, // sketchy, parent rule should be split into 2
-                                       SpecialFunctionNotInclude,
-                                       low_pri_text,
-                                       plaintext);
+const make_Content_rule          = anon_wildcard_rule => choice(comment,
+                                                                NamedWildcardReference,
+                                                                NamedWildcardUsage,
+                                                                SetFlag,
+                                                                UnsetFlag,
+                                                                escaped_brc,
+                                                                ScalarUpdate,
+                                                                ScalarReference,
+                                                                AnonWildcard, // sketchy, parent rule should be split into 2
+                                                                SpecialFunctionNotInclude,
+                                                                low_pri_text,
+                                                                plaintext);
+const ContentNoLoras = make_Content_rule(AnonWildcardNoLoras);
 // ContentNoLoras.abbreviate_str_repr('ContentNoLoras');
 const Content                 = choice(A1111StyleLora, ContentNoLoras);
 // Content.abbreviate_str_repr('Content');
