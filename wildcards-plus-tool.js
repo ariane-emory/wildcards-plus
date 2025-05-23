@@ -333,6 +333,11 @@ const trailing_separator_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 class Rule {
   // -----------------------------------------------------------------------------------------------
+  constructor({ abbreviate = false } = {}) {
+    if (abbreviate)
+      this.abbreviate_str_repr(abbreviate);
+  };
+  // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
     if (str)
       this.__impl_toString   = () => str;
@@ -818,8 +823,8 @@ function discard(rule) { // convenience constructor
 // -------------------------------------------------------------------------------------------------
 class Element extends Rule {
   // -----------------------------------------------------------------------------------------------
-  constructor(index, rule) {
-    super();
+  constructor(index, rule, options = {}) {
+    super(options);
     this.index = index;
     this.rule  = make_rule_func(rule);
   }
@@ -868,53 +873,16 @@ class Element extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function elem(index, rule) { // convenience constructor
-  return new Element(index, rule);
+function elem(index, rule, options = {}) { // convenience constructor
+  return new Element(index, rule, options = {});
 }
 // -------------------------------------------------------------------------------------------------
-function first(rule) {
-  rule = new Element(0, rule);
-
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    // const rule     = this.__vivify(this.rule);
-    // const rule_str = rule.__toString(visited, next_id, ref_counts);
-    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-
-    return `1st(${rule_str})`;
-    // return `first(${rule_str})`;
-  }
-  
-  return rule;
+function first(rule, options = {}) {
+  return new Element(0, rule, options);
 }
 // -------------------------------------------------------------------------------------------------
-function second(rule) {
-  rule = new Element(1, rule);
-
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    // const rule     = this.__vivify(this.rule);
-    // const rule_str = rule.__toString(visited, next_id, ref_counts);
-    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-
-    return `2nd(${rule_str})`;
-    // return `second(${rule_str})`;
-  }
-  
-  return rule;
-}
-// -------------------------------------------------------------------------------------------------
-function third(rule) {
-  rule = new Element(2, rule);
-
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    // const rule     = this.__vivify(this.rule);
-    // const rule_str = rule.__toString(visited, next_id, ref_counts);
-    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-
-    return `3rd(${rule_str})`;
-    // return `third(${rule_str})`;
-  }
-  
-  return rule;
+function second(rule, options = {}) {
+  return new Element(1, rule, options);
 }
 // -------------------------------------------------------------------------------------------------
 
@@ -7942,7 +7910,8 @@ const SpecialFunctionNotInclude =
       second(cutting_seq('%',
                          NormalSpecialFunction,
                          discarded_comments,
-                         lws(optional(';'))));
+                         lws(optional(';'))),
+             { abbreviate: 'SpecialFunctionNotInclude'});
 const AnySpecialFunction =
       second(cutting_seq('%',
                          choice((dt_hosted
@@ -7950,9 +7919,10 @@ const AnySpecialFunction =
                                  : SpecialFunctionInclude),
                                 NormalSpecialFunction),
                          discarded_comments,
-                         lws(optional(';'))));
-SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-AnySpecialFunction.abbreviate_str_repr('AnySpecialFunction');
+                         lws(optional(';'))),
+             { abbreviate: 'AnySpecialFunction'});
+// SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
+// AnySpecialFunction.abbreviate_str_repr('AnySpecialFunction');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
