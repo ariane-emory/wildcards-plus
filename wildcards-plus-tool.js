@@ -856,19 +856,19 @@ class Element extends Rule {
 }
 // -------------------------------------------------------------------------------------------------
 function elem(index, rule) { // convenience constructor
-  return new Element(index, rule)
+  return new Element(index, rule);
 }
 // -------------------------------------------------------------------------------------------------
 function first(rule) {
-  return new Element(0, rule)
+  return new Element(0, rule);
 }
 // -------------------------------------------------------------------------------------------------
 function second(rule) {
-  return new Element(1, rule)
+  return new Element(1, rule);
 }
 // -------------------------------------------------------------------------------------------------
 function third(rule) {
-  return new Element(2, rule)
+  return new Element(2, rule);
 }
 // -------------------------------------------------------------------------------------------------
 
