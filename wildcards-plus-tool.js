@@ -742,10 +742,10 @@ class Choice extends Rule  {
     //             .map(x =>
     //                    this.__vivify(x)
     //                    .__toString(visited, next_id, ref_counts)).join(' | ')} }`;
-    return `{${this.options
+    return `{ ${this.options
                 .map(x =>
                        this.__vivify(x)
-                       .__toString(visited, next_id, ref_counts)).join('|')}}`;
+                       .__toString(visited, next_id, ref_counts)).join(' | ')} }`;
   }
 }
 // -------------------------------------------------------------------------------------------------
