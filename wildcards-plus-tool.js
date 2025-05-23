@@ -1968,9 +1968,10 @@ const c_unicode_ident    = r(/[\p{L}_][\p{L}\p{N}_]*/u);
 const dot_chain          = rule => plus(rule, dot); 
 // -------------------------------------------------------------------------------------------------
 // common comment styles:
-const c_line_comment     = r(/\/\/[^\n]*/);
 const py_line_comment    = r(/#[^\n]*/); 
+const c_line_comment     = r(/\/\/[^\n]*/);
 const c_block_comment    = r(/\/\*[^]*?\*\//);
+const c_comment          = choice(c_line_comment, c_block_comment);
 // -------------------------------------------------------------------------------------------------
 // ternary helper combinator:
 const ternary            =
