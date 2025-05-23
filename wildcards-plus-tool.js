@@ -639,9 +639,10 @@ class Plus extends Quantified {
   __impl_toString(visited, next_id, ref_counts) {
     return this.separator_rule
       ? (`${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}` +
-         `\\${this.separator_rule}+`)
-      : `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}+`;
-  }
+         // `\\${this.separator_rule}+`)
+         `sep${this.separator_rule}+`)
+  : `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}+`;
+}
 }
 // -------------------------------------------------------------------------------------------------
 function plus(rule, // convenience constructor
@@ -1858,12 +1859,18 @@ const tws                = rule => {
 };
 // -------------------------------------------------------------------------------------------------
 // common numbers:
-const udecimal           = r(/\d+\.\d+/); 
+const udecimal           = r(/\d+\.\d+/);
 const urational          = r(/\d+\/[1-9]\d*/);
 const uint               = r(/\d+/);
 const sdecimal           = r(/[+-]?\d+\.\d+/);
 const srational          = r(/[+-]?\d+\/[1-9]\d*/);
 const sint               = r(/[+-]?\d+/)
+udecimal.__impl_toString = () => 'udecimal';
+urational.__impl_toString = () => 'urational';
+uint.__impl_toString     = () => 'uint';
+sdecimal.__impl_toString = () => 'sdecimal';
+srational.__impl_toString = () => 'srational';
+sint.__impl_toString = () => 'sint';
 // -------------------------------------------------------------------------------------------------
 // common separated quantified rules:
 const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
@@ -7620,21 +7627,32 @@ class ASTRevertPickSingle extends ASTNode {
 // terminals:
 // -------------------------------------------------------------------------------------------------
 const word_break               = /(?=\s|[{|}\.\,\?\!\(\)]|$)/;
+word_break.__impl_toString     = () => 'word_break';
 // const plaintext             = /(?:\\\s|[^\s{|}])+/;
 // const plaintext             = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
 // const plaintext             = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
 const plaintext                = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
 const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+plaintext.__impl_toString      = () => 'plaintext';
+low_pri_text.__impl_toString    = () => 'low_pri_text';
 // const plaintext             = /[^{|}\s]+/;
 // const plaintext_no_parens   = /[^{|}\s()]+/;
 // const low_pri_text          = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+wb_uint.__impl_toString        = () => 'wb_uint';
 const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
+ident.__impl_toString          = () => 'ident';
 const comment                  = discard(c_comment);
+comment.__impl_toString        = () => 'comment';
 const assignment_operator      = second(seq(wst_star(comment), '=', wst_star(comment)));
+assignment_operator.__impl_toString     = () => 'assignment_operator';
 const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
+incr_assignment_operator.__impl_toString     = () => 'incr_assignment_operator';
+incr_assignment_operator.__direct_children   = () => [];
 const escaped_brc              = second(choice('\\{', '\\}'));
+escaped_brc.__impl_toString    = () => 'escaped_brc';
 const filename                 = /[A-Za-z0-9 ._\-()]+/;
+filename.__impl_toString       = () => 'filename';
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
