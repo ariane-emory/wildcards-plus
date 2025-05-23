@@ -848,7 +848,8 @@ class Element extends Rule {
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
     const rule = this.__vivify(this.rule);
-    return `[${this.index}]${rule.__toString(visited, next_id, ref_counts)}`;
+    const rule_str = rule.__toString(visited, next_id, ref_counts);
+    return `[${this.index}]${rule_str}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
