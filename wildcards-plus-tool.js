@@ -1878,10 +1878,10 @@ srational.__impl_toString = () => 'srational';
 sint.__impl_toString = () => 'sint';
 // -------------------------------------------------------------------------------------------------
 // common separated quantified rules:
-const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
-const plus_comma_sep     = rule => plus(rule, /\s*\,\s*/);
-const star_whites_sep    = rule => star(rule, whites_plus);
-const plus_whites_sep    = rule => plus(rule, whites_plus);
+const star_comma_sep     = rule => star(rule, { separator: /\s*\,\s*/ });
+const plus_comma_sep     = rule => plus(rule, { separator: /\s*\,\s*/ });
+const star_whites_sep    = rule => star(rule, { separator: whites_plus });
+const plus_whites_sep    = rule => plus(rule, { separator: whites_plus });
 // -------------------------------------------------------------------------------------------------
 // string-like terminals:
 const stringlike         = quote => r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
@@ -2011,7 +2011,7 @@ c_shift_assign           .abbreviate_str_repr('c_shift_assign');
 c_unicode_ident          .abbreviate_str_repr('c_unicode_ident');
 // -------------------------------------------------------------------------------------------------
 // dotted chains:
-const dot_chain          = rule => plus(rule, dot); 
+const dot_chain          = rule => plus(rule, { separator: dot }); 
 // -------------------------------------------------------------------------------------------------
 // common comment styles:
 const c_block_comment    = r(/\/\*[^]*?\*\//);
@@ -2038,7 +2038,7 @@ kebab_ident.abbreviate_str_repr('kebab_ident');
 const c_funcall = (fun_rule, arg_rule, open = '(', close = ')', sep = ',') =>
       seq(fun_rule,
           wst_cutting_enc(open,
-                          wst_star(arg_rule, sep),
+                          wst_star(arg_rule, { separator: sep }),
                           close));
 // -------------------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
