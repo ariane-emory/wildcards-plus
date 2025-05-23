@@ -2166,17 +2166,17 @@ json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =================================================================================================
 // JSONC GRAMMAR SECTION:
 // =================================================================================================
-const JsoncComments = wst_star(choice(c_block_comment, c_line_comment));
-const Jsonc = second(wst_seq(JsoncComments,
+const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
+const Jsonc = second(wst_seq(jsonc_comments,
                              choice(() => JsoncObject,  () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
                                     () => json_null,    () => json_number),
-                             JsoncComments));
+                             jsonc_comments));
 const JsoncArray =
       wst_cutting_enc('[',
-                      wst_star(second(seq(JsoncComments,
+                      wst_star(second(seq(jsonc_comments,
                                           Jsonc,
-                                          JsoncComments)),
+                                          jsonc_comments)),
                                ','),
                       ']');
 const JsoncObject =
@@ -2190,25 +2190,25 @@ const JsoncObject =
         },
               wst_cutting_seq(
                 wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
-                JsoncComments,
+                jsonc_comments,
                 Jsonc,
-                JsoncComments,
+                jsonc_comments,
                 optional(second(wst_seq(',',
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(JsoncComments,
+                                                wst_seq(jsonc_comments,
                                                         () => json_string,
-                                                        JsoncComments,
+                                                        jsonc_comments,
                                                         ':',
-                                                        JsoncComments,
+                                                        jsonc_comments,
                                                         Jsonc, 
-                                                        JsoncComments
+                                                        jsonc_comments
                                                        ))             
                                           , ',')),
                                )),
                 '{}'[1]))); // dumb hack for rainbow brackets sake
+jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
-JsoncComments.abbreviate_str_repr('JsoncComments');
 JsoncObject.abbreviate_str_repr('JsoncObject');
 // -------------------------------------------------------------------------------------------------
 Jsonc.finalize(); 
@@ -2220,11 +2220,11 @@ Jsonc.finalize();
 // =================================================================================================
 // 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
 // =================================================================================================
-const rJsonc = second(wst_seq(JsoncComments,
+const rJsonc = second(wst_seq(jsonc_comments,
                               choice(() => rJsoncObject,  () => JsoncArray,
                                      () => json_string,   () => json_true, () => json_false,
                                      () => json_null,     () => json_number),
-                              JsoncComments));
+                              jsonc_comments));
 const rJsoncObject =
       choice(
         xform(arr => ({}), wst_seq('{', '}')),
@@ -2234,23 +2234,24 @@ const rJsoncObject =
         },
               wst_cutting_seq(
                 wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
-                JsoncComments,
+                jsonc_comments,
                 Jsonc,
-                JsoncComments,
+                jsonc_comments,
                 optional(second(wst_seq(',',
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(JsoncComments,
+                                                wst_seq(jsonc_comments,
                                                         choice(json_string, c_ident),
-                                                        JsoncComments,
+                                                        jsonc_comments,
                                                         ':',
-                                                        JsoncComments,
+                                                        jsonc_comments,
                                                         Jsonc, 
-                                                        JsoncComments
+                                                        jsonc_comments
                                                        ))             
                                           , ',')),
                                )),
                 '{}'[1]))); // dumb hack for rainbow brackets sake
+rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
 rJsonc.finalize(); 
 // =================================================================================================
