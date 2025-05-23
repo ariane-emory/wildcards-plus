@@ -2051,6 +2051,7 @@ const JsonArray = wst_cutting_enc('[', wst_star(json, ','), ']');
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
+json_string.__impl_toString = () => 'json_string';
 // UnicodeEscape ← "u" [0-9A-Fa-f]{4}
 const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
 // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
