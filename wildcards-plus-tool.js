@@ -338,10 +338,10 @@ class Rule {
       throw new Error(`${inspect_fun(this)} is already abbreviated, this likely a programmer error`);
     
     if (str)
-      this.__impl_toString   = () => str;
-
-    this.__abbreviated     = true;
+      this.__impl_toString = () => str;
+    
     this.__direct_children = () => [];
+    this.__abbreviated     = true;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
