@@ -7647,16 +7647,16 @@ const assignment_operator      = second(seq(wst_star(comment), '=', wst_star(com
 const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
 const escaped_brc              = second(choice('\\{', '\\}'));
 const filename                 = r(/[A-Za-z0-9 ._\-()]+/);
-word_break.abbreviate_str_repr('word_break');
-plaintext.abbreviate_str_repr('plaintext');
-low_pri_text.abbreviate_str_repr('low_pri_text');
-wb_uint.abbreviate_str_repr('wb_uint');
-ident.abbreviate_str_repr('ident');
-comment.abbreviate_str_repr('comment');
-assignment_operator.abbreviate_str_repr('assignment_operator');
+word_break              .abbreviate_str_repr('word_break');
+plaintext               .abbreviate_str_repr('plaintext');
+low_pri_text            .abbreviate_str_repr('low_pri_text');
+wb_uint                 .abbreviate_str_repr('wb_uint');
+ident                   .abbreviate_str_repr('ident');
+comment                 .abbreviate_str_repr('comment');
+assignment_operator     .abbreviate_str_repr('assignment_operator');
 incr_assignment_operator.abbreviate_str_repr('incr_assignment_operator');
-escaped_brc.abbreviate_str_repr('escaped_brc');
-filename.abbreviate_str_repr('filename');
+escaped_brc             .abbreviate_str_repr('escaped_brc');
+filename                .abbreviate_str_repr('filename');
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
