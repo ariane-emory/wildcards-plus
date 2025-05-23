@@ -333,9 +333,9 @@ const trailing_separator_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 class Rule {
   // -----------------------------------------------------------------------------------------------
-  constructor({ abbreviate = undefined } = {}) {
-    if (abbreviate !== undefined)
-      this.abbreviate_str_repr(abbreviate);
+  constructor(options = {}) {
+    if (options.abbreviate !== undefined)
+      this.abbreviate_str_repr(options.abbreviate);
   };
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
@@ -7911,7 +7911,7 @@ const SpecialFunctionNotInclude =
                          NormalSpecialFunction,
                          discarded_comments,
                          lws(optional(';'))),
-             // { abbreviate: 'SpecialFunctionNotInclude'}
+             { abbreviate: 'SpecialFunctionNotInclude'}
             );
 const AnySpecialFunction =
       second(cutting_seq('%',
@@ -7921,7 +7921,7 @@ const AnySpecialFunction =
                                 NormalSpecialFunction),
                          discarded_comments,
                          lws(optional(';'))),
-             // { abbreviate: 'AnySpecialFunction'}
+             { abbreviate: 'AnySpecialFunction'}
             );
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
