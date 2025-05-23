@@ -7706,7 +7706,7 @@ const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
 any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
 assignment_operator            .abbreviate_str_repr('assignment_operator');
-// comment                        .abbreviate_str_repr('comment');
+comment                        .abbreviate_str_repr('-comment');
 escaped_brc                    .abbreviate_str_repr('escaped_brc');
 filename                       .abbreviate_str_repr('filename');
 ident                          .abbreviate_str_repr('ident');
