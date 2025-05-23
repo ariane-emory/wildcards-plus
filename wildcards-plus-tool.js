@@ -8120,8 +8120,8 @@ const Z        = l('z');
 const TestRule = seq('x', Z, Z, () => TestRule); 
 // console.log(`${TestRule}`);
 // console.log(``);
-// console.log(`${Prompt}`);
-console.log(`${NamedWildcardReference}`);
+console.log(`${Prompt}`);
+// console.log(`${NamedWildcardReference}`);
 
 // console.log(`${NormalSpecialFunction}`);
 // console.log(`${inspect_fun(NormalSpecialFunction.options)}`);
