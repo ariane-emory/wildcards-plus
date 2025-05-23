@@ -851,8 +851,9 @@ class Element extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    const rule     = this.__vivify(this.rule);
-    const rule_str = rule.__toString(visited, next_id, ref_counts);
+    // const rule     = this.__vivify(this.rule);
+    // const rule_str = rule.__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
     return `elem(${this.index}, ${rule_str})`;
     // return `[${this.index}]${rule_str}`;
@@ -867,8 +868,9 @@ function first(rule) {
   const elem = new Element(0, rule);
 
   elem.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule     = this.__vivify(this.rule);
-    const rule_str = rule.__toString(visited, next_id, ref_counts);
+    // const rule     = this.__vivify(this.rule);
+    // const rule_str = rule.__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
     return `1st(${rule_str})`;
     // return `first(${rule_str})`;
@@ -881,8 +883,9 @@ function second(rule) {
   const elem = new Element(1, rule);
 
   elem.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule     = this.__vivify(this.rule);
-    const rule_str = rule.__toString(visited, next_id, ref_counts);
+    // const rule     = this.__vivify(this.rule);
+    // const rule_str = rule.__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
     return `2nd(${rule_str})`;
     // return `second(${rule_str})`;
@@ -895,8 +898,9 @@ function third(rule) {
   const elem = new Element(2, rule);
 
   elem.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule     = this.__vivify(this.rule);
-    const rule_str = rule.__toString(visited, next_id, ref_counts);
+    // const rule     = this.__vivify(this.rule);
+    // const rule_str = rule.__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
     return `3rd(${rule_str})`;
     // return `third(${rule_str})`;
@@ -1832,7 +1836,19 @@ const d_whites_star      = discard(whites_star);
 const d_whites_plus      = discard(whites_plus);
 // -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
-const lws                = rule => second(seq(whites_star, rule));
+const lws                = rule => {
+  rule = second(seq(whites_star, rule));
+  
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
+    // const rule     = this.__vivify(this.rule);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+
+    return `lws(${rule_str})`;
+    // return `first(${rule_str})`;
+  }
+
+  return rule;
+};
 const tws                = rule => first(seq(rule, whites_star));
 // -------------------------------------------------------------------------------------------------
 // common numbers:
