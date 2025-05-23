@@ -8037,7 +8037,7 @@ const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
                                        AnonWildcardNoLoras);
 // LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule          = (anon_wildcard_rule, prepended_rules = []) =>
+const make_Content_rule          = (anon_wildcard_rule, ...prepended_rules) =>
       choice(...prepended_rules,
              comment,
              NamedWildcardReference,
@@ -8053,7 +8053,7 @@ const make_Content_rule          = (anon_wildcard_rule, prepended_rules = []) =>
              plaintext);
 const ContentNoLoras = make_Content_rule(AnonWildcardNoLoras);
 // ContentNoLoras.abbreviate_str_repr('ContentNoLoras');
-const Content                 = choice(A1111StyleLora, ContentNoLoras);
+const Content                 = make_Content_rule(ContentNoLoras, A1111StyleLora);
 // Content.abbreviate_str_repr('Content');
 const ContentStar             = wst_star(Content);
 // ContentStar.abbreviate_str_repr('ContentStar');
