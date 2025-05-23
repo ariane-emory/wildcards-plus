@@ -7719,7 +7719,7 @@ word_break                     .abbreviate_str_repr('word_break');
 // discard comments:
 // -------------------------------------------------------------------------------------------------
 const DiscardedComments        = discard(wst_star(comment));
-DiscardedComments.abbreviate_str_repr('DiscardedComments');
+DiscardedComments.abbreviate_str_repr('-Comments');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
