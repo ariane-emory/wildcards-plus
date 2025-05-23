@@ -2442,190 +2442,190 @@ class WeightedPicker {
 
     if (log_picker_enabled)
       console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
-                               
-                               for (const legal_option_ix of legal_option_indices) {
-                                 const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+    
+    for (const legal_option_ix of legal_option_indices) {
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
 
-                                 if (log_picker_enabled) {
-                                   console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-                                   console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
-                                   console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
-                                 }
-                                 
-                                 total_weight += adjusted_weight;
-                               }
+      if (log_picker_enabled) {
+        console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+        console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
+        console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+      }
+      
+      total_weight += adjusted_weight;
+    }
 
-                               // Since we now avoid adding options with a weight of 0, this should never be true:
-                               if (total_weight === 0) {
-                                 throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                                                 `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
+    // Since we now avoid adding options with a weight of 0, this should never be true:
+    if (total_weight === 0) {
+      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
+                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
                                                    [
                                                      ix,
                                                      this.__effective_weight(ix, priority),
                                                      this.options[ix]
                                                    ]
                                                  ), null, 2)}, ` +
-                                                 `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
-                               }
-                               
-                               let random = Math.random() * total_weight;
+                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
+    }
+    
+    let random = Math.random() * total_weight;
 
-                               if (log_picker_enabled) {
-                                 console.log(`----------------------------------------------------------------------------------`);
-                                 console.log(`RANDOM IS ${random}`);
-                                 console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-                                 console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
-                               }
-                               
-                               for (const legal_option_ix of legal_option_indices) {
-                                 const option          = this.options[legal_option_ix];
-                                 const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+    if (log_picker_enabled) {
+      console.log(`----------------------------------------------------------------------------------`);
+      console.log(`RANDOM IS ${random}`);
+      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+    }
+    
+    for (const legal_option_ix of legal_option_indices) {
+      const option          = this.options[legal_option_ix];
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
 
-                                 if (adjusted_weight === 0)
-                                   continue;
-                                 
-                                 if (log_picker_enabled)
-                                   console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
-                                 
-                                 if (random < adjusted_weight) {
-                                   this.__record_index_usage(legal_option_ix);
-                                   return option.value;
-                                 }
+      if (adjusted_weight === 0)
+        continue;
+      
+      if (log_picker_enabled)
+        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+      
+      if (random < adjusted_weight) {
+        this.__record_index_usage(legal_option_ix);
+        return option.value;
+      }
 
-                                 random -= adjusted_weight;
-                               }
+      random -= adjusted_weight;
+    }
 
-                               throw new Error("random selection failed");
-                             }
-                           }
-                                                                     // =================================================================================================
-                                                                     // END OF WeightedPicker CLASS AND RELATED VARS.
-                                                                     // =================================================================================================
+    throw new Error("random selection failed");
+  }
+}
+// =================================================================================================
+// END OF WeightedPicker CLASS AND RELATED VARS.
+// =================================================================================================
 
 
-                                                                     // =================================================================================================
-                                                                     // MISCELLANEOUS HELPER FUNCTIONS SECTION:
-                                                                     // =================================================================================================
-                                                                     // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
-                                                                     // -------------------------------------------------------------------------------------------------
-                                                                     function structured_clone(value, {
-                                                                       seen = new WeakMap(),           // For shared reference reuse
-                                                                       ancestors = new WeakSet(),      // For cycle detection
-                                                                       unshare = false
-                                                                     } = {}) {
-                                                                       if (value === null || typeof value !== "object")
-                                                                         return value;
+// =================================================================================================
+// MISCELLANEOUS HELPER FUNCTIONS SECTION:
+// =================================================================================================
+// DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
+// -------------------------------------------------------------------------------------------------
+function structured_clone(value, {
+  seen = new WeakMap(),           // For shared reference reuse
+  ancestors = new WeakSet(),      // For cycle detection
+  unshare = false
+} = {}) {
+  if (value === null || typeof value !== "object")
+    return value;
 
-                                                                       if (ancestors.has(value))
-                                                                         throw new TypeError("Cannot clone cyclic structure");
-                                                                       
-                                                                       if (!unshare && seen.has(value))
-                                                                         return seen.get(value);
+  if (ancestors.has(value))
+    throw new TypeError("Cannot clone cyclic structure");
+  
+  if (!unshare && seen.has(value))
+    return seen.get(value);
 
-                                                                       ancestors.add(value); // Add to call stack tracking
+  ancestors.add(value); // Add to call stack tracking
 
-                                                                       let clone;
+  let clone;
 
-                                                                       if (Array.isArray(value)) {
-                                                                         clone = [];
+  if (Array.isArray(value)) {
+    clone = [];
 
-                                                                         if (!unshare)
-                                                                           seen.set(value, clone);
+    if (!unshare)
+      seen.set(value, clone);
 
-                                                                         for (const item of value) 
-                                                                           clone.push(structured_clone(item, { seen, ancestors, unshare }));
-                                                                       }
-                                                                       else if (value instanceof Set) {
-                                                                         clone = new Set();
+    for (const item of value) 
+      clone.push(structured_clone(item, { seen, ancestors, unshare }));
+  }
+  else if (value instanceof Set) {
+    clone = new Set();
 
-                                                                         if (!unshare)
-                                                                           seen.set(value, clone);
+    if (!unshare)
+      seen.set(value, clone);
 
-                                                                         for (const item of value) 
-                                                                           clone.add(structured_clone(item, { seen, ancestors, unshare }));    
-                                                                       }
-                                                                       else if (value instanceof Map) {
-                                                                         clone = new Map();
+    for (const item of value) 
+      clone.add(structured_clone(item, { seen, ancestors, unshare }));    
+  }
+  else if (value instanceof Map) {
+    clone = new Map();
 
-                                                                         if (!unshare)
-                                                                           seen.set(value, clone);
-                                                                         
-                                                                         for (const [k, v] of value.entries()) 
-                                                                           clone.set(structured_clone(k, { seen, ancestors, unshare }),
-                                                                                     structured_clone(v, { seen, ancestors, unshare }));
-                                                                         
-                                                                       }
-                                                                       else if (value instanceof Date) {
-                                                                         clone = new Date(value);
-                                                                       }
-                                                                       else if (value instanceof RegExp) {
-                                                                         clone = new RegExp(value);
-                                                                       }
-                                                                       else {
-                                                                         clone = {};
+    if (!unshare)
+      seen.set(value, clone);
+    
+    for (const [k, v] of value.entries()) 
+      clone.set(structured_clone(k, { seen, ancestors, unshare }),
+                structured_clone(v, { seen, ancestors, unshare }));
+    
+  }
+  else if (value instanceof Date) {
+    clone = new Date(value);
+  }
+  else if (value instanceof RegExp) {
+    clone = new RegExp(value);
+  }
+  else {
+    clone = {};
 
-                                                                         if (!unshare)
-                                                                           seen.set(value, clone);
+    if (!unshare)
+      seen.set(value, clone);
 
-                                                                         for (const key of Object.keys(value)) 
-                                                                           clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
-                                                                       }
+    for (const key of Object.keys(value)) 
+      clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
+  }
 
-                                                                       ancestors.delete(value); // Cleanup recursion tracking
+  ancestors.delete(value); // Cleanup recursion tracking
 
-                                                                       return clone;
-                                                                     }
-                                                                     // -------------------------------------------------------------------------------------------------
-                                                                     if (test_structured_clone) {
-                                                                       const shared = { msg: "hi" };
-                                                                       let obj = { a: shared, b: shared };
-                                                                       // test #1: preserve shared references, this one seems to work:
-                                                                       {
-                                                                         const clone = structured_clone(obj);
+  return clone;
+}
+// -------------------------------------------------------------------------------------------------
+if (test_structured_clone) {
+  const shared = { msg: "hi" };
+  let obj = { a: shared, b: shared };
+  // test #1: preserve shared references, this one seems to work:
+  {
+    const clone = structured_clone(obj);
 
-                                                                         if (clone.a !== clone.b)
-                                                                           throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
+    if (clone.a !== clone.b)
+      throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
 
-                                                                         console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
-                                                                       }
-                                                                       // test #2: break shared references (unshare), this one seems to work:
-                                                                       {
-                                                                         const clone = structured_clone(obj, { unshare: true });
+    console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
+  }
+  // test #2: break shared references (unshare), this one seems to work:
+  {
+    const clone = structured_clone(obj, { unshare: true });
 
-                                                                         if (clone.a === clone.b)
-                                                                           throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
+    if (clone.a === clone.b)
+      throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
 
-                                                                         console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
-                                                                       }
-                                                                       // test #4: should fail do to cycle, with unshare = false:
-                                                                       try {
-                                                                         obj = {};
-                                                                         obj.self = obj; // Create a cycle
-                                                                         structured_clone(obj);
+    console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
+  }
+  // test #4: should fail do to cycle, with unshare = false:
+  try {
+    obj = {};
+    obj.self = obj; // Create a cycle
+    structured_clone(obj);
 
-                                                                         // If we get here, no error was thrown = fail
-                                                                         throw new Error(`test #3 should have failed.`);
-                                                                       } catch (err) {
-                                                                         if (err.message === 'test #3 should have failed.')
-                                                                           throw err;
-                                                                         else 
-                                                                           console.log(`test #3 failed as intended.`);
-                                                                       }
-                                                                       // test #4: should fail do to cycle, with unshare = true:
-                                                                       try {
-                                                                         obj = {};
-                                                                         obj.self = obj; // Create a cycle
-                                                                         structured_clone(obj, { unshare: true }); 
+    // If we get here, no error was thrown = fail
+    throw new Error(`test #3 should have failed.`);
+  } catch (err) {
+    if (err.message === 'test #3 should have failed.')
+      throw err;
+    else 
+      console.log(`test #3 failed as intended.`);
+  }
+  // test #4: should fail do to cycle, with unshare = true:
+  try {
+    obj = {};
+    obj.self = obj; // Create a cycle
+    structured_clone(obj, { unshare: true }); 
 
-                                                                         throw new Error(`test #4 should have failed.`);
-                                                                       } catch (err) {
-                                                                         if (err.message === 'test #4 should have failed.') 
-                                                                           throw err;
-                                                                         else
-                                                                           console.log(`test #3 failed as intended.`);
-                                                                       }
-                                                                     }
-                                                                     // -------------------------------------------------------------------------------------------------
+    throw new Error(`test #4 should have failed.`);
+  } catch (err) {
+    if (err.message === 'test #4 should have failed.') 
+      throw err;
+    else
+      console.log(`test #3 failed as intended.`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
@@ -7641,32 +7641,34 @@ class ASTRevertPickSingle extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
-// const plaintext             = r(/(?:\\\s|[^\s{|}])+/);
-// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
-// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
-const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
-const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
-// const plaintext             = /[^{|}\s]+/;
-// const plaintext_no_parens   = /[^{|}\s()]+/;
 // const low_pri_text          = /[\(\)\[\]\,\.\?\!\:\;]+/;
-const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const ident                    = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
+// const plaintext             = /[^{|}\s]+/;
+// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
+// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
+// const plaintext             = r(/(?:\\\s|[^\s{|}])+/);
+// const plaintext_no_parens   = /[^{|}\s()]+/;
+const any_assignment_operator  = choice(() => assignment_operator, () => incr_assignment_operator);
+const assignment_operator      = second(seq(wst_star(() => comment), '=', wst_star(() => comment)));
 const comment                  = discard(c_comment);
-const assignment_operator      = second(seq(wst_star(comment), '=', wst_star(comment)));
-const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
 const escaped_brc              = second(choice('\\{', '\\}'));
 const filename                 = r(/[A-Za-z0-9 ._\-()]+/);
-word_break              .abbreviate_str_repr('word_break');
-plaintext               .abbreviate_str_repr('plaintext');
-low_pri_text            .abbreviate_str_repr('low_pri_text');
-wb_uint                 .abbreviate_str_repr('wb_uint');
-ident                   .abbreviate_str_repr('ident');
-comment                 .abbreviate_str_repr('comment');
+const ident                    = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
+const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
+const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
+const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
+const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
+any_assignment_operator .abbreviate_str_repr('any_assignment_operator');
 assignment_operator     .abbreviate_str_repr('assignment_operator');
-incr_assignment_operator.abbreviate_str_repr('incr_assignment_operator');
+comment                 .abbreviate_str_repr('comment');
 escaped_brc             .abbreviate_str_repr('escaped_brc');
 filename                .abbreviate_str_repr('filename');
+ident                   .abbreviate_str_repr('ident');
+incr_assignment_operator.abbreviate_str_repr('incr_assignment_operator');
+low_pri_text            .abbreviate_str_repr('low_pri_text');
+plaintext               .abbreviate_str_repr('plaintext');
+wb_uint                 .abbreviate_str_repr('wb_uint');
+word_break              .abbreviate_str_repr('word_break');
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
@@ -7857,7 +7859,7 @@ const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                          // [0]
                 wst_seq(DiscardedComments,                                        // -
-                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
+                        any_assignment_operator,                                  // [1][0]
                         DiscardedComments,                                        // -
                         choice(rJsonc, () => LimitedContent, plaintext))));       // [1][1]
 const SpecialFunctionConfigurationUpdateUnary =
@@ -7927,12 +7929,15 @@ const NamedWildcardReference  = xform(seq('@',                                  
                                                                              min_ct,
                                                                              max_ct);
                                       });
+NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
 const NamedWildcardDesignator = second(seq('@', ident)); 
+NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
                                       wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
                                                               assignment_operator),    // -
                                                       DiscardedComments,
                                                       AnonWildcard));                  // [1]
+NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
@@ -7950,10 +7955,13 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
 
                                         return objs;
                                       });
+NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
 const ScalarReference         = xform(seq('$', optional('^'), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
+ScalarReference.abbreviate_str_repr('ScalarReference');
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
+ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
                                                                  arr[0][1] == '='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
@@ -7966,9 +7974,11 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                              plaintext),
                                                       DiscardedComments,
                                                       lws(optional(';'))));
+ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
                                        AnonWildcardNoLoras,
                                        ScalarReference);
+// LimitedContent.abbreviate_str_repr('LimitedContent');
 const ContentNoLoras          = choice(comment,
                                        NamedWildcardReference,
                                        NamedWildcardUsage,
@@ -7981,9 +7991,13 @@ const ContentNoLoras          = choice(comment,
                                        SpecialFunctionNotInclude,
                                        low_pri_text,
                                        plaintext);
+// ContentNoLoras.abbreviate_str_repr('ContentNoLoras');
 const Content                 = choice(A1111StyleLora, ContentNoLoras);
+// Content.abbreviate_str_repr('Content');
 const ContentStar             = wst_star(Content);
+// ContentStar.abbreviate_str_repr('ContentStar');
 const ContentStarNoLoras      = wst_star(ContentNoLoras);
+// ContentStarNoLoras.abbreviate_str_repr('ContentStarNoLoras');
 const Prompt                  = wst_star(choice(AnySpecialFunction,
                                                 NamedWildcardDefinition,
                                                 Content));
