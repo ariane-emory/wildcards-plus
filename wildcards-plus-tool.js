@@ -334,9 +334,13 @@ const trailing_separator_modes = Object.freeze({
 class Rule {
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
+    if (this.__abbreviated)
+      throw new Error(`${inspect_fun(this)} is already abbreviated, this likely a programmer error`);
+    
     if (str)
       this.__impl_toString   = () => str;
-    
+
+    this.__abbreviated     = true;
     this.__direct_children = () => [];
   }
   // -----------------------------------------------------------------------------------------------
@@ -7885,17 +7889,19 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude =
-      xform(arr => new ASTInclude(arr[1]),
-            c_funcall('include',                          // [0]
-                      first(wst_seq(discarded_comments,    // -
-                                    json_string,          // [1]
-                                    discarded_comments)))) // -
+xform(arr => new ASTInclude(arr[1]),
+      c_funcall('include',                          // [0]
+                first(wst_seq(discarded_comments,    // -
+                              json_string,          // [1]
+                              discarded_comments)))) // -
+SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  () => "%include is only supported when " +
                  "using wildcards-plus-tool.js, NOT when " +
                  "running the wildcards-plus.js script " +
                  "inside Draw Things!");
+UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                      // [0]
@@ -7903,6 +7909,7 @@ const SpecialFunctionSetPickSingle =
                         assignment_operator,                        // [1][0]
                         discarded_comments,                          // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
+SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                                       // [0]
@@ -7910,12 +7917,15 @@ const SpecialFunctionSetPickMultiple =
                         assignment_operator,                        // [1][0]
                         discarded_comments,                          // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
+SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick', word_break));
+SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick', word_break));
+SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                          // [0]
@@ -7923,6 +7933,8 @@ const SpecialFunctionConfigurationUpdateBinary =
                         any_assignment_operator,                                  // [1][0]
                         discarded_comments,                                        // -
                         choice(rJsonc, () => LimitedContent, plaintext))));       // [1][1]
+SpecialFunctionConfigurationUpdateBinary
+  .abbreviate_str_repr('SpecialFunctionConfigurationUpdateBinary');
 const SpecialFunctionConfigurationUpdateUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                    // [0]
@@ -7930,6 +7942,8 @@ const SpecialFunctionConfigurationUpdateUnary =
                         choice(incr_assignment_operator, assignment_operator),    // [1][0]
                         discarded_comments,                                        // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
+SpecialFunctionConfigurationUpdateUnary
+  .abbreviate_str_repr('SpecialFunctionConfigurationUpdateUnary');
 // -------------------------------------------------------------------------------------------------
 const NormalSpecialFunction =
       choice(SpecialFunctionSetPickSingle,
@@ -7952,7 +7966,7 @@ const AnySpecialFunction =
                          discarded_comments,
                          lws(optional(';'))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-AnySpecialFunction.abbreviate_str_repr('AnySpecialFunction');
+AnySpecialFunction       .abbreviate_str_repr('AnySpecialFunction');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
@@ -7962,23 +7976,25 @@ const AnonWildcardAlternative =
                 optional(wb_uint, 1),
                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                 () => ContentStar));
+AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcardAlternativeNoLoras =
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                 optional(wb_uint, 1),
                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                 () => ContentNoLorasStar));
+AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-AnonWildcard.abbreviate_str_repr('AnonWildcard');
-AnonWildcard.abbreviate_str_repr('AnonWildcardNoLoras');
+// AnonWildcard.abbreviate_str_repr('AnonWildcard');
+// AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
 const NamedWildcardReference  = xform(seq('@',                                       // [0]
                                           optional('^'),                             // [1]
-                                          optional(xform(parseInt, uint)),          // [2]
+                                          optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,
-                                                         second(seq('-', uint)))),  // [3]
+                                                         second(seq('-', uint)))),   // [3]
                                           optional(/[,&]/),                          // [4]
                                           ident),                                    // [5]
                                       arr => {
@@ -8044,7 +8060,7 @@ const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
                                        AnonWildcardNoLoras,
                                        plaintext);
-// LimitedContent.abbreviate_str_repr('LimitedContent');
+LimitedContent.abbreviate_str_repr('LimitedContent');
 const make_Content_rule          = (anon_wildcard_rule, ...prepended_rules) =>
       choice(...prepended_rules,
              comment,
@@ -8055,7 +8071,7 @@ const make_Content_rule          = (anon_wildcard_rule, ...prepended_rules) =>
              escaped_brc,
              ScalarUpdate,
              ScalarReference,
-             AnonWildcard,
+             anon_wildcard_rule,
              SpecialFunctionNotInclude,
              low_pri_text,
              plaintext);
@@ -8321,5 +8337,5 @@ console.log(`${Prompt}`);
 //   console.log(`#${ix}: ${option}`)
 // console.log(`${CheckFlagWithSetConsequent}`);
 // console.log(`${CheckFlagWithOrAlternatives}`);
-console.log(lws('a').toString());
-console.log(wst_star('a').toString());
+// console.log(lws('a').toString());
+// console.log(wst_star('a').toString());
