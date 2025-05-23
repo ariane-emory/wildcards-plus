@@ -544,8 +544,8 @@ class Quantified extends Rule {
   constructor(rule, options = {}) {
     super(options);
     this.rule                    = make_rule_func(rule);
-    this.separator_rule          = make_rule_func(options.separator_rule);
-    this.trailing_separator_mode = options.trailing_separator_mode;
+    this.separator_rule          = make_rule_func(options.separator);
+    this.trailing_separator_mode = options.trailing_separator??trailing_separator_modes.forbidden;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -652,6 +652,11 @@ class Quantified extends Rule {
 // -------------------------------------------------------------------------------------------------
 class Plus extends Quantified {
   // -----------------------------------------------------------------------------------------------
+  constructor(options = {}) {
+    super(options);
+    console.log(`${this.constructor.name} constructor: ${inspect_fun(options)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
   __match(indent, input, index) {
     const __quantified_match_result =
           this.__quantified_match(indent, input, index);
@@ -670,11 +675,12 @@ class Plus extends Quantified {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function plus(rule, // convenience constructor
-              separator_value = null,
-              trailing_separator_mode =
-              trailing_separator_modes.forbidden) {
-  return new Plus(rule, separator_value, trailing_separator_mode);
+function // convenience constructor
+plus(value,
+     options = {}) {
+    // separator_value = null,
+    // trailing_separator_mode = trailing_separator_modes.forbidden) {
+  return new Plus(value, options);
 }
 // -------------------------------------------------------------------------------------------------
 
@@ -685,7 +691,7 @@ class Star extends Quantified {
   // -----------------------------------------------------------------------------------------------
   constructor(options = {}) {
     super(options);
-    console.log(`Star constructor: ${inspect_fun(options)}`);
+    console.log(`${this.constructor.name} constructor: ${inspect_fun(options)}`);
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index) {
@@ -703,9 +709,10 @@ class Star extends Quantified {
 // -------------------------------------------------------------------------------------------------
 function // convenience constructor
 star(value,
-     separator_value = null,
-     trailing_separator_mode = trailing_separator_modes.forbidden) {
-  return new Star(value, separator_value, trailing_separator_mode);
+     options = {}) {
+    // separator_value = null,
+    // trailing_separator_mode = trailing_separator_modes.forbidden) {
+  return new Star(value, options);
 }
 // -------------------------------------------------------------------------------------------------
 
