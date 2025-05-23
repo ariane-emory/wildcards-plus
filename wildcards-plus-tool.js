@@ -8111,6 +8111,9 @@ async function main() {
   let   post       = false;
   let   confirm    = false;
   let   from_stdin = false;
+  const line_width = 90;
+
+  const log_line = (char = '-', width = line_width) => console.log(char.repeat(width));
 
   if (args.length == 0) 
     throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
@@ -8183,26 +8186,26 @@ async function main() {
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   
   if (print_ast_before_includes_enabled) {
-    console.log('-'.repeat(90));
+    log_line();
     console.log(`before process_includes:`);
-    console.log('-'.repeat(90));
+    log_line();
     console.log(`${inspect_fun(AST)}`);
-    console.log('-'.repeat(90));
+    log_line();
     console.log(`before process_includes (as JSON):`);
-    console.log('-'.repeat(90));
+    log_line();
     console.log(`${JSON.stringify(AST)}`);
   }
 
   AST = process_includes(AST, base_context);
 
   if (print_ast_after_includes_enabled) { 
-    console.log('-'.repeat(90));
+    log_line();
     console.log(`after process_includes:`);
-    console.log('-'.repeat(90));
+    log_line();
     console.log(`${inspect_fun(AST)}`);
-    console.log('-'.repeat(90));
+    log_line();
     console.log(`after process_includes (as JSON):`);
-    console.log('-'.repeat(90));
+    log_line();
     console.log(`${JSON.stringify(AST)}`);
   }
   
@@ -8227,35 +8230,35 @@ async function main() {
   };
 
   while (posted_count < count) {
-    console.log('==========================================================================================');
+    log_line('=');
     console.log(`Expansion #${posted_count + 1} of ${count}:`);
-    console.log('==========================================================================================');
+    log_line('=');
     
     const context = base_context.clone();
     const prompt  = expand_wildcards(AST, context);
 
     if (log_flags_enabled || log_configuration_enabled) {
-      console.log(`------------------------------------------------------------------------------------------`);
+      log_line();
       console.log(`Flags after:`);
-      console.log(`------------------------------------------------------------------------------------------`);
+      log_line();
       console.log(`${inspect_fun(context.flags)}`);
     }
 
-    console.log(`------------------------------------------------------------------------------------------`);
+    log_line();
     console.log(`Final config is is:`);
-    console.log(`------------------------------------------------------------------------------------------`);
+    log_line();
     console.log(inspect_fun(context.configuration));
 
     
-    console.log(`------------------------------------------------------------------------------------------`);
+    log_line();
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
-    console.log(`------------------------------------------------------------------------------------------`);
+    log_line();
     console.log(prompt);
 
     if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
-      console.log(`------------------------------------------------------------------------------------------`);
+      log_line();
       console.log(`Expanded negative prompt:`);
-      console.log(`------------------------------------------------------------------------------------------`);
+      log_line();
       console.log(context.configuration.negative_prompt);
     }
 
@@ -8264,7 +8267,7 @@ async function main() {
     }
     else {
       if (!confirm) {
-        console.log(`------------------------------------------------------------------------------------------`);
+        log_line();
         do_post(prompt, context.configuration);
         posted_count += 1;
       }
@@ -8283,7 +8286,7 @@ async function main() {
 
         if (answer.match(/^p.*/i)) {
           if (prior_prompt) { 
-            console.log(`------------------------------------------------------------------------------------------`);
+            log_line();
             [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
             
             console.log(`POSTing prior prompt '${prompt}'`);
@@ -8297,7 +8300,7 @@ async function main() {
           }
         }
         else { // /^y.*/
-          console.log(`------------------------------------------------------------------------------------------`);
+          log_line();
           const parsed    = parseInt(answer);
           const gen_count = isNaN(parsed) ? 1 : parsed;  
           
@@ -8310,7 +8313,7 @@ async function main() {
     stash_priors(prompt, context.configuration);
   }
 
-  console.log('==========================================================================================');
+  log_line('=');
 }
 // -------------------------------------------------------------------------------------------------
 main().catch(err => {
