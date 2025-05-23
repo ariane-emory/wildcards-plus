@@ -7923,8 +7923,6 @@ const AnySpecialFunction =
                          lws(optional(';'))),
              // { abbreviate: 'AnySpecialFunction'}
             );
-// SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-// AnySpecialFunction.abbreviate_str_repr('AnySpecialFunction');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
