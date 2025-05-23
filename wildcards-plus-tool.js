@@ -7951,6 +7951,8 @@ const AnySpecialFunction =
                                 NormalSpecialFunction),
                          discarded_comments,
                          lws(optional(';'))));
+SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
+AnySpecialFunction.abbreviate_str_repr('AnySpecialFunction');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
@@ -7965,7 +7967,7 @@ const AnonWildcardAlternativeNoLoras =
             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                 optional(wb_uint, 1),
                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                () => ContentStarNoLoras));
+                () => ContentNoLorasStar));
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
@@ -8051,18 +8053,18 @@ const make_Content_rule          = (anon_wildcard_rule, ...prepended_rules) =>
              escaped_brc,
              ScalarUpdate,
              ScalarReference,
-             AnonWildcard, // sketchy, parent rule should be split into 2
+             AnonWildcard,
              SpecialFunctionNotInclude,
              low_pri_text,
              plaintext);
 const ContentNoLoras = make_Content_rule(AnonWildcardNoLoras);
 // ContentNoLoras.abbreviate_str_repr('ContentNoLoras');
-const Content                 = make_Content_rule(ContentNoLoras, A1111StyleLora);
+const Content                 = make_Content_rule(AnonWildcard, A1111StyleLora);
 // Content.abbreviate_str_repr('Content');
 const ContentStar             = wst_star(Content);
 // ContentStar.abbreviate_str_repr('ContentStar');
-const ContentStarNoLoras      = wst_star(ContentNoLoras);
-// ContentStarNoLoras.abbreviate_str_repr('ContentStarNoLoras');
+const ContentNoLorasStar      = wst_star(ContentNoLoras);
+// ContentNoLorasStar.abbreviate_str_repr('ContentNoLorasStar');
 const Prompt                  = wst_star(choice(AnySpecialFunction,
                                                 NamedWildcardDefinition,
                                                 Content));
