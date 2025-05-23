@@ -334,7 +334,9 @@ const trailing_separator_modes = Object.freeze({
 class Rule {
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
-    this.__impl_toString   = () => str;
+    if (str)
+      this.__impl_toString   = () => str;
+    
     this.__direct_children = () => [];
   }
   // -----------------------------------------------------------------------------------------------
@@ -1278,7 +1280,8 @@ class Sequence extends Rule {
                                                                           next_id,
                                                                           ref_counts));
     const str       = elem_strs.join(' ');
-    return `(${str})`;
+    return `[${str}]`;
+    // return `(${str})`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1311,7 +1314,7 @@ class CuttingSequence extends Sequence {
     const rest_strs = this.elements.slice(1).map(x => this.__vivify(x)
                                                  .__toString(visited, next_id, ref_counts));
     const str       = [ first_str, ...rest_strs ].join(' ');
-    return `(${str})`;
+    return `[${str}]`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1853,7 +1856,7 @@ const lws                = rule => {
   
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `Lws(${rule_str})`;
+    return `LWS(${rule_str})`;
   }
 
   return rule;
@@ -1863,7 +1866,7 @@ const tws                = rule => {
 
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `Tws(${rule_str})`;
+    return `TWS(${rule_str})`;
   }
 };
 // -------------------------------------------------------------------------------------------------
@@ -1927,7 +1930,7 @@ const wse                = rule => {
   
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
-    return `WSE[${rule_str}]`;
+    return `WSE(${rule_str})`;
   }
 
   return rule;
@@ -2023,10 +2026,10 @@ const c_comment          = choice(() => c_line_comment,
                                   () => c_block_comment);
 const c_line_comment     = r(/\/\/[^\n]*/);
 const py_line_comment    = r(/#[^\n]*/); 
-c_block_comment          .abbreviate_str_repr('C_BLOCK_COMMENT');
-c_comment                .abbreviate_str_repr('C_COMMENT');
-c_line_comment           .abbreviate_str_repr('C_LINE_COMMENT');
-py_line_comment          .abbreviate_str_repr('PY_LINE_COMMENT');
+c_block_comment          .abbreviate_str_repr('c_block_comment');
+c_comment                .abbreviate_str_repr('c_comment');
+c_line_comment           .abbreviate_str_repr('c_line_comment');
+py_line_comment          .abbreviate_str_repr('py_line_comment');
 // -------------------------------------------------------------------------------------------------
 // ternary helper combinator:
 const ternary            =
@@ -7706,7 +7709,7 @@ const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
 any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
 assignment_operator            .abbreviate_str_repr('assignment_operator');
-comment                        .abbreviate_str_repr('-comment');
+comment                        .abbreviate_str_repr();
 escaped_brc                    .abbreviate_str_repr('escaped_brc');
 filename                       .abbreviate_str_repr('filename');
 ident                          .abbreviate_str_repr('ident');
