@@ -7678,6 +7678,7 @@ const DiscardedComments        = discard(wst_star(comment));
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint);
+A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora       =
       xform(arr => new ASTLora(arr[3], arr[4][0]),
             wst_seq('<',                                    // [0]
