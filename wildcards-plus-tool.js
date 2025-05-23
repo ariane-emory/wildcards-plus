@@ -464,8 +464,8 @@ class Rule {
           .replace('() => ', '');
     
     if (this.direct_children().length == 0) {
-      return __call_impl_toString();
-      return abbreviate(__call_impl_toString(), 16);
+      return abbreviate(__call_impl_toString(), 32);
+      // return __call_impl_toString();
     }
     
     if (visited.has(this)) {
@@ -1308,7 +1308,8 @@ class Xform extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    return `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}`;
+    return `λ(${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)})`;
+    // return `λ${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7798,19 +7799,19 @@ const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-const NamedWildcardReference  = xform(seq(discard('@'),
-                                          optional('^'),                             // [0]
-                                          optional(xform(parseInt, /\d+/)),          // [1]
+const NamedWildcardReference  = xform(seq('@',                                       // [0]
+                                          optional('^'),                             // [1]
+                                          optional(xform(parseInt, /\d+/)),          // [2]
                                           optional(xform(parseInt,
-                                                         second(seq('-', /\d+/)))),  // [2]
-                                          optional(/[,&]/),                          // [3]
-                                          ident),                                    // [4]
+                                                         second(seq('-', /\d+/)))),  // [3]
+                                          optional(/[,&]/),                          // [4]
+                                          ident),                                    // [5]
                                       arr => {
-                                        const ident  = arr[4];
-                                        const min_ct = arr[1][0] ?? 1;
-                                        const max_ct = arr[2][0] ?? min_ct;
-                                        const join   = arr[3][0] ?? '';
-                                        const caret  = arr[0][0];
+                                        const ident  = arr[5];
+                                        const min_ct = arr[2][0] ?? 1;
+                                        const max_ct = arr[3][0] ?? min_ct;
+                                        const join   = arr[4][0] ?? '';
+                                        const caret  = arr[1][0];
                                         
                                         return new ASTNamedWildcardReference(ident,
                                                                              join,
@@ -8119,7 +8120,8 @@ const Z        = l('z');
 const TestRule = seq('x', Z, Z, () => TestRule); 
 // console.log(`${TestRule}`);
 // console.log(``);
-console.log(`${Prompt}`);
+// console.log(`${Prompt}`);
+console.log(`${NamedWildcardReference}`);
 
 // console.log(`${NormalSpecialFunction}`);
 // console.log(`${inspect_fun(NormalSpecialFunction.options)}`);
