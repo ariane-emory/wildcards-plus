@@ -7624,7 +7624,7 @@ const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
 // const low_pri_text          = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
-const comment                  = discard(choice(c_block_comment, c_line_comment));
+const comment                  = discard(c_comment);
 const assignment_operator      = second(seq(wst_star(comment), '=', wst_star(comment)));
 const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
 const escaped_brc              = second(choice('\\{', '\\}'));
