@@ -333,6 +333,11 @@ const trailing_separator_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 class Rule {
   // -----------------------------------------------------------------------------------------------
+  abbreviate_str_repr(str) {
+    this.__impl_toString   = () => str;
+    this.__direct_children = () => [];
+  }
+  // -----------------------------------------------------------------------------------------------
   direct_children() {
     const ret = this.__direct_children();
 
@@ -7626,36 +7631,32 @@ class ASTRevertPickSingle extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-const word_break               = /(?=\s|[{|}\.\,\?\!\(\)]|$)/;
-word_break.__impl_toString     = () => 'word_break';
-// const plaintext             = /(?:\\\s|[^\s{|}])+/;
-// const plaintext             = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
-// const plaintext             = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
-const plaintext                = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
-const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
-plaintext.__impl_toString      = () => 'plaintext';
-low_pri_text.__impl_toString    = () => 'low_pri_text';
+const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
+// const plaintext             = r(/(?:\\\s|[^\s{|}])+/);
+// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
+// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
+const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
+const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
 // const plaintext             = /[^{|}\s]+/;
 // const plaintext_no_parens   = /[^{|}\s()]+/;
 // const low_pri_text          = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-wb_uint.__impl_toString        = () => 'wb_uint';
-const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
-ident.__impl_toString          = () => 'ident';
+const ident                    = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
 const comment                  = discard(c_comment);
-comment.__impl_toString        = () => 'comment';
 const assignment_operator      = second(seq(wst_star(comment), '=', wst_star(comment)));
-assignment_operator
-  .__impl_toString             = () => 'assignment_operator';
 const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
-incr_assignment_operator
-  .__impl_toString             = () => 'incr_assignment_operator';
-incr_assignment_operator.__direct_children   = () => [];
 const escaped_brc              = second(choice('\\{', '\\}'));
-escaped_brc
-  .__impl_toString             = () => 'escaped_brc';
-const filename                 = /[A-Za-z0-9 ._\-()]+/;
-filename.__impl_toString       = () => 'filename';
+const filename                 = r(/[A-Za-z0-9 ._\-()]+/);
+word_break.abbreviate_str_repr('word_break');
+plaintext.abbreviate_str_repr('plaintext');
+low_pri_text.abbreviate_str_repr('low_pri_text');
+wb_uint.abbreviate_str_repr('wb_uint');
+ident.abbreviate_str_repr('ident');
+comment.abbreviate_str_repr('comment');
+assignment_operator.abbreviate_str_repr('assignment_operator');
+incr_assignment_operator.abbreviate_str_repr('incr_assignment_operator');
+escaped_brc.abbreviate_str_repr('escaped_brc');
+filename.abbreviate_str_repr('filename');
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
