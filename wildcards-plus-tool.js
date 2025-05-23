@@ -8111,9 +8111,9 @@ async function main() {
   let   post       = false;
   let   confirm    = false;
   let   from_stdin = false;
-  const line_width = 90;
 
-  const log_line = (char = '-', width = line_width) => console.log(char.repeat(width));
+  const log_line = (char = '-', width = log_line.line_width) => console.log(char.repeat(width));
+  log_line.line_width = 90;
 
   if (args.length == 0) 
     throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
