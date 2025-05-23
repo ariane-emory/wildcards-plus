@@ -1832,6 +1832,8 @@ const alphacaps          = r(/[A-Z_]+/);
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
+whites_star.__impl_toString = () => 'Whites*';
+whites_plus.__impl_toString = () => 'Whites+';
 const d_whites_star      = discard(whites_star);
 const d_whites_plus      = discard(whites_plus);
 // -------------------------------------------------------------------------------------------------
