@@ -333,8 +333,8 @@ const trailing_separator_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 class Rule {
   // -----------------------------------------------------------------------------------------------
-  constructor({ abbreviate = false } = {}) {
-    if (abbreviate)
+  constructor({ abbreviate = undefined } = {}) {
+    if (abbreviate !== undefined)
       this.abbreviate_str_repr(abbreviate);
   };
   // -----------------------------------------------------------------------------------------------
