@@ -7843,8 +7843,8 @@ const filename                 = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                    = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
 const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
 // const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
-const low_pri_text             = r(/[\(\)\[\]\:]+/);
 // const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
+const low_pri_text             = r(/[\(\)\[\]\:]+/);
 const plaintext                = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
@@ -8243,8 +8243,8 @@ const Content                 = make_Content_rule(
   A1111StyleLora,
 );
 const TopLevelContent         = make_Content_rule(
-  AnonWildcard,
   NamedWildcardDefinition,
+  AnonWildcard,
   A1111StyleLora,
   SpecialFunctionInclude,
 );
