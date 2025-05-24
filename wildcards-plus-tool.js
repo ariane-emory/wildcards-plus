@@ -345,7 +345,7 @@ class FatalParseError extends Error {
   get message() {
     return `${this.message_body} at char #${this.index}, ` +
       `found:\n` +
-      `'${abbreviate(this.input.substring(this.index))}'`;
+      `${abbreviate(this.input.substring(this.index))}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1063,7 +1063,7 @@ class CuttingEnclosed extends Enclosed {
     throw new FatalParseError(// `(#1) ` +
       `expected (${this.body_rule} ${this.end_rule}) ` +
         `after ${this.start_rule}`,
-      input, index);
+      input, start_rule_result.index);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -1537,12 +1537,7 @@ class Fail extends Rule {
   __match(indent, input, index, cache) {
     throw this.error_func
       ? this.error_func(this, index, input)
-      : new Error(// `(#5) ` +
-        `unexpected ${this.rule} at ` +
-          `char ${input[index].start}` +
-          `, found:\n` +
-          `[ ${input.slice(index).join(", ")}` +
-          ` ]`);
+      : new FatalParseError(`hit automatic failure Rule`, input, index);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
