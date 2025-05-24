@@ -8105,7 +8105,7 @@ try {
       console.log(context.configuration.negativePrompt);
     } else {
       LOG_LINE();
-      console.log(`No negative prompt/`);
+      console.log(`No negative prompt.`);
     }
     
     LOG_LINE();
