@@ -257,7 +257,7 @@
 }
 
 @place_phrase = {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
-                |at {a|the} @#place_to_be_at @place_to_be_at}
+                |1 at {a|the} @#place_to_be_at @place_to_be_at}
 
 // -------------------------------------------------------------------------------------------------
 // character adjectives:

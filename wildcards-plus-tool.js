@@ -3304,6 +3304,10 @@ class Context {
   reset_temporaries() {
     this.flags = [];
     this.scalar_variables = new Map();
+
+    for (const [name, nwc] of this.named_wildcards)
+      if (nwc instanceof ASTLatchedNamedWildcardValue)
+        this.named_wildcards.set(name, nws.original_value);
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
