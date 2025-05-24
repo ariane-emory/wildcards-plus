@@ -8221,11 +8221,12 @@ const LimitedContent          = choice(NamedWildcardReference,
                                        AnonWildcardNoLoras,
                                        plaintext);
 LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule       = (...additional_rules) =>
+const make_Content_rule       = ({ early_rules = [], late_rules = [] } = {}) =>
       choice(
-        ...additional_rules,
+        ...early_rules,
         plaintext,
         low_pri_text,
+        ...late_rules,
         NamedWildcardReference,
         NamedWildcardUsage,
         comment,
@@ -8237,17 +8238,19 @@ const make_Content_rule       = (...additional_rules) =>
         // anon_wildcard_rule,
         escaped_brc,
       );
-const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
-const Content                 = make_Content_rule(
-  AnonWildcard,
-  A1111StyleLora,
-);
-const TopLevelContent         = make_Content_rule(
-  NamedWildcardDefinition,
-  AnonWildcard,
-  A1111StyleLora,
-  SpecialFunctionInclude,
-);
+const ContentNoLoras          = make_Content_rule({
+  late_rules: [ AnonWildcardNoLoras, ],
+});
+const Content                 = make_Content_rule({
+  early_rules: [ A1111StyleLora, ],
+  late_rules:  [ AnonWildcard, ],
+});
+const TopLevelContent         = make_Content_rule({
+  early_rules: [ NamedWildcardDefinition, ],
+  late_rules: [ AnonWildcard,
+                A1111StyleLora,
+                SpecialFunctionInclude, ],
+});
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
