@@ -331,6 +331,18 @@ const trailing_separator_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
+// FatalParseError class
+// -------------------------------------------------------------------------------------------------
+class FatalParseError extends Error {
+  constructor(message) {
+    super(message); // Call the Error constructor
+    this.name = 'FatalParseError'; // Set the error name
+  }
+}
+// -------------------------------------------------------------------------------------------------
+
+
+// -------------------------------------------------------------------------------------------------
 // Rule class
 // -------------------------------------------------------------------------------------------------
 class Rule {
@@ -498,7 +510,7 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   __toString(visited, next_id, ref_counts) {
     if (ref_counts === undefined)
-      throw new Error('got undefined ref_counts!');
+      throw new Error('got ref_counts === undefined, this likely indicates a programmer error');
 
     const __call_impl_toString = () => this
           .__impl_toString(visited, next_id, ref_counts)
@@ -591,10 +603,10 @@ class Quantified extends Rule {
     let match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (match_result === undefined)
-      throw new Error("left");
+      throw new Error("math_result === undefined, this likely indicated a programmer error");
     
     if (match_result === false)
-      throw new Error("right");
+      throw new Error("math_result === false, this likely indicated a programmer error");
     
     if (match_result === null)
       return new MatchResult([], input, index); // empty array happens here
@@ -1039,7 +1051,7 @@ class CuttingEnclosed extends Enclosed {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    throw new Error(// `(#1) ` +
+    throw new FatalParseError(// `(#1) ` +
       `expected (${this.body_rule} ${this.end_rule}) ` +
         `after ${this.start_rule} at ` +
         `char ${index}` +
@@ -1318,7 +1330,7 @@ class CuttingSequence extends Sequence {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    throw new Error(// `(#2) ` +
+    throw new FatalParseError(// `(#2) ` +
       `expected (${this.elements.slice(1).join(" ")}) ` +
         `after ${this.elements[0]} at ` +
         `char ${index}` +
@@ -8211,7 +8223,7 @@ async function main() {
   }
 
   if (args.length === 0)
-    throw new Error("Error: Must provide --stdin or an input file.");
+    throw new Error("ERROR: Must provide --stdin or an input file.");
 
   if (args[0] === '--stdin') {
     if (confirm)
@@ -8227,27 +8239,33 @@ async function main() {
   // read prompt input:
   // -----------------------------------------------------------------------------------------------
   let result = null;
-  
-  if (from_stdin) {
-    // Read all stdin into a string
-    let prompt_input = await new Promise((resolve, reject) => {
-      let data = '';
-      input.setEncoding('utf8');
-      input.on('data', chunk => data += chunk);
-      input.on('end', () => resolve(data));
-      input.on('error', err => reject(err));
-    });
-    
-    result = Prompt.match(prompt_input);
-  } else if (args.length === 0) {
-    throw new Error("Error: No input file provided.");
-  }
-  else {
-    // log_match_enabled = true;
-    
-    result = parse_file(args[0]);
-  }
 
+  try {
+    if (from_stdin) {
+      // Read all stdin into a string
+      let prompt_input = await new Promise((resolve, reject) => {
+        let data = '';
+        input.setEncoding('utf8');
+        input.on('data', chunk => data += chunk);
+        input.on('end', () => resolve(data));
+        input.on('error', err => reject(err));
+      });
+      
+      result = Prompt.match(prompt_input);
+    } else if (args.length === 0) {
+      throw new Error("ERROR: No input file provided.");
+    }
+    else {
+      // log_match_enabled = true;
+      
+      result = parse_file(args[0]);
+    }
+  }
+  catch(ex) {
+    console.log(`${inspect_fun(ex)}`);
+    process.exit(1);
+  }
+  
   // -----------------------------------------------------------------------------------------------
   // just for debugging:
   // -----------------------------------------------------------------------------------------------
