@@ -372,6 +372,7 @@ class Rule {
     
     this.__direct_children = () => [];
     this.__abbreviated     = true;
+    this.memoize           = true;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
@@ -458,17 +459,19 @@ class Rule {
 
     let rule_cache = cache.get(this);
 
-    if (rule_cache) {
-      const got = rule_cache.get(index);
+    if (this.memoize) {
+      if (rule_cache) {
+        const got = rule_cache.get(index);
 
-      if (got !== undefined) {
-        // console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
-        return got;
+        if (got !== undefined) {
+          // console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
+          return got;
+        }
       }
-    }
-    else {
-      // console.log(`init Map for ${this}`);
-      rule_cache = cache.set(this, new Map());
+      else {
+        // console.log(`init Map for ${this}`);
+        rule_cache = cache.set(this, new Map());
+      }
     }
     
     const ret = this.__match(indent, input, index, cache);
@@ -478,7 +481,8 @@ class Rule {
                       `this is likely a programmer error`);
     }
     
-    rule_cache.set(index, ret);
+    if (this.memoize)
+      rule_cache.set(index, ret);
 
     // if (ret && ret?.value === null) {
     //   throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
@@ -1856,6 +1860,8 @@ uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
+whites_star.memoize = false;
+whites_plus.memoize = false;
 whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
 const d_whites_star      = discard(whites_star);
