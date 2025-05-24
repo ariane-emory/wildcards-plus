@@ -8108,17 +8108,19 @@ try {
       console.log(`No negative prompt/`);
     }
     LOG_LINE();
-    console.log(`Generating image #${ix+1} out of ${batch_count}...`);
 
-    // ---------------------------------------------------------------------------------------------
-    // run the pipeline:
-    // ---------------------------------------------------------------------------------------------
     if (clear_first) {
       console.log(`Clearing canvas...`);
       canvas.clear();
     } else {
       console.log(`Not clearing canvas`);
     }
+
+    console.log(`Generating image #${ix+1} out of ${batch_count}...`);
+
+    // ---------------------------------------------------------------------------------------------
+    // run the pipeline:
+    // ---------------------------------------------------------------------------------------------
 
     const negative_prompt = context.configuration.negativePrompt;
     delete context.configuration.negativePrompt;
