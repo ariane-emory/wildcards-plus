@@ -430,31 +430,29 @@ class Rule {
     //   cache.set(rule, new Map());
     // }
 
-    if (cache.has(this)) {
-      const rule_cache = cache.get(this);
+    let rule_cache = cache.get(this);
 
-      if (rule_cache.has(index)) {
-        const got = rule_cache.get(index);
+    if (rule_cache) {
+      const got = rule_cache.get(index);
 
-        // console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;
-        
+      if (got !== undefined) {
+        // console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
         return got;
       }
     }
     else {
       // console.log(`init Map for ${this}`);
-      cache.set(this, new Map());
+      rule_cache = cache.set(this, new Map());
     }
     
     const ret = this.__match(indent, input, index, cache);
-
 
     if (ret && ret?.value === undefined) {
       throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
                       `this is likely a programmer error`);
     }
     
-    cache.get(this).set(index, ret);
+    rule_cache.set(index, ret);
 
     // if (ret && ret?.value === null) {
     //   throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
