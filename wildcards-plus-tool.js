@@ -6846,7 +6846,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const got = context.named_wildcards.get(thing.name);
 
       if (!got)
-        return `\\<ERROR: Named wildcard @${thing.name} not found!>`;
+        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
 
       let res = [];
       
@@ -6895,12 +6895,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const got = context.named_wildcards.get(thing.name);
       
       if (!got)
-        return `\\<ERROR: Named wildcard @${thing.name} not found!>`;
+        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
 
       if (! (got instanceof ASTLatchedNamedWildcardValue)) {
-        console.log(`WARNING: tried to latch already latched named wildcard @${thing.name}, ` +
-                    `check your template!`);
-        return '';
+        return `\\<WARNING: tried to latch already-latched NamedWildcard @${thing.name}, ` +
+          `check your template!>`;
       }
 
       const latched = new ASTLatchedNamedWildcardValue(walk(got, indent + 1), got);
@@ -6917,12 +6916,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       let got = context.named_wildcards.get(thing.name);
 
       if (!got)
-        return `\\<ERROR: Named wildcard @${thing.name} not found!>`;
+        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
 
       if (! (got instanceof ASTLatchedNamedWildcardValue)) {
-        console.log(`WARNING: tried to unlatch unlatched named wildcard @${thing.name}, ` +
-                    `check your template!`);
-        return '';
+        return `\\<WARNING: tried to unlatch already-unlatched NamedWildcard @${thing.name}, ` +
+          `check your template!>`;
       }
 
       context.named_wildcards.set(thing.name, got.original_value);
@@ -6935,7 +6933,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination))
-        log(true, `WARNING: redefining named wildcard '${thing.destination.name}'.`);
+        log(true, `WARNING: redefining named wildcard @${thing.destination.name}, ` +
+            `you may not have intended to do this, check your template!`);
 
       context.named_wildcards.set(thing.destination, thing.wildcard);
 
@@ -7151,14 +7150,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       }
       catch(err) {
         if (err instanceof FatalParseError)
-          return `\\<ERROR: parsing ${sub_prompt.desc} failed: ${err}>`;
+          return `\\<WARNING: parsing ${sub_prompt.desc} failed: ${err}>`;
         else
           throw err;
       }
 
       
       if (!res || !res.is_finished)
-        return `\\<ERROR: parsing ${sub_prompt.desc} did not finish!>`;
+        return `\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`;
 
       return expand_wildcards(res.value, context, indent + 1);
     }
@@ -8191,7 +8190,7 @@ Prompt.finalize();
 // MAIN SECTION:
 // =================================================================================================
 // fake UI prompt, just for use debugging when dt_hosted has been set to true:
-const ui_prompt = "@shape = { cube | sphere there is a @thing here";
+const ui_prompt = "@shape = { cube | sphere } there is a @thing here";
 // -------------------------------------------------------------------------------------------------
 async function main() {
   // -----------------------------------------------------------------------------------------------
