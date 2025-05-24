@@ -7763,11 +7763,13 @@ const UnexpectedSpecialFunctionUINegPrompt =
 UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
-      xform(arr => new ASTInclude(arr[1]),
-            c_funcall('include',                           // [0]
-                      first(wst_seq(discarded_comments,    // -
-                                    json_string,           // [1]
-                                    discarded_comments)))) // -
+      xform(arr => new ASTInclude(arr[0][1]),
+            seq(c_funcall('%include',                            // [0][0]
+                          first(wst_seq(discarded_comments,      // -
+                                        json_string,             // [0][1]
+                                        discarded_comments))),   // -
+                discarded_comments,                              // -
+                lws(optional(';'))));                            // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -7822,34 +7824,32 @@ const SpecialFunctionConfigurationUpdateUnary =
 SpecialFunctionConfigurationUpdateUnary
   .abbreviate_str_repr('SpecialFunctionConfigurationUpdateUnary');
 // -------------------------------------------------------------------------------------------------
-const NormalSpecialFunction =
-      choice(SpecialFunctionSetPickSingle,
-             SpecialFunctionSetPickMultiple,
-             SpecialFunctionRevertPickSingle,
-             SpecialFunctionRevertPickMultiple,
-             SpecialFunctionConfigurationUpdateUnary,
-             SpecialFunctionConfigurationUpdateBinary);
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
-                         NormalSpecialFunction,
+                         choice(SpecialFunctionSetPickSingle,
+                                SpecialFunctionSetPickMultiple,
+                                SpecialFunctionRevertPickSingle,
+                                SpecialFunctionRevertPickMultiple,
+                                SpecialFunctionConfigurationUpdateUnary,
+                                SpecialFunctionConfigurationUpdateBinary),
                          discarded_comments,
                          lws(optional(';'))));
-const AnySpecialFunction =
-      second(cutting_seq('%',
-                         choice((dt_hosted
-                                 ? SpecialFunctionUIPrompt
-                                 : UnexpectedSpecialFunctionUIPrompt),
-                                (dt_hosted
-                                 ? SpecialFunctionUINegPrompt
-                                 : UnexpectedSpecialFunctionUINegPrompt),
-                                (dt_hosted
-                                 ? UnexpectedSpecialFunctionInclude
-                                 : SpecialFunctionInclude),
-                                NormalSpecialFunction),
-                         discarded_comments,
-                         lws(optional(';'))));
+// const AnySpecialFunction =
+//       second(cutting_seq('%',
+//                          choice((dt_hosted
+//                                  ? SpecialFunctionUIPrompt
+//                                  : UnexpectedSpecialFunctionUIPrompt),
+//                                 (dt_hosted
+//                                  ? SpecialFunctionUINegPrompt
+//                                  : UnexpectedSpecialFunctionUINegPrompt),
+//                                 (dt_hosted
+//                                  ? UnexpectedSpecialFunctionInclude
+//                                  : SpecialFunctionInclude),
+//                                 SpecialFunctionNotInclude),
+//                          discarded_comments,
+//                          lws(optional(';'))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-AnySpecialFunction       .abbreviate_str_repr('AnySpecialFunction');
+// AnySpecialFunction       .abbreviate_str_repr('AnySpecialFunction');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
@@ -7944,31 +7944,31 @@ const LimitedContent          = choice(NamedWildcardReference,
                                        AnonWildcardNoLoras,
                                        plaintext);
 LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule          = (anon_wildcard_rule, ...prepended_rules) =>
+const make_Content_rule       = (...prepended_rules) =>
       choice(...prepended_rules,
              comment,
+             SpecialFunctionNotInclude,
              NamedWildcardReference,
              NamedWildcardUsage,
              SetFlag,
              UnsetFlag,
-             escaped_brc,
              ScalarUpdate,
              ScalarReference,
-             anon_wildcard_rule,
-             SpecialFunctionNotInclude,
+             // anon_wildcard_rule,
+             escaped_brc,
              low_pri_text,
              plaintext);
 const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
-// ContentNoLoras.abbreviate_str_repr('ContentNoLoras');
-const Content                 = make_Content_rule(AnonWildcard, A1111StyleLora);
-// Content.abbreviate_str_repr('Content');
-const ContentStar             = wst_star(Content);
-// ContentStar.abbreviate_str_repr('ContentStar');
+const Content                 = make_Content_rule(A1111StyleLora,
+                                                  AnonWildcard);
+const TopLevelContent         = make_Content_rule(SpecialFunctionInclude,
+                                                  NamedWildcardDefinition,
+                                                  A1111StyleLora,
+                                                  AnonWildcard);
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
-// ContentNoLorasStar.abbreviate_str_repr('ContentNoLorasStar');
-const Prompt                  = wst_star(choice(SpecialFunctionInclude,
-                                                NamedWildcardDefinition,
-                                                Content));
+const ContentStar             = wst_star(Content);
+const TopLevelContentStar     = wst_star(TopLevelContent);
+const Prompt                  = TopLevelContentStar;
 // -------------------------------------------------------------------------------------------------
 Prompt.finalize();
 // =================================================================================================
