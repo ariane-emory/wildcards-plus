@@ -287,7 +287,7 @@ Array.prototype.toString = function() {
 //         |-- Xform
 //         |
 //         | Rules triggering failure:
-//         |-- Expect
+//         |-- Expected
 //         |-- Unexpected
 //         |-- Fail
 //         |
@@ -1418,9 +1418,9 @@ function xform(...things) { // convenience constructor with magic
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-// Expect class
+// Expected class
 // -------------------------------------------------------------------------------------------------
-class Expect extends Rule {
+class Expected extends Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(rule, error_func = null) {
     super();
@@ -1463,7 +1463,7 @@ class Expect extends Rule {
 }
 // -------------------------------------------------------------------------------------------------
 function expect(rule, error_func = null) { // convenience constructor
-  return new Expect(rule, error_func);
+  return new Expected(rule, error_func);
 }
 // -------------------------------------------------------------------------------------------------
 
