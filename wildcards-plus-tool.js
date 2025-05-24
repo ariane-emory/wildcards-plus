@@ -7934,7 +7934,10 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SimpleCheckFlag             = xform(seq('?', plus(ident, '.'), r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/)),
+const restive_word_break = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
+const SimpleCheckFlag             = xform(seq('?',
+                                              plus(ident, '.'),
+                                              restive_word_break)
                                           arr => {
                                             const args = [arr[1]];
 
@@ -7947,7 +7950,26 @@ const SimpleCheckFlag             = xform(seq('?', plus(ident, '.'), r(/(?=\s|[{
 
                                             return new ASTCheckFlags(args);
                                           });
-const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), word_break),
+const SimpleNotFlag              = xform(seq('!',
+                                             optional('#'),
+                                             plus(ident, '.'),
+                                             restive_word_break),
+                                         arr => {
+                                           const args = [arr[2],
+                                                         { set_immediately: !!arr[1][0]}];
+
+                                           if (log_flags_enabled) {
+                                             console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
+                                                         `${inspect_fun(arr)}`);
+                                             console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
+                                                         `${inspect_fun(args)}`);
+                                           }
+
+                                           return new ASTNotFlag(...args);
+                                         })
+const CheckFlagWithOrAlternatives = xform(seq('?',
+                                              plus(plus(ident, '.'), ','),
+                                              word_break),
                                           arr => {
                                             const args = [arr[1]];
 
@@ -7977,7 +7999,11 @@ const CheckFlagWithSetConsequent  = xform(seq('?',              // [0]
 
                                             return new ASTCheckFlags(...args);
                                           });
-const NotFlagWithSetConsequent    = xform(seq('!', plus(ident, '.'), '.#', plus(ident, '.'), word_break),
+const NotFlagWithSetConsequent    = xform(seq('!',
+                                              plus(ident, '.'),
+                                              '.#',
+                                              plus(ident, '.'),
+                                              word_break),
                                           arr => {
                                             const args = [arr[1],
                                                           { consequently_set_flag_tail: arr[3] }]; 
@@ -7991,20 +8017,6 @@ const NotFlagWithSetConsequent    = xform(seq('!', plus(ident, '.'), '.#', plus(
                                             
                                             return new ASTNotFlag(...args);
                                           })
-const SimpleNotFlag              = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
-                                         arr => {
-                                           const args = [arr[2],
-                                                         { set_immediately: !!arr[1][0]}];
-
-                                           if (log_flags_enabled) {
-                                             console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
-                                                         `${inspect_fun(arr)}`);
-                                             console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
-                                                         `${inspect_fun(args)}`);
-                                           }
-
-                                           return new ASTNotFlag(...args);
-                                         })
 const TestFlag                   = choice(SimpleCheckFlag,
                                           SimpleNotFlag,
                                           NotFlagWithSetConsequent,
