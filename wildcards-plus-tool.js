@@ -6964,9 +6964,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           `check your template!>`;
       } /* else {
            console.log(`LATCHING ${inspect_fun(got)}`);
-        
-        // throw new Error('bomb');
-        } */
+           
+           // throw new Error('bomb');
+           } */
 
       const latched = new ASTLatchedNamedWildcardValue(walk(got, indent + 1), got);
 
@@ -8228,12 +8228,16 @@ const make_Content_rule       = (...prepended_rules) =>
              low_pri_text,
              plaintext);
 const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
-const Content                 = make_Content_rule(A1111StyleLora,
-                                                  AnonWildcard);
-const TopLevelContent         = make_Content_rule(SpecialFunctionInclude,
-                                                  NamedWildcardDefinition,
-                                                  A1111StyleLora,
-                                                  AnonWildcard);
+const Content                 = make_Content_rule(
+  AnonWildcard,
+  A1111StyleLora,
+);
+const TopLevelContent         = make_Content_rule(
+  AnonWildcard,
+  NamedWildcardDefinition,
+  A1111StyleLora,
+  SpecialFunctionInclude,
+);
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
