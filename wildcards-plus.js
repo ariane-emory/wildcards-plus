@@ -8107,6 +8107,7 @@ try {
       LOG_LINE();
       console.log(`No negative prompt/`);
     }
+    
     LOG_LINE();
 
     if (clear_first) {
