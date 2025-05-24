@@ -6929,7 +6929,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       return ui_prompt;
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUIPrompt) {
+    else if (thing instanceof ASTUINegPrompt) {
       return ui_neg_prompt;
     }
     // ---------------------------------------------------------------------------------------------
