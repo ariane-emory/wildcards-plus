@@ -84,11 +84,12 @@ function parse_file(filename) {
   let total = 0;
 
   for (const [rule, ruleCache] of sortedEntries) {
-    console.log(`${rule.toString()}: ${inspect_fun(ruleCache.size)}`);
+    console.log(`${rule.toString()}: ` +
+                `${format_pretty_number(ruleCache.size)}`);
     total += ruleCache.size;
   }
   
-  console.log(`TOTAL: ${inspect_fun(total)}`);
+  console.log(`TOTAL: ${format_pretty_number(total)}`);
 
   //console.log(inspect_fun(Array.from(cache.entries()).toSorted((x, y) => y.size - y.size)));
 
@@ -2665,7 +2666,12 @@ function choose_indefinite_article(word) {
 function compress(str) {
   return str.replace(/\s+/g, ' ');
 }
-
+// -----------------------------------------------------------------------------
+function format_pretty_number(num) {
+  const [intPart, fracPart] = num.toString().split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+}
 // -------------------------------------------------------------------------------------------------
 function format_pretty_list(arr) {
   const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
