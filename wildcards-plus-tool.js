@@ -1486,17 +1486,10 @@ class Unexpected extends Rule {
     const match_result = this.rule.match(input, index, indent + 1, cache);
     
     if (match_result) {
-      if (this.error_func) {
+      if (this.error_func)
         throw this.error_func(this, index, input)
-      }
-      else {
-        throw new Error(// `(#4) ` +
-          `unexpected ${this.rule} at ` +
-            `char ${index}` +
-            `, found:\n` +
-            input.substring(index, index + 20) +
-            `...`);
-      }
+      else
+        throw new FatalParseError(`unexpected ${this.rule}`);
     };
     
     return null; // new MatchResult(null, input, match_result.index);
