@@ -7974,33 +7974,35 @@ UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunct
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
-            c_funcall('include',                          // [0]
+            c_funcall('include',                           // [0]
                       first(wst_seq(discarded_comments,    // -
-                                    json_string,          // [1]
+                                    json_string,           // [1]
                                     discarded_comments)))) // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
-                 () => "%include is only supported when " +
-                 `using wildcards-plus-tool.js, ` +
-                 `NOT when ` +
-                 "running the wildcards-plus.js script " +
-                 "inside Draw Things");
+                 (rule, input, index) =>
+                 new FatalParseError("%include is only supported when " +
+                                     `using wildcards-plus-tool.js, ` +
+                                     `NOT when ` +
+                                     "running the wildcards-plus.js script " +
+                                     "inside Draw Things",
+                                     input, index - 1));
 UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single-pick',                                      // [0]
-                wst_seq(discarded_comments,                          // -
-                        assignment_operator,                        // [1][0]
-                        discarded_comments,                          // -
+            seq('single-pick',               // [0]
+                wst_seq(discarded_comments,  // -
+                        assignment_operator, // [1][0]
+                        discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('multi-pick',                                       // [0]
-                wst_seq(discarded_comments,                          // -
-                        assignment_operator,                        // [1][0]
-                        discarded_comments,                          // -
+            seq('multi-pick',                // [0]
+                wst_seq(discarded_comments,  // -
+                        assignment_operator, // [1][0]
+                        discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
@@ -8013,19 +8015,19 @@ const SpecialFunctionRevertPickMultiple =
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                          // [0]
-                wst_seq(discarded_comments,                                        // -
-                        any_assignment_operator,                                  // [1][0]
-                        discarded_comments,                                        // -
-                        choice(rJsonc, () => LimitedContent, plaintext))));       // [1][1]
+            seq(c_ident,                                                    // [0]
+                wst_seq(discarded_comments,                                 // -
+                        any_assignment_operator,                            // [1][0]
+                        discarded_comments,                                 // -
+                        choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
 SpecialFunctionConfigurationUpdateBinary
   .abbreviate_str_repr('SpecialFunctionConfigurationUpdateBinary');
 const SpecialFunctionConfigurationUpdateUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                    // [0]
-                wst_seq(discarded_comments,                                        // -
+                wst_seq(discarded_comments,                                       // -
                         choice(incr_assignment_operator, assignment_operator),    // [1][0]
-                        discarded_comments,                                        // -
+                        discarded_comments,                                       // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
 SpecialFunctionConfigurationUpdateUnary
   .abbreviate_str_repr('SpecialFunctionConfigurationUpdateUnary');
@@ -8140,7 +8142,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                               discarded_comments,
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      discarded_comments,                    // [1]
+                                                      discarded_comments,                   // [1]
                                                       choice(() => LimitedContent,
                                                              json_string,
                                                              plaintext),

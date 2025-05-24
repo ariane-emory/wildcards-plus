@@ -77,7 +77,7 @@ Array.prototype.toString = function() {
 //         |-- Xform
 //         |
 //         | Rules triggering failure:
-//         |-- Expect
+//         |-- Expected
 //         |-- Unexpected
 //         |-- Fail
 //         |
@@ -119,6 +119,31 @@ const trailing_separator_modes = Object.freeze({
   forbidden: 'forbidden'
 });
 // -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// FatalParseError class
+// -------------------------------------------------------------------------------------------------
+function __format_FatalParseError_message(message_body, input, index) {
+  return `${message_body} at char #${index}, ` +
+    `found:\n` +
+    `${abbreviate(input.substring(index))}`;
+}
+// -------------------------------------------------------------------------------------------------
+class FatalParseError extends Error {
+  constructor(message_body, input, index) {
+    super(__format_FatalParseError_message(message_body, input, index));
+    this.name         = 'FatalParseError';
+    this.message_body = message_body
+    this.input        = input;
+    this.index        = index;
+  }
+  // -----------------------------------------------------------------------------------------------
+  get message() {
+    return __format_FatalParseError_message(this.message, this.input, this.indent);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+
 
 // -------------------------------------------------------------------------------------------------
 // Rule class
@@ -288,7 +313,7 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   __toString(visited, next_id, ref_counts) {
     if (ref_counts === undefined)
-      throw new Error('got undefined ref_counts!');
+      throw new Error('got ref_counts === undefined, this likely indicates a programmer error');
 
     const __call_impl_toString = () => this
           .__impl_toString(visited, next_id, ref_counts)
@@ -381,10 +406,10 @@ class Quantified extends Rule {
     let match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (match_result === undefined)
-      throw new Error("left");
+      throw new Error("math_result === undefined, this likely indicated a programmer error");
     
     if (match_result === false)
-      throw new Error("right");
+      throw new Error("math_result === false, this likely indicated a programmer error");
     
     if (match_result === null)
       return new MatchResult([], input, index); // empty array happens here
@@ -829,12 +854,10 @@ class CuttingEnclosed extends Enclosed {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    throw new Error(// `(#1) ` +
+    throw new FatalParseError(// `(#1) ` +
       `expected (${this.body_rule} ${this.end_rule}) ` +
-        `after ${this.start_rule} at ` +
-        `char ${index}` +
-        `, found:\n` +
-        `${abbreviate(input.substring(start_rule_result.index))}`);
+        `after ${this.start_rule}`,
+      input, start_rule_result.index);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -1108,12 +1131,10 @@ class CuttingSequence extends Sequence {
   // -----------------------------------------------------------------------------------------------
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
-    throw new Error(// `(#2) ` +
+    throw new FatalParseError(// `(#2) ` +
       `expected (${this.elements.slice(1).join(" ")}) ` +
-        `after ${this.elements[0]} at ` +
-        `char ${index}` +
-        `, found:\n` +
-        `${abbreviate(input.substr(start_rule_result.index))}`);
+        `after ${this.elements[0]}`,
+      input, start_rule_result.index);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -1191,9 +1212,9 @@ function xform(...things) { // convenience constructor with magic
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-// Expect class
+// Expected class
 // -------------------------------------------------------------------------------------------------
-class Expect extends Rule {
+class Expected extends Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(rule, error_func = null) {
     super();
@@ -1209,17 +1230,10 @@ class Expect extends Rule {
     const match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! match_result) {
-      if (this.error_func) {
-        throw this.error_func(this, index, input)
-      }
-      else {
-        throw new Error(// `(#3) ` +
-          `expected ${this.rule} at ` +
-            `char ${input[index].start}` +
-            `, found:\n` +
-            `[ ${input.slice(index).join(", ")}` +
-            ` ]`);
-      }
+      if (this.error_func)
+        throw this.error_func(this, input, index)
+      else 
+        throw new FatalParseError(`expected ${this.rule}`, input, index);
     };
 
     return match_result;
@@ -1236,7 +1250,7 @@ class Expect extends Rule {
 }
 // -------------------------------------------------------------------------------------------------
 function expect(rule, error_func = null) { // convenience constructor
-  return new Expect(rule, error_func);
+  return new Expected(rule, error_func);
 }
 // -------------------------------------------------------------------------------------------------
 
@@ -1260,18 +1274,11 @@ class Unexpected extends Rule {
     
     if (match_result) {
       if (this.error_func) {
-        throw this.error_func(this, index, input)
+        const err = this.error_func(this, input, index);
+        throw err instanceof Error ? err : new FatalParseError(err, input, index);
       }
       else {
-        foo(bar(baz(quux(corge(grault())))));
-
-        throw new Error(// `(#4) ` +
-          `unexpected ${this.rule} at ` +
-            `char ${index}` +
-            `, found:\n` +
-            input.substring(index, index + 20) +
-            `...`);
-        foo(bar(baz(quux(corge(grault())))));                      
+        throw new FatalParseError(`unexpected ${this.rule}`);
       }
     };
     
@@ -1310,12 +1317,7 @@ class Fail extends Rule {
   __match(indent, input, index, cache) {
     throw this.error_func
       ? this.error_func(this, index, input)
-      : new Error(// `(#5) ` +
-        `unexpected ${this.rule} at ` +
-          `char ${input[index].start}` +
-          `, found:\n` +
-          `[ ${input.slice(index).join(", ")}` +
-          ` ]`);
+      : new FatalParseError(`hit automatic failure Rule`, input, index);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
@@ -1557,10 +1559,8 @@ function abbreviate(str, len = 100) {
 
     for (const [left, right] of bracing_pairs) {
       if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
-        // throw new Error(`bomb ${inspect_fun(str)}`);
         str = str.substring(left.length, len - 3 - right.length);
         const ret = `${left}${str.replace("\n","").trim()}...${right}`;
-        // console.log(`re: ${str} =>\n    ${ret}`);
         return ret;
       }
     }
@@ -6636,7 +6636,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const got = context.named_wildcards.get(thing.name);
 
       if (!got)
-        return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
+        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
 
       let res = [];
       
@@ -6671,7 +6671,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
       let got = context.scalar_variables.get(thing.name) ??
-          `SCALAR '${thing.name}' NOT FOUND}`;
+          `Scalarl '${thing.name}' not found}`;
 
       if (thing.capitalize)
         got = capitalize(got);
@@ -6685,13 +6685,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const got = context.named_wildcards.get(thing.name);
       
       if (!got)
-        return `<ERROR: Named wildcard ${thing.name} not found!>`;
+        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
 
-      if (got instanceof ASTLatchedNamedWildcardValue) {
-        log(context.noisy,
-            `NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
-
-        return '';
+      if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+        return `\\<WARNING: tried to latch already-latched NamedWildcard @${thing.name}, ` +
+          `check your template!>`;
       }
 
       const latched = new ASTLatchedNamedWildcardValue(walk(got, indent + 1), got);
@@ -6708,10 +6706,12 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       let got = context.named_wildcards.get(thing.name);
 
       if (!got)
-        return `ERROR: Named wildcard ${thing.name} not found!`;
+        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
 
-      if (! (got instanceof ASTLatchedNamedWildcardValue))
-        throw new Error(`NOT LATCHED: '${thing.name}'`);
+      if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+        return `\\<WARNING: tried to unlatch already-unlatched NamedWildcard @${thing.name}, ` +
+          `check your template!>`;
+      }
 
       context.named_wildcards.set(thing.name, got.original_value);
 
@@ -6723,7 +6723,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.destination))
-        log(true, `WARNING: redefining named wildcard '${thing.destination.name}'.`);
+        log(true, `WARNING: redefining named wildcard @${thing.destination.name}, ` +
+            `you may not have intended to do this, check your template!`);
 
       context.named_wildcards.set(thing.destination, thing.wildcard);
 
@@ -6925,12 +6926,30 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUIPrompt) {
-      return ui_prompt;
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUINegPrompt) {
-      return ui_neg_prompt;
+    else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
+      const sub_prompt = thing instanceof ASTUIPrompt
+            ? { desc: 'UI prompt', text: ui_prompt }
+            : { desc: 'UI negative prompt', text: ui_neg_prompt };
+      
+      console.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+
+      let res = null;
+
+      try {
+        res = Prompt.match(sub_prompt. text);
+      }
+      catch(err) {
+        if (err instanceof FatalParseError)
+          return `\\<WARNING: parsing ${sub_prompt.desc} failed: ${err}>`;
+        else
+          throw err;
+      }
+
+      
+      if (!res || !res.is_finished)
+        return `\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`;
+
+      return expand_wildcards(res.value, context, indent + 1);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTRevertPickSingle || 
@@ -7513,7 +7532,7 @@ class ASTUINegPrompt extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%ui-prompt`;
+    return `%ui-neg-prompt`;
   }
 }
 // =================================================================================================
@@ -7717,56 +7736,63 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const SpecialFunctionUINegPrompt =
-      xform(() => new ASTUINegPrompt(),
-            'ui-prompt');
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
-const UnexpectedSpecialFunctionUINegPrompt =
-      unexpected(SpecialFunctionUINegPrompt,
-                 () => "%UINegPrompt is only supported when " +
-                 "using wildcards-plus.js inside Draw Things " +
-                 "NOT when " +
-                 "running the wildcards-plus.js script!");
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             'ui-prompt');
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
-                 () => "%UIPrompt is only supported when " +
-                 "using wildcards-plus.js inside Draw Things " +
-                 "NOT when " +
-                 "running the wildcards-plus.js script!");
+                 (rule, input, index) =>
+                 new FatalParseError("%ui-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1));
+const SpecialFunctionUINegPrompt =
+      xform(() => new ASTUINegPrompt(),
+            'ui-neg-prompt');
+SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+const UnexpectedSpecialFunctionUINegPrompt =
+      unexpected(SpecialFunctionUINegPrompt,
+                 (rule, input, index)=>
+                 new FatalParseError("%ui-neg-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1));
+UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
-            c_funcall('include',                          // [0]
+            c_funcall('include',                           // [0]
                       first(wst_seq(discarded_comments,    // -
-                                    json_string,          // [1]
+                                    json_string,           // [1]
                                     discarded_comments)))) // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
-                 () => "%include is only supported when " +
-                 "using wildcards-plus-tool.js, NOT when " +
-                 "running the wildcards-plus.js script " +
-                 "inside Draw Things!");
+                 (rule, input, index) =>
+                 new FatalParseError("%include is only supported when " +
+                                     `using wildcards-plus-tool.js, ` +
+                                     `NOT when ` +
+                                     "running the wildcards-plus.js script " +
+                                     "inside Draw Things",
+                                     input, index - 1));
 UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single-pick',                                      // [0]
-                wst_seq(discarded_comments,                          // -
-                        assignment_operator,                        // [1][0]
-                        discarded_comments,                          // -
+            seq('single-pick',               // [0]
+                wst_seq(discarded_comments,  // -
+                        assignment_operator, // [1][0]
+                        discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('multi-pick',                                       // [0]
-                wst_seq(discarded_comments,                          // -
-                        assignment_operator,                        // [1][0]
-                        discarded_comments,                          // -
+            seq('multi-pick',                // [0]
+                wst_seq(discarded_comments,  // -
+                        assignment_operator, // [1][0]
+                        discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
@@ -7779,19 +7805,19 @@ const SpecialFunctionRevertPickMultiple =
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                          // [0]
-                wst_seq(discarded_comments,                                        // -
-                        any_assignment_operator,                                  // [1][0]
-                        discarded_comments,                                        // -
-                        choice(rJsonc, () => LimitedContent, plaintext))));       // [1][1]
+            seq(c_ident,                                                    // [0]
+                wst_seq(discarded_comments,                                 // -
+                        any_assignment_operator,                            // [1][0]
+                        discarded_comments,                                 // -
+                        choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
 SpecialFunctionConfigurationUpdateBinary
   .abbreviate_str_repr('SpecialFunctionConfigurationUpdateBinary');
 const SpecialFunctionConfigurationUpdateUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                    // [0]
-                wst_seq(discarded_comments,                                        // -
+                wst_seq(discarded_comments,                                       // -
                         choice(incr_assignment_operator, assignment_operator),    // [1][0]
-                        discarded_comments,                                        // -
+                        discarded_comments,                                       // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
 SpecialFunctionConfigurationUpdateUnary
   .abbreviate_str_repr('SpecialFunctionConfigurationUpdateUnary');
@@ -7906,7 +7932,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                               discarded_comments,
                                                               choice(incr_assignment_operator,
                                                                      assignment_operator)), // [0][1]
-                                                      discarded_comments,                    // [1]
+                                                      discarded_comments,                   // [1]
                                                       choice(() => LimitedContent,
                                                              json_string,
                                                              plaintext),
