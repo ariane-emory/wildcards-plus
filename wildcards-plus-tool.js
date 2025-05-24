@@ -1436,17 +1436,10 @@ class Expected extends Rule {
     const match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! match_result) {
-      if (this.error_func) {
+      if (this.error_func)
         throw this.error_func(this, index, input)
-      }
-      else {
-        throw new Error(// `(#3) ` +
-          `expected ${this.rule} at ` +
-            `char ${input[index].start}` +
-            `, found:\n` +
-            `[ ${input.slice(index).join(", ")}` +
-            ` ]`);
-      }
+      else 
+        throw new FatalParseError(`expected ${this.rule}`, input, index);
     };
 
     return match_result;
