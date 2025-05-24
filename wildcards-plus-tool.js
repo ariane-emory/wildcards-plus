@@ -7973,11 +7973,13 @@ const UnexpectedSpecialFunctionUINegPrompt =
 UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
-      xform(arr => new ASTInclude(arr[1]),
-            c_funcall('%include',                           // [0]
-                      first(wst_seq(discarded_comments,    // -
-                                    json_string,           // [1]
-                                    discarded_comments)))) // -
+      xform(arr => new ASTInclude(arr[0][1]),
+            seq(c_funcall('%include',                            // [0][0]
+                          first(wst_seq(discarded_comments,      // -
+                                        json_string,             // [0][1]
+                                        discarded_comments))),   // -
+                discarded_comments,                              // -
+                lws(optional(';'))));                            // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
