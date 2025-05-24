@@ -8254,10 +8254,10 @@ const Content                 = make_Content_rule({
 const TopLevelContent         = make_Content_rule({
   before_plaintext_rules: [
     NamedWildcardDefinition,
+    A1111StyleLora,
   ],
   late_rules:             [
     AnonWildcard,
-    A1111StyleLora,
     SpecialFunctionInclude,
   ],
 });
