@@ -434,7 +434,11 @@ class Rule {
       const rule_cache = cache.get(rule);
 
       if (rule_cache.has(index)) {
-        return rule_cache.get(index);
+        const got = rule_cache.get(index);
+
+        console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;
+        
+        return got;
       }
     }
     else {
