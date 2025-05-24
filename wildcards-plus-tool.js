@@ -81,9 +81,14 @@ function parse_file(filename) {
   const sortedEntries = Array.from(cache.entries())
         .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
 
+  let total = 0;
+
   for (const [rule, ruleCache] of sortedEntries) {
     console.log(`${rule.toString()}: ${inspect_fun(ruleCache.size)}`);
+    total += ruleCache.size;
   }
+  
+  console.log(`TOTAL: ${inspect_fun(total)}`);
 
   //console.log(inspect_fun(Array.from(cache.entries()).toSorted((x, y) => y.size - y.size)));
 
@@ -6957,11 +6962,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (got instanceof ASTLatchedNamedWildcardValue) {
         return `\\<WARNING: tried to latch already-latched NamedWildcard @${thing.name}, ` +
           `check your template!>`;
-      } else {
-        console.log(`LATCHING ${inspect_fun(got)}`);
+      } /* else {
+           console.log(`LATCHING ${inspect_fun(got)}`);
         
         // throw new Error('bomb');
-      }
+        } */
 
       const latched = new ASTLatchedNamedWildcardValue(walk(got, indent + 1), got);
 
@@ -8211,9 +8216,9 @@ LimitedContent.abbreviate_str_repr('LimitedContent');
 const make_Content_rule       = (...prepended_rules) =>
       choice(...prepended_rules,
              comment,
-             SpecialFunctionNotInclude,
              NamedWildcardReference,
              NamedWildcardUsage,
+             SpecialFunctionNotInclude,
              SetFlag,
              UnsetFlag,
              ScalarUpdate,
