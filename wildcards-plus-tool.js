@@ -696,8 +696,8 @@ function plus(rule, // convenience constructor
 // -------------------------------------------------------------------------------------------------
 class Star extends Quantified {
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    return this.__quantified_match(indent, input, index);
+  __match(indent, input, index, cache) {
+    return this.__quantified_match(indent, input, index, cache);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
