@@ -486,10 +486,6 @@ class Rule {
         }
       }
       else {
-         console.log(`init Map for ${this}`);
-        if (typeof this === 'number')
-          throw new Error("bomb");
-        
         rule_cache = new Map();
         cache.set(this, rule_cache);
       }
