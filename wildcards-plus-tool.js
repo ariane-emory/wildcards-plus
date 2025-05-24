@@ -8159,16 +8159,16 @@ SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative =
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+            seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
                 optional(wb_uint, 1),
-                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
                 () => ContentStar));
 AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcardAlternativeNoLoras =
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+            seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
                 optional(wb_uint, 1),
-                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
                 () => ContentNoLorasStar));
 AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
@@ -8248,16 +8248,16 @@ const LimitedContent          = choice(NamedWildcardReference,
                                        AnonWildcardNoLoras,
                                        plaintext);
 LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule       = ({ before_plaintext_rules = [], late_rules = [] } = {}) =>
+const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_rules = [] } = {}) =>
       choice(
         ...before_plaintext_rules,
         plaintext,
-        ...late_rules,
+        ...after_plaintext_rules,
         low_pri_text,
         NamedWildcardReference,
-        NamedWildcardUsage,
-        comment,
         SpecialFunctionNotInclude,
+        comment,
+        NamedWildcardUsage,
         SetFlag,
         UnsetFlag,
         ScalarUpdate,
@@ -8266,7 +8266,7 @@ const make_Content_rule       = ({ before_plaintext_rules = [], late_rules = [] 
         escaped_brc,
       );
 const ContentNoLoras          = make_Content_rule({
-  late_rules:             [
+  after_plaintext_rules: [
     AnonWildcardNoLoras,
   ],
 });
@@ -8274,17 +8274,17 @@ const Content                 = make_Content_rule({
   before_plaintext_rules: [
     A1111StyleLora,
   ],
-  late_rules:             [
+  after_plaintext_rules:  [
     AnonWildcard,
   ],
 });
 const TopLevelContent         = make_Content_rule({
   before_plaintext_rules: [
-    NamedWildcardDefinition,
     A1111StyleLora,
   ],
-  late_rules:             [
+  after_plaintext_rules:  [
     AnonWildcard,
+    NamedWildcardDefinition,
     SpecialFunctionInclude,
   ],
 });
@@ -8548,8 +8548,8 @@ main().catch(err => {
 // console.log(`${CheckFlagWithOrAlternatives}`);
 // console.log(lws('a').toString());
 // console.log(wst_star('a').toString());
-console.log(inspect_fun(TestFlag.match("?foo,bar")?.value))
-console.log(inspect_fun(TestFlag.match("?foo.#bar")?.value))
-console.log(inspect_fun(TestFlag.match("!foo.#bar")?.value))
-console.log(inspect_fun(TestFlag.match("?foo")?.value))
-console.log(inspect_fun(TestFlag.match("!foo")?.value))
+// console.log(inspect_fun(TestFlag.match("?foo,bar")?.value))
+// console.log(inspect_fun(TestFlag.match("?foo.#bar")?.value))
+// console.log(inspect_fun(TestFlag.match("!foo.#bar")?.value))
+// console.log(inspect_fun(TestFlag.match("?foo")?.value))
+// console.log(inspect_fun(TestFlag.match("!foo")?.value))
