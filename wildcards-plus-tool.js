@@ -6846,7 +6846,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const got = context.named_wildcards.get(thing.name);
 
       if (!got)
-        return `\\<ERROR: NAMED WILDCARD '${thing.name}' NOT FOUND!>`;
+        return `\\<ERROR: NAMED WILDCARD @${thing.name} NOT FOUND!>`;
 
       let res = [];
       
@@ -6895,7 +6895,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const got = context.named_wildcards.get(thing.name);
       
       if (!got)
-        return `<ERROR: Named wildcard ${thing.name} not found!>`;
+        return `\\<ERROR: Named wildcard @${thing.name} not found!>`;
 
       if (got instanceof ASTLatchedNamedWildcardValue) {
         log(context.noisy,
@@ -6918,7 +6918,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       let got = context.named_wildcards.get(thing.name);
 
       if (!got)
-        return `ERROR: Named wildcard ${thing.name} not found!`;
+        return `\\<ERROR: Named wildcard @${thing.name} not found!>`;
 
       if (! (got instanceof ASTLatchedNamedWildcardValue))
         throw new Error(`NOT LATCHED: '${thing.name}'`);
@@ -7135,13 +7135,27 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUIPrompt) {
-      console.log(`expanding ui-prompt ${inspect_fun(ui_prompt)}`);
-      return expand_wildcards(ui_prompt, context, indent + 1);
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUINegPrompt) {
-      return expand_wildcards(ui_neg_prompt, context, indent + 1);
+    else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
+      const sub_prompt = thing instanceof ASTUIPrompt
+            ? { desc: 'UI prompt', text: ui_prompt }
+            : { desc: 'UI negative prompt', text: ui_neg_prompt };
+      
+      console.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+
+      let res = null;
+
+      try {
+        res = Prompt.match(sub_prompt. text);
+      }
+      catch {
+        // do nothing
+      }
+
+      
+      if (!res || !res.is_finished)
+        return `\\<ERROR: parsing ${sub_prompt.desc} failed!>`;
+
+      return expand_wildcards(res.value, context, indent + 1);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTRevertPickSingle || 
@@ -8165,7 +8179,7 @@ Prompt.finalize();
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =================================================================================================
 
-const ui_prompt = "there is a @thing here";
+const ui_prompt = "@shape = { cube | sphere } there is a @thing here";
 
 // =================================================================================================
 // MAIN SECTION:
