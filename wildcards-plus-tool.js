@@ -7937,7 +7937,7 @@ const make_ASTAnonWildcardAlternative = arr => {
 const restive_word_break = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
 const SimpleCheckFlag             = xform(seq('?',
                                               plus(ident, '.'),
-                                              restive_word_break)
+                                              restive_word_break),
                                           arr => {
                                             const args = [arr[1]];
 
@@ -8549,3 +8549,7 @@ main().catch(err => {
 // console.log(lws('a').toString());
 // console.log(wst_star('a').toString());
 console.log(inspect_fun(TestFlag.match("?foo,bar")?.value))
+console.log(inspect_fun(TestFlag.match("?foo.#bar")?.value))
+console.log(inspect_fun(TestFlag.match("!foo.#bar")?.value))
+console.log(inspect_fun(TestFlag.match("?foo")?.value))
+console.log(inspect_fun(TestFlag.match("!foo")?.value))
