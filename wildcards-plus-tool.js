@@ -345,7 +345,7 @@ class FatalParseError extends Error {
   get message() {
     return `${this.message_body} at char #${this.index}, ` +
       `found:\n` +
-      `'${abbreviate(this.input.substring(this.index))}'`;
+      `${abbreviate(this.input.substring(this.index))}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1063,7 +1063,7 @@ class CuttingEnclosed extends Enclosed {
     throw new FatalParseError(// `(#1) ` +
       `expected (${this.body_rule} ${this.end_rule}) ` +
         `after ${this.start_rule}`,
-      input, index);
+      input, start_rule_result.index);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -8416,7 +8416,7 @@ async function main() {
 }
 // -------------------------------------------------------------------------------------------------
 main().catch(err => {
-  console.error('Unhandled error:\n', err);
+  console.error(`Unhandled error:\n${err}`);
   process.exit(1);
 });
 // =================================================================================================
