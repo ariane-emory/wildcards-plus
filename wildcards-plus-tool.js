@@ -8046,7 +8046,13 @@ SpecialFunctionUpdateConfigurationUnary
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
-                         choice(SpecialFunctionSetPickSingle,
+                         choice((dt_hosted
+                                 ? SpecialFunctionUIPrompt
+                                 : UnexpectedSpecialFunctionUIPrompt),
+                                (dt_hosted
+                                 ? SpecialFunctionUINegPrompt
+                                 : UnexpectedSpecialFunctionUINegPrompt),
+                                SpecialFunctionSetPickSingle,
                                 SpecialFunctionSetPickMultiple,
                                 SpecialFunctionRevertPickSingle,
                                 SpecialFunctionRevertPickMultiple,
