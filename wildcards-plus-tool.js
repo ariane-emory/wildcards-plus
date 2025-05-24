@@ -495,6 +495,7 @@ class Rule {
         cache.set(this, rule_cache);
       }
     }
+    // }
     
     const ret = this.__match(indent, input, index, cache);
 
@@ -1881,8 +1882,8 @@ uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
-whites_star.memoize = false;
-whites_plus.memoize = false;
+// whites_star.memoize = false;
+// whites_plus.memoize = false;
 whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
 const d_whites_star      = discard(whites_star);
