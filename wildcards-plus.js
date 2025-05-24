@@ -162,6 +162,7 @@ class Rule {
     
     this.__direct_children = () => [];
     this.__abbreviated     = true;
+    this.memoize           = true;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
@@ -248,17 +249,19 @@ class Rule {
 
     let rule_cache = cache.get(this);
 
-    if (rule_cache) {
-      const got = rule_cache.get(index);
+    if (this.memoize) {
+      if (rule_cache) {
+        const got = rule_cache.get(index);
 
-      if (got !== undefined) {
-        // console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
-        return got;
+        if (got !== undefined) {
+          // console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
+          return got;
+        }
       }
-    }
-    else {
-      // console.log(`init Map for ${this}`);
-      rule_cache = cache.set(this, new Map());
+      else {
+        // console.log(`init Map for ${this}`);
+        rule_cache = cache.set(this, new Map());
+      }
     }
     
     const ret = this.__match(indent, input, index, cache);
@@ -268,7 +271,8 @@ class Rule {
                       `this is likely a programmer error`);
     }
     
-    rule_cache.set(index, ret);
+    if (this.memoize)
+      rule_cache.set(index, ret);
 
     // if (ret && ret?.value === null) {
     //   throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
@@ -1646,6 +1650,8 @@ uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
+whites_star.memoize = false;
+whites_plus.memoize = false;
 whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
 const d_whites_star      = discard(whites_star);
@@ -1843,7 +1849,7 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = '(', close = ')', sep = ',') =>
+const c_funcall = (fun_rule, arg_rule, open = wse('('), close = wse(')'), sep = ',') =>
       seq(fun_rule,
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
@@ -3088,6 +3094,15 @@ class Context {
   reset_temporaries() {
     this.flags = [];
     this.scalar_variables = new Map();
+
+    for (const [name, nwc] of this.named_wildcards) {
+      if (nwc instanceof ASTLatchedNamedWildcardValue) {
+        // console.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
+        this.named_wildcards.set(name, nwc.original_value);
+      } /* else {
+           console.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
+           } */
+    }
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
@@ -6697,13 +6712,21 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (!got)
         return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
 
-      if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+      // console.log(`CONSIDER ${inspect_fun(got)}`);
+
+      if (got instanceof ASTLatchedNamedWildcardValue) {
         return `\\<WARNING: tried to latch already-latched NamedWildcard @${thing.name}, ` +
           `check your template!>`;
+      } else {
+        console.log(`LATCHING ${inspect_fun(got)}`);
+        
+        // throw new Error('bomb');
       }
 
       const latched = new ASTLatchedNamedWildcardValue(walk(got, indent + 1), got);
 
+      // console.log(`LATCHED IS ${inspect_fun(latched)}`);
+      
       log(context.noisy,
           `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
       
@@ -7836,7 +7859,13 @@ SpecialFunctionUpdateConfigurationUnary
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
-                         choice(SpecialFunctionSetPickSingle,
+                         choice((dt_hosted
+                                 ? SpecialFunctionUIPrompt
+                                 : UnexpectedSpecialFunctionUIPrompt),
+                                (dt_hosted
+                                 ? SpecialFunctionUINegPrompt
+                                 : UnexpectedSpecialFunctionUINegPrompt),
+                                SpecialFunctionSetPickSingle,
                                 SpecialFunctionSetPickMultiple,
                                 SpecialFunctionRevertPickSingle,
                                 SpecialFunctionRevertPickMultiple,
@@ -7844,22 +7873,7 @@ const SpecialFunctionNotInclude =
                                 SpecialFunctionUpdateConfigurationBinary),
                          discarded_comments,
                          lws(optional(';'))));
-// const AnySpecialFunction =
-//       second(cutting_seq('%',
-//                          choice((dt_hosted
-//                                  ? SpecialFunctionUIPrompt
-//                                  : UnexpectedSpecialFunctionUIPrompt),
-//                                 (dt_hosted
-//                                  ? SpecialFunctionUINegPrompt
-//                                  : UnexpectedSpecialFunctionUINegPrompt),
-//                                 (dt_hosted
-//                                  ? UnexpectedSpecialFunctionInclude
-//                                  : SpecialFunctionInclude),
-//                                 SpecialFunctionNotInclude),
-//                          discarded_comments,
-//                          lws(optional(';'))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-// AnySpecialFunction       .abbreviate_str_repr('AnySpecialFunction');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
@@ -7984,7 +7998,6 @@ Prompt.finalize();
 // =================================================================================================
 // END OF SD PROMPT GRAMMAR SECTION.
 // =================================================================================================
-
 
 
 // =================================================================================================
