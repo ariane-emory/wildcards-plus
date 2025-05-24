@@ -8139,6 +8139,12 @@ try {
   console.log('Job complete. Open the console to see the job report.');
 }
 catch(ex) {
-  console.log(`Uncaught Error: ${ex?.stack??inspect_fun(ex)}`);
+  if (ex instanceof Error) {
+    console.log(`Uncaught exception, open console for more details: ` + 
+                `${ex} ${ex.stack}`);
+  } else {
+    console.log(`Uncaught exception, open console for more details: ` +
+                `${inspect_fun(ex)}`);
+  }
 }
 // -------------------------------------------------------------------------------------------------
