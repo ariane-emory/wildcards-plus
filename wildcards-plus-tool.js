@@ -1784,10 +1784,8 @@ function abbreviate(str, len = 100) {
 
     for (const [left, right] of bracing_pairs) {
       if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
-        // throw new Error(`bomb ${inspect_fun(str)}`);
         str = str.substring(left.length, len - 3 - right.length);
         const ret = `${left}${str.replace("\n","").trim()}...${right}`;
-        // console.log(`re: ${str} =>\n    ${ret}`);
         return ret;
       }
     }
