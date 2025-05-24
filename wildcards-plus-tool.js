@@ -578,7 +578,7 @@ class Quantified extends Rule {
     this.separator_rule?.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __quantified_match(indent, input, index) {
+  __quantified_match(indent, input, index, cache) {
     const values        = [];
     let prev_index      = null;
     const rewind_index  = ()   => index = prev_index;
@@ -589,7 +589,7 @@ class Quantified extends Rule {
 
     indent += 1;
 
-    let match_result = this.rule.match(input, index, indent + 1);
+    let match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (match_result === undefined)
       throw new Error("left");
@@ -612,9 +612,7 @@ class Quantified extends Rule {
           log(indent,
               `Matching separator rule ${this.separator_rule}...`);
         
-        const separator_match_result =
-              this.separator_rule.match(
-                input, index, indent + 1);
+        const separator_match_result = this.separator_rule.match(input, index, indent + 1, cache);
 
         if (! separator_match_result) {
           // required mode stuff:
@@ -638,8 +636,7 @@ class Quantified extends Rule {
         update_index(separator_match_result.index);
       } // end of if (this.separator_rule)
 
-      match_result = this.rule.match(
-        input, index, indent + 1);
+      match_result = this.rule.match(input, index, indent + 1, cache);
 
       if (! match_result) {
         if (this.separator_rule) {
@@ -669,13 +666,12 @@ class Quantified extends Rule {
 // -------------------------------------------------------------------------------------------------
 class Plus extends Quantified {
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const __quantified_match_result =
-          this.__quantified_match(indent, input, index);
+  __match(indent, input, index, cache) {
+    const __quantified_match_result = this.__quantified_match(indent, input, index, cache);
 
-    return __quantified_match_result?.value.length == 0
-      ? null
-      : __quantified_match_result;
+    return __quantified_match_result?.value.length > 0
+      ? __quantified_match_result
+      : null;
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
