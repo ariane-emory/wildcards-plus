@@ -287,7 +287,7 @@ Array.prototype.toString = function() {
 //         |-- Xform
 //         |
 //         | Rules triggering failure:
-//         |-- Expect
+//         |-- Expected
 //         |-- Unexpected
 //         |-- Fail
 //         |
@@ -1418,9 +1418,9 @@ function xform(...things) { // convenience constructor with magic
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-// Expect class
+// Expected class
 // -------------------------------------------------------------------------------------------------
-class Expect extends Rule {
+class Expected extends Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(rule, error_func = null) {
     super();
@@ -1440,12 +1440,7 @@ class Expect extends Rule {
         throw this.error_func(this, index, input)
       }
       else {
-        throw new Error(// `(#3) ` +
-          `expected ${this.rule} at ` +
-            `char ${input[index].start}` +
-            `, found:\n` +
-            `[ ${input.slice(index).join(", ")}` +
-            ` ]`);
+        throw new FatalParseError(`expected ${this.rule}`, input, index);
       }
     };
 
@@ -1463,7 +1458,7 @@ class Expect extends Rule {
 }
 // -------------------------------------------------------------------------------------------------
 function expect(rule, error_func = null) { // convenience constructor
-  return new Expect(rule, error_func);
+  return new Expected(rule, error_func);
 }
 // -------------------------------------------------------------------------------------------------
 
@@ -1486,20 +1481,10 @@ class Unexpected extends Rule {
     const match_result = this.rule.match(input, index, indent + 1, cache);
     
     if (match_result) {
-      if (this.error_func) {
+      if (this.error_func)
         throw this.error_func(this, index, input)
-      }
-      else {
-        foo(bar(baz(quux(corge(grault())))));
-
-        throw new Error(// `(#4) ` +
-          `unexpected ${this.rule} at ` +
-            `char ${index}` +
-            `, found:\n` +
-            input.substring(index, index + 20) +
-            `...`);
-        foo(bar(baz(quux(corge(grault())))));                      
-      }
+      else
+        throw new Error(`unexpected ${this.rule}`, input, index);
     };
     
     return null; // new MatchResult(null, input, match_result.index);
