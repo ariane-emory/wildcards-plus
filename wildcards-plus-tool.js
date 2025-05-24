@@ -8060,22 +8060,7 @@ const SpecialFunctionNotInclude =
                                 SpecialFunctionUpdateConfigurationBinary),
                          discarded_comments,
                          lws(optional(';'))));
-// const AnySpecialFunction =
-//       second(cutting_seq('%',
-//                          choice((dt_hosted
-//                                  ? SpecialFunctionUIPrompt
-//                                  : UnexpectedSpecialFunctionUIPrompt),
-//                                 (dt_hosted
-//                                  ? SpecialFunctionUINegPrompt
-//                                  : UnexpectedSpecialFunctionUINegPrompt),
-//                                 (dt_hosted
-//                                  ? UnexpectedSpecialFunctionInclude
-//                                  : SpecialFunctionInclude),
-//                                 SpecialFunctionNotInclude),
-//                          discarded_comments,
-//                          lws(optional(';'))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-// AnySpecialFunction       .abbreviate_str_repr('AnySpecialFunction');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
