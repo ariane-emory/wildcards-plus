@@ -1749,10 +1749,6 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
-function compress(str) {
-  return str.replace(/\s+/g, ' ');
-}
-// -------------------------------------------------------------------------------------------------
 function abbreviate(str, len = 100) {
   if (str.length < len) {
     return str
@@ -1777,6 +1773,19 @@ function abbreviate(str, len = 100) {
     
     return `${str.substring(0, len - 3).replace("\n","").trim()}...`;
   }
+}
+// -------------------------------------------------------------------------------------------------
+function compress(str) {
+  return str.replace(/\s+/g, ' ');
+}
+// -------------------------------------------------------------------------------------------------
+function format_simple_time(date = new Date()) {
+  return date.toLocaleTimeString('en-US', {
+    hour:   'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
 }
 // -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
