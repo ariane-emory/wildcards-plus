@@ -73,16 +73,22 @@ function parse_file(filename) {
   
   //   console.log(`'${key}' = ${inspect_fun(value.size)}`);
   
+  // }s  // for (const [k, v] of Array.from(cache.entries())
+  //            .toSorted(([, a], [, b]) => b.size - a.size)) {
+  //   console.log(`${k.toString()}: ${v.size}`);
   // }
-  for (const [k, v] of Array.from(cache.entries()).toSorted((x, y) => y.size - y.size)) {
-    console.log(`${k.toString()}: ${inspect_fun(v.size)}`);
+
+  const sortedEntries = Array.from(cache.entries())
+        .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
+
+  for (const [rule, ruleCache] of sortedEntries) {
+    console.log(`${rule.toString()}: ${inspect_fun(ruleCache.size)}`);
   }
 
-  
   //console.log(inspect_fun(Array.from(cache.entries()).toSorted((x, y) => y.size - y.size)));
-  
+
   // throw new Error("bimb");
-  
+
   return result;
 }
 // -------------------------------------------------------------------------------------------------
@@ -558,7 +564,7 @@ class Rule {
           .replace('() => ', '');
     
     if (this.direct_children().length == 0) {
-      return abbreviate(__call_impl_toString(), 32);
+      return abbreviate(__call_impl_toString(), 64);
       // return __call_impl_toString();
     }
     
@@ -8298,7 +8304,6 @@ async function main() {
       input.on('error', err => reject(err));
     });
 
-    
     result = Prompt.match(prompt_input);
     process.exit(0);
   } else if (args.length === 0) {
