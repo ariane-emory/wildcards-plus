@@ -7847,7 +7847,7 @@ const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(co
 const low_pri_text             = r(/[\(\)\[\]\:]+/);
 const plaintext                = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
+const word_break               = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
 any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
 assignment_operator            .abbreviate_str_repr('assignment_operator');
 comment                        .abbreviate_str_repr(false);
@@ -7934,7 +7934,7 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SimpleCheckFlag             = xform(seq('?', plus(ident, '.'), word_break),
+const SimpleCheckFlag             = xform(seq('?', plus(ident, '.'), r(/(?=\s|[{|}\,\?\!\[\]\(\)]|$)/)),
                                           arr => {
                                             const args = [arr[1]];
 
