@@ -65,14 +65,13 @@ function parse_file(filename) {
 
   for (const [key, value] of cache.entries()) {
     // throw new Error("bomb");
-    if (key.toString() === '0') {
-      console.log(typeof key);
-      console.log(inspect_fun(key));
-      throw new Error("bomb");
-    }
-      
-      console.log(`'${key}' = ${inspect_fun(value)}`);
-}
+    // if (key.toString() === '0') {
+    //   console.log(typeof key);
+    //   console.log(inspect_fun(key));
+    //   throw new Error("bomb");
+    // }
+    console.log(`'${key}' = ${inspect_fun(value)}`);
+  }
   
   // throw new Error("bimb");
   
@@ -473,9 +472,11 @@ class Rule {
     //   cache.set(rule, new Map());
     // }
 
-    let rule_cache = cache.get(this);
+    let rule_cache = null; // cache.get(this);
 
     if (this.memoize) {
+      rule_cache = cache.get(this);
+      
       if (rule_cache) {
         const got = rule_cache.get(index);
 
@@ -485,8 +486,12 @@ class Rule {
         }
       }
       else {
-        // console.log(`init Map for ${this}`);
-        rule_cache = cache.set(this, new Map());
+         console.log(`init Map for ${this}`);
+        if (typeof this === 'number')
+          throw new Error("bomb");
+        
+        rule_cache = new Map();
+        cache.set(this, rule_cache);
       }
     }
     
@@ -496,7 +501,7 @@ class Rule {
       throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
                       `this is likely a programmer error`);
     }
-    
+
     rule_cache?.set(index, ret);
 
     // if (ret && ret?.value === null) {
