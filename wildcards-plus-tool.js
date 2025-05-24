@@ -58,8 +58,24 @@ function ask(question) {
 // -------------------------------------------------------------------------------------------------
 function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
-  const result       = Prompt.match(prompt_input);
+  const cache        = new Map();
+  const result       = Prompt.match(prompt_input, 0, 0, cache);
 
+  // console.log(`${inspect_fun(cache)}`);
+
+  for (const [key, value] of cache.entries()) {
+    // throw new Error("bomb");
+    if (key.toString() === '0') {
+      console.log(typeof key);
+      console.log(inspect_fun(key));
+      throw new Error("bomb");
+    }
+      
+      console.log(`'${key}' = ${inspect_fun(value)}`);
+}
+  
+  // throw new Error("bimb");
+  
   return result;
 }
 // -------------------------------------------------------------------------------------------------
@@ -3310,7 +3326,7 @@ class Context {
         this.named_wildcards.set(name, nwc.original_value);
       } /* else {
            console.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
-        } */
+           } */
     }
   }
   // -----------------------------------------------------------------------------------------------
@@ -8272,6 +8288,7 @@ async function main() {
       input.on('end', () => resolve(data));
       input.on('error', err => reject(err));
     });
+
     
     result = Prompt.match(prompt_input);
     process.exit(0);
