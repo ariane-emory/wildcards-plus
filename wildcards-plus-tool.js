@@ -860,8 +860,8 @@ class Element extends Rule {
     this.rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const rule_match_result = this.rule.match(input, index, indent + 1);
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! rule_match_result)
       return null;
@@ -871,6 +871,7 @@ class Element extends Rule {
     //       `${inspect_fun(rule_match_result)}'s value.`);
     // }
 
+    // I forget why I did this? Could be a bad idea?
     const ret = rule_match_result.value[this.index] === undefined
           ? DISCARD
           : rule_match_result.value[this.index];
