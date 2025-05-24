@@ -1523,7 +1523,7 @@ class Unexpected extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    return `!${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+    return `!${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}!`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7823,23 +7823,23 @@ const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
 const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
-any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
-assignment_operator            .abbreviate_str_repr('assignment_operator');
-comment                        .abbreviate_str_repr(false);
-escaped_brc                    .abbreviate_str_repr('escaped_brc');
-filename                       .abbreviate_str_repr('filename');
-ident                          .abbreviate_str_repr('ident');
-incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
-low_pri_text                   .abbreviate_str_repr('low_pri_text');
-plaintext                      .abbreviate_str_repr('plaintext');
-wb_uint                        .abbreviate_str_repr('wb_uint');
-word_break                     .abbreviate_str_repr('word_break');
+// any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
+// assignment_operator            .abbreviate_str_repr('assignment_operator');
+// comment                        .abbreviate_str_repr(false);
+// escaped_brc                    .abbreviate_str_repr('escaped_brc');
+// filename                       .abbreviate_str_repr('filename');
+// ident                          .abbreviate_str_repr('ident');
+// incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
+// low_pri_text                   .abbreviate_str_repr('low_pri_text');
+// plaintext                      .abbreviate_str_repr('plaintext');
+// wb_uint                        .abbreviate_str_repr('wb_uint');
+// word_break                     .abbreviate_str_repr('word_break');
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
 // -------------------------------------------------------------------------------------------------
 const discarded_comments        = discard(wst_star(comment));
-discarded_comments              .abbreviate_str_repr('-comment*');
+// discarded_comments              .abbreviate_str_repr('-comment*');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
@@ -7867,8 +7867,8 @@ const A1111StyleLora       =
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
                     '>'));
-A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
-A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
+// A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
+// A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
@@ -7987,20 +7987,20 @@ const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_b
                                                          ` ${inspect_fun(arr)}`);
                                          return new ASTUnsetFlag(arr);
                                        });
-SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
-CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
-CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
-NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
-TestFlag.abbreviate_str_repr('TestFlag');
-SetFlag.abbreviate_str_repr('SetFlag');
-UnsetFlag.abbreviate_str_repr('UnsetFlag');
+// SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
+// CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
+// CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
+// NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
+// TestFlag.abbreviate_str_repr('TestFlag');
+// SetFlag.abbreviate_str_repr('SetFlag');
+// UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             'ui-prompt');
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
+// SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8012,7 +8012,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             'ui-neg-prompt');
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+// SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8021,8 +8021,8 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+// UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+// UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
@@ -8031,7 +8031,7 @@ const SpecialFunctionInclude =
                                         discarded_comments))),   // -
                 discarded_comments,                              // -
                 lws(optional(';'))));                            // -
-SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
+// SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8041,7 +8041,7 @@ const UnexpectedSpecialFunctionInclude =
                                      "running the wildcards-plus.js script " +
                                      "inside Draw Things",
                                      input, index - 1));
-UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+// UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',               // [0]
@@ -8049,7 +8049,7 @@ const SpecialFunctionSetPickSingle =
                         assignment_operator, // [1][0]
                         discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
+// SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                // [0]
@@ -8057,15 +8057,15 @@ const SpecialFunctionSetPickMultiple =
                         assignment_operator, // [1][0]
                         discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+// SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick', word_break));
-SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+// SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick', word_break));
-SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+// SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                    // [0]
@@ -8074,7 +8074,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                         discarded_comments,                                 // -
                         choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
 SpecialFunctionUpdateConfigurationBinary
-  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+//   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                    // [0]
@@ -8083,7 +8083,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                         discarded_comments,                                       // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
 SpecialFunctionUpdateConfigurationUnary
-  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+//   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
@@ -8101,7 +8101,7 @@ const SpecialFunctionNotInclude =
                                 SpecialFunctionUpdateConfigurationBinary),
                          discarded_comments,
                          lws(optional(';'))));
-SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
+// SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
@@ -8111,20 +8111,20 @@ const AnonWildcardAlternative =
                 optional(wb_uint, 1),
                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                 () => ContentStar));
-AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
+// AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcardAlternativeNoLoras =
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                 optional(wb_uint, 1),
                 wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
                 () => ContentNoLorasStar));
-AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+// AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternative, '|')));
 const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-// AnonWildcard.abbreviate_str_repr('AnonWildcard');
-// AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
+// // AnonWildcard.abbreviate_str_repr('AnonWildcard');
+// // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
 const NamedWildcardReference  = xform(seq('@',                                       // [0]
                                           optional('^'),                             // [1]
                                           optional(xform(parseInt, uint)),           // [2]
@@ -8145,15 +8145,15 @@ const NamedWildcardReference  = xform(seq('@',                                  
                                                                              min_ct,
                                                                              max_ct);
                                       });
-NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
+// NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
 const NamedWildcardDesignator = second(seq('@', ident)); 
-NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
+// NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
                                       wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
                                                               assignment_operator),    // -
                                                       discarded_comments,
                                                       AnonWildcard));                  // [1]
-NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
+// NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
 const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
@@ -8171,13 +8171,13 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
 
                                         return objs;
                                       });
-NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
+// NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
 const ScalarReference         = xform(seq('$', optional('^'), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
-ScalarReference.abbreviate_str_repr('ScalarReference');
+// ScalarReference.abbreviate_str_repr('ScalarReference');
 const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
-ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
+// ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
                                                                  arr[0][1] == '='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
@@ -8190,12 +8190,12 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                              plaintext),
                                                       discarded_comments,
                                                       lws(optional(';'))));
-ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
+// ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
                                        AnonWildcardNoLoras,
                                        plaintext);
-LimitedContent.abbreviate_str_repr('LimitedContent');
+// LimitedContent.abbreviate_str_repr('LimitedContent');
 const make_Content_rule       = (...prepended_rules) =>
       choice(...prepended_rules,
              comment,
@@ -8478,3 +8478,4 @@ main().catch(err => {
 // console.log(`${CheckFlagWithOrAlternatives}`);
 // console.log(lws('a').toString());
 // console.log(wst_star('a').toString());
+console.log(Prompt.toString());
