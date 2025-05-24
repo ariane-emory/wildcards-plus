@@ -8105,7 +8105,10 @@ try {
       console.log(context.configuration.negativePrompt);
     } else {
       LOG_LINE();
-      console.log(`No negative prompt.`);
+      console.log(`No negative prompt, using negative prompt from UI ` +
+                  `${inspect_fun(ui_neg_prompt)}.`);
+      
+      context.configuration.negativePrompt = ui_neg_prompt;
     }
     
     LOG_LINE();
