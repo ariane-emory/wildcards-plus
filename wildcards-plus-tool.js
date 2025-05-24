@@ -8139,15 +8139,16 @@ SpecialFunctionUpdateConfigurationUnary
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
-                         choice(SpecialFunctionUpdateConfigurationUnary,
-                                SpecialFunctionUpdateConfigurationBinary,
-                                (dt_hosted ? SpecialFunctionUIPrompt : UnexpectedSpecialFunctionUIPrompt),
-                                (dt_hosted ? SpecialFunctionUINegPrompt : UnexpectedSpecialFunctionUINegPrompt),
-                                SpecialFunctionSetPickSingle,
-                                SpecialFunctionSetPickMultiple,
-                                SpecialFunctionRevertPickSingle,
-                                SpecialFunctionRevertPickMultiple,
-                                ),
+                         choice(
+                           SpecialFunctionUpdateConfigurationBinary,
+                           SpecialFunctionUpdateConfigurationUnary,
+                           (dt_hosted ? SpecialFunctionUIPrompt : UnexpectedSpecialFunctionUIPrompt),
+                           (dt_hosted ? SpecialFunctionUINegPrompt : UnexpectedSpecialFunctionUINegPrompt),
+                           SpecialFunctionSetPickSingle,
+                           SpecialFunctionSetPickMultiple,
+                           SpecialFunctionRevertPickSingle,
+                           SpecialFunctionRevertPickMultiple,
+                         ),
                          discarded_comments,
                          lws(optional(';'))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
