@@ -8043,7 +8043,7 @@ SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
 CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
 CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
 NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
-estFlag.abbreviate_str_repr('TestFlag');
+TestFlag.abbreviate_str_repr('TestFlag');
 SetFlag.abbreviate_str_repr('SetFlag');
 UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
