@@ -333,19 +333,23 @@ const trailing_separator_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 // FatalParseError class
 // -------------------------------------------------------------------------------------------------
+function __format_FatalParseError_message(message_body, input, index) {
+  return `${message_body} at char #${index}, ` +
+  `found:\n` +
+  `${abbreviate(input.substring(index))}`;
+}
+// -------------------------------------------------------------------------------------------------
 class FatalParseError extends Error {
   constructor(message_body, input, index) {
-    super();
+    super(__format_FatalParseError_message(message_body, input, index));
     this.name         = 'FatalParseError';
     this.message_body = message_body
-    this.index        = index;
     this.input        = input;
+    this.index        = index;
   }
   // -----------------------------------------------------------------------------------------------
   get message() {
-    return `${this.message_body} at char #${this.index}, ` +
-      `found:\n` +
-      `${abbreviate(this.input.substring(this.index))}`;
+    return __format_FatalParseError_message(this.message, this.input, this.indent);
   }
 }
 // -------------------------------------------------------------------------------------------------
