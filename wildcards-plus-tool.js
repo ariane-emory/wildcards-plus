@@ -1860,8 +1860,8 @@ uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
-whites_star.memoize = false;
-whites_plus.memoize = false;
+// whites_star.memoize = false;
+// whites_plus.memoize = false;
 whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
 const d_whites_star      = discard(whites_star);
@@ -6913,7 +6913,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (!got)
         return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
 
-      if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+      if (got instanceof ASTLatchedNamedWildcardValue) {
         return `\\<WARNING: tried to latch already-latched NamedWildcard @${thing.name}, ` +
           `check your template!>`;
       }
