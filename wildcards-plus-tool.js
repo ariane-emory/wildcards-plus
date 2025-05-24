@@ -210,7 +210,7 @@ let inspect_fun           = (thing, no_break = false) =>
                  });
 let dt_hosted             = false;
 dt_hosted                 = true; // lie for testing purposes.
-let test_structured_clone = true;
+let test_structured_clone = false;;
 // =================================================================================================
 
 
