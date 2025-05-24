@@ -1490,15 +1490,12 @@ class Unexpected extends Rule {
         throw this.error_func(this, index, input)
       }
       else {
-        foo(bar(baz(quux(corge(grault())))));
-
         throw new Error(// `(#4) ` +
           `unexpected ${this.rule} at ` +
             `char ${index}` +
             `, found:\n` +
             input.substring(index, index + 20) +
             `...`);
-        foo(bar(baz(quux(corge(grault())))));                      
       }
     };
     
