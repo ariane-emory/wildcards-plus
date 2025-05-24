@@ -1437,7 +1437,7 @@ class Expected extends Rule {
 
     if (! match_result) {
       if (this.error_func)
-        throw this.error_func(this, index, input)
+        throw this.error_func(this, input, index)
       else 
         throw new FatalParseError(`expected ${this.rule}`, input, index);
     };
@@ -1480,7 +1480,7 @@ class Unexpected extends Rule {
     
     if (match_result) {
       if (this.error_func)
-        throw this.error_func(this, index, input)
+        throw this.error_func(this, input, index)
       else
         throw new FatalParseError(`unexpected ${this.rule}`);
     };
