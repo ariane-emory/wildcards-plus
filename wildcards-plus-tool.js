@@ -6897,10 +6897,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (!got)
         return `\\<ERROR: Named wildcard @${thing.name} not found!>`;
 
-      if (got instanceof ASTLatchedNamedWildcardValue) {
-        log(context.noisy,
-            `NAMED WILDCARD ${thing.name} ALREADY LATCHED...`);
-
+      if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+        console.log(`tried to latch already latched named wildcard @${thing.name}, ` +
+                    `check your template!`);
         return '';
       }
 
@@ -6920,8 +6919,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (!got)
         return `\\<ERROR: Named wildcard @${thing.name} not found!>`;
 
-      if (! (got instanceof ASTLatchedNamedWildcardValue))
-        throw new Error(`NOT LATCHED: '${thing.name}'`);
+      if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+        console.log(`tried to unlatch unlatched named wildcard @${thing.name}, ` +
+                    `check your template!`);
+        return '';
+      }
 
       context.named_wildcards.set(thing.name, got.original_value);
 
