@@ -334,9 +334,11 @@ const trailing_separator_modes = Object.freeze({
 // FatalParseError class
 // -------------------------------------------------------------------------------------------------
 class FatalParseError extends Error {
-  constructor(message) {
+  constructor(message, input, index) {
     super(message); // Call the Error constructor
-    this.name = 'FatalParseError'; // Set the error name
+    this.name  = 'FatalParseError'; // Set the error name
+    this.index = index;
+    this.input = input;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1056,7 +1058,8 @@ class CuttingEnclosed extends Enclosed {
         `after ${this.start_rule} at ` +
         `char ${index}` +
         `, found:\n` +
-        `${abbreviate(input.substring(start_rule_result.index))}`);
+        `${abbreviate(input.substring(start_rule_result.index))}`,
+      input, index);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -1335,7 +1338,8 @@ class CuttingSequence extends Sequence {
         `after ${this.elements[0]} at ` +
         `char ${index}` +
         `, found:\n` +
-        `${abbreviate(input.substr(start_rule_result.index))}`);
+        `${abbreviate(input.substr(start_rule_result.index))}`,
+      input, index);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
