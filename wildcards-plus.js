@@ -171,54 +171,6 @@ class Rule {
     return ref_counts;
   }
   // -----------------------------------------------------------------------------------------------
-  match(input, index = 0, indent = 0) {
-    if (typeof input !== 'string') {
-      throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
-    }
-    
-    if (log_match_enabled) {
-      if (index_is_at_end_of_input(index, input))
-        log(indent,
-            `Matching ${this.constructor.name} ${this.toString()}, ` +
-            `but at end of token stream!`);
-      else 
-        log(indent,
-            `Matching ${this.constructor.name} ${this.toString()} at ` +
-            `char ${index}, ` +
-            `token #${index}: ` +
-            `${abbreviate(input.substring(index))}`)
-    }
-
-    const ret = this.__match(indent, input, index);
-
-    if (ret && ret?.value === undefined) {
-      throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
-                      `this is likely a programmer error`);
-    }
-    
-    // if (ret && ret?.value === null) {
-    //   throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
-    //                   `this is likely a programmer error`);
-    // }
-    
-    if (log_match_enabled) {
-      if (ret)
-        log(indent,
-            `<= ${this.constructor.name} ${this.toString()} returned: ` +
-            `${JSON.stringify(ret)}`);
-      else
-        log(indent,
-            `<= Matching ${this.constructor.name} ` +
-            `${this.toString()} returned null.`);
-    }
-
-    return ret;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    throw new Error(`__match is not implemented by ${this.constructor.name}`);
-  }
-  // -----------------------------------------------------------------------------------------------
   finalize(indent = 0) {
     this.__finalize(indent, new Set());
   }
@@ -241,6 +193,79 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     throw new Error(`__impl_finalize is not implemented by ${this.constructor.name}`);    
+  }
+  // -----------------------------------------------------------------------------------------------
+  match(input, index = 0, indent = 0, cache = new Map()) {
+    if (typeof input !== 'string') {
+      throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
+    }
+    
+    if (log_match_enabled) {
+      if (index_is_at_end_of_input(index, input))
+        log(indent,
+            `Matching ${this.constructor.name} ${this.toString()}, ` +
+            `but at end of input!`);
+      else 
+        log(indent,
+            `Matching ${this.constructor.name} ${this.toString()} at ` +
+            `char ${index}, ` +
+            `token #${index}: ` +
+            `${abbreviate(input.substring(index))}`)
+    }
+    // if (cache.has(rule)) {
+    //   const ruleCache = cache.get(rule);
+    //   if (ruleCache.has(index)) {
+    //     return ruleCache.get(index); // Return memoized result
+    //   }
+    // } else {
+    //   cache.set(rule, new Map());
+    // }
+
+    let rule_cache = cache.get(this);
+
+    if (rule_cache) {
+      const got = rule_cache.get(index);
+
+      if (got !== undefined) {
+        // console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
+        return got;
+      }
+    }
+    else {
+      // console.log(`init Map for ${this}`);
+      rule_cache = cache.set(this, new Map());
+    }
+    
+    const ret = this.__match(indent, input, index, cache);
+
+    if (ret && ret?.value === undefined) {
+      throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
+                      `this is likely a programmer error`);
+    }
+    
+    rule_cache.set(index, ret);
+
+    // if (ret && ret?.value === null) {
+    //   throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
+    //                   `this is likely a programmer error`);
+    // }
+    
+    if (log_match_enabled) {
+      if (ret)
+        log(indent,
+            `<= ${this.constructor.name} ${this.toString()} returned: ` +
+            `${JSON.stringify(ret)}`);
+      else
+        log(indent,
+            `<= Matching ${this.constructor.name} ` +
+            `${this.toString()} returned null.`);
+    }
+
+    return ret;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    throw new Error(`__match is not implemented by ${this.constructor.name}`);
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -342,7 +367,7 @@ class Quantified extends Rule {
     this.separator_rule?.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __quantified_match(indent, input, index) {
+  __quantified_match(indent, input, index, cache) {
     const values        = [];
     let prev_index      = null;
     const rewind_index  = ()   => index = prev_index;
@@ -353,7 +378,7 @@ class Quantified extends Rule {
 
     indent += 1;
 
-    let match_result = this.rule.match(input, index, indent + 1);
+    let match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (match_result === undefined)
       throw new Error("left");
@@ -376,9 +401,7 @@ class Quantified extends Rule {
           log(indent,
               `Matching separator rule ${this.separator_rule}...`);
         
-        const separator_match_result =
-              this.separator_rule.match(
-                input, index, indent + 1);
+        const separator_match_result = this.separator_rule.match(input, index, indent + 1, cache);
 
         if (! separator_match_result) {
           // required mode stuff:
@@ -402,8 +425,7 @@ class Quantified extends Rule {
         update_index(separator_match_result.index);
       } // end of if (this.separator_rule)
 
-      match_result = this.rule.match(
-        input, index, indent + 1);
+      match_result = this.rule.match(input, index, indent + 1, cache);
 
       if (! match_result) {
         if (this.separator_rule) {
@@ -433,13 +455,12 @@ class Quantified extends Rule {
 // -------------------------------------------------------------------------------------------------
 class Plus extends Quantified {
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const __quantified_match_result =
-          this.__quantified_match(indent, input, index);
+  __match(indent, input, index, cache) {
+    const __quantified_match_result = this.__quantified_match(indent, input, index, cache);
 
-    return __quantified_match_result?.value.length == 0
-      ? null
-      : __quantified_match_result;
+    return __quantified_match_result?.value.length > 0
+      ? __quantified_match_result
+      : null;
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -464,8 +485,8 @@ function plus(rule, // convenience constructor
 // -------------------------------------------------------------------------------------------------
 class Star extends Quantified {
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    return this.__quantified_match(indent, input, index);
+  __match(indent, input, index, cache) {
+    return this.__quantified_match(indent, input, index, cache);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -506,7 +527,7 @@ class Choice extends Rule  {
     }
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     let ix = 0;
     
     for (const option of this.options) {
@@ -515,8 +536,7 @@ class Choice extends Rule  {
       if (log_match_enabled)
         log(indent + 1, `Try option #${ix}: ${option}`);
       
-      const match_result = option.match(
-        input, index, indent + 2);
+      const match_result = option.match(input, index, indent + 2, cache);
       
       if (match_result) { 
         // if (match_result.value === DISCARD) {
@@ -583,14 +603,11 @@ class Discard extends Rule {
     this.rule?.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     if (! this.rule)
       return new MatchResult(null, input, index);
     
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
+    const match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! match_result)
       return null;
@@ -632,8 +649,8 @@ class Element extends Rule {
     this.rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const rule_match_result = this.rule.match(input, index, indent + 1);
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! rule_match_result)
       return null;
@@ -643,6 +660,7 @@ class Element extends Rule {
     //       `${inspect_fun(rule_match_result)}'s value.`);
     // }
 
+    // I forget why I did this? Could be a bad idea?
     const ret = rule_match_result.value[this.index] === undefined
           ? DISCARD
           : rule_match_result.value[this.index];
@@ -758,18 +776,15 @@ class Enclosed extends Rule {
     this.end_rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     const start_rule_match_result =
-          this.start_rule.match(
-            input, index, indent + 1);
+          this.start_rule.match(input, index, indent + 1, cache);
 
     if (! start_rule_match_result)
       return null;
 
     const body_rule_match_result =
-          this.body_rule.match(
-            input,
-            start_rule_match_result.index, indent + 1);
+          this.body_rule.match(input, start_rule_match_result.index, indent + 1, cache);
 
     if (! body_rule_match_result)
       return this.__fail_or_throw_error(start_rule_match_result,
@@ -778,9 +793,7 @@ class Enclosed extends Rule {
                                         start_rule_match_result.index);
 
     const end_rule_match_result =
-          this.end_rule.match(
-            input,
-            body_rule_match_result.index, indent + 1);
+          this.end_rule.match(input, body_rule_match_result.index, indent + 1, cache);
 
     if (! end_rule_match_result)
       return this.__fail_or_throw_error(start_rule_match_result,
@@ -857,9 +870,8 @@ class Label extends Rule {
     this.rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const rule_match_result = this.rule.match(
-      input, index, indent);
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent, cache);
 
     if (! rule_match_result)
       return null;
@@ -898,7 +910,7 @@ class NeverMatch extends Rule  {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     return null;
   } 
   // -----------------------------------------------------------------------------------------------
@@ -925,11 +937,8 @@ class Optional extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
+  __match(indent, input, index, cache) {
+    const match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (match_result === null) {
       const mr = new MatchResult(this.default_value !== null
@@ -990,7 +999,7 @@ class Sequence extends Rule {
     }
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     const start_rule = input[0];
 
     if (log_match_enabled)
@@ -998,7 +1007,7 @@ class Sequence extends Rule {
           `${this.elements.length}: ${this.elements[0]}...`);
     
     const start_rule_match_result =
-          this.elements[0].match(input, index, indent + 2);
+          this.elements[0].match(input, index, indent + 2, cache);
     let last_match_result = start_rule_match_result;
 
     if (log_match_enabled && last_match_result !== null)
@@ -1039,8 +1048,7 @@ class Sequence extends Rule {
       
       const element = this.elements[ix];
 
-      last_match_result = element.match(
-        input, index, indent + 2);
+      last_match_result = element.match(input, index, indent + 2, cache);
 
       if (! last_match_result) {
         if (log_match_enabled)
@@ -1143,9 +1151,8 @@ class Xform extends Rule {
     this.rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const rule_match_result = this.rule.match(
-      input, index, indent + 1);
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! rule_match_result)
       return null;
@@ -1198,11 +1205,8 @@ class Expect extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
+  __match(indent, input, index, cache) {
+    const match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! match_result) {
       if (this.error_func) {
@@ -1251,11 +1255,8 @@ class Unexpected extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
+  __match(indent, input, index, cache) {
+    const match_result = this.rule.match(input, index, indent + 1, cache);
     
     if (match_result) {
       if (this.error_func) {
@@ -1306,7 +1307,7 @@ class Fail extends Rule {
     return [];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     throw this.error_func
       ? this.error_func(this, index, input)
       : new Error(// `(#5) ` +
@@ -1332,7 +1333,7 @@ function fail(error_func = null) { // convenience constructor
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-// TokenLabel class
+// TokenLabel class, this can probably be deleted soon?
 // -------------------------------------------------------------------------------------------------
 class TokenLabel extends Rule {
   // -----------------------------------------------------------------------------------------------
@@ -1349,7 +1350,7 @@ class TokenLabel extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     if (index_is_at_end_of_input(index, input))
       return null;
 
@@ -1391,7 +1392,7 @@ class Literal extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     if (index_is_at_end_of_input(index, input))
       return null;
 
@@ -1442,24 +1443,24 @@ class Regex extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
       log(indent, `testing  /${this.regexp.source}/ at char ${index} of ` +
           `'${abbreviate(input.substring(index))}'`); 
 
-    const match = this.regexp.exec(input);
+    const re_match = this.regexp.exec(input);
     
-    if (! match) {
+    if (! re_match) {
       if (log_match_enabled)
         log(indent, `RETURN NULL!`);
       return null;
     }
 
-    return new MatchResult(match[match.length - 1],
+    return new MatchResult(re_match[re_match.length - 1],
                            input,
-                           index + match[0].length);
+                           index + re_match[0].length);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -6924,6 +6925,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUIPrompt) {
+      return ui_prompt;
+    }
+    // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTRevertPickSingle || 
              thing instanceof ASTRevertPickMultiple) {
       const cur_key = thing instanceof ASTRevertPickSingle
@@ -7487,6 +7492,16 @@ class ASTRevertPickSingle extends ASTNode {
     return `%revert-pick-single`;
   }
 }
+// -------------------------------------------------------------------------------------------------
+class ASTUIPrompt extends ASTNode {
+  constructor() {
+    super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%ui-prompt`;
+  }
+}
 // =================================================================================================
 // END OF SD PROMPT AST CLASSES SECTION.
 // =================================================================================================
@@ -7688,6 +7703,17 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
+const SpecialFunctionUIPrompt =
+      xform(arr => new ASTUIPrompt(arr[0]),
+            'ui-prompt');
+SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
+const UnexpectedSpecialFunctionUIPrompt =
+      unexpected(SpecialFunctionUIPrompt,
+                 () => "%UIPrompt is only supported when " +
+                 "using wildcards-plus.js inside Draw Things " +
+                 "NOT when " +
+                 "running the wildcards-plus.js script!");
+UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
             c_funcall('include',                          // [0]
@@ -7760,6 +7786,9 @@ const SpecialFunctionNotInclude =
 const AnySpecialFunction =
       second(cutting_seq('%',
                          choice((dt_hosted
+                                 ? SpecialFunctionUIPrompt
+                                 : UnexpectedSpecialFunctionUIPrompt),
+                                (dt_hosted
                                  ? UnexpectedSpecialFunctionInclude
                                  : SpecialFunctionInclude),
                                 NormalSpecialFunction),
