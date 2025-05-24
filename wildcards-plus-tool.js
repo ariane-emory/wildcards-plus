@@ -8240,31 +8240,31 @@ async function main() {
   // -----------------------------------------------------------------------------------------------
   let result = null;
 
-  try {
-    if (from_stdin) {
-      // Read all stdin into a string
-      let prompt_input = await new Promise((resolve, reject) => {
-        let data = '';
-        input.setEncoding('utf8');
-        input.on('data', chunk => data += chunk);
-        input.on('end', () => resolve(data));
-        input.on('error', err => reject(err));
-      });
-      
-      result = Prompt.match(prompt_input);
-    } else if (args.length === 0) {
-      throw new Error("ERROR: No input file provided.");
-    }
-    else {
-      // log_match_enabled = true;
-      
-      result = parse_file(args[0]);
-    }
+  // try {
+  if (from_stdin) {
+    // Read all stdin into a string
+    let prompt_input = await new Promise((resolve, reject) => {
+      let data = '';
+      input.setEncoding('utf8');
+      input.on('data', chunk => data += chunk);
+      input.on('end', () => resolve(data));
+      input.on('error', err => reject(err));
+    });
+    
+    result = Prompt.match(prompt_input);
+  } else if (args.length === 0) {
+    throw new Error("ERROR: No input file provided.");
   }
-  catch(ex) {
-    console.log(`${inspect_fun(ex)}`);
-    process.exit(1);
+  else {
+    // log_match_enabled = true;
+    
+    result = parse_file(args[0]);
   }
+  // }
+  // catch(ex) {
+  //   console.log(`${inspect_fun(ex)}`);
+  //   process.exit(1);
+  // }
   
   // -----------------------------------------------------------------------------------------------
   // just for debugging:
