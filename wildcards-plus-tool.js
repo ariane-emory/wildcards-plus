@@ -334,11 +334,18 @@ const trailing_separator_modes = Object.freeze({
 // FatalParseError class
 // -------------------------------------------------------------------------------------------------
 class FatalParseError extends Error {
-  constructor(message, input, index) {
-    super(message); // Call the Error constructor
-    this.name  = 'FatalParseError'; // Set the error name
-    this.index = index;
-    this.input = input;
+  constructor(message_body, input, index) {
+    super();
+    this.name         = 'FatalParseError';
+    this.message_body = message_body
+    this.index        = index;
+    this.input        = input;
+  }
+  // -----------------------------------------------------------------------------------------------
+  get message() {
+    return `${this.message_body} at char #${this.index}, ` +
+      `found:\n` +
+      `${abbreviate(this.input.substring(this.index))}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1055,10 +1062,7 @@ class CuttingEnclosed extends Enclosed {
                         input, index) {
     throw new FatalParseError(// `(#1) ` +
       `expected (${this.body_rule} ${this.end_rule}) ` +
-        `after ${this.start_rule} at ` +
-        `char ${index}` +
-        `, found:\n` +
-        `${abbreviate(input.substring(start_rule_result.index))}`,
+        `after ${this.start_rule}`,
       input, index);
   }
   // -----------------------------------------------------------------------------------------------
@@ -1335,10 +1339,7 @@ class CuttingSequence extends Sequence {
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
       `expected (${this.elements.slice(1).join(" ")}) ` +
-        `after ${this.elements[0]} at ` +
-        `char ${index}` +
-        `, found:\n` +
-        `${abbreviate(input.substr(start_rule_result.index))}`,
+        `after ${this.elements[0]}`,
       input, index);
   }
   // -----------------------------------------------------------------------------------------------
