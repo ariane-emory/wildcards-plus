@@ -7934,7 +7934,7 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const SimpleCheckFlag             = xform(seq('?', plus(ident, '.'), r(/(?=\s|[{|}\,\?\!\[\]\(\)]|$)/)),
+const SimpleCheckFlag             = xform(seq('?', plus(ident, '.'), r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/)),
                                           arr => {
                                             const args = [arr[1]];
 
@@ -8536,4 +8536,4 @@ main().catch(err => {
 // console.log(`${CheckFlagWithOrAlternatives}`);
 // console.log(lws('a').toString());
 // console.log(wst_star('a').toString());
-console.log(inspect_fun(TestFlag.match("?foo.#bar")))
+console.log(inspect_fun(TestFlag.match("?foo,bar")?.value))
