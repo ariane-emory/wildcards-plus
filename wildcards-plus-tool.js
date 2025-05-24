@@ -7946,17 +7946,6 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const SpecialFunctionUINegPrompt =
-      xform(() => new ASTUINegPrompt(),
-            'ui-prompt');
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
-const UnexpectedSpecialFunctionUINegPrompt =
-      unexpected(SpecialFunctionUINegPrompt,
-                 () => "%ui-neg-prompt is only supported when " +
-                 "using wildcards-plus.js inside Draw Things, " +
-                 "NOT when " +
-                 "running the wildcards-plus-tool.js script");
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             'ui-prompt');
@@ -7967,6 +7956,17 @@ const UnexpectedSpecialFunctionUIPrompt =
                  "using wildcards-plus.js inside Draw Things, " +
                  "NOT when " +
                  "running the wildcards-plus-tool.js script");
+const SpecialFunctionUINegPrompt =
+      xform(() => new ASTUINegPrompt(),
+            'ui-neg-prompt');
+SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+const UnexpectedSpecialFunctionUINegPrompt =
+      unexpected(SpecialFunctionUINegPrompt,
+                 () => "%ui-neg-prompt is only supported when " +
+                 "using wildcards-plus.js inside Draw Things, " +
+                 "NOT when " +
+                 "running the wildcards-plus-tool.js script");
+UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
