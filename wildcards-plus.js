@@ -8049,7 +8049,7 @@ console.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
 const parse_result     = Prompt.match(prompt_string);
 
 if (! parse_result.is_finished)
-  throw new Error(`error parsing prompt!`);
+  throw new Error(`parsing prompt did not finish parsing its input!`);
 
 const AST              = parse_result.value;
 
