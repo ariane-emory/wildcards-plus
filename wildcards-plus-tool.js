@@ -7838,7 +7838,7 @@ const ident                    = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
 const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
 const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
 // const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
-const plaintext                = r(/(?:\\.|(?![{|}\s]|\/\/|\/\*)\S)+/);
+const plaintext                = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
 any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
@@ -8016,82 +8016,82 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
-      xform(() => new ASTUIPrompt(),
-            'ui-prompt');
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
-const UnexpectedSpecialFunctionUIPrompt =
-      unexpected(SpecialFunctionUIPrompt,
-                 (rule, input, index) =>
-                 new FatalParseError("%ui-prompt is only supported when " +
-                                     "using wildcards-plus.js inside Draw Things, " +
-                                     "NOT when " +
-                                     "running the wildcards-plus-tool.js script",
-                                     input, index - 1));
-const SpecialFunctionUINegPrompt =
-      xform(() => new ASTUINegPrompt(),
-            'ui-neg-prompt');
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
-const UnexpectedSpecialFunctionUINegPrompt =
-      unexpected(SpecialFunctionUINegPrompt,
-                 (rule, input, index)=>
-                 new FatalParseError("%ui-neg-prompt is only supported when " +
-                                     "using wildcards-plus.js inside Draw Things, " +
-                                     "NOT when " +
-                                     "running the wildcards-plus-tool.js script",
-                                     input, index - 1));
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
-const SpecialFunctionInclude =
-      xform(arr => new ASTInclude(arr[0][1]),
-            seq(c_funcall('%include',                            // [0][0]
-                          first(wst_seq(discarded_comments,      // -
-                                        json_string,             // [0][1]
-                                        discarded_comments))),   // -
-                discarded_comments,                              // -
-                lws(optional(';'))));                            // -
-SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
-const UnexpectedSpecialFunctionInclude =
-      unexpected(SpecialFunctionInclude,
-                 (rule, input, index) =>
-                 new FatalParseError("%include is only supported when " +
-                                     `using wildcards-plus-tool.js, ` +
-                                     `NOT when ` +
-                                     "running the wildcards-plus.js script " +
-                                     "inside Draw Things",
-                                     input, index - 1));
-UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
-const SpecialFunctionSetPickSingle =
-      xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single-pick',               // [0]
-                wst_seq(discarded_comments,  // -
-                        assignment_operator, // [1][0]
-                        discarded_comments,  // -
-                        choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
-const SpecialFunctionSetPickMultiple =
-      xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('multi-pick',                // [0]
-                wst_seq(discarded_comments,  // -
-                        assignment_operator, // [1][0]
-                        discarded_comments,  // -
-                        choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
-const SpecialFunctionRevertPickSingle =
-      xform(() => new ASTRevertPickSingle(),
-            seq('revert-single-pick', word_break));
-SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
-const SpecialFunctionRevertPickMultiple =
-      xform(() => new ASTRevertPickMultiple(),
-            seq('revert-multi-pick', word_break));
-SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
-const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                    // [0]
-                wst_seq(discarded_comments,                                 // -
-                        any_assignment_operator,                            // [1][0]
-                        discarded_comments,                                 // -
-                        choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
-SpecialFunctionUpdateConfigurationBinary
+                                             xform(() => new ASTUIPrompt(),
+                                                   'ui-prompt');
+                                       SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
+                                       const UnexpectedSpecialFunctionUIPrompt =
+                                             unexpected(SpecialFunctionUIPrompt,
+                                                        (rule, input, index) =>
+                                                        new FatalParseError("%ui-prompt is only supported when " +
+                                                                            "using wildcards-plus.js inside Draw Things, " +
+                                                                            "NOT when " +
+                                                                            "running the wildcards-plus-tool.js script",
+                                                                            input, index - 1));
+                                       const SpecialFunctionUINegPrompt =
+                                             xform(() => new ASTUINegPrompt(),
+                                                   'ui-neg-prompt');
+                                       SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+                                       const UnexpectedSpecialFunctionUINegPrompt =
+                                             unexpected(SpecialFunctionUINegPrompt,
+                                                        (rule, input, index)=>
+                                                        new FatalParseError("%ui-neg-prompt is only supported when " +
+                                                                            "using wildcards-plus.js inside Draw Things, " +
+                                                                            "NOT when " +
+                                                                            "running the wildcards-plus-tool.js script",
+                                                                            input, index - 1));
+                                       UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+                                       UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+                                       const SpecialFunctionInclude =
+                                             xform(arr => new ASTInclude(arr[0][1]),
+                                                   seq(c_funcall('%include',                            // [0][0]
+                                                                 first(wst_seq(discarded_comments,      // -
+                                                                               json_string,             // [0][1]
+                                                                               discarded_comments))),   // -
+                                                       discarded_comments,                              // -
+                                                       lws(optional(';'))));                            // -
+                                       SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
+                                       const UnexpectedSpecialFunctionInclude =
+                                             unexpected(SpecialFunctionInclude,
+                                                        (rule, input, index) =>
+                                                        new FatalParseError("%include is only supported when " +
+                                                                            `using wildcards-plus-tool.js, ` +
+                                                                            `NOT when ` +
+                                                                            "running the wildcards-plus.js script " +
+                                                                            "inside Draw Things",
+                                                                            input, index - 1));
+                                       UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+                                       const SpecialFunctionSetPickSingle =
+                                             xform(arr => new ASTSetPickSingle(arr[1][1]),
+                                                   seq('single-pick',               // [0]
+                                                       wst_seq(discarded_comments,  // -
+                                                               assignment_operator, // [1][0]
+                                                               discarded_comments,  // -
+                                                               choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
+                                       SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
+                                       const SpecialFunctionSetPickMultiple =
+                                             xform(arr => new ASTSetPickSingle(arr[1][1]),
+                                                   seq('multi-pick',                // [0]
+                                                       wst_seq(discarded_comments,  // -
+                                                               assignment_operator, // [1][0]
+                                                               discarded_comments,  // -
+                                                               choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
+                                       SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+                                       const SpecialFunctionRevertPickSingle =
+                                             xform(() => new ASTRevertPickSingle(),
+                                                   seq('revert-single-pick', word_break));
+                                       SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+                                       const SpecialFunctionRevertPickMultiple =
+                                             xform(() => new ASTRevertPickMultiple(),
+                                                   seq('revert-multi-pick', word_break));
+                                       SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+                                       const SpecialFunctionUpdateConfigurationBinary =
+                                             xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
+                                                   seq(c_ident,                                                    // [0]
+                                                       wst_seq(discarded_comments,                                 // -
+                                                               any_assignment_operator,                            // [1][0]
+                                                               discarded_comments,                                 // -
+                                                               choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
+                                       SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
