@@ -1483,10 +1483,13 @@ class Unexpected extends Rule {
     const match_result = this.rule.match(input, index, indent + 1, cache);
     
     if (match_result) {
-      if (this.error_func)
-        throw this.error_func(this, input, index)
-      else
+      if (this.error_func) {
+        const err = this.error_func(this, input, index);
+        throw err instanceof Error ? err : new FatalParseError(err, input, index);
+      }
+      else {
         throw new FatalParseError(`unexpected ${this.rule}`);
+      }
     };
     
     return null; // new MatchResult(null, input, match_result.index);
@@ -7148,7 +7151,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       }
       catch(err) {
         if (err instanceof FatalParseError)
-          return `\\<ERROR: parsing ${sub_prompt.desc} failed: ${err.message}>`;
+          return `\\<ERROR: parsing ${sub_prompt.desc} failed: ${err}>`;
         else
           throw err;
       }
@@ -7950,10 +7953,10 @@ const SpecialFunctionUINegPrompt =
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
-                 () => "%UINegPrompt is only supported when " +
-                 "using wildcards-plus.js inside Draw Things " +
+                 () => "%ui-neg-prompt is only supported when " +
+                 "using wildcards-plus.js inside Draw Things, " +
                  "NOT when " +
-                 "running the wildcards-plus.js script!");
+                 "running the wildcards-plus-tool.js script");
 UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
@@ -7961,10 +7964,10 @@ const SpecialFunctionUIPrompt =
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
-                 () => "%UIPrompt is only supported when " +
-                 "using wildcards-plus.js inside Draw Things " +
+                 () => "%ui-prompt is only supported when " +
+                 "using wildcards-plus.js inside Draw Things, " +
                  "NOT when " +
-                 "running the wildcards-plus.js script!");
+                 "running the wildcards-plus-tool.js script");
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
@@ -7976,9 +7979,10 @@ SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  () => "%include is only supported when " +
-                 "using wildcards-plus-tool.js, NOT when " +
+                 `using wildcards-plus-tool.js, ` +
+                 `NOT when ` +
                  "running the wildcards-plus.js script " +
-                 "inside Draw Things!");
+                 "inside Draw Things");
 UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
@@ -8187,7 +8191,7 @@ Prompt.finalize();
 // MAIN SECTION:
 // =================================================================================================
 // fake UI prompt, just for use debugging when dt_hosted has been set to true:
-const ui_prompt = "@shape = { cube | sphere }there is a @thing here";
+const ui_prompt = "@shape = { cube | sphere there is a @thing here";
 // -------------------------------------------------------------------------------------------------
 async function main() {
   // -----------------------------------------------------------------------------------------------
