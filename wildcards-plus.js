@@ -8140,11 +8140,11 @@ try {
 }
 catch(ex) {
   if (ex instanceof Error) {
-    console.log(`Uncaught exception, open console for more details: ` + 
-                `${ex} ${ex.stack}`);
+    console.log(`Caught fatal exception, click here to open the console for more details\n\n` + 
+                `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
   } else {
-    console.log(`Uncaught exception, open console for more details: ` +
-                `${inspect_fun(ex)}`);
+    console.log(`Caught fatal exception, click here to open the console for more details\n` +
+                `exception:\n${inspect_fun(ex)}`);
   }
 }
 // -------------------------------------------------------------------------------------------------
