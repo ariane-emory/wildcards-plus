@@ -3305,9 +3305,14 @@ class Context {
     this.flags = [];
     this.scalar_variables = new Map();
 
-    for (const [name, nwc] of this.named_wildcards)
-      if (nwc instanceof ASTLatchedNamedWildcardValue)
-        this.named_wildcards.set(name, nws.original_value);
+    for (const [name, nwc] of this.named_wildcards) {
+      if (nwc instanceof ASTLatchedNamedWildcardValue) {
+        console.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
+        this.named_wildcards.set(name, nwc.original_value);
+      } else {
+        console.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
+      } 
+    }
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
@@ -8337,6 +8342,7 @@ async function main() {
     LOG_LINE('=');
     
     const context = base_context.clone();
+    context.reset_temporaries();
     const prompt  = expand_wildcards(AST, context);
 
     if (log_flags_enabled || log_configuration_enabled) {
