@@ -1,0 +1,6 @@
+@thing = { dog | cat | bird }
+the UI prompt comes next: \n
+\%ui-prompt \n
+back to the main file @shape
+@!shape
+{ foo bar }
