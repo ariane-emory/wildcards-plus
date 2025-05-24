@@ -8169,12 +8169,12 @@ const make_Content_rule          = (...prepended_rules) =>
              low_pri_text,
              plaintext);
 const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
-const Content                 = make_Content_rule(AnonWildcard,
-                                                  A1111StyleLora);
+const Content                 = make_Content_rule(A1111StyleLora,
+                                                  AnonWildcard);
 const TopLevelContent         = make_Content_rule(SpecialFunctionInclude,
                                                   NamedWildcardDefinition,
-                                                  AnonWildcard,
-                                                  A1111StyleLora);
+                                                  A1111StyleLora,
+                                                  AnonWildcard);
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
