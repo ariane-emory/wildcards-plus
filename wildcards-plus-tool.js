@@ -8222,6 +8222,8 @@ const LimitedContent          = choice(NamedWildcardReference,
 LimitedContent.abbreviate_str_repr('LimitedContent');
 const make_Content_rule       = (...prepended_rules) =>
       choice(...prepended_rules,
+             low_pri_text,
+             plaintext,
              comment,
              NamedWildcardReference,
              NamedWildcardUsage,
@@ -8232,8 +8234,7 @@ const make_Content_rule       = (...prepended_rules) =>
              ScalarReference,
              // anon_wildcard_rule,
              escaped_brc,
-             low_pri_text,
-             plaintext);
+             );
 const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
 const Content                 = make_Content_rule(
   AnonWildcard,
