@@ -987,18 +987,15 @@ class Enclosed extends Rule {
     this.end_rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     const start_rule_match_result =
-          this.start_rule.match(
-            input, index, indent + 1);
+          this.start_rule.match(input, index, indent + 1, cache);
 
     if (! start_rule_match_result)
       return null;
 
     const body_rule_match_result =
-          this.body_rule.match(
-            input,
-            start_rule_match_result.index, indent + 1);
+          this.body_rule.match(input, start_rule_match_result.index, indent + 1, cache);
 
     if (! body_rule_match_result)
       return this.__fail_or_throw_error(start_rule_match_result,
@@ -1007,9 +1004,7 @@ class Enclosed extends Rule {
                                         start_rule_match_result.index);
 
     const end_rule_match_result =
-          this.end_rule.match(
-            input,
-            body_rule_match_result.index, indent + 1);
+          this.end_rule.match(input, body_rule_match_result.index, indent + 1, cache);
 
     if (! end_rule_match_result)
       return this.__fail_or_throw_error(start_rule_match_result,
