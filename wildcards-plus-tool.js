@@ -431,7 +431,7 @@ class Rule {
     // }
 
     if (cache.has(this)) {
-      const rule_cache = cache.get(rule);
+      const rule_cache = cache.get(this);
 
       if (rule_cache.has(index)) {
         const got = rule_cache.get(index);
