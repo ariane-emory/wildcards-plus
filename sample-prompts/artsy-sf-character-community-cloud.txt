@@ -3,13 +3,14 @@
 // use wildcards to randomize some parts of the configuration before we get on with the
 // actual textual content of the prompt:
 // =================================================================================================
+// {|foo|?flag bar|2 baz}
 
 // -------------------------------------------------------------------------------------------------
 // template config flags to enable model families or other features:
 // -------------------------------------------------------------------------------------------------
 
 #flux
-// #hidream.full
+#hidream.full
 // #hidream.fast
 
 // -------------------------------------------------------------------------------------------------
@@ -111,7 +112,8 @@
 
 %Model     = { // 4 playground_v2.5
              // 6 juggernaut_xl_ragnarok %Steps = 100
-             | 6 shuttle_v3.1_aesthetic_q5p_svd
+             //|
+             6 shuttle_v3.1_aesthetic_q5p_svd
              | 6 artsy_vibe_v1_q5p_svd
              | 6 pixelwave_flux_1_schnell_04_q5p_svd
              | 2 devmode_v0.3_turbo_q5p_svd
@@ -128,14 +130,16 @@
 
 %model     = { ?hidream.fast hidream.i1_fast_q5p
              | ?hidream.full hidream.i1_full_q5p } 
+
 %sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
 %cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
 %shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
 %n_iter    = 2
+%clip_skip = 1
 
-{ 1 %conf += { "width": 960,   "height": 960, "steps": 40  }
-| 2 %conf += { "width": 1152,  "height": 768, "steps": 40  }
-| 6 %conf += { "width": 1280,  "height": 640, "steps": 45  }
+{ 1 %conf += { width: 960,   height: 960, steps: 40  }
+| 2 %conf += { width: 1152,  height: 768, steps: 40  }
+| 6 %conf += { width: 1280,  height: 640, steps: 45  }
 }
 }
 
@@ -485,13 +489,14 @@
  {|futuristic,}
  {|extremely detailed,}
  {@0-2,colour_modifiers,}
- {?wizards_artist in the style of @wizards_artists, @wizards_artist_styles,}
+ // {?wizards_artist in the style of @wizards_artists, @wizards_artist_styles,}
 }
 
 // =================================================================================================
 // generate the prompt body:
 // =================================================================================================
 
+\n
 A
 {?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
                  {featuring|which depicts|depicting} a }
@@ -520,3 +525,4 @@ A
 // %neg            += { first,  }
 // %nEgAtIvE       += { second, }
 // %nEgAtIvEpRoMpT += { third,  }
+#foo.

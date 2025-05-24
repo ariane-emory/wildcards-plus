@@ -10,8 +10,9 @@
 // DEV NOTE: Copy into wildcards-plus.js starting from this line onwards!
 // ===============================================================================================
 {
-  inspect_fun = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
-  dt_hosted   = true;
+  inspect_fun           = (thing, no_break = false) => JSON.stringify(thing, null, no_break ? 0 : 2);
+  dt_hosted             = true;
+  test_structured_clone = false;
 }
 // -------------------------------------------------------------------------------------------------
 
@@ -31,9 +32,8 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_structured_clone_enabled      = false;
 let log_smart_join_enabled            = false;
-let log_expand_and_walk_enabled       = false;
+let log_expand_and_walk_enabled       = false;  
 let disable_prelude                   = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
@@ -44,6 +44,7 @@ let save_post_requests_enable         = true;
 
 // =================================================================================================
 // find a better spot for this: 
+// =================================================================================================
 Array.prototype.toString = function() {
   return this.length > 0 ? compress(`[ ${this.join(", ")} ]`) : '[]';
 }
@@ -1730,6 +1731,8 @@ rJsonc.finalize();
 
 
 // =================================================================================================
+// WeightedPicker CLASS AND RELATED VARS:
+// =================================================================================================
 const always = () => true;
 const never  = () => false;
 const picker_priority = Object.freeze({
@@ -2013,197 +2016,132 @@ class WeightedPicker {
   }
 }
 // =================================================================================================
+// END OF WeightedPicker CLASS AND RELATED VARS.
+// =================================================================================================
 
 
 // =================================================================================================
-// HELPER FUNCTIONS SECTION:
+// MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
-// function arr_is_prefix_of_arr(prefix_arr, full_arr) {
-//   if (prefix_arr.length > full_arr.length)
-//     return false;
-
-//   // return prefix_arr.every((val, idx) => Object.is(val, full_arr[idx]));
-//   return prefix_arr.every((val, idx) => val === full_arr[idx]);
-// }
+// DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
 // -------------------------------------------------------------------------------------------------
-// DT's env doesn't seem to have structuredClone, so we'll define our own:
-// -------------------------------------------------------------------------------------------------
-// var structured_clone_indent = 0;
-
-// function structured_clone(thing) {
-//   //throw new Error(`CLONING ${JSON.stringify(thing)}`);
-
-//   const log = log_structured_clone_enabled
-//         ? msg => console.log(`${' '.repeat(structured_clone_indent*2)}${msg}`)
-//         : msg => undefined;
-
-//   const log_enter = ()  => {
-//     log(`CLONE ${JSON.stringify(thing)}`);
-//     structured_clone_indent += 1;
-//   }
-
-//   if (thing === null || typeof thing !== "object") {
-//     log(`COPIED ${JSON.stringify(thing)}`);
-//     return thing;
-//   }
-//   else if (Array.isArray(thing)) {
-//     log_enter();
-//     const cloned =  [ ...thing.map(structured_clone) ];
-//     structured_clone_indent -= 1;
-//     log(`CLONED ${JSON.stringify(cloned)}`);
-//     return cloned;
-//   }
-//   else if (thing instanceof Set) {
-//     log_enter();
-//     const cloned = new Set();
-//     for (const value of thing.values()) {
-//       cloned.add(structured_clone(value));
-//     }
-//     structured_clone_indent -= 1;
-//     log(`CLONED ${JSON.stringify(cloned)}`);
-//     return cloned;
-//   }
-//   else if (thing instanceof Map) {
-//     log_enter();
-//     const cloned = new Map();
-//     for (const [key, value] of thing.entries()) {
-//       cloned.set(structured_clone(key), structured_clone(value));
-//     }
-//     structured_clone_indent -= 1;
-//     log(`CLONED ${JSON.stringify(cloned)}`);
-//     return cloned;
-//   }
-//   else {
-//     log_enter();
-//     const cloned = {};
-//     for (const key in thing) {
-//       if (Object.prototype.hasOwnProperty.call(thing, key)) {
-//         cloned[structured_clone(key)] = structured_clone(thing[key]);
-//       }
-//     }
-//     structured_clone_indent -= 1;
-//     log(`CLONED ${JSON.stringify(cloned)}`);
-//     return cloned;
-//   }
-// }
-// -------------------------------------------------------------------------------------------------
-let structured_clone = (value, { seen = new WeakMap(), unshare = false } = {}) =>  {
-  if (value === null || typeof value !== "object") {
+function structured_clone(value, {
+  seen = new WeakMap(),           // For shared reference reuse
+  ancestors = new WeakSet(),      // For cycle detection
+  unshare = false
+} = {}) {
+  if (value === null || typeof value !== "object")
     return value;
-  }
 
-  if (!unshare) {
-    if (seen.has(value)) {
-      return seen.get(value); // Reuse existing clone
-    }
-  }
+  if (ancestors.has(value))
+    throw new TypeError("Cannot clone cyclic structure");
+  
+  if (!unshare && seen.has(value))
+    return seen.get(value);
 
-  // Handle Array
+  ancestors.add(value); // Add to call stack tracking
+
+  let clone;
+
   if (Array.isArray(value)) {
-    const clone = [];
-    if (!unshare) seen.set(value, clone);
-    for (const item of value) {
-      clone.push(structured_clone(item, { seen, unshare }));
-    }
-    return clone;
+    clone = [];
+
+    if (!unshare)
+      seen.set(value, clone);
+
+    for (const item of value) 
+      clone.push(structured_clone(item, { seen, ancestors, unshare }));
+  }
+  else if (value instanceof Set) {
+    clone = new Set();
+
+    if (!unshare)
+      seen.set(value, clone);
+
+    for (const item of value) 
+      clone.add(structured_clone(item, { seen, ancestors, unshare }));    
+  }
+  else if (value instanceof Map) {
+    clone = new Map();
+
+    if (!unshare)
+      seen.set(value, clone);
+    
+    for (const [k, v] of value.entries()) 
+      clone.set(structured_clone(k, { seen, ancestors, unshare }),
+                structured_clone(v, { seen, ancestors, unshare }));
+    
+  }
+  else if (value instanceof Date) {
+    clone = new Date(value);
+  }
+  else if (value instanceof RegExp) {
+    clone = new RegExp(value);
+  }
+  else {
+    clone = {};
+
+    if (!unshare)
+      seen.set(value, clone);
+
+    for (const key of Object.keys(value)) 
+      clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
   }
 
-  // Handle Set
-  if (value instanceof Set) {
-    const clone = new Set();
-    if (!unshare) seen.set(value, clone);
-    for (const item of value) {
-      clone.add(structured_clone(item, { seen, unshare }));
-    }
-    return clone;
-  }
+  ancestors.delete(value); // Cleanup recursion tracking
 
-  // Handle Map
-  if (value instanceof Map) {
-    const clone = new Map();
-    if (!unshare) seen.set(value, clone);
-    for (const [k, v] of value.entries()) {
-      clone.set(structured_clone(k, { seen, unshare }),
-                structured_clone(v, { seen, unshare }));
-    }
-    return clone;
-  }
-
-  // Handle Date
-  if (value instanceof Date) {
-    return new Date(value);
-  }
-
-  // Handle RegExp
-  if (value instanceof RegExp) {
-    return new RegExp(value);
-  }
-
-  // Handle plain Object
-  const clone = {};
-  if (!unshare) seen.set(value, clone);
-  for (const key of Object.keys(value)) {
-    clone[key] = structured_clone(value[key], { seen, unshare });
-  }
   return clone;
 }
-// let structured_clone = (value, seen = new WeakMap()) => {
-//   if (value === null || typeof value !== "object") {
-//     return value;
-//   }
+// -------------------------------------------------------------------------------------------------
+if (test_structured_clone) {
+  const shared = { msg: "hi" };
+  let obj = { a: shared, b: shared };
+  // test #1: preserve shared references, this one seems to work:
+  {
+    const clone = structured_clone(obj);
 
-//   if (seen.has(value)) {
-//     return seen.get(value); // Return existing clone, not an error
-//   }
+    if (clone.a !== clone.b)
+      throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
 
-//   // Handle Array
-//   if (Array.isArray(value)) {
-//     const clone = [];
-//     seen.set(value, clone); // Store early to support self-reference
-//     for (const item of value) {
-//       clone.push(structured_clone(item, seen));
-//     }
-//     return clone;
-//   }
+    console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
+  }
+  // test #2: break shared references (unshare), this one seems to work:
+  {
+    const clone = structured_clone(obj, { unshare: true });
 
-//   // Handle Set
-//   if (value instanceof Set) {
-//     const clone = new Set();
-//     seen.set(value, clone);
-//     for (const item of value) {
-//       clone.add(structured_clone(item, seen));
-//     }
-//     return clone;
-//   }
+    if (clone.a === clone.b)
+      throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
 
-//   // Handle Map
-//   if (value instanceof Map) {
-//     const clone = new Map();
-//     seen.set(value, clone);
-//     for (const [k, v] of value.entries()) {
-//       clone.set(structured_clone(k, seen), structured_clone(v, seen));
-//     }
-//     return clone;
-//   }
+    console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
+  }
+  // test #4: should fail do to cycle, with unshare = false:
+  try {
+    obj = {};
+    obj.self = obj; // Create a cycle
+    structured_clone(obj);
 
-//   // Handle Date
-//   if (value instanceof Date) {
-//     return new Date(value);
-//   }
+    // If we get here, no error was thrown = fail
+    throw new Error(`test #3 should have failed.`);
+  } catch (err) {
+    if (err.message === 'test #3 should have failed.')
+      throw err;
+    else 
+      console.log(`test #3 failed as intended.`);
+  }
+  // test #4: should fail do to cycle, with unshare = true:
+  try {
+    obj = {};
+    obj.self = obj; // Create a cycle
+    structured_clone(obj, { unshare: true }); 
 
-//   // Handle RegExp
-//   if (value instanceof RegExp) {
-//     return new RegExp(value);
-//   }
-
-//   // Handle plain object
-//   const clone = {};
-//   seen.set(value, clone);
-//   for (const key of Object.keys(value)) {
-//     clone[key] = structured_clone(value[key], seen);
-//   }
-//   return clone;
-// }
+    throw new Error(`test #4 should have failed.`);
+  } catch (err) {
+    if (err.message === 'test #4 should have failed.') 
+      throw err;
+    else
+      console.log(`test #3 failed as intended.`);
+  }
+}
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
@@ -2215,41 +2153,6 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   
   return true;
 }
-// // -------------------------------------------------------------------------------------------------
-// function equal_arrs(this_arr, that_arr) {
-//   if (this_arr.length != that_arr.length)
-//     return false;
-
-//   for (let ix = 0; ix < this_arr.length; ix++)
-//     if (this_arr[ix] !== that_arr[ix])
-//       return false;
-
-//   return true;
-// }
-// -------------------------------------------------------------------------------------------------
-// function is_flag_set(test_flag, set_flags) {
-//   // GPT's idea, clearly inadequate.
-//   return set_flags.some(flag => flag.startsWith(test_flag + '.') || flag === test_flag);
-// }
-// -------------------------------------------------------------------------------------------------
-// function add_lora_to_context(lora, context, indent = 0) {
-//   const log   = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
-//   const arr   = context.configuration.loras??[];
-//   const index = arr.findIndex(existing => existing.file === lora.file);
-
-//   if (index !== -1) {
-//     arr.splice(index, 1); // Remove the existing entry
-//   }
-
-//   arr.push(lora); // Add the new entry at the end
-
-//   if (arr !== context.configuration.loras)
-//     throw new Error("add_lora_to_context: arr !== array");
-
-//   context.configuration.loras = arr;
-
-//   log(`ADDED ${inspect_fun(lora)} TO ${context}`);
-// }
 // -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
@@ -2500,15 +2403,17 @@ function smart_join(arr) {
   return str;
 }
 // =================================================================================================
-// END OF HELPER FUNCTIONS SECTION.
+// END OF MISCELLANEOUS HELPER FUNCTIONS SECTION.
 // =================================================================================================
 
 
 // =================================================================================================
-// HELPER FUNCTION FOR MUNGING THE CONFIGURATION:
+// HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111,
 // =================================================================================================
+// these are used by the context.munge_configuration() method and some walk cases.
 // var values adapted from the file config.fbs in
 // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
+// ----------------------------------------------------------------------------------------------------
 const dt_samplers = [   // order is significant, do not rearrange!
   'DPM++ 2M Karras',    // 0
   'Euler a',            // 1
@@ -2707,137 +2612,13 @@ function get_our_name(name) {
   
   return res;
 }
-// -------------------------------------------------------------------------------------------------
-function munge_configuration(configuration, is_dt_hosted = dt_hosted) {
-  // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
-  
-  const munged_configuration = structured_clone(configuration);
-
-  if (configuration.loras && munged_configuration.loras && configuration.loras === munged_configuration.loras)
-    throw new Exception("Oh no, configuration.loras === munged_configuration.loras!");
-  
-  if (is_empty_object(munged_configuration))
-    return munged_configuration;
-
-  if (munged_configuration.model === '') {
-    console.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-                `what you meant to do, your prompt template may contain an error!`);
-    delete munged_configuration.model;
-  }
-  else if (munged_configuration.model) {
-    munged_configuration.model = munged_configuration.model.toLowerCase();
-
-    if (munged_configuration.model.endsWith('.ckpt')) {
-      // do nothing
-    }
-    else if (munged_configuration.model.endsWith('_svd')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else if (munged_configuration.model.endsWith('_q5p')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else if (munged_configuration.model.endsWith('_q8p')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else if (munged_configuration.model.endsWith('_f16')) {
-      munged_configuration.model = `${munged_configuration.model}.ckpt`;
-    }
-    else {
-      munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
-    }
-  }
-  
-  // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-  if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
-    const lc = munged_configuration.sampler.toLowerCase();
-    // console.log(`LOOKING FOR ${inspect_fun(lc)} IN ${inspect_fun(Array.from(dt_samplers_caps_correction))}`);
-    const got = dt_samplers_caps_correction.get(lc);
-
-    if (got)
-      munged_configuration.sampler = got;
-  }
-  
-  if (is_dt_hosted) { // running in DT, sampler needs to be an index:
-    if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-      console.log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-                  `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
-      munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
-    }
-    const corrected = new Set();
-    
-    // for (const [dt_name, automatic1111_name] of munged_configuration_key_names) {
-    //   if (munged_configuration[automatic1111_name] !== undefined) {
-    //     if (corrected.has(dt_name))
-    //       continue;
-    
-    //     corrected.add(dt_name);
-
-    //     if (automatic1111_name === dt_name)
-    //       continue;
-    
-    //     console.log(`Correcting munged_configuration.${automatic1111_name} = ` +
-    //                 `${munged_configuration[automatic1111_name]} to ` +
-    //                 `munged_configuration.${dt_name} = ${munged_configuration[automatic1111_name]}.`);
-    //     munged_configuration[dt_name] = munged_configuration[automatic1111_name];
-    //     delete munged_configuration[automatic1111_name];
-    //   }
-    // }
-  }
-  else { // running in Node.js, sampler needs to be a string:
-    if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      console.log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-                  `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
-      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
-    }
-
-    // const corrected = new Set();
-    
-    // for (const [dt_name, automatic1111_name] of munged_configuration_key_names) {      
-    //   if (munged_configuration[dt_name] !== undefined) {
-    //     if (corrected.has(dt_name))
-    //       continue;
-    
-    //     corrected.add(dt_name);
-
-    //     if (automatic1111_name === dt_name)
-    //       continue;
-    
-    //     console.log(`Correcting munged_configuration.${dt_name} = ` +
-    //                 `${inspect_fun(munged_configuration[dt_name])} to ` +
-    //                 `munged_configuration.${automatic1111_name} = ${inspect_fun(munged_configuration[dt_name])}.`);
-    //     munged_configuration[automatic1111_name] = munged_configuration[dt_name];
-    //     delete munged_configuration[dt_name];
-    //   }
-    // }
-  }
-
-  // 'fix' seed if n_iter > 1, doing this seems convenient?
-  if (! munged_configuration.seed) {
-    const n_iter_key = get_our_name('n_iter');
-
-    if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
-      if (log_configuration_enabled)
-        console.log(`Fixing seed to -1 due to n_iter > 1.`);
-
-      munged_configuration.seed = -1;
-    }
-    else if (typeof munged_configuration.seed !== 'number') {
-      munged_configuration.seed = Math.floor(Math.random() * (2 ** 32));
-    }
-  }
-
-  if (log_configuration_enabled)
-    console.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
-
-  return munged_configuration;
-}
 // =================================================================================================
-// END OF HELPER FUNCTION FOR MUNGING THE CONFIGURATION.
+// END OF HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111.
 // =================================================================================================
 
 
 // =================================================================================================
-// HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE:
+// Context CLASS:
 // =================================================================================================
 var last_context_id = 0;
 // -------------------------------------------------------------------------------------------------
@@ -2867,7 +2648,7 @@ class Context {
     this.named_wildcards              = named_wildcards;
     this.noisy                        = noisy;
     this.files                        = files;
-    this.configuration                = configuration;
+    this.configuration                = structured_clone(configuration, { unshare: true });
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
@@ -2879,12 +2660,15 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
-    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     this.configuration.loras ||= [];
+
+    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
 
     if (index !== -1) {
-      if (! replace) return;
+      if (! replace)
+        return;
+      
       this.configuration.splice(index, 1); // Remove the existing entry
     }
     
@@ -2895,41 +2679,19 @@ class Context {
   }
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
-    // if (! Array.isArray(test_flag))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(test_flag)}`);
-
-    // const msg = `look for ${inspect_fun(test_flag)} in ${inspect_fun(this.flags)}...`;
-    // console.log(msg);
-    // const ret = this.flags.includes(test_flag);
-    
     let res = false;
 
     for (const flag of this.flags) {
-      // console.log(`${inspect_fun(flag)} === ` +
-      //             `${inspect_fun(test_flag)} = ${flag == test_flag}`);
-      
       if (arr_is_prefix_of_arr(test_flag, flag)) {
-        // console.log (`FOUND IT!`);
         res = true;
         break;
       }
     }
-
-    // if (! r)
-    //   console.log(`DIDN'T FIND IT...`);
-    
-    // if (ret  !== r)
-    //   throw new Error(`${msg} ret = ${inspect_fun(ret)}, r = ${inspect_fun(r)}`);
     
     return res;
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(new_flag) {
-    // if (! Array.isArray(new_flag))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(new_flag)}`);
-
-    // log_flags_enabled = true;
-    
     if (log_flags_enabled)
       console.log(`\nADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
 
@@ -2960,15 +2722,10 @@ class Context {
       return true;
     });
 
-    // log_flags_enabled = false;
-
     this.flags.push(new_flag);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
-    // if (! Array.isArray(flag))
-    //   throw new Error(`unset_flag ARG NOT AN ARRAY: ${inspect_fun(flag)}`);
-
     if (log_flags_enabled)
       console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
@@ -2976,9 +2733,6 @@ class Context {
 
     if (log_flags_enabled)
       console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-    
-    // if (this.flags.includes(undefined))
-    //   throw new Error(`stop after setting ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -2987,8 +2741,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    if (log_structured_clone_enabled)
-      console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    // console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
       flags:                        structured_clone(this.flags),
@@ -3008,11 +2761,9 @@ class Context {
         this.configuration.loras === copy.configuration.loras)
       throw new Error("oh no");
 
-    if (log_structured_clone_enabled)
-      console.log(`CLONED CONTEXT`);
+    // console.log(`CLONED CONTEXT`);
     
     return copy;
-
   }
   // -----------------------------------------------------------------------------------------------
   shallow_copy() {
@@ -3022,8 +2773,7 @@ class Context {
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
       files:                        this.files,
-      configuration:                       structured_clone(this.configuration),
-      // add_loras:                    this.add_loras,
+      configuration:                this.configuration,
       top_file:                     false, // deliberately not copied!
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
@@ -3032,12 +2782,103 @@ class Context {
       negative_prompt:              this.negative_prompt,
     });
   }
+  // -------------------------------------------------------------------------------------------------
+  munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
+    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+
+    // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
+
+    const munged_configuration = structured_clone(this.configuration);
+
+    if (is_empty_object(munged_configuration))
+      return munged_configuration;
+
+    if (munged_configuration.model === '') {
+      log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
+          `what you meant to do, your prompt template may contain an error!`);
+      delete munged_configuration.model;
+    }
+    else if (munged_configuration.model) {
+      munged_configuration.model = munged_configuration.model.toLowerCase();
+
+      if (munged_configuration.model.endsWith('.ckpt')) {
+        // do nothing
+      }
+      else if (munged_configuration.model.endsWith('_svd')) 
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      else if (munged_configuration.model.endsWith('_q5p')) 
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      else if (munged_configuration.model.endsWith('_q8p')) 
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      else if (munged_configuration.model.endsWith('_f16')) 
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      else 
+        munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
+      
+    }
+    
+    // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
+    if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
+      const lc  = munged_configuration.sampler.toLowerCase();
+      const got = dt_samplers_caps_correction.get(lc);
+
+      if (got)
+        munged_configuration.sampler = got;
+    }
+    
+    if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
+      if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
+        log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+            `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
+        munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
+      }
+    }
+    // when running in Node.js, sampler needs to be a string::
+    else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
+      log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+          `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
+    }
+
+    // 'fix' seed if n_iter > 1, doing this seems convenient?
+    if (! munged_configuration.seed ||
+        (munged_configuration?.n_iter >1 && munged_configuration.seed !== -1)) {
+      const n_iter_key = get_our_name('n_iter');
+
+      if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
+        if (log_configuration_enabled)
+          log(`%seed = -1 due to n_iter > 1`);
+
+        munged_configuration.seed = -1;
+      }
+      else if (typeof munged_configuration.seed !== 'number') {
+        const random = Math.floor(Math.random() * (2 ** 32));
+        
+        if (log_configuration_enabled)
+          log(`%seed = ${random} due to no seed`);
+
+        munged_configuration.seed = random;
+      }
+    }
+
+    // if (log_configuration_enabled)
+    //   log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+
+    this.configuration =  munged_configuration;
+  }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `Context<#${this.context_id}, ${this.configuration?.loras?.length??0} loras>}`;
+    return `Context<#${this.context_id}>`;
   }
 }
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
+// END OF Context CLASS.
+// =================================================================================================
+
+
+// =================================================================================================
+// HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
+// =================================================================================================
 const prelude_text = disable_prelude ? '' : `
 @__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
                            |?male   #gender.male
@@ -6344,7 +6185,7 @@ function load_prelude(into_context = new Context()) {
   return into_context;
 }
 // =================================================================================================
-// END OF HELPER FUNCTIONS FOR MAKING CONTEXTS AND DEALING WITH THE PRELUDE SECTION.
+// END OF PRELUDE HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 
 
@@ -6382,20 +6223,38 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
+  const thing_str_repr = thing => {
+    const type_str  = typeof thing === 'object' ? thing.constructor.name : typeof thing;
+    const thing_str = abbreviate(Array.isArray(thing)
+                                 ? thing.join(' ')
+                                 : (typeof thing === 'string'
+                                    ? inspect_fun(thing)
+                                    : thing.toString()));
+    return `${type_str} ${thing_str}`
+  }
+  // -----------------------------------------------------------------------------------------------
+  const thing_type_str = thing =>
+        typeof thing === 'object' ? thing.constructor.name : typeof thing;
+  // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg) => { 
-    if (! msg) throw new Error("bomb 1");
+    if (! msg && msg !== '') throw new Error("bomb 1");
     if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = (guard_bool, msg) => {
-      if (! msg) throw new Error("bomb 2");
+      if (! msg && msg !== '') throw new Error("bomb 1");
       if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     };
+
+    // log(log_expand_and_walk_enabled,
+    //     `walk thing: ${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())}`);
     
     log(log_expand_and_walk_enabled,
-        `Walking ${typeof thing === 'object' ? thing.constructor.name : typeof thing} ${thing}` +
-        ` @ ${indent} in ${context}` );
+        `Walking ` +
+        // `${thing_type_str(thing)} ` +
+        `${thing_str_repr(thing)} in ` + 
+        `${context}`);
     
     // ---------------------------------------------------------------------------------------------
     // basic types (strings and Arrays):
@@ -6610,10 +6469,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           : { ...context.configuration, ...new_obj };
 
         log(log_configuration_enabled,
-            `configuration ${thing.assign ? '=' : '+='} ` +
-            `${inspect_fun(new_obj, true)}, ` +
-            `configuration is now: ` +
-            `${inspect_fun(context.configuration, true)}`);
+            `%config ${thing.assign ? '=' : '+='} ` +
+            `${inspect_fun(new_obj, true)}`
+            // + `, configuration is now: ` +
+            // `${inspect_fun(context.configuration, true)}`
+           );
       }
       else { // ASTUpdateConfigurationBinary
         const our_name = get_our_name(thing.key); 
@@ -6682,11 +6542,12 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
         }
 
         log(log_configuration_enabled,
-            `configuration.${our_name} ` +
+            `%${our_name} ` +
             `${thing.assign ? '=' : '+='} ` +
-            `${inspect_fun(value, true)}, ` +
-            `configuration is now: ` +
-            `${inspect_fun(context.configuration, true)}`);
+            `${inspect_fun(value, true)}`
+            // + `, configuration is now: ` +
+            // `${inspect_fun(context.configuration, true)}`
+           );
       }
       
       return '';
@@ -6836,11 +6697,15 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   }
 
   log(log_expand_and_walk_enabled,
-      `Expanding wildcards in ${thing.constructor.name} ${thing} in ${context} ` +
-      `@ ${indent} in ${context}`);
+      `Expanding wildcards in ` +
+      // `${thing_type_str(thing)} ` +
+      `${thing_str_repr(thing)} in ` + 
+      `${context}`);
   
   const ret = unescape(smart_join(walk(thing, indent + 1)));
 
+  context.munge_configuration({indent: indent + 1});
+  
   log(log_expand_and_walk_enabled,
       `Expanded into ${inspect_fun(ret)}`);
   
@@ -6922,6 +6787,11 @@ class ASTCheckFlags extends ASTNode {
 
     str += flag_strs.join(',');
 
+    if (this.consequently_set_flag_tail) {
+      str += '.#';
+      str += this.consequently_set_flag_tail.join('.');
+    }
+
     return str;
     // return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
   }
@@ -6958,7 +6828,7 @@ class ASTNotFlag extends ASTNode  {
     str += this.flag.join('.');
 
     if (this.consequently_set_flag_tail) {
-      str += '#';
+      str += '.#';
       str += this.consequently_set_flag_tail.join('.');
     }
 
@@ -7008,6 +6878,17 @@ class ASTScalarReference extends ASTNode {
     this.name       = name;
     this.capitalize = capitalize;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    let str = '$';
+
+    if (this.capitalize)
+      str += this.capitalize;
+
+    str += this.name;
+    
+    return str;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Scalar assignment:
@@ -7018,6 +6899,10 @@ class ASTUpdateScalar extends ASTNode  {
     this.destination = destination;
     this.source      = source;
     this.assign      = assign;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `$${this.destination} ${this.assign? '=' : '+='} ${this.destination}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7044,6 +6929,10 @@ class ASTLatchNamedWildcard extends ASTNode {
     super();
     this.name = name;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@#${this.name}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 // Unlatch a NamedWildcard:
@@ -7052,6 +6941,10 @@ class ASTUnlatchNamedWildcard extends ASTNode {
   constructor(name) {
     super();
     this.name = name;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@!${this.name}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7063,7 +6956,7 @@ class ASTNamedWildcardDefinition extends ASTNode {
     this.destination = destination;
     this.wildcard    = wildcard;
   }
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `@${this.destination} = ${this.wildcard}`;
   }
@@ -7076,6 +6969,10 @@ class ASTLatchedNamedWildcardedValue extends ASTNode {
     super();
     this.latched_value  = latched_value;
     this.original_value = original_value;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return this.original_value.toString();
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7090,18 +6987,47 @@ class ASTAnonWildcard  extends ASTNode {
     // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
-    // return `{ ${this.picker.options.map(x => `${x.value.constructor.name} ${x.value}`  ).join(" | ")} }`;
-    // return `{ ${this.picker.options.map(x => `${typeof x === 'object' ? x.constructor.name : typeof x} ${x.value.toString()}`).join(" | ")} }`;
-  }
-  // -----------------------------------------------------------------------------------------------
   pick(...args) {
     return this.picker.pick(...args);
   }
   // -----------------------------------------------------------------------------------------------
   pick_one(...args) {
     return this.picker.pick_one(...args);
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    let str = '{';
+
+    for (let ix = 0; ix < this.picker.options.length; ix++) {
+      const option     = this.picker.options[ix];
+      const repr       = option.value.toString();
+      const has_weight = option.weight != 1;
+      const is_empty   = repr == '';
+      const is_last    = ix == (this.picker.options.length - 1);
+      const has_guards = (option.value.check_flags?.length > 0) || (option.value.not_flags?.length > 0);
+
+      // console.log(`option:     ${inspect_fun(option)}`);
+      // console.log(`cfs.l:      ${option.value.check_flags?.length}`);
+      // console.log(`nfs.l:      ${option.value.not_flags?.length}`);
+      // console.log(`has_guards: ${has_guards}`);
+      
+      if (!is_empty && !has_weight && !has_guards)
+        str += ' ';
+
+      str += repr;
+
+      if (!is_empty)
+        str += ' ';
+
+      if (!is_last)
+        str += '|';
+    }
+    
+    str += '}';
+    
+    return str;
+
+    // return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7141,13 +7067,17 @@ class ASTAnonWildcardAlternative extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Directives:
+// ASTInclude:
 // -------------------------------------------------------------------------------------------------
 class ASTInclude extends ASTNode {
   constructor(args) {
     super();
     // this.directive = directive;
     this.args      = args;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `include(${this.args})`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7156,6 +7086,11 @@ class ASTUpdateConfigurationUnary extends ASTNode {
     super();
     this.value = value;
     this.assign = assign; // otherwise update
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%config ${this.assign? '=' : '+='} ` +
+      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7168,23 +7103,19 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%${this.key} ${this.assign? '=' : '+='} ` +
+    return `%${get_our_name(this.key)} ${this.assign? '=' : '+='} ` +
       `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
-// -------------------------------------------------------------------------------------------------
-// class ASTUpdateNegativePrompt extends ASTNode {
-//   constructor(value, assign) {
-//     super();
-//     this.value  = value
-//     this.assign = assign;
-//   }
-// }
 // -------------------------------------------------------------------------------------------------
 class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%set-pick-multiple = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7193,17 +7124,29 @@ class ASTSetPickSingle extends ASTNode {
     super();
     this.limited_content = limited_content;
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%set-pick-single = ${this.limited_content}`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTRevertPickMultiple extends ASTNode {
   constructor() {
     super();
   }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%revert-pick-multiple`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTRevertPickSingle extends ASTNode {
   constructor() {
     super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%revert-pick-single`;
   }
 }
 // =================================================================================================
@@ -7216,14 +7159,15 @@ class ASTRevertPickSingle extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-const word_break               = /(?=\s|[{|}]|$)/;
-// const plaintext                = /(?:\\\s|[^\s{|}])+/;
-// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
-// const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
-const plaintext = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
-// const plaintext                = /[^{|}\s]+/;
-// const plaintext_no_parens      = /[^{|}\s()]+/;
-// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+const word_break               = /(?=\s|[{|}\.\,\?\!\(\)]|$)/;
+// const plaintext             = /(?:\\\s|[^\s{|}])+/;
+// const plaintext             = /(?:(?![{|}\s]|\/\/|\/\*)[\S])+/; // stop at comments
+// const plaintext             = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/;
+const plaintext                = /(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/;
+const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const plaintext             = /[^{|}\s]+/;
+// const plaintext_no_parens   = /[^{|}\s()]+/;
+// const low_pri_text          = /[\(\)\[\]\,\.\?\!\:\;]+/;
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const ident                    = /[a-zA-Z_-][0-9a-zA-Z_-]*\b/;
 const comment                  = discard(choice(c_block_comment, c_line_comment));
@@ -7412,10 +7356,10 @@ const SpecialFunctionSetPickMultiple =
                         choice(() => LimitedContent, /[a-z_]+/)))); // [1][1]
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            'revert-single-pick');
+            seq('revert-single-pick', word_break));
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            'revert-multi-pick');
+            'revert-multi-pick', word_break);
 const SpecialFunctionConfigurationUpdateBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                          // [0]
@@ -7542,6 +7486,7 @@ const ContentNoLoras          = choice(comment,
                                        ScalarUpdate,
                                        ScalarReference,
                                        SpecialFunctionNotInclude,
+                                       low_pri_text,
                                        plaintext);
 const Content                 = choice(A1111StyleLora, ContentNoLoras);
 const ContentStar             = wst_star(Content);
@@ -7663,9 +7608,9 @@ for (let ix = 0; ix < batch_count; ix++) {
 
   // expand the wildcards using a cloned context and generate a new configuration:
   
-  const context          = base_context.clone();
-  const prompt = expand_wildcards(AST, context);
-  context.configuration         = munge_configuration(context.configuration);
+  const context = base_context.clone();
+  const prompt  = expand_wildcards(AST, context);
+  context.munge_configuration();
 
   console.log(`-----------------------------------------------------------------------------------------------------------------`);
   console.log(`GENERATED CONFIGURATION:`);
