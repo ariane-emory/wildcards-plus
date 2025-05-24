@@ -8025,24 +8025,24 @@ const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick', word_break));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
-const SpecialFunctionConfigurationUpdateBinary =
+const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                    // [0]
                 wst_seq(discarded_comments,                                 // -
                         any_assignment_operator,                            // [1][0]
                         discarded_comments,                                 // -
                         choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
-SpecialFunctionConfigurationUpdateBinary
-  .abbreviate_str_repr('SpecialFunctionConfigurationUpdateBinary');
-const SpecialFunctionConfigurationUpdateUnary =
+SpecialFunctionUpdateConfigurationBinary
+  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                    // [0]
                 wst_seq(discarded_comments,                                       // -
                         choice(incr_assignment_operator, assignment_operator),    // [1][0]
                         discarded_comments,                                       // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
-SpecialFunctionConfigurationUpdateUnary
-  .abbreviate_str_repr('SpecialFunctionConfigurationUpdateUnary');
+SpecialFunctionUpdateConfigurationUnary
+  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
@@ -8050,8 +8050,8 @@ const SpecialFunctionNotInclude =
                                 SpecialFunctionSetPickMultiple,
                                 SpecialFunctionRevertPickSingle,
                                 SpecialFunctionRevertPickMultiple,
-                                SpecialFunctionConfigurationUpdateUnary,
-                                SpecialFunctionConfigurationUpdateBinary),
+                                SpecialFunctionUpdateConfigurationUnary,
+                                SpecialFunctionUpdateConfigurationBinary),
                          discarded_comments,
                          lws(optional(';'))));
 // const AnySpecialFunction =
