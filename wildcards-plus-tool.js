@@ -6858,7 +6858,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const got = context.named_wildcards.get(thing.name);
 
       if (!got)
-        return `\\<ERROR: NAMED WILDCARD @${thing.name} NOT FOUND!>`;
+        return `\\<ERROR: Named wildcard @${thing.name} not found!>`;
 
       let res = [];
       
@@ -6893,7 +6893,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
       let got = context.scalar_variables.get(thing.name) ??
-          `SCALAR '${thing.name}' NOT FOUND}`;
+          `Scalarl '${thing.name}' not found}`;
 
       if (thing.capitalize)
         got = capitalize(got);
@@ -6910,7 +6910,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
         return `\\<ERROR: Named wildcard @${thing.name} not found!>`;
 
       if (! (got instanceof ASTLatchedNamedWildcardValue)) {
-        console.log(`tried to latch already latched named wildcard @${thing.name}, ` +
+        console.log(`WARNING: tried to latch already latched named wildcard @${thing.name}, ` +
                     `check your template!`);
         return '';
       }
@@ -6932,7 +6932,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
         return `\\<ERROR: Named wildcard @${thing.name} not found!>`;
 
       if (! (got instanceof ASTLatchedNamedWildcardValue)) {
-        console.log(`tried to unlatch unlatched named wildcard @${thing.name}, ` +
+        console.log(`WARNING: tried to unlatch unlatched named wildcard @${thing.name}, ` +
                     `check your template!`);
         return '';
       }
