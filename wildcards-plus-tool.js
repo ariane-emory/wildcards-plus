@@ -1749,32 +1749,6 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
-function abbreviate(str, len = 100) {
-  if (str.length < len) {
-    return str
-  }
-  else {
-    const bracing_pairs = [
-      ['/',  '/'],
-      ['(',  ')'],
-      ['[',  ']'],
-      ['{',  '}'],
-      ['<',  '>'],
-      ['λ(', ')'],
-    ];
-
-    for (const [left, right] of bracing_pairs) {
-      if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
-        str = str.substring(left.length, len - 3 - right.length);
-        const ret = `${left}${str.replace("\n","").trim()}...${right}`;
-        return ret;
-      }
-    }
-    
-    return `${str.substring(0, len - 3).replace("\n","").trim()}...`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
   return index == input.length
 }
@@ -2569,6 +2543,32 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
+function abbreviate(str, len = 100) {
+  if (str.length < len) {
+    return str
+  }
+  else {
+    const bracing_pairs = [
+      ['/',  '/'],
+      ['(',  ')'],
+      ['[',  ']'],
+      ['{',  '}'],
+      ['<',  '>'],
+      ['λ(', ')'],
+    ];
+
+    for (const [left, right] of bracing_pairs) {
+      if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
+        str = str.substring(left.length, len - 3 - right.length);
+        const ret = `${left}${str.replace("\n","").trim()}...${right}`;
+        return ret;
+      }
+    }
+    
+    return `${str.substring(0, len - 3).replace("\n","").trim()}...`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
@@ -2624,6 +2624,7 @@ function choose_indefinite_article(word) {
 function compress(str) {
   return str.replace(/\s+/g, ' ');
 }
+
 // -------------------------------------------------------------------------------------------------
 function format_pretty_list(arr) {
   const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
