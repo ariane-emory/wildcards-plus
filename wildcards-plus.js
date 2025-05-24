@@ -8013,7 +8013,7 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
                  [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
     this.section("Batch count", "",
                  [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
-    this.switch(true, "Clear canvas before generating (maybe img2img):"),
+    this.switch(true, "Clear canvas before generating (maybe img2img if false):"),
     this.section("When picking a single item, prioritize:", "",
                  [ this.menu(picker_priority_descriptions.indexOf(picker_priority.ensure_weighted_distribution),
                              picker_priority_descriptions) ]),
