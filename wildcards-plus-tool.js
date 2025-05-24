@@ -481,8 +481,7 @@ class Rule {
                       `this is likely a programmer error`);
     }
     
-    if (this.memoize)
-      rule_cache.set(index, ret);
+    rule_cache?.set(index, ret);
 
     // if (ret && ret?.value === null) {
     //   throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
@@ -8275,6 +8274,7 @@ async function main() {
     });
     
     result = Prompt.match(prompt_input);
+    process.exit(0);
   } else if (args.length === 0) {
     throw new Error("ERROR: No input file provided.");
   }
