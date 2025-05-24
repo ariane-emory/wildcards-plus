@@ -8055,8 +8055,7 @@ const AST              = parse_result.value;
 
 // -------------------------------------------------------------------------------------------------
 
-console.log(`
------------------------------------------------------------------------------------------------------------------`);
+LOG_LINE();
 console.log(`pipeline.configuration is:`);
 LOG_LINE();
 console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
