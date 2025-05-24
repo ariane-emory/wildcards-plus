@@ -8169,18 +8169,16 @@ const make_Content_rule          = (...prepended_rules) =>
              low_pri_text,
              plaintext);
 const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
-// ContentNoLoras.abbreviate_str_repr('ContentNoLoras');
-const Content                 = make_Content_rule(AnonWildcard, A1111StyleLora);
-const TopLevelContent         = make_Content_rule(AnonWildcard,
-                                                  SpecialFunctionInclude,
-                                                  NamedWildcardDefinition,
+const Content                 = make_Content_rule(AnonWildcard,
                                                   A1111StyleLora);
-// Content.abbreviate_str_repr('Content');
-const ContentStar             = wst_star(Content);
-// ContentStar.abbreviate_str_repr('ContentStar');
+const TopLevelContent         = make_Content_rule(SpecialFunctionInclude,
+                                                  NamedWildcardDefinition,
+                                                  AnonWildcard,
+                                                  A1111StyleLora);
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
-// ContentNoLorasStar.abbreviate_str_repr('ContentNoLorasStar');
-const Prompt                  = wst_star(TopLevelContent);
+const ContentStar             = wst_star(Content);
+const TopLevelContentStar     = wst_star(TopLevelContent);
+const Prompt                  = TopLevelContentStar;
 // -------------------------------------------------------------------------------------------------
 Prompt.finalize();
 // =================================================================================================
