@@ -8142,9 +8142,12 @@ try {
 }
 catch(ex) {
   if (ex instanceof Error) {
-    console.log(`wildcards-plus caught a fatal exception, ` +
-                `click here to open the console for more details\n\n` + 
-                `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
+    if (ex.message === 'cancelled')
+      console.log(`Cancelled.`);
+    else
+      console.log(`wildcards-plus caught a fatal exception, ` +
+                  `click here to open the console for more details\n\n` + 
+                  `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
   } else {
     console.log(`wildcards-plus caught a fatal exception, ` +
                 `click here to open the console for more details\n` +
