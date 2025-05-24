@@ -449,6 +449,8 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0, cache = new Map()) {
+    console.log(`try matching ${this.memoize} ${this}`);
+    
     if (typeof input !== 'string') {
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
     }
@@ -488,6 +490,7 @@ class Rule {
         }
       }
       else {
+        console.log(`init cache for rule ${this}`);
         rule_cache = new Map();
         cache.set(this, rule_cache);
       }
