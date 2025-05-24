@@ -1571,7 +1571,7 @@ function compress(str) {
 // -------------------------------------------------------------------------------------------------
 function format_simple_time(date = new Date()) {
   return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
+    hour:   'numeric',
     minute: '2-digit',
     second: '2-digit',
     hour12: true
