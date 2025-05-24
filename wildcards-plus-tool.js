@@ -8032,34 +8032,32 @@ const SpecialFunctionConfigurationUpdateUnary =
 SpecialFunctionConfigurationUpdateUnary
   .abbreviate_str_repr('SpecialFunctionConfigurationUpdateUnary');
 // -------------------------------------------------------------------------------------------------
-const NormalSpecialFunction =
-      choice(SpecialFunctionSetPickSingle,
-             SpecialFunctionSetPickMultiple,
-             SpecialFunctionRevertPickSingle,
-             SpecialFunctionRevertPickMultiple,
-             SpecialFunctionConfigurationUpdateUnary,
-             SpecialFunctionConfigurationUpdateBinary);
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
-                         NormalSpecialFunction,
+                         choice(SpecialFunctionSetPickSingle,
+                                SpecialFunctionSetPickMultiple,
+                                SpecialFunctionRevertPickSingle,
+                                SpecialFunctionRevertPickMultiple,
+                                SpecialFunctionConfigurationUpdateUnary,
+                                SpecialFunctionConfigurationUpdateBinary),
                          discarded_comments,
                          lws(optional(';'))));
-const AnySpecialFunction =
-      second(cutting_seq('%',
-                         choice((dt_hosted
-                                 ? SpecialFunctionUIPrompt
-                                 : UnexpectedSpecialFunctionUIPrompt),
-                                (dt_hosted
-                                 ? SpecialFunctionUINegPrompt
-                                 : UnexpectedSpecialFunctionUINegPrompt),
-                                (dt_hosted
-                                 ? UnexpectedSpecialFunctionInclude
-                                 : SpecialFunctionInclude),
-                                NormalSpecialFunction),
-                         discarded_comments,
-                         lws(optional(';'))));
+// const AnySpecialFunction =
+//       second(cutting_seq('%',
+//                          choice((dt_hosted
+//                                  ? SpecialFunctionUIPrompt
+//                                  : UnexpectedSpecialFunctionUIPrompt),
+//                                 (dt_hosted
+//                                  ? SpecialFunctionUINegPrompt
+//                                  : UnexpectedSpecialFunctionUINegPrompt),
+//                                 (dt_hosted
+//                                  ? UnexpectedSpecialFunctionInclude
+//                                  : SpecialFunctionInclude),
+//                                 SpecialFunctionNotInclude),
+//                          discarded_comments,
+//                          lws(optional(';'))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-AnySpecialFunction       .abbreviate_str_repr('AnySpecialFunction');
+// AnySpecialFunction       .abbreviate_str_repr('AnySpecialFunction');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
@@ -8156,19 +8154,19 @@ const LimitedContent          = choice(NamedWildcardReference,
 LimitedContent.abbreviate_str_repr('LimitedContent');
 const make_Content_rule          = (anon_wildcard_rule, ...prepended_rules) =>
       choice(...prepended_rules,
+             SpecialFunctionNotInclude,
              comment,
              NamedWildcardReference,
              NamedWildcardUsage,
              SetFlag,
              UnsetFlag,
-             escaped_brc,
              ScalarUpdate,
              ScalarReference,
              anon_wildcard_rule,
-             SpecialFunctionNotInclude,
+             escaped_brc,
              low_pri_text,
              plaintext);
-const ContentNoLoras = make_Content_rule(AnonWildcardNoLoras);
+const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
 // ContentNoLoras.abbreviate_str_repr('ContentNoLoras');
 const Content                 = make_Content_rule(AnonWildcard, A1111StyleLora);
 // Content.abbreviate_str_repr('Content');
@@ -8176,7 +8174,7 @@ const ContentStar             = wst_star(Content);
 // ContentStar.abbreviate_str_repr('ContentStar');
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
 // ContentNoLorasStar.abbreviate_str_repr('ContentNoLorasStar');
-const Prompt                  = wst_star(choice(AnySpecialFunction,
+const Prompt                  = wst_star(choice(SpecialFunctionInclude,
                                                 NamedWildcardDefinition,
                                                 Content));
 // -------------------------------------------------------------------------------------------------

@@ -7958,7 +7958,7 @@ const make_Content_rule          = (anon_wildcard_rule, ...prepended_rules) =>
              SpecialFunctionNotInclude,
              low_pri_text,
              plaintext);
-const ContentNoLoras = make_Content_rule(AnonWildcardNoLoras);
+const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
 // ContentNoLoras.abbreviate_str_repr('ContentNoLoras');
 const Content                 = make_Content_rule(AnonWildcard, A1111StyleLora);
 // Content.abbreviate_str_repr('Content');
@@ -7966,7 +7966,7 @@ const ContentStar             = wst_star(Content);
 // ContentStar.abbreviate_str_repr('ContentStar');
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
 // ContentNoLorasStar.abbreviate_str_repr('ContentNoLorasStar');
-const Prompt                  = wst_star(choice(AnySpecialFunction,
+const Prompt                  = wst_star(choice(SpecialFunctionInclude,
                                                 NamedWildcardDefinition,
                                                 Content));
 // -------------------------------------------------------------------------------------------------
