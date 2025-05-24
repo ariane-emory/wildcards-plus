@@ -8161,14 +8161,14 @@ const AnonWildcardAlternative =
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
                 optional(wb_uint, 1),
-                wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
+                wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
                 () => ContentStar));
 AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcardAlternativeNoLoras =
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
                 optional(wb_uint, 1),
-                wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
+                wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
                 () => ContentNoLorasStar));
 AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
