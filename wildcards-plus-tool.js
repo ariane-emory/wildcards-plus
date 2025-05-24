@@ -7197,7 +7197,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       let res = null;
 
       try {
-        res = Prompt.match(sub_prompt. text);
+        res = Prompt.match(sub_prompt.text);
       }
       catch(err) {
         if (err instanceof FatalParseError)
