@@ -2569,19 +2569,6 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
-function compress(str) {
-  return str.replace(/\s+/g, ' ');
-}
-// -------------------------------------------------------------------------------------------------
-function format_simple_time(date = new Date()) {
-  return date.toLocaleTimeString('en-US', {
-    hour:   'numeric',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
-  });
-}
-// -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   if (prefix_arr.length > full_arr.length)
     return false;
@@ -2591,31 +2578,6 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
       return false;
   
   return true;
-}
-// -------------------------------------------------------------------------------------------------
-function is_empty_object(obj) {
-  return obj && typeof obj === 'object' &&
-    Object.keys(obj).length === 0 &&
-    obj.constructor === Object;
-}
-// -------------------------------------------------------------------------------------------------
-function rand_int(x, y) {
-  y ||= x;
-  const min = Math.min(x, y);
-  const max = Math.max(x, y);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-// -------------------------------------------------------------------------------------------------
-function pretty_list(arr) {
-  const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
-
-  if (items.length === 0) return "";
-  if (items.length === 1) return items[0];
-  if (items.length === 2) return `${items[0]} and ${items[1]}`;
-
-  const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
-  
-  return ret;
 }
 // -------------------------------------------------------------------------------------------------
 function capitalize(string) {
@@ -2657,6 +2619,44 @@ function choose_indefinite_article(word) {
     return 'an';
 
   return 'a';
+}
+// -------------------------------------------------------------------------------------------------
+function compress(str) {
+  return str.replace(/\s+/g, ' ');
+}
+// -------------------------------------------------------------------------------------------------
+function format_pretty_list(arr) {
+  const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
+
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+
+  const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  
+  return ret;
+}
+// -------------------------------------------------------------------------------------------------
+function format_simple_time(date = new Date()) {
+  return date.toLocaleTimeString('en-US', {
+    hour:   'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+}
+// -------------------------------------------------------------------------------------------------
+function is_empty_object(obj) {
+  return obj && typeof obj === 'object' &&
+    Object.keys(obj).length === 0 &&
+    obj.constructor === Object;
+}
+// -------------------------------------------------------------------------------------------------
+function rand_int(x, y) {
+  y ||= x;
+  const min = Math.min(x, y);
+  const max = Math.max(x, y);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr) {
@@ -6884,7 +6884,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       return thing.joiner == ','
         ? res.join(", ")
         : (thing.joiner == '&'
-           ? pretty_list(res)
+           ? format_pretty_list(res)
            : res.join(" "));
     }
     // ---------------------------------------------------------------------------------------------
