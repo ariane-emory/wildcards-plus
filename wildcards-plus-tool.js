@@ -7934,6 +7934,19 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
+const SimpleCheckFlag             = xform(seq('?', plus(ident, '.'), word_break),
+                                          arr => {
+                                            const args = [arr[1]];
+
+                                            if (log_flags_enabled) {
+                                              console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                                          `${inspect_fun(arr)}`);
+                                              console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                                          `${inspect_fun(args)}`);
+                                            }
+
+                                            return new ASTCheckFlags(args);
+                                          });
 const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), word_break),
                                           arr => {
                                             const args = [arr[1]];
@@ -7992,10 +8005,12 @@ const SimpleNotFlag              = xform(seq('!', optional('#'), plus(ident, '.'
 
                                            return new ASTNotFlag(...args);
                                          })
-const TestFlag                   = choice(CheckFlagWithSetConsequent,
-                                          CheckFlagWithOrAlternatives,
+const TestFlag                   = choice(SimpleCheckFlag,
+                                          SimpleNotFlag,
                                           NotFlagWithSetConsequent,
-                                          SimpleNotFlag);
+                                          CheckFlagWithSetConsequent,
+                                          CheckFlagWithOrAlternatives,
+                                         );
 const SetFlag                  = xform(second(seq('#', plus(ident, '.'), word_break)),
                                        arr => {
                                          if (log_flags_enabled)
