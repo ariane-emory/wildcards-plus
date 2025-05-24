@@ -209,7 +209,7 @@ let inspect_fun           = (thing, no_break = false) =>
                    depth: 2,
                  });
 let dt_hosted             = false;
-dt_hosted                 = true; // lie for testing purposes.
+// dt_hosted                 = true; // lie for testing purposes.
 let test_structured_clone = false;;
 // =================================================================================================
 
@@ -7742,7 +7742,7 @@ class ASTUINegPrompt extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%ui-prompt`;
+    return `%ui-neg-prompt`;
   }
 }
 // =================================================================================================
