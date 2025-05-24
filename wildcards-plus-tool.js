@@ -510,6 +510,9 @@ class Rule {
         cache.set(this, rule_cache);
       }
     }
+    else {
+      console.log(`NOT memoizing ${this}`);
+    }
     
     const ret = this.__match(indent, input, index, cache);
 
@@ -1889,9 +1892,9 @@ function pipe_funs(...fns) {
 const alpha_snake             = r(/[a-zA-Z_]+/);
 const lc_alpha_snake          = r(/[a-z_]+/);
 const uc_alpha_snake          = r(/[A-Z_]+/);
-alpha_snake.abbreviate_str_repr('alpha_snake');
-lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
-uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
+// alpha_snake.abbreviate_str_repr('alpha_snake');
+// lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
+// uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // -------------------------------------------------------------------------------------------------
 // whitespace:
 const whites_star        = r(/\s*/);
@@ -2033,16 +2036,16 @@ const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
 const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
 const c_uint             = uint;
 const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
-c_bin                    .abbreviate_str_repr('c_bin');
-c_char                   .abbreviate_str_repr('c_char');
-c_hex                    .abbreviate_str_repr('c_hex');
-c_ident                  .abbreviate_str_repr('c_ident');
-c_octal                  .abbreviate_str_repr('c_octal');
-c_sfloat                 .abbreviate_str_repr('c_sfloat');
-c_sint                   .abbreviate_str_repr('c_sint');
-c_snumber                .abbreviate_str_repr('c_snumber');
-c_ufloat                 .abbreviate_str_repr('c_ufloat');
-c_uint                   .abbreviate_str_repr('c_uint');
+// c_bin                    .abbreviate_str_repr('c_bin');
+// c_char                   .abbreviate_str_repr('c_char');
+// c_hex                    .abbreviate_str_repr('c_hex');
+// c_ident                  .abbreviate_str_repr('c_ident');
+// c_octal                  .abbreviate_str_repr('c_octal');
+// c_sfloat                 .abbreviate_str_repr('c_sfloat');
+// c_sint                   .abbreviate_str_repr('c_sint');
+// c_snumber                .abbreviate_str_repr('c_snumber');
+// c_ufloat                 .abbreviate_str_repr('c_ufloat');
+// c_uint                   .abbreviate_str_repr('c_uint');
 // -------------------------------------------------------------------------------------------------
 // other C-like terminals:
 const c_arith_assign     = r(/\+=|\-=|\*=|\/=|\%=/)
@@ -2057,18 +2060,18 @@ const c_incr_decr        = r(/\+\+|--/);
 const c_shift            = r(/<<|>>/);
 const c_shift_assign     = r(/<<=|>>=/);
 const c_unicode_ident    = r(/[\p{L}_][\p{L}\p{N}_]*/u);
-c_arith_assign           .abbreviate_str_repr('c_arith_assign');
-c_bitwise_and            .abbreviate_str_repr('c_bitwise_and');
-c_bitwise_bool_op        .abbreviate_str_repr('c_bitwise_bool_ops');
-c_bitwise_not            .abbreviate_str_repr('c_bitwise_not');
-c_bitwise_or             .abbreviate_str_repr('c_bitwise_or');
-c_bitwise_xor            .abbreviate_str_repr('c_bitwise_xor');
-c_bool                   .abbreviate_str_repr('c_bool');
-c_ccomparison_op         .abbreviate_str_repr('c_ccomparison_op');
-c_incr_decr              .abbreviate_str_repr('c_incr_decr');
-c_shift                  .abbreviate_str_repr('c_shift');
-c_shift_assign           .abbreviate_str_repr('c_shift_assign');
-c_unicode_ident          .abbreviate_str_repr('c_unicode_ident');
+// c_arith_assign           .abbreviate_str_repr('c_arith_assign');
+// c_bitwise_and            .abbreviate_str_repr('c_bitwise_and');
+// c_bitwise_bool_op        .abbreviate_str_repr('c_bitwise_bool_ops');
+// c_bitwise_not            .abbreviate_str_repr('c_bitwise_not');
+// c_bitwise_or             .abbreviate_str_repr('c_bitwise_or');
+// c_bitwise_xor            .abbreviate_str_repr('c_bitwise_xor');
+// c_bool                   .abbreviate_str_repr('c_bool');
+// c_ccomparison_op         .abbreviate_str_repr('c_ccomparison_op');
+// c_incr_decr              .abbreviate_str_repr('c_incr_decr');
+// c_shift                  .abbreviate_str_repr('c_shift');
+// c_shift_assign           .abbreviate_str_repr('c_shift_assign');
+// c_unicode_ident          .abbreviate_str_repr('c_unicode_ident');
 // -------------------------------------------------------------------------------------------------
 // dotted chains:
 const dot_chain          = rule => plus(rule, dot); 
@@ -2079,10 +2082,10 @@ const c_comment          = choice(() => c_line_comment,
                                   () => c_block_comment);
 const c_line_comment     = r(/\/\/[^\n]*/);
 const py_line_comment    = r(/#[^\n]*/); 
-c_block_comment          .abbreviate_str_repr('c_block_comment');
-c_comment                .abbreviate_str_repr('c_comment');
-c_line_comment           .abbreviate_str_repr('c_line_comment');
-py_line_comment          .abbreviate_str_repr('py_line_comment');
+// c_block_comment          .abbreviate_str_repr('c_block_comment');
+// c_comment                .abbreviate_str_repr('c_comment');
+// c_line_comment           .abbreviate_str_repr('c_line_comment');
+// py_line_comment          .abbreviate_str_repr('py_line_comment');
 // -------------------------------------------------------------------------------------------------
 // ternary helper combinator:
 const ternary            =
@@ -2092,7 +2095,7 @@ const ternary            =
 // -------------------------------------------------------------------------------------------------
 // misc unsorted Rules:
 const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
-kebab_ident.abbreviate_str_repr('kebab_ident');
+// kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
 const c_funcall = (fun_rule, arg_rule, open = wse('('), close = wse(')'), sep = ',') =>
@@ -2198,21 +2201,21 @@ const json_number = xform(reify_json_number,
                               xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = whites_plus;
-Json.abbreviate_str_repr('Json');
-JsonObject.abbreviate_str_repr('JsonObject');
-JsonArray.abbreviate_str_repr('JsonArray');
-json_string.abbreviate_str_repr('json_string');
-json_unicodeEscape.abbreviate_str_repr('json_unicodeEscape');
-json_escape.abbreviate_str_repr('json_escape');
-json_true.abbreviate_str_repr('json_true');
-json_false.abbreviate_str_repr('json_false');
-json_null.abbreviate_str_repr('json_null');
-json_minus.abbreviate_str_repr('json_minus');
-json_integralPart.abbreviate_str_repr('json_integralPart');
-json_fractionalPart.abbreviate_str_repr('json_fractionalPart');
-json_exponentPart.abbreviate_str_repr('json_exponentPart');
-json_number.abbreviate_str_repr('json_number');
-json_S.abbreviate_str_repr('json_S');
+// Json.abbreviate_str_repr('Json');
+// JsonObject.abbreviate_str_repr('JsonObject');
+// JsonArray.abbreviate_str_repr('JsonArray');
+// json_string.abbreviate_str_repr('json_string');
+// json_unicodeEscape.abbreviate_str_repr('json_unicodeEscape');
+// json_escape.abbreviate_str_repr('json_escape');
+// json_true.abbreviate_str_repr('json_true');
+// json_false.abbreviate_str_repr('json_false');
+// json_null.abbreviate_str_repr('json_null');
+// json_minus.abbreviate_str_repr('json_minus');
+// json_integralPart.abbreviate_str_repr('json_integralPart');
+// json_fractionalPart.abbreviate_str_repr('json_fractionalPart');
+// json_exponentPart.abbreviate_str_repr('json_exponentPart');
+// json_number.abbreviate_str_repr('json_number');
+// json_S.abbreviate_str_repr('json_S');
 // -------------------------------------------------------------------------------------------------
 Json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
 // =================================================================================================
@@ -2264,10 +2267,10 @@ const JsoncObject =
                                           , ',')),
                                )),
                 '{}'[1]))); // dumb hack for rainbow brackets sake
-Jsonc.abbreviate_str_repr('Jsonc');
-jsonc_comments.abbreviate_str_repr('jsonc_comments');
-JsoncArray.abbreviate_str_repr('JsoncArray');
-JsoncObject.abbreviate_str_repr('JsoncObject');
+// Jsonc.abbreviate_str_repr('Jsonc');
+// jsonc_comments.abbreviate_str_repr('jsonc_comments');
+// JsoncArray.abbreviate_str_repr('JsoncArray');
+// JsoncObject.abbreviate_str_repr('JsoncObject');
 // -------------------------------------------------------------------------------------------------
 Jsonc.finalize(); 
 // =================================================================================================
@@ -2309,8 +2312,8 @@ const rJsoncObject =
                                           , ',')),
                                )),
                 '{}'[1]))); // dumb hack for rainbow brackets sake
-rJsonc.abbreviate_str_repr('rJsonc');
-rJsoncObject.abbreviate_str_repr('rJsoncObject');
+// rJsonc.abbreviate_str_repr('rJsonc');
+// rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
 rJsonc.finalize(); 
 // =================================================================================================
@@ -7848,23 +7851,23 @@ const low_pri_text             = r(/[\(\)\[\]\:]+/);
 const plaintext                = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
-any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
-assignment_operator            .abbreviate_str_repr('assignment_operator');
-comment                        .abbreviate_str_repr(false); // 'comment');
-escaped_brc                    .abbreviate_str_repr('escaped_brc');
-filename                       .abbreviate_str_repr('filename');
-ident                          .abbreviate_str_repr('ident');
-incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
-low_pri_text                   .abbreviate_str_repr('low_pri_text');
-plaintext                      .abbreviate_str_repr('plaintext');
-wb_uint                        .abbreviate_str_repr('wb_uint');
-word_break                     .abbreviate_str_repr('word_break');
+// any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
+// assignment_operator            .abbreviate_str_repr('assignment_operator');
+// comment                        .abbreviate_str_repr(false); // 'comment');
+// escaped_brc                    .abbreviate_str_repr('escaped_brc');
+// filename                       .abbreviate_str_repr('filename');
+// ident                          .abbreviate_str_repr('ident');
+// incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
+// low_pri_text                   .abbreviate_str_repr('low_pri_text');
+// plaintext                      .abbreviate_str_repr('plaintext');
+// wb_uint                        .abbreviate_str_repr('wb_uint');
+// word_break                     .abbreviate_str_repr('word_break');
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
 // -------------------------------------------------------------------------------------------------
 const discarded_comments        = discard(wst_star(comment));
-discarded_comments              .abbreviate_str_repr('discarded_comments_star');
+// discarded_comments              .abbreviate_str_repr('discarded_comments_star');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
@@ -7892,8 +7895,8 @@ const A1111StyleLora       =
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
                     '>'));
-A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
-A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
+// A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
+// A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
@@ -8039,20 +8042,20 @@ const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_b
                                                          ` ${inspect_fun(arr)}`);
                                          return new ASTUnsetFlag(arr);
                                        });
-SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
-CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
-CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
-NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
-TestFlag.abbreviate_str_repr('TestFlag');
-SetFlag.abbreviate_str_repr('SetFlag');
-UnsetFlag.abbreviate_str_repr('UnsetFlag');
+// SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
+// CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
+// CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
+// NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
+// TestFlag.abbreviate_str_repr('TestFlag');
+// SetFlag.abbreviate_str_repr('SetFlag');
+// UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             'ui-prompt');
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
+// SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8064,7 +8067,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             'ui-neg-prompt');
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+// SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8073,8 +8076,8 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+// UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+// UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
@@ -8083,7 +8086,7 @@ const SpecialFunctionInclude =
                                         discarded_comments))),   // -
                 discarded_comments,                              // -
                 lws(optional(';'))));                            // -
-SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
+// SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8093,7 +8096,7 @@ const UnexpectedSpecialFunctionInclude =
                                      "running the wildcards-plus.js script " +
                                      "inside Draw Things",
                                      input, index - 1));
-UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+// UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',               // [0]
@@ -8101,7 +8104,7 @@ const SpecialFunctionSetPickSingle =
                         assignment_operator, // [1][0]
                         discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
+// SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                // [0]
@@ -8109,15 +8112,15 @@ const SpecialFunctionSetPickMultiple =
                         assignment_operator, // [1][0]
                         discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+// SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick', word_break));
-SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+// SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick', word_break));
-SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+// SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                    // [0]
@@ -8126,400 +8129,400 @@ const SpecialFunctionUpdateConfigurationBinary =
                         discarded_comments,                                 // -
                         choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
 SpecialFunctionUpdateConfigurationBinary
-    .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
-  const SpecialFunctionUpdateConfigurationUnary =
-        xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-              seq(/conf(?:ig)?/,                                                    // [0]
-                  wst_seq(discarded_comments,                                       // -
-                          choice(incr_assignment_operator, assignment_operator),    // [1][0]
-                          discarded_comments,                                       // -
-                          choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
-  SpecialFunctionUpdateConfigurationUnary
-    .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionNotInclude =
-        second(cutting_seq('%',
-                           choice(
-                             SpecialFunctionUpdateConfigurationBinary,
-                             SpecialFunctionUpdateConfigurationUnary,
-                             (dt_hosted ? SpecialFunctionUIPrompt : UnexpectedSpecialFunctionUIPrompt),
-                             (dt_hosted ? SpecialFunctionUINegPrompt : UnexpectedSpecialFunctionUINegPrompt),
-                             SpecialFunctionSetPickSingle,
-                             SpecialFunctionSetPickMultiple,
-                             SpecialFunctionRevertPickSingle,
-                             SpecialFunctionRevertPickMultiple,
-                           ),
-                           discarded_comments,
-                           lws(optional(';'))));
-  SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-  // -------------------------------------------------------------------------------------------------
-  // other non-terminals:
-  // -------------------------------------------------------------------------------------------------
-  const AnonWildcardAlternative =
-        xform(make_ASTAnonWildcardAlternative,
-              seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
-                  optional(wb_uint, 1),
-                  wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
-                  () => ContentStar));
-  AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
-  const AnonWildcardAlternativeNoLoras =
-        xform(make_ASTAnonWildcardAlternative,
-              seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
-                  optional(wb_uint, 1),
-                  wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
-                  () => ContentNoLorasStar));
-  AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-  const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
-                                        brc_enc(wst_star(AnonWildcardAlternative, '|')));
-  const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
-                                        brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-  // AnonWildcard.abbreviate_str_repr('AnonWildcard');
-  // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
-  const NamedWildcardReference  = xform(seq('@',                                       // [0]
-                                            optional('^'),                             // [1]
-                                            optional(xform(parseInt, uint)),           // [2]
-                                            optional(xform(parseInt,
-                                                           second(seq('-', uint)))),   // [3]
-                                            optional(/[,&]/),                          // [4]
-                                            ident),                                    // [5]
-                                        arr => {
-                                          const ident  = arr[5];
-                                          const min_ct = arr[2][0] ?? 1;
-                                          const max_ct = arr[3][0] ?? min_ct;
-                                          const join   = arr[4][0] ?? '';
-                                          const caret  = arr[1][0];
-                                          
-                                          return new ASTNamedWildcardReference(ident,
-                                                                               join,
-                                                                               caret,
-                                                                               min_ct,
-                                                                               max_ct);
-                                        });
-  NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
-  const NamedWildcardDesignator = second(seq('@', ident)); 
-  NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
-  const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
-                                        wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
-                                                                assignment_operator),    // -
-                                                        discarded_comments,
-                                                        AnonWildcard));                  // [1]
-  NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
-  const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
-                                        arr => {
-                                          const [ bang, hash, ident, objs ] =
-                                                [ arr[1][0], arr[2][0], arr[3], []];
-                                          
-                                          if (!bang && !hash)
-                                            return new ASTNamedWildcardReference(ident);
+//     .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+const SpecialFunctionUpdateConfigurationUnary =
+      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+            seq(/conf(?:ig)?/,                                                    // [0]
+                wst_seq(discarded_comments,                                       // -
+                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
+                        discarded_comments,                                       // -
+                        choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
+SpecialFunctionUpdateConfigurationUnary
+//     .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionNotInclude =
+      second(cutting_seq('%',
+                         choice(
+                           SpecialFunctionUpdateConfigurationBinary,
+                           SpecialFunctionUpdateConfigurationUnary,
+                           (dt_hosted ? SpecialFunctionUIPrompt : UnexpectedSpecialFunctionUIPrompt),
+                           (dt_hosted ? SpecialFunctionUINegPrompt : UnexpectedSpecialFunctionUINegPrompt),
+                           SpecialFunctionSetPickSingle,
+                           SpecialFunctionSetPickMultiple,
+                           SpecialFunctionRevertPickSingle,
+                           SpecialFunctionRevertPickMultiple,
+                         ),
+                         discarded_comments,
+                         lws(optional(';'))));
+//   SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
+// -------------------------------------------------------------------------------------------------
+// other non-terminals:
+// -------------------------------------------------------------------------------------------------
+const AnonWildcardAlternative =
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
+                optional(wb_uint, 1),
+                wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
+                () => ContentStar));
+//   AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
+const AnonWildcardAlternativeNoLoras =
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
+                optional(wb_uint, 1),
+                wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
+                () => ContentNoLorasStar));
+//   AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+//   // AnonWildcard.abbreviate_str_repr('AnonWildcard');
+//   // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
+const NamedWildcardReference  = xform(seq('@',                                       // [0]
+                                          optional('^'),                             // [1]
+                                          optional(xform(parseInt, uint)),           // [2]
+                                          optional(xform(parseInt,
+                                                         second(seq('-', uint)))),   // [3]
+                                          optional(/[,&]/),                          // [4]
+                                          ident),                                    // [5]
+                                      arr => {
+                                        const ident  = arr[5];
+                                        const min_ct = arr[2][0] ?? 1;
+                                        const max_ct = arr[3][0] ?? min_ct;
+                                        const join   = arr[4][0] ?? '';
+                                        const caret  = arr[1][0];
+                                        
+                                        return new ASTNamedWildcardReference(ident,
+                                                                             join,
+                                                                             caret,
+                                                                             min_ct,
+                                                                             max_ct);
+                                      });
+//   NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
+const NamedWildcardDesignator = second(seq('@', ident)); 
+//   NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
+const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
+                                      wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
+                                                              assignment_operator),    // -
+                                                      discarded_comments,
+                                                      AnonWildcard));                  // [1]
+//   NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
+const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
+                                      arr => {
+                                        const [ bang, hash, ident, objs ] =
+                                              [ arr[1][0], arr[2][0], arr[3], []];
+                                        
+                                        if (!bang && !hash)
+                                          return new ASTNamedWildcardReference(ident);
 
-                                          // goes before hash so that "@!#" works correctly:
-                                          if (bang) 
-                                            objs.push(new ASTUnlatchNamedWildcard(ident));
+                                        // goes before hash so that "@!#" works correctly:
+                                        if (bang) 
+                                          objs.push(new ASTUnlatchNamedWildcard(ident));
 
-                                          if (hash)
-                                            objs.push(new ASTLatchNamedWildcard(ident));
+                                        if (hash)
+                                          objs.push(new ASTLatchNamedWildcard(ident));
 
-                                          return objs;
-                                        });
-  NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
-  const ScalarReference         = xform(seq('$', optional('^'), ident),
-                                        arr => new ASTScalarReference(arr[2], arr[1][0]));
-  ScalarReference.abbreviate_str_repr('ScalarReference');
-  const ScalarDesignator        = xform(seq('$', ident),
-                                        arr => new ASTScalarReference(arr[1]));
-  ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
-  const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                   arr[0][1] == '='),
-                                        wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
-                                                                discarded_comments,
-                                                                choice(incr_assignment_operator,
-                                                                       assignment_operator)), // [0][1]
-                                                        discarded_comments,                   // [1]
-                                                        choice(() => LimitedContent,
-                                                               json_string,
-                                                               plaintext),
-                                                        discarded_comments,
-                                                        lws(optional(';'))));
-  ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
-  const LimitedContent          = choice(NamedWildcardReference,
-                                         ScalarReference,
-                                         AnonWildcardNoLoras,
-                                         plaintext);
-  LimitedContent.abbreviate_str_repr('LimitedContent');
-  const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_rules = [] } = {}) =>
-        choice(
-          ...before_plaintext_rules,
-          plaintext,
-          ...after_plaintext_rules,
-          low_pri_text,
-          NamedWildcardReference,
-          SpecialFunctionNotInclude,
-          comment,
-          NamedWildcardUsage,
-          SetFlag,
-          UnsetFlag,
-          ScalarUpdate,
-          ScalarReference,
-          // anon_wildcard_rule,
-          escaped_brc,
-        );
-  const ContentNoLoras          = make_Content_rule({
-    after_plaintext_rules: [
-      AnonWildcardNoLoras,
-    ],
-  });
-  const Content                 = make_Content_rule({
-    before_plaintext_rules: [
-      A1111StyleLora,
-    ],
-    after_plaintext_rules:  [
-      AnonWildcard,
-    ],
-  });
-  const TopLevelContent         = make_Content_rule({
-    before_plaintext_rules: [
-      A1111StyleLora,
-    ],
-    after_plaintext_rules:  [
-      AnonWildcard,
-      NamedWildcardDefinition,
-      SpecialFunctionInclude,
-    ],
-  });
-  const ContentNoLorasStar      = wst_star(ContentNoLoras);
-  const ContentStar             = wst_star(Content);
-  const TopLevelContentStar     = wst_star(TopLevelContent);
-  const Prompt                  = TopLevelContentStar;
-  // -------------------------------------------------------------------------------------------------
-  Prompt.finalize();
-  // =================================================================================================
-  // END OF SD PROMPT GRAMMAR SECTION.
-  // =================================================================================================
-
-
-  // =================================================================================================
-  // DEV NOTE: Copy into wildcards-plus.js through this line!
-  // =================================================================================================
+                                        return objs;
+                                      });
+//   NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
+const ScalarReference         = xform(seq('$', optional('^'), ident),
+                                      arr => new ASTScalarReference(arr[2], arr[1][0]));
+//   ScalarReference.abbreviate_str_repr('ScalarReference');
+const ScalarDesignator        = xform(seq('$', ident),
+                                      arr => new ASTScalarReference(arr[1]));
+//   ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
+const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
+                                                                 arr[0][1] == '='),
+                                      wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
+                                                              discarded_comments,
+                                                              choice(incr_assignment_operator,
+                                                                     assignment_operator)), // [0][1]
+                                                      discarded_comments,                   // [1]
+                                                      choice(() => LimitedContent,
+                                                             json_string,
+                                                             plaintext),
+                                                      discarded_comments,
+                                                      lws(optional(';'))));
+//   ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
+const LimitedContent          = choice(NamedWildcardReference,
+                                       ScalarReference,
+                                       AnonWildcardNoLoras,
+                                       plaintext);
+//   LimitedContent.abbreviate_str_repr('LimitedContent');
+const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_rules = [] } = {}) =>
+      choice(
+        ...before_plaintext_rules,
+        plaintext,
+        ...after_plaintext_rules,
+        low_pri_text,
+        NamedWildcardReference,
+        SpecialFunctionNotInclude,
+        comment,
+        NamedWildcardUsage,
+        SetFlag,
+        UnsetFlag,
+        ScalarUpdate,
+        ScalarReference,
+        // anon_wildcard_rule,
+        escaped_brc,
+      );
+const ContentNoLoras          = make_Content_rule({
+  after_plaintext_rules: [
+    AnonWildcardNoLoras,
+  ],
+});
+const Content                 = make_Content_rule({
+  before_plaintext_rules: [
+    A1111StyleLora,
+  ],
+  after_plaintext_rules:  [
+    AnonWildcard,
+  ],
+});
+const TopLevelContent         = make_Content_rule({
+  before_plaintext_rules: [
+    A1111StyleLora,
+  ],
+  after_plaintext_rules:  [
+    AnonWildcard,
+    NamedWildcardDefinition,
+    SpecialFunctionInclude,
+  ],
+});
+const ContentNoLorasStar      = wst_star(ContentNoLoras);
+const ContentStar             = wst_star(Content);
+const TopLevelContentStar     = wst_star(TopLevelContent);
+const Prompt                  = TopLevelContentStar;
+// -------------------------------------------------------------------------------------------------
+Prompt.finalize();
+// =================================================================================================
+// END OF SD PROMPT GRAMMAR SECTION.
+// =================================================================================================
 
 
+// =================================================================================================
+// DEV NOTE: Copy into wildcards-plus.js through this line!
+// =================================================================================================
 
-  // =================================================================================================
-  // MAIN SECTION:
-  // =================================================================================================
-  // fake UI prompt, just for use debugging when dt_hosted has been set to true:
-  const ui_prompt = "@shape = { cube | sphere } there is a @thing here";
-  // -------------------------------------------------------------------------------------------------
-  async function main() {
-    // -----------------------------------------------------------------------------------------------
-    // process the command-line arguments:
-    // -----------------------------------------------------------------------------------------------
-    const args       = process.argv.slice(2);
-    let   count      = 1;
-    let   post       = false;
-    let   confirm    = false;
-    let   from_stdin = false;
 
-    if (args.length == 0) 
-      throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
-                      `(--stdin | <input-file>) [<count>]`);
 
-    if (["-p", "--post"].includes(args[0])) {
-      post = true;
-      args.shift();
+// =================================================================================================
+// MAIN SECTION:
+// =================================================================================================
+// fake UI prompt, just for use debugging when dt_hosted has been set to true:
+const ui_prompt = "@shape = { cube | sphere } there is a @thing here";
+// -------------------------------------------------------------------------------------------------
+async function main() {
+  // -----------------------------------------------------------------------------------------------
+  // process the command-line arguments:
+  // -----------------------------------------------------------------------------------------------
+  const args       = process.argv.slice(2);
+  let   count      = 1;
+  let   post       = false;
+  let   confirm    = false;
+  let   from_stdin = false;
+
+  if (args.length == 0) 
+    throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
+                    `(--stdin | <input-file>) [<count>]`);
+
+  if (["-p", "--post"].includes(args[0])) {
+    post = true;
+    args.shift();
+  }
+  else if (["-c", "--confirm"].includes(args[0])) {
+    post    = true;
+    confirm = true;
+    args.shift();
+  }
+
+  if (args.length === 0)
+    throw new Error("ERROR: Must provide --stdin or an input file.");
+
+  if (args[0] === '--stdin') {
+    if (confirm)
+      throw new Error(`the --confirm and --stdin options are incompatible.`);
+    
+    from_stdin = true;
+  }
+
+  if (args.length > 1) 
+    count = parseInt(args[1]);
+
+  // -----------------------------------------------------------------------------------------------
+  // read prompt input:
+  // -----------------------------------------------------------------------------------------------
+  let result = null;
+
+  if (from_stdin) {
+    // Read all stdin into a string
+    let prompt_input = await new Promise((resolve, reject) => {
+      let data = '';
+      input.setEncoding('utf8');
+      input.on('data', chunk => data += chunk);
+      input.on('end', () => resolve(data));
+      input.on('error', err => reject(err));
+    });
+
+    result = Prompt.match(prompt_input);
+    process.exit(0);
+  } else if (args.length === 0) {
+    throw new Error("ERROR: No input file provided.");
+  }
+  else {
+    result = parse_file(args[0]);
+  }
+  
+  // -----------------------------------------------------------------------------------------------
+  // just for debugging:
+  // -----------------------------------------------------------------------------------------------
+  if (print_ast_enabled)
+    console.log(`result: ${inspect_fun(result.value)}`);
+
+  if (print_ast_json_enabled)
+    console.log(`result (JSON): ${JSON.stringify(result.value)}`);
+  
+  // -----------------------------------------------------------------------------------------------
+  // check that the parsed result is complete and expand:
+  // -----------------------------------------------------------------------------------------------
+  if (! result.is_finished)
+    throw new Error(`error parsing prompt at ${result.index}!`);
+
+  let   AST          = result.value;
+  const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
+  
+  if (print_ast_before_includes_enabled) {
+    LOG_LINE();
+    console.log(`before process_includes:`);
+    LOG_LINE();
+    console.log(`${inspect_fun(AST)}`);
+    LOG_LINE();
+    console.log(`before process_includes (as JSON):`);
+    LOG_LINE();
+    console.log(`${JSON.stringify(AST)}`);
+  }
+
+  AST = process_includes(AST, base_context);
+
+  if (print_ast_after_includes_enabled) { 
+    LOG_LINE();
+    console.log(`after process_includes:`);
+    LOG_LINE();
+    console.log(`${inspect_fun(AST)}`);
+    LOG_LINE();
+    console.log(`after process_includes (as JSON):`);
+    LOG_LINE();
+    console.log(`${JSON.stringify(AST)}`);
+  }
+  
+  let posted_count        = 0;
+  let prior_prompt        = null;
+  let prior_configuration = null;
+  
+  const stash_priors = (prompt, configuration) => {
+    prior_prompt        = prompt;
+    prior_configuration = structured_clone(configuration);
+  };
+
+  const restore_priors = (prompt, configuration) => {
+    const ret = [ prior_prompt, prior_configuration ];
+    [ prior_prompt, prior_configuration ] = [ prompt, configuration ];
+    return ret;
+  };
+
+  const do_post = (prompt, configuration) => {
+    post_prompt({ prompt: prompt,  configuration: configuration });
+    posted_count += 1; 
+  };
+
+  while (posted_count < count) {
+    LOG_LINE('=');
+    console.log(`Expansion #${posted_count + 1} of ${count}:`);
+    LOG_LINE('=');
+    
+    const context = base_context.clone();
+    context.reset_temporaries();
+    const prompt  = expand_wildcards(AST, context);
+
+    if (log_flags_enabled || log_configuration_enabled) {
+      LOG_LINE();
+      console.log(`Flags after:`);
+      LOG_LINE();
+      console.log(`${inspect_fun(context.flags)}`);
     }
-    else if (["-c", "--confirm"].includes(args[0])) {
-      post    = true;
-      confirm = true;
-      args.shift();
+
+    LOG_LINE();
+    console.log(`Final config is is:`);
+    LOG_LINE();
+    console.log(inspect_fun(context.configuration));
+
+    
+    LOG_LINE();
+    console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
+    LOG_LINE();
+    console.log(prompt);
+
+    if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
+      LOG_LINE();
+      console.log(`Expanded negative prompt:`);
+      LOG_LINE();
+      console.log(context.configuration.negative_prompt);
     }
 
-    if (args.length === 0)
-      throw new Error("ERROR: Must provide --stdin or an input file.");
-
-    if (args[0] === '--stdin') {
-      if (confirm)
-        throw new Error(`the --confirm and --stdin options are incompatible.`);
-      
-      from_stdin = true;
-    }
-
-    if (args.length > 1) 
-      count = parseInt(args[1]);
-
-    // -----------------------------------------------------------------------------------------------
-    // read prompt input:
-    // -----------------------------------------------------------------------------------------------
-    let result = null;
-
-    if (from_stdin) {
-      // Read all stdin into a string
-      let prompt_input = await new Promise((resolve, reject) => {
-        let data = '';
-        input.setEncoding('utf8');
-        input.on('data', chunk => data += chunk);
-        input.on('end', () => resolve(data));
-        input.on('error', err => reject(err));
-      });
-
-      result = Prompt.match(prompt_input);
-      process.exit(0);
-    } else if (args.length === 0) {
-      throw new Error("ERROR: No input file provided.");
+    if (!post) {
+      posted_count += 1; // a lie to make the counter correct.
     }
     else {
-      result = parse_file(args[0]);
-    }
-    
-    // -----------------------------------------------------------------------------------------------
-    // just for debugging:
-    // -----------------------------------------------------------------------------------------------
-    if (print_ast_enabled)
-      console.log(`result: ${inspect_fun(result.value)}`);
-
-    if (print_ast_json_enabled)
-      console.log(`result (JSON): ${JSON.stringify(result.value)}`);
-    
-    // -----------------------------------------------------------------------------------------------
-    // check that the parsed result is complete and expand:
-    // -----------------------------------------------------------------------------------------------
-    if (! result.is_finished)
-      throw new Error(`error parsing prompt at ${result.index}!`);
-
-    let   AST          = result.value;
-    const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
-    
-    if (print_ast_before_includes_enabled) {
-      LOG_LINE();
-      console.log(`before process_includes:`);
-      LOG_LINE();
-      console.log(`${inspect_fun(AST)}`);
-      LOG_LINE();
-      console.log(`before process_includes (as JSON):`);
-      LOG_LINE();
-      console.log(`${JSON.stringify(AST)}`);
-    }
-
-    AST = process_includes(AST, base_context);
-
-    if (print_ast_after_includes_enabled) { 
-      LOG_LINE();
-      console.log(`after process_includes:`);
-      LOG_LINE();
-      console.log(`${inspect_fun(AST)}`);
-      LOG_LINE();
-      console.log(`after process_includes (as JSON):`);
-      LOG_LINE();
-      console.log(`${JSON.stringify(AST)}`);
-    }
-    
-    let posted_count        = 0;
-    let prior_prompt        = null;
-    let prior_configuration = null;
-    
-    const stash_priors = (prompt, configuration) => {
-      prior_prompt        = prompt;
-      prior_configuration = structured_clone(configuration);
-    };
-
-    const restore_priors = (prompt, configuration) => {
-      const ret = [ prior_prompt, prior_configuration ];
-      [ prior_prompt, prior_configuration ] = [ prompt, configuration ];
-      return ret;
-    };
-
-    const do_post = (prompt, configuration) => {
-      post_prompt({ prompt: prompt,  configuration: configuration });
-      posted_count += 1; 
-    };
-
-    while (posted_count < count) {
-      LOG_LINE('=');
-      console.log(`Expansion #${posted_count + 1} of ${count}:`);
-      LOG_LINE('=');
-      
-      const context = base_context.clone();
-      context.reset_temporaries();
-      const prompt  = expand_wildcards(AST, context);
-
-      if (log_flags_enabled || log_configuration_enabled) {
+      if (!confirm) {
         LOG_LINE();
-        console.log(`Flags after:`);
-        LOG_LINE();
-        console.log(`${inspect_fun(context.flags)}`);
+        do_post(prompt, context.configuration);
+        posted_count += 1;
       }
+      else  {
+        console.log();
 
-      LOG_LINE();
-      console.log(`Final config is is:`);
-      LOG_LINE();
-      console.log(inspect_fun(context.configuration));
+        const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
+              `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
+              `POST the prior prompt)? `;
+        const answer   = await ask(question);
 
-      
-      LOG_LINE();
-      console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
-      LOG_LINE();
-      console.log(prompt);
-
-      if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
-        LOG_LINE();
-        console.log(`Expanded negative prompt:`);
-        LOG_LINE();
-        console.log(context.configuration.negative_prompt);
-      }
-
-      if (!post) {
-        posted_count += 1; // a lie to make the counter correct.
-      }
-      else {
-        if (!confirm) {
-          LOG_LINE();
-          do_post(prompt, context.configuration);
-          posted_count += 1;
+        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
+          stash_priors(prompt, context.configuration);
+          continue;
         }
-        else  {
-          console.log();
 
-          const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
-                `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
-                `POST the prior prompt)? `;
-          const answer   = await ask(question);
-
-          if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
-            stash_priors(prompt, context.configuration);
+        if (answer.match(/^p.*/i)) {
+          if (prior_prompt) { 
+            LOG_LINE();
+            [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
+            
+            console.log(`POSTing prior prompt '${prompt}'`);
+            
+            do_post(prompt, context.configuration);
+            
             continue;
           }
-
-          if (answer.match(/^p.*/i)) {
-            if (prior_prompt) { 
-              LOG_LINE();
-              [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
-              
-              console.log(`POSTing prior prompt '${prompt}'`);
-              
-              do_post(prompt, context.configuration);
-              
-              continue;
-            }
-            else {
-              console.log(`can't rewind, no prior prompt`);
-            }
-          }
-          else { // /^y.*/
-            LOG_LINE();
-            const parsed    = parseInt(answer);
-            const gen_count = isNaN(parsed) ? 1 : parsed;  
-            
-            for (let iix = 0; iix < gen_count; iix++)
-              do_post(prompt, context.configuration);
+          else {
+            console.log(`can't rewind, no prior prompt`);
           }
         }
+        else { // /^y.*/
+          LOG_LINE();
+          const parsed    = parseInt(answer);
+          const gen_count = isNaN(parsed) ? 1 : parsed;  
+          
+          for (let iix = 0; iix < gen_count; iix++)
+            do_post(prompt, context.configuration);
+        }
       }
-      
-      stash_priors(prompt, context.configuration);
     }
-
-    LOG_LINE('=');
+    
+    stash_priors(prompt, context.configuration);
   }
-  // -------------------------------------------------------------------------------------------------
+
+  LOG_LINE('=');
+}
+// -------------------------------------------------------------------------------------------------
 main().catch(err => {
   console.error(`Unhandled error:\n${err.stack}`);
   process.exit(1);
