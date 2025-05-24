@@ -7134,6 +7134,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUIPrompt) {
+      return ui_prompt;
+    }
+    // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTRevertPickSingle || 
              thing instanceof ASTRevertPickMultiple) {
       const cur_key = thing instanceof ASTRevertPickSingle
@@ -7697,6 +7701,16 @@ class ASTRevertPickSingle extends ASTNode {
     return `%revert-pick-single`;
   }
 }
+// -------------------------------------------------------------------------------------------------
+class ASTUIPrompt extends ASTNode {
+  constructor() {
+    super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%ui-prompt`;
+  }
+}
 // =================================================================================================
 // END OF SD PROMPT AST CLASSES SECTION.
 // =================================================================================================
@@ -7905,9 +7919,9 @@ SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  () => "%UIPrompt is only supported when " +
-                 "using wildcards-plus-tool.js, NOT when " +
-                 "running the wildcards-plus.js script " +
-                 "inside Draw Things!");
+                 "using wildcards-plus.js inside Draw Things " +
+                 "NOT when " +
+                 "running the wildcards-plus.js script!");
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
