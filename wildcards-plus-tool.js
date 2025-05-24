@@ -1603,7 +1603,7 @@ class Literal extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     if (index_is_at_end_of_input(index, input))
       return null;
 
@@ -1654,24 +1654,24 @@ class Regex extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
       log(indent, `testing  /${this.regexp.source}/ at char ${index} of ` +
           `'${abbreviate(input.substring(index))}'`); 
 
-    const match = this.regexp.exec(input);
+    const re_match = this.regexp.exec(input);
     
-    if (! match) {
+    if (! re_match) {
       if (log_match_enabled)
         log(indent, `RETURN NULL!`);
       return null;
     }
 
-    return new MatchResult(match[match.length - 1],
+    return new MatchResult(re_match[re_match.length - 1],
                            input,
-                           index + match[0].length);
+                           index + re_match[0].length);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
