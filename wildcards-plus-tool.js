@@ -1765,13 +1765,6 @@ function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
 }
 LOG_LINE.line_width = 90;
 // -------------------------------------------------------------------------------------------------
-function maybe_make_TokenLabel_from_string(thing) {
-  if (typeof thing === 'string')
-    return new TokenLabel(thing);
-
-  return thing
-}
-// -------------------------------------------------------------------------------------------------
 function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
   if (typeof thing === 'string')
     return new Literal(thing);
@@ -1779,6 +1772,13 @@ function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
     return new Regex(thing);
   else
     return thing;
+}
+// -------------------------------------------------------------------------------------------------
+function maybe_make_TokenLabel_from_string(thing) {
+  if (typeof thing === 'string')
+    return new TokenLabel(thing);
+
+  return thing
 }
 // -------------------------------------------------------------------------------------------------
 let make_rule_func = maybe_make_RE_or_Literal_from_Regexp_or_string
