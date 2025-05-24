@@ -70,7 +70,9 @@ function parse_file(filename) {
     //   console.log(inspect_fun(key));
     //   throw new Error("bomb");
     // }
-    console.log(`'${key}' = ${inspect_fun(value)}`);
+    
+    console.log(`'${key}' = ${inspect_fun(value.size)}`);
+    
   }
   
   // throw new Error("bimb");
