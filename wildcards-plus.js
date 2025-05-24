@@ -8140,10 +8140,12 @@ try {
 }
 catch(ex) {
   if (ex instanceof Error) {
-    console.log(`Caught fatal exception, click here to open the console for more details\n\n` + 
+    console.log(`wildcards-plus caught a fatal exception, ` +
+                `click here to open the console for more details\n\n` + 
                 `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
   } else {
-    console.log(`Caught fatal exception, click here to open the console for more details\n` +
+    console.log(`wildcards-plus caught a fatal exception, ` +
+                `click here to open the console for more details\n` +
                 `exception:\n${inspect_fun(ex)}`);
   }
 }
