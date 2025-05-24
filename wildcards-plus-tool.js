@@ -7161,13 +7161,16 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       try {
         res = Prompt.match(sub_prompt. text);
       }
-      catch {
-        // do nothing
+      catch(err) {
+        if (err instanceof FatalParseError)
+          return `\\<ERROR: parsing ${sub_prompt.desc} failed: ${err.message}>`;
+        else
+          throw err;
       }
 
       
       if (!res || !res.is_finished)
-        return `\\<ERROR: parsing ${sub_prompt.desc} failed!>`;
+        return `\\<ERROR: parsing ${sub_prompt.desc} did not finish!>`;
 
       return expand_wildcards(res.value, context, indent + 1);
     }
@@ -8193,7 +8196,7 @@ Prompt.finalize();
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =================================================================================================
 
-const ui_prompt = "@shape = { cube | sphere } there is a @thing here";
+const ui_prompt = "@shape = { cube | sphere there is a @thing here";
 
 // =================================================================================================
 // MAIN SECTION:
@@ -8240,7 +8243,6 @@ async function main() {
   // -----------------------------------------------------------------------------------------------
   let result = null;
 
-  // try {
   if (from_stdin) {
     // Read all stdin into a string
     let prompt_input = await new Promise((resolve, reject) => {
@@ -8256,15 +8258,8 @@ async function main() {
     throw new Error("ERROR: No input file provided.");
   }
   else {
-    // log_match_enabled = true;
-    
     result = parse_file(args[0]);
   }
-  // }
-  // catch(ex) {
-  //   console.log(`${inspect_fun(ex)}`);
-  //   process.exit(1);
-  // }
   
   // -----------------------------------------------------------------------------------------------
   // just for debugging:
