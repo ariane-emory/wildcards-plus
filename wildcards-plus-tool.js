@@ -8046,7 +8046,13 @@ SpecialFunctionUpdateConfigurationUnary
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
       second(cutting_seq('%',
-                         choice(SpecialFunctionSetPickSingle,
+                         choice((dt_hosted
+                                 ? SpecialFunctionUIPrompt
+                                 : UnexpectedSpecialFunctionUIPrompt),
+                                (dt_hosted
+                                 ? SpecialFunctionUINegPrompt
+                                 : UnexpectedSpecialFunctionUINegPrompt),
+                                SpecialFunctionSetPickSingle,
                                 SpecialFunctionSetPickMultiple,
                                 SpecialFunctionRevertPickSingle,
                                 SpecialFunctionRevertPickMultiple,
@@ -8181,7 +8187,9 @@ const make_Content_rule       = (...prepended_rules) =>
 const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
 const Content                 = make_Content_rule(A1111StyleLora,
                                                   AnonWildcard);
-const TopLevelContent         = make_Content_rule(SpecialFunctionInclude,
+const TopLevelContent         = make_Content_rule((dt_hosted
+                                                   ? SpecialFunctionUIPrompt
+                                                   : UnexpectedSpecialFunctionUIPrompt),
                                                   NamedWildcardDefinition,
                                                   A1111StyleLora,
                                                   AnonWildcard);
