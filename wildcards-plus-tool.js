@@ -7136,6 +7136,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUIPrompt) {
+      console.log(`expanding ui-prompt ${inspect_fun(ui_prompt)}`);
       return expand_wildcards(ui_prompt, context, indent + 1);
     }
     // ---------------------------------------------------------------------------------------------
