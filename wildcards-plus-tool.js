@@ -1775,19 +1775,6 @@ function abbreviate(str, len = 100) {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function compress(str) {
-  return str.replace(/\s+/g, ' ');
-}
-// -------------------------------------------------------------------------------------------------
-function format_simple_time(date = new Date()) {
-  return date.toLocaleTimeString('en-US', {
-    hour:   'numeric',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
-  });
-}
-// -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
   return index == input.length
 }
@@ -2582,124 +2569,17 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
-// DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
-// -------------------------------------------------------------------------------------------------
-function structured_clone(value, {
-  seen = new WeakMap(),           // For shared reference reuse
-  ancestors = new WeakSet(),      // For cycle detection
-  unshare = false
-} = {}) {
-  if (value === null || typeof value !== "object")
-    return value;
-
-  if (ancestors.has(value))
-    throw new TypeError("Cannot clone cyclic structure");
-  
-  if (!unshare && seen.has(value))
-    return seen.get(value);
-
-  ancestors.add(value); // Add to call stack tracking
-
-  let clone;
-
-  if (Array.isArray(value)) {
-    clone = [];
-
-    if (!unshare)
-      seen.set(value, clone);
-
-    for (const item of value) 
-      clone.push(structured_clone(item, { seen, ancestors, unshare }));
-  }
-  else if (value instanceof Set) {
-    clone = new Set();
-
-    if (!unshare)
-      seen.set(value, clone);
-
-    for (const item of value) 
-      clone.add(structured_clone(item, { seen, ancestors, unshare }));    
-  }
-  else if (value instanceof Map) {
-    clone = new Map();
-
-    if (!unshare)
-      seen.set(value, clone);
-    
-    for (const [k, v] of value.entries()) 
-      clone.set(structured_clone(k, { seen, ancestors, unshare }),
-                structured_clone(v, { seen, ancestors, unshare }));
-    
-  }
-  else if (value instanceof Date) {
-    clone = new Date(value);
-  }
-  else if (value instanceof RegExp) {
-    clone = new RegExp(value);
-  }
-  else {
-    clone = {};
-
-    if (!unshare)
-      seen.set(value, clone);
-
-    for (const key of Object.keys(value)) 
-      clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
-  }
-
-  ancestors.delete(value); // Cleanup recursion tracking
-
-  return clone;
+function compress(str) {
+  return str.replace(/\s+/g, ' ');
 }
 // -------------------------------------------------------------------------------------------------
-if (test_structured_clone) {
-  const shared = { msg: "hi" };
-  let obj = { a: shared, b: shared };
-  // test #1: preserve shared references, this one seems to work:
-  {
-    const clone = structured_clone(obj);
-
-    if (clone.a !== clone.b)
-      throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
-
-    console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
-  }
-  // test #2: break shared references (unshare), this one seems to work:
-  {
-    const clone = structured_clone(obj, { unshare: true });
-
-    if (clone.a === clone.b)
-      throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
-
-    console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
-  }
-  // test #4: should fail do to cycle, with unshare = false:
-  try {
-    obj = {};
-    obj.self = obj; // Create a cycle
-    structured_clone(obj);
-
-    // If we get here, no error was thrown = fail
-    throw new Error(`test #3 should have failed.`);
-  } catch (err) {
-    if (err.message === 'test #3 should have failed.')
-      throw err;
-    else 
-      console.log(`test #3 failed as intended.`);
-  }
-  // test #4: should fail do to cycle, with unshare = true:
-  try {
-    obj = {};
-    obj.self = obj; // Create a cycle
-    structured_clone(obj, { unshare: true }); 
-
-    throw new Error(`test #4 should have failed.`);
-  } catch (err) {
-    if (err.message === 'test #4 should have failed.') 
-      throw err;
-    else
-      console.log(`test #3 failed as intended.`);
-  }
+function format_simple_time(date = new Date()) {
+  return date.toLocaleTimeString('en-US', {
+    hour:   'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
 }
 // -------------------------------------------------------------------------------------------------
 function arr_is_prefix_of_arr(prefix_arr, full_arr) {
@@ -2778,16 +2658,6 @@ function choose_indefinite_article(word) {
 
   return 'a';
 }
-// -------------------------------------------------------------------------------------------------
-function unescape(str) {
-  if (typeof str !== 'string')
-    return str;
-  
-  return str
-    .replace(/\\n/g,   '\n')
-    .replace(/\\ /g,   ' ')
-    .replace(/\\(.)/g, '$1')
-};
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr) {
   if (! arr)
@@ -2961,6 +2831,136 @@ function smart_join(arr) {
   
   return str;
 }
+// -------------------------------------------------------------------------------------------------
+// DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
+// -------------------------------------------------------------------------------------------------
+function structured_clone(value, {
+  seen = new WeakMap(),           // For shared reference reuse
+  ancestors = new WeakSet(),      // For cycle detection
+  unshare = false
+} = {}) {
+  if (value === null || typeof value !== "object")
+    return value;
+
+  if (ancestors.has(value))
+    throw new TypeError("Cannot clone cyclic structure");
+  
+  if (!unshare && seen.has(value))
+    return seen.get(value);
+
+  ancestors.add(value); // Add to call stack tracking
+
+  let clone;
+
+  if (Array.isArray(value)) {
+    clone = [];
+
+    if (!unshare)
+      seen.set(value, clone);
+
+    for (const item of value) 
+      clone.push(structured_clone(item, { seen, ancestors, unshare }));
+  }
+  else if (value instanceof Set) {
+    clone = new Set();
+
+    if (!unshare)
+      seen.set(value, clone);
+
+    for (const item of value) 
+      clone.add(structured_clone(item, { seen, ancestors, unshare }));    
+  }
+  else if (value instanceof Map) {
+    clone = new Map();
+
+    if (!unshare)
+      seen.set(value, clone);
+    
+    for (const [k, v] of value.entries()) 
+      clone.set(structured_clone(k, { seen, ancestors, unshare }),
+                structured_clone(v, { seen, ancestors, unshare }));
+    
+  }
+  else if (value instanceof Date) {
+    clone = new Date(value);
+  }
+  else if (value instanceof RegExp) {
+    clone = new RegExp(value);
+  }
+  else {
+    clone = {};
+
+    if (!unshare)
+      seen.set(value, clone);
+
+    for (const key of Object.keys(value)) 
+      clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
+  }
+
+  ancestors.delete(value); // Cleanup recursion tracking
+
+  return clone;
+}
+// -------------------------------------------------------------------------------------------------
+if (test_structured_clone) {
+  const shared = { msg: "hi" };
+  let obj = { a: shared, b: shared };
+  // test #1: preserve shared references, this one seems to work:
+  {
+    const clone = structured_clone(obj);
+
+    if (clone.a !== clone.b)
+      throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
+
+    console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
+  }
+  // test #2: break shared references (unshare), this one seems to work:
+  {
+    const clone = structured_clone(obj, { unshare: true });
+
+    if (clone.a === clone.b)
+      throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
+
+    console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
+  }
+  // test #4: should fail do to cycle, with unshare = false:
+  try {
+    obj = {};
+    obj.self = obj; // Create a cycle
+    structured_clone(obj);
+
+    // If we get here, no error was thrown = fail
+    throw new Error(`test #3 should have failed.`);
+  } catch (err) {
+    if (err.message === 'test #3 should have failed.')
+      throw err;
+    else 
+      console.log(`test #3 failed as intended.`);
+  }
+  // test #4: should fail do to cycle, with unshare = true:
+  try {
+    obj = {};
+    obj.self = obj; // Create a cycle
+    structured_clone(obj, { unshare: true }); 
+
+    throw new Error(`test #4 should have failed.`);
+  } catch (err) {
+    if (err.message === 'test #4 should have failed.') 
+      throw err;
+    else
+      console.log(`test #3 failed as intended.`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function unescape(str) {
+  if (typeof str !== 'string')
+    return str;
+  
+  return str
+    .replace(/\\n/g,   '\n')
+    .replace(/\\ /g,   ' ')
+    .replace(/\\(.)/g, '$1')
+};
 // =================================================================================================
 // END OF MISCELLANEOUS HELPER FUNCTIONS SECTION.
 // =================================================================================================
@@ -6745,15 +6745,6 @@ function load_prelude(into_context = new Context()) {
 }
 // =================================================================================================
 // END OF PRELUDE HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
-// =================================================================================================
-
-
-// =================================================================================================
-// MISC. HELPER FUNCTIONS:
-// =================================================================================================
-
-// =================================================================================================
-// END OF MISC. HELPER FUNCTIONS.
 // =================================================================================================
 
 
