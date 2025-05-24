@@ -335,8 +335,8 @@ const trailing_separator_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 function __format_FatalParseError_message(message_body, input, index) {
   return `${message_body} at char #${index}, ` +
-  `found:\n` +
-  `${abbreviate(input.substring(index))}`;
+    `found:\n` +
+    `${abbreviate(input.substring(index))}`;
 }
 // -------------------------------------------------------------------------------------------------
 class FatalParseError extends Error {
@@ -7952,20 +7952,24 @@ const SpecialFunctionUIPrompt =
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
-                 () => "%ui-prompt is only supported when " +
-                 "using wildcards-plus.js inside Draw Things, " +
-                 "NOT when " +
-                 "running the wildcards-plus-tool.js script");
+                 (rule, input, index) =>
+                 new FatalParseError("%ui-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1));
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             'ui-neg-prompt');
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
-                 () => "%ui-neg-prompt is only supported when " +
-                 "using wildcards-plus.js inside Draw Things, " +
-                 "NOT when " +
-                 "running the wildcards-plus-tool.js script");
+                 (rule, input, index)=>
+                 new FatalParseError("%ui-neg-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1));
 UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
