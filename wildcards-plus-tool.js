@@ -63,17 +63,23 @@ function parse_file(filename) {
 
   // console.log(`${inspect_fun(cache)}`);
 
-  for (const [key, value] of cache.entries()) {
-    // throw new Error("bomb");
-    // if (key.toString() === '0') {
-    //   console.log(typeof key);
-    //   console.log(inspect_fun(key));
-    //   throw new Error("bomb");
-    // }
-    
-    console.log(`'${key}' = ${inspect_fun(value.size)}`);
-    
+  // for (const [key, value] of cache.entries()) {
+  //   // throw new Error("bomb");
+  //   // if (key.toString() === '0') {
+  //   //   console.log(typeof key);
+  //   //   console.log(inspect_fun(key));
+  //   //   throw new Error("bomb");
+  //   // }
+  
+  //   console.log(`'${key}' = ${inspect_fun(value.size)}`);
+  
+  // }
+  for (const [k, v] of Array.from(cache.entries()).toSorted((x, y) => y.size - y.size)) {
+    console.log(`${k.toString()}: ${inspect_fun(v.size)}`);
   }
+
+  
+  //console.log(inspect_fun(Array.from(cache.entries()).toSorted((x, y) => y.size - y.size)));
   
   // throw new Error("bimb");
   
