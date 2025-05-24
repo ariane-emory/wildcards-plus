@@ -6929,6 +6929,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       return ui_prompt;
     }
     // ---------------------------------------------------------------------------------------------
+    else if (thing instanceof ASTUIPrompt) {
+      return ui_neg_prompt;
+    }
+    // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTRevertPickSingle || 
              thing instanceof ASTRevertPickMultiple) {
       const cur_key = thing instanceof ASTRevertPickSingle
@@ -7502,6 +7506,16 @@ class ASTUIPrompt extends ASTNode {
     return `%ui-prompt`;
   }
 }
+// -------------------------------------------------------------------------------------------------
+class ASTUINegPrompt extends ASTNode {
+  constructor() {
+    super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%ui-prompt`;
+  }
+}
 // =================================================================================================
 // END OF SD PROMPT AST CLASSES SECTION.
 // =================================================================================================
@@ -7703,8 +7717,19 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
+const SpecialFunctionUINegPrompt =
+      xform(() => new ASTUINegPrompt(),
+            'ui-prompt');
+SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+const UnexpectedSpecialFunctionUINegPrompt =
+      unexpected(SpecialFunctionUINegPrompt,
+                 () => "%UINegPrompt is only supported when " +
+                 "using wildcards-plus.js inside Draw Things " +
+                 "NOT when " +
+                 "running the wildcards-plus.js script!");
+UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 const SpecialFunctionUIPrompt =
-      xform(arr => new ASTUIPrompt(arr[0]),
+      xform(() => new ASTUIPrompt(),
             'ui-prompt');
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
@@ -7788,6 +7813,9 @@ const AnySpecialFunction =
                          choice((dt_hosted
                                  ? SpecialFunctionUIPrompt
                                  : UnexpectedSpecialFunctionUIPrompt),
+                                (dt_hosted
+                                 ? SpecialFunctionUINegPrompt
+                                 : UnexpectedSpecialFunctionUINegPrompt),
                                 (dt_hosted
                                  ? UnexpectedSpecialFunctionInclude
                                  : SpecialFunctionInclude),
