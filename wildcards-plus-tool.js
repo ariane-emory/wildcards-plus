@@ -436,7 +436,7 @@ class Rule {
       if (rule_cache.has(index)) {
         const got = rule_cache.get(index);
 
-        console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;
+        // console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;
         
         return got;
       }
@@ -1081,9 +1081,8 @@ class Label extends Rule {
     this.rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const rule_match_result = this.rule.match(
-      input, index, indent);
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent, cache);
 
     if (! rule_match_result)
       return null;
@@ -1122,7 +1121,7 @@ class NeverMatch extends Rule  {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     return null;
   } 
   // -----------------------------------------------------------------------------------------------
@@ -1149,11 +1148,8 @@ class Optional extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
+  __match(indent, input, index, cache) {
+    const match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (match_result === null) {
       const mr = new MatchResult(this.default_value !== null
@@ -1214,7 +1210,7 @@ class Sequence extends Rule {
     }
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     const start_rule = input[0];
 
     if (log_match_enabled)
@@ -1222,7 +1218,7 @@ class Sequence extends Rule {
           `${this.elements.length}: ${this.elements[0]}...`);
     
     const start_rule_match_result =
-          this.elements[0].match(input, index, indent + 2);
+          this.elements[0].match(input, index, indent + 2, cache);
     let last_match_result = start_rule_match_result;
 
     if (log_match_enabled && last_match_result !== null)
@@ -1263,8 +1259,7 @@ class Sequence extends Rule {
       
       const element = this.elements[ix];
 
-      last_match_result = element.match(
-        input, index, indent + 2);
+      last_match_result = element.match(input, index, indent + 2, cache);
 
       if (! last_match_result) {
         if (log_match_enabled)
@@ -1367,9 +1362,8 @@ class Xform extends Rule {
     this.rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const rule_match_result = this.rule.match(
-      input, index, indent + 1);
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! rule_match_result)
       return null;
@@ -1422,11 +1416,8 @@ class Expect extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
+  __match(indent, input, index, cache) {
+    const match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! match_result) {
       if (this.error_func) {
@@ -1475,11 +1466,8 @@ class Unexpected extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
+  __match(indent, input, index, cache) {
+    const match_result = this.rule.match(input, index, indent + 1, cache);
     
     if (match_result) {
       if (this.error_func) {
@@ -1530,7 +1518,7 @@ class Fail extends Rule {
     return [];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     throw this.error_func
       ? this.error_func(this, index, input)
       : new Error(// `(#5) ` +
@@ -1556,7 +1544,7 @@ function fail(error_func = null) { // convenience constructor
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-// TokenLabel class
+// TokenLabel class, this can probably be deleted soon?
 // -------------------------------------------------------------------------------------------------
 class TokenLabel extends Rule {
   // -----------------------------------------------------------------------------------------------
@@ -1573,7 +1561,7 @@ class TokenLabel extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     if (index_is_at_end_of_input(index, input))
       return null;
 
