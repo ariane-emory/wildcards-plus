@@ -8181,11 +8181,14 @@ Prompt.finalize();
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =================================================================================================
 
-const ui_prompt = "@shape = { cube | sphere there is a @thing here";
+
 
 // =================================================================================================
 // MAIN SECTION:
 // =================================================================================================
+// fake UI prompt, just for use debugging when dt_hosted has been set to true:
+const ui_prompt = "@shape = { cube | sphere }there is a @thing here";
+// -------------------------------------------------------------------------------------------------
 async function main() {
   // -----------------------------------------------------------------------------------------------
   // process the command-line arguments:
