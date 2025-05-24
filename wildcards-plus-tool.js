@@ -7974,7 +7974,7 @@ UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunct
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
-            c_funcall('include',                           // [0]
+            c_funcall('%include',                           // [0]
                       first(wst_seq(discarded_comments,    // -
                                     json_string,           // [1]
                                     discarded_comments)))) // -
