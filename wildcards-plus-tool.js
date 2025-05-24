@@ -7898,6 +7898,17 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
+const SpecialFunctionUIPrompt =
+      xform(arr => new ASTUIPrompt(arr[0]),
+            'ui-prompt');
+SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
+const UnexpectedSpecialFunctionUIPrompt =
+      unexpected(SpecialFunctionUIPrompt,
+                 () => "%UIPrompt is only supported when " +
+                 "using wildcards-plus-tool.js, NOT when " +
+                 "running the wildcards-plus.js script " +
+                 "inside Draw Things!");
+UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
             c_funcall('include',                          // [0]
@@ -7970,6 +7981,9 @@ const SpecialFunctionNotInclude =
 const AnySpecialFunction =
       second(cutting_seq('%',
                          choice((dt_hosted
+                                 ? SpecialFunctionUIPrompt
+                                 : UnexpectedSpecialFunctionUIPrompt),
+                                (dt_hosted
                                  ? UnexpectedSpecialFunctionInclude
                                  : SpecialFunctionInclude),
                                 NormalSpecialFunction),
