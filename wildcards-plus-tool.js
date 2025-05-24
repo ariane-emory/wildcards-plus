@@ -8536,3 +8536,4 @@ main().catch(err => {
 // console.log(`${CheckFlagWithOrAlternatives}`);
 // console.log(lws('a').toString());
 // console.log(wst_star('a').toString());
+console.log(inspect_fun(TestFlag.match("?foo")))
