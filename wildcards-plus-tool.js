@@ -3307,11 +3307,11 @@ class Context {
 
     for (const [name, nwc] of this.named_wildcards) {
       if (nwc instanceof ASTLatchedNamedWildcardValue) {
-        console.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
+        // console.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
         this.named_wildcards.set(name, nwc.original_value);
-      } else {
-        console.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
-      } 
+      } /* else {
+           console.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
+        } */
     }
   }
   // -----------------------------------------------------------------------------------------------
@@ -6922,13 +6922,21 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (!got)
         return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
 
-      if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+      // console.log(`CONSIDER ${inspect_fun(got)}`);
+
+      if (got instanceof ASTLatchedNamedWildcardValue) {
         return `\\<WARNING: tried to latch already-latched NamedWildcard @${thing.name}, ` +
           `check your template!>`;
+      } else {
+        console.log(`LATCHING ${inspect_fun(got)}`);
+        
+        // throw new Error('bomb');
       }
 
       const latched = new ASTLatchedNamedWildcardValue(walk(got, indent + 1), got);
 
+      // console.log(`LATCHED IS ${inspect_fun(latched)}`);
+      
       log(context.noisy,
           `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
       
