@@ -335,7 +335,7 @@ const trailing_separator_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 class FatalParseError extends Error {
   constructor(message_body, input, index) {
-    super();
+    super(message_body);
     this.name         = 'FatalParseError';
     this.message_body = message_body
     this.index        = index;
@@ -1436,12 +1436,10 @@ class Expected extends Rule {
     const match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! match_result) {
-      if (this.error_func) {
+      if (this.error_func)
         throw this.error_func(this, index, input)
-      }
-      else {
+      else
         throw new FatalParseError(`expected ${this.rule}`, input, index);
-      }
     };
 
     return match_result;
@@ -1522,12 +1520,7 @@ class Fail extends Rule {
   __match(indent, input, index, cache) {
     throw this.error_func
       ? this.error_func(this, index, input)
-      : new Error(// `(#5) ` +
-        `unexpected ${this.rule} at ` +
-          `char ${input[index].start}` +
-          `, found:\n` +
-          `[ ${input.slice(index).join(", ")}` +
-          ` ]`);
+      : new FatalParseError(`hit automatic failure Rule`, input, index);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
@@ -1769,10 +1762,8 @@ function abbreviate(str, len = 100) {
 
     for (const [left, right] of bracing_pairs) {
       if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
-        // throw new Error(`bomb ${inspect_fun(str)}`);
         str = str.substring(left.length, len - 3 - right.length);
         const ret = `${left}${str.replace("\n","").trim()}...${right}`;
-        // console.log(`re: ${str} =>\n    ${ret}`);
         return ret;
       }
     }
