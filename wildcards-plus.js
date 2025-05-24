@@ -8046,95 +8046,99 @@ console.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
 // parse the prompt_string here:
 // -------------------------------------------------------------------------------------------------
 
-const parse_result     = Prompt.match(prompt_string);
+try {
+  const parse_result     = Prompt.match(prompt_string);
 
-if (! parse_result.is_finished)
-  throw new Error(`parsing prompt did not finish parsing its input!`);
+  if (! parse_result.is_finished)
+    throw new Error(`parsing prompt did not finish parsing its input!`);
 
-const AST              = parse_result.value;
-
-// -------------------------------------------------------------------------------------------------
-
-LOG_LINE();
-console.log(`pipeline.configuration is:`);
-LOG_LINE();
-console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
-// LOG_LINE();
-// console.log(`pipeline.prompts is:`);
-// LOG_LINE();
-// console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
-LOG_LINE();
-console.log(`The wildcards-plus prompt is:`);
-LOG_LINE();
-console.log(`${prompt_string}`);
-
-const base_context = load_prelude();
-base_context.configuration          = pipeline.configuration;
-base_context.pick_one_priority      = user_selected_pick_one_priority;
-base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
-
-// -------------------------------------------------------------------------------------------------
-// main loop:
-// -------------------------------------------------------------------------------------------------
-for (let ix = 0; ix < batch_count; ix++) {
-  const start_date = new Date();
-
-  LOG_LINE();
-  console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
-  LOG_LINE();
-
-  // expand the wildcards using a cloned context and generate a new configuration:
-  
-  const context = base_context.clone();
-  const prompt  = expand_wildcards(AST, context);
-  context.munge_configuration();
-
-  LOG_LINE();
-  console.log(`GENERATED CONFIGURATION:`);
-  console.log(`${JSON.stringify(context.configuration, null, 2)}`);
-  LOG_LINE();
-  console.log(`The expanded prompt is:`);
-  LOG_LINE();
-  console.log(`${prompt}`);
-  
-  if (context.configuration.negativePrompt || context.configuration.negativePrompt === '') {
-    LOG_LINE();
-    console.log(`Expanded negative prompt:`);
-    LOG_LINE();
-    console.log(context.configuration.negativePrompt);
-  } else {
-    LOG_LINE();
-    console.log(`No negative prompt/`);
-  }
-  LOG_LINE();
-  console.log(`Generating image #${ix+1} out of ${batch_count}...`);
+  const AST              = parse_result.value;
 
   // -----------------------------------------------------------------------------------------------
-  // run the pipeline:
-  // -----------------------------------------------------------------------------------------------
 
-  if (clear_first) {
-    console.log(`Clearing canvas...`);
-    canvas.clear();
-  } else {
-    console.log(`Not clearing canvas`);
+  LOG_LINE();
+  console.log(`pipeline.configuration is:`);
+  LOG_LINE();
+  console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
+  // LOG_LINE();
+  // console.log(`pipeline.prompts is:`);
+  // LOG_LINE();
+  // console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
+  LOG_LINE();
+  console.log(`The wildcards-plus prompt is:`);
+  LOG_LINE();
+  console.log(`${prompt_string}`);
+
+  const base_context = load_prelude();
+  base_context.configuration          = pipeline.configuration;
+  base_context.pick_one_priority      = user_selected_pick_one_priority;
+  base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
+
+  // -----------------------------------------------------------------------------------------------
+  // main loop:
+  // -----------------------------------------------------------------------------------------------
+  for (let ix = 0; ix < batch_count; ix++) {
+    const start_date = new Date();
+
+    LOG_LINE();
+    console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
+    LOG_LINE();
+
+    // expand the wildcards using a cloned context and generate a new configuration:
+    
+    const context = base_context.clone();
+    const prompt  = expand_wildcards(AST, context);
+    context.munge_configuration();
+
+    LOG_LINE();
+    console.log(`GENERATED CONFIGURATION:`);
+    console.log(`${JSON.stringify(context.configuration, null, 2)}`);
+    LOG_LINE();
+    console.log(`The expanded prompt is:`);
+    LOG_LINE();
+    console.log(`${prompt}`);
+    
+    if (context.configuration.negativePrompt || context.configuration.negativePrompt === '') {
+      LOG_LINE();
+      console.log(`Expanded negative prompt:`);
+      LOG_LINE();
+      console.log(context.configuration.negativePrompt);
+    } else {
+      LOG_LINE();
+      console.log(`No negative prompt/`);
+    }
+    LOG_LINE();
+    console.log(`Generating image #${ix+1} out of ${batch_count}...`);
+
+    // ---------------------------------------------------------------------------------------------
+    // run the pipeline:
+    // ---------------------------------------------------------------------------------------------
+    if (clear_first) {
+      console.log(`Clearing canvas...`);
+      canvas.clear();
+    } else {
+      console.log(`Not clearing canvas`);
+    }
+
+    const negative_prompt = context.configuration.negativePrompt;
+    delete context.configuration.negativePrompt;
+    
+    pipeline.run({
+      configuration: context.configuration,
+      prompt: prompt,
+      negativePrompt: negative_prompt,
+    });
+
+    const end_time     = new Date().getTime();
+    const elapsed_time = (end_time - start_date.getTime()) / 1000;
+
+    console.log(`... image generated in ${elapsed_time} seconds.`);
   }
 
-  const negative_prompt = context.configuration.negativePrompt;
-  delete context.configuration.negativePrompt;
-  
-  pipeline.run({
-    configuration: context.configuration,
-    prompt: prompt,
-    negativePrompt: negative_prompt,
-  });
-
-  const end_time     = new Date().getTime();
-  const elapsed_time = (end_time - start_date.getTime()) / 1000;
-
-  console.log(`... image generated in ${elapsed_time} seconds.`);
+  LOG_LINE();
+  console.log('Job complete. Open the console to see the job report.');
 }
-
-LOG_LINE();
-console.log('Job complete. Open the console to see the job report.');
+catch(ex) {
+  console.log(`Uncaught Error: ${ex?.stack??inspect_fun(ex)}`);
+}
 // -------------------------------------------------------------------------------------------------
