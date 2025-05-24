@@ -1896,8 +1896,8 @@ uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
-whites_star.memoize = false;
-whites_plus.memoize = false;
+// whites_star.memoize = false;
+// whites_plus.memoize = false;
 whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
 const d_whites_star      = discard(whites_star);
@@ -7850,7 +7850,7 @@ const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
 any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
 assignment_operator            .abbreviate_str_repr('assignment_operator');
-comment                        .abbreviate_str_repr(false);
+comment                        .abbreviate_str_repr(false); // 'comment');
 escaped_brc                    .abbreviate_str_repr('escaped_brc');
 filename                       .abbreviate_str_repr('filename');
 ident                          .abbreviate_str_repr('ident');
@@ -7864,7 +7864,7 @@ word_break                     .abbreviate_str_repr('word_break');
 // discard comments:
 // -------------------------------------------------------------------------------------------------
 const discarded_comments        = discard(wst_star(comment));
-discarded_comments              .abbreviate_str_repr('-comment*');
+discarded_comments              .abbreviate_str_repr('discarded_comments_star');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
@@ -8043,7 +8043,7 @@ SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
 CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
 CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
 NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
-TestFlag.abbreviate_str_repr('TestFlag');
+estFlag.abbreviate_str_repr('TestFlag');
 SetFlag.abbreviate_str_repr('SetFlag');
 UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
@@ -8126,400 +8126,400 @@ const SpecialFunctionUpdateConfigurationBinary =
                         discarded_comments,                                 // -
                         choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
 SpecialFunctionUpdateConfigurationBinary
-  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
-const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                    // [0]
-                wst_seq(discarded_comments,                                       // -
-                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
-                        discarded_comments,                                       // -
-                        choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
-SpecialFunctionUpdateConfigurationUnary
-  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-// -------------------------------------------------------------------------------------------------
-const SpecialFunctionNotInclude =
-      second(cutting_seq('%',
-                         choice(
-                           SpecialFunctionUpdateConfigurationBinary,
-                           SpecialFunctionUpdateConfigurationUnary,
-                           (dt_hosted ? SpecialFunctionUIPrompt : UnexpectedSpecialFunctionUIPrompt),
-                           (dt_hosted ? SpecialFunctionUINegPrompt : UnexpectedSpecialFunctionUINegPrompt),
-                           SpecialFunctionSetPickSingle,
-                           SpecialFunctionSetPickMultiple,
-                           SpecialFunctionRevertPickSingle,
-                           SpecialFunctionRevertPickMultiple,
-                         ),
-                         discarded_comments,
-                         lws(optional(';'))));
-SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-// -------------------------------------------------------------------------------------------------
-// other non-terminals:
-// -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative =
-      xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
-                optional(wb_uint, 1),
-                wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
-                () => ContentStar));
-AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcardAlternativeNoLoras =
-      xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
-                optional(wb_uint, 1),
-                wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
-                () => ContentNoLorasStar));
-AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-// AnonWildcard.abbreviate_str_repr('AnonWildcard');
-// AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
-const NamedWildcardReference  = xform(seq('@',                                       // [0]
-                                          optional('^'),                             // [1]
-                                          optional(xform(parseInt, uint)),           // [2]
-                                          optional(xform(parseInt,
-                                                         second(seq('-', uint)))),   // [3]
-                                          optional(/[,&]/),                          // [4]
-                                          ident),                                    // [5]
-                                      arr => {
-                                        const ident  = arr[5];
-                                        const min_ct = arr[2][0] ?? 1;
-                                        const max_ct = arr[3][0] ?? min_ct;
-                                        const join   = arr[4][0] ?? '';
-                                        const caret  = arr[1][0];
-                                        
-                                        return new ASTNamedWildcardReference(ident,
-                                                                             join,
-                                                                             caret,
-                                                                             min_ct,
-                                                                             max_ct);
-                                      });
-NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
-const NamedWildcardDesignator = second(seq('@', ident)); 
-NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
-const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
-                                      wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
-                                                              assignment_operator),    // -
-                                                      discarded_comments,
-                                                      AnonWildcard));                  // [1]
-NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
-const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
-                                      arr => {
-                                        const [ bang, hash, ident, objs ] =
-                                              [ arr[1][0], arr[2][0], arr[3], []];
-                                        
-                                        if (!bang && !hash)
-                                          return new ASTNamedWildcardReference(ident);
+    .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+  const SpecialFunctionUpdateConfigurationUnary =
+        xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+              seq(/conf(?:ig)?/,                                                    // [0]
+                  wst_seq(discarded_comments,                                       // -
+                          choice(incr_assignment_operator, assignment_operator),    // [1][0]
+                          discarded_comments,                                       // -
+                          choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
+  SpecialFunctionUpdateConfigurationUnary
+    .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+  // -------------------------------------------------------------------------------------------------
+  const SpecialFunctionNotInclude =
+        second(cutting_seq('%',
+                           choice(
+                             SpecialFunctionUpdateConfigurationBinary,
+                             SpecialFunctionUpdateConfigurationUnary,
+                             (dt_hosted ? SpecialFunctionUIPrompt : UnexpectedSpecialFunctionUIPrompt),
+                             (dt_hosted ? SpecialFunctionUINegPrompt : UnexpectedSpecialFunctionUINegPrompt),
+                             SpecialFunctionSetPickSingle,
+                             SpecialFunctionSetPickMultiple,
+                             SpecialFunctionRevertPickSingle,
+                             SpecialFunctionRevertPickMultiple,
+                           ),
+                           discarded_comments,
+                           lws(optional(';'))));
+  SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
+  // -------------------------------------------------------------------------------------------------
+  // other non-terminals:
+  // -------------------------------------------------------------------------------------------------
+  const AnonWildcardAlternative =
+        xform(make_ASTAnonWildcardAlternative,
+              seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
+                  optional(wb_uint, 1),
+                  wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
+                  () => ContentStar));
+  AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
+  const AnonWildcardAlternativeNoLoras =
+        xform(make_ASTAnonWildcardAlternative,
+              seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
+                  optional(wb_uint, 1),
+                  wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
+                  () => ContentNoLorasStar));
+  AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+  const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
+                                        brc_enc(wst_star(AnonWildcardAlternative, '|')));
+  const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
+                                        brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+  // AnonWildcard.abbreviate_str_repr('AnonWildcard');
+  // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
+  const NamedWildcardReference  = xform(seq('@',                                       // [0]
+                                            optional('^'),                             // [1]
+                                            optional(xform(parseInt, uint)),           // [2]
+                                            optional(xform(parseInt,
+                                                           second(seq('-', uint)))),   // [3]
+                                            optional(/[,&]/),                          // [4]
+                                            ident),                                    // [5]
+                                        arr => {
+                                          const ident  = arr[5];
+                                          const min_ct = arr[2][0] ?? 1;
+                                          const max_ct = arr[3][0] ?? min_ct;
+                                          const join   = arr[4][0] ?? '';
+                                          const caret  = arr[1][0];
+                                          
+                                          return new ASTNamedWildcardReference(ident,
+                                                                               join,
+                                                                               caret,
+                                                                               min_ct,
+                                                                               max_ct);
+                                        });
+  NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
+  const NamedWildcardDesignator = second(seq('@', ident)); 
+  NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
+  const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
+                                        wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
+                                                                assignment_operator),    // -
+                                                        discarded_comments,
+                                                        AnonWildcard));                  // [1]
+  NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
+  const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
+                                        arr => {
+                                          const [ bang, hash, ident, objs ] =
+                                                [ arr[1][0], arr[2][0], arr[3], []];
+                                          
+                                          if (!bang && !hash)
+                                            return new ASTNamedWildcardReference(ident);
 
-                                        // goes before hash so that "@!#" works correctly:
-                                        if (bang) 
-                                          objs.push(new ASTUnlatchNamedWildcard(ident));
+                                          // goes before hash so that "@!#" works correctly:
+                                          if (bang) 
+                                            objs.push(new ASTUnlatchNamedWildcard(ident));
 
-                                        if (hash)
-                                          objs.push(new ASTLatchNamedWildcard(ident));
+                                          if (hash)
+                                            objs.push(new ASTLatchNamedWildcard(ident));
 
-                                        return objs;
-                                      });
-NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
-const ScalarReference         = xform(seq('$', optional('^'), ident),
-                                      arr => new ASTScalarReference(arr[2], arr[1][0]));
-ScalarReference.abbreviate_str_repr('ScalarReference');
-const ScalarDesignator        = xform(seq('$', ident),
-                                      arr => new ASTScalarReference(arr[1]));
-ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
-const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == '='),
-                                      wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
-                                                              discarded_comments,
-                                                              choice(incr_assignment_operator,
-                                                                     assignment_operator)), // [0][1]
-                                                      discarded_comments,                   // [1]
-                                                      choice(() => LimitedContent,
-                                                             json_string,
-                                                             plaintext),
-                                                      discarded_comments,
-                                                      lws(optional(';'))));
-ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
-const LimitedContent          = choice(NamedWildcardReference,
-                                       ScalarReference,
-                                       AnonWildcardNoLoras,
-                                       plaintext);
-LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_rules = [] } = {}) =>
-      choice(
-        ...before_plaintext_rules,
-        plaintext,
-        ...after_plaintext_rules,
-        low_pri_text,
-        NamedWildcardReference,
-        SpecialFunctionNotInclude,
-        comment,
-        NamedWildcardUsage,
-        SetFlag,
-        UnsetFlag,
-        ScalarUpdate,
-        ScalarReference,
-        // anon_wildcard_rule,
-        escaped_brc,
-      );
-const ContentNoLoras          = make_Content_rule({
-  after_plaintext_rules: [
-    AnonWildcardNoLoras,
-  ],
-});
-const Content                 = make_Content_rule({
-  before_plaintext_rules: [
-    A1111StyleLora,
-  ],
-  after_plaintext_rules:  [
-    AnonWildcard,
-  ],
-});
-const TopLevelContent         = make_Content_rule({
-  before_plaintext_rules: [
-    A1111StyleLora,
-  ],
-  after_plaintext_rules:  [
-    AnonWildcard,
-    NamedWildcardDefinition,
-    SpecialFunctionInclude,
-  ],
-});
-const ContentNoLorasStar      = wst_star(ContentNoLoras);
-const ContentStar             = wst_star(Content);
-const TopLevelContentStar     = wst_star(TopLevelContent);
-const Prompt                  = TopLevelContentStar;
-// -------------------------------------------------------------------------------------------------
-Prompt.finalize();
-// =================================================================================================
-// END OF SD PROMPT GRAMMAR SECTION.
-// =================================================================================================
-
-
-// =================================================================================================
-// DEV NOTE: Copy into wildcards-plus.js through this line!
-// =================================================================================================
+                                          return objs;
+                                        });
+  NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
+  const ScalarReference         = xform(seq('$', optional('^'), ident),
+                                        arr => new ASTScalarReference(arr[2], arr[1][0]));
+  ScalarReference.abbreviate_str_repr('ScalarReference');
+  const ScalarDesignator        = xform(seq('$', ident),
+                                        arr => new ASTScalarReference(arr[1]));
+  ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
+  const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
+                                                                   arr[0][1] == '='),
+                                        wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
+                                                                discarded_comments,
+                                                                choice(incr_assignment_operator,
+                                                                       assignment_operator)), // [0][1]
+                                                        discarded_comments,                   // [1]
+                                                        choice(() => LimitedContent,
+                                                               json_string,
+                                                               plaintext),
+                                                        discarded_comments,
+                                                        lws(optional(';'))));
+  ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
+  const LimitedContent          = choice(NamedWildcardReference,
+                                         ScalarReference,
+                                         AnonWildcardNoLoras,
+                                         plaintext);
+  LimitedContent.abbreviate_str_repr('LimitedContent');
+  const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_rules = [] } = {}) =>
+        choice(
+          ...before_plaintext_rules,
+          plaintext,
+          ...after_plaintext_rules,
+          low_pri_text,
+          NamedWildcardReference,
+          SpecialFunctionNotInclude,
+          comment,
+          NamedWildcardUsage,
+          SetFlag,
+          UnsetFlag,
+          ScalarUpdate,
+          ScalarReference,
+          // anon_wildcard_rule,
+          escaped_brc,
+        );
+  const ContentNoLoras          = make_Content_rule({
+    after_plaintext_rules: [
+      AnonWildcardNoLoras,
+    ],
+  });
+  const Content                 = make_Content_rule({
+    before_plaintext_rules: [
+      A1111StyleLora,
+    ],
+    after_plaintext_rules:  [
+      AnonWildcard,
+    ],
+  });
+  const TopLevelContent         = make_Content_rule({
+    before_plaintext_rules: [
+      A1111StyleLora,
+    ],
+    after_plaintext_rules:  [
+      AnonWildcard,
+      NamedWildcardDefinition,
+      SpecialFunctionInclude,
+    ],
+  });
+  const ContentNoLorasStar      = wst_star(ContentNoLoras);
+  const ContentStar             = wst_star(Content);
+  const TopLevelContentStar     = wst_star(TopLevelContent);
+  const Prompt                  = TopLevelContentStar;
+  // -------------------------------------------------------------------------------------------------
+  Prompt.finalize();
+  // =================================================================================================
+  // END OF SD PROMPT GRAMMAR SECTION.
+  // =================================================================================================
 
 
+  // =================================================================================================
+  // DEV NOTE: Copy into wildcards-plus.js through this line!
+  // =================================================================================================
 
-// =================================================================================================
-// MAIN SECTION:
-// =================================================================================================
-// fake UI prompt, just for use debugging when dt_hosted has been set to true:
-const ui_prompt = "@shape = { cube | sphere } there is a @thing here";
-// -------------------------------------------------------------------------------------------------
-async function main() {
-  // -----------------------------------------------------------------------------------------------
-  // process the command-line arguments:
-  // -----------------------------------------------------------------------------------------------
-  const args       = process.argv.slice(2);
-  let   count      = 1;
-  let   post       = false;
-  let   confirm    = false;
-  let   from_stdin = false;
 
-  if (args.length == 0) 
-    throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
-                    `(--stdin | <input-file>) [<count>]`);
 
-  if (["-p", "--post"].includes(args[0])) {
-    post = true;
-    args.shift();
-  }
-  else if (["-c", "--confirm"].includes(args[0])) {
-    post    = true;
-    confirm = true;
-    args.shift();
-  }
+  // =================================================================================================
+  // MAIN SECTION:
+  // =================================================================================================
+  // fake UI prompt, just for use debugging when dt_hosted has been set to true:
+  const ui_prompt = "@shape = { cube | sphere } there is a @thing here";
+  // -------------------------------------------------------------------------------------------------
+  async function main() {
+    // -----------------------------------------------------------------------------------------------
+    // process the command-line arguments:
+    // -----------------------------------------------------------------------------------------------
+    const args       = process.argv.slice(2);
+    let   count      = 1;
+    let   post       = false;
+    let   confirm    = false;
+    let   from_stdin = false;
 
-  if (args.length === 0)
-    throw new Error("ERROR: Must provide --stdin or an input file.");
+    if (args.length == 0) 
+      throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
+                      `(--stdin | <input-file>) [<count>]`);
 
-  if (args[0] === '--stdin') {
-    if (confirm)
-      throw new Error(`the --confirm and --stdin options are incompatible.`);
-    
-    from_stdin = true;
-  }
-
-  if (args.length > 1) 
-    count = parseInt(args[1]);
-
-  // -----------------------------------------------------------------------------------------------
-  // read prompt input:
-  // -----------------------------------------------------------------------------------------------
-  let result = null;
-
-  if (from_stdin) {
-    // Read all stdin into a string
-    let prompt_input = await new Promise((resolve, reject) => {
-      let data = '';
-      input.setEncoding('utf8');
-      input.on('data', chunk => data += chunk);
-      input.on('end', () => resolve(data));
-      input.on('error', err => reject(err));
-    });
-
-    result = Prompt.match(prompt_input);
-    process.exit(0);
-  } else if (args.length === 0) {
-    throw new Error("ERROR: No input file provided.");
-  }
-  else {
-    result = parse_file(args[0]);
-  }
-  
-  // -----------------------------------------------------------------------------------------------
-  // just for debugging:
-  // -----------------------------------------------------------------------------------------------
-  if (print_ast_enabled)
-    console.log(`result: ${inspect_fun(result.value)}`);
-
-  if (print_ast_json_enabled)
-    console.log(`result (JSON): ${JSON.stringify(result.value)}`);
-  
-  // -----------------------------------------------------------------------------------------------
-  // check that the parsed result is complete and expand:
-  // -----------------------------------------------------------------------------------------------
-  if (! result.is_finished)
-    throw new Error(`error parsing prompt at ${result.index}!`);
-
-  let   AST          = result.value;
-  const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
-  
-  if (print_ast_before_includes_enabled) {
-    LOG_LINE();
-    console.log(`before process_includes:`);
-    LOG_LINE();
-    console.log(`${inspect_fun(AST)}`);
-    LOG_LINE();
-    console.log(`before process_includes (as JSON):`);
-    LOG_LINE();
-    console.log(`${JSON.stringify(AST)}`);
-  }
-
-  AST = process_includes(AST, base_context);
-
-  if (print_ast_after_includes_enabled) { 
-    LOG_LINE();
-    console.log(`after process_includes:`);
-    LOG_LINE();
-    console.log(`${inspect_fun(AST)}`);
-    LOG_LINE();
-    console.log(`after process_includes (as JSON):`);
-    LOG_LINE();
-    console.log(`${JSON.stringify(AST)}`);
-  }
-  
-  let posted_count        = 0;
-  let prior_prompt        = null;
-  let prior_configuration = null;
-  
-  const stash_priors = (prompt, configuration) => {
-    prior_prompt        = prompt;
-    prior_configuration = structured_clone(configuration);
-  };
-
-  const restore_priors = (prompt, configuration) => {
-    const ret = [ prior_prompt, prior_configuration ];
-    [ prior_prompt, prior_configuration ] = [ prompt, configuration ];
-    return ret;
-  };
-
-  const do_post = (prompt, configuration) => {
-    post_prompt({ prompt: prompt,  configuration: configuration });
-    posted_count += 1; 
-  };
-
-  while (posted_count < count) {
-    LOG_LINE('=');
-    console.log(`Expansion #${posted_count + 1} of ${count}:`);
-    LOG_LINE('=');
-    
-    const context = base_context.clone();
-    context.reset_temporaries();
-    const prompt  = expand_wildcards(AST, context);
-
-    if (log_flags_enabled || log_configuration_enabled) {
-      LOG_LINE();
-      console.log(`Flags after:`);
-      LOG_LINE();
-      console.log(`${inspect_fun(context.flags)}`);
+    if (["-p", "--post"].includes(args[0])) {
+      post = true;
+      args.shift();
+    }
+    else if (["-c", "--confirm"].includes(args[0])) {
+      post    = true;
+      confirm = true;
+      args.shift();
     }
 
-    LOG_LINE();
-    console.log(`Final config is is:`);
-    LOG_LINE();
-    console.log(inspect_fun(context.configuration));
+    if (args.length === 0)
+      throw new Error("ERROR: Must provide --stdin or an input file.");
 
-    
-    LOG_LINE();
-    console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
-    LOG_LINE();
-    console.log(prompt);
-
-    if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
-      LOG_LINE();
-      console.log(`Expanded negative prompt:`);
-      LOG_LINE();
-      console.log(context.configuration.negative_prompt);
+    if (args[0] === '--stdin') {
+      if (confirm)
+        throw new Error(`the --confirm and --stdin options are incompatible.`);
+      
+      from_stdin = true;
     }
 
-    if (!post) {
-      posted_count += 1; // a lie to make the counter correct.
+    if (args.length > 1) 
+      count = parseInt(args[1]);
+
+    // -----------------------------------------------------------------------------------------------
+    // read prompt input:
+    // -----------------------------------------------------------------------------------------------
+    let result = null;
+
+    if (from_stdin) {
+      // Read all stdin into a string
+      let prompt_input = await new Promise((resolve, reject) => {
+        let data = '';
+        input.setEncoding('utf8');
+        input.on('data', chunk => data += chunk);
+        input.on('end', () => resolve(data));
+        input.on('error', err => reject(err));
+      });
+
+      result = Prompt.match(prompt_input);
+      process.exit(0);
+    } else if (args.length === 0) {
+      throw new Error("ERROR: No input file provided.");
     }
     else {
-      if (!confirm) {
-        LOG_LINE();
-        do_post(prompt, context.configuration);
-        posted_count += 1;
-      }
-      else  {
-        console.log();
-
-        const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
-              `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
-              `POST the prior prompt)? `;
-        const answer   = await ask(question);
-
-        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
-          stash_priors(prompt, context.configuration);
-          continue;
-        }
-
-        if (answer.match(/^p.*/i)) {
-          if (prior_prompt) { 
-            LOG_LINE();
-            [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
-            
-            console.log(`POSTing prior prompt '${prompt}'`);
-            
-            do_post(prompt, context.configuration);
-            
-            continue;
-          }
-          else {
-            console.log(`can't rewind, no prior prompt`);
-          }
-        }
-        else { // /^y.*/
-          LOG_LINE();
-          const parsed    = parseInt(answer);
-          const gen_count = isNaN(parsed) ? 1 : parsed;  
-          
-          for (let iix = 0; iix < gen_count; iix++)
-            do_post(prompt, context.configuration);
-        }
-      }
+      result = parse_file(args[0]);
     }
     
-    stash_priors(prompt, context.configuration);
-  }
+    // -----------------------------------------------------------------------------------------------
+    // just for debugging:
+    // -----------------------------------------------------------------------------------------------
+    if (print_ast_enabled)
+      console.log(`result: ${inspect_fun(result.value)}`);
 
-  LOG_LINE('=');
-}
-// -------------------------------------------------------------------------------------------------
+    if (print_ast_json_enabled)
+      console.log(`result (JSON): ${JSON.stringify(result.value)}`);
+    
+    // -----------------------------------------------------------------------------------------------
+    // check that the parsed result is complete and expand:
+    // -----------------------------------------------------------------------------------------------
+    if (! result.is_finished)
+      throw new Error(`error parsing prompt at ${result.index}!`);
+
+    let   AST          = result.value;
+    const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
+    
+    if (print_ast_before_includes_enabled) {
+      LOG_LINE();
+      console.log(`before process_includes:`);
+      LOG_LINE();
+      console.log(`${inspect_fun(AST)}`);
+      LOG_LINE();
+      console.log(`before process_includes (as JSON):`);
+      LOG_LINE();
+      console.log(`${JSON.stringify(AST)}`);
+    }
+
+    AST = process_includes(AST, base_context);
+
+    if (print_ast_after_includes_enabled) { 
+      LOG_LINE();
+      console.log(`after process_includes:`);
+      LOG_LINE();
+      console.log(`${inspect_fun(AST)}`);
+      LOG_LINE();
+      console.log(`after process_includes (as JSON):`);
+      LOG_LINE();
+      console.log(`${JSON.stringify(AST)}`);
+    }
+    
+    let posted_count        = 0;
+    let prior_prompt        = null;
+    let prior_configuration = null;
+    
+    const stash_priors = (prompt, configuration) => {
+      prior_prompt        = prompt;
+      prior_configuration = structured_clone(configuration);
+    };
+
+    const restore_priors = (prompt, configuration) => {
+      const ret = [ prior_prompt, prior_configuration ];
+      [ prior_prompt, prior_configuration ] = [ prompt, configuration ];
+      return ret;
+    };
+
+    const do_post = (prompt, configuration) => {
+      post_prompt({ prompt: prompt,  configuration: configuration });
+      posted_count += 1; 
+    };
+
+    while (posted_count < count) {
+      LOG_LINE('=');
+      console.log(`Expansion #${posted_count + 1} of ${count}:`);
+      LOG_LINE('=');
+      
+      const context = base_context.clone();
+      context.reset_temporaries();
+      const prompt  = expand_wildcards(AST, context);
+
+      if (log_flags_enabled || log_configuration_enabled) {
+        LOG_LINE();
+        console.log(`Flags after:`);
+        LOG_LINE();
+        console.log(`${inspect_fun(context.flags)}`);
+      }
+
+      LOG_LINE();
+      console.log(`Final config is is:`);
+      LOG_LINE();
+      console.log(inspect_fun(context.configuration));
+
+      
+      LOG_LINE();
+      console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
+      LOG_LINE();
+      console.log(prompt);
+
+      if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
+        LOG_LINE();
+        console.log(`Expanded negative prompt:`);
+        LOG_LINE();
+        console.log(context.configuration.negative_prompt);
+      }
+
+      if (!post) {
+        posted_count += 1; // a lie to make the counter correct.
+      }
+      else {
+        if (!confirm) {
+          LOG_LINE();
+          do_post(prompt, context.configuration);
+          posted_count += 1;
+        }
+        else  {
+          console.log();
+
+          const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
+                `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
+                `POST the prior prompt)? `;
+          const answer   = await ask(question);
+
+          if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
+            stash_priors(prompt, context.configuration);
+            continue;
+          }
+
+          if (answer.match(/^p.*/i)) {
+            if (prior_prompt) { 
+              LOG_LINE();
+              [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
+              
+              console.log(`POSTing prior prompt '${prompt}'`);
+              
+              do_post(prompt, context.configuration);
+              
+              continue;
+            }
+            else {
+              console.log(`can't rewind, no prior prompt`);
+            }
+          }
+          else { // /^y.*/
+            LOG_LINE();
+            const parsed    = parseInt(answer);
+            const gen_count = isNaN(parsed) ? 1 : parsed;  
+            
+            for (let iix = 0; iix < gen_count; iix++)
+              do_post(prompt, context.configuration);
+          }
+        }
+      }
+      
+      stash_priors(prompt, context.configuration);
+    }
+
+    LOG_LINE('=');
+  }
+  // -------------------------------------------------------------------------------------------------
 main().catch(err => {
   console.error(`Unhandled error:\n${err.stack}`);
   process.exit(1);
