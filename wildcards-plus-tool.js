@@ -209,6 +209,7 @@ let inspect_fun           = (thing, no_break = false) =>
                    depth: 2,
                  });
 let dt_hosted             = false;
+dt_hosted                 = true; // lie for testing purposes.
 let test_structured_clone = true;
 // =================================================================================================
 
@@ -7135,11 +7136,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUIPrompt) {
-      return ui_prompt;
+      return expand_wildcards(ui_prompt, context, indent + 1);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUINegPrompt) {
-      return ui_neg_prompt;
+      return expand_wildcards(ui_neg_prompt, context, indent + 1);
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTRevertPickSingle || 
