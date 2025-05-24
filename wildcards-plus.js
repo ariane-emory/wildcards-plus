@@ -8081,7 +8081,7 @@ try {
     const start_date = new Date();
 
     LOG_LINE();
-    console.log(`Beginning render #${ix+1} out of ${batch_count} at ${start_date}:`);
+    console.log(`Beginning expansion #${ix+1} out of ${batch_count} at ${start_date}:`);
     LOG_LINE();
 
     // expand the wildcards using a cloned context and generate a new configuration:
@@ -8120,7 +8120,7 @@ try {
       console.log(`Not clearing canvas`);
     }
 
-    console.log(`Generating image #${ix+1} out of ${batch_count}...`);
+    console.log(`Generating image #${ix+1} out of ${batch_count} at ${new Date()}...`);
 
     // ---------------------------------------------------------------------------------------------
     // run the pipeline:
