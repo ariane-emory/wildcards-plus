@@ -738,7 +738,7 @@ class Choice extends Rule  {
     }
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     let ix = 0;
     
     for (const option of this.options) {
@@ -747,8 +747,7 @@ class Choice extends Rule  {
       if (log_match_enabled)
         log(indent + 1, `Try option #${ix}: ${option}`);
       
-      const match_result = option.match(
-        input, index, indent + 2);
+      const match_result = option.match(input, index, indent + 2, cache);
       
       if (match_result) { 
         // if (match_result.value === DISCARD) {
@@ -815,14 +814,11 @@ class Discard extends Rule {
     this.rule?.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index) {
+  __match(indent, input, index, cache) {
     if (! this.rule)
       return new MatchResult(null, input, index);
     
-    const match_result = this.rule.match(
-      input,
-      index,
-      indent + 1);
+    const match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! match_result)
       return null;
