@@ -2007,7 +2007,7 @@ bang.abbreviate_str_repr('bang');
 const bslash             = l('\\');
 bslash.abbreviate_str_repr('bslash');
 const caret              = l('^');
-caret.abbreviate_str_repr('caret');
+//caret.abbreviate_str_repr('caret');
 const colon              = l(':');
 colon.abbreviate_str_repr('colon');
 const comma              = l(',');
