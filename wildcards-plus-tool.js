@@ -1964,12 +1964,12 @@ function make_whitespace_Rule_class(className, builder) {
 const WithLWS = make_whitespace_Rule_class("LWS", rule => elem(1, seq(whites_star, rule)));
 const WithTWS = make_whitespace_Rule_class("TWS", rule => elem(0, seq(rule, whites_star)));
 // -------------------------------------------------------------------------------------------------
-function makeWhitespaceWrapperFn(wrapperClass) {
+function make_whitespace_Rule_class_convenience_constructor(wrapperClass) {
   return (rule, noisy = false) => klassify(wrapperClass, rule, noisy);
 }
 
-const lws = makeWhitespaceWrapperFn(WithLWS);
-const tws = makeWhitespaceWrapperFn(WithTWS);
+const lws = make_whitespace_Rule_class_convenience_constructor(WithLWS);
+const tws = make_whitespace_Rule_class_convenience_constructor(WithTWS);
 // =================================================================================================
 
 
