@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  //log_match_enabled  = true;
+  log_match_enabled  = true;
   const result       = Prompt.match(prompt_input, 0, 0, cache);
   log_match_enabled  = old_log_match_enabled;
   
@@ -467,7 +467,7 @@ class Rule {
       else 
         log(indent,
             `Matching ${this.constructor.name} ${this.toString()} at ` +
-            `char ${index}, ` +
+            `char #${index}, ` +
             `'${abbreviate(input.substring(index))}'`)
     }
     
@@ -1254,9 +1254,9 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      log(indent + 1, `matching first sequence item #0 out of ` +
-          `${this.elements.length} ${this.elements[0]}` +
-          `at char ${index} ` +
+      log(indent + 1, `matching first sequence element #1 out of ` +
+          `${this.elements.length}: ${this.elements[0]} ` +
+          `at char #${index} ` +
           `at '${abbreviate(input.substring(index))}'`);
     
     const start_rule_match_result =
@@ -1297,9 +1297,9 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        log(indent + 1, `matching sequence item #${ix} out of ` +
-            `${this.elements.length}: ${this.elements[ix]}` +
-            `at char ${index} ` +
+        log(indent + 1, `matching sequence element #${ix+ 1} out of ` +
+            `${this.elements.length}: ${this.elements[ix]} ` +
+            `at char #${index} ` +
             `at '${abbreviate(input.substring(index))}'`);
       
       const element = this.elements[ix];
