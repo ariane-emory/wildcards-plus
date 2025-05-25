@@ -7987,112 +7987,112 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related rules:
 // -------------------------------------------------------------------------------------------------
-const simple_flag_test_word_break = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
-simple_flag_test_word_break       .abbreviate_str_repr('simple_flag_test_word_break');
-const SimpleCheckFlag             = xform(seq(question,
-                                              plus(ident, dot),
-                                              simple_flag_test_word_break),
-                                          arr => {
-                                            const args = [arr[1]];
+const simple_check_flag_word_break  = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
+simple_check_flag_word_break        .abbreviate_str_repr('simple_check_flag_word_break');
+const SimpleCheckFlag               = xform(seq(question,
+                                                plus(ident, dot),
+                                                simple_check_flag_word_break),
+                                            arr => {
+                                              const args = [arr[1]];
 
-                                            if (log_flags_enabled) {
-                                              console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
-                                                          `${inspect_fun(arr)}`);
-                                              console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
-                                                          `${inspect_fun(args)}`);
-                                            }
+                                              if (log_flags_enabled) {
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                                            `${inspect_fun(arr)}`);
+                                                console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                                            `${inspect_fun(args)}`);
+                                              }
 
-                                            return new ASTCheckFlags(args);
-                                          });
-const SimpleNotFlag              = xform(seq(bang,
-                                             optional(hash),
-                                             plus(ident, dot),
-                                             simple_flag_test_word_break),
-                                         arr => {
-                                           const args = [arr[2],
-                                                         { set_immediately: !!arr[1][0]}];
+                                              return new ASTCheckFlags(args);
+                                            });
+const SimpleNotFlag                 = xform(seq(bang,
+                                                optional(hash),
+                                                plus(ident, dot),
+                                                word_break),
+                                            arr => {
+                                              const args = [arr[2],
+                                                            { set_immediately: !!arr[1][0]}];
 
-                                           if (log_flags_enabled) {
-                                             console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
-                                                         `${inspect_fun(arr)}`);
-                                             console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
-                                                         `${inspect_fun(args)}`);
-                                           }
+                                              if (log_flags_enabled) {
+                                                console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
+                                                            `${inspect_fun(arr)}`);
+                                                console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
+                                                            `${inspect_fun(args)}`);
+                                              }
 
-                                           return new ASTNotFlag(...args);
-                                         })
-const CheckFlagWithOrAlternatives = xform(seq(question,
-                                              plus(plus(ident, dot), comma),
-                                              word_break),
-                                          arr => {
-                                            const args = [arr[1]];
+                                              return new ASTNotFlag(...args);
+                                            })
+const CheckFlagWithOrAlternatives   = xform(seq(question,
+                                                plus(plus(ident, dot), comma),
+                                                word_break),
+                                            arr => {
+                                              const args = [arr[1]];
 
-                                            if (log_flags_enabled) {
-                                              console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
-                                                          `${inspect_fun(arr)}`);
-                                              console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
-                                                          `${inspect_fun(args)}`);
-                                            }
+                                              if (log_flags_enabled) {
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                                            `${inspect_fun(arr)}`);
+                                                console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                                            `${inspect_fun(args)}`);
+                                              }
 
-                                            return new ASTCheckFlags(...args);
-                                          });
-const CheckFlagWithSetConsequent  = xform(seq(question,         // [0]
-                                              plus(ident, dot), // [1]
-                                              dot_hash,         // [2]
-                                              plus(ident, dot), // [3]
-                                              word_break),      // [-]
-                                          arr => {
-                                            const args = [ [ arr[1] ], arr[3] ]; 
+                                              return new ASTCheckFlags(...args);
+                                            });
+const CheckFlagWithSetConsequent    = xform(seq(question,         // [0]
+                                                plus(ident, dot), // [1]
+                                                dot_hash,         // [2]
+                                                plus(ident, dot), // [3]
+                                                word_break),      // [-]
+                                            arr => {
+                                              const args = [ [ arr[1] ], arr[3] ]; 
 
-                                            if (log_flags_enabled) {
-                                              console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
-                                                          `${inspect_fun(arr)}`);
-                                              console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
-                                                          `${inspect_fun(args)}`);
-                                            }
+                                              if (log_flags_enabled) {
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
+                                                            `${inspect_fun(arr)}`);
+                                                console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
+                                                            `${inspect_fun(args)}`);
+                                              }
 
-                                            return new ASTCheckFlags(...args);
-                                          });
-const NotFlagWithSetConsequent    = xform(seq(bang,
-                                              plus(ident, dot),
-                                              dot_hash,
-                                              plus(ident, dot),
-                                              word_break),
-                                          arr => {
-                                            const args = [arr[1],
-                                                          { consequently_set_flag_tail: arr[3] }]; 
+                                              return new ASTCheckFlags(...args);
+                                            });
+const NotFlagWithSetConsequent      = xform(seq(bang,
+                                                plus(ident, dot),
+                                                dot_hash,
+                                                plus(ident, dot),
+                                                word_break),
+                                            arr => {
+                                              const args = [arr[1],
+                                                            { consequently_set_flag_tail: arr[3] }]; 
 
-                                            if (log_flags_enabled) {
-                                              console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
-                                                          `${inspect_fun(arr)}`);
-                                              console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
-                                                          `${inspect_fun(args)}`);
-                                            }
-                                            
-                                            return new ASTNotFlag(...args);
-                                          })
-const TestFlag                   = choice(SimpleCheckFlag,
-                                          SimpleNotFlag,
-                                          NotFlagWithSetConsequent,
-                                          CheckFlagWithSetConsequent,
-                                          CheckFlagWithOrAlternatives,
-                                         );
-const SetFlag                  = xform(second(seq(hash, plus(ident, dot), word_break)),
-                                       arr => {
-                                         if (log_flags_enabled)
-                                           if (arr.length > 1)
-                                             console.log(`CONSTRUCTING SETFLAG WITH ` +
-                                                         `${inspect_fun(arr)}`);
-                                         return new ASTSetFlag(arr);
-                                       });
-const UnsetFlag                = xform(second(seq(shebang, plus(ident, dot), word_break)),
-                                       arr => {
-                                         if (log_flags_enabled)
-                                           if (arr.length > 1)
-                                             console.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                                         ` ${inspect_fun(arr)}`);
-                                         return new ASTUnsetFlag(arr);
-                                       });
+                                              if (log_flags_enabled) {
+                                                console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
+                                                            `${inspect_fun(arr)}`);
+                                                console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
+                                                            `${inspect_fun(args)}`);
+                                              }
+                                              
+                                              return new ASTNotFlag(...args);
+                                            })
+const TestFlag                       = choice(SimpleCheckFlag,
+                                              SimpleNotFlag,
+                                              NotFlagWithSetConsequent,
+                                              CheckFlagWithSetConsequent,
+                                              CheckFlagWithOrAlternatives,
+                                             );
+const SetFlag                       = xform(second(seq(hash, plus(ident, dot), word_break)),
+                                            arr => {
+                                              if (log_flags_enabled)
+                                                if (arr.length > 1)
+                                                  console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                                              `${inspect_fun(arr)}`);
+                                              return new ASTSetFlag(arr);
+                                            });
+const UnsetFlag                     = xform(second(seq(shebang, plus(ident, dot), word_break)),
+                                            arr => {
+                                              if (log_flags_enabled)
+                                                if (arr.length > 1)
+                                                  console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                                              ` ${inspect_fun(arr)}`);
+                                              return new ASTUnsetFlag(arr);
+                                            });
 SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
 CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
 CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
