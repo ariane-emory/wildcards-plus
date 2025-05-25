@@ -379,8 +379,8 @@ class FatalParseError extends Error {
 class Rule {
   // -----------------------------------------------------------------------------------------------
   constructor() {
-    this.memoize     = false;
-    this.abbreviated = false;
+    // this.memoize     = false;
+    // this.abbreviated = false;
   }
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
@@ -457,8 +457,8 @@ class Rule {
   match(input, index = 0, indent = 0, cache = new Map()) {
     // console.log(`try matching ${this.memoize} ${this}`);
 
-    if (this.memoize === undefined)
-      throw new Error(`suspiciously built rule ${inspect_fun(this)}`);
+    // if (this.memoize === undefined)
+    //   throw new Error(`suspiciously built rule ${inspect_fun(this)}`);
     
     if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
@@ -1971,8 +1971,12 @@ function lws(rule) {
           rule.elements.every(x => x instanceof klass))
       || (rule instanceof Xform &&
           rule.rule instanceof klass)
-     )
+     ) {
+    console.log(`return original rule for ${abbreviate(compress(inspect_fun(rule)))}`);
     return rule;
+  }
+  else {
+  }
   
   return new klass(rule);
 }
