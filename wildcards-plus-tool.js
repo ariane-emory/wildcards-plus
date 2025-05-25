@@ -1954,6 +1954,8 @@ function lws(rule) {
   
   if (!rule
       || rule instanceof klass
+      // || (rule instanceof Rule &&
+      //     rule.direct_children().every(x => x instanceof klass))
       || (rule instanceof Quantified &&
           rule.rule instanceof klass &&
           rule.separator_rule instanceof klass)
