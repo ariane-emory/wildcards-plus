@@ -1967,7 +1967,7 @@ class WithTWS extends Rule {
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
     const rule_match_result = this.rule.match(input,
-                                              whites_star_match_result.index,
+                                              index,
                                               indent + 1,
                                               cache);
 
@@ -1975,7 +1975,7 @@ class WithTWS extends Rule {
       return rule_match_result;
     
     const whites_star_match_result = whites_star.match(input,
-                                                       index,
+                                                       rule_match_result.index,
                                                        indent + 1,
                                                        cache);
 
@@ -2028,40 +2028,40 @@ const whites_plus        = r(/\s+/);
 whites_star.__impl_toString = () => 'whites*';
 whites_plus.__impl_tostring = () => 'whites+';
 // leading/trailing whitespace:
-const lws                = rule => {
-  if (rule.__rule_created_by === lws || rule.rule?.__rule_created_by === lws) {
-    // throw new Error("lws skips!");
-    return rule;
-  }
-  
-  rule = second(seq(whites_star, rule));
-  
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `LWS(${rule_str})`;
-  }
-  
-  rule.__rule_created_by = lws;
-  
-  return rule;
-};
-const tws                = rule => {
-  if (rule.__rule_created_by === tws || rule.rule?.__rule_created_by === tws) {
-    // throw new Error("tws skips!");
-    return rule;
-  }
+// const lws                = rule => {
+//   if (rule.__rule_created_by === lws || rule.rule?.__rule_created_by === lws) {
+//     // throw new Error("lws skips!");
+//     return rule;
+//   }
 
-  rule = first(seq(rule, whites_star));
+//   rule = second(seq(whites_star, rule));
 
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
-    return `TWS(${rule_str})`;
-  }
+//   rule.__impl_toString = function(visited, next_id, ref_counts) {
+//     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+//     return `LWS(${rule_str})`;
+//   }
 
-  rule.__rule_created_by = tws;
-  
-  return rule;
-};
+//   rule.__rule_created_by = lws;
+
+//   return rule;
+// };
+// const tws                = rule => {
+//   if (rule.__rule_created_by === tws || rule.rule?.__rule_created_by === tws) {
+//     // throw new Error("tws skips!");
+//     return rule;
+//   }
+
+//   rule = first(seq(rule, whites_star));
+
+//   rule.__impl_toString = function(visited, next_id, ref_counts) {
+//     const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
+//     return `TWS(${rule_str})`;
+//   }
+
+//   rule.__rule_created_by = tws;
+
+//   return rule;
+// };
 // -------------------------------------------------------------------------------------------------
 // common numbers:
 const udecimal           = r(/\d+\.\d+/);
@@ -2299,9 +2299,9 @@ const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep 
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
 const __make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(with_lws(rule), sep ? lws(sep) : null));
+      ((rule, sep = null) => base_combinator(with_lws(rule), sep ? with_lws(sep) : null));
 const __make_wst_seq_combinator = base_combinator =>
-      (...rules) => base_combinator(...rules.map(x => lws(x)));
+      (...rules) => base_combinator(...rules.map(x => with_lws(x)));
 // -------------------------------------------------------------------------------------------------
 const wst_choice      = (...options) => wse(choice(...options));
 const wst_star        = __make_wst_quantified_combinator(star);
@@ -2310,10 +2310,10 @@ const wst_seq         = __make_wst_seq_combinator(seq);
 const wst_enc         = __make_wst_seq_combinator(enc);
 const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
 const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => cutting_enc(lws(lpar), lws(rule), lws(rpar));
-const wst_brc_enc     = rule => cutting_enc(lws(lbrc), lws(rule), lws(rbrc));
-const wst_sqr_enc     = rule => cutting_enc(lws(lsqr), lws(rule), lws(rsqr));
-const wst_tri_enc     = rule => cutting_enc(lws(ltri), lws(rule), lws(rtri));
+const wst_par_enc     = rule => cutting_enc(with_lws(lpar), with_lws(rule), with_lws(rpar));
+const wst_brc_enc     = rule => cutting_enc(with_lws(lbrc), with_lws(rule), with_lws(rbrc));
+const wst_sqr_enc     = rule => cutting_enc(with_lws(lsqr), with_lws(rule), with_lws(rsqr));
+const wst_tri_enc     = rule => cutting_enc(with_lws(ltri), with_lws(rule), with_lws(rtri));
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
@@ -8275,7 +8275,7 @@ const SpecialFunctionInclude =
                                         json_string,             // [0][1]
                                         discarded_comments))),   // -
                 discarded_comments,                              // -
-                lws(optional(semicolon))));                            // -
+                with_lws(optional(semicolon))));                            // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8347,7 +8347,7 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          ),
                          discarded_comments,
-                         lws(optional(semicolon))));
+                         with_lws(optional(semicolon))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
@@ -8433,7 +8433,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                              json_string,
                                                              plaintext),
                                                       discarded_comments,
-                                                      lws(optional(semicolon))));
+                                                      with_lws(optional(semicolon))));
 ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
@@ -8480,9 +8480,9 @@ const TopLevelContent         = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const ContentNoLorasStar      = tws(wst_star(ContentNoLoras));
-const ContentStar             = tws(wst_star(Content));
-const TopLevelContentStar     = tws(wst_star(TopLevelContent));
+const ContentNoLorasStar      = with_tws(wst_star(ContentNoLoras));
+const ContentStar             = with_tws(wst_star(Content));
+const TopLevelContentStar     = with_tws(wst_star(TopLevelContent));
 const Prompt                  = TopLevelContentStar;
 // -------------------------------------------------------------------------------------------------
 Prompt.finalize();
