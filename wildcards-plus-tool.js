@@ -1957,8 +1957,8 @@ function lws(rule) {
           rule.options.every(x => x instanceof klass))
       || (rule instanceof Enclosed &&
           rule.start_rule instanceof klass &&
-          rule.body_rule  instanceof klass &&
-          rule.end_rule   instanceof klass)
+          rule.body_rule instanceof klass &&
+          rule.end_rule instanceof klass)
       || (rule instanceof Optional &&
           rule.rule instanceof klass)
       || (rule instanceof Sequence &&
