@@ -1960,15 +1960,14 @@ function make_whitespace_Rule_class(class_name_str, builder) {
   };
 }
 // -------------------------------------------------------------------------------------------------
-function make_whitespace_Rule_class_convenience_constructor(wrapperClass) {
+function make_whitespace_Rule_class_convenience_constructor_function(wrapperClass) {
   return (rule, noisy = false) => klassify(wrapperClass, rule, noisy);
 }
 // -------------------------------------------------------------------------------------------------
 const WithLWS = make_whitespace_Rule_class("LWS", rule => elem(1, seq(whites_star, rule)));
 const WithTWS = make_whitespace_Rule_class("TWS", rule => elem(0, seq(rule, whites_star)));
-// -------------------------------------------------------------------------------------------------
-const lws = make_whitespace_Rule_class_convenience_constructor(WithLWS);
-const tws = make_whitespace_Rule_class_convenience_constructor(WithTWS);
+const lws = make_whitespace_Rule_class_convenience_constructor_function(WithLWS);
+const tws = make_whitespace_Rule_class_convenience_constructor_function(WithTWS);
 // =================================================================================================
 
 
