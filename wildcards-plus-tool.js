@@ -1966,10 +1966,12 @@ const keyword            = word => {
 // -------------------------------------------------------------------------------------------------
 // parenthesis-like terminals:
 const gt                 = l('>');
+const rtri               = l('>');
 const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
 const lpar               = l('(');
 const lsqr               = l('[]'[0]);
 const lt                 = l('<');
+const ltri               = l('<');
 const rbrc               = l('{}'[1]);
 const rpar               = l(')');
 const rsqr               = l('[]'[1]);
@@ -1978,9 +1980,11 @@ lbrc.abbreviate_str_repr('lbrc');
 lpar.abbreviate_str_repr('lpar');
 lsqr.abbreviate_str_repr('lsqr');
 lt.abbreviate_str_repr('lt');
+ltri.abbreviate_str_repr('ltri');
 rbrc.abbreviate_str_repr('rbrc');
 rpar.abbreviate_str_repr('rpar');
 rsqr.abbreviate_str_repr('rsqr');
+rtri.abbreviate_str_repr('rtri');
 // -------------------------------------------------------------------------------------------------
 // common enclosed rules:
 const par_enc            = rule => cutting_enc(lpar, rule, rpar);
@@ -2032,6 +2036,8 @@ const ellipsis           = l('...');
 const equals             = l('=');
 const equals_arrow       = l('=>');
 const hash               = l('#');
+const decr_assign        = l('-=');
+const incr_assign        = l('+=');
 const percent            = l('%');
 const pipe               = l('|');
 const pound              = l('#');
@@ -2049,6 +2055,8 @@ colon.abbreviate_str_repr('colon');
 comma.abbreviate_str_repr('comma');
 dash.abbreviate_str_repr('dash');
 dash_arrow.abbreviate_str_repr('dash_arrow');
+decr_assign.abbreviate_str_repr('decr_assign');
+incr_assign.abbreviate_str_repr('incr_assign');
 dollar.abbreviate_str_repr('dollar');
 dot.abbreviate_str_repr('dot');
 ellipsis.abbreviate_str_repr('ellipsis');
@@ -7879,13 +7887,13 @@ class ASTUINegPrompt extends ASTNode {
 // const plaintext                = r(/(?:\\\s|[^\s{|}])+/);
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 const any_assignment_operator     = choice(() => assignment_operator, () => incr_assignment_operator);
-const assignment_operator         = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
 const comment                     = discard(c_comment);
+const assignment_operator         = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
+const incr_assignment_operator    = second(seq(wst_star(comment), '+=', wst_star(comment)));
 const dot_hash                    = l('.#');
 //const escaped_brc               = second(choice('\\{', '\\}'));
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
-const incr_assignment_operator    = second(seq(wst_star(comment), '+=', wst_star(comment)));
 // const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
 // const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
 const low_pri_text                = r(/[\(\)\[\]\:]+/);
@@ -7894,13 +7902,13 @@ const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break                  = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
 const more_restrictive_word_break = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
-assignment_operator               .abbreviate_str_repr('assignment_operator');
 comment                           .abbreviate_str_repr(false); // 'comment');
+assignment_operator               .abbreviate_str_repr('assignment_operator');
+incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
 // escaped_brc                    .abbreviate_str_repr('escaped_brc');
 dot_hash                          .abbreviate_str_repr('dot_hash');
 filename                          .abbreviate_str_repr('filename');
 ident                             .abbreviate_str_repr('ident');
-incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
 low_pri_text                      .abbreviate_str_repr('low_pri_text');
 plaintext                         .abbreviate_str_repr('plaintext');
 wb_uint                           .abbreviate_str_repr('wb_uint');
@@ -7930,7 +7938,7 @@ discarded_comments              .abbreviate_str_repr('discarded_comments_star');
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint);
 const A1111StyleLora       =
       xform(arr => new ASTLora(arr[3], arr[4][0]),
-            wst_seq(lt,                                    // [0]
+            wst_seq(ltri,                                   // [0]
                     'lora',                                 // [1]
                     colon,                                  // [2]
                     choice(filename, () => LimitedContent), // [3]
@@ -7938,7 +7946,7 @@ const A1111StyleLora       =
                                             choice(A1111StyleLoraWeight,
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
-                    gt));
+                    rtri));
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // -------------------------------------------------------------------------------------------------
@@ -8264,7 +8272,7 @@ const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), id
                                         return objs;
                                       });
 NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
-const ScalarReference         = xform(seq(dollar, optional('^'), ident),
+const ScalarReference         = xform(seq(dollar, optional(caret), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
 ScalarReference.abbreviate_str_repr('ScalarReference');
 const ScalarDesignator        = xform(seq(dollar, ident),
