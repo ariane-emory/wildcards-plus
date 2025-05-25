@@ -1955,7 +1955,7 @@ function make_whitespace_Rule_class(class_name_str, builder) {
     }
     // ---------------------------------------------------------------------------------------------
     __impl_toString(visited, next_id, ref_counts) {
-      const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+      const rule_str = this.base_rule.__toString(visited, next_id, ref_counts);
       return `${class_name_str}(${rule_str})`;
     }
   };
