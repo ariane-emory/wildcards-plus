@@ -320,8 +320,6 @@ Array.prototype.toString = function() {
 //         |-- Discard
 //         |-- Elem
 //         |-- Label
-//         |-- WithLWS
-//         |-- WithTWS
 //         |
 //         | Rules that make sense only when input is an Array of Tokens:
 //         |
@@ -1951,13 +1949,23 @@ class WithLWS extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
-    
-    const rule_match_result = this.rule.match(input, index, indent, cache);
+    const whites_star_match_result = whites_star.match(indent + 1,
+                                                       input,
+                                                       index,
+                                                       cache);
+
+    if (! whites_star_match_result)
+      return whites_star_match_result;
+
+    const rule_match_result = this.rule.match(input + 1,
+                                              index,
+                                              indent,
+                                              cache);
 
     if (! rule_match_result)
       return null;
 
-    return new MatchResult(
+    return new atchResult(
       new WithLWSedValue(this.label, rule_match_result.value),
       input,
       rule_match_result.index);
