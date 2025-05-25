@@ -6895,9 +6895,9 @@ function load_prelude(into_context = new Context()) {
   if (! prelude_parse_result) {
     const old_log_match_enabled = log_match_enabled;
     log_match_enabled = false;
-    console.log(`parsing prelude...`);
+    // console.log(`parsing prelude...`);
     prelude_parse_result = Prompt.match(prelude_text);
-    console.log(`done parsing prelude.`);
+    // console.log(`done parsing prelude.`);
     log_match_enabled = old_log_match_enabled;
   }
 
@@ -7171,7 +7171,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
              thing instanceof ASTUpdateConfigurationBinary) {
       let value = thing.value;
 
-      // console.log(`THING: ${thing} ${inspect_fun(thing)}`);
+      console.log(`THING: ${thing} ${inspect_fun(thing)}`);
       
       if (value instanceof ASTNode) {
         const expanded_value = expand_wildcards(thing.value, context, indent + 1); // not walk!
@@ -8237,7 +8237,7 @@ SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPick
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => {
         console.log(`ARR: ${arr}`);
-        const args = [arr[0], arr[1][1], arr[1][0]];
+        const args = [arr[0], arr[1][1], arr[1][0] == '='];
         console.log(`ARGS: ${args}`);
         return new ASTUpdateConfigurationBinary(...args);
       },
@@ -8249,7 +8249,7 @@ const SpecialFunctionUpdateConfigurationBinary =
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == equals),
+      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                    // [0]
                 wst_seq(discarded_comments,                                       // -
                         choice(incr_assignment_operator, assignment_operator),    // [1][0]
@@ -8352,7 +8352,7 @@ const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == equals),
+                                                                 arr[0][1] == '='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               discarded_comments,
                                                               choice(incr_assignment_operator,
