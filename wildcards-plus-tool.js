@@ -481,14 +481,13 @@ class Rule {
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
         log(indent,
-            `Matching ${this.constructor.name} ${this.toString()}, ` +
+            `Matching ${this.toString()}, ` +
             `but at end of input!`);
       else 
         log(indent,
-            `Matching ${this.constructor.name} ${this.toString()} at ` +
-            `char ${index}, ` +
-            `token #${index}: ` +
-            `"${abbreviate(input.substring(index, (60 - 2*indent)))}"`)
+            `Matching ${this.toString()} at ` +
+            `char ${index}: ` +
+            `"${abbreviate(input.substring(index), (60 - 2*indent))}"`)
     }
     
     let rule_cache = null; // cache.get(this);
@@ -532,7 +531,7 @@ class Rule {
             `${JSON.stringify(ret)}`);
       else
         log(indent,
-            `<= Matching ${this.constructor.name} ` +
+            `<= Failed to match ${this.constructor.name} ` +
             `${this.toString()} returned null.`);
     }
 
@@ -1360,6 +1359,7 @@ class Sequence extends Rule {
                                                                           next_id,
                                                                           ref_counts));
     const str       = elem_strs.join(' ');
+
     return `[${str}]`;
     // return `(${str})`;
   }
@@ -1382,7 +1382,7 @@ class CuttingSequence extends Sequence {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
-      `expected (${this.elements.slice(1).join(" ")}) ` +
+      `expected [${this.elements.slice(1).join(" ")}] ` +
         `after ${this.elements[0]}`,
       input, start_rule_result.index);
   }
@@ -6837,7 +6837,8 @@ const prelude_text = disable_prelude ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
-  throw new Error(`bombb`);
+  throw new Error("stop");
+
   if (! prelude_parse_result) {
     const old_log_match_enabled = log_match_enabled;
     log_match_enabled = false;
@@ -6846,14 +6847,14 @@ function load_prelude(into_context = new Context()) {
     console.log(`done parsing prelude.`);
     log_match_enabled = old_log_match_enabled;
   }
-  
+
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
   if (ignored === undefined)
     throw new Error("crap");
 
   console.log("loaded prelude.");
-  
+
   return into_context;
 }
 // =================================================================================================
@@ -8112,16 +8113,16 @@ const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt', word_break));
 const UnexpectedSpecialFunctionUIPrompt =
-unexpected(SpecialFunctionUIPrompt,
-           (rule, input, index) =>
-           new FatalParseError("%ui-prompt is only supported when " +
-                               "using wildcards-plus.js inside Draw Things, " +
-                               "NOT when " +
-                               "running the wildcards-plus-tool.js script",
-                               input, index - 1));
+      unexpected(SpecialFunctionUIPrompt,
+                 (rule, input, index) =>
+                 new FatalParseError("%ui-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1));
 const SpecialFunctionUINegPrompt =
-xform(() => new ASTUINegPrompt(),
-      seq('ui-neg-prompt', word_break));
+      xform(() => new ASTUINegPrompt(),
+            seq('ui-neg-prompt', word_break));
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8444,6 +8445,8 @@ async function main() {
     throw new Error(`error parsing prompt at ${result.index}!`);
 
   let   AST          = result.value;
+  throw new Error("stop");
+  log_match_enabled = false;
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   
   if (print_ast_before_includes_enabled) {
