@@ -1956,7 +1956,7 @@ const tws                = rule => {
   rule = first(seq(rule, whites_star));
 
   rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
     return `TWS(${rule_str})`;
   }
 
