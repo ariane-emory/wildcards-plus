@@ -1852,13 +1852,13 @@ function pipe_funs(...fns) {
 function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
   let klass = {
     [class_name_str]: class extends Rule {
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       constructor(rule) {
         super();
         this.base_rule = make_rule_func(rule);
         this.rule = builder(this.base_rule);
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       __direct_children() {
         return [this.rule];
       }
@@ -1869,11 +1869,11 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
         this.base_rule = this.__vivify(this.base_rule);
         this.base_rule.__finalize(indent + 1, visited);
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       __match(indent, input, index, cache) {
         return this.rule.match(input, index, indent, cache);
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       __impl_toString(visited, next_id, ref_counts) {
         return `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`;
       }
