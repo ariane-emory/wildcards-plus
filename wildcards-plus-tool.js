@@ -1953,22 +1953,6 @@ class WithLWS extends Rule {
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
     return this.rule.match(input, index, indent, cache);
-    // const whites_star_match_result =
-    //       whites_star.match(input,
-    //                         index,
-    //                         indent + 1,
-    //                         cache);
-
-    // if (! whites_star_match_result)
-    //                          return null;
-
-    // const rule_match_result =
-    //       this.rule.match(input,
-    //                       whites_star_match_result.index,
-    //                       indent + 1,
-    //                       cache);
-
-    // return rule_match_result;
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -1988,6 +1972,7 @@ class WithTWS extends Rule {
   constructor(rule) {
     super();
     this.rule = make_rule_func(rule);
+    this.rule = elem(0, seq(this.rule, whites_star));
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -2000,28 +1985,7 @@ class WithTWS extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
-    const rule_match_result =
-          this.rule.match(input,
-                          index,
-                          indent + 1,
-                          cache);
-
-    if (! rule_match_result)
-      return null;
-    
-    const whites_star_match_result =
-          whites_star.match(input,
-                            rule_match_result.index,
-                            indent + 1,
-                            cache);
-
-    if (! whites_star_match_result)
-      return whites_star_match_result;
-
-    rule_match_result.index       = whites_star_match_result.index;
-    rule_match_result.is_finished = whites_star_match_result.is_finished
-    
-    return rule_match_result;
+    return this.rule.match(input, index, indent, cache);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
