@@ -1904,6 +1904,34 @@ function pipe_funs(...fns) {
 // =================================================================================================
 // Extra grammar classes, these should go somewhere else.
 // =================================================================================================
+function klassify(klass, rule, noisy = false) {
+  const log = noisy ? console.log : () => {};
+  rule = make_rule_func(rule);
+
+  if (!rule) {
+    log(`return original null rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    return rule;
+  }
+
+  if (typeof rule === 'function') {
+    log(`return klassed function ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    return new klass(rule);
+  }
+  
+  if (rule instanceof klass) {
+    log(`return original klassed rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    return rule;
+  }
+  
+  if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
+    log(`return original rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    return rule;
+  }
+
+  log(`return klassed ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+  return new klass(rule);
+}
+// -------------------------------------------------------------------------------------------------
 // WithLWS class:
 // -------------------------------------------------------------------------------------------------
 class WithLWS extends Rule {
@@ -1945,34 +1973,6 @@ class WithLWS extends Rule {
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
     return `LWS(${rule_str})`;
   }
-}
-// -------------------------------------------------------------------------------------------------
-function klassify(klass, rule, noisy = false) {
-  const log = noisy ? console.log : () => {};
-  rule = make_rule_func(rule);
-
-  if (!rule) {
-    log(`return original null rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-    return rule;
-  }
-
-  if (typeof rule === 'function') {
-    log(`return klassed function ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-    return new klass(rule);
-  }
-  
-  if (rule instanceof klass) {
-    log(`return original klassed rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-    return rule;
-  }
-  
-  if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-    log(`return original rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-    return rule;
-  }
-
-  log(`return klassed ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-  return new klass(rule);
 }
 // -------------------------------------------------------------------------------------------------
 function lws(rule, noisy = false) {
