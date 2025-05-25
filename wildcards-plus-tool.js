@@ -256,7 +256,7 @@ let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_match_enabled                 = false;
+let log_match_enabled                 = true;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
@@ -1938,7 +1938,7 @@ class WithLWS extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
     return `WithLWS(${rule_str})`;
   }
 }
@@ -1992,7 +1992,7 @@ class WithTWS extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
     return `WithTWS(${rule_str})`;
   }
 }
