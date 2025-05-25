@@ -8235,7 +8235,7 @@ const NamedWildcardReference  = xform(seq('@',                                  
                                                                              max_ct);
                                       });
 NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
-const NamedWildcardDesignator = second(seq('@', ident)); 
+const NamedWildcardDesignator = second(seq(at, ident)); 
 NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
                                       wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
