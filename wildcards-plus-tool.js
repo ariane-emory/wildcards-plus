@@ -266,7 +266,7 @@ let prelude_disabled                  = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
-let main_disabled                     = true;
+let main_disabled                     = false;
 // =================================================================================================
 
 
@@ -1088,7 +1088,7 @@ class CuttingEnclosed extends Enclosed {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#1) ` +
-      `expected (${this.body_rule} ${this.end_rule}) ` +
+      `expected [${this.body_rule} ${this.end_rule}] ` +
         `after ${this.start_rule}`,
       input, start_rule_result.index);
   }
