@@ -1945,7 +1945,7 @@ const lws                = rule => {
   
   rule.__is_lws_rule = true;
   
-  return rule;u
+  return rule;
 };
 const tws                = rule => {
   if (rule.__is_tws_rule || rule.rule?.__is_tws_rule) {
