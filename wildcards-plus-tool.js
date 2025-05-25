@@ -1939,6 +1939,7 @@ class WithLWS extends Rule {
   constructor(rule) {
     super();
     this.rule = make_rule_func(rule);
+    this.rule = elem(1, seq(whites_star, this.rule));
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -1951,22 +1952,23 @@ class WithLWS extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
-    const whites_star_match_result =
-          whites_star.match(input,
-                            index,
-                            indent + 1,
-                            cache);
+    return this.rule.match(input, index, indent, cache);
+    // const whites_star_match_result =
+    //       whites_star.match(input,
+    //                         index,
+    //                         indent + 1,
+    //                         cache);
 
-    if (! whites_star_match_result)
-      return null;
+    // if (! whites_star_match_result)
+    //                          return null;
 
-    const rule_match_result =
-          this.rule.match(input,
-                          whites_star_match_result.index,
-                          indent + 1,
-                          cache);
+    // const rule_match_result =
+    //       this.rule.match(input,
+    //                       whites_star_match_result.index,
+    //                       indent + 1,
+    //                       cache);
 
-    return rule_match_result;
+    // return rule_match_result;
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
