@@ -299,7 +299,6 @@ Array.prototype.toString = function() {
 //         |
 //         |-- Choice
 //         |-- Enclosed ------- CuttingEnclosed
-//         |-- NeverMatch
 //         |-- Optional
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
@@ -320,6 +319,7 @@ Array.prototype.toString = function() {
 //         |-- Discard
 //         |-- Elem
 //         |-- Label
+//         |-- NeverMatch
 //         |
 //         | Rules that make sense only when input is an Array of Tokens:
 //         |
@@ -1950,7 +1950,17 @@ function lws(rule) {
       rule instanceof WithLWS ||
       (rule instanceof Quantified &&
        rule.rule instanceof WithLWS &&
-       rule.separator_rule instanceof WithLWS))
+       rule.separator_rule instanceof WithLWS) ||
+      (rule instanceof Choice &&
+       rule.options.every(x => x instanceof WithLWS)) ||
+      (rule instanceof Sequence &&
+       rule.elements.every(x => x instanceof WithLWS)) ||
+      (rule instanceof Optional &&
+       rule.rule instanceof WithLWS) ||
+      (rule instanceof Enclosed &&
+       rule.start_rule instanceof WithLWS &&
+       rule.body_rule  instanceof WithLWS &&
+       rule.end_rule   instanceof WithLWS))
     return rule;
   
   return new WithLWS(rule);
