@@ -8214,8 +8214,8 @@ const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternativeNoLoras, pipe)));
 // AnonWildcard.abbreviate_str_repr('AnonWildcard');
 // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
-const NamedWildcardReference  = xform(seq('@',                                       // [0]
-                                          optional('^'),                             // [1]
+const NamedWildcardReference  = xform(seq(at,                                        // [0]
+                                          optional(caret),                           // [1]
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,
                                                          second(seq(dash, uint)))),   // [3]
