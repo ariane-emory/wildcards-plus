@@ -8073,7 +8073,7 @@ const SetFlag                  = xform(second(seq('#', plus(ident, dot), word_br
                                                          `${inspect_fun(arr)}`);
                                          return new ASTSetFlag(arr);
                                        });
-const UnsetFlag                = xform(second(seq('#!', plus(ident, dot), word_break)),
+const UnsetFlag                = xform(second(seq(shebang, plus(ident, dot), word_break)),
                                        arr => {
                                          if (log_flags_enabled)
                                            if (arr.length > 1)
