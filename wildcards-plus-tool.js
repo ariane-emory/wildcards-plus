@@ -61,8 +61,6 @@ function parse_file(filename) {
   const cache        = new Map();
   const result       = Prompt.match(prompt_input, 0, 0, cache);
 
-  // console.log(`parse_file(${inspect_fun(filename)})`);
-  
   const sortedEntries = Array.from(cache.entries())
         .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
 
@@ -74,8 +72,8 @@ function parse_file(filename) {
     total += ruleCache.size;
   }
 
-  if (total > 0)
-    console.log(`TOTAL: ${format_pretty_number(total)}`);
+  if (sortedEntries.length > 0)
+    console.log(`Total: ${format_pretty_number(total)}`);
 
   return result;
 }
@@ -455,11 +453,6 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0, cache = new Map()) {
-    // console.log(`try matching ${this.memoize} ${this}`);
-
-    // if (this.memoize === undefined)
-    //   throw new Error(`suspiciously built rule ${inspect_fun(this)}`);
-    
     if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
     
@@ -475,7 +468,7 @@ class Rule {
             `'${abbreviate(input.substring(index))}'`)
     }
     
-    let rule_cache = null; // cache.get(this);
+    let rule_cache = null;
 
     if (this.memoize) {
       rule_cache = cache.get(this);
@@ -8616,11 +8609,3 @@ if (! main_disabled)
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
-
-// console.log(`result: ${inspect_fun(AnonWildcard.match('{ foo | 2 bar | ?quux baz }'))}`);
-//console.log(`result: ${inspect_fun(AnonWildcardNoLoras.match('{ foo | 2 bar | ?quux baz }'))}`);
-// console.log(lws(lws(lws('a'))).toString());
-// console.log(abbreviate(`{ foo |
-// bar |
-// baz }`));
-console.log(Prompt.toString());
