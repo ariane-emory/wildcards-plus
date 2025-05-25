@@ -379,7 +379,8 @@ class FatalParseError extends Error {
 class Rule {
   // -----------------------------------------------------------------------------------------------
   constructor() {
-    this.memoize = false;
+    this.memoize     = false;
+    this.abbreviated = false;
   }
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
@@ -392,7 +393,7 @@ class Rule {
     if (str)
       this.__impl_toString = () => str;
     
-    this.__direct_children = () => [];
+    // this.__direct_children = () => [];
     this.abbreviated       = true;
   }
   // -----------------------------------------------------------------------------------------------
@@ -420,10 +421,11 @@ class Rule {
 
     ref_counts.set(this, 1);
 
-    for (const direct_child of this.direct_children()) {
-      // console.log(`direct_child = ${inspect_fun(direct_child)}`);
-      this.__vivify(direct_child).collect_ref_counts(ref_counts);
-    }
+    if (! this.abbreviated)
+      for (const direct_child of this.direct_children()) {
+        // console.log(`direct_child = ${inspect_fun(direct_child)}`);
+        this.__vivify(direct_child).collect_ref_counts(ref_counts);
+      }
 
     return ref_counts;
   }
@@ -551,7 +553,7 @@ class Rule {
           .__impl_toString(visited, next_id, ref_counts)
           .replace('() => ', '');
     
-    if (this.direct_children().length == 0) {
+    if (this.abbreviated || this.direct_children().length == 0) {
       return abbreviate(__call_impl_toString(), 64);
       // return __call_impl_toString();
     }
@@ -8733,3 +8735,4 @@ if (! main_disabled)
 // console.log(abbreviate(`{ foo |
 // bar |
 // baz }`));
+console.log(Prompt.toString());
