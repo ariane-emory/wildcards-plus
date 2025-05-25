@@ -1954,32 +1954,33 @@ function lws(rule) {
   
   if (!rule
       || rule instanceof klass
-      // || (rule instanceof Rule &&
-      //     rule.direct_children().every(x => x instanceof klass))
-      || (rule instanceof Quantified &&
-          rule.rule instanceof klass &&
-          rule.separator_rule instanceof klass)
-      || (rule instanceof Choice &&
-          rule.options.every(x => x instanceof klass))
-      || (rule instanceof Enclosed &&
-          rule.start_rule instanceof klass &&
-          rule.body_rule instanceof klass &&
-          rule.end_rule instanceof klass)
-      || (rule instanceof Optional &&
-          rule.rule instanceof klass)
-      || (rule instanceof Sequence &&
-          rule.elements.every(x => x instanceof klass))
-      || (rule instanceof Xform &&
-          rule.rule instanceof klass)
+      || (rule instanceof Rule &&
+          rule.direct_children().length > 0 && 
+          rule.direct_children().every(x => x instanceof klass))
+      // || (rule instanceof Quantified &&
+      //     rule.rule instanceof klass &&
+      //     rule.separator_rule instanceof klass)
+      // || (rule instanceof Choice &&
+      //     rule.options.every(x => x instanceof klass))
+      // || (rule instanceof Enclosed &&
+      //     rule.start_rule instanceof klass &&
+      //     rule.body_rule instanceof klass &&
+      //     rule.end_rule instanceof klass)
+      // || (rule instanceof Optional &&
+      //     rule.rule instanceof klass)
+      // || (rule instanceof Sequence &&
+      //     rule.elements.every(x => x instanceof klass))
+      // || (rule instanceof Xform &&
+      //     rule.rule instanceof klass)
      ) {
-    console.log(`return original rule ${abbreviate(compress(inspect_fun(rule)))}`);
+    console.log(`return original rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
     return rule;
   }
   else if (typeof rule === 'function') {
-    console.log(`process function ${abbreviate(compress(inspect_fun(rule)))}`);
+    console.log(`process function ${abbreviate(compress(inspect_fun(rule)), 250)}`);
   }
   else {
-    console.log(`process ${abbreviate(compress(inspect_fun(rule)))}`);
+    console.log(`process ${abbreviate(compress(inspect_fun(rule)), 250)}`);
   }
   
   return new klass(rule);
