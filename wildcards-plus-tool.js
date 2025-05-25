@@ -1931,7 +1931,6 @@ function klassify(klass, rule, noisy = false) {
   log(`return klassed ${abbreviate(compress(inspect_fun(rule)), 250)}`);
   return new klass(rule);
 }
-
 // ---------------------------------------------------------------------------------------------
 function make_whitespace_Rule_class(className, builder) {
   return class extends Rule {
@@ -1965,12 +1964,12 @@ function make_whitespace_Rule_class(className, builder) {
 const WithLWS = make_whitespace_Rule_class("LWS", rule => elem(1, seq(whites_star, rule)));
 const WithTWS = make_whitespace_Rule_class("TWS", rule => elem(0, seq(rule, whites_star)));
 // -------------------------------------------------------------------------------------------------
-function lws(rule, noisy = false) {
-  return klassify(WithLWS, rule, noisy);
+function makeWhitespaceWrapperFn(wrapperClass) {
+  return (rule, noisy = false) => klassify(wrapperClass, rule, noisy);
 }
-function tws(rule, noisy = false) {
-  return klassify(WithTWS, rule, noisy);
-}
+
+const lws = makeWhitespaceWrapperFn(WithLWS);
+const tws = makeWhitespaceWrapperFn(WithTWS);
 // =================================================================================================
 
 
