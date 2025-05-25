@@ -2016,6 +2016,7 @@ python_exponent_op.abbreviate_str_repr('python_exponent_op');
 python_logic_word.abbreviate_str_repr('python_logic_word');
 // -------------------------------------------------------------------------------------------------
 // common punctuation:
+const at                = l('@');
 const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
@@ -8242,7 +8243,7 @@ const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[
                                                       discarded_comments,
                                                       AnonWildcard));                  // [1]
 NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
-const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
+const NamedWildcardUsage      = xform(seq(at, optional("!"), optional("#"), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
                                               [ arr[1][0], arr[2][0], arr[3], []];
