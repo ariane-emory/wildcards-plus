@@ -8244,8 +8244,8 @@ SpecialFunctionUpdateConfigurationUnary
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
-                           SpecialFunctionUpdateConfigurationBinary,
                            SpecialFunctionUpdateConfigurationUnary,
+                           SpecialFunctionUpdateConfigurationBinary,
                            (dt_hosted ?
                             SpecialFunctionUIPrompt :
                             UnexpectedSpecialFunctionUIPrompt),
@@ -8629,17 +8629,17 @@ async function main() {
 let main_disabled = false;
 
 if (! main_disabled)
-                                      main().catch(err => {
-                                        console.error(`Unhandled error:\n${err.stack}`);
-                                        process.exit(1);
-                                      });
-                                    // =================================================================================================
-                                    // END OF MAIN SECTION.
-                                    // =================================================================================================
+  main().catch(err => {
+    console.error(`Unhandled error:\n${err.stack}`);
+    process.exit(1);
+  });
+// =================================================================================================
+// END OF MAIN SECTION.
+// =================================================================================================
 
-                                    // console.log(`result: ${inspect_fun(AnonWildcard.match('{ foo | 2 bar | ?quux baz }'))}`);
-                                    //console.log(`result: ${inspect_fun(AnonWildcardNoLoras.match('{ foo | 2 bar | ?quux baz }'))}`);
-                                    // console.log(lws(lws(lws('a'))).toString());
-                                    // console.log(abbreviate(`{ foo |
-                                    // bar |
-                                    // baz }`));
+// console.log(`result: ${inspect_fun(AnonWildcard.match('{ foo | 2 bar | ?quux baz }'))}`);
+//console.log(`result: ${inspect_fun(AnonWildcardNoLoras.match('{ foo | 2 bar | ?quux baz }'))}`);
+// console.log(lws(lws(lws('a'))).toString());
+// console.log(abbreviate(`{ foo |
+// bar |
+// baz }`));
