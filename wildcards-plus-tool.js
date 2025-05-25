@@ -1932,13 +1932,13 @@ function klassify(klass, rule, noisy = false) {
   return new klass(rule);
 }
 // ---------------------------------------------------------------------------------------------
-function make_whitespace_Rule_class(className, builder) {
+function make_whitespace_Rule_class(class_name_str, builder) {
   return class extends Rule {
     // ---------------------------------------------------------------------------------------------
     constructor(rule) {
       super();
-      this.rule = make_rule_func(rule);
-      this.rule = builder(this.rule);
+      this.base_rule = make_rule_func(rule);
+      this.rule = builder(this.base_rule);
     }
     // ---------------------------------------------------------------------------------------------
     __direct_children() {
@@ -1956,7 +1956,7 @@ function make_whitespace_Rule_class(className, builder) {
     // ---------------------------------------------------------------------------------------------
     __impl_toString(visited, next_id, ref_counts) {
       const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-      return `${className}(${rule_str})`;
+      return `${class_name_str}(${rule_str})`;
     }
   };
 }
