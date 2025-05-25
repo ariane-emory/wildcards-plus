@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = true;
+  // log_match_enabled  = true;
   const result       = Prompt.match(prompt_input, 0, 0, cache);
   log_match_enabled  = old_log_match_enabled;
   
@@ -1255,7 +1255,9 @@ class Sequence extends Rule {
 
     if (log_match_enabled)
       log(indent + 1, `matching first sequence item #0 out of ` +
-          `${this.elements.length}: ${this.elements[0]}...`);
+          `${this.elements.length} ${this.elements[0]}` +
+          `at char ${index} ` +
+          `at '${abbreviate(input.substring(index))}'`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2, cache);
@@ -1296,7 +1298,9 @@ class Sequence extends Rule {
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
         log(indent + 1, `matching sequence item #${ix} out of ` +
-            `${this.elements.length}: ${this.elements[ix]}...`);
+            `${this.elements.length}: ${this.elements[ix]}` +
+            `at char ${index} ` +
+            `at '${abbreviate(input.substring(index))}'`);
       
       const element = this.elements[ix];
 
@@ -1678,14 +1682,14 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      log(indent, `testing  /${this.regexp.source}/ at char ${index} of ` +
+      log(indent, `testing /${this.regexp.source}/ at char ${index} of ` +
           `'${abbreviate(input.substring(index))}'`); 
 
     const re_match = this.regexp.exec(input);
     
     if (! re_match) {
       if (log_match_enabled)
-        log(indent, `RETURN NULL!`);
+        log(indent, `regex did not match`);
       return null;
     }
 
@@ -8208,12 +8212,12 @@ const SpecialFunctionRevertPickMultiple =
 // SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                  // [0]
-                wst_seq(discarded_comments,                               // -
-                        any_assignment_operator,                          // [1][0]
-                        discarded_comments,                               // -
-                        choice(rJsonc, () => LimitedContent, plaintext),  // [1][1]
-                         word_break)));                                    // -
+            seq(c_ident,                                                   // [0]
+                wst_seq(discarded_comments,                                // -
+                        any_assignment_operator,                           // [1][0]
+                        discarded_comments,                                // -
+                        choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
+                word_break));                                              // -
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
@@ -8222,8 +8226,8 @@ const SpecialFunctionUpdateConfigurationUnary =
                 wst_seq(discarded_comments,                                      // -
                         choice(incr_assignment_operator, assignment_operator),   // [1][0]
                         discarded_comments,                                      // -
-                        choice(rJsoncObject, () => LimitedContent, plaintext),   // [1][1]   
-                         word_break)));                                           // -
+                        choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]   
+                word_break));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
