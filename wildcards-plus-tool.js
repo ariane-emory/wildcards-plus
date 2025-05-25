@@ -266,7 +266,6 @@ let prelude_disabled                  = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
-let main_disabled                     = false;
 let inspect_depth                     = 10;
 // =================================================================================================
 
@@ -1789,12 +1788,12 @@ function abbreviate(str, len = 100) {
     for (const [left, right] of bracing_pairs) {
       if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
         str = str.substring(left.length, len - 3 - right.length);
-        const ret = `${left}${str.replace("\n","\\n").trim()}...${right}`;
+        const ret = `${left}${str.replace(/\n/g,"\\n").trim()}...${right}`;
         return ret;
       }
     }
     
-    return `${str.substring(0, len - 3).replace("\n","\\n").trim()}...`;
+    return `${str.substring(0, len - 3).replace(/\n/g, '\\n').trim()}...`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -8564,11 +8563,13 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
+let main_disabled = false;
+
 if (! main_disabled)
-  main().catch(err => {
-    console.error(`Unhandled error:\n${err.stack}`);
-    process.exit(1);
-  });
+main().catch(err => {
+  console.error(`Unhandled error:\n${err.stack}`);
+  process.exit(1);
+});
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
@@ -8578,3 +8579,5 @@ const test = first(seq(wst_star(word, ','), whites_star));
 LOG_LINE();
 console.log(`result: ${inspect_fun(test.match('foo, bar, baz, quuux  '))}`);
 
+console.log(abbreviate(`{ foo |
+bar }`));
