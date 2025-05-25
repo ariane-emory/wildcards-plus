@@ -8093,13 +8093,13 @@ const UnsetFlag                = xform(second(seq(shebang, plus(ident, dot), wor
                                                          ` ${inspect_fun(arr)}`);
                                          return new ASTUnsetFlag(arr);
                                        });
-// SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
-// CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
-// CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
-// NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
-// TestFlag.abbreviate_str_repr('TestFlag');
-// SetFlag.abbreviate_str_repr('SetFlag');
-// UnsetFlag.abbreviate_str_repr('UnsetFlag');
+SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
+CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
+CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
+NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
+TestFlag.abbreviate_str_repr('TestFlag');
+SetFlag.abbreviate_str_repr('SetFlag');
+UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
