@@ -7852,7 +7852,6 @@ const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(co
 const low_pri_text             = r(/[\(\)\[\]\:]+/);
 const plaintext                = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-<<<<<<< HEAD
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
 any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
 assignment_operator            .abbreviate_str_repr('assignment_operator');
@@ -7865,30 +7864,12 @@ low_pri_text                   .abbreviate_str_repr('low_pri_text');
 plaintext                      .abbreviate_str_repr('plaintext');
 wb_uint                        .abbreviate_str_repr('wb_uint');
 word_break                     .abbreviate_str_repr('word_break');
-=======
-const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
-// any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
-// assignment_operator            .abbreviate_str_repr('assignment_operator');
-// comment                        .abbreviate_str_repr(false);
-// escaped_brc                    .abbreviate_str_repr('escaped_brc');
-// filename                       .abbreviate_str_repr('filename');
-// ident                          .abbreviate_str_repr('ident');
-// incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
-// low_pri_text                   .abbreviate_str_repr('low_pri_text');
-// plaintext                      .abbreviate_str_repr('plaintext');
-// wb_uint                        .abbreviate_str_repr('wb_uint');
-// word_break                     .abbreviate_str_repr('word_break');
->>>>>>> weirdly-cached
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
 // -------------------------------------------------------------------------------------------------
 const discarded_comments        = discard(wst_star(comment));
-<<<<<<< HEAD
 discarded_comments              .abbreviate_str_repr('discarded_comments_star');
-=======
-// discarded_comments              .abbreviate_str_repr('-comment*');
->>>>>>> weirdly-cached
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
@@ -8150,7 +8131,6 @@ const SpecialFunctionUpdateConfigurationBinary =
                         discarded_comments,                                 // -
                         choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
 SpecialFunctionUpdateConfigurationBinary
-<<<<<<< HEAD
     .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
   const SpecialFunctionUpdateConfigurationUnary =
         xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
@@ -8236,95 +8216,6 @@ SpecialFunctionUpdateConfigurationBinary
                                           
                                           if (!bang && !hash)
                                             return new ASTNamedWildcardReference(ident);
-=======
-//   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
-const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                    // [0]
-                wst_seq(discarded_comments,                                       // -
-                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
-                        discarded_comments,                                       // -
-                        choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
-SpecialFunctionUpdateConfigurationUnary
-//   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-// -------------------------------------------------------------------------------------------------
-const SpecialFunctionNotInclude =
-      second(cutting_seq('%',
-                         choice((dt_hosted
-                                 ? SpecialFunctionUIPrompt
-                                 : UnexpectedSpecialFunctionUIPrompt),
-                                (dt_hosted
-                                 ? SpecialFunctionUINegPrompt
-                                 : UnexpectedSpecialFunctionUINegPrompt),
-                                SpecialFunctionSetPickSingle,
-                                SpecialFunctionSetPickMultiple,
-                                SpecialFunctionRevertPickSingle,
-                                SpecialFunctionRevertPickMultiple,
-                                SpecialFunctionUpdateConfigurationUnary,
-                                SpecialFunctionUpdateConfigurationBinary),
-                         discarded_comments,
-                         lws(optional(';'))));
-// SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-// -------------------------------------------------------------------------------------------------
-// other non-terminals:
-// -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative =
-      xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                optional(wb_uint, 1),
-                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                () => ContentStar));
-// AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcardAlternativeNoLoras =
-      xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                optional(wb_uint, 1),
-                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                () => ContentNoLorasStar));
-// AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-// // AnonWildcard.abbreviate_str_repr('AnonWildcard');
-// // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
-const NamedWildcardReference  = xform(seq('@',                                       // [0]
-                                          optional('^'),                             // [1]
-                                          optional(xform(parseInt, uint)),           // [2]
-                                          optional(xform(parseInt,
-                                                         second(seq('-', uint)))),   // [3]
-                                          optional(/[,&]/),                          // [4]
-                                          ident),                                    // [5]
-                                      arr => {
-                                        const ident  = arr[5];
-                                        const min_ct = arr[2][0] ?? 1;
-                                        const max_ct = arr[3][0] ?? min_ct;
-                                        const join   = arr[4][0] ?? '';
-                                        const caret  = arr[1][0];
-                                        
-                                        return new ASTNamedWildcardReference(ident,
-                                                                             join,
-                                                                             caret,
-                                                                             min_ct,
-                                                                             max_ct);
-                                      });
-// NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
-const NamedWildcardDesignator = second(seq('@', ident)); 
-// NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
-const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
-                                      wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
-                                                              assignment_operator),    // -
-                                                      discarded_comments,
-                                                      AnonWildcard));                  // [1]
-// NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
-const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
-                                      arr => {
-                                        const [ bang, hash, ident, objs ] =
-                                              [ arr[1][0], arr[2][0], arr[3], []];
-                                        
-                                        if (!bang && !hash)
-                                          return new ASTNamedWildcardReference(ident);
->>>>>>> weirdly-cached
 
                                           // goes before hash so that "@!#" works correctly:
                                           if (bang) 
@@ -8333,7 +8224,6 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                           if (hash)
                                             objs.push(new ASTLatchNamedWildcard(ident));
 
-<<<<<<< HEAD
                                           return objs;
                                         });
   NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
@@ -8410,65 +8300,6 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
   // =================================================================================================
   // END OF SD PROMPT GRAMMAR SECTION.
   // =================================================================================================
-=======
-                                        return objs;
-                                      });
-// NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
-const ScalarReference         = xform(seq('$', optional('^'), ident),
-                                      arr => new ASTScalarReference(arr[2], arr[1][0]));
-// ScalarReference.abbreviate_str_repr('ScalarReference');
-const ScalarDesignator        = xform(seq('$', ident),
-                                      arr => new ASTScalarReference(arr[1]));
-// ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
-const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == '='),
-                                      wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
-                                                              discarded_comments,
-                                                              choice(incr_assignment_operator,
-                                                                     assignment_operator)), // [0][1]
-                                                      discarded_comments,                   // [1]
-                                                      choice(() => LimitedContent,
-                                                             json_string,
-                                                             plaintext),
-                                                      discarded_comments,
-                                                      lws(optional(';'))));
-// ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
-const LimitedContent          = choice(NamedWildcardReference,
-                                       ScalarReference,
-                                       AnonWildcardNoLoras,
-                                       plaintext);
-// LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule       = (...prepended_rules) =>
-      choice(...prepended_rules,
-             comment,
-             SpecialFunctionNotInclude,
-             NamedWildcardReference,
-             NamedWildcardUsage,
-             SetFlag,
-             UnsetFlag,
-             ScalarUpdate,
-             ScalarReference,
-             // anon_wildcard_rule,
-             escaped_brc,
-             low_pri_text,
-             plaintext);
-const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
-const Content                 = make_Content_rule(A1111StyleLora,
-                                                  AnonWildcard);
-const TopLevelContent         = make_Content_rule(SpecialFunctionInclude,
-                                                  NamedWildcardDefinition,
-                                                  A1111StyleLora,
-                                                  AnonWildcard);
-const ContentNoLorasStar      = wst_star(ContentNoLoras);
-const ContentStar             = wst_star(Content);
-const TopLevelContentStar     = wst_star(TopLevelContent);
-const Prompt                  = TopLevelContentStar;
-// -------------------------------------------------------------------------------------------------
-Prompt.finalize();
-// =================================================================================================
-// END OF SD PROMPT GRAMMAR SECTION.
-// =================================================================================================
->>>>>>> weirdly-cached
 
 
   // =================================================================================================
@@ -8720,12 +8551,4 @@ main().catch(err => {
 // console.log(`${CheckFlagWithOrAlternatives}`);
 // console.log(lws('a').toString());
 // console.log(wst_star('a').toString());
-<<<<<<< HEAD
-// console.log(inspect_fun(TestFlag.match("?foo,bar")?.value))
-// console.log(inspect_fun(TestFlag.match("?foo.#bar")?.value))
-// console.log(inspect_fun(TestFlag.match("!foo.#bar")?.value))
-// console.log(inspect_fun(TestFlag.match("?foo")?.value))
-// console.log(inspect_fun(TestFlag.match("!foo")?.value))
-=======
 console.log(Prompt.toString());
->>>>>>> weirdly-cached
