@@ -8277,7 +8277,7 @@ const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => C
 AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
 AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
-const AnonWildcardNoLoras            = make_AnonWildcardAlternative_rule(AnonWildcardAlternativeNoLoras);
+const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
 // AnonWildcard.abbreviate_str_repr('AnonWildcard');
 // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
 const NamedWildcardReference  = xform(seq(at,                                        // [0]
@@ -8637,7 +8637,8 @@ main().catch(err => {
 // END OF MAIN SECTION.
 // =================================================================================================
 
-console.log(`result: ${inspect_fun(AnonWildcard.match('{ foo | 2 bar | ?quux baz }'))}`);
+// console.log(`result: ${inspect_fun(AnonWildcard.match('{ foo | 2 bar | ?quux baz }'))}`);
+console.log(`result: ${inspect_fun(AnonWildcardNoLoras.match('{ foo | 2 bar | ?quux baz }'))}`);
 
 // console.log(lws(lws(lws('a'))).toString());
 console.log(abbreviate(`{ foo |
