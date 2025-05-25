@@ -303,13 +303,13 @@ Array.prototype.toString = function() {
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
 //         |
+//         |-- (Quantified) -|-- Plus
+//         |                 |-- Star
+//         |
 //         | Rules triggering failure:
 //         |-- Expected
 //         |-- Unexpected
 //         |-- Fail
-//         |
-//         |-- (Quantified) -|-- Plus
-//         |                 |-- Star
 //         |
 //         | Technically these next 3 could be implemented as Xforms, but 
 //         | they're very convenient to have built-in (and are possibly faster
@@ -1945,25 +1945,29 @@ class WithLWS extends Rule {
 // -------------------------------------------------------------------------------------------------
 function lws(rule) {
   rule = make_rule_func(rule);
+
+  const klass = WithLWS;
   
   if (!rule ||
-      rule instanceof WithLWS ||
+      rule instanceof klass ||
       (rule instanceof Quantified &&
-       rule.rule instanceof WithLWS &&
-       rule.separator_rule instanceof WithLWS) ||
+       rule.rule instanceof klass &&
+       rule.separator_rule instanceof klass) ||
       (rule instanceof Choice &&
-       rule.options.every(x => x instanceof WithLWS)) ||
-      (rule instanceof Sequence &&
-       rule.elements.every(x => x instanceof WithLWS)) ||
-      (rule instanceof Optional &&
-       rule.rule instanceof WithLWS) ||
+       rule.options.every(x => x instanceof klass))  ||
       (rule instanceof Enclosed &&
-       rule.start_rule instanceof WithLWS &&
-       rule.body_rule  instanceof WithLWS &&
-       rule.end_rule   instanceof WithLWS))
+       rule.start_rule instanceof klass &&
+       rule.body_rule  instanceof klass &&
+       rule.end_rule   instanceof klass)  ||
+      (rule instanceof Optional &&
+       rule.rule instanceof klass) ||
+      (rule instanceof Sequence &&
+       rule.elements.every(x => x instanceof klass))  ||
+      (rule instanceof Xform &&
+       rule.rule instanceof klass))
     return rule;
   
-  return new WithLWS(rule);
+  return new klass(rule);
 }
 // -------------------------------------------------------------------------------------------------
 // WithTWS class:
