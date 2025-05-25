@@ -396,7 +396,7 @@ class FatalParseError extends Error {
 class Rule {
   // -----------------------------------------------------------------------------------------------
   constructor() {
-    this.memoize = true;
+    this.memoize = false;
   }
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
