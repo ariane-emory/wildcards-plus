@@ -7872,36 +7872,40 @@ class ASTUINegPrompt extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-// const low_pri_text          = /[\(\)\[\]\,\.\?\!\:\;]+/;
-// const plaintext             = /[^{|}\s]+/;
-// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
-// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
-// const plaintext             = r(/(?:\\\s|[^\s{|}])+/);
-// const plaintext_no_parens   = /[^{|}\s()]+/;
-const any_assignment_operator  = choice(() => assignment_operator, () => incr_assignment_operator);
-const assignment_operator      = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
-const comment                  = discard(c_comment);
-//const escaped_brc              = second(choice('\\{', '\\}'));
-const filename                 = r(/[A-Za-z0-9 ._\-()]+/);
-const ident                    = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
-const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
+// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const plaintext                = /[^{|}\s]+/;
+// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
+// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
+// const plaintext                = r(/(?:\\\s|[^\s{|}])+/);
+// const plaintext_no_parens      = /[^{|}\s()]+/;
+const any_assignment_operator     = choice(() => assignment_operator, () => incr_assignment_operator);
+const assignment_operator         = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
+const comment                     = discard(c_comment);
+const dot_hash                    = l('.#');
+//const escaped_brc               = second(choice('\\{', '\\}'));
+const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
+const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
+const incr_assignment_operator    = second(seq(wst_star(comment), '+=', wst_star(comment)));
 // const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
 // const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
-const low_pri_text             = r(/[\(\)\[\]\:]+/);
-const plaintext                = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
-const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const word_break               = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
-any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
-assignment_operator            .abbreviate_str_repr('assignment_operator');
-comment                        .abbreviate_str_repr(false); // 'comment');
+const low_pri_text                = r(/[\(\)\[\]\:]+/);
+const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
+const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const word_break                  = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
+const more_restrictive_word_break = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
+any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
+assignment_operator               .abbreviate_str_repr('assignment_operator');
+comment                           .abbreviate_str_repr(false); // 'comment');
 // escaped_brc                    .abbreviate_str_repr('escaped_brc');
-filename                       .abbreviate_str_repr('filename');
-ident                          .abbreviate_str_repr('ident');
-incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
-low_pri_text                   .abbreviate_str_repr('low_pri_text');
-plaintext                      .abbreviate_str_repr('plaintext');
-wb_uint                        .abbreviate_str_repr('wb_uint');
-word_break                     .abbreviate_str_repr('word_break');
+dot_hash                          .abbreviate_str_repr('dot_hash');
+filename                          .abbreviate_str_repr('filename');
+ident                             .abbreviate_str_repr('ident');
+incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
+low_pri_text                      .abbreviate_str_repr('low_pri_text');
+plaintext                         .abbreviate_str_repr('plaintext');
+wb_uint                           .abbreviate_str_repr('wb_uint');
+word_break                        .abbreviate_str_repr('word_break');
+more_restrictive_word_break       .abbreviate_str_repr('more_restrictive_word_break');
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
@@ -7977,10 +7981,9 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related non-terminals:
 // -------------------------------------------------------------------------------------------------
-const restive_word_break = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
-const SimpleCheckFlag             = xform(seq('?',
+const SimpleCheckFlag             = xform(seq(question,
                                               plus(ident, dot),
-                                              restive_word_break),
+                                              more_restrictive_word_break),
                                           arr => {
                                             const args = [arr[1]];
 
@@ -7993,10 +7996,10 @@ const SimpleCheckFlag             = xform(seq('?',
 
                                             return new ASTCheckFlags(args);
                                           });
-const SimpleNotFlag              = xform(seq('!',
-                                             optional('#'),
+const SimpleNotFlag              = xform(seq(bang,
+                                             optional(hash),
                                              plus(ident, dot),
-                                             restive_word_break),
+                                             more_restrictive_word_break),
                                          arr => {
                                            const args = [arr[2],
                                                          { set_immediately: !!arr[1][0]}];
@@ -8025,9 +8028,9 @@ const CheckFlagWithOrAlternatives = xform(seq('?',
 
                                             return new ASTCheckFlags(...args);
                                           });
-const CheckFlagWithSetConsequent  = xform(seq('?',              // [0]
+const CheckFlagWithSetConsequent  = xform(seq(question,         // [0]
                                               plus(ident, dot), // [1]
-                                              '.#',             // [2]
+                                              dot_hash,         // [2]
                                               plus(ident, dot), // [3]
                                               word_break),      // [-]
                                           arr => {
@@ -8042,9 +8045,9 @@ const CheckFlagWithSetConsequent  = xform(seq('?',              // [0]
 
                                             return new ASTCheckFlags(...args);
                                           });
-const NotFlagWithSetConsequent    = xform(seq('!',
+const NotFlagWithSetConsequent    = xform(seq(bang,
                                               plus(ident, dot),
-                                              '.#',
+                                              dot_hash,
                                               plus(ident, dot),
                                               word_break),
                                           arr => {
@@ -8066,7 +8069,7 @@ const TestFlag                   = choice(SimpleCheckFlag,
                                           CheckFlagWithSetConsequent,
                                           CheckFlagWithOrAlternatives,
                                          );
-const SetFlag                  = xform(second(seq('#', plus(ident, dot), word_break)),
+const SetFlag                  = xform(second(seq(hash, plus(ident, dot), word_break)),
                                        arr => {
                                          if (log_flags_enabled)
                                            if (arr.length > 1)
@@ -8517,10 +8520,10 @@ async function main() {
       else  {
         console.log();
 
-        const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
+        const question_str = `POST this prompt as #${posted_count+1} out of ${count} ` +
               `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
               `POST the prior prompt)? `;
-        const answer   = await ask(question);
+        const answer   = await ask(question_str);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
           stash_priors(prompt, context.configuration);
