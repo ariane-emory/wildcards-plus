@@ -8135,6 +8135,7 @@ const SpecialFunctionInclude =
                           first(wst_seq(discarded_comments,      // -
                                         json_string,             // [0][1]
                                         discarded_comments))),   // -
+                word_break,                                      // n/a
                 discarded_comments,                              // -
                 lws(optional(semicolon))));                      // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
@@ -8203,6 +8204,8 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
                          ),
+                         // discarded_comments,
+                         // word_break, 
                          discarded_comments,
                          lws(optional(semicolon))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
