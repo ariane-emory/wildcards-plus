@@ -490,15 +490,7 @@ class Rule {
             `token #${index}: ` +
             `${abbreviate(input.substring(index))}`)
     }
-    // if (cache.has(rule)) {
-    //   const ruleCache = cache.get(rule);
-    //   if (ruleCache.has(index)) {
-    //     return ruleCache.get(index); // Return memoized result
-    //   }
-    // } else {
-    //   cache.set(rule, new Map());
-    // }
-
+    
     let rule_cache = null; // cache.get(this);
 
     if (this.memoize) {
