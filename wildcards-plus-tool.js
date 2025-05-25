@@ -1961,7 +1961,9 @@ function make_whitespace_Rule_class(class_name_str, builder) {
 }
 // -------------------------------------------------------------------------------------------------
 function make_whitespace_Rule_class_convenience_constructor_function(wrapperClass) {
-  return (rule, noisy = false) => klassify(wrapperClass, rule, noisy);
+  return (rule, noisy = false) => {
+    return klassify(wrapperClass, rule, noisy);
+  }
 }
 // -------------------------------------------------------------------------------------------------
 const WithLWS = make_whitespace_Rule_class("LWS", rule => elem(1, seq(whites_star, rule)));
