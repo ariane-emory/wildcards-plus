@@ -8391,9 +8391,9 @@ const TopLevelContent         = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const ContentNoLorasStar      = wst_star(ContentNoLoras);
-const ContentStar             = wst_star(Content);
-const TopLevelContentStar     = wst_star(TopLevelContent);
+const ContentNoLorasStar      = tws(wst_star(ContentNoLoras));
+const ContentStar             = tws(wst_star(Content));
+const TopLevelContentStar     = tws(wst_star(TopLevelContent));
 const Prompt                  = TopLevelContentStar;
 // -------------------------------------------------------------------------------------------------
 Prompt.finalize();
@@ -8488,7 +8488,7 @@ async function main() {
   // check that the parsed result is complete and expand:
   // -----------------------------------------------------------------------------------------------
   if (! result.is_finished)
-    throw new Error(`error parsing prompt at ${result.index}!`);
+    throw new Error(`error parsing prompt at ${result.index}:\n${inspect_fun(result)}`);
 
   let   AST          = result.value;
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
@@ -8629,17 +8629,17 @@ async function main() {
 let main_disabled = false;
 
 if (! main_disabled)
-main().catch(err => {
-  console.error(`Unhandled error:\n${err.stack}`);
-  process.exit(1);
-});
-// =================================================================================================
-// END OF MAIN SECTION.
-// =================================================================================================
+                                      main().catch(err => {
+                                        console.error(`Unhandled error:\n${err.stack}`);
+                                        process.exit(1);
+                                      });
+                                    // =================================================================================================
+                                    // END OF MAIN SECTION.
+                                    // =================================================================================================
 
-// console.log(`result: ${inspect_fun(AnonWildcard.match('{ foo | 2 bar | ?quux baz }'))}`);
-//console.log(`result: ${inspect_fun(AnonWildcardNoLoras.match('{ foo | 2 bar | ?quux baz }'))}`);
-// console.log(lws(lws(lws('a'))).toString());
-// console.log(abbreviate(`{ foo |
-// bar |
-// baz }`));
+                                    // console.log(`result: ${inspect_fun(AnonWildcard.match('{ foo | 2 bar | ?quux baz }'))}`);
+                                    //console.log(`result: ${inspect_fun(AnonWildcardNoLoras.match('{ foo | 2 bar | ?quux baz }'))}`);
+                                    // console.log(lws(lws(lws('a'))).toString());
+                                    // console.log(abbreviate(`{ foo |
+                                    // bar |
+                                    // baz }`));
