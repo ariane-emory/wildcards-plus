@@ -1896,8 +1896,8 @@ uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
-whites_star.memoize = false;
-whites_plus.memoize = false;
+// whites_star.memoize = false;
+// whites_plus.memoize = false;
 whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
 // leading/trailing whitespace:
@@ -1943,31 +1943,45 @@ const plus_whites_sep    = rule => plus(rule, whites_plus);
 // string-like terminals:
 const stringlike         = quote => r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
 const dq_string          = stringlike('"');
-const sq_string          = stringlike("'");
-const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
 const raw_dq_string      = r(/r"[^"]*"/);
+const sq_string          = stringlike("'");
 const template_string    = r(/`(?:[^\\`]|\\.)*`/);
+const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
+dq_string.abbreviate_str_repr('dq_string');
+raw_dq_string.abbreviate_str_repr('raw_dq_string');
+sq_string.abbreviate_str_repr('sq_string');
+template_string.abbreviate_str_repr('template_string');
+triple_dq_string.abbreviate_str_repr('triple_dq_string');
 // -------------------------------------------------------------------------------------------------
 // keyword helper:
 const keyword            = word => {
   if (word instanceof Regex)
-    return keyword(word.regexp);
+  return keyword(word.regexp);
 
   if (word instanceof RegExp)
-    return keyword(word.source);
+  return keyword(word.source);
   
   return r(new RegExp(String.raw(`\b${word}\b`)));
 };
+keyword.abbreviate_str_repr('keyword');
 // -------------------------------------------------------------------------------------------------
 // parenthesis-like terminals:
-const lpar               = l('(');
-const rpar               = l(')');
-const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
-const rbrc               = l('{}'[1]); 
-const lsqr               = l('[]'[0]);
-const rsqr               = l('[]'[1]);
-const lt                 = l('<');
 const gt                 = l('>');
+const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
+const lpar               = l('(');
+const lsqr               = l('[]'[0]);
+const lt                 = l('<');
+const rbrc               = l('{}'[1]);
+const rpar               = l(')');
+const rsqr               = l('[]'[1]);
+gt.abbreviate_str_repr('gt');
+lbrc.abbreviate_str_repr('lbrc');
+lpar.abbreviate_str_repr('lpar');
+lsqr.abbreviate_str_repr('lsqr');
+lt.abbreviate_str_repr('lt');
+rbrc.abbreviate_str_repr('rbrc');
+rpar.abbreviate_str_repr('rpar');
+rsqr.abbreviate_str_repr('rsqr');
 // -------------------------------------------------------------------------------------------------
 // common enclosed rules:
 const par_enc            = rule => cutting_enc(lpar, rule, rpar);
@@ -1989,13 +2003,18 @@ const wse                = rule => {
 // basic arithmetic ops:
 const factor_op          = r(/[\/\*\%]/);
 const term_op            = r(/[\+\-]/);
+factor_op.abbreviate_str_repr('factor_op');
+term_op.abbreviate_str_repr('term_op');
 // -------------------------------------------------------------------------------------------------
 // Pascal-like terminals:
 const pascal_assign_op   = l('=');
+pascal_assign_op.abbreviate_str_repr('pascal_assign_op');
 // -------------------------------------------------------------------------------------------------
 // Python-like terminals:
 const python_exponent_op = l('**');
 const python_logic_word  = r(/and|or|not|xor/);
+python_exponent_op.abbreviate_str_repr('python_exponent_op');
+python_logic_word.abbreviate_str_repr('python_logic_word');
 // -------------------------------------------------------------------------------------------------
 // common punctuation:
 const ampersand          = l('&');
