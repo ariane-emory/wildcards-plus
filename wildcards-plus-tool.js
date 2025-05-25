@@ -1932,113 +1932,45 @@ function klassify(klass, rule, noisy = false) {
   return new klass(rule);
 }
 
-function makeWhitespaceWrapper(className, builder) {
+// ---------------------------------------------------------------------------------------------
+function make_whitespace_Rule_class(className, builder) {
   return class extends Rule {
+    // ---------------------------------------------------------------------------------------------
     constructor(rule) {
       super();
       this.rule = make_rule_func(rule);
       this.rule = builder(this.rule);
     }
-
+    // ---------------------------------------------------------------------------------------------
     __direct_children() {
       return [this.rule];
     }
-
+    // ---------------------------------------------------------------------------------------------
     __impl_finalize(indent, visited) {
       this.rule = this.__vivify(this.rule);
       this.rule.__finalize(indent + 1, visited);
     }
-
+    // ---------------------------------------------------------------------------------------------
     __match(indent, input, index, cache) {
       return this.rule.match(input, index, indent, cache);
     }
-
+    // ---------------------------------------------------------------------------------------------
     __impl_toString(visited, next_id, ref_counts) {
       const rule_str = this.rule.__toString(visited, next_id, ref_counts);
       return `${className}(${rule_str})`;
     }
   };
 }
-
-
-const WithLWS = makeWhitespaceWrapper("LWS", rule => elem(1, seq(whites_star, rule)));
-const WithTWS = makeWhitespaceWrapper("TWS", rule => elem(0, seq(rule, whites_star)));
-
+// -------------------------------------------------------------------------------------------------
+const WithLWS = make_whitespace_Rule_class("LWS", rule => elem(1, seq(whites_star, rule)));
+const WithTWS = make_whitespace_Rule_class("TWS", rule => elem(0, seq(rule, whites_star)));
+// -------------------------------------------------------------------------------------------------
 function lws(rule, noisy = false) {
   return klassify(WithLWS, rule, noisy);
 }
-
 function tws(rule, noisy = false) {
   return klassify(WithTWS, rule, noisy);
 }
-
-
-// // -------------------------------------------------------------------------------------------------
-// // WithLWS class:
-// // -------------------------------------------------------------------------------------------------
-// class WithLWS extends Rule {
-//   // -----------------------------------------------------------------------------------------------
-//   constructor(rule) {
-//     super();
-//     this.rule = make_rule_func(rule);
-//     this.rule = elem(1, seq(whites_star, this.rule));
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __direct_children() {
-//     return [ this.rule ];
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __impl_finalize(indent, visited) {
-//     this.rule = this.__vivify(this.rule);
-//     this.rule.__finalize(indent + 1, visited);
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __match(indent, input, index, cache) {
-//     return this.rule.match(input, index, indent, cache);
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __impl_toString(visited, next_id, ref_counts) {
-//     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-//     return `LWS(${rule_str})`;
-//   }
-// }
-// // -------------------------------------------------------------------------------------------------
-// function lws(rule, noisy = false) {
-//   return klassify(WithLWS, rule, noisy);
-// }
-// // -------------------------------------------------------------------------------------------------
-// // WithTWS class:
-// // -------------------------------------------------------------------------------------------------
-// class WithTWS extends Rule {
-//   // -----------------------------------------------------------------------------------------------
-//   constructor(rule) {
-//     super();
-//     this.rule = make_rule_func(rule);
-//     this.rule = elem(0, seq(this.rule, whites_star));
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __direct_children() {
-//     return [ this.rule ];
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __impl_finalize(indent, visited) {
-//     this.rule = this.__vivify(this.rule);
-//     this.rule.__finalize(indent + 1, visited);
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __match(indent, input, index, cache) {
-//     return this.rule.match(input, index, indent, cache);
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __impl_toString(visited, next_id, ref_counts) {
-//     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-//     return `TWS(${rule_str})`;
-//   }
-// }
-// // -------------------------------------------------------------------------------------------------
-// function tws(rule, noisy = false) {
-//   return klassify(WithTWS, rule, noisy);
-// }
 // =================================================================================================
 
 
