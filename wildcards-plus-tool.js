@@ -528,7 +528,7 @@ class Rule {
       if (ret)
         log(indent,
             `<= ${this.constructor.name} ${this.toString()} returned: ` +
-            `${JSON.stringify(ret)}`);
+            `${inspect_fun(ret)}`);
       else
         log(indent,
             `<= Failed to match ${this.constructor.name} ` +
@@ -8156,7 +8156,7 @@ const UnexpectedSpecialFunctionInclude =
                                      "running the wildcards-plus.js script " +
                                      "inside Draw Things",
                                      input, index - 1));
-// UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',               // [0]
@@ -8164,7 +8164,7 @@ const SpecialFunctionSetPickSingle =
                         assignment_operator, // [1][0]
                         discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-// SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
+SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                // [0]
@@ -8172,15 +8172,15 @@ const SpecialFunctionSetPickMultiple =
                         assignment_operator, // [1][0]
                         discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-// SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick', word_break));
-// SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick', word_break));
-// SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == equals),
             seq(c_ident,                                                    // [0]
