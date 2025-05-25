@@ -91,6 +91,7 @@ Array.prototype.toString = function() {
 //         |
 //         |-- Discard
 //         |-- Elem
+//         |-- Tail
 //         |-- Label
 //         |
 //         | Rules that make sense only when input is an Array of Tokens:
@@ -150,6 +151,10 @@ class FatalParseError extends Error {
 // -------------------------------------------------------------------------------------------------
 class Rule {
   // -----------------------------------------------------------------------------------------------
+  constructor() {
+    this.memoize = false;
+  }
+  // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
     if (this.__abbreviated)
       throw new Error(`${inspect_fun(this)} is already abbreviated, this likely a programmer error`);
@@ -162,7 +167,6 @@ class Rule {
     
     this.__direct_children = () => [];
     this.__abbreviated     = true;
-    this.memoize           = true;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
@@ -222,34 +226,31 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0, cache = new Map()) {
-    if (typeof input !== 'string') {
+    // console.log(`try matching ${this.memoize} ${this}`);
+
+    if (this.memoize === undefined)
+      throw new Error(`suspiciously built rule ${inspect_fun(this)}`);
+    
+    if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
-    }
     
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
         log(indent,
-            `Matching ${this.constructor.name} ${this.toString()}, ` +
+            `Matching ${this.toString()}, ` +
             `but at end of input!`);
       else 
         log(indent,
-            `Matching ${this.constructor.name} ${this.toString()} at ` +
-            `char ${index}, ` +
-            `token #${index}: ` +
-            `${abbreviate(input.substring(index))}`)
+            `Matching ${this.toString()} at ` +
+            `char #${index}: ` +
+            `"${abbreviate(input.substring(index))}"`)
     }
-    // if (cache.has(rule)) {
-    //   const ruleCache = cache.get(rule);
-    //   if (ruleCache.has(index)) {
-    //     return ruleCache.get(index); // Return memoized result
-    //   }
-    // } else {
-    //   cache.set(rule, new Map());
-    // }
-
-    let rule_cache = cache.get(this);
+    
+    let rule_cache = null; // cache.get(this);
 
     if (this.memoize) {
+      rule_cache = cache.get(this);
+      
       if (rule_cache) {
         const got = rule_cache.get(index);
 
@@ -259,8 +260,9 @@ class Rule {
         }
       }
       else {
-        // console.log(`init Map for ${this}`);
-        rule_cache = cache.set(this, new Map());
+        // console.log(`init cache for rule ${this}`);
+        rule_cache = new Map();
+        cache.set(this, rule_cache);
       }
     }
     
@@ -270,9 +272,8 @@ class Rule {
       throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
                       `this is likely a programmer error`);
     }
-    
-    if (this.memoize)
-      rule_cache.set(index, ret);
+
+    rule_cache?.set(index, ret);
 
     // if (ret && ret?.value === null) {
     //   throw new Error(`got null from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
@@ -282,12 +283,12 @@ class Rule {
     if (log_match_enabled) {
       if (ret)
         log(indent,
-            `<= ${this.constructor.name} ${this.toString()} returned: ` +
-            `${JSON.stringify(ret)}`);
+            `<= ${this.constructor.name} ${abbreviate(this.toString())} returned: ` +
+            `${compress(inspect_fun(ret))}`);
       else
         log(indent,
-            `<= Matching ${this.constructor.name} ` +
-            `${this.toString()} returned null.`);
+            `<= Failed to match ${this.constructor.name} ` +
+            `${abbreviate(this.toString())}`);
     }
 
     return ret;
@@ -324,7 +325,7 @@ class Rule {
           .replace('() => ', '');
     
     if (this.direct_children().length == 0) {
-      return abbreviate(__call_impl_toString(), 32);
+      return abbreviate(__call_impl_toString(), 64);
       // return __call_impl_toString();
     }
     
@@ -449,7 +450,7 @@ class Quantified extends Rule {
 
         if (log_match_enabled)
           log(indent,
-              `matched separator rule ${this.separator_rule}...`);
+              `Matched separator rule ${this.separator_rule}...`);
 
         update_index(separator_match_result.index);
       } // end of if (this.separator_rule)
@@ -575,13 +576,13 @@ class Choice extends Rule  {
         // }
 
         if (log_match_enabled)
-          log(indent + 1, `Chose option #${ix}!`);
+          log(indent + 1, `Chose option #${ix}`);
         
         return match_result;
       }
 
       if (log_match_enabled)
-        log(indent + 1, `Rejected option #${ix}.`);
+        log(indent + 1, `Rejected option #${ix}`);
     }
 
     return null;
@@ -763,6 +764,54 @@ function third(rule) {
   return rule;
 }
 // -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Tail class
+// -------------------------------------------------------------------------------------------------
+class Tail extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(index, rule) {
+    super();
+    this.rule  = make_rule_func(rule);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
+
+    if (! rule_match_result)
+      return null;
+
+    // I forget why I did this? Could be a bad idea?
+    const ret = rule_match_result.value.slice(1);
+    
+    if (log_match_enabled)
+      log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
+          `${inspect_fun(ret)}`);
+
+    rule_match_result.value = ret;
+    
+    return rule_match_result
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+    return `CDR(${rule_str})`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function tail(rule) { // convenience constructor
+  return new Tail(rule);
+}
+// =================================================================================================
 
 // -------------------------------------------------------------------------------------------------
 // Enclosed class
@@ -1031,14 +1080,16 @@ class Sequence extends Rule {
 
     if (log_match_enabled)
       log(indent + 1, `matching first sequence item #0 out of ` +
-          `${this.elements.length}: ${this.elements[0]}...`);
+          `${this.elements.length}: ${this.elements[0]} at ` +
+          `char #${index} ` +
+          `"${abbreviate(input.substring(index), (100 - 2*indent))}"`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2, cache);
     let last_match_result = start_rule_match_result;
 
-    if (log_match_enabled && last_match_result !== null)
-      log(indent + 1, `first last_match_result = ${inspect_fun(last_match_result)}`);
+    // if (log_match_enabled && last_match_result !== null)
+    //   log(indent + 1, `first last_match_result = ${inspect_fun(last_match_result)}`);
     
     if (last_match_result === null) {
       if (log_match_enabled)
@@ -1047,18 +1098,18 @@ class Sequence extends Rule {
     }
 
     if (log_match_enabled)
-      log(indent + 1, `matched sequence item #0: ` +
-          `${JSON.stringify(last_match_result)}.`);
+      log(indent + 1, `matched first sequence item #0: ` +
+          `${compress(inspect_fun(last_match_result))}`);
     
     const values = [];
     index        = last_match_result.index;
 
-    if (log_match_enabled)
-      log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
+    // if (log_match_enabled)
+    //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
-      if (log_match_enabled)
-        log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+      // if (log_match_enabled)
+      //   log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
 
       values.push(last_match_result.value);
 
@@ -1071,7 +1122,9 @@ class Sequence extends Rule {
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
         log(indent + 1, `matching sequence item #${ix} out of ` +
-            `${this.elements.length}: ${this.elements[ix]}...`);
+            `${this.elements.length}: ${this.elements[ix]} at ` +
+            `char #${index} ` +
+            `"${abbreviate(input.substring(index))}"`);
       
       const element = this.elements[ix];
 
@@ -1086,11 +1139,12 @@ class Sequence extends Rule {
       }
 
       if (log_match_enabled)
-        log(indent + 1, `matched sequence item #${ix}.`);
+        log(indent + 1, `matched sequence item #${ix}: `+
+            `${compress(inspect_fun(last_match_result))}`);
 
       if (last_match_result.value !== DISCARD) {
-        if (log_match_enabled)
-          log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+        // if (log_match_enabled)
+        //   log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
 
         values.push(last_match_result.value);
 
@@ -1114,6 +1168,7 @@ class Sequence extends Rule {
                                                                           next_id,
                                                                           ref_counts));
     const str       = elem_strs.join(' ');
+
     return `[${str}]`;
     // return `(${str})`;
   }
@@ -1136,7 +1191,7 @@ class CuttingSequence extends Sequence {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
-      `expected (${this.elements.slice(1).join(" ")}) ` +
+      `expected [${this.elements.slice(1).join(" ")}] ` +
         `after ${this.elements[0]}`,
       input, start_rule_result.index);
   }
@@ -1295,7 +1350,7 @@ class Unexpected extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    return `!${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+    return `!${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}!`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1453,14 +1508,14 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      log(indent, `testing  /${this.regexp.source}/ at char ${index} of ` +
+      log(indent, `testing  /${this.regexp.source}/ at char #${index} of ` +
           `'${abbreviate(input.substring(index))}'`); 
 
     const re_match = this.regexp.exec(input);
     
     if (! re_match) {
       if (log_match_enabled)
-        log(indent, `RETURN NULL!`);
+        log(indent, `regex did not match`);
       return null;
     }
 
@@ -1560,12 +1615,12 @@ function abbreviate(str, len = 100) {
     for (const [left, right] of bracing_pairs) {
       if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
         str = str.substring(left.length, len - 3 - right.length);
-        const ret = `${left}${str.replace("\n","").trim()}...${right}`;
+        const ret = `${left}${str.replace(/\n/g, "\\n").trim()}...${right}`;
         return ret;
       }
     }
     
-    return `${str.substring(0, len - 3).replace("\n","").trim()}...`;
+    return `${str.substring(0, len - 3).replace(/\n/g, "\\n").trim()}...`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1650,13 +1705,10 @@ uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
-whites_star.memoize = false;
-whites_plus.memoize = false;
+// whites_star.memoize = false;
+// whites_plus.memoize = false;
 whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
-const d_whites_star      = discard(whites_star);
-const d_whites_plus      = discard(whites_plus);
-// -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
 const lws                = rule => {
   rule = second(seq(whites_star, rule));
@@ -1700,10 +1752,15 @@ const plus_whites_sep    = rule => plus(rule, whites_plus);
 // string-like terminals:
 const stringlike         = quote => r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
 const dq_string          = stringlike('"');
-const sq_string          = stringlike("'");
-const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
 const raw_dq_string      = r(/r"[^"]*"/);
+const sq_string          = stringlike("'");
 const template_string    = r(/`(?:[^\\`]|\\.)*`/);
+const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
+dq_string.abbreviate_str_repr('dq_string');
+raw_dq_string.abbreviate_str_repr('raw_dq_string');
+sq_string.abbreviate_str_repr('sq_string');
+template_string.abbreviate_str_repr('template_string');
+triple_dq_string.abbreviate_str_repr('triple_dq_string');
 // -------------------------------------------------------------------------------------------------
 // keyword helper:
 const keyword            = word => {
@@ -1717,14 +1774,26 @@ const keyword            = word => {
 };
 // -------------------------------------------------------------------------------------------------
 // parenthesis-like terminals:
-const lpar               = l('(');
-const rpar               = l(')');
-const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
-const rbrc               = l('{}'[1]); 
-const lsqr               = l('[]'[0]);
-const rsqr               = l('[]'[1]);
-const lt                 = l('<');
 const gt                 = l('>');
+const rtri               = l('>');
+const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
+const lpar               = l('(');
+const lsqr               = l('[]'[0]);
+const lt                 = l('<');
+const ltri               = l('<');
+const rbrc               = l('{}'[1]);
+const rpar               = l(')');
+const rsqr               = l('[]'[1]);
+gt.abbreviate_str_repr('gt');
+lbrc.abbreviate_str_repr('lbrc');
+lpar.abbreviate_str_repr('lpar');
+lsqr.abbreviate_str_repr('lsqr');
+lt.abbreviate_str_repr('lt');
+ltri.abbreviate_str_repr('ltri');
+rbrc.abbreviate_str_repr('rbrc');
+rpar.abbreviate_str_repr('rpar');
+rsqr.abbreviate_str_repr('rsqr');
+rtri.abbreviate_str_repr('rtri');
 // -------------------------------------------------------------------------------------------------
 // common enclosed rules:
 const par_enc            = rule => cutting_enc(lpar, rule, rpar);
@@ -1746,15 +1815,21 @@ const wse                = rule => {
 // basic arithmetic ops:
 const factor_op          = r(/[\/\*\%]/);
 const term_op            = r(/[\+\-]/);
+factor_op.abbreviate_str_repr('factor_op');
+term_op.abbreviate_str_repr('term_op');
 // -------------------------------------------------------------------------------------------------
 // Pascal-like terminals:
 const pascal_assign_op   = l('=');
+pascal_assign_op.abbreviate_str_repr('pascal_assign_op');
 // -------------------------------------------------------------------------------------------------
 // Python-like terminals:
 const python_exponent_op = l('**');
 const python_logic_word  = r(/and|or|not|xor/);
+python_exponent_op.abbreviate_str_repr('python_exponent_op');
+python_logic_word.abbreviate_str_repr('python_logic_word');
 // -------------------------------------------------------------------------------------------------
 // common punctuation:
+const at                = l('@');
 const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
@@ -1762,18 +1837,49 @@ const bslash             = l('\\');
 const caret              = l('^');
 const colon              = l(':');
 const comma              = l(',');
+const dash               = l('-');
 const dash_arrow         = l('->');
+const dollar             = l('$');
 const dot                = l('.');
-const eq_arrow           = l('=>');
 const ellipsis           = l('...');
 const equals             = l('=');
+const equals_arrow       = l('=>');
+const hash               = l('#');
+const decr_equals        = l('-=');
+const incr_equals        = l('+=');
 const percent            = l('%');
 const pipe               = l('|');
 const pound              = l('#');
 const question           = l('?');
 const range              = l('..');
 const semicolon          = l(';');
+const shebang            = l('#!');
 const slash              = l('/');
+ampersand.abbreviate_str_repr('ampersand');
+asterisk.abbreviate_str_repr('asterisk');
+bang.abbreviate_str_repr('bang');
+bslash.abbreviate_str_repr('bslash');
+caret.abbreviate_str_repr('caret');
+colon.abbreviate_str_repr('colon');
+comma.abbreviate_str_repr('comma');
+dash.abbreviate_str_repr('dash');
+dash_arrow.abbreviate_str_repr('dash_arrow');
+decr_equals.abbreviate_str_repr('decr_equals');
+incr_equals.abbreviate_str_repr('incr_equals');
+dollar.abbreviate_str_repr('dollar');
+dot.abbreviate_str_repr('dot');
+ellipsis.abbreviate_str_repr('ellipsis');
+equals_arrow.abbreviate_str_repr('eq_arrow');
+equals.abbreviate_str_repr('equals');
+hash.abbreviate_str_repr('hash');
+percent.abbreviate_str_repr('percent');
+pipe.abbreviate_str_repr('pipe');
+pound.abbreviate_str_repr('pound');
+question.abbreviate_str_repr('question');
+range.abbreviate_str_repr('range');
+semicolon.abbreviate_str_repr('semicolon');
+shebang.abbreviate_str_repr('shebang');
+slash.abbreviate_str_repr('slash');
 // -------------------------------------------------------------------------------------------------
 // C-like numbers:
 const c_bin              = r(/0b[01]/);
@@ -1804,7 +1910,7 @@ const c_bitwise_and      = l('&');
 const c_bitwise_bool_op  = r(/&&|\|\|/);
 const c_bitwise_not      = l('~');
 const c_bitwise_or       = l('|');
-const c_bitwise_xor      = caret; 
+const c_bitwise_xor      = l('^');
 const c_bool             = choice('true', 'false');
 const c_ccomparison_op   = r(/<=?|>=?|[!=]/);
 const c_incr_decr        = r(/\+\+|--/);
@@ -1849,7 +1955,7 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = wse('('), close = wse(')'), sep = ',') =>
+const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep = comma) =>
       seq(fun_rule,
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
@@ -1981,8 +2087,8 @@ const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(jsonc_comments,
                              choice(() => JsoncObject,  () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
-                                    () => json_null,    () => json_number),
-                             jsonc_comments));
+                                    () => json_null,    () => json_number) /*,
+                                                                             jsonc_comments */));
 const JsoncArray =
       wst_cutting_enc('[',
                       wst_star(second(seq(jsonc_comments,
@@ -2420,7 +2526,12 @@ function choose_indefinite_article(word) {
 function compress(str) {
   return str.replace(/\s+/g, ' ');
 }
-
+// ------------------------------------------------------------------------------------------------
+function format_pretty_number(num) {
+  const [intPart, fracPart] = num.toString().split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+}
 // -------------------------------------------------------------------------------------------------
 function format_pretty_list(arr) {
   const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
@@ -3031,7 +3142,7 @@ class Context {
     this.configuration.loras.push(lora);
 
     if (log_configuration_enabled)
-      log(`ADDED ${compress(inspect_fun(lora))} TO ${this}`);
+      log(`added LoRA ${compress(inspect_fun(lora))} to ${this}`);
   }
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
@@ -6537,16 +6648,20 @@ let prelude_parse_result = null;
 function load_prelude(into_context = new Context()) {
   if (! prelude_parse_result) {
     const old_log_match_enabled = log_match_enabled;
-    log_match_enabled = false; 
+    log_match_enabled = false;
+    console.log(`parsing prelude...`);
     prelude_parse_result = Prompt.match(prelude_text);
+    console.log(`done parsing prelude.`);
     log_match_enabled = old_log_match_enabled;
   }
-  
+
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
   if (ignored === undefined)
     throw new Error("crap");
-  
+
+  console.log("loaded prelude.");
+
   return into_context;
 }
 // =================================================================================================
@@ -6717,11 +6832,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (got instanceof ASTLatchedNamedWildcardValue) {
         return `\\<WARNING: tried to latch already-latched NamedWildcard @${thing.name}, ` +
           `check your template!>`;
-      } else {
-        console.log(`LATCHING ${inspect_fun(got)}`);
-        
-        // throw new Error('bomb');
-      }
+      } /* else {
+           console.log(`LATCHING ${inspect_fun(got)}`);
+           
+           // throw new Error('bomb');
+           } */
 
       const latched = new ASTLatchedNamedWildcardValue(walk(got, indent + 1), got);
 
@@ -6969,7 +7084,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       let res = null;
 
       try {
-        res = Prompt.match(sub_prompt. text);
+        res = Prompt.match(sub_prompt.text);
       }
       catch(err) {
         if (err instanceof FatalParseError)
@@ -7578,40 +7693,44 @@ class ASTUINegPrompt extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-// const low_pri_text          = /[\(\)\[\]\,\.\?\!\:\;]+/;
-// const plaintext             = /[^{|}\s]+/;
-// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
-// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
-// const plaintext             = r(/(?:\\\s|[^\s{|}])+/);
-// const plaintext_no_parens   = /[^{|}\s()]+/;
-const any_assignment_operator  = choice(() => assignment_operator, () => incr_assignment_operator);
-const assignment_operator      = second(seq(wst_star(() => comment), '=', wst_star(() => comment)));
-const comment                  = discard(c_comment);
-const escaped_brc              = second(choice('\\{', '\\}'));
-const filename                 = r(/[A-Za-z0-9 ._\-()]+/);
-const ident                    = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
-const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
-const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
-const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
-const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
-any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
-assignment_operator            .abbreviate_str_repr('assignment_operator');
-comment                        .abbreviate_str_repr(false);
-escaped_brc                    .abbreviate_str_repr('escaped_brc');
-filename                       .abbreviate_str_repr('filename');
-ident                          .abbreviate_str_repr('ident');
-incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
-low_pri_text                   .abbreviate_str_repr('low_pri_text');
-plaintext                      .abbreviate_str_repr('plaintext');
-wb_uint                        .abbreviate_str_repr('wb_uint');
-word_break                     .abbreviate_str_repr('word_break');
+// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const plaintext                = /[^{|}\s]+/;
+// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
+// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
+// const plaintext                = r(/(?:\\\s|[^\s{|}])+/);
+// const plaintext_no_parens      = /[^{|}\s()]+/;
+const any_assignment_operator     = choice(() => assignment_operator, () => incr_assignment_operator);
+const comment                     = discard(c_comment);
+const assignment_operator         = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
+const incr_assignment_operator    = second(seq(wst_star(comment), incr_equals, wst_star(comment)));
+const dot_hash                    = l('.#');
+//const escaped_brc               = second(choice('\\{', '\\}'));
+const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
+const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
+// const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
+// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
+const low_pri_text                = r(/[\(\)\[\]\:]+/);
+const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
+const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const word_break                  = r(/(?=\n|\s|[{|}\.\,\;\%\$\@\?\!\[\]\(\)]|$)/);
+any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
+comment                           .abbreviate_str_repr(false); // 'comment');
+assignment_operator               .abbreviate_str_repr('assignment_operator');
+incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
+// escaped_brc                    .abbreviate_str_repr('escaped_brc');
+dot_hash                          .abbreviate_str_repr('dot_hash');
+filename                          .abbreviate_str_repr('filename');
+ident                             .abbreviate_str_repr('ident');
+low_pri_text                      .abbreviate_str_repr('low_pri_text');
+plaintext                         .abbreviate_str_repr('plaintext');
+wb_uint                           .abbreviate_str_repr('wb_uint');
+word_break                        .abbreviate_str_repr('word_break');
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
 // -------------------------------------------------------------------------------------------------
 const discarded_comments        = discard(wst_star(comment));
-discarded_comments              .abbreviate_str_repr('-comment*');
+discarded_comments              .abbreviate_str_repr('discarded_comments_star');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
@@ -7630,15 +7749,15 @@ discarded_comments              .abbreviate_str_repr('-comment*');
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint);
 const A1111StyleLora       =
       xform(arr => new ASTLora(arr[3], arr[4][0]),
-            wst_seq('<',                                    // [0]
+            wst_seq(ltri,                                   // [0]
                     'lora',                                 // [1]
-                    ':',                                    // [2]
+                    colon,                                  // [2]
                     choice(filename, () => LimitedContent), // [3]
-                    optional(second(wst_seq(':',
+                    optional(second(wst_seq(colon,
                                             choice(A1111StyleLoraWeight,
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
-                    '>'));
+                    rtri));
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // -------------------------------------------------------------------------------------------------
@@ -7679,86 +7798,114 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 }
 // -------------------------------------------------------------------------------------------------
-// flag-related non-terminals:
+// flag-related rules:
 // -------------------------------------------------------------------------------------------------
-const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), word_break),
-                                          arr => {
-                                            const args = [arr[1]];
+const simple_check_flag_word_break  = r(/(?=\s|[{|}\;\%\$\@\?\!\[\]\(\)]|$)/);
+simple_check_flag_word_break        .abbreviate_str_repr('simple_check_flag_word_break');
+const SimpleCheckFlag               = xform(seq(question,
+                                                plus(ident, dot),
+                                                simple_check_flag_word_break),
+                                            arr => {
+                                              const args = [arr[1]];
 
-                                            if (log_flags_enabled) {
-                                              console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
-                                                          `${inspect_fun(arr)}`);
-                                              console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
-                                                          `${inspect_fun(args)}`);
-                                            }
+                                              if (log_flags_enabled) {
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                                            `${inspect_fun(arr)}`);
+                                                console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                                            `${inspect_fun(args)}`);
+                                              }
 
-                                            return new ASTCheckFlags(...args);
-                                          });
-const CheckFlagWithSetConsequent  = xform(seq('?',              // [0]
-                                              plus(ident, '.'), // [1]
-                                              '.#',             // [2]
-                                              plus(ident, '.'), // [3]
-                                              word_break),      // [-]
-                                          arr => {
-                                            const args = [ [ arr[1] ], arr[3] ]; 
+                                              return new ASTCheckFlags(args);
+                                            });
+const SimpleNotFlag                 = xform(seq(bang,
+                                                optional(hash),
+                                                plus(ident, dot),
+                                                word_break),
+                                            arr => {
+                                              const args = [arr[2],
+                                                            { set_immediately: !!arr[1][0]}];
 
-                                            if (log_flags_enabled) {
-                                              console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
-                                                          `${inspect_fun(arr)}`);
-                                              console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
-                                                          `${inspect_fun(args)}`);
-                                            }
+                                              if (log_flags_enabled) {
+                                                console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
+                                                            `${inspect_fun(arr)}`);
+                                                console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
+                                                            `${inspect_fun(args)}`);
+                                              }
 
-                                            return new ASTCheckFlags(...args);
-                                          });
-const NotFlagWithSetConsequent    = xform(seq('!', plus(ident, '.'), '.#', plus(ident, '.'), word_break),
-                                          arr => {
-                                            const args = [arr[1],
-                                                          { consequently_set_flag_tail: arr[3] }]; 
+                                              return new ASTNotFlag(...args);
+                                            })
+const CheckFlagWithOrAlternatives   = xform(seq(question,
+                                                plus(plus(ident, dot), comma),
+                                                word_break),
+                                            arr => {
+                                              const args = [arr[1]];
 
-                                            if (log_flags_enabled) {
-                                              console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
-                                                          `${inspect_fun(arr)}`);
-                                              console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
-                                                          `${inspect_fun(args)}`);
-                                            }
-                                            
-                                            return new ASTNotFlag(...args);
-                                          })
-const SimpleNotFlag              = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
-                                         arr => {
-                                           const args = [arr[2],
-                                                         { set_immediately: !!arr[1][0]}];
+                                              if (log_flags_enabled) {
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                                            `${inspect_fun(arr)}`);
+                                                console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                                            `${inspect_fun(args)}`);
+                                              }
 
-                                           if (log_flags_enabled) {
-                                             console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
-                                                         `${inspect_fun(arr)}`);
-                                             console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
-                                                         `${inspect_fun(args)}`);
-                                           }
+                                              return new ASTCheckFlags(...args);
+                                            });
+const CheckFlagWithSetConsequent    = xform(seq(question,         // [0]
+                                                plus(ident, dot), // [1]
+                                                dot_hash,         // [2]
+                                                plus(ident, dot), // [3]
+                                                word_break),      // [-]
+                                            arr => {
+                                              const args = [ [ arr[1] ], arr[3] ]; 
 
-                                           return new ASTNotFlag(...args);
-                                         })
-const TestFlag                   = choice(CheckFlagWithSetConsequent,
-                                          CheckFlagWithOrAlternatives,
-                                          NotFlagWithSetConsequent,
-                                          SimpleNotFlag);
-const SetFlag                  = xform(second(seq('#', plus(ident, '.'), word_break)),
-                                       arr => {
-                                         if (log_flags_enabled)
-                                           if (arr.length > 1)
-                                             console.log(`CONSTRUCTING SETFLAG WITH ` +
-                                                         `${inspect_fun(arr)}`);
-                                         return new ASTSetFlag(arr);
-                                       });
-const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_break)),
-                                       arr => {
-                                         if (log_flags_enabled)
-                                           if (arr.length > 1)
-                                             console.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                                         ` ${inspect_fun(arr)}`);
-                                         return new ASTUnsetFlag(arr);
-                                       });
+                                              if (log_flags_enabled) {
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
+                                                            `${inspect_fun(arr)}`);
+                                                console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
+                                                            `${inspect_fun(args)}`);
+                                              }
+
+                                              return new ASTCheckFlags(...args);
+                                            });
+const NotFlagWithSetConsequent      = xform(seq(bang,
+                                                plus(ident, dot),
+                                                dot_hash,
+                                                plus(ident, dot),
+                                                word_break),
+                                            arr => {
+                                              const args = [arr[1],
+                                                            { consequently_set_flag_tail: arr[3] }]; 
+
+                                              if (log_flags_enabled) {
+                                                console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
+                                                            `${inspect_fun(arr)}`);
+                                                console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
+                                                            `${inspect_fun(args)}`);
+                                              }
+                                              
+                                              return new ASTNotFlag(...args);
+                                            })
+const TestFlag                       = choice(SimpleCheckFlag,
+                                              SimpleNotFlag,
+                                              NotFlagWithSetConsequent,
+                                              CheckFlagWithSetConsequent,
+                                              CheckFlagWithOrAlternatives,
+                                             );
+const SetFlag                       = xform(second(seq(hash, plus(ident, dot), word_break)),
+                                            arr => {
+                                              if (log_flags_enabled)
+                                                if (arr.length > 1)
+                                                  console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                                              `${inspect_fun(arr)}`);
+                                              return new ASTSetFlag(arr);
+                                            });
+const UnsetFlag                     = xform(second(seq(shebang, plus(ident, dot), word_break)),
+                                            arr => {
+                                              if (log_flags_enabled)
+                                                if (arr.length > 1)
+                                                  console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                                              ` ${inspect_fun(arr)}`);
+                                              return new ASTUnsetFlag(arr);
+                                            });
 SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
 CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
 CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
@@ -7771,8 +7918,7 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
-            'ui-prompt');
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
+            seq('ui-prompt', word_break));
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -7783,8 +7929,7 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      input, index - 1));
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
-            'ui-neg-prompt');
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+            seq('ui-neg-prompt', word_break));
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -7793,6 +7938,8 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
+SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
+SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
@@ -7801,8 +7948,9 @@ const SpecialFunctionInclude =
                           first(wst_seq(discarded_comments,      // -
                                         json_string,             // [0][1]
                                         discarded_comments))),   // -
+                word_break,                                      // n/a
                 discarded_comments,                              // -
-                lws(optional(';'))));                            // -
+                lws(optional(semicolon))));                      // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -7839,7 +7987,7 @@ const SpecialFunctionRevertPickMultiple =
             seq('revert-multi-pick', word_break));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == equals),
             seq(c_ident,                                                    // [0]
                 wst_seq(discarded_comments,                                 // -
                         any_assignment_operator,                            // [1][0]
@@ -7848,7 +7996,7 @@ const SpecialFunctionUpdateConfigurationBinary =
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == equals),
             seq(/conf(?:ig)?/,                                                    // [0]
                 wst_seq(discarded_comments,                                       // -
                         choice(incr_assignment_operator, assignment_operator),    // [1][0]
@@ -7858,50 +8006,50 @@ SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
-      second(cutting_seq('%',
-                         choice((dt_hosted
-                                 ? SpecialFunctionUIPrompt
-                                 : UnexpectedSpecialFunctionUIPrompt),
-                                (dt_hosted
-                                 ? SpecialFunctionUINegPrompt
-                                 : UnexpectedSpecialFunctionUINegPrompt),
-                                SpecialFunctionSetPickSingle,
-                                SpecialFunctionSetPickMultiple,
-                                SpecialFunctionRevertPickSingle,
-                                SpecialFunctionRevertPickMultiple,
-                                SpecialFunctionUpdateConfigurationUnary,
-                                SpecialFunctionUpdateConfigurationBinary),
+      second(cutting_seq(percent,
+                         choice(
+                           SpecialFunctionUpdateConfigurationUnary,
+                           SpecialFunctionUpdateConfigurationBinary,
+                           (dt_hosted
+                            ? SpecialFunctionUIPrompt
+                            : UnexpectedSpecialFunctionUIPrompt),
+                           (dt_hosted
+                            ? SpecialFunctionUINegPrompt
+                            : UnexpectedSpecialFunctionUINegPrompt),
+                           SpecialFunctionSetPickSingle,
+                           SpecialFunctionSetPickMultiple,
+                           SpecialFunctionRevertPickSingle,
+                           SpecialFunctionRevertPickMultiple,
+                         ),
                          discarded_comments,
-                         lws(optional(';'))));
+                         word_break, 
+                         discarded_comments,
+                         lws(optional(semicolon))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative =
+const make_AnonWildcardAlternative_rule = content_star_rule => 
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+            seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
                 optional(wb_uint, 1),
-                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                () => ContentStar));
+                wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
+                content_star_rule));
+const AnonWildcardAlternative = make_AnonWildcardAlternative_rule(() => ContentStar);
+const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
 AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcardAlternativeNoLoras =
-      xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                optional(wb_uint, 1),
-                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                () => ContentNoLorasStar));
 AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternative, '|')));
+                                      brc_enc(wst_star(AnonWildcardAlternative, pipe)));
 const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, pipe)));
 // AnonWildcard.abbreviate_str_repr('AnonWildcard');
 // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
-const NamedWildcardReference  = xform(seq('@',                                       // [0]
-                                          optional('^'),                             // [1]
+const NamedWildcardReference  = xform(seq(at,                                        // [0]
+                                          optional(caret),                           // [1]
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,
-                                                         second(seq('-', uint)))),   // [3]
+                                                         second(seq(dash, uint)))),   // [3]
                                           optional(/[,&]/),                          // [4]
                                           ident),                                    // [5]
                                       arr => {
@@ -7918,7 +8066,7 @@ const NamedWildcardReference  = xform(seq('@',                                  
                                                                              max_ct);
                                       });
 NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
-const NamedWildcardDesignator = second(seq('@', ident)); 
+const NamedWildcardDesignator = second(seq(at, ident)); 
 NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
                                       wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
@@ -7926,7 +8074,7 @@ const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[
                                                       discarded_comments,
                                                       AnonWildcard));                  // [1]
 NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
-const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
+const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
                                               [ arr[1][0], arr[2][0], arr[3], []];
@@ -7944,14 +8092,14 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                         return objs;
                                       });
 NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
-const ScalarReference         = xform(seq('$', optional('^'), ident),
+const ScalarReference         = xform(seq(dollar, optional(caret), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
 ScalarReference.abbreviate_str_repr('ScalarReference');
-const ScalarDesignator        = xform(seq('$', ident),
+const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == '='),
+                                                                 arr[0][1] == equals),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               discarded_comments,
                                                               choice(incr_assignment_operator,
@@ -7961,34 +8109,53 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                              json_string,
                                                              plaintext),
                                                       discarded_comments,
-                                                      lws(optional(';'))));
+                                                      lws(optional(semicolon))));
 ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
                                        AnonWildcardNoLoras,
                                        plaintext);
 LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule       = (...prepended_rules) =>
-      choice(...prepended_rules,
-             comment,
-             SpecialFunctionNotInclude,
-             NamedWildcardReference,
-             NamedWildcardUsage,
-             SetFlag,
-             UnsetFlag,
-             ScalarUpdate,
-             ScalarReference,
-             // anon_wildcard_rule,
-             escaped_brc,
-             low_pri_text,
-             plaintext);
-const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
-const Content                 = make_Content_rule(A1111StyleLora,
-                                                  AnonWildcard);
-const TopLevelContent         = make_Content_rule(SpecialFunctionInclude,
-                                                  NamedWildcardDefinition,
-                                                  A1111StyleLora,
-                                                  AnonWildcard);
+const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_rules = [] } = {}) =>
+      choice(
+        ...before_plaintext_rules,
+        plaintext,
+        ...after_plaintext_rules,
+        low_pri_text,
+        NamedWildcardReference,
+        SpecialFunctionNotInclude,
+        comment,
+        NamedWildcardUsage,
+        SetFlag,
+        UnsetFlag,
+        ScalarUpdate,
+        ScalarReference,
+        // anon_wildcard_rule,
+        // escaped_brc,
+      );
+const ContentNoLoras          = make_Content_rule({
+  after_plaintext_rules: [
+    AnonWildcardNoLoras,
+  ],
+});
+const Content                 = make_Content_rule({
+  before_plaintext_rules: [
+    A1111StyleLora,
+  ],
+  after_plaintext_rules:  [
+    AnonWildcard,
+  ],
+});
+const TopLevelContent         = make_Content_rule({
+  before_plaintext_rules: [
+    A1111StyleLora,
+  ],
+  after_plaintext_rules:  [
+    AnonWildcard,
+    NamedWildcardDefinition,
+    SpecialFunctionInclude,
+  ],
+});
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
