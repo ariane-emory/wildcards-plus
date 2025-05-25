@@ -1900,37 +1900,9 @@ function pipe_funs(...fns) {
 
 
 // =================================================================================================
-// COMMON-GRAMMAR.JS CONTENT SECTION:
+// Extra grammar classes, these should go somewhere else.
 // =================================================================================================
-// Code in this section originally copy/pasted from the common-grammar.js file in my
-// 'jparse' project circa ac2979f but updated since
-// 
-// Not all of this section is actually used by the wildcards-plus script right 
-// now, but it's easier to just copy/paste in the whole file than it is to
-// bother working out which parts can be removed and snipping them out, and who
-// knows, maybe I'll use more of it in the future.
-// 
-// Original project at: https://github.com/ariane-emory/jparse/
-// =================================================================================================
-// Convenient Rules/combinators for common terminals and constructs:
-// =================================================================================================
-// simple 'words':
-const alpha_snake             = r(/[a-zA-Z_]+/);
-const lc_alpha_snake          = r(/[a-z_]+/);
-const uc_alpha_snake          = r(/[A-Z_]+/);
-alpha_snake.abbreviate_str_repr('alpha_snake');
-lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
-uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
-// -------------------------------------------------------------------------------------------------
-// whitespace:
-const whites_star        = r(/\s*/);
-const whites_plus        = r(/\s+/);
-// whites_star.memoize = false;
-// whites_plus.memoize = false;
-whites_star.__impl_toString = () => 'whites*';
-whites_plus.__impl_tostring = () => 'whites+';
-// -------------------------------------------------------------------------------------------------
-// WithLWS class
+// WithLWS class:
 // -------------------------------------------------------------------------------------------------
 class WithLWS extends Rule {
   // -----------------------------------------------------------------------------------------------
@@ -1975,6 +1947,86 @@ function with_lws(rule) {
   return new WithLWS(rule);
 }
 // -------------------------------------------------------------------------------------------------
+// WithTWS class:
+// -------------------------------------------------------------------------------------------------
+class WithTWS extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule) {
+    super();
+    this.rule = make_rule_func(rule);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input,
+                                              whites_star_match_result.index,
+                                              indent + 1,
+                                              cache);
+
+    if (! rule_match_result)
+      return rule_match_result;
+    
+    const whites_star_match_result = whites_star.match(input,
+                                                       index,
+                                                       indent + 1,
+                                                       cache);
+
+    if (! whites_star_match_result)
+      return whites_star_match_result;
+
+    return rule_match_result;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+    return `WithTWS(${rule_str})`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function with_tws(rule) {
+  return new WithTWS(rule);
+}
+// =================================================================================================
+
+
+// =================================================================================================
+// COMMON-GRAMMAR.JS CONTENT SECTION:
+// =================================================================================================
+// Code in this section originally copy/pasted from the common-grammar.js file in my
+// 'jparse' project circa ac2979f but updated since
+// 
+// Not all of this section is actually used by the wildcards-plus script right 
+// now, but it's easier to just copy/paste in the whole file than it is to
+// bother working out which parts can be removed and snipping them out, and who
+// knows, maybe I'll use more of it in the future.
+// 
+// Original project at: https://github.com/ariane-emory/jparse/
+// =================================================================================================
+// Convenient Rules/combinators for common terminals and constructs:
+// =================================================================================================
+// simple 'words':
+const alpha_snake             = r(/[a-zA-Z_]+/);
+const lc_alpha_snake          = r(/[a-z_]+/);
+const uc_alpha_snake          = r(/[A-Z_]+/);
+alpha_snake.abbreviate_str_repr('alpha_snake');
+lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
+uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
+// -------------------------------------------------------------------------------------------------
+// whitespace:
+const whites_star        = r(/\s*/);
+const whites_plus        = r(/\s+/);
+// whites_star.memoize = false;
+// whites_plus.memoize = false;
+whites_star.__impl_toString = () => 'whites*';
+whites_plus.__impl_tostring = () => 'whites+';
 // leading/trailing whitespace:
 const lws                = rule => {
   if (rule.__rule_created_by === lws || rule.rule?.__rule_created_by === lws) {
