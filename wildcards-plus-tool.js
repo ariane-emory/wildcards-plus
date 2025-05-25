@@ -7900,7 +7900,6 @@ const low_pri_text                = r(/[\(\)\[\]\:]+/);
 const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break                  = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
-const more_restrictive_word_break = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 comment                           .abbreviate_str_repr(false); // 'comment');
 assignment_operator               .abbreviate_str_repr('assignment_operator');
@@ -7913,7 +7912,6 @@ low_pri_text                      .abbreviate_str_repr('low_pri_text');
 plaintext                         .abbreviate_str_repr('plaintext');
 wb_uint                           .abbreviate_str_repr('wb_uint');
 word_break                        .abbreviate_str_repr('word_break');
-more_restrictive_word_break       .abbreviate_str_repr('more_restrictive_word_break');
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
@@ -7987,11 +7985,13 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 }
 // -------------------------------------------------------------------------------------------------
-// flag-related non-terminals:
+// flag-related rules:
 // -------------------------------------------------------------------------------------------------
+const simple_flag_test_word_break = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
+simple_flag_test_word_break       .abbreviate_str_repr('simple_flag_test_word_break');
 const SimpleCheckFlag             = xform(seq(question,
                                               plus(ident, dot),
-                                              more_restrictive_word_break),
+                                              simple_flag_test_word_break),
                                           arr => {
                                             const args = [arr[1]];
 
@@ -8007,7 +8007,7 @@ const SimpleCheckFlag             = xform(seq(question,
 const SimpleNotFlag              = xform(seq(bang,
                                              optional(hash),
                                              plus(ident, dot),
-                                             more_restrictive_word_break),
+                                             simple_flag_test_word_break),
                                          arr => {
                                            const args = [arr[2],
                                                          { set_immediately: !!arr[1][0]}];
