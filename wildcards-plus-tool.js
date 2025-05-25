@@ -1960,9 +1960,9 @@ function make_whitespace_Rule_class(class_name_str, builder) {
   };
 }
 // -------------------------------------------------------------------------------------------------
-function make_whitespace_Rule_class_convenience_constructor_function(wrapperClass) {
+function make_whitespace_Rule_class_convenience_constructor_function(klass) {
   return (rule, noisy = false) => {
-    return klassify(wrapperClass, rule, noisy);
+    return klassify(klass, rule, noisy);
   }
 }
 // -------------------------------------------------------------------------------------------------
