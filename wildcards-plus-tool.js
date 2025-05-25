@@ -274,7 +274,7 @@ let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_match_enabled                 = true;
+let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
@@ -487,7 +487,7 @@ class Rule {
         log(indent,
             `Matching ${this.toString()} at ` +
             `char ${index}: ` +
-            `"${abbreviate(input.substring(index), (60 - 2*indent))}"`)
+            `"${abbreviate(input.substring(index), (100 - 2*indent))}"`)
     }
     
     let rule_cache = null; // cache.get(this);
@@ -527,12 +527,12 @@ class Rule {
     if (log_match_enabled) {
       if (ret)
         log(indent,
-            `<= ${this.constructor.name} ${this.toString()} returned: ` +
-            `${inspect_fun(ret)}`);
+            `<= ${this.constructor.name} ${abbreviate(this.toString())} returned: ` +
+            `${compress(inspect_fun(ret))}`);
       else
         log(indent,
             `<= Failed to match ${this.constructor.name} ` +
-            `${this.toString()}`);
+            `${abbreviate(this.toString())}`);
     }
 
     return ret;
@@ -1277,14 +1277,15 @@ class Sequence extends Rule {
     if (log_match_enabled)
       log(indent + 1, `matching first sequence item #0 out of ` +
           `${this.elements.length}: ${this.elements[0]} at ` +
+          `char #${index} ` +
           `"${abbreviate(input.substring(index), (100 - 2*indent))}"`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2, cache);
     let last_match_result = start_rule_match_result;
 
-    if (log_match_enabled && last_match_result !== null)
-      log(indent + 1, `first last_match_result = ${inspect_fun(last_match_result)}`);
+    // if (log_match_enabled && last_match_result !== null)
+    //   log(indent + 1, `first last_match_result = ${inspect_fun(last_match_result)}`);
     
     if (last_match_result === null) {
       if (log_match_enabled)
@@ -1294,17 +1295,17 @@ class Sequence extends Rule {
 
     if (log_match_enabled)
       log(indent + 1, `matched first sequence item #0: ` +
-          `${JSON.stringify(last_match_result)}.`);
+          `${compress(inspect_fun(last_match_result))}`);
     
     const values = [];
     index        = last_match_result.index;
 
-    if (log_match_enabled)
-      log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
+    // if (log_match_enabled)
+    //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
-      if (log_match_enabled)
-        log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+      // if (log_match_enabled)
+      //   log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
 
       values.push(last_match_result.value);
 
@@ -1318,6 +1319,7 @@ class Sequence extends Rule {
       if (log_match_enabled)
         log(indent + 1, `matching sequence item #${ix} out of ` +
             `${this.elements.length}: ${this.elements[ix]} at ` +
+            `char #${index} ` +
             `"${abbreviate(input.substring(index), (100 - 2*indent))}"`);
       
       const element = this.elements[ix];
@@ -1333,11 +1335,12 @@ class Sequence extends Rule {
       }
 
       if (log_match_enabled)
-        log(indent + 1, `matched sequence item #${ix}.`);
+        log(indent + 1, `matched sequence item #${ix}: `+
+            `${compress(inspect_fun(last_match_result))}`);
 
       if (last_match_result.value !== DISCARD) {
-        if (log_match_enabled)
-          log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+        // if (log_match_enabled)
+        //   log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
 
         values.push(last_match_result.value);
 
@@ -2280,8 +2283,8 @@ const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(jsonc_comments,
                              choice(() => JsoncObject,  () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
-                                    () => json_null,    () => json_number),
-                             jsonc_comments));
+                                    () => json_null,    () => json_number) /*,
+                                                                             jsonc_comments */));
 const JsoncArray =
       wst_cutting_enc('[',
                       wst_star(second(seq(jsonc_comments,
@@ -6839,8 +6842,6 @@ const prelude_text = disable_prelude ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
-  throw new Error("stop");
-
   if (! prelude_parse_result) {
     const old_log_match_enabled = log_match_enabled;
     log_match_enabled = false;
@@ -7907,7 +7908,7 @@ const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
 const low_pri_text                = r(/[\(\)\[\]\:]+/);
 const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const word_break                  = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
+const word_break                  = r(/(?=\n|\s|[{|}\.\,\;\%\$\@\?\!\[\]\(\)]|$)/);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 comment                           .abbreviate_str_repr(false); // 'comment');
 assignment_operator               .abbreviate_str_repr('assignment_operator');
@@ -7995,7 +7996,7 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related rules:
 // -------------------------------------------------------------------------------------------------
-const simple_check_flag_word_break  = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
+const simple_check_flag_word_break  = r(/(?=\s|[{|}\;\%\$\@\?\!\[\]\(\)]|$)/);
 simple_check_flag_word_break        .abbreviate_str_repr('simple_check_flag_word_break');
 const SimpleCheckFlag               = xform(seq(question,
                                                 plus(ident, dot),
@@ -8447,8 +8448,6 @@ async function main() {
     throw new Error(`error parsing prompt at ${result.index}!`);
 
   let   AST          = result.value;
-  throw new Error("stop");
-  log_match_enabled = false;
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   
   if (print_ast_before_includes_enabled) {
