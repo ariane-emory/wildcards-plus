@@ -553,13 +553,11 @@ class Rule {
           .__impl_toString(visited, next_id, ref_counts)
           .replace('() => ', '');
     
-    if (this.abbreviated || this.direct_children().length == 0) {
+    if (this.abbreviated || this.direct_children().length == 0)
       return abbreviate(__call_impl_toString(), 64);
-      // return __call_impl_toString();
-    }
     
     if (visited.has(this)) {
-      const got_id = visited.get(this);
+      //const got_id = visited.get(this);
       return `#${visited.get(this)}#`;
     }
 
@@ -1778,7 +1776,8 @@ function abbreviate(str, len = 100) {
   // Normalize all newlines first
   str = str.replace(/\r?\n/g, '\\n');
 
-  if (str.length < len) return str;
+  if (str.length < len)
+    return str;
 
   const bracing_pairs = [
     ['/',  '/'],
@@ -1798,53 +1797,6 @@ function abbreviate(str, len = 100) {
 
   return `${str.substring(0, len - 3).trim()}...`;
 }
-// function abbreviate(str, len = 100) {
-//   if (str.length < len) return str;
-
-//   const bracing_pairs = [
-//     ['/',  '/'],
-//     ['(',  ')'],
-//     ['[',  ']'],
-//     ['{',  '}'],
-//     ['<',  '>'],
-//     ['λ(', ')'],
-//   ];
-
-//   for (const [left, right] of bracing_pairs) {
-//     if (str.startsWith(left) && str.endsWith(right)) {
-//       const inner = str.substring(left.length, len - 3 - right.length);
-//       return `${left}${inner.replace(/\r?\n/g, '\\n').trim()}...${right}`;
-//     }
-//   }
-
-//   return `${str.substring(0, len - 3).replace(/\r?\n/g, '\\n').trim()}...`;
-// }
-//   .function abbreviate(str, len = 100) {
-//     if (str.length < len) {
-//       return str
-//     }
-//     else {
-//       const bracing_pairs = [
-//         ['/',  '/'],
-//         ['(',  ')'],
-//         ['[',  ']'],
-//         ['{',  '}'],
-//         ['<',  '>'],
-//         ['λ(', ')'],
-//       ];
-
-
-//       for (const [left, right] of bracing_pairs) {
-//         if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
-//           str = str.substring(left.length, len - 3 - right.length);
-//           const ret = `${left}${str.replace(/\n/g, '\\n').trim()}...${right}`;
-//           return ret;
-//         }
-//       }
-
-//       return `${str.substring(0, len - 3).replace(/\n/g, '\\n').trim()}...`;
-//     }
-// }
 // -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
   return index == input.length
