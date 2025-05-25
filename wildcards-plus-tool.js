@@ -1944,6 +1944,8 @@ class WithLWS extends Rule {
 }
 // -------------------------------------------------------------------------------------------------
 function lws(rule) {
+  rule = make_rule_func(rule);
+  
   if (!rule ||
       rule instanceof WithLWS ||
       (rule instanceof Quantified &&
@@ -2002,6 +2004,8 @@ class WithTWS extends Rule {
 }
 // -------------------------------------------------------------------------------------------------
 function tws(rule) {
+  rule = make_rule_func(rule);
+  
   if (!rule ||
       rule instanceof WithTWS ||
       (rule instanceof Quantified &&
