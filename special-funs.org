@@ -1,0 +1,13 @@
+|---------------------------+----------+--------------+------------+---------------|
+|                           | callable | referencable | assignable | incrementable |
+|---------------------------+----------+--------------+------------+---------------|
+| Include                   | x        |              |            |               |
+| UIPrompt                  |          | x            |            |               |
+| UINegPrompt               |          | x            |            |               |
+| SetPickMultiple           |          |              | x          |               |
+| SetPickSingle             |          |              | x          |               |
+| RevertPickSingle          |          | x            |            |               |
+| RevertPickMultiple        |          | x            |            |               |
+| UpdateConfigurationUnary  |          |              | x          | x             |
+| UpdateConfigurationBinary |          |              | x          | x             |
+|---------------------------+----------+--------------+------------+---------------|

@@ -101,9 +101,9 @@
 // -------------------------------------------------------------------------------------------------
 %Loras     = [] // clear any LoRAs that are set up the DT UI first.
 %Neg       = { signature, watermark, text, }
+%strength  = 1.0
 
-{6 ?flux
-// Flux finetunes:
+{6 ?flux // Flux finetunes:
 
 { 1 %Width = 1088; %Height = 1088; %Steps = 50; // 1.183 mpx, 12,162 cu
 | 2 %Width = 1152; %Height = 1024; %Steps = 50; // 1.179 mpx, 12,082 cu
@@ -257,7 +257,7 @@
 }
 
 @place_phrase = {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
-                |at {a|the} @#place_to_be_at @place_to_be_at}
+                |1 at {a|the} @#place_to_be_at @place_to_be_at}
 
 // -------------------------------------------------------------------------------------------------
 // character adjectives:
@@ -505,8 +505,8 @@ A
 {2|@early_cyborg_feature_phrase}
 @place_phrase
 {|3 @context_place_phrase|3 ?outdoors @context_place_phrase}
-{|6 ?weapon @weapon_phrase}
-{|6 ?tool   @tool_phrase}
+{|2 ?weapon @weapon_phrase}
+{|2 ?tool   @tool_phrase}
 .
 
 {|6 @clothing_sentence}
@@ -525,4 +525,4 @@ A
 // %neg            += { first,  }
 // %nEgAtIvE       += { second, }
 // %nEgAtIvEpRoMpT += { third,  }
-#foo.
+// { foo
