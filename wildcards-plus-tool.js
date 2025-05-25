@@ -320,6 +320,8 @@ Array.prototype.toString = function() {
 //         |-- Discard
 //         |-- Elem
 //         |-- Label
+//         |-- WithLWS
+//         |-- WithTWS
 //         |
 //         | Rules that make sense only when input is an Array of Tokens:
 //         |
