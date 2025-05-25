@@ -1931,7 +1931,7 @@ whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
 // leading/trailing whitespace:
 const lws                = rule => {
-  if (rule.__is_lws_rule) {
+  if (rule.__is_lws_rule || rule.rule?.__is_lws_rule) {
     // throw new Error("lws skips!");
     return rule;
   }
@@ -1948,7 +1948,7 @@ const lws                = rule => {
   return rule;u
 };
 const tws                = rule => {
-  if (rule.__is_tws_rule) {
+  if (rule.__is_tws_rule || rule.rule?.__is_tws_rule) {
     // throw new Error("tws skips!");
     return rule;
   }
