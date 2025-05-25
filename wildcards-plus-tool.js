@@ -2076,7 +2076,7 @@ const equals             = l('=');
 const equals_arrow       = l('=>');
 const hash               = l('#');
 const decr_equals        = l('-=');
-const incr_equals        = l('+=');
+const plus_equals        = l('+=');
 const percent            = l('%');
 const pipe               = l('|');
 const pound              = l('#');
@@ -2096,7 +2096,7 @@ comma.abbreviate_str_repr('comma');
 dash.abbreviate_str_repr('dash');
 dash_arrow.abbreviate_str_repr('dash_arrow');
 decr_equals.abbreviate_str_repr('decr_equals');
-incr_equals.abbreviate_str_repr('incr_equals');
+plus_equals.abbreviate_str_repr('plus_equals');
 dollar.abbreviate_str_repr('dollar');
 dot.abbreviate_str_repr('dot');
 ellipsis.abbreviate_str_repr('ellipsis');
@@ -7921,38 +7921,30 @@ class ASTUINegPrompt extends ASTNode {
 // const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
 // const plaintext                = r(/(?:\\\s|[^\s{|}])+/);
 // const plaintext_no_parens      = /[^{|}\s()]+/;
-const any_assignment_operator     = choice(() => assignment_operator, () => incr_assignment_operator);
-const comment                     = discard(c_comment);
-const assignment_operator         = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
-const incr_assignment_operator    = second(seq(wst_star(comment), incr_equals, wst_star(comment)));
+const discarded_comment           = discard(c_comment);
+const discarded_comments          = discard(wst_star(discarded_comment));
+const assignment_operator         = second(seq(wst_star(discarded_comment), equals, wst_star(discarded_comment)));
+const incr_assignment_operator    = second(seq(wst_star(discarded_comment), plus_equals, wst_star(discarded_comment)));
+const any_assignment_operator     = choice(assignment_operator, incr_assignment_operator);
 const dot_hash                    = l('.#');
-//const escaped_brc               = second(choice('\\{', '\\}'));
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
-// const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
-// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
 const low_pri_text                = r(/[\(\)\[\]\:]+/);
 const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const word_break                  = discard(r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/));
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
-comment                           .abbreviate_str_repr(false); // 'comment');
 assignment_operator               .abbreviate_str_repr('assignment_operator');
-incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
-// escaped_brc                    .abbreviate_str_repr('escaped_brc');
+discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
+discarded_comments                .abbreviate_str_repr('discarded_comments_star');
 dot_hash                          .abbreviate_str_repr('dot_hash');
 filename                          .abbreviate_str_repr('filename');
 ident                             .abbreviate_str_repr('ident');
+incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
 low_pri_text                      .abbreviate_str_repr('low_pri_text');
 plaintext                         .abbreviate_str_repr('plaintext');
 wb_uint                           .abbreviate_str_repr('wb_uint');
 word_break                        .abbreviate_str_repr('word_break');
-// ^ conservative regex, no unicode or weird symbols
-// -------------------------------------------------------------------------------------------------
-// discard comments:
-// -------------------------------------------------------------------------------------------------
-const discarded_comments        = discard(wst_star(comment));
-discarded_comments              .abbreviate_str_repr('discarded_comments_star');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
@@ -8255,9 +8247,9 @@ SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = content_star_rule => 
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
+            seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
                 optional(wb_uint, 1),
-                wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
+                wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
                 content_star_rule));
 const make_AnonWildcard_rule  = alternative_rule  =>
       xform(arr => new ASTAnonWildcard(arr),
@@ -8349,7 +8341,7 @@ const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_
         low_pri_text,
         NamedWildcardReference,
         SpecialFunctionNotInclude,
-        comment,
+        discarded_comment,
         NamedWildcardUsage,
         SetFlag,
         UnsetFlag,
