@@ -8215,7 +8215,8 @@ const SpecialFunctionUpdateConfigurationBinary =
                         any_assignment_operator,                           // [1][0]
                         discarded_comments,                                // -
                         choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
-                /* word_break */));                                              // -
+                /* word_break */
+               ));                                              // -
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
@@ -8225,7 +8226,8 @@ const SpecialFunctionUpdateConfigurationUnary =
                         choice(plus_equals, equals),                             // [1][0]
                         discarded_comments,                                      // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]   
-                /* word_break */));
+                /* word_break */
+               ));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
