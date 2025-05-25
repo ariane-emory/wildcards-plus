@@ -1936,9 +1936,8 @@ whites_plus.__impl_tostring = () => 'whites+';
 // -------------------------------------------------------------------------------------------------
 class WithLWS extends Rule {
   // -----------------------------------------------------------------------------------------------
-  constructor(label, rule) {
+  constructor(rule) {
     super();
-    this.label = label;
     this.rule = make_rule_func(rule);
   }
   // -----------------------------------------------------------------------------------------------
@@ -1952,6 +1951,7 @@ class WithLWS extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
+    
     const rule_match_result = this.rule.match(input, index, indent, cache);
 
     if (! rule_match_result)
@@ -1965,7 +1965,7 @@ class WithLWS extends Rule {
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `LWS(${rule_str})`;
+    return `WithLWS(${rule_str})`;
   }
 }
 // -------------------------------------------------------------------------------------------------
