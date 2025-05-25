@@ -61,7 +61,7 @@ function parse_file(filename) {
   const cache        = new Map();
   const result       = Prompt.match(prompt_input, 0, 0, cache);
 
-  console.log(`parse_file(${inspect_fun(filename)})`);
+  // console.log(`parse_file(${inspect_fun(filename)})`);
   
   const sortedEntries = Array.from(cache.entries())
         .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
