@@ -1982,6 +1982,9 @@ class WithTWS extends Rule {
     if (! whites_star_match_result)
       return whites_star_match_result;
 
+    rule_match_result.index       = whites_star_match_result.index;
+    rule_match_result.is_finished = whites_star_match_result.is_finished
+    
     return rule_match_result;
   }
   // -----------------------------------------------------------------------------------------------
