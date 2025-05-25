@@ -8253,8 +8253,8 @@ SpecialFunctionUpdateConfigurationUnary
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
-                           SpecialFunctionUpdateConfigurationBinary,
                            SpecialFunctionUpdateConfigurationUnary,
+                           SpecialFunctionUpdateConfigurationBinary,
                            (dt_hosted ? SpecialFunctionUIPrompt : UnexpectedSpecialFunctionUIPrompt),
                            (dt_hosted ? SpecialFunctionUINegPrompt : UnexpectedSpecialFunctionUINegPrompt),
                            SpecialFunctionSetPickSingle,
