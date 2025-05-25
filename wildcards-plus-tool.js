@@ -2018,7 +2018,7 @@ const dash_arrow         = l('->');
 dash_arrow.abbreviate_str_repr('dash_arrow');
 const dot                = l('.');
 dot.abbreviate_str_repr('dot');
-const eq_arrow           = l('=>');
+const equals_arrow       = l('=>');
 eq_arrow.abbreviate_str_repr('eq_arrow');
 const ellipsis           = l('...');
 ellipsis.abbreviate_str_repr('ellipsis');
