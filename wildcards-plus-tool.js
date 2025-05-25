@@ -2209,10 +2209,10 @@ const c_hex              = r(/0x[0-9a-f]+/);
 const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
 const c_octal            = r(/0o[0-7]+/);
 const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
-const c_sint             = sint;
+const c_sint             = r(/[+-]?\d+/)
 const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
 const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
-const c_uint             = uint;
+const c_uint             = r(/\d+/);
 const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
 c_bin                    .abbreviate_str_repr('c_bin');
 c_char                   .abbreviate_str_repr('c_char');
@@ -2371,7 +2371,7 @@ const json_number = xform(reify_json_number,
                               }, optional(json_fractionalPart, 0.0)),
                               xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
-const json_S = whites_plus;
+const json_S = r(/\s+/);
 Json.abbreviate_str_repr('Json');
 JsonObject.abbreviate_str_repr('JsonObject');
 JsonArray.abbreviate_str_repr('JsonArray');
