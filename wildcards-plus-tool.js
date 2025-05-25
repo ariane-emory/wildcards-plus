@@ -8106,19 +8106,17 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt', word_break));
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
-      unexpected(SpecialFunctionUIPrompt,
-                 (rule, input, index) =>
-                 new FatalParseError("%ui-prompt is only supported when " +
-                                     "using wildcards-plus.js inside Draw Things, " +
-                                     "NOT when " +
-                                     "running the wildcards-plus-tool.js script",
-                                     input, index - 1));
+unexpected(SpecialFunctionUIPrompt,
+           (rule, input, index) =>
+           new FatalParseError("%ui-prompt is only supported when " +
+                               "using wildcards-plus.js inside Draw Things, " +
+                               "NOT when " +
+                               "running the wildcards-plus-tool.js script",
+                               input, index - 1));
 const SpecialFunctionUINegPrompt =
-      xform(() => new ASTUINegPrompt(),
-            seq('ui-neg-prompt', word_break));
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+xform(() => new ASTUINegPrompt(),
+      seq('ui-neg-prompt', word_break));
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8127,6 +8125,8 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
+SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
+SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
@@ -8136,7 +8136,7 @@ const SpecialFunctionInclude =
                                         json_string,             // [0][1]
                                         discarded_comments))),   // -
                 discarded_comments,                              // -
-                lws(optional(semicolon))));                            // -
+                lws(optional(semicolon))));                      // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
