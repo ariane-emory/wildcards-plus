@@ -1276,7 +1276,8 @@ class Sequence extends Rule {
 
     if (log_match_enabled)
       log(indent + 1, `matching first sequence item #0 out of ` +
-          `${this.elements.length}: ${this.elements[0]}...`);
+          `${this.elements.length}: ${this.elements[0]} at ` +
+          `"${abbreviate(input.substring(index), (100 - 2*indent))}"`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2, cache);
@@ -1292,7 +1293,7 @@ class Sequence extends Rule {
     }
 
     if (log_match_enabled)
-      log(indent + 1, `matched sequence item #0: ` +
+      log(indent + 1, `matched first sequence item #0: ` +
           `${JSON.stringify(last_match_result)}.`);
     
     const values = [];
@@ -1316,7 +1317,8 @@ class Sequence extends Rule {
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
         log(indent + 1, `matching sequence item #${ix} out of ` +
-            `${this.elements.length}: ${this.elements[ix]}...`);
+            `${this.elements.length}: ${this.elements[ix]} at ` +
+            `"${abbreviate(input.substring(index), (100 - 2*indent))}"`);
       
       const element = this.elements[ix];
 
