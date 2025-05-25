@@ -8128,7 +8128,7 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
-            'ui-prompt');
+            first(seq('ui-prompt', word_break)));
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
@@ -8602,10 +8602,10 @@ async function main() {
 let main_disabled = false;
 
 if (! main_disabled)
-  main().catch(err => {
-    console.error(`Unhandled error:\n${err.stack}`);
-    process.exit(1);
-  });
-// =================================================================================================
-// END OF MAIN SECTION.
-// =================================================================================================
+              main().catch(err => {
+                console.error(`Unhandled error:\n${err.stack}`);
+                process.exit(1);
+              });
+            // =================================================================================================
+            // END OF MAIN SECTION.
+            // =================================================================================================
