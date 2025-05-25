@@ -2137,7 +2137,7 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = wse('('), close = wse(')'), sep = ',') =>
+const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep = comma) =>
       seq(fun_rule,
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
