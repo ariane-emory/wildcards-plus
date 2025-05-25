@@ -2005,6 +2005,7 @@ const bslash             = l('\\');
 const caret              = l('^');
 const colon              = l(':');
 const comma              = l(',');
+const dash               = l('-');
 const dash_arrow         = l('->');
 const dot                = l('.');
 const eq_arrow           = l('=>');
@@ -3279,7 +3280,7 @@ class Context {
     this.configuration.loras.push(lora);
 
     if (log_configuration_enabled)
-      log(`ADDED ${compress(inspect_fun(lora))} TO ${this}`);
+      log(`added LoRA ${compress(inspect_fun(lora))} to ${this}`);
   }
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
@@ -7833,7 +7834,7 @@ class ASTUINegPrompt extends ASTNode {
 // const plaintext             = r(/(?:\\\s|[^\s{|}])+/);
 // const plaintext_no_parens   = /[^{|}\s()]+/;
 const any_assignment_operator  = choice(() => assignment_operator, () => incr_assignment_operator);
-const assignment_operator      = second(seq(wst_star(() => comment), '=', wst_star(() => comment)));
+const assignment_operator      = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
 const comment                  = discard(c_comment);
 const escaped_brc              = second(choice('\\{', '\\}'));
 const filename                 = r(/[A-Za-z0-9 ._\-()]+/);
@@ -7889,8 +7890,8 @@ const A1111StyleLora       =
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
                     '>'));
-// A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
-// A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
+A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
+A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
@@ -7933,7 +7934,7 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 const restive_word_break = r(/(?=\s|[{|}\?\!\[\]\(\)]|$)/);
 const SimpleCheckFlag             = xform(seq('?',
-                                              plus(ident, '.'),
+                                              plus(ident, dot),
                                               restive_word_break),
                                           arr => {
                                             const args = [arr[1]];
@@ -7949,7 +7950,7 @@ const SimpleCheckFlag             = xform(seq('?',
                                           });
 const SimpleNotFlag              = xform(seq('!',
                                              optional('#'),
-                                             plus(ident, '.'),
+                                             plus(ident, dot),
                                              restive_word_break),
                                          arr => {
                                            const args = [arr[2],
@@ -7965,7 +7966,7 @@ const SimpleNotFlag              = xform(seq('!',
                                            return new ASTNotFlag(...args);
                                          })
 const CheckFlagWithOrAlternatives = xform(seq('?',
-                                              plus(plus(ident, '.'), ','),
+                                              plus(plus(ident, dot), comma),
                                               word_break),
                                           arr => {
                                             const args = [arr[1]];
@@ -7980,9 +7981,9 @@ const CheckFlagWithOrAlternatives = xform(seq('?',
                                             return new ASTCheckFlags(...args);
                                           });
 const CheckFlagWithSetConsequent  = xform(seq('?',              // [0]
-                                              plus(ident, '.'), // [1]
+                                              plus(ident, dot), // [1]
                                               '.#',             // [2]
-                                              plus(ident, '.'), // [3]
+                                              plus(ident, dot), // [3]
                                               word_break),      // [-]
                                           arr => {
                                             const args = [ [ arr[1] ], arr[3] ]; 
@@ -7997,9 +7998,9 @@ const CheckFlagWithSetConsequent  = xform(seq('?',              // [0]
                                             return new ASTCheckFlags(...args);
                                           });
 const NotFlagWithSetConsequent    = xform(seq('!',
-                                              plus(ident, '.'),
+                                              plus(ident, dot),
                                               '.#',
-                                              plus(ident, '.'),
+                                              plus(ident, dot),
                                               word_break),
                                           arr => {
                                             const args = [arr[1],
@@ -8020,7 +8021,7 @@ const TestFlag                   = choice(SimpleCheckFlag,
                                           CheckFlagWithSetConsequent,
                                           CheckFlagWithOrAlternatives,
                                          );
-const SetFlag                  = xform(second(seq('#', plus(ident, '.'), word_break)),
+const SetFlag                  = xform(second(seq('#', plus(ident, dot), word_break)),
                                        arr => {
                                          if (log_flags_enabled)
                                            if (arr.length > 1)
@@ -8028,7 +8029,7 @@ const SetFlag                  = xform(second(seq('#', plus(ident, '.'), word_br
                                                          `${inspect_fun(arr)}`);
                                          return new ASTSetFlag(arr);
                                        });
-const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_break)),
+const UnsetFlag                = xform(second(seq('#!', plus(ident, dot), word_break)),
                                        arr => {
                                          if (log_flags_enabled)
                                            if (arr.length > 1)
@@ -8079,7 +8080,7 @@ const SpecialFunctionInclude =
                                         json_string,             // [0][1]
                                         discarded_comments))),   // -
                 discarded_comments,                              // -
-                lws(optional(';'))));                            // -
+                lws(optional(semicolon))));                            // -
 // SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8116,7 +8117,7 @@ const SpecialFunctionRevertPickMultiple =
             seq('revert-multi-pick', word_break));
 // SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == equals),
             seq(c_ident,                                                    // [0]
                 wst_seq(discarded_comments,                                 // -
                         any_assignment_operator,                            // [1][0]
@@ -8125,7 +8126,7 @@ const SpecialFunctionUpdateConfigurationBinary =
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == equals),
             seq(/conf(?:ig)?/,                                                    // [0]
                 wst_seq(discarded_comments,                                       // -
                         choice(incr_assignment_operator, assignment_operator),    // [1][0]
@@ -8147,7 +8148,7 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          ),
                          discarded_comments,
-                         lws(optional(';'))));
+                         lws(optional(semicolon))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
@@ -8163,16 +8164,16 @@ const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => C
 AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
 AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternative, '|')));
+                                      brc_enc(wst_star(AnonWildcardAlternative, pipe)));
 const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, pipe)));
 // AnonWildcard.abbreviate_str_repr('AnonWildcard');
 // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
 const NamedWildcardReference  = xform(seq('@',                                       // [0]
                                           optional('^'),                             // [1]
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,
-                                                         second(seq('-', uint)))),   // [3]
+                                                         second(seq(dash, uint)))),   // [3]
                                           optional(/[,&]/),                          // [4]
                                           ident),                                    // [5]
                                       arr => {
@@ -8222,7 +8223,7 @@ const ScalarDesignator        = xform(seq('$', ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == '='),
+                                                                 arr[0][1] == equals),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               discarded_comments,
                                                               choice(incr_assignment_operator,
@@ -8232,7 +8233,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                              json_string,
                                                              plaintext),
                                                       discarded_comments,
-                                                      lws(optional(';'))));
+                                                      lws(optional(semicolon))));
 ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
