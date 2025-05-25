@@ -1904,34 +1904,6 @@ function pipe_funs(...fns) {
 // =================================================================================================
 // Extra grammar classes, these should go somewhere else.
 // =================================================================================================
-function klassify(klass, rule, noisy = false) {
-  const log = noisy ? console.log : () => {};
-  rule = make_rule_func(rule);
-
-  if (!rule) {
-    log(`return original null rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-    return rule;
-  }
-
-  if (typeof rule === 'function') {
-    log(`return klassed function ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-    return new klass(rule);
-  }
-  
-  if (rule instanceof klass) {
-    log(`return original klassed rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-    return rule;
-  }
-  
-  if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-    log(`return original rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-    return rule;
-  }
-
-  log(`return klassed ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-  return new klass(rule);
-}
-// ---------------------------------------------------------------------------------------------
 function make_whitespace_Rule_class(class_name_str, builder) {
   return class extends Rule {
     // ---------------------------------------------------------------------------------------------
@@ -1962,14 +1934,38 @@ function make_whitespace_Rule_class(class_name_str, builder) {
 // -------------------------------------------------------------------------------------------------
 function make_whitespace_Rule_class_convenience_constructor_function(klass) {
   return (rule, noisy = false) => {
-    return klassify(klass, rule, noisy);
+    const log = noisy ? console.log : () => {};
+    rule = make_rule_func(rule);
+
+    if (!rule) {
+      log(`return original null rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      return rule;
+    }
+
+    if (typeof rule === 'function') {
+      log(`return klassed function ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      return new klass(rule);
+    }
+    
+    if (rule instanceof klass) {
+      log(`return original klassed rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      return rule;
+    }
+    
+    if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
+      log(`return original rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      return rule;
+    }
+
+    log(`return klassed ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    return new klass(rule);
   }
 }
 // -------------------------------------------------------------------------------------------------
 const WithLWS = make_whitespace_Rule_class("LWS", rule => elem(1, seq(whites_star, rule)));
 const WithTWS = make_whitespace_Rule_class("TWS", rule => elem(0, seq(rule, whites_star)));
-const lws = make_whitespace_Rule_class_convenience_constructor_function(WithLWS);
-const tws = make_whitespace_Rule_class_convenience_constructor_function(WithTWS);
+const lws     = make_whitespace_Rule_class_convenience_constructor_function(WithLWS);
+const tws     = make_whitespace_Rule_class_convenience_constructor_function(WithTWS);
 // =================================================================================================
 
 
