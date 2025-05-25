@@ -1949,26 +1949,20 @@ class WithLWS extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
-    const whites_star_match_result = whites_star.match(indent + 1,
-                                                       input,
+    const whites_star_match_result = whites_star.match(input,
                                                        index,
+                                                       indent + 1,
                                                        cache);
 
     if (! whites_star_match_result)
       return whites_star_match_result;
 
-    const rule_match_result = this.rule.match(input + 1,
-                                              index,
-                                              indent,
+    const rule_match_result = this.rule.match(input,
+                                              whites_star_match_result.index,
+                                              indent + 1,
                                               cache);
 
-    if (! rule_match_result)
-      return null;
-
-    return new atchResult(
-      new WithLWSedValue(this.label, rule_match_result.value),
-      input,
-      rule_match_result.index);
+    return rule_match_result;
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -2253,7 +2247,7 @@ const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep 
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
 const __make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(lws(rule), sep ? lws(sep) : null));
+      ((rule, sep = null) => base_combinator(with_lws(rule), sep ? lws(sep) : null));
 const __make_wst_seq_combinator = base_combinator =>
       (...rules) => base_combinator(...rules.map(x => lws(x)));
 // -------------------------------------------------------------------------------------------------
