@@ -223,7 +223,7 @@ let inspect_fun           = (thing, no_break = false) =>
     util.inspect(thing,
                  { breakLength: (no_break ? Infinity: 80),
                    maxArrayLength: Infinity,
-                   depth: 2,
+                   depth: inspect_depth,
                  });
 let dt_hosted             = false;
 // dt_hosted                 = true; // lie for testing purposes.
@@ -256,7 +256,7 @@ let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_match_enabled                 = false;
+let log_match_enabled                 = true;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
@@ -267,6 +267,7 @@ let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
 let main_disabled                     = false;
+let inspect_depth                     = 10;
 // =================================================================================================
 
 
@@ -470,8 +471,7 @@ class Rule {
         log(indent,
             `Matching ${this.constructor.name} ${this.toString()} at ` +
             `char ${index}, ` +
-            `token #${index}: ` +
-            `${abbreviate(input.substring(index))}`)
+            `'${abbreviate(input.substring(index))}'`)
     }
     
     let rule_cache = null; // cache.get(this);
@@ -509,14 +509,14 @@ class Rule {
     // }
     
     if (log_match_enabled) {
-      if (ret)
-        log(indent,
-            `<= ${this.constructor.name} ${this.toString()} returned: ` +
-            `${JSON.stringify(ret)}`);
-      else
-        log(indent,
-            `<= Matching ${this.constructor.name} ` +
-            `${this.toString()} returned null.`);
+      // if (ret)
+      log(indent,
+          `<= ${this.constructor.name} ${this.toString()} ` +
+          `returned: ${compress(inspect_fun(ret))}`);
+      // else
+      //   log(indent,
+      //       `<= Matching ${this.constructor.name} ${this.toString()} ` +
+      //       `returned null.`);
     }
 
     return ret;
@@ -923,10 +923,9 @@ class Element extends Rule {
           ? DISCARD
           : rule_match_result.value[this.index];
     
-    if (log_match_enabled) {
-      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result.value)} = ` +
+    if (log_match_enabled)
+      log(indent, `get elem ${this.index} from ${inspect_fun(rule_match_result.value)} = ` +
           `${typeof ret === 'symbol' ? ret.toString() : inspect_fun(ret)}`);
-    }
     
     rule_match_result.value = ret;
     
@@ -1786,15 +1785,16 @@ function abbreviate(str, len = 100) {
       ['λ(', ')'],
     ];
 
+    
     for (const [left, right] of bracing_pairs) {
       if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
         str = str.substring(left.length, len - 3 - right.length);
-        const ret = `${left}${str.replace("\n","").trim()}...${right}`;
+        const ret = `${left}${str.replace("\n","\\n").trim()}...${right}`;
         return ret;
       }
     }
     
-    return `${str.substring(0, len - 3).replace("\n","").trim()}...`;
+    return `${str.substring(0, len - 3).replace("\n","\\n").trim()}...`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -2158,10 +2158,10 @@ const wst_seq         = __make_wst_seq_combinator(seq);
 const wst_enc         = __make_wst_seq_combinator(enc);
 const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
 const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => cutting_enc(wse(lpar), rule, wse(rpar));
-const wst_brc_enc     = rule => cutting_enc(wse(lbrc), rule, wse(rbrc));
-const wst_sqr_enc     = rule => cutting_enc(wse(lsqr), rule, wse(rsqr));
-const wst_tri_enc     = rule => cutting_enc(wse(lt),   rule, wse(gt));
+const wst_par_enc     = rule => cutting_enc(lws(lpar), lws(rule), lws(rpar));
+const wst_brc_enc     = rule => cutting_enc(lws(lbrc), lws(rule), lws(rbrc));
+const wst_sqr_enc     = rule => cutting_enc(lws(lsqr), lws(rule), lws(rsqr));
+const wst_tri_enc     = rule => cutting_enc(lws(ltri), lws(rule), lws(rtri));
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
@@ -8206,14 +8206,15 @@ const make_AnonWildcardAlternative_rule = content_star_rule =>
                 optional(wb_uint, 1),
                 wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
                 content_star_rule));
-const AnonWildcardAlternative = make_AnonWildcardAlternative_rule(() => ContentStar);
+const make_AnonWildcard_rule  = alternative_rule  =>
+      xform(arr => new ASTAnonWildcard(arr),
+            wst_brc_enc(wst_star(alternative_rule, pipe)));
+const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
 const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
-AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
-AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternative, pipe)));
-const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, pipe)));
+AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
+AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
+const AnonWildcardNoLoras            = make_AnonWildcardAlternative_rule(AnonWildcardAlternativeNoLoras);
 // AnonWildcard.abbreviate_str_repr('AnonWildcard');
 // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
 const NamedWildcardReference  = xform(seq(at,                                        // [0]
@@ -8565,7 +8566,7 @@ async function main() {
 if (! main_disabled)
   main().catch(err => {
     console.error(`Unhandled error:\n${err.stack}`);
-  process.exit(1);
+    process.exit(1);
   });
 // =================================================================================================
 // END OF MAIN SECTION.
