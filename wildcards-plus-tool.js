@@ -8136,7 +8136,9 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
-            seq('ui-prompt', word_break));
+            seq('ui-prompt',
+                // word_break
+               ));
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
@@ -8148,7 +8150,9 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      input, index - 1));
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
-            seq('ui-neg-prompt', word_break));
+            seq('ui-neg-prompt',
+                // word_break
+               ));
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
@@ -8202,11 +8206,15 @@ const SpecialFunctionSetPickMultiple =
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            seq('revert-single-pick', /* word_break */));
+            seq('revert-single-pick',
+                // word_break
+               ));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            seq('revert-multi-pick', /* word_break */));
+            seq('revert-multi-pick',
+                // word_break
+               ));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
@@ -8215,7 +8223,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                         any_assignment_operator,                           // [1][0]
                         discarded_comments,                                // -
                         choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
-                word_break
+                // word_break
                ));                                              // -
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
@@ -8226,7 +8234,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                         choice(plus_equals, equals),                             // [1][0]
                         discarded_comments,                                      // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]   
-                word_break
+                // word_break
                ));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
@@ -8248,7 +8256,8 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          ),
                          discarded_comments,
-                         lws(optional(semicolon))));
+                         lws(optional(semicolon)),
+                         word_break));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
