@@ -1975,8 +1975,8 @@ function klassify(klass, rule, noisy = false) {
   return new klass(rule);
 }
 // -------------------------------------------------------------------------------------------------
-function lws(rule) {
-  return klassify(WithLWS, rule);
+function lws(rule, noisy = false) {
+  return klassify(WithLWS, rule, noisy);
 }
 // -------------------------------------------------------------------------------------------------
 // WithTWS class:
@@ -2028,8 +2028,8 @@ class WithTWS extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function tws(rule) {
-  return klassify(WithTWS, rule);
+function tws(rule, noisy = false) {
+  return klassify(WithTWS, rule, noisy);
 }
 // =================================================================================================
 
