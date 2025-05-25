@@ -1923,18 +1923,20 @@ class WithLWS extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
-    const whites_star_match_result = whites_star.match(input,
-                                                       index,
-                                                       indent + 1,
-                                                       cache);
+    const whites_star_match_result =
+          whites_star.match(input,
+                            index,
+                            indent + 1,
+                            cache);
 
     if (! whites_star_match_result)
       return null;
 
-    const rule_match_result = this.rule.match(input,
-                                              whites_star_match_result.index,
-                                              indent + 1,
-                                              cache);
+    const rule_match_result =
+          this.rule.match(input,
+                          whites_star_match_result.index,
+                          indent + 1,
+                          cache);
 
     return rule_match_result;
   }
@@ -1992,18 +1994,20 @@ class WithTWS extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
-    const rule_match_result = this.rule.match(input,
-                                              index,
-                                              indent + 1,
-                                              cache);
+    const rule_match_result =
+          this.rule.match(input,
+                          index,
+                          indent + 1,
+                          cache);
 
     if (! rule_match_result)
       return null;
     
-    const whites_star_match_result = whites_star.match(input,
-                                                       rule_match_result.index,
-                                                       indent + 1,
-                                                       cache);
+    const whites_star_match_result =
+          whites_star.match(input,
+                            rule_match_result.index,
+                            indent + 1,
+                            cache);
 
     if (! whites_star_match_result)
       return whites_star_match_result;
