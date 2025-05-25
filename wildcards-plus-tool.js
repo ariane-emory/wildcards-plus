@@ -2013,11 +2013,17 @@ const ellipsis           = l('...');
 const equals             = l('=');
 const percent            = l('%');
 const pipe               = l('|');
+pipe.abbreviate_str_repr('pipe');
 const pound              = l('#');
+pound.abbreviate_str_repr('pound');
 const question           = l('?');
+question.abbreviate_str_repr('question');
 const range              = l('..');
+range.abbreviate_str_repr('range');
 const semicolon          = l(';');
+semicolon.abbreviate_str_repr('semicolon');
 const slash              = l('/');
+slash.abbreviate_str_repr('slash');
 // -------------------------------------------------------------------------------------------------
 // C-like numbers:
 const c_bin              = r(/0b[01]/);
