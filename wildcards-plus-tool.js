@@ -89,7 +89,8 @@ function parse_file(filename) {
     total += ruleCache.size;
   }
   
-  console.log(`TOTAL: ${format_pretty_number(total)}`);
+  if (sortedEntries.length > 0)
+    console.log(`TOTAL: ${format_pretty_number(total)}`);
 
   //console.log(inspect_fun(Array.from(cache.entries()).toSorted((x, y) => y.size - y.size)));
 
@@ -7170,6 +7171,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
              thing instanceof ASTUpdateConfigurationBinary) {
       let value = thing.value;
 
+      // console.log(`THING: ${thing} ${inspect_fun(thing)}`);
+      
       if (value instanceof ASTNode) {
         const expanded_value = expand_wildcards(thing.value, context, indent + 1); // not walk!
         const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
@@ -8232,7 +8235,12 @@ const SpecialFunctionRevertPickMultiple =
             seq('revert-multi-pick', word_break));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == equals),
+      xform(arr => {
+        console.log(`ARR: ${arr}`);
+        const args = [arr[0], arr[1][1], arr[1][0]];
+        console.log(`ARGS: ${args}`);
+        return new ASTUpdateConfigurationBinary(...args);
+      },
             seq(c_ident,                                                    // [0]
                 wst_seq(discarded_comments,                                 // -
                         any_assignment_operator,                            // [1][0]
