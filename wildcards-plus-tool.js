@@ -923,8 +923,9 @@ class Element extends Rule {
           : rule_match_result.value[this.index];
     
     if (log_match_enabled)
-      log(indent, `get elem ${this.index} from ${inspect_fun(rule_match_result.value)} = ` +
-          `${typeof ret === 'symbol' ? ret.toString() : inspect_fun(ret)}`);
+      log(indent, `get elem ${this.index} from ` +
+          `${abbreviate(inspect_fun(rule_match_result.value))} = ` +
+          `${typeof ret === 'symbol' ? ret.toString() : abbreviate(inspect_fun(ret))}`);
     
     rule_match_result.value = ret;
     
@@ -1884,22 +1885,38 @@ whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
 // leading/trailing whitespace:
 const lws                = rule => {
+  if (rule.__is_lws_rule) {
+    // throw new Error("lws skips!");
+    return rule;
+  }
+  
   rule = second(seq(whites_star, rule));
   
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
     return `LWS(${rule_str})`;
   }
-
+  
+  rule.__is_lws_rule = true;
+  
   return rule;
 };
 const tws                = rule => {
+  if (rule.__is_tws_rule) {
+    // throw new Error("tws skips!");
+    return rule;
+  }
+
   rule = first(seq(rule, whites_star));
 
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
     return `TWS(${rule_str})`;
   }
+
+  rule.__is_tws_rule = true;
+  
+  return rule;
 };
 // -------------------------------------------------------------------------------------------------
 // common numbers:
@@ -8563,7 +8580,7 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-let main_disabled = false;
+let main_disabled = true; // false;
 
 if (! main_disabled)
 main().catch(err => {
@@ -8574,10 +8591,5 @@ main().catch(err => {
 // END OF MAIN SECTION.
 // =================================================================================================
 
-const word = r(/\w+/);
-const test = first(seq(wst_star(word, ','), whites_star));
-LOG_LINE();
-console.log(`result: ${inspect_fun(test.match('foo, bar, baz, quuux  '))}`);
+console.log(`result: ${inspect_fun(AnonWildcard.match('{ foo | 2 bar | ?quux baz }'))}`);
 
-console.log(abbreviate(`{ foo |
-bar }`));
