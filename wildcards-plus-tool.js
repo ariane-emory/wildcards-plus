@@ -242,7 +242,7 @@ let inspect_fun           = (thing, no_break = false) =>
     util.inspect(thing,
                  { breakLength: (no_break ? Infinity: 80),
                    maxArrayLength: Infinity,
-                   depth: 2,
+                   depth: Infinity,
                  });
 let dt_hosted             = false;
 // dt_hosted                 = true; // lie for testing purposes.
@@ -269,7 +269,7 @@ if (false)
 let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = true;
 let unnecessary_choice_is_error       = false;
-let print_ast_enabled                 = false;
+//let print_ast_enabled                 = true;
 let print_ast_json_enabled            = false;
 let log_enabled                       = true;
 let log_configuration_enabled         = true;
@@ -282,7 +282,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let log_expand_and_walk_enabled       = false;  
 let disable_prelude                   = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
 // =================================================================================================
@@ -8236,9 +8236,9 @@ const SpecialFunctionRevertPickMultiple =
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => {
-        console.log(`ARR: ${arr}`);
+        //console.log(`ARR: ${arr}`);
         const args = [arr[0], arr[1][1], arr[1][0] == '='];
-        console.log(`ARGS: ${args}`);
+        //console.log(`ARGS: ${args}`);
         return new ASTUpdateConfigurationBinary(...args);
       },
             seq(c_ident,                                                    // [0]
@@ -8496,8 +8496,8 @@ async function main() {
   // -----------------------------------------------------------------------------------------------
   // just for debugging:
   // -----------------------------------------------------------------------------------------------
-  if (print_ast_enabled)
-    console.log(`result: ${inspect_fun(result.value)}`);
+  // if (print_ast_enabled)
+  //   console.log(`result: ${inspect_fun(result.value)}`);
 
   if (print_ast_json_enabled)
     console.log(`result (JSON): ${JSON.stringify(result.value)}`);
@@ -8517,9 +8517,9 @@ async function main() {
     LOG_LINE();
     console.log(`${inspect_fun(AST)}`);
     LOG_LINE();
-    console.log(`before process_includes (as JSON):`);
-    LOG_LINE();
-    console.log(`${JSON.stringify(AST)}`);
+    // console.log(`before process_includes (as JSON):`);
+    // LOG_LINE();
+    //  console.log(`${JSON.stringify(AST)}`);
   }
 
   AST = process_includes(AST, base_context);

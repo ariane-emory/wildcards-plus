@@ -529,3 +529,4 @@ A
 
 \n
 \{ foo \}
+@pro_3rd_subj @pro_3rd_subj @pro_3rd_subj @pro_3rd_subj @pro_3rd_subj @pro_3rd_subj
