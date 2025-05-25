@@ -1266,7 +1266,7 @@ class Sequence extends Rule {
     let last_match_result = start_rule_match_result;
 
     if (log_match_enabled && last_match_result !== null)
-      log(indent + 1, `first last_match_result = ${inspect_fun(last_match_result)}`);
+      log(indent + 1, `first last_match_result = ${abbreviate(inspect_fun(last_match_result))}`);
     
     if (last_match_result === null) {
       if (log_match_enabled)
@@ -1286,7 +1286,8 @@ class Sequence extends Rule {
 
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
-        log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+        log(indent + 1, `seq pushing first item ` +
+            `${abbreviate(inspect_fun(last_match_result.value))}`);
 
       values.push(last_match_result.value);
 
@@ -1318,7 +1319,7 @@ class Sequence extends Rule {
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
-          log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+          log(indent + 1, `seq pushing ${abbreviate(inspect_fun(last_match_result.value))}`);
 
         values.push(last_match_result.value);
 
@@ -1899,7 +1900,7 @@ const lws                = rule => {
   
   rule.__is_lws_rule = true;
   
-  return rule;
+  return rule;u
 };
 const tws                = rule => {
   if (rule.__is_tws_rule) {
@@ -8593,3 +8594,4 @@ main().catch(err => {
 
 console.log(`result: ${inspect_fun(AnonWildcard.match('{ foo | 2 bar | ?quux baz }'))}`);
 
+// console.log(lws(lws(lws('a'))).toString());
