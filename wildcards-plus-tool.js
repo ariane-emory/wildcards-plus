@@ -7930,15 +7930,15 @@ discarded_comments              .abbreviate_str_repr('discarded_comments_star');
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint);
 const A1111StyleLora       =
       xform(arr => new ASTLora(arr[3], arr[4][0]),
-            wst_seq('<',                                    // [0]
+            wst_seq(lt,                                    // [0]
                     'lora',                                 // [1]
-                    ':',                                    // [2]
+                    colon,                                  // [2]
                     choice(filename, () => LimitedContent), // [3]
-                    optional(second(wst_seq(':',
+                    optional(second(wst_seq(colon,
                                             choice(A1111StyleLoraWeight,
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
-                    '>'));
+                    gt));
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // -------------------------------------------------------------------------------------------------
@@ -8013,7 +8013,7 @@ const SimpleNotFlag              = xform(seq(bang,
 
                                            return new ASTNotFlag(...args);
                                          })
-const CheckFlagWithOrAlternatives = xform(seq('?',
+const CheckFlagWithOrAlternatives = xform(seq(question,
                                               plus(plus(ident, dot), comma),
                                               word_break),
                                           arr => {
@@ -8184,7 +8184,7 @@ SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
-      second(cutting_seq('%',
+      second(cutting_seq(percent,
                          choice(
                            SpecialFunctionUpdateConfigurationBinary,
                            SpecialFunctionUpdateConfigurationUnary,
