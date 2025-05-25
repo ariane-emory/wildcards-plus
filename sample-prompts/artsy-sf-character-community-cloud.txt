@@ -526,6 +526,3 @@ A
 // %nEgAtIvE       += { second, }
 // %nEgAtIvEpRoMpT += { third,  }
 // { foo
-
-\n
-\{ foo \}
