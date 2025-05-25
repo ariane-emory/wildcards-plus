@@ -1948,23 +1948,24 @@ function lws(rule) {
 
   const klass = WithLWS;
   
-  if (!rule ||
-      rule instanceof klass ||
-      (rule instanceof Quantified &&
-       rule.rule instanceof klass &&
-       rule.separator_rule instanceof klass) ||
-      (rule instanceof Choice &&
-       rule.options.every(x => x instanceof klass))  ||
-      (rule instanceof Enclosed &&
-       rule.start_rule instanceof klass &&
-       rule.body_rule  instanceof klass &&
-       rule.end_rule   instanceof klass)  ||
-      (rule instanceof Optional &&
-       rule.rule instanceof klass) ||
-      (rule instanceof Sequence &&
-       rule.elements.every(x => x instanceof klass))  ||
-      (rule instanceof Xform &&
-       rule.rule instanceof klass))
+  if (!rule
+      || rule instanceof klass
+      || (rule instanceof Quantified &&
+          rule.rule instanceof klass &&
+          rule.separator_rule instanceof klass)
+      || (rule instanceof Choice &&
+          rule.options.every(x => x instanceof klass))
+      || (rule instanceof Enclosed &&
+          rule.start_rule instanceof klass &&
+          rule.body_rule  instanceof klass &&
+          rule.end_rule   instanceof klass)
+      || (rule instanceof Optional &&
+          rule.rule instanceof klass)
+      || (rule instanceof Sequence &&
+          rule.elements.every(x => x instanceof klass))
+      || (rule instanceof Xform &&
+          rule.rule instanceof klass)
+     )
     return rule;
   
   return new klass(rule);
