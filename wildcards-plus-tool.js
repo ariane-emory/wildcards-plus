@@ -7856,7 +7856,7 @@ class ASTUINegPrompt extends ASTNode {
 const any_assignment_operator  = choice(() => assignment_operator, () => incr_assignment_operator);
 const assignment_operator      = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
 const comment                  = discard(c_comment);
-const escaped_brc              = second(choice('\\{', '\\}'));
+//const escaped_brc              = second(choice('\\{', '\\}'));
 const filename                 = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                    = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
 const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
