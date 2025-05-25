@@ -256,7 +256,7 @@ let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_match_enabled                 = true;
+let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
@@ -8626,7 +8626,7 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-let main_disabled = true; // false;
+let main_disabled = false;
 
 if (! main_disabled)
 main().catch(err => {
@@ -8638,9 +8638,8 @@ main().catch(err => {
 // =================================================================================================
 
 // console.log(`result: ${inspect_fun(AnonWildcard.match('{ foo | 2 bar | ?quux baz }'))}`);
-console.log(`result: ${inspect_fun(AnonWildcardNoLoras.match('{ foo | 2 bar | ?quux baz }'))}`);
-
+//console.log(`result: ${inspect_fun(AnonWildcardNoLoras.match('{ foo | 2 bar | ?quux baz }'))}`);
 // console.log(lws(lws(lws('a'))).toString());
-console.log(abbreviate(`{ foo |
-bar |
-baz }`));
+// console.log(abbreviate(`{ foo |
+// bar |
+// baz }`));
