@@ -1955,19 +1955,18 @@ function make_whitespace_Rule_class(class_name_str, builder) {
     }
     // ---------------------------------------------------------------------------------------------
     __impl_toString(visited, next_id, ref_counts) {
-      const rule_str = this.base_rule.__toString(visited, next_id, ref_counts);
-      return `${class_name_str}(${rule_str})`;
+      return `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`;
     }
   };
+}
+// -------------------------------------------------------------------------------------------------
+function make_whitespace_Rule_class_convenience_constructor(wrapperClass) {
+  return (rule, noisy = false) => klassify(wrapperClass, rule, noisy);
 }
 // -------------------------------------------------------------------------------------------------
 const WithLWS = make_whitespace_Rule_class("LWS", rule => elem(1, seq(whites_star, rule)));
 const WithTWS = make_whitespace_Rule_class("TWS", rule => elem(0, seq(rule, whites_star)));
 // -------------------------------------------------------------------------------------------------
-function make_whitespace_Rule_class_convenience_constructor(wrapperClass) {
-  return (rule, noisy = false) => klassify(wrapperClass, rule, noisy);
-}
-
 const lws = make_whitespace_Rule_class_convenience_constructor(WithLWS);
 const tws = make_whitespace_Rule_class_convenience_constructor(WithTWS);
 // =================================================================================================
