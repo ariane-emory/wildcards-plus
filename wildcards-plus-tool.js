@@ -2674,7 +2674,12 @@ function choose_indefinite_article(word) {
 function compress(str) {
   return str.replace(/\s+/g, ' ');
 }
-
+// ------------------------------------------------------------------------------------------------
+function format_pretty_number(num) {
+  const [intPart, fracPart] = num.toString().split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+}
 // -------------------------------------------------------------------------------------------------
 function format_pretty_list(arr) {
   const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
