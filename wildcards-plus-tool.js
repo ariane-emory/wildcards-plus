@@ -330,7 +330,7 @@ Array.prototype.toString = function() {
 //         |
 //         |-- Literal
 //         |-- Regex
-//         |
+// 
 // ForwardReference (only needed when calling xform with a weird arg order)
 // LabeledValue
 // MatchResult
