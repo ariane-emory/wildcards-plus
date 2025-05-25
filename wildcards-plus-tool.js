@@ -8504,11 +8504,12 @@ async function main() {
       console.log(`${inspect_fun(context.flags)}`);
     }
 
-    LOG_LINE();
-    console.log(`Final config is is:`);
-    LOG_LINE();
-    console.log(inspect_fun(context.configuration));
-
+    if (! is_empty_object(context.configuration)) {
+      LOG_LINE();
+      console.log(`Final config is is:`);
+      LOG_LINE();
+      console.log(inspect_fun(context.configuration));
+    }
     
     LOG_LINE();
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
