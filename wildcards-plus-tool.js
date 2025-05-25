@@ -1976,13 +1976,13 @@ function lws(rule) {
     console.log(`return original rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
     return rule;
   }
-  else if (typeof rule === 'function') {
+
+  if (typeof rule === 'function') {
     console.log(`process function ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-  }
-  else {
-    console.log(`process ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    return new klass(rule);
   }
   
+  console.log(`process ${abbreviate(compress(inspect_fun(rule)), 250)}`);
   return new klass(rule);
 }
 // -------------------------------------------------------------------------------------------------
