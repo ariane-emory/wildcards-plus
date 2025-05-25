@@ -1947,30 +1947,31 @@ class WithLWS extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function klassify(klass, rule) {
+function klassify(klass, rule, noisy = false) {
+  const log = noisy ? console.log : () => {};
   rule = make_rule_func(rule);
 
   if (!rule) {
-    console.log(`return original null rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    log(`return original null rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
     return rule;
   }
 
   if (typeof rule === 'function') {
-    console.log(`return klassed function ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    log(`return klassed function ${abbreviate(compress(inspect_fun(rule)), 250)}`);
     return new klass(rule);
   }
   
   if (rule instanceof klass) {
-    console.log(`return original klassed rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    log(`return original klassed rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
     return rule;
   }
   
   if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-    console.log(`return original rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    log(`return original rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
     return rule;
   }
 
-  console.log(`return klassed ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+  log(`return klassed ${abbreviate(compress(inspect_fun(rule)), 250)}`);
   return new klass(rule);
 }
 // -------------------------------------------------------------------------------------------------
@@ -2291,7 +2292,7 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep = comma) =>
+const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep = comma) =>
       seq(fun_rule,
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
