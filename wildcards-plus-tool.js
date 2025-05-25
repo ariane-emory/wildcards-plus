@@ -256,7 +256,7 @@ let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_match_enabled                 = true;
+let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
@@ -2046,43 +2046,8 @@ const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
 // whites_star.memoize = false;
 // whites_plus.memoize = false;
-whites_star.__impl_toString = () => 'whites*';
-whites_plus.__impl_tostring = () => 'whites+';
-// leading/trailing whitespace:
-// const lws                = rule => {
-//   if (rule.__rule_created_by === lws || rule.rule?.__rule_created_by === lws) {
-//     // throw new Error("lws skips!");
-//     return rule;
-//   }
-
-//   rule = second(seq(whites_star, rule));
-
-//   rule.__impl_toString = function(visited, next_id, ref_counts) {
-//     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-//     return `LWS(${rule_str})`;
-//   }
-
-//   rule.__rule_created_by = lws;
-
-//   return rule;
-// };
-// const tws                = rule => {
-//   if (rule.__rule_created_by === tws || rule.rule?.__rule_created_by === tws) {
-//     // throw new Error("tws skips!");
-//     return rule;
-//   }
-
-//   rule = first(seq(rule, whites_star));
-
-//   rule.__impl_toString = function(visited, next_id, ref_counts) {
-//     const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
-//     return `TWS(${rule_str})`;
-//   }
-
-//   rule.__rule_created_by = tws;
-
-//   return rule;
-// };
+whites_star.abbreviate_str_repr('whites*');
+whites_plus.abbreviate_str_repr('whites+');
 // -------------------------------------------------------------------------------------------------
 // common numbers:
 const udecimal           = r(/\d+\.\d+/);
@@ -2091,12 +2056,12 @@ const uint               = r(/\d+/);
 const sdecimal           = r(/[+-]?\d+\.\d+/);
 const srational          = r(/[+-]?\d+\/[1-9]\d*/);
 const sint               = r(/[+-]?\d+/)
-udecimal.__impl_toString = () => 'udecimal';
-urational.__impl_toString = () => 'urational';
-uint.__impl_toString     = () => 'uint';
-sdecimal.__impl_toString = () => 'sdecimal';
-srational.__impl_toString = () => 'srational';
-sint.__impl_toString = () => 'sint';
+udecimal.abbreviate_str_repr('udecimal');
+urational.abbreviate_str_repr('urational');
+uint.abbreviate_str_repr('uint');
+sdecimal.abbreviate_str_repr('sdecimal');
+srational.abbreviate_str_repr('srational');
+sint.abbreviate_str_repr('sint');
 // -------------------------------------------------------------------------------------------------
 // common separated quantified rules:
 const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
