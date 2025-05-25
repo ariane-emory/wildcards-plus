@@ -1876,7 +1876,7 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
       }
       // ---------------------------------------------------------------------------------------------
       __impl_toString(visited, next_id, ref_counts) {
-        return `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`;
+        return `${class_name_str}(${this.base_rule?.__toString(visited, next_id, ref_counts)})`;
       }
     }
   }[class_name_str];
