@@ -1972,14 +1972,14 @@ function lws(rule) {
       || (rule instanceof Xform &&
           rule.rule instanceof klass)
      ) {
-    console.log(`return original rule for ${abbreviate(compress(inspect_fun(rule)))}`);
+    console.log(`return original rule ${abbreviate(compress(inspect_fun(rule)))}`);
     return rule;
   }
   else if (typeof rule === 'function') {
     console.log(`process function ${abbreviate(compress(inspect_fun(rule)))}`);
   }
   else {
-    console.log(`process rule ${abbreviate(compress(inspect_fun(rule)))}`);
+    console.log(`process ${abbreviate(compress(inspect_fun(rule)))}`);
   }
   
   return new klass(rule);
