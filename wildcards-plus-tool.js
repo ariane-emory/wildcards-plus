@@ -274,7 +274,7 @@ let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_match_enabled                 = false;
+let log_match_enabled                 = true;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
@@ -488,7 +488,7 @@ class Rule {
             `Matching ${this.constructor.name} ${this.toString()} at ` +
             `char ${index}, ` +
             `token #${index}: ` +
-            `${abbreviate(input.substring(index))}`)
+            `"${abbreviate(input.substring(index, (60 - 2*indent)))}"`)
     }
     
     let rule_cache = null; // cache.get(this);
@@ -1806,12 +1806,12 @@ function abbreviate(str, len = 100) {
     for (const [left, right] of bracing_pairs) {
       if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
         str = str.substring(left.length, len - 3 - right.length);
-        const ret = `${left}${str.replace("\n","").trim()}...${right}`;
+        const ret = `${left}${str.replace(/\n/g, "\\n").trim()}...${right}`;
         return ret;
       }
     }
     
-    return `${str.substring(0, len - 3).replace("\n","\\n").trim()}...`;
+    return `${str.substring(0, len - 3).replace(/\n/g, "\\n").trim()}...`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -6837,10 +6837,13 @@ const prelude_text = disable_prelude ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
+  throw new Error(`bombb`);
   if (! prelude_parse_result) {
     const old_log_match_enabled = log_match_enabled;
-    log_match_enabled = false; 
+    log_match_enabled = false;
+    console.log(`parsing prelude...`);
     prelude_parse_result = Prompt.match(prelude_text);
+    console.log(`done parsing prelude.`);
     log_match_enabled = old_log_match_enabled;
   }
   
@@ -6848,6 +6851,8 @@ function load_prelude(into_context = new Context()) {
 
   if (ignored === undefined)
     throw new Error("crap");
+
+  console.log("loaded prelude.");
   
   return into_context;
 }
