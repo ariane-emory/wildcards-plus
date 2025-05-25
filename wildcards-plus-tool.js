@@ -1947,10 +1947,8 @@ class WithLWS extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function lws(rule) {
+function klassify(klass, rule) {
   rule = make_rule_func(rule);
-
-  const klass = WithLWS;
 
   if (!rule) {
     console.log(`return original null rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
@@ -1974,6 +1972,10 @@ function lws(rule) {
 
   console.log(`return klassed ${abbreviate(compress(inspect_fun(rule)), 250)}`);
   return new klass(rule);
+}
+// -------------------------------------------------------------------------------------------------
+function lws(rule) {
+  return klassify(WithLWS, rule);
 }
 // -------------------------------------------------------------------------------------------------
 // WithTWS class:
