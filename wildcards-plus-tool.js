@@ -1975,7 +1975,11 @@ function lws(rule) {
     console.log(`return original rule for ${abbreviate(compress(inspect_fun(rule)))}`);
     return rule;
   }
+  else if (typeof rule === 'function') {
+    console.log(`process function ${abbreviate(compress(inspect_fun(rule)))}`);
+  }
   else {
+    console.log(`process rule ${abbreviate(compress(inspect_fun(rule)))}`);
   }
   
   return new klass(rule);
