@@ -8260,10 +8260,10 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                         return objs;
                                       });
 NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
-const ScalarReference         = xform(seq('$', optional('^'), ident),
+const ScalarReference         = xform(seq(dollar, optional('^'), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
 ScalarReference.abbreviate_str_repr('ScalarReference');
-const ScalarDesignator        = xform(seq('$', ident),
+const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
