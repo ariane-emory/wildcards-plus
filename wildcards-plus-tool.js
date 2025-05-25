@@ -1957,6 +1957,11 @@ function lws(rule) {
     return rule;
   }
 
+  if (typeof rule === 'function') {
+    console.log(`return function with klass ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    return new klass(rule);
+  }
+  
   if (rule instanceof klass) {
     console.log(`return klassed rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
     return rule;
@@ -1985,12 +1990,7 @@ function lws(rule) {
     return rule;
   }
 
-  if (typeof rule === 'function') {
-    console.log(`process function ${abbreviate(compress(inspect_fun(rule)), 250)}`);
-    return new klass(rule);
-  }
-  
-  console.log(`process ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+  console.log(`return with klass ${abbreviate(compress(inspect_fun(rule)), 250)}`);
   return new klass(rule);
 }
 // -------------------------------------------------------------------------------------------------
