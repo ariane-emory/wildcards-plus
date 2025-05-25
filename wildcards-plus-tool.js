@@ -8152,20 +8152,15 @@ SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
-
-const AnonWildcardAlternative =
+const make_AnonWildcardAlternative_rule = content_star_rule => 
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
                 optional(wb_uint, 1),
                 wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
-                () => ContentStar));
+                content_star_rule));
+const AnonWildcardAlternative = make_AnonWildcardAlternative_rule(() => ContentStar);
+const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
 AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcardAlternativeNoLoras =
-      xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
-                optional(wb_uint, 1),
-                wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
-                () => ContentNoLorasStar));
 AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
                                       brc_enc(wst_star(AnonWildcardAlternative, '|')));
