@@ -1956,12 +1956,15 @@ function lws(rule) {
     console.log(`return original null rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
     return rule;
   }
+
+  if (rule instanceof klass) {
+    console.log(`return klassed rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    return rule;
+  }
   
-  if (!rule
-      || rule instanceof klass
-      || (rule instanceof Rule &&
-          rule.direct_children().length > 0 && 
-          rule.direct_children().every(x => x instanceof klass))
+  if (rule instanceof Rule &&
+      rule.direct_children().length > 0 && 
+          rule.direct_children().every(x => x instanceof klass)
       // || (rule instanceof Quantified &&
       //     rule.rule instanceof klass &&
       //     rule.separator_rule instanceof klass)
