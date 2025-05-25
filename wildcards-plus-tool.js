@@ -2031,7 +2031,7 @@ const dot                = l('.');
 const ellipsis           = l('...');
 const equals             = l('=');
 const equals_arrow       = l('=>');
-const hash              = l('');
+const hash               = l('#');
 const percent            = l('%');
 const pipe               = l('|');
 const pound              = l('#');
@@ -8243,7 +8243,7 @@ const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[
                                                       discarded_comments,
                                                       AnonWildcard));                  // [1]
 NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
-const NamedWildcardUsage      = xform(seq(at, optional("!"), optional("#"), ident),
+const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
                                               [ arr[1][0], arr[2][0], arr[3], []];
