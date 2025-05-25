@@ -2136,8 +2136,10 @@ const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
+// const __make_wst_quantified_combinator = base_combinator => 
+//       ((rule, sep = null) => base_combinator(wse(rule), sep));
 const __make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(wse(rule), sep));
+      ((rule, sep = null) => base_combinator(lws(rule), sep ? lws(sep) : null));
 // const __make_wst_quantified_combinator_alt = base_combinator =>
 //       ((rule, sep = null) =>
 //         lws(base_combinator(tws(rule),
@@ -8559,15 +8561,16 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-main().catch(err => {
-  console.error(`Unhandled error:\n${err.stack}`);
-  process.exit(1);
-});
+// main().catch(err => {
+//   console.error(`Unhandled error:\n${err.stack}`);
+//   process.exit(1);
+// });
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
 
 const word = r(/\w+/);
 const test = wst_star(word, ',');
+LOG_LINE();
+console.log(`result: ${inspect_fun(test.match('foo, bar, baz, quuux  '))}`);
 
-console.log(`result: ${inspect_fun(test.match('foo, bar, baz, quuux'))}`);
