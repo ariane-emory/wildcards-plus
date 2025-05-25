@@ -7922,7 +7922,7 @@ const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
 const low_pri_text                = r(/[\(\)\[\]\:]+/);
 const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const word_break                  = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
+const word_break                  = discard(r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/));
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 comment                           .abbreviate_str_repr(false); // 'comment');
 assignment_operator               .abbreviate_str_repr('assignment_operator');
@@ -8157,7 +8157,8 @@ const SpecialFunctionInclude =
             seq(c_funcall('%include',                            // [0][0]
                           first(wst_seq(discarded_comments,      // -
                                         json_string,             // [0][1]
-                                        discarded_comments))),   // -
+                                        discarded_comments,      // -
+                                        word_break))),           // -
                 discarded_comments,                              // -
                 lws(optional(semicolon))));                            // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
