@@ -1999,9 +1999,13 @@ const python_logic_word  = r(/and|or|not|xor/);
 // -------------------------------------------------------------------------------------------------
 // common punctuation:
 const ampersand          = l('&');
+ampersand.abbreviate_str_repr('ampersand');
 const asterisk           = l('*');
+asterisk.abbreviate_str_repr('asterisk');
 const bang               = l('!');
+bang.abbreviate_str_repr('bang');
 const bslash             = l('\\');
+bslash.abbreviate_str_repr('bslash');
 const caret              = l('^');
 const colon              = l(':');
 colon.abbreviate_str_repr('colon');
