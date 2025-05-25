@@ -1963,7 +1963,6 @@ const keyword            = word => {
   
   return r(new RegExp(String.raw(`\b${word}\b`)));
 };
-keyword.abbreviate_str_repr('keyword');
 // -------------------------------------------------------------------------------------------------
 // parenthesis-like terminals:
 const gt                 = l('>');
