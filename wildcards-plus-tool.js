@@ -532,7 +532,7 @@ class Rule {
       else
         log(indent,
             `<= Failed to match ${this.constructor.name} ` +
-            `${this.toString()} returned null.`);
+            `${this.toString()}`);
     }
 
     return ret;
