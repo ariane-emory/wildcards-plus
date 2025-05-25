@@ -1273,7 +1273,7 @@ class Sequence extends Rule {
     }
 
     if (log_match_enabled)
-      log(indent + 1, `matched sequence item #0: ` +
+      log(indent + 1, `matched sequence element #1: ` +
           `${JSON.stringify(last_match_result)}.`);
     
     const values = [];
@@ -1315,7 +1315,7 @@ class Sequence extends Rule {
       }
 
       if (log_match_enabled)
-        log(indent + 1, `matched sequence item #${ix}.`);
+        log(indent + 1, `matched sequence element #${ix + 1}.`);
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
@@ -7936,7 +7936,7 @@ const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
 const low_pri_text                = r(/[\(\)\[\]\:]+/);
 const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const word_break                  = discard(r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/));
+const word_break                  = discard(r(/(?=\s|[{|}\;\.\,\?\!\[\]\(\)]|$)/));
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 // assignment_operator               .abbreviate_str_repr('assignment_operator');
 // incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
