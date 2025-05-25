@@ -1904,7 +1904,7 @@ function pipe_funs(...fns) {
 // =================================================================================================
 // Extra grammar classes, these should go somewhere else.
 // =================================================================================================
-function make_whitespace_Rule_class(class_name_str, builder) {
+function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
   let klass = class extends Rule {
     // ---------------------------------------------------------------------------------------------
     constructor(rule) {
@@ -1930,12 +1930,8 @@ function make_whitespace_Rule_class(class_name_str, builder) {
       return `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`;
     }
   };
-  
-  return klass;
-}
-// -------------------------------------------------------------------------------------------------
-function make_whitespace_Rule_class_convenience_constructor_function(klass) {
-  return (rule, noisy = false) => {
+
+  let factory_fun = (rule, noisy = false) => {
     const log = noisy ? console.log : () => {};
     rule = make_rule_func(rule);
 
@@ -1962,12 +1958,14 @@ function make_whitespace_Rule_class_convenience_constructor_function(klass) {
     log(`return klassed ${abbreviate(compress(inspect_fun(rule)), 250)}`);
     return new klass(rule);
   }
+  
+  return [ klass, factory_fun ];
 }
 // -------------------------------------------------------------------------------------------------
-const WithLWS = make_whitespace_Rule_class("LWS", rule => elem(1, seq(whites_star, rule)));
-const WithTWS = make_whitespace_Rule_class("TWS", rule => elem(0, seq(rule, whites_star)));
-const lws     = make_whitespace_Rule_class_convenience_constructor_function(WithLWS);
-const tws     = make_whitespace_Rule_class_convenience_constructor_function(WithTWS);
+const [ WithLWS, lws ] =
+      make_whitespace_Rule_class_and_factory_fun("LWS", rule => elem(1, seq(whites_star, rule)));
+const [ WithTWS, tws ] =
+      make_whitespace_Rule_class_and_factory_fun("TWS", rule => elem(0, seq(rule, whites_star)));
 // =================================================================================================
 
 
