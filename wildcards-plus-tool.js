@@ -8278,13 +8278,13 @@ AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternati
 AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
 const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
-// AnonWildcard.abbreviate_str_repr('AnonWildcard');
-// AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
+AnonWildcard.abbreviate_str_repr('AnonWildcard');
+AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
 const NamedWildcardReference  = xform(seq(at,                                        // [0]
                                           optional(caret),                           // [1]
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,
-                                                         second(seq(dash, uint)))),   // [3]
+                                                         second(seq(dash, uint)))),  // [3]
                                           optional(/[,&]/),                          // [4]
                                           ident),                                    // [5]
                                       arr => {
