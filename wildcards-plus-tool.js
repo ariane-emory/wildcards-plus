@@ -7923,12 +7923,12 @@ class ASTUINegPrompt extends ASTNode {
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 const discarded_comment           = discard(c_comment);
 const discarded_comments          = discard(wst_star(c_comment));
-const assignment_operator         = second(seq(wst_star(discarded_comment),
-                                               lws(equals),
-                                               wst_star(discarded_comment)));
-const incr_assignment_operator    = second(seq(wst_star(discarded_comment),
-                                               lws(plus_equals),
-                                               wst_star(discarded_comment)));
+// const assignment_operator         = second(seq(wst_star(discarded_comment),
+//                                                lws(equals),
+//                                                wst_star(discarded_comment)));
+// const incr_assignment_operator    = second(seq(wst_star(discarded_comment),
+//                                                lws(plus_equals),
+//                                                wst_star(discarded_comment)));
 const any_assignment_operator     = choice(assignment_operator, incr_assignment_operator);
 const dot_hash                    = l('.#');
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
