@@ -1944,7 +1944,11 @@ class WithLWS extends Rule {
 }
 // -------------------------------------------------------------------------------------------------
 function with_lws(rule) {
-  if (rule instanceof WithLWS)
+  if (!rule ||
+      rule instanceof WithLWS ||
+      (rule instanceof Quantified &&
+       rule.rule instanceof WithLWS &&
+       rule.separator_rule instanceof WithLWS))
     return rule;
   
   return new WithLWS(rule);
@@ -1998,7 +2002,11 @@ class WithTWS extends Rule {
 }
 // -------------------------------------------------------------------------------------------------
 function with_tws(rule) {
-  if (rule instanceof WithTWS)
+  if (!rule ||
+      rule instanceof WithTWS ||
+      (rule instanceof Quantified &&
+       rule.rule instanceof WithTWS &&
+       rule.separator_rule instanceof WithTWS))
     return rule;
   
   return new WithTWS(rule);
