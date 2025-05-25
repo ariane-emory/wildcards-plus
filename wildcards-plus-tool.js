@@ -1905,7 +1905,7 @@ function pipe_funs(...fns) {
 // Extra grammar classes, these should go somewhere else.
 // =================================================================================================
 function make_whitespace_Rule_class(class_name_str, builder) {
-  return class extends Rule {
+  let klass = class extends Rule {
     // ---------------------------------------------------------------------------------------------
     constructor(rule) {
       super();
@@ -1930,6 +1930,8 @@ function make_whitespace_Rule_class(class_name_str, builder) {
       return `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`;
     }
   };
+  
+  return klass;
 }
 // -------------------------------------------------------------------------------------------------
 function make_whitespace_Rule_class_convenience_constructor_function(klass) {
