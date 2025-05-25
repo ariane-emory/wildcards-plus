@@ -256,7 +256,7 @@ let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_match_enabled                 = true;
+let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
@@ -1927,7 +1927,7 @@ class WithLWS extends Rule {
                                                        cache);
 
     if (! whites_star_match_result)
-      return whites_star_match_result;
+      return null;
 
     const rule_match_result = this.rule.match(input,
                                               whites_star_match_result.index,
@@ -1943,7 +1943,7 @@ class WithLWS extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function with_lws(rule) {
+function lws(rule) {
   if (!rule ||
       rule instanceof WithLWS ||
       (rule instanceof Quantified &&
@@ -1979,7 +1979,7 @@ class WithTWS extends Rule {
                                               cache);
 
     if (! rule_match_result)
-      return rule_match_result;
+      return null;
     
     const whites_star_match_result = whites_star.match(input,
                                                        rule_match_result.index,
@@ -2001,7 +2001,7 @@ class WithTWS extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function with_tws(rule) {
+function tws(rule) {
   if (!rule ||
       rule instanceof WithTWS ||
       (rule instanceof Quantified &&
@@ -2316,9 +2316,9 @@ const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep 
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
 const __make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(with_lws(rule), sep ? with_lws(sep) : null));
+      ((rule, sep = null) => base_combinator(lws(rule), sep ? lws(sep) : null));
 const __make_wst_seq_combinator = base_combinator =>
-      (...rules) => base_combinator(...rules.map(x => with_lws(x)));
+      (...rules) => base_combinator(...rules.map(x => lws(x)));
 // -------------------------------------------------------------------------------------------------
 const wst_choice      = (...options) => wse(choice(...options));
 const wst_star        = __make_wst_quantified_combinator(star);
@@ -2327,10 +2327,10 @@ const wst_seq         = __make_wst_seq_combinator(seq);
 const wst_enc         = __make_wst_seq_combinator(enc);
 const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
 const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => cutting_enc(with_lws(lpar), with_lws(rule), with_lws(rpar));
-const wst_brc_enc     = rule => cutting_enc(with_lws(lbrc), with_lws(rule), with_lws(rbrc));
-const wst_sqr_enc     = rule => cutting_enc(with_lws(lsqr), with_lws(rule), with_lws(rsqr));
-const wst_tri_enc     = rule => cutting_enc(with_lws(ltri), with_lws(rule), with_lws(rtri));
+const wst_par_enc     = rule => cutting_enc(lws(lpar), lws(rule), lws(rpar));
+const wst_brc_enc     = rule => cutting_enc(lws(lbrc), lws(rule), lws(rbrc));
+const wst_sqr_enc     = rule => cutting_enc(lws(lsqr), lws(rule), lws(rsqr));
+const wst_tri_enc     = rule => cutting_enc(lws(ltri), lws(rule), lws(rtri));
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
@@ -8292,7 +8292,7 @@ const SpecialFunctionInclude =
                                         json_string,             // [0][1]
                                         discarded_comments))),   // -
                 discarded_comments,                              // -
-                with_lws(optional(semicolon))));                            // -
+                lws(optional(semicolon))));                            // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8364,7 +8364,7 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          ),
                          discarded_comments,
-                         with_lws(optional(semicolon))));
+                         lws(optional(semicolon))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
@@ -8450,7 +8450,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                              json_string,
                                                              plaintext),
                                                       discarded_comments,
-                                                      with_lws(optional(semicolon))));
+                                                      lws(optional(semicolon))));
 ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
@@ -8497,9 +8497,9 @@ const TopLevelContent         = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const ContentNoLorasStar      = with_tws(wst_star(ContentNoLoras));
-const ContentStar             = with_tws(wst_star(Content));
-const TopLevelContentStar     = with_tws(wst_star(TopLevelContent));
+const ContentNoLorasStar      = tws(wst_star(ContentNoLoras));
+const ContentStar             = tws(wst_star(Content));
+const TopLevelContentStar     = tws(wst_star(TopLevelContent));
 const Prompt                  = TopLevelContentStar;
 // -------------------------------------------------------------------------------------------------
 Prompt.finalize();
