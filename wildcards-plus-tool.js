@@ -274,7 +274,7 @@ let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_match_enabled                 = false;
+let log_match_enabled                 = true;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
@@ -486,8 +486,8 @@ class Rule {
       else 
         log(indent,
             `Matching ${this.toString()} at ` +
-            `char ${index}: ` +
-            `"${abbreviate(input.substring(index), (100 - 2*indent))}"`)
+            `char #${index}: ` +
+            `"${abbreviate(input.substring(index))}"`)
     }
     
     let rule_cache = null; // cache.get(this);
@@ -694,7 +694,7 @@ class Quantified extends Rule {
 
         if (log_match_enabled)
           log(indent,
-              `matched separator rule ${this.separator_rule}...`);
+              `Matched separator rule ${this.separator_rule}...`);
 
         update_index(separator_match_result.index);
       } // end of if (this.separator_rule)
@@ -820,13 +820,13 @@ class Choice extends Rule  {
         // }
 
         if (log_match_enabled)
-          log(indent + 1, `Chose option #${ix}!`);
+          log(indent + 1, `Chose option #${ix}`);
         
         return match_result;
       }
 
       if (log_match_enabled)
-        log(indent + 1, `Rejected option #${ix}.`);
+        log(indent + 1, `Rejected option #${ix}`);
     }
 
     return null;
@@ -1320,7 +1320,7 @@ class Sequence extends Rule {
         log(indent + 1, `matching sequence item #${ix} out of ` +
             `${this.elements.length}: ${this.elements[ix]} at ` +
             `char #${index} ` +
-            `"${abbreviate(input.substring(index), (100 - 2*indent))}"`);
+            `"${abbreviate(input.substring(index))}"`);
       
       const element = this.elements[ix];
 
@@ -1704,14 +1704,14 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      log(indent, `testing  /${this.regexp.source}/ at char ${index} of ` +
+      log(indent, `testing  /${this.regexp.source}/ at char #${index} of ` +
           `'${abbreviate(input.substring(index))}'`); 
 
     const re_match = this.regexp.exec(input);
     
     if (! re_match) {
       if (log_match_enabled)
-        log(indent, `RETURN NULL!`);
+        log(indent, `regex did not match`);
       return null;
     }
 
