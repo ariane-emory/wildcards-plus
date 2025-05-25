@@ -7848,7 +7848,7 @@ const word_break               = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
 any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
 assignment_operator            .abbreviate_str_repr('assignment_operator');
 comment                        .abbreviate_str_repr(false); // 'comment');
-escaped_brc                    .abbreviate_str_repr('escaped_brc');
+// escaped_brc                    .abbreviate_str_repr('escaped_brc');
 filename                       .abbreviate_str_repr('filename');
 ident                          .abbreviate_str_repr('ident');
 incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
@@ -8259,7 +8259,7 @@ const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_
         ScalarUpdate,
         ScalarReference,
         // anon_wildcard_rule,
-        escaped_brc,
+        // escaped_brc,
       );
 const ContentNoLoras          = make_Content_rule({
   after_plaintext_rules: [
