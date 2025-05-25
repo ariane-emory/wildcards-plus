@@ -59,8 +59,11 @@ function ask(question) {
 function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
+  const old_log_match_enabled = log_match_enabled;
+  log_match_enabled  = true;
   const result       = Prompt.match(prompt_input, 0, 0, cache);
-
+  log_match_enabled  = old_log_match_enabled;
+  
   const sortedEntries = Array.from(cache.entries())
         .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
 
@@ -8205,7 +8208,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                         any_assignment_operator,                          // [1][0]
                         discarded_comments,                               // -
                         choice(rJsonc, () => LimitedContent, plaintext),  // [1][1]
-                        /* word_break */)));                                    // -
+                         word_break)));                                    // -
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
@@ -8215,7 +8218,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                         choice(incr_assignment_operator, assignment_operator),   // [1][0]
                         discarded_comments,                                      // -
                         choice(rJsoncObject, () => LimitedContent, plaintext),   // [1][1]   
-                        /* word_break */)));                                           // -
+                         word_break)));                                           // -
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
