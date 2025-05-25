@@ -256,7 +256,7 @@ let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_match_enabled                 = true;
+let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
@@ -1929,8 +1929,50 @@ const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
 // whites_star.memoize = false;
 // whites_plus.memoize = false;
-whites_star.__impl_toString = () => 'Whites*';
-whites_plus.__impl_toString = () => 'Whites+';
+whites_star.__impl_toString = () => 'whites*';
+whites_plus.__impl_tostring = () => 'whites+';
+// -------------------------------------------------------------------------------------------------
+// WithLWS class
+// -------------------------------------------------------------------------------------------------
+class WithLWS extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(label, rule) {
+    super();
+    this.label = label;
+    this.rule = make_rule_func(rule);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent, cache);
+
+    if (! rule_match_result)
+      return null;
+
+    return new MatchResult(
+      new WithLWSedValue(this.label, rule_match_result.value),
+      input,
+      rule_match_result.index);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+    return `LWS(${rule_str})`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function with_lws(rule) {
+  return new WithLWS(rule);
+}
+// -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
 const lws                = rule => {
   if (rule.__rule_created_by === lws || rule.rule?.__rule_created_by === lws) {
