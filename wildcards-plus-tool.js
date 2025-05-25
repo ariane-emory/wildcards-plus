@@ -1869,6 +1869,8 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
       __impl_finalize(indent, visited) {
         this.rule = this.__vivify(this.rule);
         this.rule.__finalize(indent + 1, visited);
+        this.base_rule = this.__vivify(this.base_rule);
+        this.base_rule.__finalize(indent + 1, visited);
       }
       // -------------------------------------------------------------------------------------------
       __match(indent, input, index, cache) {
