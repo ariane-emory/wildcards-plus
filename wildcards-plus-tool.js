@@ -1967,9 +1967,7 @@ function lws(rule) {
     return rule;
   }
   
-  if (// rule instanceof Rule &&
-      rule.direct_children().length > 0 && 
-      rule.direct_children().every(x => x instanceof klass)) {
+  if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
     console.log(`return original rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
     return rule;
   }
