@@ -395,6 +395,10 @@ class FatalParseError extends Error {
 // -------------------------------------------------------------------------------------------------
 class Rule {
   // -----------------------------------------------------------------------------------------------
+  constructor() {
+    this.memoize = true;
+  }
+  // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
     if (this.__abbreviated)
       throw new Error(`${inspect_fun(this)} is already abbreviated, this likely a programmer error`);
@@ -407,7 +411,6 @@ class Rule {
     
     this.__direct_children = () => [];
     this.__abbreviated     = true;
-    this.memoize           = true;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
@@ -467,9 +470,13 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0, cache = new Map()) {
-    if (typeof input !== 'string') {
+    // console.log(`try matching ${this.memoize} ${this}`);
+
+    if (this.memoize === undefined)
+      throw new Error(`suspiciously built rule ${inspect_fun(this)}`);
+    
+    if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
-    }
     
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
@@ -506,6 +513,7 @@ class Rule {
         }
       }
       else {
+        // console.log(`init cache for rule ${this}`);
         rule_cache = new Map();
         cache.set(this, rule_cache);
       }
@@ -1541,7 +1549,7 @@ class Unexpected extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    return `!${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+    return `!${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}!`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1896,13 +1904,10 @@ uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
-// whites_star.memoize = false;
-// whites_plus.memoize = false;
+whites_star.memoize = false;
+whites_plus.memoize = false;
 whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
-const d_whites_star      = discard(whites_star);
-const d_whites_plus      = discard(whites_plus);
-// -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
 const lws                = rule => {
   rule = second(seq(whites_star, rule));
@@ -2666,7 +2671,7 @@ function choose_indefinite_article(word) {
 function compress(str) {
   return str.replace(/\s+/g, ' ');
 }
-// -----------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 function format_pretty_number(num) {
   const [intPart, fracPart] = num.toString().split(".");
   const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -7220,7 +7225,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       let res = null;
 
       try {
-        res = Prompt.match(sub_prompt. text);
+        res = Prompt.match(sub_prompt.text);
       }
       catch(err) {
         if (err instanceof FatalParseError)
@@ -7847,6 +7852,7 @@ const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(co
 const low_pri_text             = r(/[\(\)\[\]\:]+/);
 const plaintext                = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+<<<<<<< HEAD
 const word_break               = r(/(?=\s|[{|}\.\,\?\!\[\]\(\)]|$)/);
 any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
 assignment_operator            .abbreviate_str_repr('assignment_operator');
@@ -7859,12 +7865,30 @@ low_pri_text                   .abbreviate_str_repr('low_pri_text');
 plaintext                      .abbreviate_str_repr('plaintext');
 wb_uint                        .abbreviate_str_repr('wb_uint');
 word_break                     .abbreviate_str_repr('word_break');
+=======
+const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
+// any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
+// assignment_operator            .abbreviate_str_repr('assignment_operator');
+// comment                        .abbreviate_str_repr(false);
+// escaped_brc                    .abbreviate_str_repr('escaped_brc');
+// filename                       .abbreviate_str_repr('filename');
+// ident                          .abbreviate_str_repr('ident');
+// incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
+// low_pri_text                   .abbreviate_str_repr('low_pri_text');
+// plaintext                      .abbreviate_str_repr('plaintext');
+// wb_uint                        .abbreviate_str_repr('wb_uint');
+// word_break                     .abbreviate_str_repr('word_break');
+>>>>>>> weirdly-cached
 // ^ conservative regex, no unicode or weird symbols
 // -------------------------------------------------------------------------------------------------
 // discard comments:
 // -------------------------------------------------------------------------------------------------
 const discarded_comments        = discard(wst_star(comment));
+<<<<<<< HEAD
 discarded_comments              .abbreviate_str_repr('discarded_comments_star');
+=======
+// discarded_comments              .abbreviate_str_repr('-comment*');
+>>>>>>> weirdly-cached
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
@@ -7892,8 +7916,8 @@ const A1111StyleLora       =
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
                     '>'));
-A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
-A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
+// A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
+// A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // -------------------------------------------------------------------------------------------------
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
@@ -8039,20 +8063,20 @@ const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_b
                                                          ` ${inspect_fun(arr)}`);
                                          return new ASTUnsetFlag(arr);
                                        });
-SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
-CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
-CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
-NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
-TestFlag.abbreviate_str_repr('TestFlag');
-SetFlag.abbreviate_str_repr('SetFlag');
-UnsetFlag.abbreviate_str_repr('UnsetFlag');
+// SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
+// CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
+// CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
+// NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
+// TestFlag.abbreviate_str_repr('TestFlag');
+// SetFlag.abbreviate_str_repr('SetFlag');
+// UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             'ui-prompt');
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
+// SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8064,7 +8088,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             'ui-neg-prompt');
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+// SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8073,8 +8097,8 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+// UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+// UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
@@ -8083,7 +8107,7 @@ const SpecialFunctionInclude =
                                         discarded_comments))),   // -
                 discarded_comments,                              // -
                 lws(optional(';'))));                            // -
-SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
+// SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8093,7 +8117,7 @@ const UnexpectedSpecialFunctionInclude =
                                      "running the wildcards-plus.js script " +
                                      "inside Draw Things",
                                      input, index - 1));
-UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+// UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',               // [0]
@@ -8101,7 +8125,7 @@ const SpecialFunctionSetPickSingle =
                         assignment_operator, // [1][0]
                         discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
+// SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                // [0]
@@ -8109,15 +8133,15 @@ const SpecialFunctionSetPickMultiple =
                         assignment_operator, // [1][0]
                         discarded_comments,  // -
                         choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+// SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick', word_break));
-SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+// SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick', word_break));
-SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+// SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                    // [0]
@@ -8126,6 +8150,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                         discarded_comments,                                 // -
                         choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
 SpecialFunctionUpdateConfigurationBinary
+<<<<<<< HEAD
     .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
   const SpecialFunctionUpdateConfigurationUnary =
         xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
@@ -8211,6 +8236,95 @@ SpecialFunctionUpdateConfigurationBinary
                                           
                                           if (!bang && !hash)
                                             return new ASTNamedWildcardReference(ident);
+=======
+//   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+const SpecialFunctionUpdateConfigurationUnary =
+      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+            seq(/conf(?:ig)?/,                                                    // [0]
+                wst_seq(discarded_comments,                                       // -
+                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
+                        discarded_comments,                                       // -
+                        choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
+SpecialFunctionUpdateConfigurationUnary
+//   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionNotInclude =
+      second(cutting_seq('%',
+                         choice((dt_hosted
+                                 ? SpecialFunctionUIPrompt
+                                 : UnexpectedSpecialFunctionUIPrompt),
+                                (dt_hosted
+                                 ? SpecialFunctionUINegPrompt
+                                 : UnexpectedSpecialFunctionUINegPrompt),
+                                SpecialFunctionSetPickSingle,
+                                SpecialFunctionSetPickMultiple,
+                                SpecialFunctionRevertPickSingle,
+                                SpecialFunctionRevertPickMultiple,
+                                SpecialFunctionUpdateConfigurationUnary,
+                                SpecialFunctionUpdateConfigurationBinary),
+                         discarded_comments,
+                         lws(optional(';'))));
+// SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
+// -------------------------------------------------------------------------------------------------
+// other non-terminals:
+// -------------------------------------------------------------------------------------------------
+const AnonWildcardAlternative =
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                optional(wb_uint, 1),
+                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                () => ContentStar));
+// AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
+const AnonWildcardAlternativeNoLoras =
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                optional(wb_uint, 1),
+                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
+                () => ContentNoLorasStar));
+// AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardAlternative, '|')));
+const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
+                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
+// // AnonWildcard.abbreviate_str_repr('AnonWildcard');
+// // AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
+const NamedWildcardReference  = xform(seq('@',                                       // [0]
+                                          optional('^'),                             // [1]
+                                          optional(xform(parseInt, uint)),           // [2]
+                                          optional(xform(parseInt,
+                                                         second(seq('-', uint)))),   // [3]
+                                          optional(/[,&]/),                          // [4]
+                                          ident),                                    // [5]
+                                      arr => {
+                                        const ident  = arr[5];
+                                        const min_ct = arr[2][0] ?? 1;
+                                        const max_ct = arr[3][0] ?? min_ct;
+                                        const join   = arr[4][0] ?? '';
+                                        const caret  = arr[1][0];
+                                        
+                                        return new ASTNamedWildcardReference(ident,
+                                                                             join,
+                                                                             caret,
+                                                                             min_ct,
+                                                                             max_ct);
+                                      });
+// NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
+const NamedWildcardDesignator = second(seq('@', ident)); 
+// NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
+const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
+                                      wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
+                                                              assignment_operator),    // -
+                                                      discarded_comments,
+                                                      AnonWildcard));                  // [1]
+// NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
+const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
+                                      arr => {
+                                        const [ bang, hash, ident, objs ] =
+                                              [ arr[1][0], arr[2][0], arr[3], []];
+                                        
+                                        if (!bang && !hash)
+                                          return new ASTNamedWildcardReference(ident);
+>>>>>>> weirdly-cached
 
                                           // goes before hash so that "@!#" works correctly:
                                           if (bang) 
@@ -8219,6 +8333,7 @@ SpecialFunctionUpdateConfigurationBinary
                                           if (hash)
                                             objs.push(new ASTLatchNamedWildcard(ident));
 
+<<<<<<< HEAD
                                           return objs;
                                         });
   NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
@@ -8295,6 +8410,65 @@ SpecialFunctionUpdateConfigurationBinary
   // =================================================================================================
   // END OF SD PROMPT GRAMMAR SECTION.
   // =================================================================================================
+=======
+                                        return objs;
+                                      });
+// NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
+const ScalarReference         = xform(seq('$', optional('^'), ident),
+                                      arr => new ASTScalarReference(arr[2], arr[1][0]));
+// ScalarReference.abbreviate_str_repr('ScalarReference');
+const ScalarDesignator        = xform(seq('$', ident),
+                                      arr => new ASTScalarReference(arr[1]));
+// ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
+const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
+                                                                 arr[0][1] == '='),
+                                      wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
+                                                              discarded_comments,
+                                                              choice(incr_assignment_operator,
+                                                                     assignment_operator)), // [0][1]
+                                                      discarded_comments,                   // [1]
+                                                      choice(() => LimitedContent,
+                                                             json_string,
+                                                             plaintext),
+                                                      discarded_comments,
+                                                      lws(optional(';'))));
+// ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
+const LimitedContent          = choice(NamedWildcardReference,
+                                       ScalarReference,
+                                       AnonWildcardNoLoras,
+                                       plaintext);
+// LimitedContent.abbreviate_str_repr('LimitedContent');
+const make_Content_rule       = (...prepended_rules) =>
+      choice(...prepended_rules,
+             comment,
+             SpecialFunctionNotInclude,
+             NamedWildcardReference,
+             NamedWildcardUsage,
+             SetFlag,
+             UnsetFlag,
+             ScalarUpdate,
+             ScalarReference,
+             // anon_wildcard_rule,
+             escaped_brc,
+             low_pri_text,
+             plaintext);
+const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
+const Content                 = make_Content_rule(A1111StyleLora,
+                                                  AnonWildcard);
+const TopLevelContent         = make_Content_rule(SpecialFunctionInclude,
+                                                  NamedWildcardDefinition,
+                                                  A1111StyleLora,
+                                                  AnonWildcard);
+const ContentNoLorasStar      = wst_star(ContentNoLoras);
+const ContentStar             = wst_star(Content);
+const TopLevelContentStar     = wst_star(TopLevelContent);
+const Prompt                  = TopLevelContentStar;
+// -------------------------------------------------------------------------------------------------
+Prompt.finalize();
+// =================================================================================================
+// END OF SD PROMPT GRAMMAR SECTION.
+// =================================================================================================
+>>>>>>> weirdly-cached
 
 
   // =================================================================================================
@@ -8546,8 +8720,12 @@ main().catch(err => {
 // console.log(`${CheckFlagWithOrAlternatives}`);
 // console.log(lws('a').toString());
 // console.log(wst_star('a').toString());
+<<<<<<< HEAD
 // console.log(inspect_fun(TestFlag.match("?foo,bar")?.value))
 // console.log(inspect_fun(TestFlag.match("?foo.#bar")?.value))
 // console.log(inspect_fun(TestFlag.match("!foo.#bar")?.value))
 // console.log(inspect_fun(TestFlag.match("?foo")?.value))
 // console.log(inspect_fun(TestFlag.match("!foo")?.value))
+=======
+console.log(Prompt.toString());
+>>>>>>> weirdly-cached
