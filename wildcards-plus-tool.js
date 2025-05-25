@@ -8179,7 +8179,7 @@ const UnexpectedSpecialFunctionInclude =
                                      "running the wildcards-plus.js script " +
                                      "inside Draw Things",
                                      input, index - 1));
-// UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                        // [0]
@@ -8189,7 +8189,7 @@ const SpecialFunctionSetPickSingle =
                         choice(() => LimitedContent, lc_alpha_snake), // [1][1]
                         // word_break
                        ))); 
-// SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
+SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                                            // [0]
@@ -8199,15 +8199,15 @@ const SpecialFunctionSetPickMultiple =
                         choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
                         // word_break
                        )));                                   // -
-// SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick', /* word_break */));
-// SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick', /* word_break */));
-// SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                   // [0]
@@ -8217,8 +8217,8 @@ const SpecialFunctionUpdateConfigurationBinary =
                         choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
                 word_break
                ));                                              // -
-// SpecialFunctionUpdateConfigurationBinary
-//   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+SpecialFunctionUpdateConfigurationBinary
+  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                   // [0]
@@ -8228,8 +8228,8 @@ const SpecialFunctionUpdateConfigurationUnary =
                         choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]   
                 word_break
                ));
-// SpecialFunctionUpdateConfigurationUnary
-//   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+SpecialFunctionUpdateConfigurationUnary
+  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
