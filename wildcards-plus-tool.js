@@ -1811,7 +1811,7 @@ function abbreviate(str, len = 100) {
       }
     }
     
-    return `${str.substring(0, len - 3).replace("\n","").trim()}...`;
+    return `${str.substring(0, len - 3).replace("\n","\\n").trim()}...`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -8204,8 +8204,8 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
                          ),
-                         // discarded_comments,
-                         // word_break, 
+                         discarded_comments,
+                         word_break, 
                          discarded_comments,
                          lws(optional(semicolon))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
@@ -8416,7 +8416,7 @@ async function main() {
 
     result = Prompt.match(prompt_input);
     process.exit(0);
-  } else if (args.length === 0) {
+  } else if (args.length  === 0) {
     throw new Error("ERROR: No input file provided.");
   }
   else {
