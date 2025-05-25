@@ -8255,8 +8255,12 @@ const SpecialFunctionNotInclude =
                          choice(
                            SpecialFunctionUpdateConfigurationUnary,
                            SpecialFunctionUpdateConfigurationBinary,
-                           (dt_hosted ? SpecialFunctionUIPrompt : UnexpectedSpecialFunctionUIPrompt),
-                           (dt_hosted ? SpecialFunctionUINegPrompt : UnexpectedSpecialFunctionUINegPrompt),
+                           (dt_hosted
+                            ? SpecialFunctionUIPrompt
+                            : UnexpectedSpecialFunctionUIPrompt),
+                           (dt_hosted
+                            ? SpecialFunctionUINegPrompt
+                            : UnexpectedSpecialFunctionUINegPrompt),
                            SpecialFunctionSetPickSingle,
                            SpecialFunctionSetPickMultiple,
                            SpecialFunctionRevertPickSingle,
