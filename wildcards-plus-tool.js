@@ -256,7 +256,7 @@ let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_match_enabled                 = false;
+let log_match_enabled                 = true;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
@@ -1931,7 +1931,7 @@ whites_star.__impl_toString = () => 'Whites*';
 whites_plus.__impl_toString = () => 'Whites+';
 // leading/trailing whitespace:
 const lws                = rule => {
-  if (rule.__is_lws_rule || rule.rule?.__is_lws_rule) {
+  if (rule.__rule_created_by === lws || rule.rule?.__rule_created_by === lws) {
     // throw new Error("lws skips!");
     return rule;
   }
@@ -1943,12 +1943,12 @@ const lws                = rule => {
     return `LWS(${rule_str})`;
   }
   
-  rule.__is_lws_rule = true;
+  rule.__rule_created_by = lws;
   
   return rule;
 };
 const tws                = rule => {
-  if (rule.__is_tws_rule || rule.rule?.__is_tws_rule) {
+  if (rule.__rule_created_by === tws || rule.rule?.__rule_created_by === tws) {
     // throw new Error("tws skips!");
     return rule;
   }
@@ -1960,7 +1960,7 @@ const tws                = rule => {
     return `TWS(${rule_str})`;
   }
 
-  rule.__is_tws_rule = true;
+  rule.__rule_created_by = tws;
   
   return rule;
 };
