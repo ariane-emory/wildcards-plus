@@ -8200,20 +8200,22 @@ const SpecialFunctionRevertPickMultiple =
 // SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                    // [0]
-                wst_seq(discarded_comments,                                 // -
-                        any_assignment_operator,                            // [1][0]
-                        discarded_comments,                                 // -
-                        choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
+            seq(c_ident,                                                  // [0]
+                wst_seq(discarded_comments,                               // -
+                        any_assignment_operator,                          // [1][0]
+                        discarded_comments,                               // -
+                        choice(rJsonc, () => LimitedContent, plaintext),  // [1][1]
+                        /* word_break */)));                                    // -
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                    // [0]
-                wst_seq(discarded_comments,                                       // -
-                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
-                        discarded_comments,                                       // -
-                        choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
+            seq(/conf(?:ig)?/,                                                   // [0]
+                wst_seq(discarded_comments,                                      // -
+                        choice(incr_assignment_operator, assignment_operator),   // [1][0]
+                        discarded_comments,                                      // -
+                        choice(rJsoncObject, () => LimitedContent, plaintext),   // [1][1]   
+                        /* word_break */)));                                           // -
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
