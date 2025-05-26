@@ -2345,11 +2345,11 @@ const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
 // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
 const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
 // True ← "true"
-const json_true = xform(x => true, 'true');
+const json_true = xform(x => true, /true\b/);
 // False ← "false"
-const json_false = xform(x => false, 'false');
+const json_false = xform(x => false, /false\b/);
 // Null ← "null"
-const json_null = xform(x => null, 'null');
+const json_null = xform(x => null, /null\b/);
 // Minus ← "-"
 const json_minus = l('-');
 // IntegralPart ← "0" / [1-9] [0-9]*
