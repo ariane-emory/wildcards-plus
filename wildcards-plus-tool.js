@@ -8193,7 +8193,7 @@ const SpecialFunctionInclude =
                                         discarded_comments))),   // -
                 word_break,                                      // n/a
                 discarded_comments,                              // -
-                lws(optional(semicolon))));                      // -
+                optional(lws(semicolon))));                      // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8272,7 +8272,7 @@ const SpecialFunctionNotInclude =
                          discarded_comments,
                          word_break, 
                          discarded_comments,
-                         lws(optional(semicolon))));
+                         optional(lws(semicolon))));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
@@ -8357,7 +8357,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                              json_string,
                                                              plaintext),
                                                       discarded_comments,
-                                                      lws(optional(semicolon))));
+                                                      optional(lws(semicolon))));
 ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
