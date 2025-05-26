@@ -6882,22 +6882,26 @@ const prelude_text = prelude_disabled ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
+  const old_log_flags_enabled = log_flags_enabled;
+  log_flags_enabled = false;
+  
   if (! prelude_parse_result) {
     const old_log_match_enabled = log_match_enabled;
-    log_match_enabled = false;
-    // console.log(`parsing prelude...`);
+    log_match_enabled = false; 
     prelude_parse_result = Prompt.match(prelude_text);
-    // console.log(`done parsing prelude.`);
     log_match_enabled = old_log_match_enabled;
   }
 
-  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+  // console.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
 
+  
+  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+  log_flags_enabled = old_log_flags_enabled;
+  log_flags_enabled = true;
+  
   if (ignored === undefined)
     throw new Error("crap");
-
-  console.log("loaded prelude.");
-
+  
   return into_context;
 }
 // =================================================================================================
