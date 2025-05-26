@@ -1678,32 +1678,39 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     const log = noisy ? console.log : () => {};
     rule = make_rule_func(rule);
 
+    const tringified_rule = null;
+
+    try {
+      stringified_rule = 
+        typeof rule === 'function'
+        ? 'function'
+        : abbreviate(compress(inspect_fun(rule)));
+    }
+    catch {
+      stringified_rule = '<unprintable>';
+    }
+
     if (!rule) {
-      log(`return original null rule `);
-      //log(`${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      log(`return original null rule ${stringified_rule}`);
       return rule;
     }
 
     if (typeof rule === 'function') {
-      log(`return klassed function `);
-      //log(`${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      log(`return klassed function ${stringified_rule}`);
       return new klass(rule);
     }
     
     if (rule instanceof klass) {
-      log(`return original klassed rule `);
-      //log(`${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      log(`return original klassed rule ${stringified_rule}`);
       return rule;
     }
     
     if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-      log(`return original rule `);
-      //log(`${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      log(`return original rule ${stringified_rule}`);
       return rule;
     }
 
-    log(`return klassed `);
-    //log(`${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    log(`return klassed ${stringified_rule}`);
     return new klass(rule);
   }
   
