@@ -5,7 +5,7 @@
 // @wizards_artists
 // @wizards_artists
 
-#foo
+#foo#poop
 { ?foo.#bar.baz }
 { !corge.#grault.quux }
 { ?poop, }

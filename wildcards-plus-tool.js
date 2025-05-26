@@ -8058,9 +8058,9 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related rules:
 // -------------------------------------------------------------------------------------------------
-const word_break                   = r(/(?=$|\s|[{|}\;\:\%\$\@\?\!\[\]\(\)\,\.])/);
-const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\%\$\@\?\!\[\]\(\)\,])/);
-const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\%\$\@\?\!\[\]\(\)])/);
+const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
+const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
+const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
 word_break                         .abbreviate_str_repr('word_break');
 simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
 simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
@@ -8184,7 +8184,7 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
-                // word_break
+                word_break
                ));
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
@@ -8198,7 +8198,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-                // word_break
+                word_break
                ));
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
@@ -8238,7 +8238,7 @@ const SpecialFunctionSetPickSingle =
                         equals,                                       // [1][0]
                         discarded_comments,                           // -
                         choice(() => LimitedContent, lc_alpha_snake), // [1][1]
-                        // word_break
+                        word_break
                        ))); 
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
@@ -8248,19 +8248,19 @@ const SpecialFunctionSetPickMultiple =
                         equals,                                          // [1][0]
                         discarded_comments,                              // -
                         choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
-                        // word_break
+                        word_break
                        )));                                   // -
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                // word_break
+                word_break
                ));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                // word_break
+                word_break
                ));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
@@ -8270,7 +8270,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                         any_assignment_operator,                           // [1][0]
                         discarded_comments,                                // -
                         choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
-                // word_break
+                word_break
                ));                                              // -
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
@@ -8281,7 +8281,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                         choice(plus_equals, equals),                             // [1][0]
                         discarded_comments,                                      // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]   
-                // word_break
+                word_break
                ));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
@@ -8675,10 +8675,10 @@ async function main() {
 let main_disabled = false;
 
 if (! main_disabled)
-               main().catch(err => {
-                 console.error(`Unhandled error:\n${err.stack}`);
-                 process.exit(1);
-               });
-             // =================================================================================================
-             // END OF MAIN SECTION.
-             // =================================================================================================
+  main().catch(err => {
+    console.error(`Unhandled error:\n${err.stack}`);
+    process.exit(1);
+  });
+// =================================================================================================
+// END OF MAIN SECTION.
+// =================================================================================================
