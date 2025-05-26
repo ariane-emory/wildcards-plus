@@ -2360,7 +2360,7 @@ const JsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, () => json_string, colon), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, () => json_string, colon), 
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
@@ -2374,8 +2374,8 @@ const JsoncObject =
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
-                                                       ))             
-                                          , comma)),
+                                                       )),
+                                          comma)),
                                )),
                 rbrc))); // dumb hack for rainbow brackets sake
 Jsonc.abbreviate_str_repr('Jsonc');
@@ -2419,8 +2419,8 @@ const rJsoncObject =
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
-                                                       ))             
-                                          , comma)),
+                                                       )),
+                                          comma)),
                                )),
                 rbrc))); // dumb hack for rainbow brackets sake
 rJsonc.abbreviate_str_repr('rJsonc');
