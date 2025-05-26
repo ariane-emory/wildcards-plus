@@ -509,14 +509,14 @@ class Rule {
     // }
     
     if (log_match_enabled) {
-      if (ret)
-        log(indent,
-            `<= ${this.constructor.name} ${abbreviate(this.toString())} returned: ` +
-            `${compress(inspect_fun(ret))}`);
-      else
-        log(indent,
-            `<= Failed to match ${this.constructor.name} ` +
-            `${abbreviate(this.toString())}`);
+      // if (ret)
+      log(indent,
+          `<= ${this.constructor.name} ${this.toString()} ` +
+          `returned: ${compress(inspect_fun(ret))}`);
+      // else
+      //   log(indent,
+      //       `<= Matching ${this.constructor.name} ${this.toString()} ` +
+      //       `returned null.`);
     }
 
     return ret;
