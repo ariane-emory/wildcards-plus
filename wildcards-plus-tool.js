@@ -354,7 +354,7 @@ const trailing_separator_modes = Object.freeze({
 // FatalParseError class
 // -------------------------------------------------------------------------------------------------
 function __format_FatalParseError_message(message_body, input, index) {
-  return `${message_body} at char #${index}, ` +
+  return `${message_body} \nat char #${index}, ` +
     `found:\n` +
     `${abbreviate(input.substring(index))}`;
 }
