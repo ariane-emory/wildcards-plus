@@ -1260,37 +1260,40 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      log(indent + 1, `matching first sequence item #0 out of ` +
-          `${this.elements.length}: ${this.elements[0]} at ` +
-          `char #${index} ` +
-          `"${abbreviate(input.substring(index), (100 - 2*indent))}"`);
+      log(indent + 1, `matching first sequence element #1 out of ` +
+          `${this.elements.length}: ${this.elements[0]} ` +
+          `at char #${index} ` +
+          `at '${abbreviate(input.substring(index))}'`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2, cache);
     let last_match_result = start_rule_match_result;
 
     // if (log_match_enabled && last_match_result !== null)
-    //   log(indent + 1, `first last_match_result = ${inspect_fun(last_match_result)}`);
+    //   log(indent + 1, `first last_match_result = ${abbreviate(inspect_fun(last_match_result))}`);
     
     if (last_match_result === null) {
       if (log_match_enabled)
-        log(indent + 1, `did not match sequence item #1.`);
+        log(indent + 1, `did not match sequence element #1.`);
       return null;
     }
 
-    if (log_match_enabled)
-      log(indent + 1, `matched first sequence item #0: ` +
-          `${compress(inspect_fun(last_match_result))}`);
-    
     const values = [];
     index        = last_match_result.index;
+
+    if (log_match_enabled)
+      log(indent + 1, `matched first sequence element #1: ` +
+          `${compress(inspect_fun(last_match_result))}, ` +
+          `now at char #${index}: ` +
+          `'${abbreviate(input.substring(index))}'`);
 
     // if (log_match_enabled)
     //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
-      // if (log_match_enabled)
-      //   log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+      if (log_match_enabled)
+        log(indent + 1, `seq pushing first item ` +
+            `${abbreviate(inspect_fun(last_match_result.value))}`);
 
       values.push(last_match_result.value);
 
@@ -1302,14 +1305,14 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        log(indent + 1, `matching sequence item #${ix} out of ` +
-            `${this.elements.length}: ${this.elements[ix]} at ` +
-            `char #${index} ` +
-            `"${abbreviate(input.substring(index))}"`);
+        log(indent + 1, `matching sequence element #${ix+ 1} out of ` +
+            `${this.elements.length}: ${this.elements[ix]} ` +
+            `at char #${index}: ` +
+            `'${abbreviate(input.substring(index))}'`);
       
       const element = this.elements[ix];
 
-      last_match_result = element.match(input, index, indent + 2, cache);
+      last_match_result = element.match(input, index, indent + 2 , cache);
 
       if (! last_match_result) {
         if (log_match_enabled)
@@ -1320,12 +1323,14 @@ class Sequence extends Rule {
       }
 
       if (log_match_enabled)
-        log(indent + 1, `matched sequence item #${ix}: `+
-            `${compress(inspect_fun(last_match_result))}`);
+        log(indent + 1, `matched sequence element #${ix+1}: ` +
+            `${compress(inspect_fun(last_match_result))}, ` +
+            `now at char #${last_match_result.index}: ` +
+            `'${abbreviate(input.substring(last_match_result.index))}'`);
 
       if (last_match_result.value !== DISCARD) {
-        // if (log_match_enabled)
-        //   log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+        if (log_match_enabled)
+          log(indent + 1, `seq pushing ${abbreviate(inspect_fun(last_match_result.value))}`);
 
         values.push(last_match_result.value);
 
