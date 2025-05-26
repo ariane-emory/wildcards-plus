@@ -263,7 +263,7 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let log_expand_and_walk_enabled       = false;  
-let disable_prelude                   = false;
+let prelude_disabled                  = false;
 let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
@@ -3584,7 +3584,7 @@ class Context {
 // =================================================================================================
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
-const prelude_text = disable_prelude ? '' : `
+const prelude_text = prelude_disabled ? '' : `
 @__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
                            |?male   #gender.male
                            |?neuter #gender.neuter}
