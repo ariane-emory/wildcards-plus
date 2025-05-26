@@ -1,1 +1,2 @@
 @quux = { quux one | quux two | quux three | quux four }
+%include("bar.txt")

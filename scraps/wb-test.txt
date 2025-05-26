@@ -1,5 +1,4 @@
-%width = 768;  %height = 384;
-%loras = []
+%width = 768;  %height = 384;%loras = []
  
 
 // %n_iter = 2

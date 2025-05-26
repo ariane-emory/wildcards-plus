@@ -1,5 +1,4 @@
-%include("bar.txt")
-// %fake(/* a comment */ [11 /* another comment */, null // third comment
+%include("bar.txt", "bar.txt")// %fake(/* a comment */ [11 /* another comment */, null // third comment
 // , {"foo": 123, "bar": null }])
 
 @bar

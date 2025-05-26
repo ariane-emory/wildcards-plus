@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = false;
+  log_match_enabled  = true;
   const result       = Prompt.match(prompt_input, 0, 0, cache);
   log_match_enabled  = old_log_match_enabled;
   
@@ -919,9 +919,12 @@ class Element extends Rule {
           : rule_match_result.value[this.index];
     
     if (log_match_enabled)
-      log(indent, `get elem ${this.index} from ` +
-          `${abbreviate(inspect_fun(rule_match_result.value))} = ` +
-          `${typeof ret === 'symbol' ? ret.toString() : abbreviate(inspect_fun(ret))}`);
+      log(indent + 1, `taking elem #${this.index} ` +
+          `${typeof ret === 'symbol' ? ret.toString() : abbreviate(inspect_fun(ret))} ` +
+          `from ` +
+          `${compress(inspect_fun(rule_match_result.value))} ` +
+          ``
+         );
     
     rule_match_result.value = ret;
     
@@ -1281,13 +1284,13 @@ class Sequence extends Rule {
           `at char #${index} ` +
           `at '${abbreviate(input.substring(index))}'`);
 
-    if (log_match_enabled)
-      log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
+    // if (log_match_enabled)
+    //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
         log(indent + 1, `seq pushing first item ` +
-            `${abbreviate(inspect_fun(last_match_result.value))}`);
+            `${compress(inspect_fun(last_match_result.value))}`);
 
       values.push(last_match_result.value);
 
@@ -7095,11 +7098,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     } 
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
-      if (context.named_wildcards.has(thing.destination))
-        log(true, `WARNING: redefining named wildcard @${thing.destination.name}, ` +
+      if (context.named_wildcards.has(thing.name))
+        log(true, `WARNING: redefining named wildcard @${thing.name.name}, ` +
             `you may not have intended to do this, check your template!`);
 
-      context.named_wildcards.set(thing.destination, thing.wildcard);
+      context.named_wildcards.set(thing.name, thing.wildcard);
 
       return '';
     }
@@ -7693,14 +7696,14 @@ class ASTUnlatchNamedWildcard extends ASTNode {
 // Named wildcard definitions:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardDefinition extends ASTNode {
-  constructor(destination, wildcard) {
+  constructor(name, wildcard) {
     super();
-    this.destination = destination;
-    this.wildcard    = wildcard;
+    this.name     = name;
+    this.wildcard = wildcard;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `@${this.destination} = ${this.wildcard}`;
+    return `@${this.name} = ${this.wildcard}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -8177,8 +8180,7 @@ const SpecialFunctionInclude =
                                         discarded_comments,      // -
                                         word_break))),           // -
                 discarded_comments,                              // -
-                optional(lws(semicolon)),                        // -
-                word_break)); 
+                choice(lws(semicolon), word_break)));            // -
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8262,8 +8264,7 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          ),
                          discarded_comments,
-                         optional(lws(semicolon)),
-                         word_break));
+                         choice(lws(semicolon), word_break)));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
