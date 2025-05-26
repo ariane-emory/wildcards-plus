@@ -526,7 +526,3 @@ A
 // %nEgAtIvE       += { second, }
 // %nEgAtIvEpRoMpT += { third,  }
 // { foo
-
-\n
-\{ foo \}
-@pro_3rd_subj @pro_3rd_subj @pro_3rd_subj @pro_3rd_subj @pro_3rd_subj @pro_3rd_subj
