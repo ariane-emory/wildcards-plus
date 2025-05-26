@@ -8139,9 +8139,9 @@ const SimpleCheckFlag               = xform(seq(question,
                                               const args = [arr[1]];
 
                                               if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (simple) GOT ARR ` +
                                                             `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                                console.log(`CONSTRUCTING CHECKFLAG (simple) WITH ARGS ` +
                                                             `${inspect_fun(args)}`);
                                               }
 
@@ -8156,9 +8156,9 @@ const SimpleNotFlag                 = xform(seq(bang,
                                                             { set_immediately: !!arr[1][0]}];
 
                                               if (log_flags_enabled) {
-                                                console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
+                                                console.log(`CONSTRUCTING NOTFLAG (simple) GOT arr ` +
                                                             `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
+                                                console.log(`CONSTRUCTING NOTFLAG (simple) WITH ARGS ` +
                                                             `${inspect_fun(args)}`);
                                               }
 
@@ -8171,9 +8171,9 @@ const CheckFlagWithOrAlternatives   = xform(seq(question,
                                               const args = [arr[1]];
 
                                               if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (or) GOT ARR ` +
                                                             `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                                console.log(`CONSTRUCTING CHECKFLAG (or) WITH ARGS ` +
                                                             `${inspect_fun(args)}`);
                                               }
 
@@ -8188,9 +8188,9 @@ const CheckFlagWithSetConsequent    = xform(seq(question,         // [0]
                                               const args = [ [ arr[1] ], arr[3] ]; 
 
                                               if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (set) GOT ARR ` +
                                                             `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
+                                                console.log(`CONSTRUCTING CHECKFLAG (set) WITH ARGS ` +
                                                             `${inspect_fun(args)}`);
                                               }
 
@@ -8206,9 +8206,9 @@ const NotFlagWithSetConsequent      = xform(seq(bang,
                                                             { consequently_set_flag_tail: arr[3] }]; 
 
                                               if (log_flags_enabled) {
-                                                console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
+                                                console.log(`CONSTRUCTING NOTFLAG (set) GOT arr ` +
                                                             `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
+                                                console.log(`CONSTRUCTING NOTFLAG (set) WITH ARGS ` +
                                                             `${inspect_fun(args)}`);
                                               }
                                               
