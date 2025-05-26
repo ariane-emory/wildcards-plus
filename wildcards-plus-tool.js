@@ -1832,29 +1832,29 @@ class MatchResult {
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
 function abbreviate(str, len = 100) {
-  if (str.length < len) {
-    return str
-  }
-  else {
-    const bracing_pairs = [
-      ['/',  '/'],
-      ['(',  ')'],
-      ['[',  ']'],
-      ['{',  '}'],
-      ['<',  '>'],
-      ['λ(', ')'],
-    ];
+  // Normalize all newlines first
+  str = str.replace(/\r?\n/g, '\\n');
 
-    for (const [left, right] of bracing_pairs) {
-      if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
-        str = str.substring(left.length, len - 3 - right.length);
-        const ret = `${left}${str.replace(/\n/g, "\\n").trim()}...${right}`;
-        return ret;
-      }
+  if (str.length < len)
+    return str;
+
+  const bracing_pairs = [
+    ['/',  '/'],
+    ['(',  ')'],
+    ['[',  ']'],
+    ['{',  '}'],
+    ['<',  '>'],
+    ['λ(', ')'],
+  ];
+
+  for (const [left, right] of bracing_pairs) {
+    if (str.startsWith(left) && str.endsWith(right)) {
+      const inner = str.substring(left.length, len - 3 - right.length);
+      return `${left}${inner.trim()}...${right}`;
     }
-    
-    return `${str.substring(0, len - 3).replace(/\n/g, "\\n").trim()}...`;
   }
+
+  return `${str.substring(0, len - 3).trim()}...`;
 }
 // -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
