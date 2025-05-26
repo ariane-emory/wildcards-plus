@@ -552,15 +552,11 @@ class Rule {
           .__impl_toString(visited, next_id, ref_counts)
           .replace('() => ', '');
     
-    if (this.direct_children().length == 0) {
+    if (this.direct_children().length == 0)
       return abbreviate(__call_impl_toString(), 64);
-      // return __call_impl_toString();
-    }
     
-    if (visited.has(this)) {
-      const got_id = visited.get(this);
+      if (visited.has(this)) 
       return `#${visited.get(this)}#`;
-    }
 
     // mark as visited (but not yet emitted)
     visited.set(this, NaN);
