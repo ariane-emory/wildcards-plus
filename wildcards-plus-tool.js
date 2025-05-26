@@ -8159,9 +8159,16 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
+const SpecialFunctionTail = seq(discarded_comments,
+                                choice(lws(semicolon), word_break));
+SpecialFunctionTail.abbreviate_str_repr('SpecialFunctionTail');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
-            seq('ui-prompt', word_break));
+            seq('ui-prompt',
+                SpecialFunctionTail
+                // word_break
+               ));
+SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8172,7 +8179,10 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      input, index - 1));
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
-            seq('ui-neg-prompt', word_break));
+            seq('ui-neg-prompt',
+                SpecialFunctionTail
+                // word_break
+               ));
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8183,17 +8193,13 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      input, index - 1));
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
                           first(wst_seq(discarded_comments,      // -
                                         json_string,             // [0][1]
-                                        discarded_comments))),   // -
-                word_break,                                      // n/a
-                discarded_comments,                              // -
-                optional(lws(semicolon))));                      // -
+                                        discarded_comments))),           // -
+                SpecialFunctionTail));
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8207,49 +8213,62 @@ const UnexpectedSpecialFunctionInclude =
 UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single-pick',               // [0]
-                wst_seq(discarded_comments,  // -
-                        assignment_operator, // [1][0]
-                        discarded_comments,  // -
-                        choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
+            seq('single-pick',                                        // [0]
+                wst_seq(discarded_comments,                           // -
+                        equals, // maybe cut here?                    // [1][0]
+                        discarded_comments,                           // -
+                        choice(() => LimitedContent, lc_alpha_snake), // [1][1]
+                        SpecialFunctionTail
+                        // word_break
+                       ))); 
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('multi-pick',                // [0]
-                wst_seq(discarded_comments,  // -
-                        assignment_operator, // [1][0]
-                        discarded_comments,  // -
-                        choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
+            seq('multi-pick',                                            // [0]
+                wst_seq(discarded_comments,                              // -
+                        equals, // maybe cut here?                       // [1][0]
+                        discarded_comments,                              // -
+                        choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
+                        SpecialFunctionTail
+                        // word_break
+                       )));                                   // -
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            seq('revert-single-pick', word_break));
+            seq('revert-single-pick',
+                SpecialFunctionTail
+                // word_break
+               ));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            seq('revert-multi-pick', word_break));
+            seq('revert-multi-pick',
+                SpecialFunctionTail
+                // word_break
+               ));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => {
-        //console.log(`ARR: ${arr}`);
-        const args = [arr[0], arr[1][1], arr[1][0] == '='];
-        //console.log(`ARGS: ${args}`);
-        return new ASTUpdateConfigurationBinary(...args);
-      },
-            seq(c_ident,                                                    // [0]
-                wst_seq(discarded_comments,                                 // -
-                        any_assignment_operator,                            // [1][0]
-                        discarded_comments,                                 // -
-                        choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
+            seq(c_ident,                                                   // [0]
+                wst_seq(discarded_comments,                                // -
+                        any_assignment_operator, // maybe cut here?        // [1][0]
+                        discarded_comments,                                // -
+                        choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
+                SpecialFunctionTail
+                // word_break
+               ));                                              // -
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                    // [0]
-                wst_seq(discarded_comments,                                       // -
-                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
-                        discarded_comments,                                       // -
-                        choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
+            seq(/conf(?:ig)?/,                                                   // [0]
+                wst_seq(discarded_comments,                                      // -
+                        choice(plus_equals, equals), // maybe cut here?          // [1][0]
+                        discarded_comments,                                      // -
+                        choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]
+                SpecialFunctionTail
+                // word_break
+               ));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -8269,10 +8288,11 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
                          ),
-                         discarded_comments,
-                         word_break, 
-                         discarded_comments,
-                         optional(lws(semicolon))));
+                         // discarded_comments,
+                         // word_break, 
+                         // discarded_comments,
+                         // optional(lws(semicolon))
+                        ));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
