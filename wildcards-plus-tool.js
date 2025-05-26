@@ -304,14 +304,14 @@ Array.prototype.toString = function() {
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
 //         |
+//         |-- (Quantified) -|-- Plus
+//         |                 |-- Star
+//         |
 //         | Rules triggering failure:
 //         |-- Expected
 //         |-- Unexpected
 //         |-- Fail
 //         |-- NeverMatch (non-fatal)
-//         |
-//         |-- (Quantified) -|-- Plus
-//         |                 |-- Star
 //         |
 //         | Technically these next 3 could be implemented as Xforms, but 
 //         | they're very convenient to have built-in (and are possibly faster
