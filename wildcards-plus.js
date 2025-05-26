@@ -1675,6 +1675,9 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
   }[class_name_str];
 
   let factory_fun = (rule, noisy = false) => {
+    if (noisy)
+      throw new Error('bomb');
+    
     const log = noisy ? console.log : () => {};
     rule = make_rule_func(rule);
 
