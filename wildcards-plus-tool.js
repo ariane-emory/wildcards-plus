@@ -242,7 +242,7 @@ let inspect_fun           = (thing, no_break = false) =>
     util.inspect(thing,
                  { breakLength: (no_break ? Infinity: 80),
                    maxArrayLength: Infinity,
-                   depth: Infinity,
+                   depth: inspect_depth,
                  });
 let dt_hosted             = false;
 // dt_hosted                 = true; // lie for testing purposes.
@@ -285,6 +285,7 @@ let disable_prelude                   = false;
 let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
+let inspect_depth                     = 50;
 // =================================================================================================
 
 
