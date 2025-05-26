@@ -1970,12 +1970,12 @@ const uint               = r(/\d+/);
 const sdecimal           = r(/[+-]?\d+\.\d+/);
 const srational          = r(/[+-]?\d+\/[1-9]\d*/);
 const sint               = r(/[+-]?\d+/)
-udecimal.__impl_toString = () => 'udecimal';
-urational.__impl_toString = () => 'urational';
-uint.__impl_toString     = () => 'uint';
-sdecimal.__impl_toString = () => 'sdecimal';
-srational.__impl_toString = () => 'srational';
-sint.__impl_toString = () => 'sint';
+udecimal.abbreviate_str_repr('udecimal');
+urational.abbreviate_str_repr('urational');
+uint.abbreviate_str_repr('uint');
+sdecimal.abbreviate_str_repr('sdecimal');
+srational.abbreviate_str_repr('srational');
+sint.abbreviate_str_repr('sint');
 // -------------------------------------------------------------------------------------------------
 // common separated quantified rules:
 const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
@@ -2122,10 +2122,10 @@ const c_hex              = r(/0x[0-9a-f]+/);
 const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
 const c_octal            = r(/0o[0-7]+/);
 const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
-const c_sint             = sint;
+const c_sint             = r(/[+-]?\d+/)
 const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
 const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
-const c_uint             = uint;
+const c_uint             = r(/\d+/);
 const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
 c_bin                    .abbreviate_str_repr('c_bin');
 c_char                   .abbreviate_str_repr('c_char');
