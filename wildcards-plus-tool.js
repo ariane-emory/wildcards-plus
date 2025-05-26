@@ -1682,7 +1682,7 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      log(indent, `testing /${this.regexp.source}/ at char ${index} of ` +
+      log(indent + 1, `testing /${this.regexp.source}/ at char ${index} of ` +
           `'${abbreviate(input.substring(index))}'`); 
 
     const re_match = this.regexp.exec(input);
@@ -1878,7 +1878,7 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
       }
       // -------------------------------------------------------------------------------------------
       __match(indent, input, index, cache) {
-        return this.rule.match(input, index, indent, cache);
+        return this.rule.match(input, index, indent + 1, cache);
       }
       // -------------------------------------------------------------------------------------------
       __impl_toString(visited, next_id, ref_counts) {
@@ -8342,7 +8342,7 @@ const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[
                                                              json_string,
                                                              plaintext),
                                                       discarded_comments,
-                                                      lws(optional(semicolon))));
+                                                      optional(lws(semicolon))));
 ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
