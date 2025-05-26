@@ -8177,7 +8177,8 @@ const SpecialFunctionInclude =
                                         discarded_comments,      // -
                                         word_break))),           // -
                 discarded_comments,                              // -
-                lws(optional(semicolon))));                            // -
+                optional(lws(semicolon)),                        // -
+                word_break)); 
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
