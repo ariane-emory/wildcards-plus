@@ -300,7 +300,6 @@ Array.prototype.toString = function() {
 //         |
 //         |-- Choice
 //         |-- Enclosed ------- CuttingEnclosed
-//         |-- NeverMatch
 //         |-- Optional
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
@@ -309,6 +308,7 @@ Array.prototype.toString = function() {
 //         |-- Expected
 //         |-- Unexpected
 //         |-- Fail
+//         |-- NeverMatch (non-fatal)
 //         |
 //         |-- (Quantified) -|-- Plus
 //         |                 |-- Star
