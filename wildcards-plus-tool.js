@@ -8211,15 +8211,16 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      input, index - 1));
 UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+const SpecialFunctionTail = seq(discarded_comments,
+                                choice(lws(semicolon), word_break));
+SpecialFunctionTail.abbreviate_str_repr('SpecialFunctionTail');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
                           first(wst_seq(discarded_comments,      // -
                                         json_string,             // [0][1]
-                                        discarded_comments,      // -
-                                        word_break))),           // -
-                discarded_comments,                              // -
-                choice(lws(semicolon), word_break)));            // -
+                                        discarded_comments))),           // -
+                SpecialFunctionTail));
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8302,8 +8303,7 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
                          ),
-                         discarded_comments,
-                         choice(lws(semicolon), word_break),
+                         SpecialFunctionTail
                          // optional(lws(semicolon)),
                         ));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
