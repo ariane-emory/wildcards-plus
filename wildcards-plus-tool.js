@@ -3396,12 +3396,12 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   set_flag(new_flag) {
     if (log_flags_enabled)
-      console.log(`\nADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
+      console.log(`\nadding ${inspect_fun(new_flag)} to flags: ${inspect_fun(this.flags)}`);
 
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
       if (log_flags_enabled)
-        console.log(`SKIPPING, ALREADY SET`);
+        console.log(`skipping, already set`);
       return;
     }
 
@@ -3410,15 +3410,15 @@ class Context {
     this.flags = this.flags.filter(existing_flag => {
       if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
         if (log_flags_enabled)
-          console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A PREFIX OF ` +
-                      `NEW FLAG ${inspect_fun(new_flag)}`);
+          console.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+                      `new flag ${inspect_fun(new_flag)}`);
         return false;
       }
       
       if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
         if (log_flags_enabled)
-          console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A SUFFIX OF ` +
-                      `NEW FLAG'S HEAD ${inspect_fun(new_flag_head)}`);
+          console.log(`discard ${inspect_fun(existing_flag)} because it is a suffix of ` +
+                      `new flag's head ${inspect_fun(new_flag_head)}`);
         return false; 
       }
       
