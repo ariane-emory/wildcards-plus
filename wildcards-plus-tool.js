@@ -789,7 +789,10 @@ class Choice extends Rule  {
       ix += 1;
       
       if (log_match_enabled)
-        log(indent + 1, `Try option #${ix}: ${option}`);
+        log(indent + 1,
+            `Try option #${ix} ${option} ` +
+            `at char #${index}: ` +
+            `'${abbreviate(input.substring(index))}'`);
       
       const match_result = option.match(input, index, indent + 2, cache);
       
@@ -801,7 +804,9 @@ class Choice extends Rule  {
         // }
 
         if (log_match_enabled)
-          log(indent + 1, `Chose option #${ix}!`);
+          log(indent + 1, `Chose option #${ix}, ` +
+              `now at char #${match_result.index}: ` +
+              `'${abbreviate(input.substring(match_result.index))}'`);
         
         return match_result;
       }
@@ -1327,8 +1332,8 @@ class Sequence extends Rule {
 
       if (log_match_enabled)
         log(indent + 1,
-            `matched sequence element #${ix + 1} ` +
-            `at char #${last_match_result.index}: ` +
+            `matched sequence element #${ix + 1}, ` +
+            `now at char #${last_match_result.index}: ` +
             `'${abbreviate(input.substring(last_match_result.index))}'`);
 
       if (last_match_result.value !== DISCARD) {
