@@ -395,8 +395,8 @@ class Rule {
     if (str)
       this.__impl_toString = () => str;
     
-    this.__direct_children = () => [];
-    this.abbreviated     = true;
+    // this.__direct_children = () => [];
+    this.abbreviated       = true;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
