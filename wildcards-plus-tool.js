@@ -2080,7 +2080,7 @@ const equals             = l('=');
 const equals_arrow       = l('=>');
 const hash               = l('#');
 const decr_equals        = l('-=');
-const incr_equals        = l('+=');
+const plus_equals        = l('+=');
 const percent            = l('%');
 const pipe               = l('|');
 const pound              = l('#');
@@ -2099,7 +2099,7 @@ comma.abbreviate_str_repr('comma');
 dash.abbreviate_str_repr('dash');
 dash_arrow.abbreviate_str_repr('dash_arrow');
 decr_equals.abbreviate_str_repr('decr_equals');
-incr_equals.abbreviate_str_repr('incr_equals');
+plus_equals.abbreviate_str_repr('plus_equals');
 dollar.abbreviate_str_repr('dollar');
 dot.abbreviate_str_repr('dot');
 ellipsis.abbreviate_str_repr('ellipsis');
@@ -7945,7 +7945,7 @@ class ASTUINegPrompt extends ASTNode {
 const any_assignment_operator     = choice(() => assignment_operator, () => incr_assignment_operator);
 const comment                     = discard(c_comment);
 const assignment_operator         = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
-const incr_assignment_operator    = second(seq(wst_star(comment), incr_equals, wst_star(comment)));
+const incr_assignment_operator    = second(seq(wst_star(comment), plus_equals, wst_star(comment)));
 const dot_hash                    = l('.#');
 //const escaped_brc               = second(choice('\\{', '\\}'));
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
@@ -8183,16 +8183,15 @@ const SpecialFunctionUINegPrompt =
                 SpecialFunctionTail
                 // word_break
                ));
+SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
-                 new FatalParseError("%ui-neg-prompt is only supported when " +
-                                     "using wildcards-plus.js inside Draw Things, " +
-                                     "NOT when " +
-                                     "running the wildcards-plus-tool.js script",
-                                     input, index - 1));
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+           new FatalParseError("%ui-neg-prompt is only supported when " +
+                               "using wildcards-plus.js inside Draw Things, " +
+                               "NOT when " +
+                               "running the wildcards-plus-tool.js script",
+                               input, index - 1));
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
