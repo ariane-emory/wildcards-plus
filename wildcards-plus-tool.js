@@ -267,7 +267,7 @@ let prelude_disabled                  = false;
 let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
-let inspect_depth                     = 10;
+let inspect_depth                     = 50;
 // =================================================================================================
 
 
@@ -6910,12 +6910,12 @@ function load_prelude(into_context = new Context()) {
     log_match_enabled = old_log_match_enabled;
   }
 
-  console.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
+  // console.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
   
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
   if (ignored === undefined)
-                throw new Error("crap");
+    throw new Error("crap");
   
   return into_context;
 }
@@ -8053,8 +8053,10 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related rules:
 // -------------------------------------------------------------------------------------------------
-const simple_check_flag_word_break = r(/(?=\s|[{|}\;\%\$\@\?\!\[\]\(\)]|$)/);
+const simple_check_flag_word_break = r(/(?=\s|[{|}\,\;\%\$\@\?\!\[\]\(\)]|$)/);
 simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
+const simple_not_flag_word_break   = r(/(?=\s|[{|}\,\;\%\$\@\?\!\[\]\(\)]|$)/);
+simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
 const SimpleCheckFlag              = xform(seq(question,
                                                plus(ident, dot),
                                                simple_check_flag_word_break),
@@ -8069,11 +8071,11 @@ const SimpleCheckFlag              = xform(seq(question,
                                              }
 
                                              return new ASTCheckFlags(args);
-                                           });
+                                           }); 
 const SimpleNotFlag                = xform(seq(bang,
                                                optional(hash),
                                                plus(ident, dot),
-                                               word_break),
+                                               simple_not_flag_word_break),
                                            arr => {
                                              const args = [arr[2],
                                                            { set_immediately: !!arr[1][0]}];
@@ -8137,12 +8139,13 @@ const NotFlagWithSetConsequent     = xform(seq(bang,
                                              
                                              return new ASTNotFlag(...args);
                                            })
-const TestFlag                     = choice(SimpleCheckFlag,
-                                            SimpleNotFlag,
-                                            NotFlagWithSetConsequent,
-                                            CheckFlagWithSetConsequent,
-                                            CheckFlagWithOrAlternatives,
-                                           );
+const TestFlag                     = choice(
+  SimpleCheckFlag,
+  SimpleNotFlag,
+  NotFlagWithSetConsequent,
+  CheckFlagWithSetConsequent,
+  CheckFlagWithOrAlternatives,
+);
 const SetFlag                      = xform(second(seq(hash, plus(ident, dot), word_break)),
                                            arr => {
                                              if (log_flags_enabled)
