@@ -2757,6 +2757,9 @@ function choose_indefinite_article(word) {
 }
 // -------------------------------------------------------------------------------------------------
 function compress(str) {
+  if (typeof str !== 'string')
+    throw new Error(`compress: expected a string, got ${typeof str}: ${inspect_fun(str)}`);
+  
   return str.replace(/\s+/g, ' ');
 }
 // ------------------------------------------------------------------------------------------------
