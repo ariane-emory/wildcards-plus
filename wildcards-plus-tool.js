@@ -552,10 +552,10 @@ class Rule {
           .__impl_toString(visited, next_id, ref_counts)
           .replace('() => ', '');
     
-    if (this.direct_children().length == 0)
+    if (this.abbreviated || this.direct_children().length == 0)
       return abbreviate(__call_impl_toString(), 64);
     
-      if (visited.has(this)) 
+    if (visited.has(this)) 
       return `#${visited.get(this)}#`;
 
     // mark as visited (but not yet emitted)
@@ -788,9 +788,12 @@ class Choice extends Rule  {
       ix += 1;
       
       if (log_match_enabled)
-        log(indent + 1, `Try option #${ix}: ${option}`);
+        log(indent + 1,
+            `Try option #${ix} ${option} ` +
+            `at char #${index}: ` +
+            `'${abbreviate(input.substring(index))}'`);
       
-      const match_result = option.match(input, index, indent + 2, cache);
+      const match_result = option.match(input, index, indent + 1, cache);
       
       if (match_result) { 
         // if (match_result.value === DISCARD) {
@@ -800,13 +803,15 @@ class Choice extends Rule  {
         // }
 
         if (log_match_enabled)
-          log(indent + 1, `Chose option #${ix}`);
+          log(indent + 1, `Chose option #${ix}, ` +
+              `now at char #${match_result.index}: ` +
+              `'${abbreviate(input.substring(match_result.index))}'`);
         
         return match_result;
       }
 
       if (log_match_enabled)
-        log(indent + 1, `Rejected option #${ix}`);
+        log(indent + 1, `Rejected option #${ix}.`);
     }
 
     return null;
