@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = true;
+  log_match_enabled  = false;
   const result       = Prompt.match(prompt_input, 0, 0, cache);
   log_match_enabled  = old_log_match_enabled;
   
@@ -1263,8 +1263,8 @@ class Sequence extends Rule {
           this.elements[0].match(input, index, indent + 2, cache);
     let last_match_result = start_rule_match_result;
 
-    if (log_match_enabled && last_match_result !== null)
-      log(indent + 1, `first last_match_result = ${abbreviate(inspect_fun(last_match_result))}`);
+    // if (log_match_enabled && last_match_result !== null)
+    //   log(indent + 1, `first last_match_result = ${abbreviate(inspect_fun(last_match_result))}`);
     
     if (last_match_result === null) {
       if (log_match_enabled)
@@ -8261,7 +8261,7 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          ),
                          discarded_comments,
-                         lws(optional(semicolon)),
+                         optional(lws(semicolon)),
                          word_break));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
