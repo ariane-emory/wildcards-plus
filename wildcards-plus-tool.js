@@ -8374,10 +8374,6 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
                          ),
-                         // discarded_comments,
-                         // word_break, 
-                         // discarded_comments,
-                         // optional(lws(semicolon))
                         ));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
