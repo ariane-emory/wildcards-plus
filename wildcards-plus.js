@@ -1678,15 +1678,18 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     const log = noisy ? console.log : () => {};
     rule = make_rule_func(rule);
 
-    const tringified_rule = null;
+    let stringified_rule = null;
 
     try {
       stringified_rule = 
-        typeof rule === 'function'
+        dt_hosted && typeof rule === 'function'
         ? 'function'
         : abbreviate(compress(inspect_fun(rule)));
     }
-    catch {
+    catch (err) {
+      if (!dt_hosted)
+        throw err;
+      
       stringified_rule = '<unprintable>';
     }
 

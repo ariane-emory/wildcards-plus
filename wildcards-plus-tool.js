@@ -1906,27 +1906,42 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     const log = noisy ? console.log : () => {};
     rule = make_rule_func(rule);
 
+    let stringified_rule = null;
+
+    try {
+      stringified_rule = 
+        dt_hosted && typeof rule === 'function'
+        ? 'function'
+        : abbreviate(compress(inspect_fun(rule)));
+    }
+    catch (err) {
+      if (!dt_hosted)
+        throw err;
+      
+      stringified_rule = '<unprintable>';
+    }
+
     if (!rule) {
-      log(`return original null rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      log(`return original null rule ${stringified_rule}`);
       return rule;
     }
 
     if (typeof rule === 'function') {
-      log(`return klassed function ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      log(`return klassed function ${stringified_rule}`);
       return new klass(rule);
     }
     
     if (rule instanceof klass) {
-      log(`return original klassed rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      log(`return original klassed rule ${stringified_rule}`);
       return rule;
     }
     
     if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-      log(`return original rule ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+      log(`return original rule ${stringified_rule}`);
       return rule;
     }
 
-    log(`return klassed ${abbreviate(compress(inspect_fun(rule)), 250)}`);
+    log(`return klassed ${stringified_rule}`);
     return new klass(rule);
   }
   
@@ -2760,6 +2775,9 @@ function choose_indefinite_article(word) {
 }
 // -------------------------------------------------------------------------------------------------
 function compress(str) {
+  if (typeof str !== 'string')
+    throw new Error(`compress: expected a string, got ${typeof str}: ${inspect_fun(str)}`);
+  
   return str.replace(/\s+/g, ' ');
 }
 // ------------------------------------------------------------------------------------------------
