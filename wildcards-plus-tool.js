@@ -2442,8 +2442,8 @@ const JsoncObject =
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
-                                                       ))             
-                                          , comma)),
+                                                       )),
+                                          comma)),
                                )),
                 rbrc))); // dumb hack for rainbow brackets sake
 Jsonc.abbreviate_str_repr('Jsonc');
@@ -2487,8 +2487,8 @@ const rJsoncObject =
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
-                                                       ))             
-                                          , comma)),
+                                                       )),
+                                          comma)),
                                )),
                 rbrc))); // dumb hack for rainbow brackets sake
 rJsonc.abbreviate_str_repr('rJsonc');
