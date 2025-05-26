@@ -1940,8 +1940,9 @@ const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
 // whites_star.memoize = false;
 // whites_plus.memoize = false;
-whites_star.__impl_toString = () => 'Whites*';
-whites_plus.__impl_toString = () => 'Whites+';
+whites_star.abbreviate_str_repr('whites*');
+whites_plus.abbreviate_str_repr('whites+');
+// -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
 const lws                = rule => {
   rule = second(seq(whites_star, rule));
