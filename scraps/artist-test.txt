@@ -5,6 +5,6 @@
 // @wizards_artists
 // @wizards_artists
 
-// #foo.bar.baz
+#foo.bar.baz
 
 { !corge.#grault.quux }

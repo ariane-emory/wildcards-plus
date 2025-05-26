@@ -7971,7 +7971,7 @@ const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
 const low_pri_text                = r(/[\(\)\[\]\:]+/);
 const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const word_break                  = discard(r(/(?=\s|[{|}\;\.\,\?\!\[\]\(\)]|$)/));
+// const word_break                  = discard(r(/(?=\s|[{|}\;\.\,\?\!\[\]\(\)]|$)/));
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 // assignment_operator               .abbreviate_str_repr('assignment_operator');
 // incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
@@ -7983,7 +7983,6 @@ ident                             .abbreviate_str_repr('ident');
 low_pri_text                      .abbreviate_str_repr('low_pri_text');
 plaintext                         .abbreviate_str_repr('plaintext');
 wb_uint                           .abbreviate_str_repr('wb_uint');
-word_break                        .abbreviate_str_repr('word_break');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
@@ -8053,10 +8052,13 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related rules:
 // -------------------------------------------------------------------------------------------------
-const simple_check_flag_word_break = r(/(?=\s|[{|}\,\;\%\$\@\?\!\[\]\(\)]|$)/);
-simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
-const simple_not_flag_word_break   = r(/(?=\s|[{|}\,\;\%\$\@\?\!\[\]\(\)]|$)/);
+const word_break                   = r(/(?=$|\s|[{|}\,\;\%\$\@\?\!\[\]\(\)\.])/);
+const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\,\;\%\$\@\?\!\[\]\(\)])/);
+const simple_check_flag_word_break = r(/(?=$|\s|[{|}\,\;\%\$\@\?\!\[\]\(\)])/);
+word_break                         .abbreviate_str_repr('word_break');
 simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
+simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
+
 const SimpleCheckFlag              = xform(seq(question,
                                                plus(ident, dot),
                                                simple_check_flag_word_break),
