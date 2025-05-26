@@ -469,7 +469,7 @@ class Rule {
             `Matching ` +
             // `${this.constructor.name} `+
             `${abbreviate(this.toString())} at ` +
-            `char #${index}, ` +
+            `char #${index}: ` +
             `'${abbreviate(input.substring(index))}'`)
     }
     
