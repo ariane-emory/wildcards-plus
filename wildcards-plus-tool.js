@@ -8274,11 +8274,11 @@ SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
-           new FatalParseError("%ui-neg-prompt is only supported when " +
-                               "using wildcards-plus.js inside Draw Things, " +
-                               "NOT when " +
-                               "running the wildcards-plus-tool.js script",
-                               input, index - 1));
+                 new FatalParseError("%ui-neg-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1));
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
@@ -8674,12 +8674,13 @@ async function main() {
       LOG_LINE();
       console.log(`${inspect_fun(context.flags)}`);
     }
-
-    LOG_LINE();
-    console.log(`Final config is is:`);
-    LOG_LINE();
-    console.log(inspect_fun(context.configuration));
-
+    
+    if (! is_empty_object(context.configuration)) {
+      LOG_LINE();
+      console.log(`Final config is is:`);
+      LOG_LINE();
+      console.log(inspect_fun(context.configuration));
+    }
     
     LOG_LINE();
     console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
