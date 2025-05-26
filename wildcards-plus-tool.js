@@ -423,10 +423,11 @@ class Rule {
 
     ref_counts.set(this, 1);
 
-    for (const direct_child of this.direct_children()) {
-      // console.log(`direct_child = ${inspect_fun(direct_child)}`);
-      this.__vivify(direct_child).collect_ref_counts(ref_counts);
-    }
+    if (! this.abbreviated)
+      for (const direct_child of this.direct_children()) {
+        // console.log(`direct_child = ${inspect_fun(direct_child)}`);
+        this.__vivify(direct_child).collect_ref_counts(ref_counts);
+      }
 
     return ref_counts;
   }
