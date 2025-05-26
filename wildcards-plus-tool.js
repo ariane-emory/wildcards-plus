@@ -1089,11 +1089,11 @@ class CuttingEnclosed extends Enclosed {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#1) ` +
-      `expected (${this.body_rule} ${this.end_rule}) ` +
+      `CuttingEnclosed expected [${this.body_rule} ${this.end_rule}] ` +
         `after ${this.start_rule}`,
       input, start_rule_result.index);
   }
-  // -----------------------------------------------------------------------------------------------
+  f  // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
     return `[${this.__vivify(this.start_rule).__toString(visited, next_id, ref_counts)}! ` +
       `${this.__vivify(this.body_rule).__toString(visited, next_id, ref_counts)} ` +
