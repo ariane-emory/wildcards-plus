@@ -2033,27 +2033,8 @@ const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
 // whites_star.memoize = false;
 // whites_plus.memoize = false;
-whites_star.__impl_toString = () => 'Whites*';
-whites_plus.__impl_toString = () => 'Whites+';
-// leading/trailing whitespace:
-const lws                = rule => {
-  rule = second(seq(whites_star, rule));
-  
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `LWS(${rule_str})`;
-  }
-
-  return rule;
-};
-const tws                = rule => {
-  rule = first(seq(rule, whites_star));
-
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `TWS(${rule_str})`;
-  }
-};
+whites_star.abbreviate_str_repr('whites*');
+whites_plus.abbreviate_str_repr('whites+');
 // -------------------------------------------------------------------------------------------------
 // common numbers:
 const udecimal           = r(/\d+\.\d+/);
@@ -2062,12 +2043,12 @@ const uint               = r(/\d+/);
 const sdecimal           = r(/[+-]?\d+\.\d+/);
 const srational          = r(/[+-]?\d+\/[1-9]\d*/);
 const sint               = r(/[+-]?\d+/)
-udecimal.__impl_toString = () => 'udecimal';
-urational.__impl_toString = () => 'urational';
-uint.__impl_toString     = () => 'uint';
-sdecimal.__impl_toString = () => 'sdecimal';
-srational.__impl_toString = () => 'srational';
-sint.__impl_toString = () => 'sint';
+udecimal.abbreviate_str_repr('udecimal');
+urational.abbreviate_str_repr('urational');
+uint.abbreviate_str_repr('uint');
+sdecimal.abbreviate_str_repr('sdecimal');
+srational.abbreviate_str_repr('srational');
+sint.abbreviate_str_repr('sint');
 // -------------------------------------------------------------------------------------------------
 // common separated quantified rules:
 const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
@@ -2155,7 +2136,7 @@ python_exponent_op.abbreviate_str_repr('python_exponent_op');
 python_logic_word.abbreviate_str_repr('python_logic_word');
 // -------------------------------------------------------------------------------------------------
 // common punctuation:
-const at                = l('@');
+const at                 = l('@');
 const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
@@ -2172,7 +2153,7 @@ const equals             = l('=');
 const equals_arrow       = l('=>');
 const hash               = l('#');
 const decr_equals        = l('-=');
-const incr_equals        = l('+=');
+const plus_equals        = l('+=');
 const percent            = l('%');
 const pipe               = l('|');
 const pound              = l('#');
@@ -2182,6 +2163,7 @@ const semicolon          = l(';');
 const shebang            = l('#!');
 const slash              = l('/');
 ampersand.abbreviate_str_repr('ampersand');
+at.abbreviate_str_repr('at');
 asterisk.abbreviate_str_repr('asterisk');
 bang.abbreviate_str_repr('bang');
 bslash.abbreviate_str_repr('bslash');
@@ -2191,7 +2173,7 @@ comma.abbreviate_str_repr('comma');
 dash.abbreviate_str_repr('dash');
 dash_arrow.abbreviate_str_repr('dash_arrow');
 decr_equals.abbreviate_str_repr('decr_equals');
-incr_equals.abbreviate_str_repr('incr_equals');
+plus_equals.abbreviate_str_repr('plus_equals');
 dollar.abbreviate_str_repr('dollar');
 dot.abbreviate_str_repr('dot');
 ellipsis.abbreviate_str_repr('ellipsis');
@@ -2214,10 +2196,10 @@ const c_hex              = r(/0x[0-9a-f]+/);
 const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
 const c_octal            = r(/0o[0-7]+/);
 const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
-const c_sint             = sint;
+const c_sint             = r(/[+-]?\d+/)
 const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
 const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
-const c_uint             = uint;
+const c_uint             = r(/\d+/);
 const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
 c_bin                    .abbreviate_str_repr('c_bin');
 c_char                   .abbreviate_str_repr('c_char');
@@ -2281,7 +2263,7 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep = comma) =>
+const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep = comma) =>
       seq(fun_rule,
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
@@ -2290,28 +2272,21 @@ const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep 
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
 const __make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(wse(rule), sep));
-const __make_wst_quantified_combinator_alt = base_combinator =>
-      ((rule, sep = null) =>
-        lws(base_combinator(tws(rule),
-                            sep ? seq(sep, whites_star) : null)));
+      ((rule, sep = null) => base_combinator(lws(rule), lws(sep)));
 const __make_wst_seq_combinator = base_combinator =>
-      //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
       (...rules) => base_combinator(...rules.map(x => lws(x)));
 // -------------------------------------------------------------------------------------------------
-const wst_choice      = (...options) => wse(choice(...options));
+const wst_choice      = (...options) => lws(choice(...options));
 const wst_star        = __make_wst_quantified_combinator(star);
 const wst_plus        = __make_wst_quantified_combinator(plus);
-const wst_star_alt    = __make_wst_quantified_combinator_alt(star);
-const wst_plus_alt    = __make_wst_quantified_combinator_alt(plus);
 const wst_seq         = __make_wst_seq_combinator(seq);
 const wst_enc         = __make_wst_seq_combinator(enc);
 const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
 const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => cutting_enc(wse(lpar), rule, wse(rpar));
-const wst_brc_enc     = rule => cutting_enc(wse(lbrc), rule, wse(rbrc));
-const wst_sqr_enc     = rule => cutting_enc(wse(lsqr), rule, wse(rsqr));
-const wst_tri_enc     = rule => cutting_enc(wse(lt),   rule, wse(gt));
+const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
+const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
+const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
+const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
@@ -2333,14 +2308,14 @@ const Json = choice(() => JsonObject,  () => JsonArray,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const JsonObject = xform(arr =>  Object.fromEntries(arr), 
-                         wst_cutting_enc('{',
+                         wst_cutting_enc(lbrc,
                                          wst_star(
                                            xform(arr => [arr[0], arr[2]],
-                                                 wst_seq(() => json_string, ':', Json)),
-                                           ','),
-                                         '}'));
+                                                 wst_seq(() => json_string, colon, Json)),
+                                           comma),
+                                         rbrc));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const JsonArray = wst_cutting_enc('[', wst_star(Json, ','), ']');
+const JsonArray = wst_cutting_enc(lsqr, wst_star(Json, comma), rsqr);
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -2349,11 +2324,11 @@ const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
 // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
 const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
 // True ← "true"
-const json_true = xform(x => true, 'true');
+const json_true = xform(x => true, /true\b/);
 // False ← "false"
-const json_false = xform(x => false, 'false');
+const json_false = xform(x => false, /false\b/);
 // Null ← "null"
-const json_null = xform(x => null, 'null');
+const json_null = xform(x => null, /null\b/);
 // Minus ← "-"
 const json_minus = l('-');
 // IntegralPart ← "0" / [1-9] [0-9]*
@@ -2383,7 +2358,7 @@ const json_number = xform(reify_json_number,
                               }, optional(json_fractionalPart, 0.0)),
                               xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
-const json_S = whites_plus;
+const json_S = r(/\s+/);
 Json.abbreviate_str_repr('Json');
 JsonObject.abbreviate_str_repr('JsonObject');
 JsonArray.abbreviate_str_repr('JsonArray');
@@ -2413,18 +2388,18 @@ const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(jsonc_comments,
                              choice(() => JsoncObject,  () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
-                                    () => json_null,    () => json_number) /*,
-                                                                             jsonc_comments */));
+                                    () => json_null,    () => json_number),
+                             jsonc_comments));
 const JsoncArray =
-      wst_cutting_enc('[',
+      wst_cutting_enc(lsqr,
                       wst_star(second(seq(jsonc_comments,
                                           Jsonc,
                                           jsonc_comments)),
-                               ','),
-                      ']');
+                               comma),
+                      rsqr);
 const JsoncObject =
       choice(
-        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
           // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
           const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
@@ -2432,24 +2407,24 @@ const JsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, () => json_string, colon), 
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
-                optional(second(wst_seq(',',
+                optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
                                                         () => json_string,
                                                         jsonc_comments,
-                                                        ':',
+                                                        colon,
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
-                                                       ))             
-                                          , ',')),
+                                                       )),
+                                          comma)),
                                )),
-                '{}'[1]))); // dumb hack for rainbow brackets sake
+                rbrc))); // dumb hack for rainbow brackets sake
 Jsonc.abbreviate_str_repr('Jsonc');
 jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
@@ -2471,30 +2446,30 @@ const rJsonc = second(wst_seq(jsonc_comments,
                               jsonc_comments));
 const rJsoncObject =
       choice(
-        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
           const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, () => choice(json_string, c_ident), colon), // dumb hack for rainbow brackets sake
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
-                optional(second(wst_seq(',',
+                optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
                                                         choice(json_string, c_ident),
                                                         jsonc_comments,
-                                                        ':',
+                                                        colon,
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
-                                                       ))             
-                                          , ',')),
+                                                       )),
+                                          comma)),
                                )),
-                '{}'[1]))); // dumb hack for rainbow brackets sake
+                rbrc))); // dumb hack for rainbow brackets sake
 rJsonc.abbreviate_str_repr('rJsonc');
 rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
@@ -2850,6 +2825,9 @@ function choose_indefinite_article(word) {
 }
 // -------------------------------------------------------------------------------------------------
 function compress(str) {
+  if (typeof str !== 'string')
+    throw new Error(`compress: expected a string, got ${typeof str}: ${inspect_fun(str)}`);
+  
   return str.replace(/\s+/g, ' ');
 }
 // ------------------------------------------------------------------------------------------------
@@ -8030,7 +8008,7 @@ class ASTUINegPrompt extends ASTNode {
 const any_assignment_operator     = choice(() => assignment_operator, () => incr_assignment_operator);
 const comment                     = discard(c_comment);
 const assignment_operator         = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
-const incr_assignment_operator    = second(seq(wst_star(comment), incr_equals, wst_star(comment)));
+const incr_assignment_operator    = second(seq(wst_star(comment), plus_equals, wst_star(comment)));
 const dot_hash                    = l('.#');
 //const escaped_brc               = second(choice('\\{', '\\}'));
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
