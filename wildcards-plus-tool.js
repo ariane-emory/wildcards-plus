@@ -674,7 +674,7 @@ class Quantified extends Rule {
 
         if (log_match_enabled)
           log(indent,
-              `Matched separator rule ${this.separator_rule}...`);
+              `matched separator rule ${this.separator_rule}...`);
 
         update_index(separator_match_result.index);
       } // end of if (this.separator_rule)
