@@ -1277,7 +1277,7 @@ class Sequence extends Rule {
     
     if (last_match_result === null) {
       if (log_match_enabled)
-        log(indent + 1, `did not match sequence item #1.`);
+        log(indent + 1, `did not match sequence element #1.`);
       return null;
     }
 
@@ -1286,9 +1286,9 @@ class Sequence extends Rule {
 
     if (log_match_enabled)
       log(indent + 1, `matched sequence element #1: ` +
-          `${JSON.stringify(last_match_result)} ` +
-          `at char #${index} ` +
-          `at '${abbreviate(input.substring(index))}'`);
+          `${JSON.stringify(last_match_result)}, ` +
+          `now at char #${index}: ` +
+          `'${abbreviate(input.substring(index))}'`);
 
     // if (log_match_enabled)
     //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
@@ -1310,8 +1310,8 @@ class Sequence extends Rule {
       if (log_match_enabled)
         log(indent + 1, `matching sequence element #${ix+ 1} out of ` +
             `${this.elements.length}: ${this.elements[ix]} ` +
-            `at char #${index} ` +
-            `at '${abbreviate(input.substring(index))}'`);
+            `at char #${index}: ` +
+            `'${abbreviate(input.substring(index))}'`);
       
       const element = this.elements[ix];
 
@@ -1328,8 +1328,8 @@ class Sequence extends Rule {
       if (log_match_enabled)
         log(indent + 1,
             `matched sequence element #${ix + 1} ` +
-            `at char #${last_match_result.index} ` +
-            `at '${abbreviate(input.substring(last_match_result.index))}'`);
+            `at char #${last_match_result.index}: ` +
+            `'${abbreviate(input.substring(last_match_result.index))}'`);
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
@@ -1696,7 +1696,7 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      log(indent + 1, `testing /${this.regexp.source}/ at char ${index} of ` +
+      log(indent + 1, `testing /${this.regexp.source}/ at char ${index}: ` +
           `'${abbreviate(input.substring(index))}'`); 
 
     const re_match = this.regexp.exec(input);
