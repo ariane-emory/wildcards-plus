@@ -1,10 +1,11 @@
 // @wizards_artists
 // @wizards_artists
 // @wizards_artists
-@wizards_artists
-@wizards_artists
-@wizards_artists
+// @wizards_artists
+// @wizards_artists
+// @wizards_artists
 
-#foo.bar.baz
+#foo
+{ ?foo.#bar.baz }
 
 { !corge.#grault.quux }
