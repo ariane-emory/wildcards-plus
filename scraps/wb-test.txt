@@ -1,2 +1,2 @@
 #foo
-{ cat | ?foo 2 dog }
+{  ?foo 2 dog }
