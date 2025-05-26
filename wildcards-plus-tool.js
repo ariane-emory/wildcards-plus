@@ -7199,11 +7199,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     } 
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
-      if (context.named_wildcards.has(thing.destination))
-        log(true, `WARNING: redefining named wildcard @${thing.destination.name}, ` +
+      if (context.named_wildcards.has(thing.name))
+        log(true, `WARNING: redefining named wildcard @${thing.name.name}, ` +
             `you may not have intended to do this, check your template!`);
 
-      context.named_wildcards.set(thing.destination, thing.wildcard);
+      context.named_wildcards.set(thing.name, thing.wildcard);
 
       return '';
     }
@@ -7797,14 +7797,14 @@ class ASTUnlatchNamedWildcard extends ASTNode {
 // Named wildcard definitions:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardDefinition extends ASTNode {
-  constructor(destination, wildcard) {
+  constructor(name, wildcard) {
     super();
-    this.destination = destination;
+    this.name = name;
     this.wildcard    = wildcard;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `@${this.destination} = ${this.wildcard}`;
+    return `@${this.name} = ${this.wildcard}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
