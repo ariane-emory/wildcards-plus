@@ -1,8 +1,11 @@
-%width = 768;  %height = 384;
-%loras = []111
+// %width = 768;  %height = 384;
+// %loras = []
  
 
 // %n_iter = 2
 // %shift = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
 // %sampler = { 2 "DDIM Trailing" | "Euler A" | 2 "Euler A Trailing" }
 // %cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0 }
+
+#foo
+{ cat | ?foo 2 dog }
