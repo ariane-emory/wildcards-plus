@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = true;
+  log_match_enabled  = false;
   const result       = Prompt.match(prompt_input, 0, 0, cache);
   log_match_enabled  = old_log_match_enabled;
   
@@ -8330,17 +8330,19 @@ const make_AnonWildcardAlternative_rule = content_star_rule =>
                 lws(optional(wb_uint, 1)),
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
                 content_star_rule));
-const make_AnonWildcard_rule  = alternative_rule  =>
-      xform(arr => new ASTAnonWildcard(arr),
-            wst_brc_enc(wst_star(alternative_rule, pipe)));
 const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
 const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
 AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
 AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+// -------------------------------------------------------------------------------------------------
+const make_AnonWildcard_rule  = alternative_rule  =>
+      xform(arr => new ASTAnonWildcard(arr),
+            wst_brc_enc(wst_star(alternative_rule, pipe)));
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
 const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
 AnonWildcard.abbreviate_str_repr('AnonWildcard');
 AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
+// -------------------------------------------------------------------------------------------------
 const NamedWildcardReference  = xform(seq(at,                                        // [0]
                                           optional(caret),                           // [1]
                                           optional(xform(parseInt, uint)),           // [2]
