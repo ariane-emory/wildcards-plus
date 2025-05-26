@@ -8650,23 +8650,3 @@ main().catch(err => {
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
-// console.log(`${Prompt}`);
-
-// just for demonstration... this is kind of a silly rule since it would only match an infinite series of 'x'-es:
-// const Z        = l('z');
-// const TestRule = seq('x', Z, Z, () => TestRule); 
-// console.log(`${TestRule}`);
-// console.log(``);
-// console.log(`${Prompt}`);
-// console.log(`${NamedWildcardReference}`);
-
-// console.log(`${NormalSpecialFunction}`);
-// console.log(`${inspect_fun(NormalSpecialFunction.options)}`);
-
-// for (const [ix, option] of NormalSpecialFunction.options.entries())
-//   console.log(`#${ix}: ${option}`)
-// console.log(`${CheckFlagWithSetConsequent}`);
-// console.log(`${CheckFlagWithOrAlternatives}`);
-// console.log(lws('a').toString());
-// console.log(wst_star('a').toString());
-// console.log(Prompt.toString());
