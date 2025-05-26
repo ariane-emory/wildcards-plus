@@ -2291,7 +2291,7 @@ const json_number = xform(reify_json_number,
                               }, optional(json_fractionalPart, 0.0)),
                               xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
-const json_S = whites_plus;
+const json_S = r(/\s+/);
 Json.abbreviate_str_repr('Json');
 JsonObject.abbreviate_str_repr('JsonObject');
 JsonArray.abbreviate_str_repr('JsonArray');
