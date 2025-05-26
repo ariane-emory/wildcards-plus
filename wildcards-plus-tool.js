@@ -8530,10 +8530,10 @@ async function main() {
     console.log(`before process_includes:`);
     LOG_LINE();
     console.log(`${inspect_fun(AST)}`);
-    LOG_LINE();
-    console.log(`before process_includes (as JSON):`);
-    LOG_LINE();
-    console.log(`${JSON.stringify(AST)}`);
+    // LOG_LINE();
+    // console.log(`before process_includes (as JSON):`);
+    // LOG_LINE();
+    // console.log(`${JSON.stringify(AST)}`);
   }
 
   AST = process_includes(AST, base_context);
