@@ -2241,14 +2241,14 @@ const Json = choice(() => JsonObject,  () => JsonArray,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const JsonObject = xform(arr =>  Object.fromEntries(arr), 
-                         wst_cutting_enc('{',
+                         wst_cutting_enc(lbrc,
                                          wst_star(
                                            xform(arr => [arr[0], arr[2]],
-                                                 wst_seq(() => json_string, ':', Json)),
-                                           ','),
-                                         '}'));
+                                                 wst_seq(() => json_string, colon, Json)),
+                                           comma),
+                                         rbrc));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const JsonArray = wst_cutting_enc('[', wst_star(Json, ','), ']');
+const JsonArray = wst_cutting_enc(lsqr, wst_star(Json, comma), rsqr);
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -2324,15 +2324,15 @@ const Jsonc = second(wst_seq(jsonc_comments,
                                     () => json_null,    () => json_number) /*,
                                                                              jsonc_comments */));
 const JsoncArray =
-      wst_cutting_enc('[',
+      wst_cutting_enc(lsqr,
                       wst_star(second(seq(jsonc_comments,
                                           Jsonc,
                                           jsonc_comments)),
-                               ','),
-                      ']');
+                               comma),
+                      rsqr);
 const JsoncObject =
       choice(
-        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
           // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
           const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
@@ -2340,24 +2340,24 @@ const JsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, () => json_string, colon), // dumb hack for rainbow brackets sake
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
-                optional(second(wst_seq(',',
+                optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
                                                         () => json_string,
                                                         jsonc_comments,
-                                                        ':',
+                                                        colon,
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
                                                        ))             
-                                          , ',')),
+                                          , comma)),
                                )),
-                '{}'[1]))); // dumb hack for rainbow brackets sake
+                rbrc))); // dumb hack for rainbow brackets sake
 Jsonc.abbreviate_str_repr('Jsonc');
 jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
@@ -2379,30 +2379,30 @@ const rJsonc = second(wst_seq(jsonc_comments,
                               jsonc_comments));
 const rJsoncObject =
       choice(
-        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
           const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, () => choice(json_string, c_ident), colon), // dumb hack for rainbow brackets sake
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
-                optional(second(wst_seq(',',
+                optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
                                                         choice(json_string, c_ident),
                                                         jsonc_comments,
-                                                        ':',
+                                                        colon,
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
                                                        ))             
-                                          , ',')),
+                                          , comma)),
                                )),
-                '{}'[1]))); // dumb hack for rainbow brackets sake
+                rbrc))); // dumb hack for rainbow brackets sake
 rJsonc.abbreviate_str_repr('rJsonc');
 rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
