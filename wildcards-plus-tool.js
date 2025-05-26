@@ -256,7 +256,7 @@ let print_ast_json_enabled            = false;
 let log_enabled                       = true;
 let log_configuration_enabled         = true;
 let log_finalize_enabled              = false;
-let log_flags_enabled                 = true;
+let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
@@ -794,7 +794,7 @@ class Choice extends Rule  {
             `at char #${index}: ` +
             `'${abbreviate(input.substring(index))}'`);
       
-      const match_result = option.match(input, index, indent + 2, cache);
+      const match_result = option.match(input, index, indent + 1, cache);
       
       if (match_result) { 
         // if (match_result.value === DISCARD) {
@@ -1290,8 +1290,8 @@ class Sequence extends Rule {
     index        = last_match_result.index;
 
     if (log_match_enabled)
-      log(indent + 1, `matched sequence element #1: ` +
-          `${JSON.stringify(last_match_result)}, ` +
+      log(indent + 1, `matched first sequence element #1: ` +
+          `${compress(inspect_fun(last_match_result))}, ` +
           `now at char #${index}: ` +
           `'${abbreviate(input.substring(index))}'`);
 
@@ -1301,7 +1301,7 @@ class Sequence extends Rule {
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
         log(indent + 1, `seq pushing first item ` +
-            `${compress(inspect_fun(last_match_result.value))}`);
+            `${abbreviate(inspect_fun(last_match_result.value))}`);
 
       values.push(last_match_result.value);
 
@@ -1320,7 +1320,7 @@ class Sequence extends Rule {
       
       const element = this.elements[ix];
 
-      last_match_result = element.match(input, index, indent + 2, cache);
+      last_match_result = element.match(input, index, indent + 2 , cache);
 
       if (! last_match_result) {
         if (log_match_enabled)
@@ -1331,8 +1331,8 @@ class Sequence extends Rule {
       }
 
       if (log_match_enabled)
-        log(indent + 1,
-            `matched sequence element #${ix + 1}, ` +
+        log(indent + 1, `matched sequence element #${ix+1}: ` +
+            `${compress(inspect_fun(last_match_result))}, ` +
             `now at char #${last_match_result.index}: ` +
             `'${abbreviate(input.substring(last_match_result.index))}'`);
 
@@ -8327,7 +8327,7 @@ SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 const make_AnonWildcardAlternative_rule = content_star_rule => 
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
-                optional(wb_uint, 1),
+                lws(optional(wb_uint, 1)),
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
                 content_star_rule));
 const make_AnonWildcard_rule  = alternative_rule  =>
