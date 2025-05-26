@@ -474,7 +474,7 @@ class Rule {
             `'${abbreviate(input.substring(index))}'`)
     }
     
-    let rule_cache = null; // cache.get(this);
+    let rule_cache = null;
 
     if (this.memoize) {
       rule_cache = cache.get(this);
