@@ -1741,7 +1741,7 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      log(indent, `testing  /${this.regexp.source}/ at char #${index} of ` +
+      log(indent + 1, `testing /${this.regexp.source}/ at char ${index}: ` +
           `'${abbreviate(input.substring(index))}'`); 
 
     const re_match = this.regexp.exec(input);
