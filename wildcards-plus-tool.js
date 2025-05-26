@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = true;
+  log_match_enabled  = false;
   const result       = Prompt.match(prompt_input, 0, 0, cache);
   log_match_enabled  = old_log_match_enabled;
   
@@ -919,10 +919,14 @@ class Element extends Rule {
           : rule_match_result.value[this.index];
     
     if (log_match_enabled)
-      log(indent + 1, `taking elem #${this.index} ` +
-          `${typeof ret === 'symbol' ? ret.toString() : abbreviate(inspect_fun(ret))} ` +
-          `from ` +
-          `${compress(inspect_fun(rule_match_result.value))} ` +
+      log(indent + 1,
+          `taking elem ` +
+          `#${this.index} ` +
+          `${typeof ret === 'symbol'
+             ? ret.toString()
+             : abbreviate(compress(inspect_fun(ret)))} ` +
+          `from \n` +
+          `${abbreviate(compress(inspect_fun(rule_match_result.value)))} ` +
           ``
          );
     
