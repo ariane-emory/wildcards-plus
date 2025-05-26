@@ -59,25 +59,11 @@ function ask(question) {
 function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
+  const old_log_match_enabled = log_match_enabled;
+  log_match_enabled  = false;
   const result       = Prompt.match(prompt_input, 0, 0, cache);
-
-  // console.log(`${inspect_fun(cache)}`);
-
-  // for (const [key, value] of cache.entries()) {
-  //   // throw new Error("bomb");
-  //   // if (key.toString() === '0') {
-  //   //   console.log(typeof key);
-  //   //   console.log(inspect_fun(key));
-  //   //   throw new Error("bomb");
-  //   // }
+  log_match_enabled  = old_log_match_enabled;
   
-  //   console.log(`'${key}' = ${inspect_fun(value.size)}`);
-  
-  // }s  // for (const [k, v] of Array.from(cache.entries())
-  //            .toSorted(([, a], [, b]) => b.size - a.size)) {
-  //   console.log(`${k.toString()}: ${v.size}`);
-  // }
-
   const sortedEntries = Array.from(cache.entries())
         .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
 
@@ -88,13 +74,9 @@ function parse_file(filename) {
                 `${format_pretty_number(ruleCache.size)}`);
     total += ruleCache.size;
   }
-  
+
   if (sortedEntries.length > 0)
-    console.log(`TOTAL: ${format_pretty_number(total)}`);
-
-  //console.log(inspect_fun(Array.from(cache.entries()).toSorted((x, y) => y.size - y.size)));
-
-  // throw new Error("bimb");
+    console.log(`Total: ${format_pretty_number(total)}`);
 
   return result;
 }
