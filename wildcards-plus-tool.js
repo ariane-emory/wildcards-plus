@@ -1354,7 +1354,6 @@ class Sequence extends Rule {
                                                                           next_id,
                                                                           ref_counts));
     const str       = elem_strs.join(' ');
-
     return `[${str}]`;
     // return `(${str})`;
   }
