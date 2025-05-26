@@ -251,7 +251,7 @@ if (false)
 let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = true;
 let unnecessary_choice_is_error       = false;
-// let print_ast_enabled                 = true;
+// let print_ast_enabled                 = false;
 let print_ast_json_enabled            = false;
 let log_enabled                       = true;
 let log_configuration_enabled         = true;
