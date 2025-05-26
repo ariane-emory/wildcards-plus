@@ -8494,8 +8494,8 @@ async function main() {
   // if (print_ast_enabled)
   //   console.log(`result: ${inspect_fun(result.value)}`);
 
-  if (print_ast_json_enabled)
-    console.log(`result (JSON): ${JSON.stringify(result.value)}`);
+  // if (print_ast_json_enabled)
+  //   console.log(`result (JSON): ${JSON.stringify(result.value)}`);
   
   // -----------------------------------------------------------------------------------------------
   // check that the parsed result is complete and expand:
