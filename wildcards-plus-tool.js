@@ -251,7 +251,7 @@ if (false)
 let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = true;
 let unnecessary_choice_is_error       = false;
-let print_ast_enabled                 = false;
+// let print_ast_enabled                 = false;
 let print_ast_json_enabled            = false;
 let log_enabled                       = true;
 let log_configuration_enabled         = true;
@@ -264,7 +264,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let log_expand_and_walk_enabled       = false;  
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
 let inspect_depth                     = 10;
@@ -8508,11 +8508,11 @@ async function main() {
   // -----------------------------------------------------------------------------------------------
   // just for debugging:
   // -----------------------------------------------------------------------------------------------
-  if (print_ast_enabled)
-    console.log(`result: ${inspect_fun(result.value)}`);
+  // if (print_ast_enabled)
+  //   console.log(`result: ${inspect_fun(result.value)}`);
 
-  if (print_ast_json_enabled)
-    console.log(`result (JSON): ${JSON.stringify(result.value)}`);
+  // if (print_ast_json_enabled)
+  //   console.log(`result (JSON): ${JSON.stringify(result.value)}`);
   
   // -----------------------------------------------------------------------------------------------
   // check that the parsed result is complete and expand:
