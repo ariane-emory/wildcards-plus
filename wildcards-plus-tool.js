@@ -2293,10 +2293,6 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 const __make_wst_quantified_combinator = base_combinator => 
       ((rule, sep = null) => base_combinator(wse(rule), sep));
-const __make_wst_quantified_combinator_alt = base_combinator =>
-      ((rule, sep = null) =>
-        lws(base_combinator(tws(rule),
-                            sep ? seq(sep, whites_star) : null)));
 const __make_wst_seq_combinator = base_combinator =>
       //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
       (...rules) => base_combinator(...rules.map(x => lws(x)));
@@ -2304,8 +2300,6 @@ const __make_wst_seq_combinator = base_combinator =>
 const wst_choice      = (...options) => wse(choice(...options));
 const wst_star        = __make_wst_quantified_combinator(star);
 const wst_plus        = __make_wst_quantified_combinator(plus);
-const wst_star_alt    = __make_wst_quantified_combinator_alt(star);
-const wst_plus_alt    = __make_wst_quantified_combinator_alt(plus);
 const wst_seq         = __make_wst_seq_combinator(seq);
 const wst_enc         = __make_wst_seq_combinator(enc);
 const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
