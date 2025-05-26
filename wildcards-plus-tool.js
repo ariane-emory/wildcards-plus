@@ -2063,7 +2063,7 @@ python_exponent_op.abbreviate_str_repr('python_exponent_op');
 python_logic_word.abbreviate_str_repr('python_logic_word');
 // -------------------------------------------------------------------------------------------------
 // common punctuation:
-const at                = l('@');
+const at                 = l('@');
 const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
@@ -2090,6 +2090,7 @@ const semicolon          = l(';');
 const shebang            = l('#!');
 const slash              = l('/');
 ampersand.abbreviate_str_repr('ampersand');
+at.abbreviate_str_repr('at');
 asterisk.abbreviate_str_repr('asterisk');
 bang.abbreviate_str_repr('bang');
 bslash.abbreviate_str_repr('bslash');
