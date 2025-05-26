@@ -1913,6 +1913,99 @@ function pipe_funs(...fns) {
 
 
 // =================================================================================================
+// Extra grammar classes, these should go somewhere else.
+// =================================================================================================
+function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
+  let klass = {
+    [class_name_str]: class extends Rule {
+      // -------------------------------------------------------------------------------------------
+      constructor(rule) {
+        super();
+        this.base_rule = make_rule_func(rule);
+        this.rule = builder(this.base_rule);
+      }
+      // -------------------------------------------------------------------------------------------
+      __direct_children() {
+        return [this.rule];
+      }
+      // -------------------------------------------------------------------------------------------
+      __impl_finalize(indent, visited) {
+        this.rule = this.__vivify(this.rule);
+        this.rule.__finalize(indent + 1, visited);
+        this.base_rule = this.__vivify(this.base_rule);
+        this.base_rule.__finalize(indent + 1, visited);
+      }
+      // -------------------------------------------------------------------------------------------
+      __match(indent, input, index, cache) {
+        return this.rule.match(input, index, indent + 1, cache);
+      }
+      // -------------------------------------------------------------------------------------------
+      __impl_toString(visited, next_id, ref_counts) {
+        if (typeof this.base_rule.__toString !== 'function')
+          throw new Error(inspect_fun(this));
+        
+        return `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`;
+      }
+    }
+  }[class_name_str];
+
+  let factory_fun = (rule, noisy = false) => {
+    if (noisy)
+      throw new Error('bomb');
+    
+    const log = noisy ? console.log : () => {};
+    rule = make_rule_func(rule);
+
+    let stringified_rule = null;
+
+    try {
+      stringified_rule = 
+        dt_hosted && typeof rule === 'function'
+        ? 'function'
+        : abbreviate(compress(inspect_fun(rule)));
+    }
+    catch (err) {
+      if (!dt_hosted)
+        throw err;
+      
+      stringified_rule = '<unprintable>';
+    }
+
+    if (!rule) {
+      log(`return original null rule ${stringified_rule}`);
+      return rule;
+    }
+
+    if (typeof rule === 'function') {
+      log(`return klassed function ${stringified_rule}`);
+      return new klass(rule);
+    }
+    
+    if (rule instanceof klass) {
+      log(`return original klassed rule ${stringified_rule}`);
+      return rule;
+    }
+    
+    if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
+      log(`return original rule ${stringified_rule}`);
+      return rule;
+    }
+
+    log(`return klassed ${stringified_rule}`);
+    return new klass(rule);
+  }
+  
+  return [ klass, factory_fun ];
+}
+// -------------------------------------------------------------------------------------------------
+const [ WithLWS, lws2 ] =
+      make_whitespace_Rule_class_and_factory_fun("LWS", rule => elem(1, seq(whites_star, rule)));
+const [ WithTWS, tws2 ] =
+      make_whitespace_Rule_class_and_factory_fun("TWS", rule => elem(0, seq(rule, whites_star)));
+// =================================================================================================
+
+
+// =================================================================================================
 // COMMON-GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
 // Code in this section originally copy/pasted from the common-grammar.js file in my
