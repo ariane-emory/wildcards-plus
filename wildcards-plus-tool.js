@@ -1093,7 +1093,7 @@ class CuttingEnclosed extends Enclosed {
         `after ${this.start_rule}`,
       input, start_rule_result.index);
   }
-  f  // -----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
     return `[${this.__vivify(this.start_rule).__toString(visited, next_id, ref_counts)}! ` +
       `${this.__vivify(this.body_rule).__toString(visited, next_id, ref_counts)} ` +
