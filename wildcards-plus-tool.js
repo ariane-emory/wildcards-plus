@@ -381,7 +381,8 @@ class FatalParseError extends Error {
 class Rule {
   // -----------------------------------------------------------------------------------------------
   constructor() {
-    this.memoize = false;
+    // this.memoize     = false;
+    // this.abbreviated = false;
   }
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
@@ -455,24 +456,21 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0, cache = new Map()) {
-    // console.log(`try matching ${this.memoize} ${this}`);
-
-    if (this.memoize === undefined)
-      throw new Error(`suspiciously built rule ${inspect_fun(this)}`);
-    
     if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
     
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
         log(indent,
-            `Matching ${this.toString()}, ` +
+            `Matching ${this.constructor.name} ${this.toString()}, ` +
             `but at end of input!`);
       else 
         log(indent,
-            `Matching ${this.toString()} at ` +
+            `Matching ` +
+            // `${this.constructor.name} `+
+            `${abbreviate(this.toString())} at ` +
             `char #${index}: ` +
-            `"${abbreviate(input.substring(index))}"`)
+            `'${abbreviate(input.substring(index))}'`)
     }
     
     let rule_cache = null; // cache.get(this);
