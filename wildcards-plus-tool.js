@@ -8235,7 +8235,7 @@ const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                        // [0]
                 wst_seq(discarded_comments,                           // -
-                        equals,                                       // [1][0]
+                        equals, // maybe cut here?                    // [1][0]
                         discarded_comments,                           // -
                         choice(() => LimitedContent, lc_alpha_snake), // [1][1]
                         word_break
@@ -8245,7 +8245,7 @@ const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                                            // [0]
                 wst_seq(discarded_comments,                              // -
-                        equals,                                          // [1][0]
+                        equals, // maybe cut here?                       // [1][0]
                         discarded_comments,                              // -
                         choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
                         word_break
@@ -8254,23 +8254,23 @@ SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultip
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                word_break
+                // word_break
                ));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                word_break
+                // word_break
                ));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                   // [0]
                 wst_seq(discarded_comments,                                // -
-                        any_assignment_operator,                           // [1][0]
+                        any_assignment_operator, // maybe cut here?        // [1][0]
                         discarded_comments,                                // -
                         choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
-                word_break
+                // word_break
                ));                                              // -
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
@@ -8278,10 +8278,10 @@ const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                   // [0]
                 wst_seq(discarded_comments,                                      // -
-                        choice(plus_equals, equals),                             // [1][0]
+                        choice(plus_equals, equals), // maybe cut here?          // [1][0]
                         discarded_comments,                                      // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]   
-                word_break
+                // word_break
                ));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
