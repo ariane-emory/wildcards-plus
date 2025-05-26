@@ -8501,7 +8501,7 @@ async function main() {
   // check that the parsed result is complete and expand:
   // -----------------------------------------------------------------------------------------------
   if (! result.is_finished)
-    throw new Error(`error parsing prompt at ${result.index}!`);
+    throw new Error(`error parsing prompt at ${result.index}:\n${inspect_fun(result)}`);
 
   let   AST          = result.value;
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
