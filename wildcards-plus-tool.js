@@ -385,7 +385,7 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
-    if (this.__abbreviated)
+    if (this.abbreviated)
       throw new Error(`${inspect_fun(this)} is already abbreviated, this likely a programmer error`);
     
     if (! abbreviate_str_repr_enabled)
@@ -395,7 +395,7 @@ class Rule {
       this.__impl_toString = () => str;
     
     this.__direct_children = () => [];
-    this.__abbreviated     = true;
+    this.abbreviated     = true;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
