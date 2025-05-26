@@ -8052,16 +8052,16 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related rules:
 // -------------------------------------------------------------------------------------------------
-const word_break                   = r(/(?=$|\s|[{|}\,\;\%\$\@\?\!\[\]\(\)\.])/);
-const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\,\;\%\$\@\?\!\[\]\(\)])/);
-const simple_check_flag_word_break = r(/(?=$|\s|[{|}\,\;\%\$\@\?\!\[\]\(\)])/);
+const word_break                   = r(/(?=$|\s|[{|}\,\;\:\%\$\@\?\!\[\]\(\)\.])/);
+const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\,\;\:\%\$\@\?\!\[\]\(\)])/);
+const simple_check_flag_word_break = r(/(?=$|\s|[{|}\,\;\:\%\$\@\?\!\[\]\(\)])/);
 word_break                         .abbreviate_str_repr('word_break');
 simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
 simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
 
 const SimpleCheckFlag              = xform(seq(question,
                                                plus(ident, dot),
-                                               simple_check_flag_word_break),
+                                               word_break),
                                            arr => {
                                              const args = [arr[1]];
 
