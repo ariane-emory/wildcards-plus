@@ -8643,10 +8643,13 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-main().catch(err => {
-  console.error(`Unhandled error:\n${err.stack}`);
-  process.exit(1);
-});
+let main_disabled = false;
+
+if (! main_disabled)
+  main().catch(err => {
+    console.error(`Unhandled error:\n${err.stack}`);
+    process.exit(1);
+  });
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
