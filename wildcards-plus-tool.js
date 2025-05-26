@@ -8303,7 +8303,9 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          ),
                          discarded_comments,
-                         choice(lws(semicolon), word_break)));
+                         choice(lws(semicolon), word_break),
+                         // optional(lws(semicolon)),
+                        ));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
@@ -8673,10 +8675,10 @@ async function main() {
 let main_disabled = false;
 
 if (! main_disabled)
-  main().catch(err => {
-    console.error(`Unhandled error:\n${err.stack}`);
-    process.exit(1);
-  });
-// =================================================================================================
-// END OF MAIN SECTION.
-// =================================================================================================
+               main().catch(err => {
+                 console.error(`Unhandled error:\n${err.stack}`);
+                 process.exit(1);
+               });
+             // =================================================================================================
+             // END OF MAIN SECTION.
+             // =================================================================================================

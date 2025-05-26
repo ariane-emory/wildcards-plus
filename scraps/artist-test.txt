@@ -10,3 +10,6 @@
 { !corge.#grault.quux }
 { ?poop, }
 { ?poop. }
+
+%foo = []123
+
