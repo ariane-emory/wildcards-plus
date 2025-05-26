@@ -8279,6 +8279,8 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
+UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
