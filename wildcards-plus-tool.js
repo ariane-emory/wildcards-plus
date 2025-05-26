@@ -6909,11 +6909,13 @@ function load_prelude(into_context = new Context()) {
     prelude_parse_result = Prompt.match(prelude_text);
     log_match_enabled = old_log_match_enabled;
   }
+
+  console.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
   
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
   if (ignored === undefined)
-    throw new Error("crap");
+                throw new Error("crap");
   
   return into_context;
 }
