@@ -8759,10 +8759,8 @@ if (! main_disabled)
 // END OF MAIN SECTION.
 // =================================================================================================
 
-// const rule1 = tws(lws(l('foo')));
-// console.log(rule1.match('   foo    '));
-// const rule2 = tws2(lws2(l('foo')));
-// console.log(rule2.match('   foo    '));
+const rule1 = tws(lws(l('foo')));
+console.log(rule1.match('   foo    '));
+const rule2 = tws2(lws2(l('foo')));
+console.log(rule2.match('   foo    '));
 
-console.log(lws(l('foo')));
-console.log(tws(lws(l('foo'))));
