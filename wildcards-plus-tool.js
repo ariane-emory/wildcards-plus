@@ -2015,6 +2015,7 @@ function make_whitespace_decorator(name, builder, extractor) {
     return built;
   }
 }
+// -------------------------------------------------------------------------------------------------
 const lws2 = make_whitespace_decorator("LWS2",
                                        rule => elem(1, seq(whites_star, rule)),
                                        rule => rule.elements[1]  // your original form
@@ -2023,11 +2024,7 @@ const tws2 = make_whitespace_decorator("TWS2",
                                        rule => elem(0, seq(rule, whites_star)),
                                        rule => rule.elements[0]
                                       );
-
-
-const LWS_TAG = Symbol('LWS');
-const TWS_TAG = Symbol('TWS');
-
+// =================================================================================================
 function make_whitespace_decorator2(name, builder) {
   const tag = Symbol(name);
   
@@ -2053,11 +2050,9 @@ function make_whitespace_decorator2(name, builder) {
     return built;
   };
 }
-
+// -------------------------------------------------------------------------------------------------
 const lws3 = make_whitespace_decorator2("LWS3", rule => elem(1, seq(whites_star, rule)));
 const tws3 = make_whitespace_decorator2("TWS3", rule => elem(0, seq(rule, whites_star)));
-
-
 // =================================================================================================
 // COMMON-GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
