@@ -2028,12 +2028,21 @@ const tws2 = make_whitespace_decorator("TWS",
 const LWS_TAG = Symbol('LWS');
 const TWS_TAG = Symbol('TWS');
 
-function make_whitespace_decorator2(tag, name, builder) {
+function make_whitespace_decorator2(name, builder) {
+  const tag = Symbol(name);
+  
   return function (rule) {
     rule = make_rule_func(rule);
 
-    if (!rule || rule[tag]) return rule;
+    if (!rule) return rule;
 
+    if (rule[tag]) return rule;
+    
+    if (rule instanceof Rule  &&
+        rule.direct_children().length > 0 &&
+        rule.direct_children().every(x => x[tag]))
+      return rule;
+    
     const decorated = builder(rule);
     decorated[tag] = true;
 
@@ -2045,8 +2054,8 @@ function make_whitespace_decorator2(tag, name, builder) {
   };
 }
 
-const lws3 = make_whitespace_decorator2(LWS_TAG, "LWS", rule => elem(1, seq(whites_star, rule)));
-const tws3 = make_whitespace_decorator2(TWS_TAG, "TWS", rule => elem(0, seq(rule, whites_star)));
+const lws3 = make_whitespace_decorator2("LWS", rule => elem(1, seq(whites_star, rule)));
+const tws3 = make_whitespace_decorator2("TWS", rule => elem(0, seq(rule, whites_star)));
 
 
 // =================================================================================================
@@ -8807,25 +8816,30 @@ if (! main_disabled)
 const reps = 1000000;
 const mode = 3;
 
-if (mode == 0)
+if (mode == 0) {
   for (let ix = 0; ix < reps; ix++) {
     const rule = tws0(lws0(l('foo')));
     const result = rule.match('   foo    ');
+  }
 }
-else if (mode == 1)
+else if (mode == 1) {
   for (let ix = 0; ix < reps; ix++) {
     const rule = tws1(lws1(l('foo')));
     const result = rule.match('   foo    ');
   }
-else if (mode == 2)
+}
+else if (mode == 2) {
   for (let ix = 0; ix < reps; ix++) {
     const rule = tws2(lws2(l('foo')));
     const result = rule.match('   foo    ');
   }
-else if (mode == 3)
+}
+else if (mode == 3) {
   for (let ix = 0; ix < reps; ix++) {
     const rule = tws3(lws3(l('foo')));
     const result = rule.match('   foo    ');
   }
-else
+}
+else {
   throw new Error(`unknown mode ${mode}`);
+}
