@@ -1913,7 +1913,35 @@ function pipe_funs(...fns) {
 
 
 // =================================================================================================
-// Extra grammar classes, these should go somewhere else.
+// Whitespace combinators, these should go somewhere else?
+// =================================================================================================
+const lws0                = rule => {
+  rule = elem(1, seq(whites_star, rule));
+  
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
+    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+    return `LWS0(${rule_str})`;
+  }
+
+  return rule;
+};
+const tws0                = rule => { 
+  rule = elem(0, seq(rule, whites_star));
+
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
+    const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
+    return `TWS0(${rule_str})`;
+  }
+
+  return rule;
+};
+// =================================================================================================
+
+
+// =================================================================================================
+const prettify_whitespace_combinators = false;
+// =================================================================================================
+
 // =================================================================================================
 function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
   let klass = {
@@ -1944,7 +1972,9 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
         if (typeof this.base_rule.__toString !== 'function')
           throw new Error(inspect_fun(this));
         
-        return `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`;
+        return prettify_whitespace_combinators
+          ? `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`
+          : this.base_rule.toString();
       }
     }
   }[class_name_str];
@@ -2003,14 +2033,18 @@ const [ WithLWS, lws1 ] =
 const [ WithTWS, tws1 ] =
       make_whitespace_Rule_class_and_factory_fun("TWS1", rule => elem(0, seq(rule, whites_star)));
 // =================================================================================================
+
+
+// =================================================================================================
 function make_whitespace_decorator0(name, builder, extractor) {
   return rule => {
     const built = builder(rule);
 
-    built.__impl_toString = function(visited, next_id, ref_counts) {
-      const rule_str = extractor(this).__toString(visited, next_id, ref_counts);
-      return `${name}(${rule_str})`;
-    };
+    if (prettify_whitespace_combinators)
+      built.__impl_toString = function(visited, next_id, ref_counts) {
+        const rule_str = extractor(this).__toString(visited, next_id, ref_counts);
+        return `${name}(${rule_str})`;
+      };
 
     return built;
   }
@@ -2024,6 +2058,9 @@ const tws2 = make_whitespace_decorator0("TWS2",
                                         rule => elem(0, seq(rule, whites_star)),
                                         rule => rule.elements[0]
                                        );
+// =================================================================================================
+
+
 // =================================================================================================
 function make_whitespace_decorator1(name, builder) {
   const tag = Symbol(name);
@@ -2043,9 +2080,10 @@ function make_whitespace_decorator1(name, builder) {
     const built = builder(rule);
     built[tag] = true;
 
-    built.__impl_toString = function(visited, next_id, ref_counts) {
-      return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
-    };
+    if (prettify_whitespace_combinators)
+      built.__impl_toString = function(visited, next_id, ref_counts) {
+        return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+      };
 
     return built;
   };
@@ -2060,20 +2098,23 @@ const tws3 = make_whitespace_decorator1("TWS3", rule => elem(0, seq(rule, whites
 function make_whitespace_decorator2(name, builder) {
   const tag = Symbol(name);
 
-  const decorator = function (rule) {
+  const factory_fun = function (rule) {
     rule = make_rule_func(rule);
-    if (!rule) return rule;
 
-    if (rule[tag]) return rule;
+    if (!rule)
+      return rule;
+
+    if (rule[tag])
+      return rule;
 
     // Unwrap if Choice of tagged rules
     if (rule instanceof Choice &&
-        rule.options.every(alt => alt[tag])) {
-      const unwrapped_alts = rule.options.map(alt => alt.__original_rule || alt);
-      const rebuilt_choice = new Choice(...unwrapped_alts);
+        rule.options.every(option => option[tag])) {
+      const unwrapped_options = rule.options.map(option => option.__original_rule || option);
+      const rebuilt_choice = new Choice(...unwrapped_options);
       
       console.log(`constructed ${inspect_fun(rebuilt_choice)}`);
-      const decorated = decorator(rebuilt_choice);  // ✅ Use the same closure with stable tag
+      const decorated = factory_fun(rebuilt_choice);  // ✅ Use the same closure with stable tag
       console.log(`decorated ${inspect_fun(decorated)}`);
       return decorated;
     }
@@ -2087,14 +2128,15 @@ function make_whitespace_decorator2(name, builder) {
     built[tag] = true;
     built.__original_rule = rule;
 
-    built.__impl_toString = function(visited, next_id, ref_counts) {
-      return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
-    };
+    if (prettify_whitespace_combinators)
+      built.__impl_toString = function(visited, next_id, ref_counts) {
+        return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+      };
 
     return built;
   };
 
-  return decorator;
+  return factory_fun;
 }
 // -------------------------------------------------------------------------------------------------
 const lws4 = make_whitespace_decorator2("LWS3", rule => elem(1, seq(whites_star, rule)));
@@ -2117,14 +2159,6 @@ const tws4 = make_whitespace_decorator2("TWS3", rule => elem(0, seq(rule, whites
 // =================================================================================================
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
-// simple 'words':
-const alpha_snake             = r(/[a-zA-Z_]+/);
-const lc_alpha_snake          = r(/[a-z_]+/);
-const uc_alpha_snake          = r(/[A-Z_]+/);
-alpha_snake.abbreviate_str_repr('alpha_snake');
-lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
-uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
-// -------------------------------------------------------------------------------------------------
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
@@ -2132,28 +2166,17 @@ const whites_plus        = r(/\s+/);
 // whites_plus.memoize = false;
 whites_star.abbreviate_str_repr('whites*');
 whites_plus.abbreviate_str_repr('whites+');
+// simple 'words':
+// -------------------------------------------------------------------------------------------------
+const alpha_snake             = r(/[a-zA-Z_]+/);
+const lc_alpha_snake          = r(/[a-z_]+/);
+const uc_alpha_snake          = r(/[A-Z_]+/);
+alpha_snake.abbreviate_str_repr('alpha_snake');
+lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
+uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
-const lws0                = rule => {
-  rule = elem(1, seq(whites_star, rule));
-  
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `LWS0(${rule_str})`;
-  }
-
-  return rule;
-};
-const tws0                = rule => {
-  rule = elem(0, seq(rule, whites_star));
-
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
-    return `TWS0(${rule_str})`;
-  }
-
-  return rule;
-};
+// -------------------------------------------------------------------------------------------------
 const lws = lws0;
 const tws = tws0;
 // -------------------------------------------------------------------------------------------------
@@ -9012,10 +9035,13 @@ const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar'))))); rule2.finalize
 const rule3 = tws3(lws3(choice(lws3(l('foo')), lws3(l('bar'))))); rule3.finalize();
 const rule4 = tws4(lws4(choice(lws4(l('foo')), lws4(l('bar'))))); rule4.finalize();
 
-const options = { batch_count: 100, reps_per_batch: 100_000 }; 
+const options = { batch_count: 500, reps_per_batch: 100_000 }; 
 
-console.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+console.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+console.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
