@@ -2132,7 +2132,6 @@ function make_whitespace_decorator2(name, elem_index, builder) {
                        ? seq(rule, whites_star)
                        : seq(whites_star, rule));
     
-    //    const built = builder(rule);
     built[tag] = true;
     built.__original_rule = rule;
 
