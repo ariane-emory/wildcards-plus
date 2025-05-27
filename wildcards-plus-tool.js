@@ -2120,9 +2120,9 @@ function make_whitespace_decorator2(name, builder) {
       const unwrapped_options = rule.options.map(option => option.__original_rule || option);
       const rebuilt_choice = new Choice(...unwrapped_options);
       
-      console.log(`constructed ${inspect_fun(rebuilt_choice)}`);
+      // console.log(`constructed ${inspect_fun(rebuilt_choice)}`);
       const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
-      console.log(`decorated ${inspect_fun(decorated)}`);
+      // console.log(`decorated ${inspect_fun(decorated)}`);
       return decorated;
     }
 
