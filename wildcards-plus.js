@@ -3492,7 +3492,7 @@ class Context {
       if (! replace)
         return;
       
-      this.configuration.splice(index, 1); // Remove the existing entry
+      this.configuration.loras.splice(index, 1); // Remove the existing entry
     }
     
     this.configuration.loras.push(lora);
