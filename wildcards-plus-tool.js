@@ -1871,7 +1871,7 @@ function log(indent, str = "", indent_str = "| ") {
 function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
   console.log(char.repeat(width));
 }
-LOG_LINE.line_width = 90;
+LOG_LINE.line_width = 100;
 // -------------------------------------------------------------------------------------------------
 function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
   if (typeof thing === 'string')
@@ -2888,40 +2888,39 @@ function benchmark(thunk, {
 
     running_avg = (((running_avg * oix) + time) / (oix + 1));
 
-    process.stdout.write('.');
-    if (((oix + 1) % 100) == 0)
+    if (quiet) {
+      process.stdout.write('.');
+      if (((oix + 1) % 100) == 0)
+        process.stdout.write('\n');
+    }
+    else if (((oix + 1) % print_div) == 0) {
       process.stdout.write('\n');
-    
-    if (((oix + 1) % print_div) == 0) {
-      if (! quiet) {
-        process.stdout.write('\n');
-        console.log();
-        console.log(`${ordinal_string(oix + 1)} batch of ` +
-                    `${format_pretty_number(reps_per_batch)} ` +
-                    `(out of ${format_pretty_number(batch_count)}): `);
-        console.log(`result:                 ${semijson(result)}`);
-        console.log(`mem at start:           ${format_pretty_bytes(start_mem)}`);
-        const now = process.memoryUsage().heapUsed;
-        console.log(`mem now:                ${format_pretty_bytes(now)}`);
-        console.log(`mem diff:               ${format_pretty_bytes(now - start_mem)}`);
-        console.log(`time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
-        console.log(`time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
-        console.log(`total runtime:          ` +
-                    `${((performance.now() - start_time)/1000).toFixed(2)} ` +
-                    `seconds`);
-        console.log(`rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
-        console.log(`est. runs/second:       ${Math.round(runs_per_second_est)}`);
-        console.log(`EST. TIME PER MILLION:  ` +
-                    `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
-        process.stdout.write('\n');
-      }
+      console.log();
+      console.log(`${ordinal_string(oix + 1)} batch of ` +
+                  `${format_pretty_number(reps_per_batch)} ` +
+                  `(out of ${format_pretty_number(batch_count)}): `);
+      console.log(`result:                 ${rjson_stringify(result)}`);
+      console.log(`mem at start:           ${format_pretty_bytes(start_mem)}`);
+      const now = process.memoryUsage().heapUsed;
+      console.log(`mem now:                ${format_pretty_bytes(now)}`);
+      console.log(`mem diff:               ${format_pretty_bytes(now - start_mem)}`);
+      console.log(`time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
+      console.log(`time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
+      console.log(`total runtime:          ` +
+                  `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+                  `seconds`);
+      console.log(`rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
+      console.log(`est. runs/second:       ${Math.round(runs_per_second_est)}`);
+      console.log(`EST. TIME PER MILLION:  ` +
+                  `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
+      process.stdout.write('\n');
     }
   }
   
   console.log();
   console.log(`batch_count:            ${batch_count}`);
   console.log(`reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
-  console.log(`last result:            ${semijson(result)}`);
+  console.log(`last result:            ${rjson_stringify(result)}`);
   const now = process.memoryUsage().heapUsed;
   console.log(`final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
   console.log(`total runtime:          ` +
@@ -2964,7 +2963,7 @@ function measure_time(fun) {
   return duration;
 }
 // -------------------------------------------------------------------------------------------------
-export function semijson(obj) {
+function rjson_stringify(obj) {
   if (obj === undefined)
     return 'undefined';
   
@@ -8959,14 +8958,16 @@ if (false) {
   }
 }
 
+console.log(); console.log();
+
 const rule0 = tws0(lws0(l('foo')));
 const rule1 = tws1(lws1(l('foo')));
 const rule2 = tws2(lws2(l('foo')));
 const rule3 = tws3(lws3(l('foo')));
 
-const options = { batch_count: 20, reps_per_batch: 1000000 };
+const options = { batch_count: 100, reps_per_batch: 100_000 };
 
-benchmark(() => rule0.match('           foo    '), options);
-benchmark(() => rule1.match('           foo    '), options);
-benchmark(() => rule2.match('           foo    '), options);
-benchmark(() => rule3.match('           foo    '), options);
+benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
