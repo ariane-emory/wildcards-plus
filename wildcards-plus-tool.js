@@ -2078,23 +2078,23 @@ function make_whitespace_decorator2(name, builder) {
       return decorated;
     }
 
-  if (rule instanceof Rule &&
-      rule.direct_children().length > 0 &&
-      rule.direct_children().every(x => x[tag]))
-    return rule;
+    if (rule instanceof Rule &&
+        rule.direct_children().length > 0 &&
+        rule.direct_children().every(x => x[tag]))
+      return rule;
 
-  const built = builder(rule);
-  built[tag] = true;
-  built.__original_rule = rule;
+    const built = builder(rule);
+    built[tag] = true;
+    built.__original_rule = rule;
 
-  built.__impl_toString = function(visited, next_id, ref_counts) {
-    return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+    built.__impl_toString = function(visited, next_id, ref_counts) {
+      return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+    };
+
+    return built;
   };
 
-  return built;
-};
-
-return decorator;
+  return decorator;
 }
 // -------------------------------------------------------------------------------------------------
 const lws4 = make_whitespace_decorator2("LWS3", rule => elem(1, seq(whites_star, rule)));
