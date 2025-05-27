@@ -2102,7 +2102,7 @@ const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_s
 
 
 // =================================================================================================
-function make_whitespace_decorator2(name, elem_index, builder) {
+function make_whitespace_decorator2(name, elem_index) {
   const tag = Symbol(name);
 
   const decorate = function (rule) {
