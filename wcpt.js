@@ -8357,8 +8357,6 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
                          ),
-                         // SpecialFunctionTail
-                         // optional(lws(semicolon)),
                         ));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
@@ -8467,8 +8465,6 @@ const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_
         UnsetFlag,
         ScalarUpdate,
         ScalarReference,
-        // anon_wildcard_rule,
-        // escaped_brc,
       );
 const ContentNoLoras          = make_Content_rule({
   after_plaintext_rules: [
