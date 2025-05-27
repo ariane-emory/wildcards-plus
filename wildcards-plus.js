@@ -8671,6 +8671,9 @@ try {
     LOG_LINE();
     console.log(`GENERATED CONFIGURATION:`);
     console.log(`${JSON.stringify(context.configuration, null, 2)}`);
+
+    // throw new Error("stop here");
+    
     LOG_LINE();
     console.log(`The expanded prompt is:`);
     LOG_LINE();
