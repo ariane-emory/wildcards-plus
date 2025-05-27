@@ -696,8 +696,8 @@ class Element extends Rule {
           : rule_match_result.value[this.index];
     
     if (log_match_enabled) {
-      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result.value)} = ` +
-          `${typeof ret === 'symbol' ? ret.toString() : inspect_fun(ret)}`);
+      log(indent, `GET ELEM ${this.index} FROM ${compress(inspect_fun(rule_match_result.value))} = ` +
+          `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
     }
     
     rule_match_result.value = ret;
@@ -1690,7 +1690,7 @@ function pipe_funs(...fns) {
 // =================================================================================================
 // Whitespace combinators, these should go somewhere else?
 // =================================================================================================
-const prettify_whitespace_combinators = false;
+const prettify_whitespace_combinators = true;
 // =================================================================================================
 
 // =================================================================================================
@@ -2045,16 +2045,16 @@ const brc_enc            = rule => cutting_enc(lbrc, rule, rbrc);
 const sqr_enc            = rule => cutting_enc(lsqr, rule, rsqr);
 const tri_enc            = rule => cutting_enc(lt,   rule, gt);
 // const wse                = rule => enc(whites_star, rule, whites_star);
-const wse                = rule => {
-  rule = enc(whites_star, rule, whites_star);
-  
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
-    return `WSE(${rule_str})`;
-  }
+// const wse                = rule => {
+//   rule = enc(whites_star, rule, whites_star);
 
-  return rule;
-};
+//   rule.__impl_toString = function(visited, next_id, ref_counts) {
+//     const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
+//     return `WSE(${rule_str})`;
+//   }
+
+//   return rule;
+// };
 // -------------------------------------------------------------------------------------------------
 // basic arithmetic ops:
 const factor_op          = r(/[\/\*\%]/);
@@ -2209,7 +2209,7 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
 const __make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(wse(rule), sep));
+      ((rule, sep = null) => base_combinator(lws(rule), lws(sep)));
 const __make_wst_seq_combinator = base_combinator =>
       //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
       (...rules) => base_combinator(...rules.map(x => lws(x)));
@@ -2221,10 +2221,10 @@ const wst_seq         = __make_wst_seq_combinator(seq);
 const wst_enc         = __make_wst_seq_combinator(enc);
 const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
 const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => cutting_enc(wse(lpar), rule, wse(rpar));
-const wst_brc_enc     = rule => cutting_enc(wse(lbrc), rule, wse(rbrc));
-const wst_sqr_enc     = rule => cutting_enc(wse(lsqr), rule, wse(rsqr));
-const wst_tri_enc     = rule => cutting_enc(wse(lt),   rule, wse(gt));
+const wst_par_enc     = rule => cutting_enc(lws(lpar), rule, lws(rpar));
+const wst_brc_enc     = rule => cutting_enc(lws(lbrc), rule, lws(rbrc));
+const wst_sqr_enc     = rule => cutting_enc(lws(lsqr), rule, lws(rsqr));
+const wst_tri_enc     = rule => cutting_enc(lws(ltri), rule, lws(rtri));
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
@@ -8545,7 +8545,7 @@ const TopLevelContent         = make_Content_rule({
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
-const Prompt                  = TopLevelContentStar;
+const Prompt                  = tws(TopLevelContentStar);
 // -------------------------------------------------------------------------------------------------
 Prompt.finalize();
 // =================================================================================================
