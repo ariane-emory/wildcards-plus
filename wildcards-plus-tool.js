@@ -264,7 +264,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let log_expand_and_walk_enabled       = false;  
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
 let inspect_depth                     = 50;
@@ -8349,6 +8349,11 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
 const make_ASTAnonWildcardAlternative = arr => {
+  const weight = arr[1][0];
+
+  if (weight == 0)
+    return DISCARD;
+  
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
@@ -8363,15 +8368,15 @@ const make_ASTAnonWildcardAlternative = arr => {
   const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails =
         not_flags
         .filter(f => f.consequently_set_flag_tail)
-        .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
+    .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
   
   const ASTSetFlags_for_ASTNotFlags_with_set_immediately =
         not_flags
         .filter(f => f.set_immediately)
-        .map(f => new ASTSetFlag(f.flag));
+    .map(f => new ASTSetFlag(f.flag));
 
   return new ASTAnonWildcardAlternative(
-    arr[1][0],
+    weight,
     check_flags,
     not_flags,
     [
