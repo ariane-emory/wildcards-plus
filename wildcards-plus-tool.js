@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = false;
+  log_match_enabled  = true;
   const result       = Prompt.match(prompt_input, 0, 0, cache);
   log_match_enabled  = old_log_match_enabled;
   
@@ -924,8 +924,8 @@ class Element extends Rule {
           : rule_match_result.value[this.index];
     
     if (log_match_enabled) {
-      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result.value)} = ` +
-          `${typeof ret === 'symbol' ? ret.toString() : inspect_fun(ret)}`);
+      log(indent, `GET ELEM ${this.index} FROM ${compress(inspect_fun(rule_match_result.value))} = ` +
+          `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
     }
     
     rule_match_result.value = ret;
@@ -2437,7 +2437,7 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
 const __make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(lws(rule), sep));
+      ((rule, sep = null) => base_combinator(lws(rule), lws(sep)));
 const __make_wst_seq_combinator = base_combinator =>
       //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
       (...rules) => base_combinator(...rules.map(x => lws(x)));
@@ -8773,7 +8773,7 @@ const TopLevelContent         = make_Content_rule({
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
-const Prompt                  = TopLevelContentStar;
+const Prompt                  = tws(TopLevelContentStar);
 // -------------------------------------------------------------------------------------------------
 Prompt.finalize();
 // =================================================================================================
