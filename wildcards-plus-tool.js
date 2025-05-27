@@ -2003,7 +2003,7 @@ const [ WithLWS, lws1 ] =
 const [ WithTWS, tws1 ] =
       make_whitespace_Rule_class_and_factory_fun("TWS1", rule => elem(0, seq(rule, whites_star)));
 // =================================================================================================
-function make_whitespace_decorator(name, builder, extractor) {
+function make_whitespace_decorator0(name, builder, extractor) {
   return rule => {
     const built = builder(rule);
 
@@ -2016,16 +2016,16 @@ function make_whitespace_decorator(name, builder, extractor) {
   }
 }
 // -------------------------------------------------------------------------------------------------
-const lws2 = make_whitespace_decorator("LWS2",
-                                       rule => elem(1, seq(whites_star, rule)),
-                                       rule => rule.elements[1]  // your original form
+const lws2 = make_whitespace_decorator0("LWS2",
+                                        rule => elem(1, seq(whites_star, rule)),
+                                        rule => rule.elements[1]  // your original form
                                       );
-const tws2 = make_whitespace_decorator("TWS2",
-                                       rule => elem(0, seq(rule, whites_star)),
-                                       rule => rule.elements[0]
+const tws2 = make_whitespace_decorator0("TWS2",
+                                        rule => elem(0, seq(rule, whites_star)),
+                                        rule => rule.elements[0]
                                       );
 // =================================================================================================
-function make_whitespace_decorator2(name, builder) {
+function make_whitespace_decorator1(name, builder) {
   const tag = Symbol(name);
   
   return function (rule) {
@@ -2051,13 +2051,13 @@ function make_whitespace_decorator2(name, builder) {
   };
 }
 // -------------------------------------------------------------------------------------------------
-const lws3 = make_whitespace_decorator2("LWS3", rule => elem(1, seq(whites_star, rule)));
-const tws3 = make_whitespace_decorator2("TWS3", rule => elem(0, seq(rule, whites_star)));
+const lws3 = make_whitespace_decorator1("LWS3", rule => elem(1, seq(whites_star, rule)));
+const tws3 = make_whitespace_decorator1("TWS3", rule => elem(0, seq(rule, whites_star)));
 // =================================================================================================
 
 
 // =================================================================================================
-function make_whitespace_decorator3(name, builder) {
+function make_whitespace_decorator2(name, builder) {
   const tag = Symbol(name);
 
   const decorator = function (rule) {
@@ -2093,8 +2093,8 @@ function make_whitespace_decorator3(name, builder) {
   return decorator;
 }
 // -------------------------------------------------------------------------------------------------
-const lws4 = make_whitespace_decorator3("LWS3", rule => elem(1, seq(whites_star, rule)));
-const tws4 = make_whitespace_decorator3("TWS3", rule => elem(0, seq(rule, whites_star)));
+const lws4 = make_whitespace_decorator2("LWS3", rule => elem(1, seq(whites_star, rule)));
+const tws4 = make_whitespace_decorator2("TWS3", rule => elem(0, seq(rule, whites_star)));
 // =================================================================================================
 
 
