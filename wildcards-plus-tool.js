@@ -61,7 +61,29 @@ function parse_file(filename) {
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
   // log_match_enabled  = true;
-  const result       = Prompt.match(prompt_input, 0, 0, cache);
+
+  let  result        = null;
+
+  if (dt_hosted) {
+    result = Prompt.match(prompt_input, 0, 0, cache);
+  }
+  else {
+    try {
+      result = Prompt.match(prompt_input, 0, 0, cache);
+    }
+    catch (err) {
+      if (err instanceof FatalParseError) {
+        console.log(`ERROR: matching thre fatal parse error, ` +
+                    `halting: \n` +
+                    `${inspect_fun(err)}`);
+        process.exit(0);
+      }
+      else {
+        throw err;
+      }
+    }
+  }
+
   log_match_enabled  = old_log_match_enabled;
   
   const sortedEntries = Array.from(cache.entries())
@@ -8368,12 +8390,12 @@ const make_ASTAnonWildcardAlternative = arr => {
   const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails =
         not_flags
         .filter(f => f.consequently_set_flag_tail)
-    .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
+        .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
   
   const ASTSetFlags_for_ASTNotFlags_with_set_immediately =
         not_flags
         .filter(f => f.set_immediately)
-    .map(f => new ASTSetFlag(f.flag));
+        .map(f => new ASTSetFlag(f.flag));
 
   return new ASTAnonWildcardAlternative(
     weight,
@@ -8850,7 +8872,19 @@ async function main() {
       input.on('error', err => reject(err));
     });
 
-    result = Prompt.match(prompt_input);
+    try {
+      result = Prompt.match(prompt_input);
+    }
+    catch (err) {
+      if (err instanceof FatalParseError) {
+        console.log(`got fatal parse error, halting: ${inspect_fun(err)}`);
+        process.exit(0);
+      }
+      else {
+        throw err;
+      }
+    }
+    
     process.exit(0);
   } else if (args.length  === 0) {
     throw new Error("ERROR: No input file provided.");
