@@ -1999,9 +1999,9 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
 }
 // -------------------------------------------------------------------------------------------------
 const [ WithLWS, lws1 ] =
-      make_whitespace_Rule_class_and_factory_fun("LWS", rule => elem(1, seq(whites_star, rule)));
+      make_whitespace_Rule_class_and_factory_fun("LWS1", rule => elem(1, seq(whites_star, rule)));
 const [ WithTWS, tws1 ] =
-      make_whitespace_Rule_class_and_factory_fun("TWS", rule => elem(0, seq(rule, whites_star)));
+      make_whitespace_Rule_class_and_factory_fun("TWS1", rule => elem(0, seq(rule, whites_star)));
 // =================================================================================================
 function make_whitespace_decorator(name, builder, extractor) {
   return rule => {
@@ -2015,11 +2015,11 @@ function make_whitespace_decorator(name, builder, extractor) {
     return built;
   }
 }
-const lws2 = make_whitespace_decorator("LWS",
+const lws2 = make_whitespace_decorator("LWS2",
                                        rule => elem(1, seq(whites_star, rule)),
                                        rule => rule.elements[1]  // your original form
                                       );
-const tws2 = make_whitespace_decorator("TWS",
+const tws2 = make_whitespace_decorator("TWS2",
                                        rule => elem(0, seq(rule, whites_star)),
                                        rule => rule.elements[0]
                                       );
@@ -2054,8 +2054,8 @@ function make_whitespace_decorator2(name, builder) {
   };
 }
 
-const lws3 = make_whitespace_decorator2("LWS", rule => elem(1, seq(whites_star, rule)));
-const tws3 = make_whitespace_decorator2("TWS", rule => elem(0, seq(rule, whites_star)));
+const lws3 = make_whitespace_decorator2("LWS3", rule => elem(1, seq(whites_star, rule)));
+const tws3 = make_whitespace_decorator2("TWS3", rule => elem(0, seq(rule, whites_star)));
 
 
 // =================================================================================================
@@ -2095,7 +2095,7 @@ const lws0                = rule => {
   
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `LWS(${rule_str})`;
+    return `LWS0(${rule_str})`;
   }
 
   return rule;
@@ -2104,8 +2104,8 @@ const tws0                = rule => {
   rule = elem(0, seq(rule, whites_star));
 
   rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `TWS(${rule_str})`;
+    const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
+    return `TWS0(${rule_str})`;
   }
 
   return rule;
@@ -8967,13 +8967,9 @@ const rule1 = tws1(lws1(l('foo')));
 const rule2 = tws2(lws2(l('foo')));
 const rule3 = tws3(lws3(l('foo')));
 
-const options = { batch_count: 500, reps_per_batch: 100_000 };
+const options = { batch_count: 100, reps_per_batch: 100_000 };
 
-console.log(`RULE0: `);
-benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE1: `);
-// benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE2: `);
-// benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-console.log(`RULE3: `);
-benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
