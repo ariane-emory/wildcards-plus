@@ -2128,11 +2128,11 @@ function make_whitespace_decorator2(name, elem_index, builder) {
         rule.direct_children().every(x => x[tag]))
       return rule;
 
-    const builder = elem_index == 0
-          ? rule => second(seq(whites_star, rule))
-          : rule => first(seq(rule, whites_star));
+    const built = elem(elem_index, elem_index == 0
+                       ? seq(rule, whites_star)
+                       : seq(whites_star, rule));
     
-    const built = builder(rule);
+    //    const built = builder(rule);
     built[tag] = true;
     built.__original_rule = rule;
 
