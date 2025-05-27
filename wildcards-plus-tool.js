@@ -2121,17 +2121,17 @@ function make_whitespace_decorator2(name, elem_index, builder) {
       const unwrapped_options = rule.options.map(option => option.__original_rule || option);
       const rebuilt_choice = new Choice(...unwrapped_options);
       
-      console.log(`constructed ${inspect_fun(rebuilt_choice)}`);
+      // console.log(`constructed ${inspect_fun(rebuilt_choice)}`);
       const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
-      console.log(`decorated ${inspect_fun(decorated)}`);
+      // console.log(`decorated ${inspect_fun(decorated)}`);
       return decorated;
     }
 
     if (rule instanceof Sequence) {
-      if (elem_index == 0 &&
+      if (elem_index == 1 &&
           rule.elements[0][tag])
         return rule;
-      else if (elem_index == 1 &&
+      else if (elem_index == 0 &&
                rule.elements[rule.elements.length - 1][tag])
         return rule;
     }
@@ -2148,7 +2148,7 @@ function make_whitespace_decorator2(name, elem_index, builder) {
     built[tag] = true;
     built.__original_rule = rule;
 
-    if (prettify_whitespace_combinators)
+    if (true) // prettify_whitespace_combinators)
       built.__impl_toString = function(visited, next_id, ref_counts) {
         return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
       };
@@ -2197,8 +2197,8 @@ uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
 // -------------------------------------------------------------------------------------------------
-const lws = lws0;
-const tws = tws0;
+const lws = lws4;
+const tws = tws4;
 // -------------------------------------------------------------------------------------------------
 // common numbers:
 const udecimal           = r(/\d+\.\d+/);
