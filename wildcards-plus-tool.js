@@ -9038,6 +9038,13 @@ if (false) {
 
 console.log(); console.log();
 
+// console.log(`THIS: ${lws4('foo')}`);
+console.log(`THIS: ${seq(lws4('foo'), tws4('bar'))}`);
+console.log(`THIS: ${lws4(seq(lws4('foo'), tws4('bar')))}`);
+// console.log(`THIS: ${tws4(lws4(seq(lws4('foo'), tws4('bar'))))}`);
+
+process.exit(0);
+
 const rule0 = tws0(lws0(choice(lws0(l('foo')), lws0(l('bar'))))); rule0.finalize();
 const rule1 = tws1(lws1(choice(lws1(l('foo')), lws1(l('bar'))))); rule1.finalize();
 const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar'))))); rule2.finalize();
