@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --expose-gc
 // -*- fill-column: 100; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 // THIS FILE IS NOT THE DRAW THINGS SCRIPT: that's over in wildcards-plus.js.
@@ -2897,13 +2897,14 @@ function benchmark(thunk, {
         process.stdout.write('\n');
         console.log();
         console.log(`${ordinal_string(oix + 1)} batch of ` +
-                    `${reps_per_batch} (out of ${batch_count}): `);
+                    `${format_pretty_number(reps_per_batch)} ` +
+                    `(out of ${format_pretty_number(batch_count)}): `);
         console.log(`result:                 ${semijson(result)}`);
-        console.log(`mem at start:           ${format_bytes(start_mem)}`);
+        console.log(`mem at start:           ${format_pretty_bytes(start_mem)}`);
         const now = process.memoryUsage().heapUsed;
-        console.log(`mem now:                ${format_bytes(now)}`);
-        console.log(`mem diff:               ${format_bytes(now - start_mem)}`);
-        console.log(`time/batch              ${format_number(time.toFixed(3))} ms`);
+        console.log(`mem now:                ${format_pretty_bytes(now)}`);
+        console.log(`mem diff:               ${format_pretty_bytes(now - start_mem)}`);
+        console.log(`time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
         console.log(`time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
         console.log(`total runtime:          ` +
                     `${((performance.now() - start_time)/1000).toFixed(2)} ` +
@@ -2911,7 +2912,7 @@ function benchmark(thunk, {
         console.log(`rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
         console.log(`est. runs/second:       ${Math.round(runs_per_second_est)}`);
         console.log(`EST. TIME PER MILLION:  ` +
-                    `${format_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
+                    `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
         process.stdout.write('\n');
       }
     }
@@ -2919,23 +2920,58 @@ function benchmark(thunk, {
   
   console.log();
   console.log(`batch_count:            ${batch_count}`);
-  console.log(`reps_per_batch:         ${reps_per_batch}`);
+  console.log(`reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
   console.log(`last result:            ${semijson(result)}`);
   const now = process.memoryUsage().heapUsed;
-  console.log(`final mem diff:         ${format_bytes(now - start_mem)}`);
+  console.log(`final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
   console.log(`total runtime:          ` +
               `${((performance.now() - start_time)/1000).toFixed(2)} ` +
               `seconds`);
-  console.log(`rounded avg time/batch: ${format_number(Math.round(running_avg))} ms`);
+  console.log(`rounded avg time/batch: ${format_pretty_number(Math.round(running_avg))} ms`);
   const single_run_est = running_avg / reps_per_batch;
   const runs_per_second_est = 1_000_000 / running_avg;
   console.log(`est. runs/second:       ` +
-              `${format_number(Math.round(runs_per_second_est))}`);
+              `${format_pretty_number(Math.round(runs_per_second_est))}`);
   console.log(`EST. TIME PER MILLION:  ` +
-              `${format_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
+              `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
               `ms`);
   console.log();
   return running_avg;
+}
+// -----------------------------------------------------------------------------
+function format_pretty_bytes(bytes) {
+  const units = ['bytes', 'KB', 'MB', 'GB'];
+  const base = 1024;
+
+  const sign = Math.sign(bytes);
+  let absBytes = Math.abs(bytes);
+
+  let i = 0;
+  while (absBytes >= base && i < units.length - 1) {
+    absBytes /= base;
+    i++;
+  }
+
+  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
+}
+// -------------------------------------------------------------------------------------------------
+function measure_time(fun) {
+  const start    = performance.now();
+  fun();
+  const end      = performance.now();
+  const duration = end - start;
+  return duration;
+}
+// -------------------------------------------------------------------------------------------------
+export function semijson(obj) {
+  if (obj === undefined)
+    return 'undefined';
+  
+  return JSON.stringify(obj)
+    .replace(/"(\w+)"\s*:/g, ' $1: ')
+    .replace(/{ /g, '{')
+    .replace(/},{/g, '}, {');
 }
 // -------------------------------------------------------------------------------------------------
 function capitalize(string) {
@@ -8880,7 +8916,7 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-let main_disabled = true;
+let main_disabled = false;
 
 if (! main_disabled)
   main().catch(err => {
@@ -8927,3 +8963,10 @@ const rule0 = tws0(lws0(l('foo')));
 const rule1 = tws1(lws1(l('foo')));
 const rule2 = tws2(lws2(l('foo')));
 const rule3 = tws3(lws3(l('foo')));
+
+const options = { batch_count: 20, reps_per_batch: 1000000 };
+
+benchmark(() => rule0.match('           foo    '), options);
+benchmark(() => rule1.match('           foo    '), options);
+benchmark(() => rule2.match('           foo    '), options);
+benchmark(() => rule3.match('           foo    '), options);
