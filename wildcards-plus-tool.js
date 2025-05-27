@@ -8237,6 +8237,7 @@ const UnsetFlag                     = xform(second(seq(shebang, plus(ident, dot)
                                                               ` ${inspect_fun(arr)}`);
                                               return new ASTUnsetFlag(arr);
                                             });
+SimpleCheckFlag.abbreviate_str_repr('SimpleCheckFlag');
 SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
 CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
 CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
