@@ -8880,7 +8880,7 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-let main_disabled = false;
+let main_disabled = true;
 
 if (! main_disabled)
   main().catch(err => {
@@ -8893,30 +8893,37 @@ if (! main_disabled)
 const reps = 10000000;
 const mode = 3;
 
-if (mode == 0) {
-  const rule = tws0(lws0(l('foo')));
-  for (let ix = 0; ix < reps; ix++) {
-    const result = rule.match('   foo    ');
+if (false) {
+  if (mode == 0) {
+    const rule = tws0(lws0(l('foo')));
+    for (let ix = 0; ix < reps; ix++) {
+      const result = rule.match('   foo    ');
+    }
+  }
+  else if (mode == 1) {
+    const rule = tws1(lws1(l('foo')));
+    for (let ix = 0; ix < reps; ix++) {
+      const result = rule.match('   foo    ');
+    }
+  }
+  else if (mode == 2) {
+    const rule = tws2(lws2(l('foo')));
+    for (let ix = 0; ix < reps; ix++) {
+      const result = rule.match('   foo    ');
+    }
+  }
+  else if (mode == 3) {
+    const rule = tws3(lws3(l('foo')));
+    for (let ix = 0; ix < reps; ix++) {
+      const result = rule.match('   foo    ');
+    }
+  }
+  else {
+    throw new Error(`unknown mode ${mode}`);
   }
 }
-else if (mode == 1) {
-  const rule = tws1(lws1(l('foo')));
-  for (let ix = 0; ix < reps; ix++) {
-    const result = rule.match('   foo    ');
-  }
-}
-else if (mode == 2) {
-  const rule = tws2(lws2(l('foo')));
-  for (let ix = 0; ix < reps; ix++) {
-    const result = rule.match('   foo    ');
-  }
-}
-else if (mode == 3) {
-  const rule = tws3(lws3(l('foo')));
-  for (let ix = 0; ix < reps; ix++) {
-    const result = rule.match('   foo    ');
-  }
-}
-else {
-  throw new Error(`unknown mode ${mode}`);
-}
+
+const rule0 = tws0(lws0(l('foo')));
+const rule1 = tws1(lws1(l('foo')));
+const rule2 = tws2(lws2(l('foo')));
+const rule3 = tws3(lws3(l('foo')));
