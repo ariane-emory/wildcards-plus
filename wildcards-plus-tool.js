@@ -2127,14 +2127,20 @@ function make_whitespace_decorator2(name, elem_index, builder) {
       return decorated;
     }
 
+    if (rule instanceof Sequence) {
+      if (elem_index == 0 &&
+          rule.elements[0][tag])
+        return rule;
+      else if (elem_index == 1 &&
+               rule.elements[rule.elements.length - 1][tag])
+        return rule;
+    }
+    
     if (rule instanceof Rule &&
         rule.direct_children().length > 0 &&
         rule.direct_children().every(x => x[tag]))
       return rule;
 
-    // if (elem_index == 0 rule instanceof Sequence)
-
-    
     const built = elem(elem_index, elem_index == 0
                        ? seq(rule, whites_star)
                        : seq(whites_star, rule));
