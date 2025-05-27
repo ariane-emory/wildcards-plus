@@ -321,7 +321,6 @@ Array.prototype.toString = function() {
 //         |-- Discard
 //         |-- Elem
 //         |-- Label
-//         |-- Tail
 //         |
 //         | Rules that make sense only when input is an Array of Tokens:
 //         |
@@ -1582,53 +1581,53 @@ function fail(error_func = null) { // convenience constructor
 }
 // -------------------------------------------------------------------------------------------------
 
-// -------------------------------------------------------------------------------------------------
-// Tail class
-// -------------------------------------------------------------------------------------------------
-class Tail extends Rule {
-  // -----------------------------------------------------------------------------------------------
-  constructor(index, rule) {
-    super();
-    this.rule  = make_rule_func(rule);
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [ this.rule ];
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
-    this.rule = this.__vivify(this.rule);
-    this.rule.__finalize(indent + 1, visited);
-  }
-  // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
+// // -------------------------------------------------------------------------------------------------
+// // Tail class
+// // -------------------------------------------------------------------------------------------------
+// class Tail extends Rule {
+//   // -----------------------------------------------------------------------------------------------
+//   constructor(index, rule) {
+//     super();
+//     this.rule  = make_rule_func(rule);
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __direct_children() {
+//     return [ this.rule ];
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __impl_finalize(indent, visited) {
+//     this.rule = this.__vivify(this.rule);
+//     this.rule.__finalize(indent + 1, visited);
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __match(indent, input, index, cache) {
+//     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
 
-    if (! rule_match_result)
-      return null;
+//     if (! rule_match_result)
+//       return null;
 
-    // I forget why I did this? Could be a bad idea?
-    const ret = rule_match_result.value.slice(1);
-    
-    if (log_match_enabled)
-      log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
-          `${inspect_fun(ret)}`);
+//     // I forget why I did this? Could be a bad idea?
+//     const ret = rule_match_result.value.slice(1);
 
-    rule_match_result.value = ret;
-    
-    return rule_match_result
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id, ref_counts) {
-    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-    return `CDR(${rule_str})`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-function tail(rule) { // convenience constructor
-  return new Tail(rule);
-}
-// =================================================================================================
+//     if (log_match_enabled)
+//       log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
+//           `${inspect_fun(ret)}`);
+
+//     rule_match_result.value = ret;
+
+//     return rule_match_result
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __impl_toString(visited, next_id, ref_counts) {
+//     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+//     return `CDR(${rule_str})`;
+//   }
+// }
+// // -------------------------------------------------------------------------------------------------
+// function tail(rule) { // convenience constructor
+//   return new Tail(rule);
+// }
+// // =================================================================================================
 
 // -------------------------------------------------------------------------------------------------
 // TokenLabel class, this can probably be deleted soon?
