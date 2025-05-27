@@ -2860,6 +2860,83 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   
   return true;
 }
+
+// -------------------------------------------------------------------------------------------------
+function benchmark(thunk, {
+  batch_count    = 50,
+  reps_per_batch = 10000,
+  print_div      = 10,
+  quiet          = true,
+} = {}) {
+  let running_avg = 0;
+  let result      = null;
+  const start_mem = process.memoryUsage().heapUsed;
+  const start_time = performance.now();
+
+  const fn = () => measure_time(() => {
+    for (let ix = 0; ix < reps_per_batch; ix++) {
+      result = thunk();
+    }
+  });
+  
+  for (let oix = 0; oix < batch_count; oix++) {
+    // console.log(`oix: ${oix}`);
+    
+    global.gc(); // triggers GC
+
+    const time = fn();
+
+    running_avg = (((running_avg * oix) + time) / (oix + 1));
+
+    process.stdout.write('.');
+    if (((oix + 1) % 100) == 0)
+      process.stdout.write('\n');
+    
+    if (((oix + 1) % print_div) == 0) {
+      if (! quiet) {
+        process.stdout.write('\n');
+        console.log();
+        console.log(`${ordinal_string(oix + 1)} batch of ` +
+                    `${reps_per_batch} (out of ${batch_count}): `);
+        console.log(`result:                 ${semijson(result)}`);
+        console.log(`mem at start:           ${format_bytes(start_mem)}`);
+        const now = process.memoryUsage().heapUsed;
+        console.log(`mem now:                ${format_bytes(now)}`);
+        console.log(`mem diff:               ${format_bytes(now - start_mem)}`);
+        console.log(`time/batch              ${format_number(time.toFixed(3))} ms`);
+        console.log(`time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
+        console.log(`total runtime:          ` +
+                    `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+                    `seconds`);
+        console.log(`rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
+        console.log(`est. runs/second:       ${Math.round(runs_per_second_est)}`);
+        console.log(`EST. TIME PER MILLION:  ` +
+                    `${format_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
+        process.stdout.write('\n');
+      }
+    }
+  }
+  
+  console.log();
+  console.log(`batch_count:            ${batch_count}`);
+  console.log(`reps_per_batch:         ${reps_per_batch}`);
+  console.log(`last result:            ${semijson(result)}`);
+  const now = process.memoryUsage().heapUsed;
+  console.log(`final mem diff:         ${format_bytes(now - start_mem)}`);
+  console.log(`total runtime:          ` +
+              `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+              `seconds`);
+  console.log(`rounded avg time/batch: ${format_number(Math.round(running_avg))} ms`);
+  const single_run_est = running_avg / reps_per_batch;
+  const runs_per_second_est = 1_000_000 / running_avg;
+  console.log(`est. runs/second:       ` +
+              `${format_number(Math.round(runs_per_second_est))}`);
+  console.log(`EST. TIME PER MILLION:  ` +
+              `${format_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
+              `ms`);
+  console.log();
+  return running_avg;
+}
 // -------------------------------------------------------------------------------------------------
 function capitalize(string) {
   // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
