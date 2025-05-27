@@ -8214,12 +8214,13 @@ const NotFlagWithSetConsequent      = xform(seq(bang,
                                               
                                               return new ASTNotFlag(...args);
                                             })
-const TestFlag                       = choice(SimpleCheckFlag,
-                                              SimpleNotFlag,
-                                              NotFlagWithSetConsequent,
-                                              CheckFlagWithSetConsequent,
-                                              CheckFlagWithOrAlternatives,
-                                             );
+const TestFlag                       = choice(
+  SimpleCheckFlag,
+  SimpleNotFlag,
+  NotFlagWithSetConsequent,
+  CheckFlagWithSetConsequent,
+  CheckFlagWithOrAlternatives,
+);
 const SetFlag                       = xform(second(seq(hash, plus(ident, dot), word_break)),
                                             arr => {
                                               if (log_flags_enabled)
