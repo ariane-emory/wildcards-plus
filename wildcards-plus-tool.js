@@ -8813,30 +8813,30 @@ if (! main_disabled)
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
-const reps = 1000000;
+const reps = 10000000;
 const mode = 3;
 
 if (mode == 0) {
+  const rule = tws0(lws0(l('foo')));
   for (let ix = 0; ix < reps; ix++) {
-    const rule = tws0(lws0(l('foo')));
     const result = rule.match('   foo    ');
   }
 }
 else if (mode == 1) {
+  const rule = tws1(lws1(l('foo')));
   for (let ix = 0; ix < reps; ix++) {
-    const rule = tws1(lws1(l('foo')));
     const result = rule.match('   foo    ');
   }
 }
 else if (mode == 2) {
+  const rule = tws2(lws2(l('foo')));
   for (let ix = 0; ix < reps; ix++) {
-    const rule = tws2(lws2(l('foo')));
     const result = rule.match('   foo    ');
   }
 }
 else if (mode == 3) {
+  const rule = tws3(lws3(l('foo')));
   for (let ix = 0; ix < reps; ix++) {
-    const rule = tws3(lws3(l('foo')));
     const result = rule.match('   foo    ');
   }
 }
