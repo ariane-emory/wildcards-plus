@@ -282,7 +282,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let log_expand_and_walk_enabled       = false;  
 let disable_prelude                   = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
 // =================================================================================================
