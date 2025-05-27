@@ -1998,11 +1998,55 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
   return [ klass, factory_fun ];
 }
 // -------------------------------------------------------------------------------------------------
-const [ WithLWS, lws2 ] =
+const [ WithLWS, lws1 ] =
       make_whitespace_Rule_class_and_factory_fun("LWS", rule => elem(1, seq(whites_star, rule)));
-const [ WithTWS, tws2 ] =
+const [ WithTWS, tws1 ] =
       make_whitespace_Rule_class_and_factory_fun("TWS", rule => elem(0, seq(rule, whites_star)));
 // =================================================================================================
+function make_whitespace_decorator(name, builder, extractor) {
+  return rule => {
+    const built = builder(rule);
+
+    built.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = extractor(this).__toString(visited, next_id, ref_counts);
+      return `${name}(${rule_str})`;
+    };
+
+    return built;
+  }
+}
+const lws2 = make_whitespace_decorator("LWS",
+                                       rule => elem(1, seq(whites_star, rule)),
+                                       rule => rule.elements[1]  // your original form
+                                      );
+const tws2 = make_whitespace_decorator("TWS",
+                                       rule => elem(0, seq(rule, whites_star)),
+                                       rule => rule.elements[0]
+                                      );
+
+
+const LWS_TAG = Symbol('LWS');
+const TWS_TAG = Symbol('TWS');
+
+function make_whitespace_decorator2(tag, name, builder) {
+  return function (rule) {
+    rule = make_rule_func(rule);
+
+    if (!rule || rule[tag]) return rule;
+
+    const decorated = builder(rule);
+    decorated[tag] = true;
+
+    decorated.__impl_toString = function(visited, next_id, ref_counts) {
+      return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+    };
+
+    return decorated;
+  };
+}
+
+const lws3 = make_whitespace_decorator2(LWS_TAG, "LWS", rule => elem(1, seq(whites_star, rule)));
+const tws3 = make_whitespace_decorator2(TWS_TAG, "TWS", rule => elem(0, seq(rule, whites_star)));
 
 
 // =================================================================================================
@@ -2037,8 +2081,8 @@ whites_star.abbreviate_str_repr('whites*');
 whites_plus.abbreviate_str_repr('whites+');
 // -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
-const lws                = rule => {
-  rule = second(seq(whites_star, rule));
+const lws0                = rule => {
+  rule = elem(1, seq(whites_star, rule));
   
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
@@ -2047,8 +2091,8 @@ const lws                = rule => {
 
   return rule;
 };
-const tws                = rule => {
-  rule = first(seq(rule, whites_star));
+const tws0                = rule => {
+  rule = elem(0, seq(rule, whites_star));
 
   rule.__impl_toString = function(visited, next_id, ref_counts) {
     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
@@ -2057,6 +2101,8 @@ const tws                = rule => {
 
   return rule;
 };
+const lws = lws0;
+const tws = tws0;
 // -------------------------------------------------------------------------------------------------
 // common numbers:
 const udecimal           = r(/\d+\.\d+/);
@@ -8758,9 +8804,28 @@ if (! main_disabled)
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
+const reps = 1000000;
+const mode = 3;
 
-const rule1 = tws(lws(l('foo')));
-console.log(rule1.match('   foo    '));
-const rule2 = tws2(lws2(l('foo')));
-console.log(rule2.match('   foo    '));
-
+if (mode == 0)
+  for (let ix = 0; ix < reps; ix++) {
+    const rule = tws0(lws0(l('foo')));
+    const result = rule.match('   foo    ');
+}
+else if (mode == 1)
+  for (let ix = 0; ix < reps; ix++) {
+    const rule = tws1(lws1(l('foo')));
+    const result = rule.match('   foo    ');
+  }
+else if (mode == 2)
+  for (let ix = 0; ix < reps; ix++) {
+    const rule = tws2(lws2(l('foo')));
+    const result = rule.match('   foo    ');
+  }
+else if (mode == 3)
+  for (let ix = 0; ix < reps; ix++) {
+    const rule = tws3(lws3(l('foo')));
+    const result = rule.match('   foo    ');
+  }
+else
+  throw new Error(`unknown mode ${mode}`);
