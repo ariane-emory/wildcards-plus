@@ -2126,6 +2126,15 @@ function make_whitespace_decorator2(name, builder) {
       return decorated;
     }
 
+    if (rule instanceof Sequence) {
+      if (elem_index == 1 &&
+          rule.elements[0][tag])
+        return rule;
+      else if (elem_index == 0 &&
+               rule.elements[rule.elements.length - 1][tag])
+        return rule;
+    }
+    
     if (rule instanceof Rule &&
         rule.direct_children().length > 0 &&
         rule.direct_children().every(x => x[tag]))
