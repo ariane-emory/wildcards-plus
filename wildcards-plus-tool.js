@@ -8939,7 +8939,7 @@ async function main() {
     
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
-      console.log(`Final config is is:`);
+      console.log(`Final config is :`);
       LOG_LINE();
       console.log(inspect_fun(context.configuration));
     }
