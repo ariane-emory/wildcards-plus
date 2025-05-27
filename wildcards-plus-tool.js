@@ -2067,10 +2067,10 @@ function make_whitespace_decorator2(name, builder) {
     if (rule[tag]) return rule;
 
     // Unwrap if Choice of tagged rules
-    if (rule instanceof ChoiceRule &&
-        rule.alternatives.every(alt => alt[tag])) {
-      const unwrapped_alts = rule.alternatives.map(alt => alt.__original_rule || alt);
-      const rebuilt_choice = new ChoiceRule(unwrapped_alts);
+    if (rule instanceof Choice &&
+        rule.options.every(alt => alt[tag])) {
+      const unwrapped_alts = rule.options.map(alt => alt.__original_rule || alt);
+      const rebuilt_choice = new Choice(unwrapped_alts);
       return decorator(rebuilt_choice);  // ✅ Use the same closure with stable tag
     }
 
@@ -9002,13 +9002,15 @@ if (false) {
 
 console.log(); console.log();
 
-const rule0 = tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))));
-const rule1 = tws1(lws1(choice(lws1(l('foo')), lws1(l('bar')))));
-const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar')))));
-const rule3 = tws3(lws3(choice(lws3(l('foo')), lws3(l('bar')))));
+const rule0 = tws0(lws0(choice(lws0(l('foo')), lws0(l('bar'))))); rule0.finalize();
+const rule1 = tws1(lws1(choice(lws1(l('foo')), lws1(l('bar'))))); rule1.finalize();
+const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar'))))); rule2.finalize();
+const rule3 = tws3(lws3(choice(lws3(l('foo')), lws3(l('bar'))))); rule3.finalize();
+const rule4 = tws4(lws4(choice(lws4(l('foo')), lws4(l('bar'))))); rule4.finalize();
 
-const options = { batch_count: 100, reps_per_batch: 100_000 };
+const options = { batch_count: 100, reps_per_batch: 100_000 }; 
 
+console.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
 console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
 console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
 // console.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
