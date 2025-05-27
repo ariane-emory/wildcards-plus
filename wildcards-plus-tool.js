@@ -2920,6 +2920,7 @@ function benchmark(thunk, {
   console.log();
   console.log(`batch_count:            ${batch_count}`);
   console.log(`reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
+  console.log(`total reps:             ${format_pretty_number(batch_count * reps_per_batch)}`);
   console.log(`last result:            ${rjson_stringify(result)}`);
   const now = process.memoryUsage().heapUsed;
   console.log(`final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
@@ -8965,9 +8966,9 @@ const rule1 = tws1(lws1(l('foo')));
 const rule2 = tws2(lws2(l('foo')));
 const rule3 = tws3(lws3(l('foo')));
 
-const options = { batch_count: 100, reps_per_batch: 100_000 };
+const options = { batch_count: 100, reps_per_batch: 500_000 };
 
-benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
 benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
