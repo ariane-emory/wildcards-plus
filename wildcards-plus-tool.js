@@ -2147,7 +2147,7 @@ function make_whitespace_decorator2(name, elem_index, builder) {
     built[tag] = true;
     built.__original_rule = rule;
 
-    if (true) // prettify_whitespace_combinators)
+    if (prettify_whitespace_combinators)
       built.__impl_toString = function(visited, next_id, ref_counts) {
         return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
       };
