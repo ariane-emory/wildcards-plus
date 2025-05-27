@@ -8150,7 +8150,7 @@ const SimpleCheckFlag               = xform(seq(question,
 const SimpleNotFlag                 = xform(seq(bang,
                                                 optional(hash),
                                                 plus(ident, dot),
-                                                word_break),
+                                                simple_not_flag_word_break),
                                             arr => {
                                               const args = [arr[2],
                                                             { set_immediately: !!arr[1][0]}];
