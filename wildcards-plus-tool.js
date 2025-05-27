@@ -2019,11 +2019,11 @@ function make_whitespace_decorator0(name, builder, extractor) {
 const lws2 = make_whitespace_decorator0("LWS2",
                                         rule => elem(1, seq(whites_star, rule)),
                                         rule => rule.elements[1]  // your original form
-                                      );
+                                       );
 const tws2 = make_whitespace_decorator0("TWS2",
                                         rule => elem(0, seq(rule, whites_star)),
                                         rule => rule.elements[0]
-                                      );
+                                       );
 // =================================================================================================
 function make_whitespace_decorator1(name, builder) {
   const tag = Symbol(name);
@@ -2070,27 +2070,31 @@ function make_whitespace_decorator2(name, builder) {
     if (rule instanceof Choice &&
         rule.options.every(alt => alt[tag])) {
       const unwrapped_alts = rule.options.map(alt => alt.__original_rule || alt);
-      const rebuilt_choice = new Choice(unwrapped_alts);
-      return decorator(rebuilt_choice);  // ✅ Use the same closure with stable tag
+      const rebuilt_choice = new Choice(...unwrapped_alts);
+      
+      console.log(`constructed ${inspect_fun(rebuilt_choice)}`);
+      const decorated = decorator(rebuilt_choice);  // ✅ Use the same closure with stable tag
+      console.log(`decorated ${inspect_fun(decorated)}`);
+      return decorated;
     }
 
-    if (rule instanceof Rule &&
-        rule.direct_children().length > 0 &&
-        rule.direct_children().every(x => x[tag]))
-      return rule;
+  if (rule instanceof Rule &&
+      rule.direct_children().length > 0 &&
+      rule.direct_children().every(x => x[tag]))
+    return rule;
 
-    const built = builder(rule);
-    built[tag] = true;
-    built.__original_rule = rule;
+  const built = builder(rule);
+  built[tag] = true;
+  built.__original_rule = rule;
 
-    built.__impl_toString = function(visited, next_id, ref_counts) {
-      return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
-    };
-
-    return built;
+  built.__impl_toString = function(visited, next_id, ref_counts) {
+    return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
   };
 
-  return decorator;
+  return built;
+};
+
+return decorator;
 }
 // -------------------------------------------------------------------------------------------------
 const lws4 = make_whitespace_decorator2("LWS3", rule => elem(1, seq(whites_star, rule)));
