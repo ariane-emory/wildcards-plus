@@ -2105,7 +2105,7 @@ const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_s
 function make_whitespace_decorator2(name, builder) {
   const tag = Symbol(name);
 
-  const factory_fun = function (rule) {
+  const decorate = function (rule) {
     rule = make_rule_func(rule);
 
     if (!rule)
@@ -2121,7 +2121,7 @@ function make_whitespace_decorator2(name, builder) {
       const rebuilt_choice = new Choice(...unwrapped_options);
       
       console.log(`constructed ${inspect_fun(rebuilt_choice)}`);
-      const decorated = factory_fun(rebuilt_choice);  // ✅ Use the same closure with stable tag
+      const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
       console.log(`decorated ${inspect_fun(decorated)}`);
       return decorated;
     }
@@ -2143,7 +2143,7 @@ function make_whitespace_decorator2(name, builder) {
     return built;
   };
 
-  return factory_fun;
+  return decorate;
 }
 // -------------------------------------------------------------------------------------------------
 const lws4 = make_whitespace_decorator2("LWS3", rule => second(seq(whites_star, rule)));
