@@ -2106,7 +2106,7 @@ const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_s
 function make_whitespace_decorator2(name, elem_index, builder) {
   const tag = Symbol(name);
 
-  const factory_fun = function (rule) {
+  const decorate = function (rule) {
     rule = make_rule_func(rule);
 
     if (!rule)
@@ -2122,7 +2122,7 @@ function make_whitespace_decorator2(name, elem_index, builder) {
       const rebuilt_choice = new Choice(...unwrapped_options);
       
       console.log(`constructed ${inspect_fun(rebuilt_choice)}`);
-      const decorated = factory_fun(rebuilt_choice);  // ✅ Use the same closure with stable tag
+      const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
       console.log(`decorated ${inspect_fun(decorated)}`);
       return decorated;
     }
@@ -2156,11 +2156,11 @@ function make_whitespace_decorator2(name, elem_index, builder) {
     return built;
   };
 
-  return factory_fun;
+  return decorate;
 }
 // -------------------------------------------------------------------------------------------------
-const lws4 = make_whitespace_decorator2("LWS3", 0);
-const tws4 = make_whitespace_decorator2("TWS3", 1);
+const lws4 = make_whitespace_decorator2("LWS3", 1);
+const tws4 = make_whitespace_decorator2("TWS3", 0);
 // =================================================================================================
 
 
@@ -9049,6 +9049,13 @@ if (false) {
 
 console.log(); console.log();
 
+// console.log(`THIS: ${lws4('foo')}`);
+console.log(`THIS: ${seq(lws4('foo'), tws4('bar'))}`);
+console.log(`THIS: ${lws4(seq(lws4('foo'), tws4('bar')))}`);
+// console.log(`THIS: ${tws4(lws4(seq(lws4('foo'), tws4('bar'))))}`);
+
+process.exit(0);
+
 const rule0 = tws0(lws0(choice(lws0(l('foo')), lws0(l('bar'))))); rule0.finalize();
 const rule1 = tws1(lws1(choice(lws1(l('foo')), lws1(l('bar'))))); rule1.finalize();
 const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar'))))); rule2.finalize();
@@ -9065,3 +9072,4 @@ console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_i
 console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
 // console.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
 // console.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+
