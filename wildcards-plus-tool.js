@@ -1237,6 +1237,10 @@ class Sequence extends Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(...elements) {
     super();
+
+    if (elements.length == 0)
+      throw new Error("empty sequence");
+    
     this.elements = elements.map(make_rule_func);
   }
   // -----------------------------------------------------------------------------------------------
@@ -2128,6 +2132,9 @@ function make_whitespace_decorator2(name, elem_index, builder) {
         rule.direct_children().every(x => x[tag]))
       return rule;
 
+    // if (elem_index == 0 rule instanceof Sequence)
+
+    
     const built = elem(elem_index, elem_index == 0
                        ? seq(rule, whites_star)
                        : seq(whites_star, rule));
