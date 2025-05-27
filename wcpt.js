@@ -7233,7 +7233,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
              thing instanceof ASTUpdateConfigurationBinary) {
       let value = thing.value;
 
-      // console.log(`THING: ${thing} ${inspect_fun(thing)}`);
+      console.log(`THING: ${thing} ${inspect_fun(thing)}`);
       
       if (value instanceof ASTNode) {
         const expanded_value = expand_wildcards(thing.value, context, indent + 1); // not walk!
