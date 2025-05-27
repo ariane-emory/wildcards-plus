@@ -3463,15 +3463,15 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(new_flag) {
-    if (log_flags_enabled)
-      console.log(`\nadding ${inspect_fun(new_flag)} to flags: ${inspect_fun(this.flags)}`);
-
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
-      if (log_flags_enabled)
-        console.log(`skipping, already set`);
+      // if (log_flags_enabled)
+      //   console.log(`skipping, already set`);
       return;
     }
+
+    if (log_flags_enabled)
+      console.log(`adding ${inspect_fun(new_flag)} to flags: ${compress(inspect_fun(this.flags))}`);
 
     const new_flag_head = new_flag.slice(0, -1);
     
@@ -7233,7 +7233,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
              thing instanceof ASTUpdateConfigurationBinary) {
       let value = thing.value;
 
-      console.log(`THING: ${thing} ${inspect_fun(thing)}`);
+      // console.log(`THING: ${thing} ${inspect_fun(thing)}`);
       
       if (value instanceof ASTNode) {
         const expanded_value = expand_wildcards(thing.value, context, indent + 1); // not walk!
