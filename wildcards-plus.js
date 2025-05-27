@@ -23,7 +23,7 @@
 let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = true;
 let unnecessary_choice_is_error       = false;
-let print_ast_enabled                 = false;
+// let print_ast_enabled                 = false;
 let print_ast_json_enabled            = false;
 let log_enabled                       = true;
 let log_configuration_enabled         = true;
@@ -35,10 +35,11 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let log_expand_and_walk_enabled       = false;  
-let disable_prelude                   = false;
+let prelude_disabled                  = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
+let inspect_depth                     = 50;
 // =================================================================================================
 
 
@@ -71,18 +72,18 @@ Array.prototype.toString = function() {
 //         |
 //         |-- Choice
 //         |-- Enclosed ------- CuttingEnclosed
-//         |-- NeverMatch
 //         |-- Optional
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
+//         |
+//         |-- (Quantified) -|-- Plus
+//         |                 |-- Star
 //         |
 //         | Rules triggering failure:
 //         |-- Expected
 //         |-- Unexpected
 //         |-- Fail
-//         |
-//         |-- (Quantified) -|-- Plus
-//         |                 |-- Star
+//         |-- NeverMatch (non-fatal)
 //         |
 //         | Technically these next 3 could be implemented as Xforms, but 
 //         | they're very convenient to have built-in (and are possibly faster
@@ -91,7 +92,6 @@ Array.prototype.toString = function() {
 //         |
 //         |-- Discard
 //         |-- Elem
-//         |-- Tail
 //         |-- Label
 //         |
 //         | Rules that make sense only when input is an Array of Tokens:
@@ -102,7 +102,7 @@ Array.prototype.toString = function() {
 //         |
 //         |-- Literal
 //         |-- Regex
-//         |
+//
 // ForwardReference (only needed when calling xform with a weird arg order)
 // LabeledValue
 // MatchResult
@@ -125,7 +125,7 @@ const trailing_separator_modes = Object.freeze({
 // FatalParseError class
 // -------------------------------------------------------------------------------------------------
 function __format_FatalParseError_message(message_body, input, index) {
-  return `${message_body} at char #${index}, ` +
+  return `${message_body} \nat char #${index}, ` +
     `found:\n` +
     `${abbreviate(input.substring(index))}`;
 }
@@ -152,11 +152,12 @@ class FatalParseError extends Error {
 class Rule {
   // -----------------------------------------------------------------------------------------------
   constructor() {
-    this.memoize = false;
+    // this.memoize     = false;
+    // this.abbreviated = false;
   }
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
-    if (this.__abbreviated)
+    if (this.abbreviated)
       throw new Error(`${inspect_fun(this)} is already abbreviated, this likely a programmer error`);
     
     if (! abbreviate_str_repr_enabled)
@@ -165,8 +166,8 @@ class Rule {
     if (str)
       this.__impl_toString = () => str;
     
-    this.__direct_children = () => [];
-    this.__abbreviated     = true;
+    // this.__direct_children = () => [];
+    this.abbreviated       = true;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
@@ -193,10 +194,11 @@ class Rule {
 
     ref_counts.set(this, 1);
 
-    for (const direct_child of this.direct_children()) {
-      // console.log(`direct_child = ${inspect_fun(direct_child)}`);
-      this.__vivify(direct_child).collect_ref_counts(ref_counts);
-    }
+    if (! this.abbreviated)
+      for (const direct_child of this.direct_children()) {
+        // console.log(`direct_child = ${inspect_fun(direct_child)}`);
+        this.__vivify(direct_child).collect_ref_counts(ref_counts);
+      }
 
     return ref_counts;
   }
@@ -226,27 +228,24 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, indent = 0, cache = new Map()) {
-    // console.log(`try matching ${this.memoize} ${this}`);
-
-    if (this.memoize === undefined)
-      throw new Error(`suspiciously built rule ${inspect_fun(this)}`);
-    
     if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
     
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
         log(indent,
-            `Matching ${this.toString()}, ` +
+            `Matching ${this.constructor.name} ${this.toString()}, ` +
             `but at end of input!`);
       else 
         log(indent,
-            `Matching ${this.toString()} at ` +
+            `Matching ` +
+            // `${this.constructor.name} `+
+            `${abbreviate(this.toString())} at ` +
             `char #${index}: ` +
-            `"${abbreviate(input.substring(index))}"`)
+            `'${abbreviate(input.substring(index))}'`)
     }
     
-    let rule_cache = null; // cache.get(this);
+    let rule_cache = null;
 
     if (this.memoize) {
       rule_cache = cache.get(this);
@@ -281,14 +280,14 @@ class Rule {
     // }
     
     if (log_match_enabled) {
-      if (ret)
-        log(indent,
-            `<= ${this.constructor.name} ${abbreviate(this.toString())} returned: ` +
-            `${compress(inspect_fun(ret))}`);
-      else
-        log(indent,
-            `<= Failed to match ${this.constructor.name} ` +
-            `${abbreviate(this.toString())}`);
+      // if (ret)
+      log(indent,
+          `<= ${this.constructor.name} ${this.toString()} ` +
+          `returned: ${compress(inspect_fun(ret))}`);
+      // else
+      //   log(indent,
+      //       `<= Matching ${this.constructor.name} ${this.toString()} ` +
+      //       `returned null.`);
     }
 
     return ret;
@@ -324,15 +323,11 @@ class Rule {
           .__impl_toString(visited, next_id, ref_counts)
           .replace('() => ', '');
     
-    if (this.direct_children().length == 0) {
+    if (this.abbreviated || this.direct_children().length == 0)
       return abbreviate(__call_impl_toString(), 64);
-      // return __call_impl_toString();
-    }
     
-    if (visited.has(this)) {
-      const got_id = visited.get(this);
+    if (visited.has(this)) 
       return `#${visited.get(this)}#`;
-    }
 
     // mark as visited (but not yet emitted)
     visited.set(this, NaN);
@@ -450,7 +445,7 @@ class Quantified extends Rule {
 
         if (log_match_enabled)
           log(indent,
-              `Matched separator rule ${this.separator_rule}...`);
+              `matched separator rule ${this.separator_rule}...`);
 
         update_index(separator_match_result.index);
       } // end of if (this.separator_rule)
@@ -564,9 +559,12 @@ class Choice extends Rule  {
       ix += 1;
       
       if (log_match_enabled)
-        log(indent + 1, `Try option #${ix}: ${option}`);
+        log(indent + 1,
+            `Try option #${ix} ${option} ` +
+            `at char #${index}: ` +
+            `'${abbreviate(input.substring(index))}'`);
       
-      const match_result = option.match(input, index, indent + 2, cache);
+      const match_result = option.match(input, index, indent + 1, cache);
       
       if (match_result) { 
         // if (match_result.value === DISCARD) {
@@ -576,13 +574,15 @@ class Choice extends Rule  {
         // }
 
         if (log_match_enabled)
-          log(indent + 1, `Chose option #${ix}`);
+          log(indent + 1, `Chose option #${ix}, ` +
+              `now at char #${match_result.index}: ` +
+              `'${abbreviate(input.substring(match_result.index))}'`);
         
         return match_result;
       }
 
       if (log_match_enabled)
-        log(indent + 1, `Rejected option #${ix}`);
+        log(indent + 1, `Rejected option #${ix}.`);
     }
 
     return null;
@@ -727,7 +727,7 @@ function first(rule) {
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-    return `1st(${rule_str})`;
+    return `first(${rule_str})`;
     // return `first(${rule_str})`;
   }
   
@@ -742,7 +742,7 @@ function second(rule) {
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-    return `2nd(${rule_str})`;
+    return `second(${rule_str})`;
     // return `second(${rule_str})`;
   }
   
@@ -757,61 +757,13 @@ function third(rule) {
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-    return `3rd(${rule_str})`;
+    return `third(${rule_str})`;
     // return `third(${rule_str})`;
   }
   
   return rule;
 }
 // -------------------------------------------------------------------------------------------------
-
-// -------------------------------------------------------------------------------------------------
-// Tail class
-// -------------------------------------------------------------------------------------------------
-class Tail extends Rule {
-  // -----------------------------------------------------------------------------------------------
-  constructor(index, rule) {
-    super();
-    this.rule  = make_rule_func(rule);
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [ this.rule ];
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
-    this.rule = this.__vivify(this.rule);
-    this.rule.__finalize(indent + 1, visited);
-  }
-  // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
-
-    if (! rule_match_result)
-      return null;
-
-    // I forget why I did this? Could be a bad idea?
-    const ret = rule_match_result.value.slice(1);
-    
-    if (log_match_enabled)
-      log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
-          `${inspect_fun(ret)}`);
-
-    rule_match_result.value = ret;
-    
-    return rule_match_result
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id, ref_counts) {
-    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-    return `CDR(${rule_str})`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-function tail(rule) { // convenience constructor
-  return new Tail(rule);
-}
-// =================================================================================================
 
 // -------------------------------------------------------------------------------------------------
 // Enclosed class
@@ -908,7 +860,7 @@ class CuttingEnclosed extends Enclosed {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#1) ` +
-      `expected (${this.body_rule} ${this.end_rule}) ` +
+      `CuttingEnclosed expected [${this.body_rule} ${this.end_rule}] ` +
         `after ${this.start_rule}`,
       input, start_rule_result.index);
   }
@@ -1056,6 +1008,10 @@ class Sequence extends Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(...elements) {
     super();
+
+    if (elements.length == 0)
+      throw new Error("empty sequence");
+    
     this.elements = elements.map(make_rule_func);
   }
   // -----------------------------------------------------------------------------------------------
@@ -1079,37 +1035,40 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      log(indent + 1, `matching first sequence item #0 out of ` +
-          `${this.elements.length}: ${this.elements[0]} at ` +
-          `char #${index} ` +
-          `"${abbreviate(input.substring(index), (100 - 2*indent))}"`);
+      log(indent + 1, `matching first sequence element #1 out of ` +
+          `${this.elements.length}: ${this.elements[0]} ` +
+          `at char #${index} ` +
+          `at '${abbreviate(input.substring(index))}'`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2, cache);
     let last_match_result = start_rule_match_result;
 
     // if (log_match_enabled && last_match_result !== null)
-    //   log(indent + 1, `first last_match_result = ${inspect_fun(last_match_result)}`);
+    //   log(indent + 1, `first last_match_result = ${abbreviate(inspect_fun(last_match_result))}`);
     
     if (last_match_result === null) {
       if (log_match_enabled)
-        log(indent + 1, `did not match sequence item #1.`);
+        log(indent + 1, `did not match sequence element #1.`);
       return null;
     }
 
-    if (log_match_enabled)
-      log(indent + 1, `matched first sequence item #0: ` +
-          `${compress(inspect_fun(last_match_result))}`);
-    
     const values = [];
     index        = last_match_result.index;
+
+    if (log_match_enabled)
+      log(indent + 1, `matched first sequence element #1: ` +
+          `${compress(inspect_fun(last_match_result))}, ` +
+          `now at char #${index}: ` +
+          `'${abbreviate(input.substring(index))}'`);
 
     // if (log_match_enabled)
     //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
-      // if (log_match_enabled)
-      //   log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+      if (log_match_enabled)
+        log(indent + 1, `seq pushing first item ` +
+            `${abbreviate(inspect_fun(last_match_result.value))}`);
 
       values.push(last_match_result.value);
 
@@ -1121,14 +1080,14 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        log(indent + 1, `matching sequence item #${ix} out of ` +
-            `${this.elements.length}: ${this.elements[ix]} at ` +
-            `char #${index} ` +
-            `"${abbreviate(input.substring(index))}"`);
+        log(indent + 1, `matching sequence element #${ix+ 1} out of ` +
+            `${this.elements.length}: ${this.elements[ix]} ` +
+            `at char #${index}: ` +
+            `'${abbreviate(input.substring(index))}'`);
       
       const element = this.elements[ix];
 
-      last_match_result = element.match(input, index, indent + 2, cache);
+      last_match_result = element.match(input, index, indent + 2 , cache);
 
       if (! last_match_result) {
         if (log_match_enabled)
@@ -1139,12 +1098,14 @@ class Sequence extends Rule {
       }
 
       if (log_match_enabled)
-        log(indent + 1, `matched sequence item #${ix}: `+
-            `${compress(inspect_fun(last_match_result))}`);
+        log(indent + 1, `matched sequence element #${ix+1}: ` +
+            `${compress(inspect_fun(last_match_result))}, ` +
+            `now at char #${last_match_result.index}: ` +
+            `'${abbreviate(input.substring(last_match_result.index))}'`);
 
       if (last_match_result.value !== DISCARD) {
-        // if (log_match_enabled)
-        //   log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+        if (log_match_enabled)
+          log(indent + 1, `seq pushing ${abbreviate(inspect_fun(last_match_result.value))}`);
 
         values.push(last_match_result.value);
 
@@ -1168,7 +1129,6 @@ class Sequence extends Rule {
                                                                           next_id,
                                                                           ref_counts));
     const str       = elem_strs.join(' ');
-
     return `[${str}]`;
     // return `(${str})`;
   }
@@ -1191,7 +1151,7 @@ class CuttingSequence extends Sequence {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
-      `expected [${this.elements.slice(1).join(" ")}] ` +
+      `CuttingSequence expected [${this.elements.slice(1).join(" ")}] ` +
         `after ${this.elements[0]}`,
       input, start_rule_result.index);
   }
@@ -1393,6 +1353,54 @@ function fail(error_func = null) { // convenience constructor
 }
 // -------------------------------------------------------------------------------------------------
 
+// // -------------------------------------------------------------------------------------------------
+// // Tail class
+// // -------------------------------------------------------------------------------------------------
+// class Tail extends Rule {
+//   // -----------------------------------------------------------------------------------------------
+//   constructor(index, rule) {
+//     super();
+//     this.rule  = make_rule_func(rule);
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __direct_children() {
+//     return [ this.rule ];
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __impl_finalize(indent, visited) {
+//     this.rule = this.__vivify(this.rule);
+//     this.rule.__finalize(indent + 1, visited);
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __match(indent, input, index, cache) {
+//     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
+
+//     if (! rule_match_result)
+//       return null;
+
+//     // I forget why I did this? Could be a bad idea?
+//     const ret = rule_match_result.value.slice(1);
+
+//     if (log_match_enabled)
+//       log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
+//           `${inspect_fun(ret)}`);
+
+//     rule_match_result.value = ret;
+
+//     return rule_match_result
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __impl_toString(visited, next_id, ref_counts) {
+//     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+//     return `CDR(${rule_str})`;
+//   }
+// }
+// // -------------------------------------------------------------------------------------------------
+// function tail(rule) { // convenience constructor
+//   return new Tail(rule);
+// }
+// // =================================================================================================
+
 // -------------------------------------------------------------------------------------------------
 // TokenLabel class, this can probably be deleted soon?
 // -------------------------------------------------------------------------------------------------
@@ -1508,7 +1516,7 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      log(indent, `testing  /${this.regexp.source}/ at char #${index} of ` +
+      log(indent + 1, `testing /${this.regexp.source}/ at char ${index}: ` +
           `'${abbreviate(input.substring(index))}'`); 
 
     const re_match = this.regexp.exec(input);
@@ -1599,29 +1607,29 @@ class MatchResult {
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
 function abbreviate(str, len = 100) {
-  if (str.length < len) {
-    return str
-  }
-  else {
-    const bracing_pairs = [
-      ['/',  '/'],
-      ['(',  ')'],
-      ['[',  ']'],
-      ['{',  '}'],
-      ['<',  '>'],
-      ['λ(', ')'],
-    ];
+  // Normalize all newlines first
+  str = str.replace(/\r?\n/g, '\\n');
 
-    for (const [left, right] of bracing_pairs) {
-      if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
-        str = str.substring(left.length, len - 3 - right.length);
-        const ret = `${left}${str.replace(/\n/g, "\\n").trim()}...${right}`;
-        return ret;
-      }
+  if (str.length < len)
+    return str;
+
+  const bracing_pairs = [
+    ['/',  '/'],
+    ['(',  ')'],
+    ['[',  ']'],
+    ['{',  '}'],
+    ['<',  '>'],
+    ['λ(', ')'],
+  ];
+
+  for (const [left, right] of bracing_pairs) {
+    if (str.startsWith(left) && str.endsWith(right)) {
+      const inner = str.substring(left.length, len - 3 - right.length);
+      return `${left}${inner.trim()}...${right}`;
     }
-    
-    return `${str.substring(0, len - 3).replace(/\n/g, "\\n").trim()}...`;
   }
+
+  return `${str.substring(0, len - 3).trim()}...`;
 }
 // -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
@@ -1638,7 +1646,7 @@ function log(indent, str = "", indent_str = "| ") {
 function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
   console.log(char.repeat(width));
 }
-LOG_LINE.line_width = 90;
+LOG_LINE.line_width = 100;
 // -------------------------------------------------------------------------------------------------
 function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
   if (typeof thing === 'string')
@@ -1680,6 +1688,256 @@ function pipe_funs(...fns) {
 
 
 // =================================================================================================
+// Whitespace combinators, these should go somewhere else?
+// =================================================================================================
+const prettify_whitespace_combinators = false;
+// =================================================================================================
+
+// =================================================================================================
+const lws0                = rule => {
+  rule = second(seq(whites_star, rule));
+  
+  if (prettify_whitespace_combinators) {
+    rule.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+      return `LWS0(${rule_str})`;
+    }
+  }
+
+  return rule;
+};
+const tws0                = rule => { 
+  rule = first(seq(rule, whites_star));
+
+  if (prettify_whitespace_combinators) {
+    rule.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
+      return `TWS0(${rule_str})`;
+    }
+  }
+  
+  return rule;
+};
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
+  let klass = {
+    [class_name_str]: class extends Rule {
+      // -------------------------------------------------------------------------------------------
+      constructor(rule) {
+        super();
+        this.base_rule = make_rule_func(rule);
+        this.rule = builder(this.base_rule);
+      }
+      // -------------------------------------------------------------------------------------------
+      __direct_children() {
+        return [this.rule];
+      }
+      // -------------------------------------------------------------------------------------------
+      __impl_finalize(indent, visited) {
+        this.rule = this.__vivify(this.rule);
+        this.rule.__finalize(indent + 1, visited);
+        this.base_rule = this.__vivify(this.base_rule);
+        this.base_rule.__finalize(indent + 1, visited);
+      }
+      // -------------------------------------------------------------------------------------------
+      __match(indent, input, index, cache) {
+        return this.rule.match(input, index, indent + 1, cache);
+      }
+      // -------------------------------------------------------------------------------------------
+      __impl_toString(visited, next_id, ref_counts) {
+        if (typeof this.base_rule.__toString !== 'function')
+          throw new Error(inspect_fun(this));
+        
+        return prettify_whitespace_combinators
+          ? `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`
+          : this.base_rule.toString();
+      }
+    }
+  }[class_name_str];
+
+  let factory_fun = (rule, noisy = false) => {
+    if (noisy)
+      throw new Error('bomb');
+    
+    const log = noisy ? console.log : () => {};
+    rule = make_rule_func(rule);
+
+    let stringified_rule = null;
+
+    try {
+      stringified_rule = 
+        dt_hosted && typeof rule === 'function'
+        ? 'function'
+        : abbreviate(compress(inspect_fun(rule)));
+    }
+    catch (err) {
+      if (!dt_hosted)
+        throw err;
+      
+      stringified_rule = '<unprintable>';
+    }
+
+    if (!rule) {
+      log(`return original null rule ${stringified_rule}`);
+      return rule;
+    }
+
+    if (typeof rule === 'function') {
+      log(`return klassed function ${stringified_rule}`);
+      return new klass(rule);
+    }
+    
+    if (rule instanceof klass) {
+      log(`return original klassed rule ${stringified_rule}`);
+      return rule;
+    }
+    
+    if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
+      log(`return original rule ${stringified_rule}`);
+      return rule;
+    }
+
+    log(`return klassed ${stringified_rule}`);
+    return new klass(rule);
+  }
+  
+  return [ klass, factory_fun ];
+}
+// -------------------------------------------------------------------------------------------------
+const [ WithLWS, lws1 ] =
+      make_whitespace_Rule_class_and_factory_fun("LWS1", rule => second(seq(whites_star, rule)));
+const [ WithTWS, tws1 ] =
+      make_whitespace_Rule_class_and_factory_fun("TWS1", rule => first(seq(rule, whites_star)));
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_decorator0(name, builder, extractor) {
+  return rule => {
+    const built = builder(rule);
+
+    if (prettify_whitespace_combinators)
+      built.__impl_toString = function(visited, next_id, ref_counts) {
+        const rule_str = extractor(this).__toString(visited, next_id, ref_counts);
+        return `${name}(${rule_str})`;
+      };
+
+    return built;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+const lws2 = make_whitespace_decorator0("LWS2",
+                                        rule => second(seq(whites_star, rule)),
+                                        rule => rule.elements[1]  // your original form
+                                       );
+const tws2 = make_whitespace_decorator0("TWS2",
+                                        rule => first(seq(rule, whites_star)),
+                                        rule => rule.elements[0]
+                                       );
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_decorator1(name, builder) {
+  const tag = Symbol(name);
+  
+  return function (rule) {
+    rule = make_rule_func(rule);
+
+    if (!rule) return rule;
+
+    if (rule[tag]) return rule;
+    
+    if (rule instanceof Rule  &&
+        rule.direct_children().length > 0 &&
+        rule.direct_children().every(x => x[tag]))
+      return rule;
+    
+    const built = builder(rule);
+    built[tag] = true;
+
+    if (prettify_whitespace_combinators)
+      built.__impl_toString = function(visited, next_id, ref_counts) {
+        return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+      };
+
+    return built;
+  };
+}
+// -------------------------------------------------------------------------------------------------
+const lws3 = make_whitespace_decorator1("LWS3", rule => second(seq(whites_star, rule)));
+const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_star)));
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_decorator2(name, elem_index) {
+  const tag = Symbol(name);
+
+  const decorate = function (rule) {
+    rule = make_rule_func(rule);
+
+    if (!rule)
+      return rule;
+
+    if (rule[tag])
+      return rule;
+
+    // Unwrap if Choice of tagged rules
+    if (rule instanceof Choice &&
+        rule.options.every(option => option[tag])) {
+      const unwrapped_options = rule.options.map(option => option.__original_rule || option);
+      const rebuilt_choice = new Choice(...unwrapped_options);
+      
+      // console.log(`constructed ${inspect_fun(rebuilt_choice)}`);
+      const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
+      // console.log(`decorated ${inspect_fun(decorated)}`);
+      return decorated;
+    }
+
+    if (rule instanceof Sequence) {
+      if (elem_index == 1 &&
+          rule.elements[0][tag])
+        return rule;
+      else if (elem_index == 0 &&
+               rule.elements[rule.elements.length - 1][tag])
+        return rule;
+    }
+    
+    if (rule instanceof Rule &&
+        rule.direct_children().length > 0 &&
+        rule.direct_children().every(x => x[tag]))
+      return rule;
+
+    const builder = elem_index == 0 ? first : second;
+    
+    const built = builder(elem_index == 0
+                          ? seq(rule, whites_star)
+                          : seq(whites_star, rule));
+    
+    built[tag] = true;
+    built.__original_rule = rule;
+
+    if (prettify_whitespace_combinators)
+      built.__impl_toString = function(visited, next_id, ref_counts) {
+        return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+      };
+
+    return built;
+  };
+
+  return decorate;
+}
+// -------------------------------------------------------------------------------------------------
+const lws4 = make_whitespace_decorator2("LWS3", 1);
+const tws4 = make_whitespace_decorator2("TWS3", 0);
+// =================================================================================================
+
+
+// =================================================================================================
 // COMMON-GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
 // Code in this section originally copy/pasted from the common-grammar.js file in my
@@ -1694,7 +1952,15 @@ function pipe_funs(...fns) {
 // =================================================================================================
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
+// whitespace:
+const whites_star        = r(/\s*/);
+const whites_plus        = r(/\s+/);
+// whites_star.memoize = false;
+// whites_plus.memoize = false;
+whites_star.abbreviate_str_repr('whites*');
+whites_plus.abbreviate_str_repr('whites+');
 // simple 'words':
+// -------------------------------------------------------------------------------------------------
 const alpha_snake             = r(/[a-zA-Z_]+/);
 const lc_alpha_snake          = r(/[a-z_]+/);
 const uc_alpha_snake          = r(/[A-Z_]+/);
@@ -1702,32 +1968,10 @@ alpha_snake.abbreviate_str_repr('alpha_snake');
 lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
 uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // -------------------------------------------------------------------------------------------------
-// whitespace:
-const whites_star        = r(/\s*/);
-const whites_plus        = r(/\s+/);
-// whites_star.memoize = false;
-// whites_plus.memoize = false;
-whites_star.__impl_toString = () => 'Whites*';
-whites_plus.__impl_toString = () => 'Whites+';
 // leading/trailing whitespace:
-const lws                = rule => {
-  rule = second(seq(whites_star, rule));
-  
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `LWS(${rule_str})`;
-  }
-
-  return rule;
-};
-const tws                = rule => {
-  rule = first(seq(rule, whites_star));
-
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `TWS(${rule_str})`;
-  }
-};
+// -------------------------------------------------------------------------------------------------
+const lws = lws4;
+const tws = tws4;
 // -------------------------------------------------------------------------------------------------
 // common numbers:
 const udecimal           = r(/\d+\.\d+/);
@@ -1736,12 +1980,12 @@ const uint               = r(/\d+/);
 const sdecimal           = r(/[+-]?\d+\.\d+/);
 const srational          = r(/[+-]?\d+\/[1-9]\d*/);
 const sint               = r(/[+-]?\d+/)
-udecimal.__impl_toString = () => 'udecimal';
-urational.__impl_toString = () => 'urational';
-uint.__impl_toString     = () => 'uint';
-sdecimal.__impl_toString = () => 'sdecimal';
-srational.__impl_toString = () => 'srational';
-sint.__impl_toString = () => 'sint';
+udecimal.abbreviate_str_repr('udecimal');
+urational.abbreviate_str_repr('urational');
+uint.abbreviate_str_repr('uint');
+sdecimal.abbreviate_str_repr('sdecimal');
+srational.abbreviate_str_repr('srational');
+sint.abbreviate_str_repr('sint');
 // -------------------------------------------------------------------------------------------------
 // common separated quantified rules:
 const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
@@ -1829,7 +2073,7 @@ python_exponent_op.abbreviate_str_repr('python_exponent_op');
 python_logic_word.abbreviate_str_repr('python_logic_word');
 // -------------------------------------------------------------------------------------------------
 // common punctuation:
-const at                = l('@');
+const at                 = l('@');
 const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
@@ -1846,7 +2090,7 @@ const equals             = l('=');
 const equals_arrow       = l('=>');
 const hash               = l('#');
 const decr_equals        = l('-=');
-const incr_equals        = l('+=');
+const plus_equals        = l('+=');
 const percent            = l('%');
 const pipe               = l('|');
 const pound              = l('#');
@@ -1856,6 +2100,7 @@ const semicolon          = l(';');
 const shebang            = l('#!');
 const slash              = l('/');
 ampersand.abbreviate_str_repr('ampersand');
+at.abbreviate_str_repr('at');
 asterisk.abbreviate_str_repr('asterisk');
 bang.abbreviate_str_repr('bang');
 bslash.abbreviate_str_repr('bslash');
@@ -1865,7 +2110,7 @@ comma.abbreviate_str_repr('comma');
 dash.abbreviate_str_repr('dash');
 dash_arrow.abbreviate_str_repr('dash_arrow');
 decr_equals.abbreviate_str_repr('decr_equals');
-incr_equals.abbreviate_str_repr('incr_equals');
+plus_equals.abbreviate_str_repr('plus_equals');
 dollar.abbreviate_str_repr('dollar');
 dot.abbreviate_str_repr('dot');
 ellipsis.abbreviate_str_repr('ellipsis');
@@ -1888,10 +2133,10 @@ const c_hex              = r(/0x[0-9a-f]+/);
 const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
 const c_octal            = r(/0o[0-7]+/);
 const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
-const c_sint             = sint;
+const c_sint             = r(/[+-]?\d+/)
 const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
 const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
-const c_uint             = uint;
+const c_uint             = r(/\d+/);
 const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
 c_bin                    .abbreviate_str_repr('c_bin');
 c_char                   .abbreviate_str_repr('c_char');
@@ -1955,7 +2200,7 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep = comma) =>
+const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep = comma) =>
       seq(fun_rule,
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
@@ -1965,10 +2210,6 @@ const c_funcall = (fun_rule, arg_rule, open = wse(lpar), close = wse(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 const __make_wst_quantified_combinator = base_combinator => 
       ((rule, sep = null) => base_combinator(wse(rule), sep));
-const __make_wst_quantified_combinator_alt = base_combinator =>
-      ((rule, sep = null) =>
-        lws(base_combinator(tws(rule),
-                            sep ? seq(sep, whites_star) : null)));
 const __make_wst_seq_combinator = base_combinator =>
       //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
       (...rules) => base_combinator(...rules.map(x => lws(x)));
@@ -1976,8 +2217,6 @@ const __make_wst_seq_combinator = base_combinator =>
 const wst_choice      = (...options) => wse(choice(...options));
 const wst_star        = __make_wst_quantified_combinator(star);
 const wst_plus        = __make_wst_quantified_combinator(plus);
-const wst_star_alt    = __make_wst_quantified_combinator_alt(star);
-const wst_plus_alt    = __make_wst_quantified_combinator_alt(plus);
 const wst_seq         = __make_wst_seq_combinator(seq);
 const wst_enc         = __make_wst_seq_combinator(enc);
 const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
@@ -2007,14 +2246,14 @@ const Json = choice(() => JsonObject,  () => JsonArray,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const JsonObject = xform(arr =>  Object.fromEntries(arr), 
-                         wst_cutting_enc('{',
+                         wst_cutting_enc(lbrc,
                                          wst_star(
                                            xform(arr => [arr[0], arr[2]],
-                                                 wst_seq(() => json_string, ':', Json)),
-                                           ','),
-                                         '}'));
+                                                 wst_seq(() => json_string, colon, Json)),
+                                           comma),
+                                         rbrc));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const JsonArray = wst_cutting_enc('[', wst_star(Json, ','), ']');
+const JsonArray = wst_cutting_enc(lsqr, wst_star(Json, comma), rsqr);
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -2023,11 +2262,11 @@ const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
 // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
 const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
 // True ← "true"
-const json_true = xform(x => true, 'true');
+const json_true = xform(x => true, /true\b/);
 // False ← "false"
-const json_false = xform(x => false, 'false');
+const json_false = xform(x => false, /false\b/);
 // Null ← "null"
-const json_null = xform(x => null, 'null');
+const json_null = xform(x => null, /null\b/);
 // Minus ← "-"
 const json_minus = l('-');
 // IntegralPart ← "0" / [1-9] [0-9]*
@@ -2057,7 +2296,7 @@ const json_number = xform(reify_json_number,
                               }, optional(json_fractionalPart, 0.0)),
                               xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
-const json_S = whites_plus;
+const json_S = r(/\s+/);
 Json.abbreviate_str_repr('Json');
 JsonObject.abbreviate_str_repr('JsonObject');
 JsonArray.abbreviate_str_repr('JsonArray');
@@ -2087,18 +2326,18 @@ const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(jsonc_comments,
                              choice(() => JsoncObject,  () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
-                                    () => json_null,    () => json_number) /*,
-                                                                             jsonc_comments */));
+                                    () => json_null,    () => json_number),
+                             jsonc_comments));
 const JsoncArray =
-      wst_cutting_enc('[',
+      wst_cutting_enc(lsqr,
                       wst_star(second(seq(jsonc_comments,
                                           Jsonc,
                                           jsonc_comments)),
-                               ','),
-                      ']');
+                               comma),
+                      rsqr);
 const JsoncObject =
       choice(
-        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
           // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
           const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
@@ -2106,24 +2345,24 @@ const JsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, () => json_string, colon),
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
-                optional(second(wst_seq(',',
+                optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
                                                         () => json_string,
                                                         jsonc_comments,
-                                                        ':',
+                                                        colon,
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
-                                                       ))             
-                                          , ',')),
+                                                       )),
+                                          comma)),
                                )),
-                '{}'[1]))); // dumb hack for rainbow brackets sake
+                rbrc))); // dumb hack for rainbow brackets sake
 Jsonc.abbreviate_str_repr('Jsonc');
 jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
@@ -2145,30 +2384,30 @@ const rJsonc = second(wst_seq(jsonc_comments,
                               jsonc_comments));
 const rJsoncObject =
       choice(
-        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
           const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, () => choice(json_string, c_ident), colon), // dumb hack for rainbow brackets sake
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
-                optional(second(wst_seq(',',
+                optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
                                                         choice(json_string, c_ident),
                                                         jsonc_comments,
-                                                        ':',
+                                                        colon,
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
-                                                       ))             
-                                          , ',')),
+                                                       )),
+                                          comma)),
                                )),
-                '{}'[1]))); // dumb hack for rainbow brackets sake
+                rbrc))); // dumb hack for rainbow brackets sake
 rJsonc.abbreviate_str_repr('rJsonc');
 rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
@@ -2481,6 +2720,120 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
   
   return true;
 }
+
+// -------------------------------------------------------------------------------------------------
+function benchmark(thunk, {
+  batch_count    = 50,
+  reps_per_batch = 10000,
+  print_div      = 10,
+  quiet          = true,
+} = {}) {
+  let running_avg  = 0;
+  let result       = null;
+  let start_mem    = -Infinity; // placeholder value, don't worry.
+  const start_time = performance.now();
+
+  const fn = () => measure_time(() => {
+    for (let ix = 0; ix < reps_per_batch; ix++) {
+      result = thunk();
+    }
+  });
+  
+  for (let oix = 0; oix < batch_count; oix++) {
+    // console.log(`oix: ${oix}`);
+    
+    global.gc(); // triggers GC
+    start_mem  = process.memoryUsage().heapUsed;
+    
+    const time = fn();
+
+    running_avg = (((running_avg * oix) + time) / (oix + 1));
+
+    if (quiet) {
+      process.stdout.write('.');
+      if (((oix + 1) % 100) == 0)
+        process.stdout.write('\n');
+    }
+    else if (((oix + 1) % print_div) == 0) {
+      process.stdout.write('\n');
+      console.log();
+      console.log(`${ordinal_string(oix + 1)} batch of ` +
+                  `${format_pretty_number(reps_per_batch)} ` +
+                  `(out of ${format_pretty_number(batch_count)}): `);
+      console.log(`result:                 ${rjson_stringify(result)}`);
+      console.log(`mem at start:           ${format_pretty_bytes(start_mem)}`);
+      const now = process.memoryUsage().heapUsed;
+      console.log(`mem now:                ${format_pretty_bytes(now)}`);
+      console.log(`mem diff:               ${format_pretty_bytes(now - start_mem)}`);
+      console.log(`time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
+      console.log(`time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
+      console.log(`total runtime:          ` +
+                  `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+                  `seconds`);
+      console.log(`rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
+      console.log(`est. runs/second:       ${Math.round(runs_per_second_est)}`);
+      console.log(`EST. TIME PER MILLION:  ` +
+                  `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
+      process.stdout.write('\n');
+    }
+  }
+  
+  console.log();
+  console.log(`batch_count:            ${batch_count}`);
+  console.log(`reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
+  console.log(`total reps:             ${format_pretty_number(batch_count * reps_per_batch)}`);
+  console.log(`last result:            ${rjson_stringify(result)}`);
+  const now = process.memoryUsage().heapUsed;
+  console.log(`final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
+  console.log(`total runtime:          ` +
+              `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+              `seconds`);
+  console.log(`rounded avg time/batch: ${format_pretty_number(Math.round(running_avg))} ms`);
+  const single_run_est = running_avg / reps_per_batch;
+  const runs_per_second_est = 1_000_000 / running_avg;
+  console.log(`est. runs/second:       ` +
+              `${format_pretty_number(Math.round(runs_per_second_est))}`);
+  console.log(`EST. TIME PER MILLION:  ` +
+              `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
+              `ms`);
+  console.log();
+  return running_avg;
+}
+// -----------------------------------------------------------------------------
+function format_pretty_bytes(bytes) {
+  const units = ['bytes', 'KB', 'MB', 'GB'];
+  const base = 1024;
+
+  const sign = Math.sign(bytes);
+  let absBytes = Math.abs(bytes);
+
+  let i = 0;
+  while (absBytes >= base && i < units.length - 1) {
+    absBytes /= base;
+    i++;
+  }
+
+  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
+}
+// -------------------------------------------------------------------------------------------------
+function measure_time(fun) {
+  const start    = performance.now();
+  fun();
+  const end      = performance.now();
+  const duration = end - start;
+  return duration;
+}
+// -------------------------------------------------------------------------------------------------
+function rjson_stringify(obj) {
+  if (obj === undefined)
+    return 'undefined';
+  
+  return JSON.stringify(obj)
+    .replace(/"(\w+)"\s*:/g, ' $1: ')
+    .replace(/{ /g, '{')
+    .replace(/},{/g, '}, {');
+}
 // -------------------------------------------------------------------------------------------------
 function capitalize(string) {
   // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
@@ -2524,6 +2877,9 @@ function choose_indefinite_article(word) {
 }
 // -------------------------------------------------------------------------------------------------
 function compress(str) {
+  if (typeof str !== 'string')
+    throw new Error(`compress: expected a string, got ${typeof str}: ${inspect_fun(str)}`);
+  
   return str.replace(/\s+/g, ' ');
 }
 // ------------------------------------------------------------------------------------------------
@@ -3159,30 +3515,30 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(new_flag) {
-    if (log_flags_enabled)
-      console.log(`\nADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
-
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
-      if (log_flags_enabled)
-        console.log(`SKIPPING, ALREADY SET`);
+      // if (log_flags_enabled)
+      //   console.log(`skipping, already set`);
       return;
     }
+
+    if (log_flags_enabled)
+      console.log(`adding ${inspect_fun(new_flag)} to flags: ${compress(inspect_fun(this.flags))}`);
 
     const new_flag_head = new_flag.slice(0, -1);
     
     this.flags = this.flags.filter(existing_flag => {
       if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
         if (log_flags_enabled)
-          console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A PREFIX OF ` +
-                      `NEW FLAG ${inspect_fun(new_flag)}`);
+          console.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+                      `new flag ${inspect_fun(new_flag)}`);
         return false;
       }
       
       if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
         if (log_flags_enabled)
-          console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A SUFFIX OF ` +
-                      `NEW FLAG'S HEAD ${inspect_fun(new_flag_head)}`);
+          console.log(`discard ${inspect_fun(existing_flag)} because it is a suffix of ` +
+                      `new flag's head ${inspect_fun(new_flag_head)}`);
         return false; 
       }
       
@@ -3355,7 +3711,7 @@ class Context {
 // =================================================================================================
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
-const prelude_text = disable_prelude ? '' : `
+const prelude_text = prelude_disabled ? '' : `
 @__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
                            |?male   #gender.male
                            |?neuter #gender.neuter}
@@ -6646,22 +7002,26 @@ const prelude_text = disable_prelude ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
+  const old_log_flags_enabled = log_flags_enabled;
+  log_flags_enabled = false;
+  
   if (! prelude_parse_result) {
     const old_log_match_enabled = log_match_enabled;
-    log_match_enabled = false;
-    console.log(`parsing prelude...`);
+    log_match_enabled = false; 
     prelude_parse_result = Prompt.match(prelude_text);
-    console.log(`done parsing prelude.`);
     log_match_enabled = old_log_match_enabled;
   }
 
-  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+  // console.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
 
+  
+  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+  log_flags_enabled = old_log_flags_enabled;
+  log_flags_enabled = true;
+  
   if (ignored === undefined)
     throw new Error("crap");
-
-  console.log("loaded prelude.");
-
+  
   return into_context;
 }
 // =================================================================================================
@@ -6870,11 +7230,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     } 
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTNamedWildcardDefinition) {
-      if (context.named_wildcards.has(thing.destination))
-        log(true, `WARNING: redefining named wildcard @${thing.destination.name}, ` +
+      if (context.named_wildcards.has(thing.name))
+        log(true, `WARNING: redefining named wildcard @${thing.name.name}, ` +
             `you may not have intended to do this, check your template!`);
 
-      context.named_wildcards.set(thing.destination, thing.wildcard);
+      context.named_wildcards.set(thing.name, thing.wildcard);
 
       return '';
     }
@@ -7468,14 +7828,14 @@ class ASTUnlatchNamedWildcard extends ASTNode {
 // Named wildcard definitions:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardDefinition extends ASTNode {
-  constructor(destination, wildcard) {
+  constructor(name, wildcard) {
     super();
-    this.destination = destination;
+    this.name = name;
     this.wildcard    = wildcard;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `@${this.destination} = ${this.wildcard}`;
+    return `@${this.name} = ${this.wildcard}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7701,38 +8061,33 @@ class ASTUINegPrompt extends ASTNode {
 // const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
 // const plaintext                = r(/(?:\\\s|[^\s{|}])+/);
 // const plaintext_no_parens      = /[^{|}\s()]+/;
-const any_assignment_operator     = choice(() => assignment_operator, () => incr_assignment_operator);
-const comment                     = discard(c_comment);
-const assignment_operator         = second(seq(wst_star(() => comment), equals, wst_star(() => comment)));
-const incr_assignment_operator    = second(seq(wst_star(comment), incr_equals, wst_star(comment)));
+const discarded_comment           = discard(c_comment);
+const discarded_comments          = discard(wst_star(c_comment));
+// const assignment_operator         = second(seq(wst_star(discarded_comment),
+//                                                lws(equals),
+//                                                wst_star(discarded_comment)));
+// const incr_assignment_operator    = second(seq(wst_star(discarded_comment),
+//                                                lws(plus_equals),
+//                                                wst_star(discarded_comment)));
+const any_assignment_operator     = choice(equals, plus_equals);
 const dot_hash                    = l('.#');
-//const escaped_brc               = second(choice('\\{', '\\}'));
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
-// const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
-// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
 const low_pri_text                = r(/[\(\)\[\]\:]+/);
 const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const word_break                  = r(/(?=\n|\s|[{|}\.\,\;\%\$\@\?\!\[\]\(\)]|$)/);
+// const word_break                  = discard(r(/(?=\s|[{|}\;\.\,\?\!\[\]\(\)]|$)/));
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
-comment                           .abbreviate_str_repr(false); // 'comment');
-assignment_operator               .abbreviate_str_repr('assignment_operator');
-incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
-// escaped_brc                    .abbreviate_str_repr('escaped_brc');
+// assignment_operator               .abbreviate_str_repr('assignment_operator');
+// incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
+discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
+discarded_comments                .abbreviate_str_repr('discarded_comments_star');
 dot_hash                          .abbreviate_str_repr('dot_hash');
 filename                          .abbreviate_str_repr('filename');
 ident                             .abbreviate_str_repr('ident');
 low_pri_text                      .abbreviate_str_repr('low_pri_text');
 plaintext                         .abbreviate_str_repr('plaintext');
 wb_uint                           .abbreviate_str_repr('wb_uint');
-word_break                        .abbreviate_str_repr('word_break');
-// ^ conservative regex, no unicode or weird symbols
-// -------------------------------------------------------------------------------------------------
-// discard comments:
-// -------------------------------------------------------------------------------------------------
-const discarded_comments        = discard(wst_star(comment));
-discarded_comments              .abbreviate_str_repr('discarded_comments_star');
 // -------------------------------------------------------------------------------------------------
 // combinators:
 // -------------------------------------------------------------------------------------------------
@@ -7802,8 +8157,12 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 // flag-related rules:
 // -------------------------------------------------------------------------------------------------
-const simple_check_flag_word_break  = r(/(?=\s|[{|}\;\%\$\@\?\!\[\]\(\)]|$)/);
-simple_check_flag_word_break        .abbreviate_str_repr('simple_check_flag_word_break');
+const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
+const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
+const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
+word_break                         .abbreviate_str_repr('word_break');
+simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
+simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
 const SimpleCheckFlag               = xform(seq(question,
                                                 plus(ident, dot),
                                                 simple_check_flag_word_break),
@@ -7811,9 +8170,9 @@ const SimpleCheckFlag               = xform(seq(question,
                                               const args = [arr[1]];
 
                                               if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (simple) GOT ARR ` +
                                                             `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                                console.log(`CONSTRUCTING CHECKFLAG (simple) WITH ARGS ` +
                                                             `${inspect_fun(args)}`);
                                               }
 
@@ -7822,15 +8181,15 @@ const SimpleCheckFlag               = xform(seq(question,
 const SimpleNotFlag                 = xform(seq(bang,
                                                 optional(hash),
                                                 plus(ident, dot),
-                                                word_break),
+                                                simple_not_flag_word_break),
                                             arr => {
                                               const args = [arr[2],
                                                             { set_immediately: !!arr[1][0]}];
 
                                               if (log_flags_enabled) {
-                                                console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
+                                                console.log(`CONSTRUCTING NOTFLAG (simple) GOT arr ` +
                                                             `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
+                                                console.log(`CONSTRUCTING NOTFLAG (simple) WITH ARGS ` +
                                                             `${inspect_fun(args)}`);
                                               }
 
@@ -7843,9 +8202,9 @@ const CheckFlagWithOrAlternatives   = xform(seq(question,
                                               const args = [arr[1]];
 
                                               if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (or) GOT ARR ` +
                                                             `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
+                                                console.log(`CONSTRUCTING CHECKFLAG (or) WITH ARGS ` +
                                                             `${inspect_fun(args)}`);
                                               }
 
@@ -7860,9 +8219,9 @@ const CheckFlagWithSetConsequent    = xform(seq(question,         // [0]
                                               const args = [ [ arr[1] ], arr[3] ]; 
 
                                               if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
+                                                console.log(`\nCONSTRUCTING CHECKFLAG (set) GOT ARR ` +
                                                             `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
+                                                console.log(`CONSTRUCTING CHECKFLAG (set) WITH ARGS ` +
                                                             `${inspect_fun(args)}`);
                                               }
 
@@ -7878,20 +8237,21 @@ const NotFlagWithSetConsequent      = xform(seq(bang,
                                                             { consequently_set_flag_tail: arr[3] }]; 
 
                                               if (log_flags_enabled) {
-                                                console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
+                                                console.log(`CONSTRUCTING NOTFLAG (set) GOT arr ` +
                                                             `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
+                                                console.log(`CONSTRUCTING NOTFLAG (set) WITH ARGS ` +
                                                             `${inspect_fun(args)}`);
                                               }
                                               
                                               return new ASTNotFlag(...args);
                                             })
-const TestFlag                       = choice(SimpleCheckFlag,
-                                              SimpleNotFlag,
-                                              NotFlagWithSetConsequent,
-                                              CheckFlagWithSetConsequent,
-                                              CheckFlagWithOrAlternatives,
-                                             );
+const TestFlag                       = choice(
+  SimpleCheckFlag,
+  SimpleNotFlag,
+  NotFlagWithSetConsequent,
+  CheckFlagWithSetConsequent,
+  CheckFlagWithOrAlternatives,
+);
 const SetFlag                       = xform(second(seq(hash, plus(ident, dot), word_break)),
                                             arr => {
                                               if (log_flags_enabled)
@@ -7908,6 +8268,7 @@ const UnsetFlag                     = xform(second(seq(shebang, plus(ident, dot)
                                                               ` ${inspect_fun(arr)}`);
                                               return new ASTUnsetFlag(arr);
                                             });
+SimpleCheckFlag.abbreviate_str_repr('SimpleCheckFlag');
 SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
 CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
 CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
@@ -7918,9 +8279,16 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
+const SpecialFunctionTail = seq(discarded_comments,
+                                choice(lws(semicolon), word_break));
+SpecialFunctionTail.abbreviate_str_repr('SpecialFunctionTail');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
-            seq('ui-prompt', word_break));
+            seq('ui-prompt',
+                SpecialFunctionTail
+                // word_break
+               ));
+SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -7931,7 +8299,11 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      input, index - 1));
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
-            seq('ui-neg-prompt', word_break));
+            seq('ui-neg-prompt',
+                SpecialFunctionTail
+                // word_break
+               ));
+SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -7940,8 +8312,6 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
@@ -7949,10 +8319,8 @@ const SpecialFunctionInclude =
             seq(c_funcall('%include',                            // [0][0]
                           first(wst_seq(discarded_comments,      // -
                                         json_string,             // [0][1]
-                                        discarded_comments))),   // -
-                word_break,                                      // n/a
-                discarded_comments,                              // -
-                lws(optional(semicolon))));                      // -
+                                        discarded_comments))),           // -
+                SpecialFunctionTail));
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -7966,49 +8334,62 @@ const UnexpectedSpecialFunctionInclude =
 UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single-pick',               // [0]
-                wst_seq(discarded_comments,  // -
-                        assignment_operator, // [1][0]
-                        discarded_comments,  // -
-                        choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
+            seq('single-pick',                                        // [0]
+                wst_seq(discarded_comments,                           // -
+                        equals, // maybe cut here?                    // [1][0]
+                        discarded_comments,                           // -
+                        choice(() => LimitedContent, lc_alpha_snake), // [1][1]
+                        SpecialFunctionTail
+                        // word_break
+                       ))); 
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('multi-pick',                // [0]
-                wst_seq(discarded_comments,  // -
-                        assignment_operator, // [1][0]
-                        discarded_comments,  // -
-                        choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
+            seq('multi-pick',                                            // [0]
+                wst_seq(discarded_comments,                              // -
+                        equals, // maybe cut here?                       // [1][0]
+                        discarded_comments,                              // -
+                        choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
+                        SpecialFunctionTail
+                        // word_break
+                       )));                                   // -
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            seq('revert-single-pick', word_break));
+            seq('revert-single-pick',
+                SpecialFunctionTail
+                // word_break
+               ));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            seq('revert-multi-pick', word_break));
+            seq('revert-multi-pick',
+                SpecialFunctionTail
+                // word_break
+               ));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => {
-        console.log(`ARR: ${arr}`);
-        const args = [arr[0], arr[1][1], arr[1][0]];
-        console.log(`ARGS: ${args}`);
-        return new ASTUpdateConfigurationBinary(...args);
-      },
-            seq(c_ident,                                                    // [0]
-                wst_seq(discarded_comments,                                 // -
-                        any_assignment_operator,                            // [1][0]
-                        discarded_comments,                                 // -
-                        choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
+            seq(c_ident,                                                   // [0]
+                wst_seq(discarded_comments,                                // -
+                        any_assignment_operator, // maybe cut here?        // [1][0]
+                        discarded_comments,                                // -
+                        choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
+                SpecialFunctionTail
+                // word_break
+               ));                                              // -
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == equals),
-            seq(/conf(?:ig)?/,                                                    // [0]
-                wst_seq(discarded_comments,                                       // -
-                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
-                        discarded_comments,                                       // -
-                        choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
+      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+            seq(/conf(?:ig)?/,                                                   // [0]
+                wst_seq(discarded_comments,                                      // -
+                        choice(plus_equals, equals), // maybe cut here?          // [1][0]
+                        discarded_comments,                                      // -
+                        choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]
+                SpecialFunctionTail
+                // word_break
+               ));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -8028,30 +8409,30 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
                          ),
-                         discarded_comments,
-                         word_break, 
-                         discarded_comments,
-                         lws(optional(semicolon))));
+                        ));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = content_star_rule => 
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlag, SetFlag, comment, UnsetFlag)),
-                optional(wb_uint, 1),
-                wst_star(choice(SetFlag, TestFlag, comment, UnsetFlag)),
+            seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
+                lws(optional(wb_uint, 1)),
+                wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
                 content_star_rule));
-const AnonWildcardAlternative = make_AnonWildcardAlternative_rule(() => ContentStar);
+const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
 const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
-AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
-AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternative, pipe)));
-const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, pipe)));
-// AnonWildcard.abbreviate_str_repr('AnonWildcard');
-// AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
+AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
+AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+// -------------------------------------------------------------------------------------------------
+const make_AnonWildcard_rule  = alternative_rule  =>
+      xform(arr => new ASTAnonWildcard(arr),
+            wst_brc_enc(wst_star(alternative_rule, pipe)));
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
+const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
+AnonWildcard.abbreviate_str_repr('AnonWildcard');
+AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
+// -------------------------------------------------------------------------------------------------
 const NamedWildcardReference  = xform(seq(at,                                        // [0]
                                           optional(caret),                           // [1]
                                           optional(xform(parseInt, uint)),           // [2]
@@ -8077,7 +8458,7 @@ const NamedWildcardDesignator = second(seq(at, ident));
 NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
                                       wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
-                                                              assignment_operator),    // -
+                                                              equals),    // -
                                                       discarded_comments,
                                                       AnonWildcard));                  // [1]
 NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
@@ -8106,17 +8487,17 @@ const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == equals),
+                                                                 arr[0][1] == '='),
                                       wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
                                                               discarded_comments,
-                                                              choice(incr_assignment_operator,
-                                                                     assignment_operator)), // [0][1]
+                                                              choice(plus_equals,
+                                                                     equals)), // [0][1]
                                                       discarded_comments,                   // [1]
                                                       choice(() => LimitedContent,
                                                              json_string,
                                                              plaintext),
                                                       discarded_comments,
-                                                      lws(optional(semicolon))));
+                                                      optional(lws(semicolon))));
 ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
@@ -8131,14 +8512,12 @@ const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_
         low_pri_text,
         NamedWildcardReference,
         SpecialFunctionNotInclude,
-        comment,
+        discarded_comment,
         NamedWildcardUsage,
         SetFlag,
         UnsetFlag,
         ScalarUpdate,
         ScalarReference,
-        // anon_wildcard_rule,
-        // escaped_brc,
       );
 const ContentNoLoras          = make_Content_rule({
   after_plaintext_rules: [
