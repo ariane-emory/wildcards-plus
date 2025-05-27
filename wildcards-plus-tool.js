@@ -2054,6 +2054,51 @@ function make_whitespace_decorator2(name, builder) {
 const lws3 = make_whitespace_decorator2("LWS3", rule => elem(1, seq(whites_star, rule)));
 const tws3 = make_whitespace_decorator2("TWS3", rule => elem(0, seq(rule, whites_star)));
 // =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_decorator3(name, builder) {
+  const tag = Symbol(name);
+
+  const decorator = function (rule) {
+    rule = make_rule_func(rule);
+    if (!rule) return rule;
+
+    if (rule[tag]) return rule;
+
+    // Unwrap if Choice of tagged rules
+    if (rule instanceof ChoiceRule &&
+        rule.alternatives.every(alt => alt[tag])) {
+      const unwrapped_alts = rule.alternatives.map(alt => alt.__original_rule || alt);
+      const rebuilt_choice = new ChoiceRule(unwrapped_alts);
+      return decorator(rebuilt_choice);  // ✅ Use the same closure with stable tag
+    }
+
+    if (rule instanceof Rule &&
+        rule.direct_children().length > 0 &&
+        rule.direct_children().every(x => x[tag]))
+      return rule;
+
+    const built = builder(rule);
+    built[tag] = true;
+    built.__original_rule = rule;
+
+    built.__impl_toString = function(visited, next_id, ref_counts) {
+      return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+    };
+
+    return built;
+  };
+
+  return decorator;
+}
+// -------------------------------------------------------------------------------------------------
+const lws4 = make_whitespace_decorator3("LWS3", rule => elem(1, seq(whites_star, rule)));
+const tws4 = make_whitespace_decorator3("TWS3", rule => elem(0, seq(rule, whites_star)));
+// =================================================================================================
+
+
+// =================================================================================================
 // COMMON-GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
 // Code in this section originally copy/pasted from the common-grammar.js file in my
