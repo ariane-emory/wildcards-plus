@@ -9015,60 +9015,28 @@ if (! main_disabled)
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
-const reps = 10000000;
-const mode = 3;
-
-if (false) {
-  if (mode == 0) {
-    const rule = tws0(lws0(l('foo')));
-    for (let ix = 0; ix < reps; ix++) {
-      const result = rule.match('   foo    ');
-    }
-  }
-  else if (mode == 1) {
-    const rule = tws1(lws1(l('foo')));
-    for (let ix = 0; ix < reps; ix++) {
-      const result = rule.match('   foo    ');
-    }
-  }
-  else if (mode == 2) {
-    const rule = tws2(lws2(l('foo')));
-    for (let ix = 0; ix < reps; ix++) {
-      const result = rule.match('   foo    ');
-    }
-  }
-  else if (mode == 3) {
-    const rule = tws3(lws3(l('foo')));
-    for (let ix = 0; ix < reps; ix++) {
-      const result = rule.match('   foo    ');
-    }
-  }
-  else {
-    throw new Error(`unknown mode ${mode}`);
-  }
-}
-
 console.log(); console.log();
 
-console.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
-console.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
 
-process.exit(0);
+// console.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
+// console.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
 
-const rule0 = tws0(lws0(choice(lws0(l('foo')), lws0(l('bar'))))); rule0.finalize();
-const rule1 = tws1(lws1(choice(lws1(l('foo')), lws1(l('bar'))))); rule1.finalize();
-const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar'))))); rule2.finalize();
-const rule3 = tws3(lws3(choice(lws3(l('foo')), lws3(l('bar'))))); rule3.finalize();
-const rule4 = tws4(lws4(choice(lws4(l('foo')), lws4(l('bar'))))); rule4.finalize();
+// process.exit(0);
 
-const options = { batch_count: 100, reps_per_batch: 100_000 }; 
+// const rule0 = tws0(lws0(choice(lws0(l('foo')), lws0(l('bar'))))); rule0.finalize();
+// const rule1 = tws1(lws1(choice(lws1(l('foo')), lws1(l('bar'))))); rule1.finalize();
+// const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar'))))); rule2.finalize();
+// const rule3 = tws3(lws3(choice(lws3(l('foo')), lws3(l('bar'))))); rule3.finalize();
+// const rule4 = tws4(lws4(choice(lws4(l('foo')), lws4(l('bar'))))); rule4.finalize();
 
-console.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-console.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// const options = { batch_count: 100, reps_per_batch: 100_000 }; 
+
+// console.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// // console.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// // console.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
 
