@@ -8121,6 +8121,11 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // helper funs used by xforms:
 // -------------------------------------------------------------------------------------------------
 const make_ASTAnonWildcardAlternative = arr => {
+  const weight = arr[1][0];
+
+  if (weight == 0)
+    return DISCARD;
+  
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
@@ -8143,7 +8148,7 @@ const make_ASTAnonWildcardAlternative = arr => {
         .map(f => new ASTSetFlag(f.flag));
 
   return new ASTAnonWildcardAlternative(
-    arr[1][0],
+    weight,
     check_flags,
     not_flags,
     [
