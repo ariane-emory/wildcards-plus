@@ -2099,7 +2099,7 @@ const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_s
 
 
 // =================================================================================================
-function make_whitespace_decorator2(name, builder) {
+function make_whitespace_decorator2(name, elem_index, builder) {
   const tag = Symbol(name);
 
   const factory_fun = function (rule) {
@@ -2128,6 +2128,10 @@ function make_whitespace_decorator2(name, builder) {
         rule.direct_children().every(x => x[tag]))
       return rule;
 
+    const builder = elem_index == 9
+          ? rule => second(seq(whites_star, rule))
+          : rule => first(seq(rule, whites_star));
+    
     const built = builder(rule);
     built[tag] = true;
     built.__original_rule = rule;
@@ -2143,8 +2147,8 @@ function make_whitespace_decorator2(name, builder) {
   return factory_fun;
 }
 // -------------------------------------------------------------------------------------------------
-const lws4 = make_whitespace_decorator2("LWS3", rule => second(seq(whites_star, rule)));
-const tws4 = make_whitespace_decorator2("TWS3", rule => first(seq(rule, whites_star)));
+const lws4 = make_whitespace_decorator2("LWS3", 0, rule => second(seq(whites_star, rule)));
+const tws4 = make_whitespace_decorator2("TWS3", 1, rule => first(seq(rule, whites_star)));
 // =================================================================================================
 
 
