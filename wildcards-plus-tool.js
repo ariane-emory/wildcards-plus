@@ -2428,7 +2428,7 @@ const JsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, () => json_string, colon), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, () => json_string, colon),
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
