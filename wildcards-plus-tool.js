@@ -2054,6 +2054,8 @@ const tws                = rule => {
     const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
     return `TWS(${rule_str})`;
   }
+
+  return rule;
 };
 // -------------------------------------------------------------------------------------------------
 // common numbers:
