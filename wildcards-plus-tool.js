@@ -9050,10 +9050,8 @@ if (false) {
 
 console.log(); console.log();
 
-// console.log(`THIS: ${lws4('foo')}`);
 console.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
 console.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
-// console.log(`THIS: ${tws4(lws4(seq(lws4('foo'), tws4('bar'))))}`);
 
 process.exit(0);
 
