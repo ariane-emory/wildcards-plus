@@ -2043,14 +2043,14 @@ function make_whitespace_decorator2(name, builder) {
         rule.direct_children().every(x => x[tag]))
       return rule;
     
-    const decorated = builder(rule);
-    decorated[tag] = true;
+    const built = builder(rule);
+    built[tag] = true;
 
-    decorated.__impl_toString = function(visited, next_id, ref_counts) {
+    built.__impl_toString = function(visited, next_id, ref_counts) {
       return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
     };
 
-    return decorated;
+    return built;
   };
 }
 
