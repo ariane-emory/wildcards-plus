@@ -2140,9 +2140,11 @@ function make_whitespace_decorator2(name, elem_index) {
         rule.direct_children().every(x => x[tag]))
       return rule;
 
-    const built = elem(elem_index, elem_index == 0
-                       ? seq(rule, whites_star)
-                       : seq(whites_star, rule));
+    const builder = elem_index == 0 ? first : second;
+    
+    const built = builder(elem_index == 0
+                          ? seq(rule, whites_star)
+                          : seq(whites_star, rule));
     
     built[tag] = true;
     built.__original_rule = rule;
@@ -9049,8 +9051,8 @@ if (false) {
 console.log(); console.log();
 
 // console.log(`THIS: ${lws4('foo')}`);
-console.log(`THIS: ${seq(lws4('foo'), tws4('bar'))}`);
-console.log(`THIS: ${lws4(seq(lws4('foo'), tws4('bar')))}`);
+console.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
+console.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
 // console.log(`THIS: ${tws4(lws4(seq(lws4('foo'), tws4('bar'))))}`);
 
 process.exit(0);
