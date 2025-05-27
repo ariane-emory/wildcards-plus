@@ -8957,10 +8957,10 @@ if (false) {
 
 console.log(); console.log();
 
-const rule0 = tws0(lws0(l('foo')));
-const rule1 = tws1(lws1(l('foo')));
-const rule2 = tws2(lws2(l('foo')));
-const rule3 = tws3(lws3(l('foo')));
+const rule0 = tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))));
+const rule1 = tws1(lws1(choice(lws1(l('foo')), lws1(l('bar')))));
+const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar')))));
+const rule3 = tws3(lws3(choice(lws3(l('foo')), lws3(l('bar')))));
 
 const options = { batch_count: 100, reps_per_batch: 100_000 };
 
