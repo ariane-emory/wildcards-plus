@@ -956,7 +956,7 @@ function first(rule) {
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-    return `1st(${rule_str})`;
+    return `first(${rule_str})`;
     // return `first(${rule_str})`;
   }
   
@@ -971,7 +971,7 @@ function second(rule) {
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-    return `2nd(${rule_str})`;
+    return `second(${rule_str})`;
     // return `second(${rule_str})`;
   }
   
@@ -986,7 +986,7 @@ function third(rule) {
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-    return `3rd(${rule_str})`;
+    return `third(${rule_str})`;
     // return `third(${rule_str})`;
   }
   
@@ -1915,32 +1915,36 @@ function pipe_funs(...fns) {
 // =================================================================================================
 // Whitespace combinators, these should go somewhere else?
 // =================================================================================================
+const prettify_whitespace_combinators = false;
+// =================================================================================================
+
+// =================================================================================================
 const lws0                = rule => {
-  rule = elem(1, seq(whites_star, rule));
+  rule = second(seq(whites_star, rule));
   
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `LWS0(${rule_str})`;
+  if (prettify_whitespace_combinators) {
+    rule.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+      return `LWS0(${rule_str})`;
+    }
   }
 
   return rule;
 };
 const tws0                = rule => { 
-  rule = elem(0, seq(rule, whites_star));
+  rule = first(seq(rule, whites_star));
 
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
-    return `TWS0(${rule_str})`;
+  if (prettify_whitespace_combinators) {
+    rule.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
+      return `TWS0(${rule_str})`;
+    }
   }
-
+  
   return rule;
 };
 // =================================================================================================
 
-
-// =================================================================================================
-const prettify_whitespace_combinators = false;
-// =================================================================================================
 
 // =================================================================================================
 function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
@@ -2029,9 +2033,9 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
 }
 // -------------------------------------------------------------------------------------------------
 const [ WithLWS, lws1 ] =
-      make_whitespace_Rule_class_and_factory_fun("LWS1", rule => elem(1, seq(whites_star, rule)));
+      make_whitespace_Rule_class_and_factory_fun("LWS1", rule => second(seq(whites_star, rule)));
 const [ WithTWS, tws1 ] =
-      make_whitespace_Rule_class_and_factory_fun("TWS1", rule => elem(0, seq(rule, whites_star)));
+      make_whitespace_Rule_class_and_factory_fun("TWS1", rule => first(seq(rule, whites_star)));
 // =================================================================================================
 
 
@@ -2051,11 +2055,11 @@ function make_whitespace_decorator0(name, builder, extractor) {
 }
 // -------------------------------------------------------------------------------------------------
 const lws2 = make_whitespace_decorator0("LWS2",
-                                        rule => elem(1, seq(whites_star, rule)),
+                                        rule => second(seq(whites_star, rule)),
                                         rule => rule.elements[1]  // your original form
                                        );
 const tws2 = make_whitespace_decorator0("TWS2",
-                                        rule => elem(0, seq(rule, whites_star)),
+                                        rule => first(seq(rule, whites_star)),
                                         rule => rule.elements[0]
                                        );
 // =================================================================================================
@@ -2089,8 +2093,8 @@ function make_whitespace_decorator1(name, builder) {
   };
 }
 // -------------------------------------------------------------------------------------------------
-const lws3 = make_whitespace_decorator1("LWS3", rule => elem(1, seq(whites_star, rule)));
-const tws3 = make_whitespace_decorator1("TWS3", rule => elem(0, seq(rule, whites_star)));
+const lws3 = make_whitespace_decorator1("LWS3", rule => second(seq(whites_star, rule)));
+const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_star)));
 // =================================================================================================
 
 
@@ -2139,8 +2143,8 @@ function make_whitespace_decorator2(name, builder) {
   return factory_fun;
 }
 // -------------------------------------------------------------------------------------------------
-const lws4 = make_whitespace_decorator2("LWS3", rule => elem(1, seq(whites_star, rule)));
-const tws4 = make_whitespace_decorator2("TWS3", rule => elem(0, seq(rule, whites_star)));
+const lws4 = make_whitespace_decorator2("LWS3", rule => second(seq(whites_star, rule)));
+const tws4 = make_whitespace_decorator2("TWS3", rule => first(seq(rule, whites_star)));
 // =================================================================================================
 
 
