@@ -2409,8 +2409,8 @@ const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(jsonc_comments,
                              choice(() => JsoncObject,  () => JsoncArray,
                                     () => json_string,  () => json_true, () => json_false,
-                                    () => json_null,    () => json_number) /*,
-                                                                             jsonc_comments */));
+                                    () => json_null,    () => json_number),
+                             jsonc_comments));
 const JsoncArray =
       wst_cutting_enc(lsqr,
                       wst_star(second(seq(jsonc_comments,
