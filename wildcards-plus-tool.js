@@ -2868,9 +2868,9 @@ function benchmark(thunk, {
   print_div      = 10,
   quiet          = true,
 } = {}) {
-  let running_avg = 0;
-  let result      = null;
-  const start_mem = process.memoryUsage().heapUsed;
+  let running_avg  = 0;
+  let result       = null;
+  let start_mem    = -Infinity; // placeholder value, don't worry.
   const start_time = performance.now();
 
   const fn = () => measure_time(() => {
@@ -2883,7 +2883,8 @@ function benchmark(thunk, {
     // console.log(`oix: ${oix}`);
     
     global.gc(); // triggers GC
-
+    start_mem  = process.memoryUsage().heapUsed;
+    
     const time = fn();
 
     running_avg = (((running_avg * oix) + time) / (oix + 1));
@@ -8966,9 +8967,13 @@ const rule1 = tws1(lws1(l('foo')));
 const rule2 = tws2(lws2(l('foo')));
 const rule3 = tws3(lws3(l('foo')));
 
-const options = { batch_count: 100, reps_per_batch: 500_000 };
+const options = { batch_count: 500, reps_per_batch: 100_000 };
 
-benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
-benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+console.log(`RULE0: `);
 benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE1: `);
+// benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+// console.log(`RULE2: `);
+// benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
+console.log(`RULE3: `);
+benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}foo${' '.repeat(rand_int(0, 10))}`), options);
