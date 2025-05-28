@@ -8570,8 +8570,8 @@ UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionI
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                        // [0]
-                wst_seq(discarded_comments,                           // -
-                        equals, // maybe cut here?                    // [1][0]
+                discarded_comments,                                   // -
+                wst_seq(equals,                                       // [1][0]
                         discarded_comments,                           // -
                         choice(() => LimitedContent, lc_alpha_snake), // [1][1]
                         SpecialFunctionTail))); 
@@ -8579,11 +8579,11 @@ SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle')
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                                            // [0]
-                wst_seq(discarded_comments,                              // -
-                        equals, // maybe cut here?                       // [1][0]
+                discarded_comments,                                      // -
+                wst_seq(equals,                                          // [1][0]
                         discarded_comments,                              // -
                         choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
-                        SpecialFunctionTail)));                                   // -
+                        SpecialFunctionTail))); 
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
