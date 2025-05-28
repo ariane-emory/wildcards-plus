@@ -2182,8 +2182,8 @@ function make_whitespace_decorator2(name, elem_index) {
   return decorate;
 }
 // -------------------------------------------------------------------------------------------------
-const lws4 = make_whitespace_decorator2("LWS3", 1);
-const tws4 = make_whitespace_decorator2("TWS3", 0);
+const lws4 = make_whitespace_decorator2("LWS4", 1);
+const tws4 = make_whitespace_decorator2("TWS4", 0);
 // =================================================================================================
 
 
