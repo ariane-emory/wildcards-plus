@@ -8609,9 +8609,9 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                        // -
                 wst_seq(any_assignment_operator, // maybe cut here?        // [1][0]
                         discarded_comments,                                // -
-                        choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
-                SpecialFunctionTail
-               )); 
+                        choice(rJsonc, () => LimitedContent, plaintext),   // [1][1]
+                        SpecialFunctionTail 
+                       ))); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
@@ -8620,9 +8620,9 @@ const SpecialFunctionUpdateConfigurationUnary =
                 discarded_comments,                                              // -
                 wst_seq(choice(plus_equals, equals), // maybe cut here?          // [1][0]
                         discarded_comments,                                      // -
-                        choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]
-                SpecialFunctionTail
-               ));
+                        choice(rJsoncObject, () => LimitedContent, plaintext),   // [1][1]
+                        SpecialFunctionTail
+                       )));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
