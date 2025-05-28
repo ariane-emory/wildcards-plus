@@ -8606,24 +8606,22 @@ SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPick
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                   // [0]
-                wst_seq(discarded_comments,                                // -
-                        any_assignment_operator, // maybe cut here?        // [1][0]
+                discarded_comments,                                        // -
+                wst_seq(any_assignment_operator, // maybe cut here?        // [1][0]
                         discarded_comments,                                // -
                         choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
                 SpecialFunctionTail
-                // word_break
-               ));                                              // -
+               )); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                   // [0]
-                wst_seq(discarded_comments,                                      // -
-                        choice(plus_equals, equals), // maybe cut here?          // [1][0]
+                discarded_comments,                                              // -
+                wst_seq(choice(plus_equals, equals), // maybe cut here?          // [1][0]
                         discarded_comments,                                      // -
                         choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]
                 SpecialFunctionTail
-                // word_break
                ));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
