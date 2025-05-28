@@ -3773,7 +3773,7 @@ class Context {
     }
 
     if (log_flags_enabled)
-      console.log(`adding ${inspect_fun(new_flag)} to flags: ${compress(inspect_fun(this.flags))}`);
+      console.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
 
     const new_flag_head = new_flag.slice(0, -1);
     
@@ -3781,14 +3781,14 @@ class Context {
       if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
         if (log_flags_enabled)
           console.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
-                      `new flag ${inspect_fun(new_flag)}`);
+                      `new flag ${compress(inspect_fun(new_flag))}`);
         return false;
       }
       
       if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
         if (log_flags_enabled)
           console.log(`discard ${inspect_fun(existing_flag)} because it is a suffix of ` +
-                      `new flag's head ${inspect_fun(new_flag_head)}`);
+                      `new flag's head ${compress(inspect_fun(new_flag_head))}`);
         return false; 
       }
       
@@ -3910,14 +3910,14 @@ class Context {
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
       if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-        log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+        log(`correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
             `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
         munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
       }
     }
     // when running in Node.js, sampler needs to be a string::
     else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+      log(`correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
           `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
       munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
@@ -8322,7 +8322,9 @@ const discarded_comments          = discard(wst_star(c_comment));
 const any_assignment_operator     = choice(equals, plus_equals);
 const dot_hash                    = l('.#');
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
-const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
+const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+                                          str => str.toLowerCase().replace(/-/g, '_'));
+// const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
 const low_pri_text                = r(/[\(\)\[\]\:]+/);
 const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
