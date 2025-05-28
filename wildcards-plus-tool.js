@@ -2464,17 +2464,17 @@ const __make_wst_seq_combinator = base_combinator =>
       //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
       (...rules) => base_combinator(...rules.map(x => lws(x)));
 // -------------------------------------------------------------------------------------------------
-const wst_choice      = (...options) => wse(choice(...options));
+const wst_choice      = (...options) => lws(choice(...options));
 const wst_star        = __make_wst_quantified_combinator(star);
 const wst_plus        = __make_wst_quantified_combinator(plus);
 const wst_seq         = __make_wst_seq_combinator(seq);
 const wst_enc         = __make_wst_seq_combinator(enc);
 const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
 const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => cutting_enc(lws(lpar), rule, lws(rpar));
-const wst_brc_enc     = rule => cutting_enc(lws(lbrc), rule, lws(rbrc));
-const wst_sqr_enc     = rule => cutting_enc(lws(lsqr), rule, lws(rsqr));
-const wst_tri_enc     = rule => cutting_enc(lws(ltri), rule, lws(rtri));
+const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
+const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
+const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
+const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
