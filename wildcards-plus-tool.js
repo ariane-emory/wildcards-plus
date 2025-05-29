@@ -283,7 +283,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_smart_join_enabled            = false;
+let log_smart_join_enabled            = true;
 let log_expand_and_walk_enabled       = false;  
 let prelude_disabled                  = false;
 let print_ast_before_includes_enabled = false;
@@ -9056,3 +9056,4 @@ if (! main_disabled)
 // // console.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
 // // console.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
 
+console.log(smart_join([ 'FOO', "''", 'BAR']));
