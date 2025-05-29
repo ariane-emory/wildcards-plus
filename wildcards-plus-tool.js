@@ -286,7 +286,8 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = true;
 let log_expand_and_walk_enabled       = true;
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_and_die                 = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
 let inspect_depth                     = 50;
@@ -8920,6 +8921,9 @@ async function main() {
     LOG_LINE();
     console.log(`${JSON.stringify(AST)}`);
   }
+
+  if (print_ast_and_die)
+    process.exit(0);
   
   let posted_count        = 0;
   let prior_prompt        = null;
