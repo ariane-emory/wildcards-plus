@@ -1932,8 +1932,8 @@ function make_whitespace_decorator2(name, elem_index) {
   return decorate;
 }
 // -------------------------------------------------------------------------------------------------
-const lws4 = make_whitespace_decorator2("LWS3", 1);
-const tws4 = make_whitespace_decorator2("TWS3", 0);
+const lws4 = make_whitespace_decorator2("LWS4", 1);
+const tws4 = make_whitespace_decorator2("TWS4", 0);
 // =================================================================================================
 
 
@@ -2214,17 +2214,17 @@ const __make_wst_seq_combinator = base_combinator =>
       //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
       (...rules) => base_combinator(...rules.map(x => lws(x)));
 // -------------------------------------------------------------------------------------------------
-const wst_choice      = (...options) => wse(choice(...options));
+const wst_choice      = (...options) => lws(choice(...options));
 const wst_star        = __make_wst_quantified_combinator(star);
 const wst_plus        = __make_wst_quantified_combinator(plus);
 const wst_seq         = __make_wst_seq_combinator(seq);
 const wst_enc         = __make_wst_seq_combinator(enc);
 const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
 const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => cutting_enc(lws(lpar), rule, lws(rpar));
-const wst_brc_enc     = rule => cutting_enc(lws(lbrc), rule, lws(rbrc));
-const wst_sqr_enc     = rule => cutting_enc(lws(lsqr), rule, lws(rsqr));
-const wst_tri_enc     = rule => cutting_enc(lws(ltri), rule, lws(rtri));
+const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
+const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
+const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
+const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
@@ -3075,16 +3075,14 @@ function smart_join(arr) {
     }
 
     if (!chomped &&
-        (prev_char_is_escaped && !' n'.includes(prev_char) || 
-         (!(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-          // !(next_char_is_escaped && ",.!?".includes(right_word[1])) && 
-          !right_word.startsWith('\\n') &&
-          !right_word.startsWith('\\ ') && 
-          !punctuationp (next_char)     && 
-          !linkingp     (prev_char)     &&
-          !linkingp     (next_char)     &&
-          !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-          !'([])'.substring(2,4).includes(next_char))))
+        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+        !right_word.startsWith('\\n') &&
+        !right_word.startsWith('\\ ') && 
+        !punctuationp (next_char)     && 
+        !linkingp     (prev_char)     &&
+        !linkingp     (next_char)     &&
+        !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
+        !'([])'.substring(2,4).includes(next_char))
       add_a_space();
 
     consume_right_word();
@@ -3092,7 +3090,7 @@ function smart_join(arr) {
 
   if (log_smart_join_enabled)
     console.log(`JOINED ${inspect_fun(str)}`);
-  
+
   return str;
 }
 // -------------------------------------------------------------------------------------------------
@@ -3749,15 +3747,15 @@ const prelude_text = prelude_disabled ? '' : `
 @highish_random_weight  = {1.< @low_digit }
 @gt1_random_weight      = {1.< @any_digit }
 @high_random_weight     = {1.< @high_digit}
-@pony_score_9           = {score_9,                                                            }
-@pony_score_8_up        = {score_9, score_8_up,                                                }
-@pony_score_7_up        = {score_9, score_8_up, score_7_up,                                    }
-@pony_score_6_up        = {score_9, score_8_up, score_7_up, score_6_up,                        }
-@pony_score_5_up        = {score_9, score_8_up, score_7_up, score_6_up, score_5_up,            }
-@pony_score_4_up        = {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
-@aris_defaults          = {masterpiece, best quality, absurdres, aesthetic, 8k,
-                           high depth of field, ultra high resolution, detailed background,
-                           wide shot,}
+@pony_score_9           = {                                                             score_9, }
+@pony_score_8_up        = {                                                 score_8_up, score_9, }
+@pony_score_7_up        = {                                     score_7_up, score_8_up, score_9, }
+@pony_score_6_up        = {                         score_6_up, score_7_up, score_8_up, score_9, }
+@pony_score_5_up        = {             score_5_up, score_6_up, score_7_up, score_8_up, score_9, }
+@pony_score_4_up        = { score_4_up, score_5_up, score_6_up, score_7_up, score_8_up, score_9, }
+@aris_defaults          = { masterpiece, best quality, absurdres, aesthetic, 8k,
+                            high depth of field, ultra high resolution, detailed background,
+                            wide shot,}
 
 //--------------------------------------------------------------------------------------------------
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
@@ -7247,7 +7245,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     // scalar assignment:
     // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUpdateScalar) {
+    else if (thing instanceof ASTScalarAssignment) {
       log(context.noisy, '');
       log(context.noisy,
           `ASSIGNING ${inspect_fun(thing.source)} ` +
@@ -7770,7 +7768,7 @@ class ASTScalarReference extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Scalar assignment:
 // -------------------------------------------------------------------------------------------------
-class ASTUpdateScalar extends ASTNode  {
+class ASTScalarAssignment extends ASTNode  {
   constructor(destination, source, assign) {
     super();
     this.destination = destination;
@@ -8063,25 +8061,15 @@ class ASTUINegPrompt extends ASTNode {
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 const discarded_comment           = discard(c_comment);
 const discarded_comments          = discard(wst_star(c_comment));
-// const assignment_operator         = second(seq(wst_star(discarded_comment),
-//                                                lws(equals),
-//                                                wst_star(discarded_comment)));
-// const incr_assignment_operator    = second(seq(wst_star(discarded_comment),
-//                                                lws(plus_equals),
-//                                                wst_star(discarded_comment)));
 const any_assignment_operator     = choice(equals, plus_equals);
 const dot_hash                    = l('.#');
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                           str => str.toLowerCase().replace(/-/g, '_'));
-// const ident                       = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
 const low_pri_text                = r(/[\(\)\[\]\:]+/);
 const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-// const word_break                  = discard(r(/(?=\s|[{|}\;\.\,\?\!\[\]\(\)]|$)/));
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
-// assignment_operator               .abbreviate_str_repr('assignment_operator');
-// incr_assignment_operator          .abbreviate_str_repr('incr_assignment_operator');
 discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
 discarded_comments                .abbreviate_str_repr('discarded_comments_star');
 dot_hash                          .abbreviate_str_repr('dot_hash');
@@ -8090,18 +8078,6 @@ ident                             .abbreviate_str_repr('ident');
 low_pri_text                      .abbreviate_str_repr('low_pri_text');
 plaintext                         .abbreviate_str_repr('plaintext');
 wb_uint                           .abbreviate_str_repr('wb_uint');
-// -------------------------------------------------------------------------------------------------
-// combinators:
-// -------------------------------------------------------------------------------------------------
-// const unarySpecialFunction = (prefix, rule, xform_func) =>
-//       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
-//                                     discarded_comments,     // -
-//                                     '(',                   // [0][1]
-//                                     discarded_comments),    // -
-//                             rule,                          // [1]
-//                             discarded_comments,             // -
-//                             ')'),                          // [2]
-//             arr => xform_func(arr[1]));
 // -------------------------------------------------------------------------------------------------
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
@@ -8342,61 +8318,49 @@ UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionI
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                        // [0]
-                wst_seq(discarded_comments,                           // -
-                        equals, // maybe cut here?                    // [1][0]
+                discarded_comments,                                   // -
+                wst_seq(equals,                                       // [1][0]
                         discarded_comments,                           // -
                         choice(() => LimitedContent, lc_alpha_snake), // [1][1]
-                        SpecialFunctionTail
-                        // word_break
-                       ))); 
+                        SpecialFunctionTail))); 
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                                            // [0]
-                wst_seq(discarded_comments,                              // -
-                        equals, // maybe cut here?                       // [1][0]
+                discarded_comments,                                      // -
+                wst_seq(equals,                                          // [1][0]
                         discarded_comments,                              // -
                         choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
-                        SpecialFunctionTail
-                        // word_break
-                       )));                                   // -
+                        SpecialFunctionTail))); 
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                SpecialFunctionTail
-                // word_break
-               ));
+                SpecialFunctionTail));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                SpecialFunctionTail
-                // word_break
-               ));
+                SpecialFunctionTail));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                   // [0]
-                wst_seq(discarded_comments,                                // -
-                        any_assignment_operator, // maybe cut here?        // [1][0]
-                        discarded_comments,                                // -
-                        choice(rJsonc, () => LimitedContent, plaintext)),  // [1][1]
-                SpecialFunctionTail
-                // word_break
-               ));                                              // -
+            seq(c_ident,                                                         // [0]
+                discarded_comments,                                              // -
+                wst_cutting_seq(any_assignment_operator,                         // [1][0]
+                                discarded_comments,                              // -
+                                choice(rJsonc, () => LimitedContent, plaintext), // [1][1]
+                                SpecialFunctionTail))); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                   // [0]
-                wst_seq(discarded_comments,                                      // -
-                        choice(plus_equals, equals), // maybe cut here?          // [1][0]
-                        discarded_comments,                                      // -
-                        choice(rJsoncObject, () => LimitedContent, plaintext)),  // [1][1]
-                SpecialFunctionTail
-                // word_break
-               ));
+            seq(/conf(?:ig)?/,                                                         // [0]
+                discarded_comments,                                                    // -
+                wst_cutting_seq(choice(plus_equals, equals),                           // [1][0]
+                                discarded_comments,                                    // -
+                                choice(rJsoncObject, () => LimitedContent, plaintext), // [1][1]
+                                SpecialFunctionTail)));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -8426,7 +8390,7 @@ const make_AnonWildcardAlternative_rule = content_star_rule =>
             seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
                 lws(optional(wb_uint, 1)),
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
-                content_star_rule));
+                lws(content_star_rule)));
 const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
 const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
 AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
@@ -8463,11 +8427,11 @@ const NamedWildcardReference  = xform(seq(at,                                   
 NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
 const NamedWildcardDesignator = second(seq(at, ident)); 
 NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
-const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
-                                      wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
-                                                              equals),    // -
-                                                      discarded_comments,
-                                                      AnonWildcard));                  // [1]
+const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
+                                      wst_seq(NamedWildcardDesignator,
+                                              wst_cutting_seq(equals, 
+                                                              discarded_comments,
+                                                              AnonWildcard)));  
 NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
 const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), ident),
                                       arr => {
@@ -8493,19 +8457,18 @@ ScalarReference.abbreviate_str_repr('ScalarReference');
 const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
-const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == '='),
-                                      wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
-                                                              discarded_comments,
-                                                              choice(plus_equals,
-                                                                     equals)), // [0][1]
-                                                      discarded_comments,                   // [1]
-                                                      choice(() => LimitedContent,
-                                                             json_string,
-                                                             plaintext),
-                                                      discarded_comments,
-                                                      optional(lws(semicolon))));
-ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
+const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
+                                                                     arr[1][1],
+                                                                     arr[1][0] == '='),
+                                      wst_seq(ScalarDesignator,                             // [0]
+                                              discarded_comments,                           // - 
+                                              wst_cutting_seq(choice(plus_equals, equals),  // [1][0]
+                                                              discarded_comments,           // -
+                                                              choice(() => LimitedContent,  // [1][1]
+                                                                     json_string,
+                                                                     plaintext),
+                                                              SpecialFunctionTail)));
+ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
                                        AnonWildcardNoLoras,
@@ -8523,7 +8486,7 @@ const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_
         NamedWildcardUsage,
         SetFlag,
         UnsetFlag,
-        ScalarUpdate,
+        ScalarAssignment,
         ScalarReference,
       );
 const ContentNoLoras          = make_Content_rule({
