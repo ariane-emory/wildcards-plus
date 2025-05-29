@@ -8305,7 +8305,7 @@ class ASTUINegPrompt extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const structural_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
 // const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
@@ -8318,8 +8318,16 @@ const dot_hash                    = l('.#');
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                           str => str.toLowerCase().replace(/-/g, '_'));
-const low_pri_text                = r(/[\(\)\[\]\:\;]+/);
-const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s;]|\/\/|\/\*)\S)+/);
+// const lpt re = /[()\[\]:;]/;
+if (false) {
+  const re = r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
+}
+
+const structural_chars            = String.raw`()\[\]:;`;
+const structural_text             = r(new RegExp(String.raw`[${structural_chars}]+`));
+const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s` +
+                                                 structural_chars + 
+                                                 String.raw`]|\/\/|\/\*)\S)+`));
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
@@ -8327,8 +8335,8 @@ discarded_comments                .abbreviate_str_repr('discarded_comments_star'
 dot_hash                          .abbreviate_str_repr('dot_hash');
 filename                          .abbreviate_str_repr('filename');
 ident                             .abbreviate_str_repr('ident');
-low_pri_text                      .abbreviate_str_repr('low_pri_text');
-plaintext                         .abbreviate_str_repr('plaintext');
+structural_text                   .abbreviate_str_repr('structural_text');
+plain_text                        .abbreviate_str_repr('plain_text');
 wb_uint                           .abbreviate_str_repr('wb_uint');
 // -------------------------------------------------------------------------------------------------
 // A1111-style LoRAs:
@@ -8601,7 +8609,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                              // -
                 wst_cutting_seq(any_assignment_operator,                         // [1][0]
                                 discarded_comments,                              // -
-                                choice(rJsonc, () => LimitedContent, plaintext), // [1][1]
+                                choice(rJsonc, () => LimitedContent, plain_text), // [1][1]
                                 SpecialFunctionTail))); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
@@ -8611,7 +8619,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                 discarded_comments,                                                    // -
                 wst_cutting_seq(choice(plus_equals, equals),                           // [1][0]
                                 discarded_comments,                                    // -
-                                choice(rJsoncObject, () => LimitedContent, plaintext), // [1][1]
+                                choice(rJsoncObject, () => LimitedContent, plain_text), // [1][1]
                                 SpecialFunctionTail)));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
@@ -8718,20 +8726,20 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
                                                               discarded_comments,           // -
                                                               choice(() => LimitedContent,  // [1][1]
                                                                      json_string,
-                                                                     plaintext),
+                                                                     plain_text),
                                                               SpecialFunctionTail)));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
                                        AnonWildcardNoLoras,
-                                       plaintext);
+                                       plain_text);
 LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_rules = [] } = {}) =>
+const make_Content_rule       = ({ before_plain_text_rules = [], after_plain_text_rules = [] } = {}) =>
       choice(
-        ...before_plaintext_rules,
-        plaintext,
-        ...after_plaintext_rules,
-        low_pri_text,
+        ...before_plain_text_rules,
+        plain_text,
+        ...after_plain_text_rules,
+        structural_text,
         NamedWildcardReference,
         SpecialFunctionNotInclude,
         discarded_comment,
@@ -8742,23 +8750,23 @@ const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_
         ScalarReference,
       );
 const ContentNoLoras          = make_Content_rule({
-  after_plaintext_rules: [
+  after_plain_text_rules: [
     AnonWildcardNoLoras,
   ],
 });
 const Content                 = make_Content_rule({
-  before_plaintext_rules: [
+  before_plain_text_rules: [
     A1111StyleLora,
   ],
-  after_plaintext_rules:  [
+  after_plain_text_rules:  [
     AnonWildcard,
   ],
 });
 const TopLevelContent         = make_Content_rule({
-  before_plaintext_rules: [
+  before_plain_text_rules: [
     A1111StyleLora,
   ],
-  after_plaintext_rules:  [
+  after_plain_text_rules:  [
     AnonWildcard,
     NamedWildcardDefinition,
     SpecialFunctionInclude,
