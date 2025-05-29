@@ -8753,13 +8753,13 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
                                               discarded_comments,                               // - 
                                               wst_cutting_seq(choice(plus_equals, equals),      // [1][0]
                                                               discarded_comments,               // -
-                                                              choice(() => first(seq(json_string,     // [1][1]
-                                                                                     SpecialFunctionTail)),  
-                                                                     () => first(seq(wst_plus(choice(LimitedContent,
-                                                                                                     discarded_comment)),
-                                                                                     MandatorySpecialFunctionTail)),
-                                                                     () => first(seq(LimitedContent,
-                                                                                     SpecialFunctionTail))))));
+                                                              first(choice(() => seq(json_string,     // [1][1]
+                                                                                     SpecialFunctionTail),  
+                                                                     () => seq(wst_plus(choice(LimitedContent,
+                                                                                               discarded_comment)),
+                                                                                     MandatorySpecialFunctionTail),
+                                                                     () => seq(LimitedContent,
+                                                                               SpecialFunctionTail))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
