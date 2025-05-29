@@ -8329,7 +8329,7 @@ const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s
                                                  structural_chars + 
                                                  String.raw`]|\/\/|\/\*)\S)+`));
 // const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[${structural_chars}{|}])`),
+const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[${structural_chars}{|}<>])`),
                                           parseInt);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
@@ -9021,7 +9021,7 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-let main_disabled = false;
+let main_disabled = true;
 
 if (! main_disabled)
   main().catch(err => {
@@ -9032,8 +9032,8 @@ if (! main_disabled)
 // END OF MAIN SECTION.
 // =================================================================================================
 
+// console.log(inspect_fun(A1111StyleLora.match('<lora:extreme_cc_v0.1_pony: @lowish_random_weight>')));
 // console.log(); console.log();
-
 // console.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
 // console.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
 
