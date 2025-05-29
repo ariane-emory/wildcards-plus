@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  // log_match_enabled  = true;
+  log_match_enabled  = true;
 
   let  result        = null;
 
@@ -73,7 +73,7 @@ function parse_file(filename) {
     }
     catch (err) {
       if (err instanceof FatalParseError) {
-        console.log(`ERROR: matching thre fatal parse error, ` +
+        console.log(`ERROR: matching threw fatal parse error, ` +
                     `halting: \n` +
                     `${inspect_fun(err)}`);
         process.exit(0);
@@ -1318,7 +1318,7 @@ class Sequence extends Rule {
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
         log(indent + 1, `seq pushing first item ` +
-            `${abbreviate(inspect_fun(last_match_result.value))}`);
+            `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
 
       values.push(last_match_result.value);
 
@@ -1355,7 +1355,7 @@ class Sequence extends Rule {
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
-          log(indent + 1, `seq pushing ${abbreviate(inspect_fun(last_match_result.value))}`);
+          log(indent + 1, `seq pushing ${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
 
         values.push(last_match_result.value);
 
@@ -2173,9 +2173,14 @@ function make_whitespace_decorator2(name, elem_index) {
 
     // if (prettify_whitespace_combinators)
     //   built.__impl_toString = function(visited, next_id, ref_counts) {
+    //     return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+    //   };
+
+    // if (prettify_whitespace_combinators)
+    //   built.__impl_toString = function(visited, next_id, ref_counts) {
     //     if (typeof this.__toString !== 'function')
     //       console.log(`suspiciousa: ${inspect_fun(this)}`);
-    //     return `${name}(${this.__toString(visited, next_id, ref_counts)})`;
+    //     return `${name}(${this.__original_rule.__toString(visited, next_id, ref_counts)})`;
     //   };
 
     return built;
@@ -8541,9 +8546,13 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const SpecialFunctionTail = seq(discarded_comments,
-                                choice(lws(semicolon), word_break));
+const SpecialFunctionTail          = seq(discarded_comments,
+                                         choice(lws(semicolon),
+                                                word_break));
+const MandatorySpecialFunctionTail = lws(semicolon);
+
 SpecialFunctionTail.abbreviate_str_repr('SpecialFunctionTail');
+MandatorySpecialFunctionTail.abbreviate_str_repr('MandatorySpecialFunctionTail');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
@@ -8744,8 +8753,10 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
                                               wst_cutting_seq(choice(plus_equals, equals),  // [1][0]
                                                               discarded_comments,           // -
                                                               choice(json_string,           // [1][1]
+                                                                     () => seq(wst_plus(choice(LimitedContent, discarded_comment)),
+                                                                               lws(semicolon)),
                                                                      () => LimitedContent),
-                                                              SpecialFunctionTail)));
+                                                              MandatorySpecialFunctionTail)));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
