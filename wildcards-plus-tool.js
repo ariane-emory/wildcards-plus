@@ -9021,7 +9021,7 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-let main_disabled = true;
+let main_disabled = false;
 
 if (! main_disabled)
   main().catch(err => {
