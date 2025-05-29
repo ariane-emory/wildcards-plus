@@ -8747,13 +8747,13 @@ const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
-                                                                     arr[1],
+                                                                     arr[1][1],
                                                                      arr[1][0] == '='),
-                                      wst_seq(ScalarDesignator,                                 // [0]
-                                              discarded_comments,                               // - 
-                                              wst_cutting_seq(choice(plus_equals, equals),      // [1][0]
-                                                              discarded_comments,               // -
-                                                              first(choice(() => seq(json_string,     // [1][1]
+                                      wst_seq(ScalarDesignator,                                   // [0]
+                                              discarded_comments,                                 // - 
+                                              wst_cutting_seq(choice(plus_equals, equals),        // [1][0]
+                                                              discarded_comments,                 // -
+                                                              first(choice(() => seq(json_string, // [1][1]
                                                                                      SpecialFunctionTail),  
                                                                            () => seq(wst_plus(choice(LimitedContent,
                                                                                                      discarded_comment)),
