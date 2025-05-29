@@ -3251,8 +3251,8 @@ function smart_join(arr, indent) {
       if (log_smart_join_enabled)
         log(`CONSUME ${inspect_fun(right_word)}!`);
 
-      if (right_word === "''")
-        throw new Error(`sus right_word: ${inspect_fun(right_word)}`);
+      // if (right_word === "''")
+      //   throw new Error(`sus right_word: ${inspect_fun(right_word)}`);
       
       left_word  = right_word;
       str       += left_word;
@@ -7640,7 +7640,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
             // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
             //           `increment by string ${inspect_fun(value)}, ` +
             //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-            context.configuration[our_name] = smart_join([tmp_str, value]);
+            context.configuration[our_name] = smart_join([tmp_str, value], indent + 1);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
@@ -7838,7 +7838,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
   
-  const ret = unescape(smart_join(walk(thing, indent + 1)));
+  const ret = unescape(smart_join(walk(thing, indent + 1),
+                                  indent + 1));
 
   context.munge_configuration({indent: indent + 1});
   
@@ -9065,4 +9066,4 @@ if (! main_disabled)
 // // console.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
 // // console.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
 
-console.log(smart_join([ 'FOO', "''", 'BAR']));
+// console.log(smart_join([ 'FOO', "''", 'BAR']));
