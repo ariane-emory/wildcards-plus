@@ -8755,11 +8755,11 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
                                                               discarded_comments,               // -
                                                               choice(() => seq(json_string,     // [1][1]
                                                                                SpecialFunctionTail),  
-                                                                     () => seq(wst_plus(choice(LimitedContent,
-                                                                                               discarded_comment)),
-                                                                               MandatorySpecialFunctionTail),
-                                                                     () => seq(LimitedContent,
-                                                                               SpecialFunctionTail)))));
+                                                                     () => first(seq(wst_plus(choice(LimitedContent,
+                                                                                                     discarded_comment)),
+                                                                                     MandatorySpecialFunctionTail)),
+                                                                     () => first(seq(LimitedContent,
+                                                                                     SpecialFunctionTail))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
