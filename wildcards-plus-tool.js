@@ -8629,7 +8629,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                              // -
                 wst_cutting_seq(any_assignment_operator,                         // [1][0]
                                 discarded_comments,                              // -
-                                choice(rJsonc, () => LimitedContent, plain_text), // [1][1]
+                                choice(rJsonc, () => LimitedContent), // [1][1]
                                 SpecialFunctionTail))); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
@@ -8639,7 +8639,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                 discarded_comments,                                                    // -
                 wst_cutting_seq(choice(plus_equals, equals),                           // [1][0]
                                 discarded_comments,                                    // -
-                                choice(rJsoncObject, () => LimitedContent, plain_text), // [1][1]
+                                choice(rJsoncObject, () => LimitedContent), // [1][1]
                                 SpecialFunctionTail)));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
@@ -8745,8 +8745,7 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
                                               wst_cutting_seq(choice(plus_equals, equals),  // [1][0]
                                                               discarded_comments,           // -
                                                               choice(json_string,           // [1][1]
-                                                                     () => LimitedContent,  
-                                                                     plain_text),
+                                                                     () => LimitedContent),
                                                               SpecialFunctionTail)));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const LimitedContent          = choice(NamedWildcardReference,
