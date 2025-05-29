@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  // log_match_enabled  = true;
+  log_match_enabled  = true;
 
   let  result        = null;
 
@@ -2171,10 +2171,12 @@ function make_whitespace_decorator2(name, elem_index) {
     built[tag] = true;
     built.__original_rule = rule;
 
-    if (prettify_whitespace_combinators)
-      built.__impl_toString = function(visited, next_id, ref_counts) {
-        return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
-      };
+    // if (prettify_whitespace_combinators)
+    //   built.__impl_toString = function(visited, next_id, ref_counts) {
+    //     if (typeof this.__toString !== 'function')
+    //       console.log(`suspiciousa: ${inspect_fun(this)}`);
+    //     return `${name}(${this.__toString(visited, next_id, ref_counts)})`;
+    //   };
 
     return built;
   };
@@ -9019,8 +9021,8 @@ if (! main_disabled)
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
-console.log(); console.log();
 
+// console.log(); console.log();
 
 // console.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
 // console.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
