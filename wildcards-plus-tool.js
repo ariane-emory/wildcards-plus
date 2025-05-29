@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = true;
+  log_match_enabled  = false;
 
   let  result        = null;
 
@@ -8758,8 +8758,7 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
                                                                      () => seq(wst_plus(choice(LimitedContent,
                                                                                                discarded_comment)),
                                                                                MandatorySpecialFunctionTail),
-                                                                     () => seq(LimitedContent,
-                                                                               SpecialFunctionTail)))));
+                                                                     () => LimitedContent))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
