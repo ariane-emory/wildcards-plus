@@ -7421,7 +7421,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
       let got = context.scalar_variables.get(thing.name) ??
-          `Scalarl '${thing.name}' not found}`;
+          ''; // `<WARNING: scalar '${thing.name}' not found}>`;
 
       if (thing.capitalize)
         got = capitalize(got);
