@@ -8328,7 +8328,9 @@ const structural_text             = r(new RegExp(String.raw`[${structural_chars}
 const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s` +
                                                  structural_chars + 
                                                  String.raw`]|\/\/|\/\*)\S)+`));
-const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+// const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[${structural_chars}{|}])`),
+                                          parseInt);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
 discarded_comments                .abbreviate_str_repr('discarded_comments_star');
