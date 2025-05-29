@@ -1,3 +1,4 @@
 FOO
-$model_style = { anime, drawing, };
+$this = { foo, bar, baz, };
 BAR
+look at $this!

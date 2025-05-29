@@ -8335,6 +8335,7 @@ class ASTUINegPrompt extends ASTNode {
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 const discarded_comment           = discard(c_comment);
 const discarded_comments          = discard(wst_star(c_comment));
+const comments                    = wst_star(c_comment);
 const any_assignment_operator     = choice(equals, plus_equals);
 const dot_hash                    = l('.#');
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
@@ -8356,6 +8357,7 @@ const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[${stru
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
 discarded_comments                .abbreviate_str_repr('discarded_comments_star');
+comments                          .abbreviate_str_repr('comments_star');
 dot_hash                          .abbreviate_str_repr('dot_hash');
 filename                          .abbreviate_str_repr('filename');
 ident                             .abbreviate_str_repr('ident');
@@ -8546,11 +8548,10 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const SpecialFunctionTail          = seq(discarded_comments,
-                                         choice(lws(semicolon),
-                                                word_break));
-const MandatorySpecialFunctionTail = lws(semicolon);
-
+const SpecialFunctionTail          = discard(seq(comments,
+                                                 choice(lws(semicolon),
+                                                        word_break)));
+const MandatorySpecialFunctionTail = discard(lws(semicolon));
 SpecialFunctionTail.abbreviate_str_repr('SpecialFunctionTail');
 MandatorySpecialFunctionTail.abbreviate_str_repr('MandatorySpecialFunctionTail');
 const SpecialFunctionUIPrompt =
@@ -8754,7 +8755,8 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
                                                               discarded_comments,               // -
                                                               choice(() => seq(json_string,     // [1][1]
                                                                                SpecialFunctionTail),  
-                                                                     () => seq(wst_plus(choice(LimitedContent, discarded_comment)),
+                                                                     () => seq(wst_plus(choice(LimitedContent,
+                                                                                               discarded_comment)),
                                                                                MandatorySpecialFunctionTail),
                                                                      () => seq(LimitedContent,
                                                                                SpecialFunctionTail)))));
