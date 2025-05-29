@@ -1921,10 +1921,12 @@ function make_whitespace_decorator2(name, elem_index) {
     built[tag] = true;
     built.__original_rule = rule;
 
-    if (prettify_whitespace_combinators)
-      built.__impl_toString = function(visited, next_id, ref_counts) {
-        return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
-      };
+    // if (prettify_whitespace_combinators)
+    //   built.__impl_toString = function(visited, next_id, ref_counts) {
+    //     if (typeof this.__toString !== 'function')
+    //       console.log(`suspiciousa: ${inspect_fun(this)}`);
+    //     return `${name}(${this.__toString(visited, next_id, ref_counts)})`;
+    //   };
 
     return built;
   };
@@ -8066,8 +8068,8 @@ const dot_hash                    = l('.#');
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                           str => str.toLowerCase().replace(/-/g, '_'));
-const low_pri_text                = r(/[\(\)\[\]\:]+/);
-const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
+const low_pri_text                = r(/[\(\)\[\]\:\;]+/);
+const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s;]|\/\/|\/\*)\S)+/);
 const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
