@@ -286,6 +286,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = true;
 let log_expand_and_walk_enabled       = true;
 let prelude_disabled                  = false;
+let print_ast_and_die                 = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let save_post_requests_enable         = true;
@@ -3177,181 +3178,184 @@ function rand_int(x, y) {
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, indent) {
   if (arr.includes("''"))
-    throw new Error(`sus arr: ${inspect_fun(arr)}`);
+    throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
+
+  if (arr.includes('""'))
+    throw new Error(`sus arr 2: ${inspect_fun(arr)}`);
 
 
   if (indent === undefined)
-        throw new Error("need indent");
+    throw new Error("need indent");
 
-      // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-      const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
-      
-      if (! arr)
-        return arr;
-      
-      if (typeof arr === 'string')
-        return arr;
-      
-      arr = [...arr.flat(Infinity).filter(x=> x)];
+  // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+  const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+  
+  if (! arr)
+    return arr;
+  
+  if (typeof arr === 'string')
+    return arr;
+  
+  arr = [...arr.flat(Infinity).filter(x=> x)];
 
-      if (arr.length === 0) // investigate why this is necessary.
-        return '';
-      
+  if (arr.length === 0) // investigate why this is necessary.
+    return '';
+  
+  if (log_smart_join_enabled)
+    log(`JOINING ${compress(inspect_fun(arr))}`);
+
+  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
+  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
+  const linkingp     = (ch)  => "_-".includes(ch);
+  // const whitep       = (ch)  => " \n".includes(ch);
+  
+  // handle "a" → "an" if necessary:
+  const articleCorrection = (originalArticle, nextWord) => {
+    const expected = choose_indefinite_article(nextWord);
+    if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
+      return originalArticle === 'A' ? 'An' : 'an';
+    }
+    return originalArticle;
+  };
+  
+  let left_word = arr[0]; // ?.toString() ?? "";
+  let str       = left_word;
+  
+  for (let ix = 1; ix < arr.length; ix++)  {
+    let right_word           = null;
+    let prev_char            = null;
+    let prev_char_is_escaped = null;
+    let next_char_is_escaped = null;
+    let next_char            = null;
+
+    const add_a_space = () => {
       if (log_smart_join_enabled)
-        log(`JOINING ${compress(inspect_fun(arr))}`);
+        log(`SPACE!`);
 
-      // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
-      const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-      const linkingp     = (ch)  => "_-".includes(ch);
-      // const whitep       = (ch)  => " \n".includes(ch);
+      prev_char  = ' ';
+      str       += ' ';
+    }
+
+    const chomp_left_side = () => {
+      if (log_smart_join_enabled)
+        log(`CHOMP LEFT!`);
       
-      // handle "a" → "an" if necessary:
-      const articleCorrection = (originalArticle, nextWord) => {
-        const expected = choose_indefinite_article(nextWord);
-        if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-          return originalArticle === 'A' ? 'An' : 'an';
-        }
-        return originalArticle;
-      };
+      str      = str.slice(0, -1);
+      left_word = left_word.slice(0, -1);
       
-      let left_word = arr[0]; // ?.toString() ?? "";
-      let str       = left_word;
+      update_pos_vars();
+    };
+    
+    const chomp_right_side = () => {
+      if (log_smart_join_enabled)
+        log(`CHOMP RIGHT!`);
+
+      arr[ix] = arr[ix].slice(1);
+
+      update_pos_vars();
+    }
+
+    const consume_right_word = () => {
+      if (log_smart_join_enabled)
+        log(`CONSUME ${inspect_fun(right_word)}!`);
+
+      if (right_word === "''")
+        throw new Error(`sus right_word: ${inspect_fun(right_word)}`);
       
-      for (let ix = 1; ix < arr.length; ix++)  {
-        let right_word           = null;
-        let prev_char            = null;
-        let prev_char_is_escaped = null;
-        let next_char_is_escaped = null;
-        let next_char            = null;
+      left_word  = right_word;
+      str       += left_word;
+    }
 
-        const add_a_space = () => {
-          if (log_smart_join_enabled)
-            log(`SPACE!`);
+    const move_chars_left = (n) => {
+      if (log_smart_join_enabled)
+        log(`SHIFT ${n} CHARACTERS!`);
 
-          prev_char  = ' ';
-          str       += ' ';
-        }
+      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+      const shifted_str = right_word.substring(0, n);
 
-        const chomp_left_side = () => {
-          if (log_smart_join_enabled)
-            log(`CHOMP LEFT!`);
-          
-          str      = str.slice(0, -1);
-          left_word = left_word.slice(0, -1);
-          
-          update_pos_vars();
-        };
-        
-        const chomp_right_side = () => {
-          if (log_smart_join_enabled)
-            log(`CHOMP RIGHT!`);
+      arr[ix]   = right_word.substring(n);
+      str       = str.substring(0, str.length - overcut) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
+      
+      update_pos_vars();
+    };
+    
+    const update_pos_vars = () => {
+      right_word           = arr[ix]; // ?.toString() ?? "";
+      prev_char            = left_word[left_word.length - 1] ?? "";
+      prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
+      next_char            = right_word[0] ?? '';
+      next_char_is_escaped = right_word[0] === '\\';
 
-          arr[ix] = arr[ix].slice(1);
+      if (log_smart_join_enabled)
+        log(`ix = ${inspect_fun(ix)}, ` +
+            `str = ${inspect_fun(str)}, ` +
+            `left_word = ${inspect_fun(left_word)}, ` +         
+            `right_word = ${inspect_fun(right_word)}, ` +       
+            `prev_char = ${inspect_fun(prev_char)}, ` +         
+            `next_char = ${inspect_fun(next_char)}, ` + 
+            `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+            `next_char_is_escaped = ${next_char_is_escaped}`);
+    };
+    
+    update_pos_vars();
+    
+    if (right_word === '') {
+      if (log_smart_join_enabled)
+        log(`JUMP EMPTY!`);
 
-          update_pos_vars();
-        }
+      continue;
+    }
 
-        const consume_right_word = () => {
-          if (log_smart_join_enabled)
-            log(`CONSUME ${inspect_fun(right_word)}!`);
+    while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
+      move_chars_left(3);
+    
+    while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
+      move_chars_left(1);
+    
+    // Normalize article if needed:
+    const article_match = str.match(/(?:^|\s)([Aa])$/);
+    
+    if (article_match) {
+      const originalArticle = article_match[1];
+      const updatedArticle = articleCorrection(originalArticle, right_word);
 
-          if (right_word === "''")
-            throw new Error(`sus right_word: ${inspect_fun(right_word)}`);
-          
-          left_word  = right_word;
-          str       += left_word;
-        }
+      if (updatedArticle !== originalArticle) 
+        str = str.slice(0, -originalArticle.length) + updatedArticle;
+    }
 
-        const move_chars_left = (n) => {
-          if (log_smart_join_enabled)
-            log(`SHIFT ${n} CHARACTERS!`);
+    let chomped = false;
 
-          const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-          const shifted_str = right_word.substring(0, n);
+    if (!prev_char_is_escaped && prev_char === '<') {
+      chomp_left_side();
+      chomped = true;
+    }
+    
+    if (right_word.startsWith('<')) {
+      chomp_right_side();
+      chomped = true;
+    }
 
-          arr[ix]   = right_word.substring(n);
-          str       = str.substring(0, str.length - overcut) + shifted_str;
-          left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
-          
-          update_pos_vars();
-        };
-        
-        const update_pos_vars = () => {
-          right_word           = arr[ix]; // ?.toString() ?? "";
-          prev_char            = left_word[left_word.length - 1] ?? "";
-          prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-          next_char            = right_word[0] ?? '';
-          next_char_is_escaped = right_word[0] === '\\';
+    if (right_word === '') {
+      if (log_smart_join_enabled)
+        log(`JUMP EMPTY (LATE)!`);
 
-          if (log_smart_join_enabled)
-            log(`ix = ${inspect_fun(ix)}, ` +
-                `str = ${inspect_fun(str)}, ` +
-                `left_word = ${inspect_fun(left_word)}, ` +         
-                `right_word = ${inspect_fun(right_word)}, ` +       
-                `prev_char = ${inspect_fun(prev_char)}, ` +         
-                `next_char = ${inspect_fun(next_char)}, ` + 
-                `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-                `next_char_is_escaped = ${next_char_is_escaped}`);
-        };
-        
-        update_pos_vars();
-        
-        if (right_word === '') {
-          if (log_smart_join_enabled)
-            log(`JUMP EMPTY!`);
+      continue;
+    }
 
-          continue;
-        }
+    if (!chomped &&
+        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+        !right_word.startsWith('\\n') &&
+        !right_word.startsWith('\\ ') && 
+        !punctuationp (next_char)     && 
+        !linkingp     (prev_char)     &&
+        !linkingp     (next_char)     &&
+        !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
+        !'([])'.substring(2,4).includes(next_char))
+      add_a_space();
 
-        while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
-          move_chars_left(3);
-        
-        while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
-          move_chars_left(1);
-        
-        // Normalize article if needed:
-        const article_match = str.match(/(?:^|\s)([Aa])$/);
-        
-        if (article_match) {
-          const originalArticle = article_match[1];
-          const updatedArticle = articleCorrection(originalArticle, right_word);
-
-          if (updatedArticle !== originalArticle) 
-            str = str.slice(0, -originalArticle.length) + updatedArticle;
-        }
-
-        let chomped = false;
-
-        if (!prev_char_is_escaped && prev_char === '<') {
-          chomp_left_side();
-          chomped = true;
-        }
-        
-        if (right_word.startsWith('<')) {
-          chomp_right_side();
-          chomped = true;
-        }
-
-        if (right_word === '') {
-          if (log_smart_join_enabled)
-            log(`JUMP EMPTY (LATE)!`);
-
-          continue;
-        }
-
-        if (!chomped &&
-            !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-            !right_word.startsWith('\\n') &&
-            !right_word.startsWith('\\ ') && 
-            !punctuationp (next_char)     && 
-            !linkingp     (prev_char)     &&
-            !linkingp     (next_char)     &&
-            !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-            !'([])'.substring(2,4).includes(next_char))
-          add_a_space();
-
-        consume_right_word();
-      }
+    consume_right_word();
+  }
 
   if (log_smart_join_enabled)
     log(`JOINED ${inspect_fun(str)}`);
@@ -8740,8 +8744,8 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
                                               discarded_comments,                           // - 
                                               wst_cutting_seq(choice(plus_equals, equals),  // [1][0]
                                                               discarded_comments,           // -
-                                                              choice(() => LimitedContent,  // [1][1]
-                                                                     json_string,
+                                                              choice(json_string,           // [1][1]
+                                                                     () => LimitedContent,  
                                                                      plain_text),
                                                               SpecialFunctionTail)));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
@@ -8925,6 +8929,9 @@ async function main() {
     LOG_LINE();
     console.log(`${JSON.stringify(AST)}`);
   }
+
+  if (print_ast_and_die)
+    process.exit(0);
   
   let posted_count        = 0;
   let prior_prompt        = null;
