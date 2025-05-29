@@ -8548,16 +8548,16 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const SpecialFunctionTail          = discard(seq(comments,
-                                                 choice(lws(semicolon),
-                                                        word_break)));
+const OptionalSpecialFunctionTail          = discard(seq(comments,
+                                                         choice(lws(semicolon),
+                                                                word_break)));
 const MandatorySpecialFunctionTail = discard(lws(semicolon));
-SpecialFunctionTail.abbreviate_str_repr('SpecialFunctionTail');
+OptionalSpecialFunctionTail.abbreviate_str_repr('OptionalSpecialFunctionTail');
 MandatorySpecialFunctionTail.abbreviate_str_repr('MandatorySpecialFunctionTail');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
-                SpecialFunctionTail
+                OptionalSpecialFunctionTail
                 // word_break
                ));
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
@@ -8572,7 +8572,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-                SpecialFunctionTail
+                OptionalSpecialFunctionTail
                 // word_break
                ));
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
@@ -8592,7 +8592,7 @@ const SpecialFunctionInclude =
                           first(wst_seq(discarded_comments,      // -
                                         json_string,             // [0][1]
                                         discarded_comments))),           // -
-                SpecialFunctionTail));
+                OptionalSpecialFunctionTail));
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8611,7 +8611,7 @@ const SpecialFunctionSetPickSingle =
                 wst_seq(equals,                                       // [1][0]
                         discarded_comments,                           // -
                         choice(() => LimitedContent, lc_alpha_snake), // [1][1]
-                        SpecialFunctionTail))); 
+                        OptionalSpecialFunctionTail))); 
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
@@ -8620,17 +8620,17 @@ const SpecialFunctionSetPickMultiple =
                 wst_seq(equals,                                          // [1][0]
                         discarded_comments,                              // -
                         choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
-                        SpecialFunctionTail))); 
+                        OptionalSpecialFunctionTail))); 
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                SpecialFunctionTail));
+                OptionalSpecialFunctionTail));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                SpecialFunctionTail));
+                OptionalSpecialFunctionTail));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
@@ -8639,7 +8639,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 wst_cutting_seq(any_assignment_operator,                         // [1][0]
                                 discarded_comments,                              // -
                                 choice(rJsonc, () => LimitedContent), // [1][1]
-                                SpecialFunctionTail))); 
+                                OptionalSpecialFunctionTail))); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
@@ -8649,7 +8649,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                 wst_cutting_seq(choice(plus_equals, equals),                           // [1][0]
                                 discarded_comments,                                    // -
                                 choice(rJsoncObject, () => LimitedContent), // [1][1]
-                                SpecialFunctionTail)));
+                                OptionalSpecialFunctionTail)));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -8746,20 +8746,21 @@ ScalarReference.abbreviate_str_repr('ScalarReference');
 const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
-const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
-                                                                     arr[1][1],
-                                                                     arr[1][0] == '='),
-                                      wst_seq(ScalarDesignator,                                   // [0]
-                                              discarded_comments,                                 // - 
-                                              wst_cutting_seq(choice(plus_equals, equals),        // [1][0]
-                                                              discarded_comments,                 // -
-                                                              first(choice(() => seq(json_string, // [1][1]
-                                                                                     SpecialFunctionTail),  
-                                                                           () => seq(wst_plus(choice(LimitedContent,
-                                                                                                     discarded_comment)),
-                                                                                     MandatorySpecialFunctionTail),
-                                                                           () => seq(LimitedContent,
-                                                                                     SpecialFunctionTail))))));
+const ScalarAssignment        =
+      xform(arr => new ASTScalarAssignment(arr[0],
+                                           arr[1][1],
+                                           arr[1][0] == '='),
+            wst_seq(ScalarDesignator,                                   // [0]
+                    discarded_comments,                                 // - 
+                    wst_cutting_seq(choice(plus_equals, equals),        // [1][0]
+                                    discarded_comments,                 // -
+                                    first(choice(() => seq(json_string, // [1][1]
+                                                           OptionalSpecialFunctionTail),  
+                                                 () => seq(wst_plus(choice(LimitedContent,
+                                                                           discarded_comment)),
+                                                           MandatorySpecialFunctionTail),
+                                                 () => seq(LimitedContent,
+                                                           OptionalSpecialFunctionTail))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
