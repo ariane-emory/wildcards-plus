@@ -272,25 +272,24 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = true;
-let unnecessary_choice_is_error       = false;
-// let print_ast_enabled                 = false;
-let print_ast_json_enabled            = false;
-let log_enabled                       = true;
+let inspect_depth                     = 50;
 let log_configuration_enabled         = false;
+let log_enabled                       = true;
+let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
-let log_post_enabled                  = true;
-let log_smart_join_enabled            = true;
-let log_expand_and_walk_enabled       = true;
+let log_post_enabled                  = false;
+let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
+let print_ast_after_includes_enabled  = false;
 let print_ast_and_die                 = false;
 let print_ast_before_includes_enabled = false;
-let print_ast_after_includes_enabled  = false;
+let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
-let inspect_depth                     = 50;
+let unnecessary_choice_is_error       = false;
 // =================================================================================================
 
 
