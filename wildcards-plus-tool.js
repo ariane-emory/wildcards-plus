@@ -8757,6 +8757,7 @@ const ScalarAssignment        =
                                     first(choice(() => seq(json_string, // [1][1]
                                                            OptionalSpecialFunctionTail),  
                                                  () => seq(wst_plus(choice(LimitedContent,
+                                                                           // structural_text, // BUGS PARSE!
                                                                            discarded_comment)),
                                                            MandatorySpecialFunctionTail),
                                                  () => seq(LimitedContent,
