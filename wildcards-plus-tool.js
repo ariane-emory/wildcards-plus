@@ -8346,11 +8346,11 @@ if (false) {
   const re = r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
 }
 
-const structural_chars            = String.raw`()\[\]:;`;
+const structural_chars            = String.raw`()\[\]:`;
 const structural_text             = r(new RegExp(String.raw`[${structural_chars}]+`));
 const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s` +
                                                  structural_chars + 
-                                                 String.raw`]|\/\/|\/\*)\S)+`));
+                                                 String.raw`;]|\/\/|\/\*)\S)+`));
 // const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
 const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[${structural_chars}{|}<>])`),
                                           parseInt);
