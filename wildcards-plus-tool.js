@@ -8747,7 +8747,7 @@ const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
-                                                                     arr[1][1],
+                                                                     arr[1],
                                                                      arr[1][0] == '='),
                                       wst_seq(ScalarDesignator,                                 // [0]
                                               discarded_comments,                               // - 
@@ -8755,11 +8755,11 @@ const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
                                                               discarded_comments,               // -
                                                               first(choice(() => seq(json_string,     // [1][1]
                                                                                      SpecialFunctionTail),  
-                                                                     () => seq(wst_plus(choice(LimitedContent,
-                                                                                               discarded_comment)),
+                                                                           () => seq(wst_plus(choice(LimitedContent,
+                                                                                                     discarded_comment)),
                                                                                      MandatorySpecialFunctionTail),
-                                                                     () => seq(LimitedContent,
-                                                                               SpecialFunctionTail))))));
+                                                                           () => seq(LimitedContent,
+                                                                                     SpecialFunctionTail))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
