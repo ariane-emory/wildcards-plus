@@ -3325,16 +3325,14 @@ function smart_join(arr) {
     }
 
     if (!chomped &&
-        (prev_char_is_escaped && !' n'.includes(prev_char) || 
-         (!(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-          // !(next_char_is_escaped && ",.!?".includes(right_word[1])) && 
-          !right_word.startsWith('\\n') &&
-          !right_word.startsWith('\\ ') && 
-          !punctuationp (next_char)     && 
-          !linkingp     (prev_char)     &&
-          !linkingp     (next_char)     &&
-          !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-          !'([])'.substring(2,4).includes(next_char))))
+        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+        !right_word.startsWith('\\n') &&
+        !right_word.startsWith('\\ ') && 
+        !punctuationp (next_char)     && 
+        !linkingp     (prev_char)     &&
+        !linkingp     (next_char)     &&
+        !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
+        !'([])'.substring(2,4).includes(next_char))
       add_a_space();
 
     consume_right_word();
@@ -3342,7 +3340,7 @@ function smart_join(arr) {
 
   if (log_smart_join_enabled)
     console.log(`JOINED ${inspect_fun(str)}`);
-  
+
   return str;
 }
 // -------------------------------------------------------------------------------------------------
