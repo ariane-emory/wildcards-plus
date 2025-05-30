@@ -8419,6 +8419,7 @@ const plain_text_head = (additional_excluded_chars) =>
       raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
       raw`${comment_beginning})` +
       raw`\S)`;
+// equivalent to plain_text_head:
 const plain_text_tail = (additional_excluded_chars) =>
       // raw`${brackets}|` +
       raw`(?:\\.|` +
