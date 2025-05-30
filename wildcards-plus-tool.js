@@ -8789,18 +8789,19 @@ const ScalarAssignment        =
         new ASTScalarAssignment(arr[0],
                                 arr[1][1],
                                 arr[1][0] == '='),
-        wst_seq(ScalarDesignator,                                     // [0]
-                discarded_comments,                                   // - 
-                wst_cutting_seq(choice(plus_equals, equals),          // [1][0]
-                                discarded_comments,                   // -
-                                first(choice(() => seq(rjsonc_string, // [1][1]
-                                                       TrailingCommentFollowedBySemicolonOrWordBreak),  
-                                             () => seq(hwst_plus(choice(LimitedContentNoSemis,
-                                                                        discarded_comment)),
-                                                       TrailingCommentsAndSemicolon),
-                                             () => seq(LimitedContentNoSemis,
-                                                       TrailingCommentFollowedBySemicolonOrWordBreak),
-                                            )))));
+        wst_seq(ScalarDesignator,                       // [0]
+                discarded_comments,                     // - 
+                wst_cutting_seq(
+                  choice(plus_equals, equals),          // [1][0]
+                  discarded_comments,                   // -
+                  first(choice(() => seq(rjsonc_string, // [1][1]
+                                         TrailingCommentFollowedBySemicolonOrWordBreak),  
+                               () => seq(hwst_plus(choice(LimitedContentNoSemis,
+                                                          discarded_comment)),
+                                         TrailingCommentsAndSemicolon),
+                               () => seq(LimitedContentNoSemis,
+                                         TrailingCommentFollowedBySemicolonOrWordBreak),
+                              )))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // -------------------------------------------------------------------------------------------------
 const make_LimitedContent_rule = plain_text_rule  =>
