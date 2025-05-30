@@ -291,7 +291,7 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = false;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
@@ -2472,19 +2472,19 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
-const __make_wst_quantified_combinator = base_combinator => 
+const make_wst_quantified_combinator = base_combinator => 
       ((rule, sep = null) => base_combinator(lws(rule), lws(sep)));
-const __make_wst_seq_combinator = base_combinator =>
+const make_wst_seq_combinator = base_combinator =>
       //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
       (...rules) => base_combinator(...rules.map(x => lws(x)));
 // -------------------------------------------------------------------------------------------------
 const wst_choice      = (...options) => lws(choice(...options));
-const wst_star        = __make_wst_quantified_combinator(star);
-const wst_plus        = __make_wst_quantified_combinator(plus);
-const wst_seq         = __make_wst_seq_combinator(seq);
-const wst_enc         = __make_wst_seq_combinator(enc);
-const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
-const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
+const wst_star        = make_wst_quantified_combinator(star);
+const wst_plus        = make_wst_quantified_combinator(plus);
+const wst_seq         = make_wst_seq_combinator(seq);
+const wst_enc         = make_wst_seq_combinator(enc);
+const wst_cutting_seq = make_wst_seq_combinator(cutting_seq);
+const wst_cutting_enc = make_wst_seq_combinator(cutting_enc);
 const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
 const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
 const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
