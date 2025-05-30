@@ -27,14 +27,14 @@ let log_configuration_enabled         = true;
 let log_enabled                       = true;
 let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
-let log_flags_enabled                 = true;
+let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
@@ -7570,18 +7570,18 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       // if (Array.isArray(thing.weight))
       //   throw new Error("boom");
       
-      log(true,
-          `walking weight ${inspect_fun(thing.weight)}`);
+      log(log_expand_and_walk_enabled,
+          `walking weight ${compress(inspect_fun(thing.weight))}`);
 
       let walked_weight = expand_wildcards(thing.weight, context, indent + 1); // not walk!
       
       // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
       //   throw "bomb";
       
-      log(true,
+      log(log_expand_and_walk_enabled,
           `walked_weight is ${typeof walked_weight} ` +
           `${walked_weight.constructor.name} ` +
-          `${inspect_fun(walked_weight)}, ` +
+          `${compress(inspect_fun(walked_weight))}, ` +
           `Array.isArray(${Array.isArray(walked_weight)})`);
       
       // if (Array.isArray(walked_weight))
@@ -8140,7 +8140,8 @@ const dot_hash                = l('.#');
 const filename                = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
-const wb_uint                 = xform(r_raw`\d+(?=[\s|}])`, parseInt);
+const structural_word_break   = r(/(?=[\s|}])/);
+const wb_uint                 = xform(first(seq(uint, structural_word_break)), parseInt);
 // -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
 comments                      .abbreviate_str_repr('comments_star');
@@ -8175,8 +8176,8 @@ const plain_text_no_semis      = make_plain_text_rule(';');
 plain_text                     .abbreviate_str_repr('plain_text');
 plain_text_no_semis            .abbreviate_str_repr('plain_text_no_semis');
 // -------------------------------------------------------------------------------------------------
-console.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
-console.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
+// console.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
+// console.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
@@ -8198,6 +8199,7 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // word breaks:
 // =================================================================================================
+// these are inadvisably complex:
 const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
 const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
 const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
@@ -8391,16 +8393,11 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
                                                                   choice(lws(semicolon),
                                                                          word_break)));
-TrailingCommentFollowedBySemicolonOrWordBreak
-  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
 const TrailingCommentsAndSemicolon = discard(lws(semicolon));
-TrailingCommentsAndSemicolon
-  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
                 TrailingCommentFollowedBySemicolonOrWordBreak));
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8409,12 +8406,10 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
                 TrailingCommentFollowedBySemicolonOrWordBreak));
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8423,7 +8418,6 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
@@ -8431,7 +8425,6 @@ const SpecialFunctionInclude =
                                         rjsonc_string,           // [0][1]
                                         discarded_comments))),   // -
                 TrailingCommentFollowedBySemicolonOrWordBreak));
-SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8441,7 +8434,6 @@ const UnexpectedSpecialFunctionInclude =
                                      "running the wildcards-plus.js script " +
                                      "inside Draw Things",
                                      input, index - 1));
-UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                        // [0]
@@ -8507,7 +8499,25 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          ),
                         ));
-SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
+// -------------------------------------------------------------------------------------------------
+TrailingCommentFollowedBySemicolonOrWordBreak
+  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+TrailingCommentsAndSemicolon
+  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
+SpecialFunctionInclude
+  .abbreviate_str_repr('SpecialFunctionInclude');
+SpecialFunctionUINegPrompt
+  .abbreviate_str_repr('SpecialFunctionUINegPrompt');
+SpecialFunctionUIPrompt
+  .abbreviate_str_repr('SpecialFunctionUIPrompt');
+UnexpectedSpecialFunctionInclude
+  .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+UnexpectedSpecialFunctionUINegPrompt
+  .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+UnexpectedSpecialFunctionUIPrompt
+  .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+SpecialFunctionNotInclude
+  .abbreviate_str_repr('SpecialFunctionNotInclude');
 // =================================================================================================
 // other non-terminals:
 // =================================================================================================
@@ -8835,4 +8845,6 @@ catch(ex) {
                 `exception:\n${inspect_fun(ex)}`);
   }
 }
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
+// END OF MAIN SECTION.
+// =================================================================================================
