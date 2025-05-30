@@ -8405,10 +8405,12 @@ const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
 const structural_chars        = '{|}';
 const syntax_chars            = '@#$%';
 const comment_beginning       = String.raw`\/\/|\/\*`;
-const plain_text_no_semis     =
-      r_raw`(?:\\.|(?![\s${syntax_chars}${structural_chars};]|${comment_beginning}})\S)(?:\\.|(?![\s${structural_chars};]|${comment_beginning}})\S)*`;
+
 const plain_text              =
       r_raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}]|${comment_beginning}})\S)(?:\\.|(?![\s${structural_chars}]|${comment_beginning}})\S)*`;
+const plain_text_no_semis     =
+      r_raw`(?:\\.|(?![\s${syntax_chars}${structural_chars};]|${comment_beginning}})\S)(?:\\.|(?![\s${structural_chars};]|${comment_beginning}})\S)*`;
+
 
 console.log(`plain_text:   ${plain_text.regexp.source}`);
 // console.log(`plain_text_2: ${plain_text_2.regexp.source}`);
