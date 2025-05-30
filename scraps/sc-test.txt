@@ -1,0 +1,19 @@
+// -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
+// =======================================================================================
+// $some_var = '';
+// \n FOO $some_var BAR
+// $some_var = "";
+// \n FOO $some_var BAR
+// $some_var = {};
+// \n FOO $some_var BAR
+
+$some_var = it's got an embedded (single) quote in it;
+\n FOO $some_var BAR
+
+
+// $some_var = \'hello', she said;
+// \n FOO $some_var BAR
+
+// $some_var = 'hello', she said;     
+// \n FOO $some_var BAR
+
