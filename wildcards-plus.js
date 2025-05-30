@@ -34,7 +34,7 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
@@ -8175,8 +8175,8 @@ const plain_text_no_semis      = make_plain_text_rule(';');
 plain_text                     .abbreviate_str_repr('plain_text');
 plain_text_no_semis            .abbreviate_str_repr('plain_text_no_semis');
 // -------------------------------------------------------------------------------------------------
-console.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
-console.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
+// console.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
+// console.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
