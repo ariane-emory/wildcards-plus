@@ -291,7 +291,7 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = false;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
@@ -3214,8 +3214,8 @@ function smart_join(arr, indent) {
   
   arr = [...arr.flat(Infinity).filter(x=> x)];
 
-  if (arr.includes("''") || arr.includes('""'))
-    throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
+  // if (arr.includes("''") || arr.includes('""'))
+  //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
 
   if (arr.length === 0) // investigate why this is necessary.
     return '';
@@ -3278,8 +3278,8 @@ function smart_join(arr, indent) {
       if (log_smart_join_enabled)
         log(`CONSUME ${inspect_fun(right_word)}!`);
 
-      if (right_word === '""' || right_word === "''")
-        throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
+      // if (right_word === '""' || right_word === "''")
+      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
 
       left_word  = right_word;
       str       += left_word;
@@ -7874,11 +7874,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
   const walked = walk(thing, indent + 1);
 
-  if (walked === '""' ||
-      walked === "''" ||
-      walked?.includes('""') ||
-      walked?.includes("''"))
-    throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
+  // if (walked === '""' ||
+  //     walked === "''" ||
+  //     walked?.includes('""') ||
+  //     walked?.includes("''"))
+  //   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
 
   const ret = unescape(smart_join(walked,
                                   indent + 1));
