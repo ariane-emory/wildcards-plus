@@ -280,11 +280,11 @@ if (false)
 let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = true;
 let inspect_depth                     = 50;
-let log_configuration_enabled         = false;
+let log_configuration_enabled         = true;
 let log_enabled                       = true;
 let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
-let log_flags_enabled                 = false;
+let log_flags_enabled                 = true;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
@@ -431,7 +431,7 @@ class Rule {
     const ret = this.__direct_children();
 
     if (ret.includes(undefined))
-      throw new Error(`__direct_children ` +
+      throw new Error(`direct_children ` +
                       `${inspect_fun(ret)} ` +
                       `included undefined for ` +
                       `${inspect_fun(this)}`);
@@ -3799,8 +3799,8 @@ class Context {
     
     this.configuration.loras.push(lora);
 
-    if (log_configuration_enabled)
-      log(`added LoRA ${compress(inspect_fun(lora))} to ${this}`);
+    // if (log_configuration_enabled)
+    //   log(`added LoRA ${compress(inspect_fun(lora))} to ${this}`);
   }
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
@@ -3824,10 +3824,8 @@ class Context {
       return;
     }
     
-    if (log_flags_enabled) {
-      // throw new Error("wtf");
-      console.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
-    }
+    // if (log_flags_enabled) 
+    //   console.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
 
     const new_flag_head = new_flag.slice(0, -1);
     
@@ -3920,7 +3918,7 @@ class Context {
   }
   // -------------------------------------------------------------------------------------------------
   munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
-    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
 
     // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
 
@@ -3950,7 +3948,6 @@ class Context {
         munged_configuration.model = `${munged_configuration.model}.ckpt`;
       else 
         munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
-      
     }
     
     // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
@@ -7383,14 +7380,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
-    if (guard_bool) console.log(`${indent}${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = (guard_bool, msg) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
       // if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-      if (guard_bool) console.log(`${indent}${' '.repeat(indent*2)}${msg}`);
+      if (guard_bool) console.log(`${' '.repeat(indent*2)}${msg}`);
     };
 
     // log(log_expand_and_walk_enabled,
@@ -7971,8 +7968,8 @@ class ASTCheckFlags extends ASTNode {
     this.flags = flag_arrs;
     this.consequently_set_flag_tail = consequently_set_flag_tail;
 
-    if (log_flags_enabled)
-      console.log(`constructed ${inspect_fun(this)}`)
+    // if (log_flags_enabled)
+    //   console.log(`constructed ${inspect_fun(this)}`)
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8010,8 +8007,8 @@ class ASTNotFlag extends ASTNode  {
     this.consequently_set_flag_tail = consequently_set_flag_tail
     this.set_immediately            = set_immediately;
 
-    if (log_flags_enabled)
-      console.log(`constructed ${inspect_fun(this)}`)
+    // if (log_flags_enabled)
+    //   console.log(`constructed ${inspect_fun(this)}`)
     
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
@@ -8481,12 +8478,12 @@ const SimpleCheckFlag               = xform(seq(question,
                                             arr => {
                                               const args = [arr[1]];
 
-                                              if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (simple) GOT ARR ` +
-                                                            `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (simple) WITH ARGS ` +
-                                                            `${inspect_fun(args)}`);
-                                              }
+                                              // if (log_flags_enabled) {
+                                              //   console.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
+                                              //               `GOT ARR ${inspect_fun(arr)}`);
+                                              //   console.log(`CONSTRUCTING CHECKFLAG (simple) ` +
+                                              //               `WITH ARGS ${inspect_fun(args)}`);
+                                              // }
 
                                               return new ASTCheckFlags(args);
                                             });
@@ -8498,12 +8495,12 @@ const SimpleNotFlag                 = xform(seq(bang,
                                               const args = [arr[2],
                                                             { set_immediately: !!arr[1][0]}];
 
-                                              if (log_flags_enabled) {
-                                                console.log(`CONSTRUCTING NOTFLAG (simple) GOT arr ` +
-                                                            `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING NOTFLAG (simple) WITH ARGS ` +
-                                                            `${inspect_fun(args)}`);
-                                              }
+                                              // if (log_flags_enabled) {
+                                              //   console.log(`CONSTRUCTING NOTFLAG (simple) ` +
+                                              //               `GOT arr ${inspect_fun(arr)}`);
+                                              //   console.log(`CONSTRUCTING NOTFLAG (simple) ` +
+                                              //               `WITH ARGS ${inspect_fun(args)}`);
+                                              // }
 
                                               return new ASTNotFlag(...args);
                                             })
@@ -8513,12 +8510,12 @@ const CheckFlagWithOrAlternatives   = xform(seq(question,
                                             arr => {
                                               const args = [arr[1]];
 
-                                              if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (or) GOT ARR ` +
-                                                            `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (or) WITH ARGS ` +
-                                                            `${inspect_fun(args)}`);
-                                              }
+                                              // if (log_flags_enabled) {
+                                              //   console.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
+                                              //               `GOT ARR ${inspect_fun(arr)}`);
+                                              //   console.log(`CONSTRUCTING CHECKFLAG (or) ` +
+                                              //               `WITH ARGS ${inspect_fun(args)}`);
+                                              // }
 
                                               return new ASTCheckFlags(...args);
                                             });
@@ -8530,12 +8527,12 @@ const CheckFlagWithSetConsequent    = xform(seq(question,         // [0]
                                             arr => {
                                               const args = [ [ arr[1] ], arr[3] ]; 
 
-                                              if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (set) GOT ARR ` +
-                                                            `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (set) WITH ARGS ` +
-                                                            `${inspect_fun(args)}`);
-                                              }
+                                              // if (log_flags_enabled) {
+                                              //   console.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
+                                              //               `GOT ARR ${inspect_fun(arr)}`);
+                                              //   console.log(`CONSTRUCTING CHECKFLAG (set) ` +
+                                              //               `WITH ARGS ${inspect_fun(args)}`);
+                                              // }
 
                                               return new ASTCheckFlags(...args);
                                             });
@@ -8548,12 +8545,12 @@ const NotFlagWithSetConsequent      = xform(seq(bang,
                                               const args = [arr[1],
                                                             { consequently_set_flag_tail: arr[3] }]; 
 
-                                              if (log_flags_enabled) {
-                                                console.log(`CONSTRUCTING NOTFLAG (set) GOT arr ` +
-                                                            `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING NOTFLAG (set) WITH ARGS ` +
-                                                            `${inspect_fun(args)}`);
-                                              }
+                                              // if (log_flags_enabled) {
+                                              //   console.log(`CONSTRUCTING NOTFLAG (set) `+
+                                              //               `GOT arr ${inspect_fun(arr)}`);
+                                              //   console.log(`CONSTRUCTING NOTFLAG (set) ` +
+                                              //               `WITH ARGS ${inspect_fun(args)}`);
+                                              // }
                                               
                                               return new ASTNotFlag(...args);
                                             })
@@ -8566,18 +8563,18 @@ const TestFlag                       = choice(
 );
 const SetFlag                       = xform(second(seq(hash, plus(ident, dot), word_break)),
                                             arr => {
-                                              if (log_flags_enabled)
-                                                if (arr.length > 1)
-                                                  console.log(`CONSTRUCTING SETFLAG WITH ` +
-                                                              `${inspect_fun(arr)}`);
+                                              // if (log_flags_enabled)
+                                              //   if (arr.length > 1)
+                                              //     console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                              //                 `${inspect_fun(arr)}`);
                                               return new ASTSetFlag(arr);
                                             });
 const UnsetFlag                     = xform(second(seq(shebang, plus(ident, dot), word_break)),
                                             arr => {
-                                              if (log_flags_enabled)
-                                                if (arr.length > 1)
-                                                  console.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                                              ` ${inspect_fun(arr)}`);
+                                              // if (log_flags_enabled)
+                                              //   if (arr.length > 1)
+                                              //     console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                              //                 ` ${inspect_fun(arr)}`);
                                               return new ASTUnsetFlag(arr);
                                             });
 SimpleCheckFlag.abbreviate_str_repr('SimpleCheckFlag');
@@ -8597,8 +8594,8 @@ const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
 const TrailingCommentsAndSemicolon = discard(lws(semicolon));
 TrailingCommentFollowedBySemicolonOrWordBreak
   .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
-TrailingCommentsAndSemicolon.abbreviate
-_str_repr('TrailingCommentsAndSemicolon');
+TrailingCommentsAndSemicolon
+  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
@@ -8612,13 +8609,11 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-          TrailingCommentFollowedBySemicolonOrWordBreak
-          // word_break
-         ));
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
@@ -8628,7 +8623,7 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
@@ -8731,8 +8726,8 @@ AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternati
 const make_AnonWildcard_rule  = alternative_rule  =>
       xform(arr => new ASTAnonWildcard(arr),
             wst_brc_enc(wst_star(alternative_rule, pipe)));
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
-const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
+const AnonWildcard            = make_AnonWildcard_rule(AnonWildcardAlternative);
+const AnonWildcardNoLoras     = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
 AnonWildcard.abbreviate_str_repr('AnonWildcard');
 AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
 // -------------------------------------------------------------------------------------------------
@@ -8790,21 +8785,22 @@ const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarAssignment        =
-      xform(arr => new ASTScalarAssignment(arr[0],
-                                           arr[1][1],
-                                           arr[1][0] == '='),
-            wst_seq(ScalarDesignator,                                     // [0]
-                    discarded_comments,                                   // - 
-                    wst_cutting_seq(choice(plus_equals, equals),          // [1][0]
-                                    discarded_comments,                   // -
-                                    first(choice(() => seq(rjsonc_string, // [1][1]
-                                                           TrailingCommentFollowedBySemicolonOrWordBreak),  
-                                                 () => seq(hwst_plus(choice(LimitedContentNoSemis,
-                                                                            discarded_comment)),
-                                                           TrailingCommentsAndSemicolon),
-                                                 () => seq(LimitedContentNoSemis,
-                                                           TrailingCommentFollowedBySemicolonOrWordBreak),
-                                                )))));
+      xform(arr =>
+        new ASTScalarAssignment(arr[0],
+                                arr[1][1],
+                                arr[1][0] == '='),
+        wst_seq(ScalarDesignator,                                     // [0]
+                discarded_comments,                                   // - 
+                wst_cutting_seq(choice(plus_equals, equals),          // [1][0]
+                                discarded_comments,                   // -
+                                first(choice(() => seq(rjsonc_string, // [1][1]
+                                                       TrailingCommentFollowedBySemicolonOrWordBreak),  
+                                             () => seq(hwst_plus(choice(LimitedContentNoSemis,
+                                                                        discarded_comment)),
+                                                       TrailingCommentsAndSemicolon),
+                                             () => seq(LimitedContentNoSemis,
+                                                       TrailingCommentFollowedBySemicolonOrWordBreak),
+                                            )))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // -------------------------------------------------------------------------------------------------
 const make_LimitedContent_rule = plain_text_rule  =>
@@ -8818,7 +8814,7 @@ const LimitedContentNoSemis = make_LimitedContent_rule(plain_text_no_semis);
 LimitedContentNoSemis.abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
 const make_Content_rule       = ({ before_plain_text_rules = [],
-                                   after_plain_text_rules = [] } = {}) =>
+                                   after_plain_text_rules  = [] } = {}) =>
       choice(
         ...before_plain_text_rules,
         plain_text,
@@ -9019,13 +9015,6 @@ async function main() {
     context.reset_temporaries();
     const prompt  = expand_wildcards(AST, context);
 
-    if (log_flags_enabled || log_configuration_enabled) {
-      LOG_LINE();
-      console.log(`Flags after:`);
-      LOG_LINE();
-      console.log(`${inspect_fun(context.flags)}`);
-    }
-    
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
       console.log(`Final config is :`);
@@ -9033,6 +9022,13 @@ async function main() {
       console.log(inspect_fun(context.configuration));
     }
 
+    if (log_flags_enabled || log_configuration_enabled) {
+      LOG_LINE();
+      console.log(`Flags after:`);
+      LOG_LINE();
+      console.log(`${inspect_fun(context.flags)}`);
+    }
+    
     {
       LOG_LINE();
       console.log(`Scalars after:`);
