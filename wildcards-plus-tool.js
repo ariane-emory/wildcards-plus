@@ -1,4 +1,4 @@
-j#!/usr/bin/env node --expose-gc
+#!/usr/bin/env node --expose-gc
 // -*- fill-column: 100; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 // THIS FILE IS NOT THE DRAW THINGS SCRIPT: that's over in wildcards-plus.js.
@@ -275,7 +275,7 @@ let fire_and_forget_post_enabled      = true;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = false;
 let log_enabled                       = true;
-let log_expand_and_walk_enabled       = false;
+let log_expand_and_walk_enabled       = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
@@ -3185,7 +3185,9 @@ function smart_join(arr, indent) {
     throw new Error("need indent");
 
   // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-  const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+  const log = msg => {
+    return console.log(`${' '.repeat(indent*2)}${msg}`);
+  };
   
   if (! arr)
     return arr;
@@ -3788,9 +3790,11 @@ class Context {
       //   console.log(`skipping, already set`);
       return;
     }
-
-    if (log_flags_enabled)
+    
+    if (log_flags_enabled) {
+      // throw new Error("wtf");
       console.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
+    }
 
     const new_flag_head = new_flag.slice(0, -1);
     
@@ -7284,7 +7288,8 @@ function load_prelude(into_context = new Context()) {
   
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
   log_flags_enabled = old_log_flags_enabled;
-  log_flags_enabled = true;
+
+  // log_flags_enabled = true;
   
   if (ignored === undefined)
     throw new Error("crap");
@@ -7333,7 +7338,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   const thing_str_repr = thing => {
     const type_str  = typeof thing === 'object' ? thing.constructor.name : typeof thing;
     const thing_str = abbreviate(Array.isArray(thing)
-                                 ? thing.join(' ')
+                                 ? compress(inspect_fun(thing)) // thing.join(' ')
                                  : (typeof thing === 'string'
                                     ? inspect_fun(thing)
                                     : thing.toString()));
@@ -7345,14 +7350,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
-    if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    if (guard_bool) console.log(`${indent}${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = (guard_bool, msg) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
       // if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-      if (guard_bool) console.log(`${' '.repeat(indent*2)}${msg}`);
+      if (guard_bool) console.log(`${indent}${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     };
 
     // log(log_expand_and_walk_enabled,
@@ -7855,23 +7860,23 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       walked === "''" ||
       walked?.includes('""') ||
       walked?.includes("''"))
-    throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
+                throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
 
-  const ret = unescape(smart_join(walked,
-                                  indent + 1));
+              const ret = unescape(smart_join(walked,
+                                              indent + 1));
 
-  context.munge_configuration({indent: indent + 1});
-  
-  log(log_expand_and_walk_enabled,
-      `Expanded into ${inspect_fun(ret)}`);
-  
-  // if (ret === undefined)
-  //   throw new Error("what");
-  
-  // if (ret.match(/^\s+$/))
-  //   throw "bombλ";
+              context.munge_configuration({indent: indent + 1});
+              
+              log(log_expand_and_walk_enabled,
+                  `Expanded into ${inspect_fun(ret)}`);
+              
+              // if (ret === undefined)
+              //   throw new Error("what");
+              
+              // if (ret.match(/^\s+$/))
+              //   throw "bombλ";
 
-  if (ret === '""' || ret === "''")
+              if (ret === '""' || ret === "''")
         throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
   
   return ret;
