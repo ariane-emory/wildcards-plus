@@ -294,7 +294,7 @@ let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_and_die                 = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
 let unnecessary_choice_is_error       = false;
@@ -8790,7 +8790,7 @@ const ScalarAssignment        =
                                     first(choice(() => seq(rjsonc_string, // [1][1]
                                                            OptionalSpecialFunctionTail),  
                                                  () => seq(wst_plus(choice(LimitedContent,
-                                                                           // structural_text, // BUGS PARSE!
+                                                                           structural_text, // BUGS PARSE?
                                                                            discarded_comment)),
                                                            MandatorySpecialFunctionTail),
                                                  () => seq(LimitedContent,
