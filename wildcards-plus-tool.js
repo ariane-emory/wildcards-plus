@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  // log_match_enabled  = true;
+  log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -8917,8 +8917,7 @@ const TopLevelContent         = make_Content_rule({
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
-const Prompt                  = tws(TopLevelContentStar);
-// =================================================================================================
+const Prompt                  = tws(TopLevelContentStar);// =================================================================================================
 Prompt.finalize();
 // =================================================================================================
 // END OF SD PROMPT GRAMMAR SECTION.
