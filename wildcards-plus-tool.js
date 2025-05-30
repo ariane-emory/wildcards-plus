@@ -8406,6 +8406,7 @@ const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
 
 //const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+/);
 //const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
+const brackets                  = '()[]';
 const structural_chars          = '{|}';
 const syntax_chars              = '@#$%';
 const comment_beginning         = String.raw`\/\/|\/\*`;
