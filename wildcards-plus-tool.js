@@ -2131,7 +2131,7 @@ const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_s
 
 
 // =================================================================================================
-function make_whitespace_decorator2(name, elem_index, whitespace_rule = whites_star) {
+function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
   const tag = Symbol(name);
 
   const decorate = function (rule) {
@@ -2225,10 +2225,42 @@ whites_plus.abbreviate_str_repr('whites+');
 hwhites_star.abbreviate_str_repr('hwhites*');
 hwhites_plus.abbreviate_str_repr('hwhites+');
 // -------------------------------------------------------------------------------------------------
-const lws = make_whitespace_decorator2("LWS", 1);
-const tws = make_whitespace_decorator2("TWS", 0);
+const lws = make_whitespace_decorator2("LWS", 1, whites_star);
+const tws = make_whitespace_decorator2("TWS", 0, whites_star);
 const lhws = make_whitespace_decorator2("LWS", 1, hwhites_star);
 const thws = make_whitespace_decorator2("TWS", 0, hwhites_star);
+// -------------------------------------------------------------------------------------------------
+// whitespace tolerant combinators:
+// -------------------------------------------------------------------------------------------------
+const make_wst_quantified_combinator = (base_combinator, lws_rule) => 
+      ((rule, sep = null) => base_combinator(lws_rule(rule), lws_rule(sep)));
+const make_wst_seq_combinator = (base_combinator, lws_rule) =>
+      //      (...rules) => tws(base_combinator(...rules.map(x => lws_rule(x))));
+      (...rules) => base_combinator(...rules.map(x => lws_rule(x)));
+// -------------------------------------------------------------------------------------------------
+const wst_choice      = (...options) => lws(choice(...options));
+const wst_star        = make_wst_quantified_combinator(star, lws);
+const wst_plus        = make_wst_quantified_combinator(plus, lws);
+const wst_seq         = make_wst_seq_combinator(seq, lws);
+const wst_enc         = make_wst_seq_combinator(enc, lws);
+const wst_cutting_seq = make_wst_seq_combinator(cutting_seq, lws);
+const wst_cutting_enc = make_wst_seq_combinator(cutting_enc, lws);
+const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
+const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
+const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
+const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
+// -------------------------------------------------------------------------------------------------
+const hwst_choice      = (...options) => lws(choice(...options));
+const hwst_star        = make_wst_quantified_combinator(star, lws);
+const hwst_plus        = make_wst_quantified_combinator(plus, lws);
+const hwst_seq         = make_wst_seq_combinator(seq, lws);
+const hwst_enc         = make_wst_seq_combinator(enc, lws);
+const hwst_cutting_seq = make_wst_seq_combinator(cutting_seq, lws);
+const hwst_cutting_enc = make_wst_seq_combinator(cutting_enc, lws);
+const hwst_par_enc     = rule => hwst_cutting_enc(lpar, rule, rpar);
+const hwst_brc_enc     = rule => hwst_cutting_enc(lbrc, rule, rbrc);
+const hwst_sqr_enc     = rule => hwst_cutting_enc(lsqr, rule, rsqr);
+const hwst_tri_enc     = rule => hwst_cutting_enc(ltri, rule, rtri);
 // -------------------------------------------------------------------------------------------------
 // simple 'words':
 // -------------------------------------------------------------------------------------------------
@@ -2473,26 +2505,6 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
                           close));
-// -------------------------------------------------------------------------------------------------
-// whitespace tolerant combinators:
-// -------------------------------------------------------------------------------------------------
-const make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(lws(rule), lws(sep)));
-const make_wst_seq_combinator = base_combinator =>
-      //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
-      (...rules) => base_combinator(...rules.map(x => lws(x)));
-// -------------------------------------------------------------------------------------------------
-const wst_choice      = (...options) => lws(choice(...options));
-const wst_star        = make_wst_quantified_combinator(star);
-const wst_plus        = make_wst_quantified_combinator(plus);
-const wst_seq         = make_wst_seq_combinator(seq);
-const wst_enc         = make_wst_seq_combinator(enc);
-const wst_cutting_seq = make_wst_seq_combinator(cutting_seq);
-const wst_cutting_enc = make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
-const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
-const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
-const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
