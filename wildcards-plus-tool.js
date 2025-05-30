@@ -100,13 +100,14 @@ function parse_file(filename) {
   if (sortedEntries.length > 0)
     console.log(`Total: ${format_pretty_number(total)}`);
   
-  // -----------------------------------------------------------------------------------------------
-  // check that the parsed result is complete and expand:
-  // -----------------------------------------------------------------------------------------------
-
+  // check that the parsed result is complete;
   if (! result.is_finished)
-    throw new Error(`error parsing prompt at ${result.index}:\n${inspect_fun(result)}`);
-  
+    throw new Error(`did not finishparsing prompt ` +
+                    `at char #${result.index}, ` +
+                    `unparsed input:\n` +
+                    `${abbreviate(prompt_input.substring(result.index))}\n` +
+                    `matched:\n` +
+                    `${inspect_fun(result)}`);  
   return result;
 }
 // -------------------------------------------------------------------------------------------------
