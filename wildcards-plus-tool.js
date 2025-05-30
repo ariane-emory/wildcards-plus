@@ -8376,7 +8376,8 @@ const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                           str => str.toLowerCase().replace(/-/g, '_'));
 
-const plain_text                  = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
+const plain_text                  = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+/);
+const plain_text_no_semis         = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
 
 const wb_uint                     = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
                                           parseInt);
@@ -8389,6 +8390,7 @@ filename                          .abbreviate_str_repr('filename');
 ident                             .abbreviate_str_repr('ident');
 // structural_text                   .abbreviate_str_repr('structural_text');
 plain_text                        .abbreviate_str_repr('plain_text');
+plain_text_no_semis               .abbreviate_str_repr('plain_text_no_semis');
 wb_uint                           .abbreviate_str_repr('wb_uint');
 // -------------------------------------------------------------------------------------------------
 // A1111-style LoRAs:
@@ -8795,6 +8797,8 @@ const make_LimitedContent_rule = plain_text_rule  =>
              plain_text_rule);
 const LimitedContent = make_LimitedContent_rule(plain_text);
 LimitedContent.abbreviate_str_repr('LimitedContent');
+const LimitedContentNoSemis = make_LimitedContent_rule(plain_text_no_semis);
+LimitedContentNoSemis.abbreviate_str_repr('LimitedContentNoSemis');
 const make_Content_rule       = ({ before_plain_text_rules = [], after_plain_text_rules = [] } = {}) =>
       choice(
         ...before_plain_text_rules,
