@@ -294,7 +294,7 @@ let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_and_die                 = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
 let unnecessary_choice_is_error       = false;
@@ -7375,7 +7375,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     const log = (guard_bool, msg) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
       // if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-      if (guard_bool) console.log(`${indent}${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+      if (guard_bool) console.log(`${indent}${' '.repeat(indent*2)}${msg}`);
     };
 
     // log(log_expand_and_walk_enabled,
@@ -7462,7 +7462,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
       let got = context.scalar_variables.get(thing.name) ??
-          `<WARNING: scalar '${thing.name}' not found}>`;
+          `\\<WARNING: scalar '${thing.name}' not found}>`;
 
       if (thing.capitalize)
         got = capitalize(got);
@@ -7554,10 +7554,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       
       context.scalar_variables.set(thing.destination.name, new_val);
 
-      log(context.noisy,
-          `ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
-      log(context.noisy,
-          `VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+      log(true,
+          `assign ${inspect_fun(new_val)} to ${thing.destination.name}`);
+      // log(context.noisy,
+      //     `VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
       
       return '';
     }
@@ -7878,7 +7878,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       walked === "''" ||
       walked?.includes('""') ||
       walked?.includes("''"))
-    throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
+    throw new Error(`sus walk result ${inspect_fun(walked)} ` +
+                    `of walking thing ${inspect_fun(thing)}`);
 
   const ret = unescape(smart_join(walked,
                                   indent + 1));
