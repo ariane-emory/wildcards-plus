@@ -21,7 +21,7 @@
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
 let abbreviate_str_repr_enabled       = true;
-let fire_and_forget_post_enabled      = true;
+let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
 let log_enabled                       = true;
@@ -31,7 +31,7 @@ let log_flags_enabled                 = true;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
-let log_post_enabled                  = false;
+let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_before_includes_enabled = false;
@@ -8391,7 +8391,7 @@ const SpecialFunctionSetPickSingle =
                 discarded_comments,                                   // -
                 wst_seq(equals,                                       // [1][0]
                         discarded_comments,                           // -
-                        choice(() => LimitedContent, lc_alpha_snake), // [1][1]
+                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
                         TrailingCommentFollowedBySemicolonOrWordBreak))); 
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
@@ -8400,7 +8400,7 @@ const SpecialFunctionSetPickMultiple =
                 discarded_comments,                                      // -
                 wst_seq(equals,                                          // [1][0]
                         discarded_comments,                              // -
-                        choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
+                        choice(() => LimitedContentNoSemis, lc_alpha_snake),    // [1][1]
                         TrailingCommentFollowedBySemicolonOrWordBreak))); 
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
@@ -8419,7 +8419,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                                 // -
                 wst_cutting_seq(any_assignment_operator,                            // [1][0]
                                 discarded_comments,                                 // -
-                                choice(rJsonc, () => LimitedContent),               // [1][1]
+                                choice(rJsonc, () => LimitedContentNoSemis),        // [1][1]
                                 TrailingCommentFollowedBySemicolonOrWordBreak))); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
@@ -8429,7 +8429,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                 discarded_comments,                                                 // -
                 wst_cutting_seq(choice(plus_equals, equals),                        // [1][0]
                                 discarded_comments,                                 // -
-                                choice(rJsoncObject, () => LimitedContent), // [1][1]
+                                choice(rJsoncObject, () => LimitedContentNoSemis), // [1][1]
                                 TrailingCommentFollowedBySemicolonOrWordBreak)));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
