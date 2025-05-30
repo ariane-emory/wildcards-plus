@@ -7426,7 +7426,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const got = context.named_wildcards.get(thing.name);
 
       if (!got)
-        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
+        return `\\<WARNING: named wildcard @${thing.name} not found!>`;
 
       let res = [];
       
@@ -7461,7 +7461,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
       let got = context.scalar_variables.get(thing.name) ??
-          `<WARNING: scalar '${thing.name}' not found}>`;
+          `\\<WARNING: scalar '${thing.name}' not found}>`;
 
       log(true, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
