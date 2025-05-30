@@ -8375,13 +8375,13 @@ const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                           str => str.toLowerCase().replace(/-/g, '_'));
 
-const structural_chars            = String.raw`()\[\]:`;
-const structural_text             = r(new RegExp(String.raw`[${structural_chars}]+`));
+// const structural_chars            = String.raw`()\[\]:`;
+// const structural_text             = r(new RegExp(String.raw`[${structural_chars}]+`));
 const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s` +
-                                                 structural_chars + 
+                                                 // structural_chars + 
                                                  String.raw`;]|\/\/|\/\*)\S)+`));
 // const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[${structural_chars}{|}<>])`),
+const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[{|}<>])`),
                                           parseInt);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
@@ -8390,7 +8390,7 @@ comments                          .abbreviate_str_repr('comments_star');
 dot_hash                          .abbreviate_str_repr('dot_hash');
 filename                          .abbreviate_str_repr('filename');
 ident                             .abbreviate_str_repr('ident');
-structural_text                   .abbreviate_str_repr('structural_text');
+// structural_text                   .abbreviate_str_repr('structural_text');
 plain_text                        .abbreviate_str_repr('plain_text');
 wb_uint                           .abbreviate_str_repr('wb_uint');
 // -------------------------------------------------------------------------------------------------
@@ -8786,7 +8786,7 @@ const ScalarAssignment        =
                                     first(choice(() => seq(rjsonc_string, // [1][1]
                                                            OptionalSpecialFunctionTail),  
                                                  () => seq(wst_plus(choice(LimitedContent,
-                                                                           structural_text, // BUGS PARSE?
+                                                                           // structural_text, // BUGS PARSE?
                                                                            discarded_comment)),
                                                            MandatorySpecialFunctionTail),
                                                  () => seq(LimitedContent,
@@ -8802,7 +8802,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [], after_plain_tex
         ...before_plain_text_rules,
         plain_text,
         ...after_plain_text_rules,
-        structural_text,
+        // structural_text,
         NamedWildcardReference,
         SpecialFunctionNotInclude,
         discarded_comment,
