@@ -8792,10 +8792,12 @@ const ScalarAssignment        =
                                                  () => seq(LimitedContent,
                                                            OptionalSpecialFunctionTail))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
-const LimitedContent          = choice(NamedWildcardReference,
-                                       ScalarReference,
-                                       AnonWildcardNoLoras,
-                                       plain_text);
+const make_LimitedContent_rule = plain_text_rule  =>
+      choice(NamedWildcardReference,
+             ScalarReference,
+             AnonWildcardNoLoras,
+             plain_text_rule);
+const LimitedContent = make_LimitedContent_rule(plain_text);
 LimitedContent.abbreviate_str_repr('LimitedContent');
 const make_Content_rule       = ({ before_plain_text_rules = [], after_plain_text_rules = [] } = {}) =>
       choice(
