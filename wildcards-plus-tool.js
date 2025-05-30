@@ -8474,7 +8474,7 @@ simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_
 // =================================================================================================
 const SimpleCheckFlag              = xform(seq_with_swb(question, plus(ident, dot)),
                                            arr => {
-                                             console.log(`ARR: ${inspect_fun(arr)}`);
+                                             // console.log(`ARR: ${inspect_fun(arr)}`);
                                              
                                              const args = [arr[1]];
 
@@ -8487,10 +8487,9 @@ const SimpleCheckFlag              = xform(seq_with_swb(question, plus(ident, do
 
                                              return new ASTCheckFlags(args);
                                            });
-const SimpleNotFlag                = xform(seq(bang,
-                                               optional(hash),
-                                               plus(ident, dot),
-                                               simple_not_flag_word_break),
+const SimpleNotFlag                = xform(seq_with_swb(bang,
+                                                        optional(hash),
+                                                        plus(ident, dot)),
                                            arr => {
                                              const args = [arr[2],
                                                            { set_immediately: !!arr[1][0]}];
@@ -8504,9 +8503,7 @@ const SimpleNotFlag                = xform(seq(bang,
 
                                              return new ASTNotFlag(...args);
                                            })
-const CheckFlagWithOrAlternatives  = xform(seq(question,
-                                               plus(plus(ident, dot), comma),
-                                               word_break),
+const CheckFlagWithOrAlternatives  = xform(seq_with_swb(question, plus(plus(ident, dot), comma)),
                                            arr => {
                                              const args = [arr[1]];
 
@@ -8519,11 +8516,10 @@ const CheckFlagWithOrAlternatives  = xform(seq(question,
 
                                              return new ASTCheckFlags(...args);
                                            });
-const CheckFlagWithSetConsequent   = xform(seq(question,         // [0]
-                                               plus(ident, dot), // [1]
-                                               dot_hash,         // [2]
-                                               plus(ident, dot), // [3]
-                                               word_break),      // [-]
+const CheckFlagWithSetConsequent   = xform(seq_with_swb(question,          // [0]
+                                                        plus(ident, dot),  // [1]
+                                                        dot_hash,          // [2]
+                                                        plus(ident, dot)), // [3]
                                            arr => {
                                              const args = [ [ arr[1] ], arr[3] ]; 
 
@@ -8536,11 +8532,10 @@ const CheckFlagWithSetConsequent   = xform(seq(question,         // [0]
 
                                              return new ASTCheckFlags(...args);
                                            });
-const NotFlagWithSetConsequent     = xform(seq(bang,
-                                               plus(ident, dot),
-                                               dot_hash,
-                                               plus(ident, dot),
-                                               word_break),
+const NotFlagWithSetConsequent     = xform(seq_with_swb(bang,
+                                                        plus(ident, dot),
+                                                        dot_hash,
+                                                        plus(ident, dot)),
                                            arr => {
                                              const args = [arr[1],
                                                            { consequently_set_flag_tail: arr[3] }]; 
