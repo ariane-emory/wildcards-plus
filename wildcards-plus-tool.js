@@ -8591,16 +8591,16 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const OptionalSpecialFunctionTail          = discard(seq(comments,
+const TrailingCommentFollowedBySemicolon          = discard(seq(comments,
                                                          choice(lws(semicolon),
                                                                 word_break)));
-const MandatorySpecialFunctionTail = discard(lws(semicolon));
-OptionalSpecialFunctionTail.abbreviate_str_repr('OptionalSpecialFunctionTail');
-MandatorySpecialFunctionTail.abbreviate_str_repr('MandatorySpecialFunctionTail');
+const TrailingCommentsAndSemicolon = discard(lws(semicolon));
+TrailingCommentFollowedBySemicolon.abbreviate_str_repr('TrailingCommentFollowedBySemicolon');
+TrailingCommentsAndSemicolon.abbreviate_str_repr('TrailingCommentsAndSemicolon');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
-                OptionalSpecialFunctionTail
+                TrailingCommentFollowedBySemicolon
                 // word_break
                ));
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
@@ -8615,7 +8615,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-                OptionalSpecialFunctionTail
+                TrailingCommentFollowedBySemicolon
                 // word_break
                ));
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
@@ -8635,7 +8635,7 @@ const SpecialFunctionInclude =
                           first(wst_seq(discarded_comments,      // -
                                         rjsonc_string,           // [0][1]
                                         discarded_comments))),   // -
-                OptionalSpecialFunctionTail));
+                TrailingCommentFollowedBySemicolon));
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8654,7 +8654,7 @@ const SpecialFunctionSetPickSingle =
                 wst_seq(equals,                                       // [1][0]
                         discarded_comments,                           // -
                         choice(() => LimitedContent, lc_alpha_snake), // [1][1]
-                        OptionalSpecialFunctionTail))); 
+                        TrailingCommentFollowedBySemicolon))); 
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
@@ -8663,17 +8663,17 @@ const SpecialFunctionSetPickMultiple =
                 wst_seq(equals,                                          // [1][0]
                         discarded_comments,                              // -
                         choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
-                        OptionalSpecialFunctionTail))); 
+                        TrailingCommentFollowedBySemicolon))); 
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                OptionalSpecialFunctionTail));
+                TrailingCommentFollowedBySemicolon));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                OptionalSpecialFunctionTail));
+                TrailingCommentFollowedBySemicolon));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
@@ -8682,7 +8682,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 wst_cutting_seq(any_assignment_operator,                         // [1][0]
                                 discarded_comments,                              // -
                                 choice(rJsonc, () => LimitedContent), // [1][1]
-                                OptionalSpecialFunctionTail))); 
+                                TrailingCommentFollowedBySemicolon))); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
@@ -8692,7 +8692,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                 wst_cutting_seq(choice(plus_equals, equals),                           // [1][0]
                                 discarded_comments,                                    // -
                                 choice(rJsoncObject, () => LimitedContent), // [1][1]
-                                OptionalSpecialFunctionTail)));
+                                TrailingCommentFollowedBySemicolon)));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -8798,12 +8798,12 @@ const ScalarAssignment        =
                     wst_cutting_seq(choice(plus_equals, equals),        // [1][0]
                                     discarded_comments,                 // -
                                     first(choice(() => seq(rjsonc_string, // [1][1]
-                                                           OptionalSpecialFunctionTail),  
+                                                           TrailingCommentFollowedBySemicolon),  
                                                  () => seq(hwst_plus(choice(LimitedContentNoSemis,
                                                                             discarded_comment)),
-                                                           MandatorySpecialFunctionTail),
+                                                           TrailingCommentsAndSemicolon),
                                                  () => seq(LimitedContentNoSemis,
-                                                           OptionalSpecialFunctionTail),
+                                                           TrailingCommentFollowedBySemicolon),
                                                 )))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const make_LimitedContent_rule = plain_text_rule  =>
@@ -9144,5 +9144,6 @@ if (! main_disabled)
 
 // console.log(smart_join([ 'FOO', "''", 'BAR']));
 
-console.log(inspect_fun(hwst_plus('x').match(`   x  x
-    x `)));
+console.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
+   x    x  x `)));
+
