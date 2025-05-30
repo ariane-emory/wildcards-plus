@@ -8406,27 +8406,48 @@ const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
 // -------------------------------------------------------------------------------------------------
 // plain_text variants:
 // -------------------------------------------------------------------------------------------------
-const raw                       = String.raw;
-const brackets                  = raw`[\(\)\[\]]+`;
-const structure_chars           = '{|}';
-const syntax_chars              = '@#$%';
-const comment_beginning         = raw`\/\/|\/\*`;
-const plain_text_head = (additional_excluded_chars) =>
-      // raw`${brackets}|` +
-      raw`(?:\\.|` +
-      raw`(?![\s${syntax_chars}${structure_chars}${additional_excluded_chars}]|` +
-      raw`${comment_beginning})` +
-      raw`\S)`;
-const plain_text_tail = (additional_excluded_chars) =>
-      // raw`${brackets}|` +
-      raw`(?:\\.|` +
-      raw`(?![\s${structure_chars}${additional_excluded_chars}]|` +
-      raw`${comment_beginning})` +
-      raw`\S)`;
-const plain_text               =
-      r_raw`${plain_text_head('' )}${plain_text_tail('' )}*`;
-const plain_text_no_semis      =
-      r_raw`${plain_text_head(':')}${plain_text_tail(';')}*`;
+// const raw                       = String.raw;
+// const brackets                  = raw`[\(\)\[\]]+`;
+// const structure_chars           = '{|}';
+// const syntax_chars              = '@#$%';
+// const comment_beginning         = raw`\/\/|\/\*`;
+// const plain_text_head = (additional_excluded_chars) =>
+//       // raw`${brackets}|` +
+//       raw`(?:\\.|` +
+//       raw`(?![\s${syntax_chars}${structure_chars}${additional_excluded_chars}]|` +
+//       raw`${comment_beginning})` +
+//       raw`\S)`;
+// const plain_text_tail = (additional_excluded_chars) =>
+//       // raw`${brackets}|` +
+//       raw`(?:\\.|` +
+//       raw`(?![\s${structure_chars}${additional_excluded_chars}]|` +
+//       raw`${comment_beginning})` +
+//       raw`\S)`;
+// const plain_text               =
+//       r_raw`${plain_text_head('' )}${plain_text_tail('' )}*`;
+// const plain_text_no_semis      =
+//       r_raw`${plain_text_head(':')}${plain_text_tail(';')}*`;
+
+
+const raw                 = String.raw;
+const syntax_chars        = '@#$%';
+const structure_chars     = '{}|'; // NOT including brackets here
+const comment_beginning   = raw`\/\/|\/\*`;
+
+const plain_text_head = (extra = '') =>
+      raw`(?:` +
+      raw`(?:[()\[\]]*)` +
+      raw`(?![${syntax_chars}]|${comment_beginning})` +
+      raw`(?:\\.|(?![\s${structure_chars}${extra}]|${comment_beginning})\S)` +
+      raw`)`;
+const plain_text_tail = (extra = '') =>
+      raw`(?:\\.|(?![\s${structure_chars}${extra}]|${comment_beginning})\S)`;
+
+const plain_text          = r_raw`${plain_text_head('' )}${plain_text_tail('')}*`;
+const plain_text_no_semis = r_raw`${plain_text_head(';')}${plain_text_tail(';')}*`;
+
+
+
 // -------------------------------------------------------------------------------------------------
 const old_plain_text           = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
 const old_plain_text_no_semis  = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
