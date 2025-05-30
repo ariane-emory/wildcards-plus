@@ -7464,10 +7464,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       let got = context.scalar_variables.get(thing.name) ??
           `<WARNING: scalar '${thing.name}' not found}>`;
 
+      log(true, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
+
       if (thing.capitalize)
         got = capitalize(got);
 
-      log(true, `scalar ref returned: ${inspect_fun(got)}`);
       
       return got;
     }
@@ -8380,7 +8381,7 @@ const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s
                                                  structural_chars + 
                                                  String.raw`;]|\/\/|\/\*)\S)+`));
 // const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[|}])`),
+const wb_uint                     = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
                                           parseInt);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
