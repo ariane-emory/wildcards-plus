@@ -8409,7 +8409,7 @@ const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
 const brackets                  = '()[]';
 const structural_chars          = '{|}';
 const syntax_chars              = '@#$%';
-const comment_beginning         = String.raw`\/\/|\/\*`;
+const comment_beginning         = raw`\/\/|\/\*`;
 
 const plain_text_head = (additional_excluded_chars) =>
       raw`(?:\\.|` +
