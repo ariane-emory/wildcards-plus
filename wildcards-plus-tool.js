@@ -3181,13 +3181,6 @@ function rand_int(x, y) {
 }
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, indent) {
-  if (arr.includes("''"))
-    throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
-
-  if (arr.includes('""'))
-    throw new Error(`sus arr 2: ${inspect_fun(arr)}`);
-
-
   if (indent === undefined)
     throw new Error("need indent");
 
@@ -3201,6 +3194,9 @@ function smart_join(arr, indent) {
     return arr;
   
   arr = [...arr.flat(Infinity).filter(x=> x)];
+
+  if (arr.includes("''") || arr.includes('""'))
+    throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
 
   if (arr.length === 0) // investigate why this is necessary.
     return '';
@@ -3263,12 +3259,9 @@ function smart_join(arr, indent) {
       if (log_smart_join_enabled)
         log(`CONSUME ${inspect_fun(right_word)}!`);
 
-      if (right_word === '""')
-        throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr: ${inspect_fun(arr)}`);
+      if (right_word === '""' || right_word === "''")
+        throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
 
-      if (right_word === "''")
-        throw new Error(`sus right_word 2: ${inspect_fun(right_word)}\nin arr: ${inspect_fun(arr)}`);
-      
       left_word  = right_word;
       str       += left_word;
     }
@@ -7445,11 +7438,13 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
       let got = context.scalar_variables.get(thing.name) ??
-          ''; // `<WARNING: scalar '${thing.name}' not found}>`;
+          `<WARNING: scalar '${thing.name}' not found}>`;
 
       if (thing.capitalize)
         got = capitalize(got);
 
+      log(true, `scalar ref returned: ${inspect_fun(got)}`);
+      
       return got;
     }
     // ---------------------------------------------------------------------------------------------
@@ -7852,8 +7847,16 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       // `${thing_type_str(thing)} ` +
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
-  
-  const ret = unescape(smart_join(walk(thing, indent + 1),
+
+  const walked = walk(thing, indent + 1);
+
+  if (walked === '""' ||
+      walked === "''" ||
+      walked?.includes('""') ||
+      walked?.includes("''"))
+    throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
+
+  const ret = unescape(smart_join(walked,
                                   indent + 1));
 
   context.munge_configuration({indent: indent + 1});
@@ -7866,6 +7869,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   
   // if (ret.match(/^\s+$/))
   //   throw "bombλ";
+
+  if (ret === '""' || ret === "''")
+        throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
   
   return ret;
 }
