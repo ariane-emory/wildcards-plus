@@ -1794,6 +1794,11 @@ class Regex extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
+function r_raw(strings, ...values) { // convenience constructor
+  const regexp = RegExp_raw(strings, values);
+  return new Regex(regexp);
+}
+// -------------------------------------------------------------------------------------------------
 function r(regexp) { // convenience constructor
   return new Regex(regexp);
 }
@@ -2291,7 +2296,7 @@ const star_whites_sep    = rule => star(rule, whites_plus);
 const plus_whites_sep    = rule => plus(rule, whites_plus);
 // -------------------------------------------------------------------------------------------------
 // string-like terminals:
-const stringlike         = quote => r(RegExp_raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`);
+const stringlike         = quote => r_raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`;
 const dq_string          = stringlike('"');
 const raw_dq_string      = r(/r"[^"]*"/);
 const sq_string          = stringlike("'");
@@ -3396,8 +3401,8 @@ function smart_join(arr, indent) {
 }
 // -------------------------------------------------------------------------------------------------
 function RegExp_raw(strings, ...values) {
-  const rawSource = String.raw(strings, ...values);
-  return new RegExp(rawSource);
+  const raw_source = String.raw(strings, ...values);
+  return new RegExp(raw_source);
 }
 // -------------------------------------------------------------------------------------------------
 // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
