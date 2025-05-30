@@ -8477,6 +8477,7 @@ const SimpleCheckFlag              = xform(seq(question,
                                                simple_check_flag_word_break),
                                            arr => {
                                              console.log(`ARR: ${inspect_fun(arr)}`);
+                                             
                                              const args = [arr[1]];
 
                                              // if (log_flags_enabled) {
