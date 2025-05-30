@@ -9012,12 +9012,22 @@ async function main() {
       LOG_LINE();
       console.log(inspect_fun(context.configuration));
     }
-    
-    LOG_LINE();
-    console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
-    LOG_LINE();
-    console.log(prompt);
 
+    {
+      LOG_LINE();
+      console.log(`Scalars after:`);
+      LOG_LINE();
+      for (const [key, val] of context.scalar_variables)
+        console.log(`$${key} = ${inspect_fun(val)}`);
+    }
+
+    {
+      LOG_LINE();
+      console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
+      LOG_LINE();
+      console.log(prompt);
+    }
+    
     if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
       LOG_LINE();
       console.log(`Expanded negative prompt:`);
