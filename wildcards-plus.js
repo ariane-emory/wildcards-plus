@@ -1537,10 +1537,6 @@ class Regex extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// function raw(strings, ...values) { // convenience constructor
-//   return String.raw(strings, ...values);
-// }
-// -------------------------------------------------------------------------------------------------
 function r_raw(strings, ...values) { // convenience constructor
   const regexp = RegExp_raw(strings, ...values);
   return new Regex(regexp);
@@ -3147,8 +3143,12 @@ function smart_join(arr, indent) {
   return str;
 }
 // -------------------------------------------------------------------------------------------------
+function raw(strings, ...values) {
+  return String.raw(strings, ...values);
+}
+// -------------------------------------------------------------------------------------------------
 function RegExp_raw(strings, ...values) {
-  const raw_source = String.raw(strings, ...values);
+  const raw_source = raw(strings, ...values);
   return new RegExp(raw_source);
 }
 // -------------------------------------------------------------------------------------------------
@@ -8131,13 +8131,7 @@ class ASTUINegPrompt extends ASTNode {
 // SD PROMPT GRAMMAR SECTION:
 // =================================================================================================
 // terminals:
-// -------------------------------------------------------------------------------------------------
-// const structural_text      = /[\(\)\[\]\,\.\?\!\:\;]+/;
-// const plaintext            = /[^{|}\s]+/;
-// const plaintext            = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
-// const plaintext            = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
-// const plaintext            = r(/(?:\\\s|[^\s{|}])+/);
-// const plaintext_no_parens  = /[^{|}\s()]+/;
+// =================================================================================================
 const comments                = wst_star(c_comment);
 const discarded_comment       = discard(c_comment);
 const discarded_comments      = discard(wst_star(c_comment));
@@ -8146,61 +8140,46 @@ const dot_hash                = l('.#');
 const filename                = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
-// -------------------------------------------------------------------------------------------------
-// plain_text variants:
-// -------------------------------------------------------------------------------------------------
-const raw = String.raw;
-const brackets                  = '[\\(\\)\\[\\]]+';
-const structural_chars          = '{|}';
-const syntax_chars              = '@#$%';
-const comment_beginning         = raw`\/\/|\/\*`;
-// -------------------------------------------------------------------------------------------------
-const plain_text_head = (additional_excluded_chars) =>
-      // raw`${brackets}|` +
-      raw`(?:\\.|` +
-      raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
-      raw`${comment_beginning})` +
-      raw`\S)`;
-// equivalent to plain_text_head:
-const plain_text_tail = (additional_excluded_chars) =>
-      // raw`${brackets}|` +
-      raw`(?:\\.|` +
-      raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
-      raw`${comment_beginning})` +
-      raw`\S)`;
-// -------------------------------------------------------------------------------------------------
-const plain_text               =
-      r_raw`${plain_text_head('' )}${plain_text_tail('' )}*`;
-const plain_text_no_semis      =
-      r_raw`${plain_text_head(':')}${plain_text_tail(';')}*`;
-// -------------------------------------------------------------------------------------------------
-const old_plain_text           = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
-const old_plain_text_no_semis  = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
-// -------------------------------------------------------------------------------------------------
-console.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
-console.log(`old_plain_text:          ${inspect_fun(old_plain_text.regexp.source)}`);
-console.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
-console.log(`old_plain_text_no_semis: ${inspect_fun(old_plain_text_no_semis.regexp.source)}`);
-// -------------------------------------------------------------------------------------------------
-// throw new Error("stop");
-
 const wb_uint                 = xform(r_raw`\d+(?=[\s|}])`, parseInt);
+// -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
 comments                      .abbreviate_str_repr('comments_star');
-discarded_comment             .abbreviate_str_repr(false); // 'discarded_comment');
-discarded_comments            .abbreviate_str_repr('discarded_comments_star');
+discarded_comment             .abbreviate_str_repr('discarded_comment');
+discarded_comments            .abbreviate_str_repr('discarded_comments');
 dot_hash                      .abbreviate_str_repr('dot_hash');
 filename                      .abbreviate_str_repr('filename');
 ident                         .abbreviate_str_repr('ident');
-// structural_text               .abbreviate_str_repr('structural_text');
-plain_text                    .abbreviate_str_repr('plain_text');
-plain_text_no_semis           .abbreviate_str_repr('plain_text_no_semis');
 wb_uint                       .abbreviate_str_repr('wb_uint');
+// =================================================================================================
+// plain_text variants:
+// =================================================================================================
+const structural_chars         = '{|}';
+const syntax_chars             = '@#$%';
+const comment_beginning        = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
+const make_plain_text_char_Regexp_source_str = (additional_excluded_chars) =>
+      // raw`${brackets}|` +
+      raw`(?:\\.|` +
+      raw`(?!`+
+      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
+      raw`${comment_beginning}` +
+      raw`)` +
+      raw`\S)`;
+// -------------------------------------------------------------------------------------------------
+const make_plain_text_rule = (additional_excluded_chars) => 
+      r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
+// -------------------------------------------------------------------------------------------------
+const plain_text               = make_plain_text_rule('');
+const plain_text_no_semis      = make_plain_text_rule(';');
+// -------------------------------------------------------------------------------------------------
+plain_text                     .abbreviate_str_repr('plain_text');
+plain_text_no_semis            .abbreviate_str_repr('plain_text_no_semis');
+// -------------------------------------------------------------------------------------------------
+console.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
+console.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
+// =================================================================================================
 // A1111-style LoRAs:
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint);
 const A1111StyleLora       =
       xform(arr => new ASTLora(arr[3], arr[4][0]),
@@ -8213,20 +8192,22 @@ const A1111StyleLora       =
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
                     rtri));
+// -------------------------------------------------------------------------------------------------
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 // word breaks:
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
 const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
 const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
+// -------------------------------------------------------------------------------------------------
 word_break                         .abbreviate_str_repr('word_break');
 simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
 simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 // flag-related rules:
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 const SimpleCheckFlag              = xform(seq(question,
                                                plus(ident, dot),
                                                simple_check_flag_word_break),
@@ -8309,13 +8290,6 @@ const NotFlagWithSetConsequent     = xform(seq(bang,
                                              
                                              return new ASTNotFlag(...args);
                                            })
-const TestFlag                     = choice(
-  SimpleCheckFlag,
-  SimpleNotFlag,
-  NotFlagWithSetConsequent,
-  CheckFlagWithSetConsequent,
-  CheckFlagWithOrAlternatives,
-);
 const SetFlag                      = xform(second(seq(hash, plus(ident, dot), word_break)),
                                            arr => {
                                              // if (log_flags_enabled)
@@ -8332,17 +8306,25 @@ const UnsetFlag                    = xform(second(seq(shebang, plus(ident, dot),
                                              //                 ` ${inspect_fun(arr)}`);
                                              return new ASTUnsetFlag(arr);
                                            });
-SimpleCheckFlag.abbreviate_str_repr('SimpleCheckFlag');
-SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
-CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
+const TestFlag                     = choice(
+  SimpleCheckFlag,
+  SimpleNotFlag,
+  NotFlagWithSetConsequent,
+  CheckFlagWithSetConsequent,
+  CheckFlagWithOrAlternatives,
+);
+// -------------------------------------------------------------------------------------------------
 CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
-NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
-TestFlag.abbreviate_str_repr('TestFlag');
-SetFlag.abbreviate_str_repr('SetFlag');
-UnsetFlag.abbreviate_str_repr('UnsetFlag');
-// -------------------------------------------------------------------------------------------------
-// AnonWildcard related rules:
-// -------------------------------------------------------------------------------------------------
+CheckFlagWithSetConsequent .abbreviate_str_repr('CheckFlagWithSetConsequent');
+NotFlagWithSetConsequent   .abbreviate_str_repr('NotFlagWithSetConsequent');
+SimpleCheckFlag            .abbreviate_str_repr('SimpleCheckFlag');
+SimpleNotFlag              .abbreviate_str_repr('SimpleNotFlag');
+SetFlag                    .abbreviate_str_repr('SetFlag');
+UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
+TestFlag                   .abbreviate_str_repr('TestFlag');
+// =================================================================================================
+// AnonWildcard-related rules:
+// =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
   const weight = arr[1][0];
 
@@ -8389,21 +8371,23 @@ const make_AnonWildcardAlternative_rule = content_star_rule =>
                 lws(optional(wb_uint, 1)),
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
                 lws(content_star_rule)));
-const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
-const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
-AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
-AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule  = alternative_rule  =>
       xform(arr => new ASTAnonWildcard(arr),
             wst_brc_enc(wst_star(alternative_rule, pipe)));
-const AnonWildcard            = make_AnonWildcard_rule(AnonWildcardAlternative);
-const AnonWildcardNoLoras     = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
-AnonWildcard.abbreviate_str_repr('AnonWildcard');
-AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
 // -------------------------------------------------------------------------------------------------
+const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
+const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
+const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
+// -------------------------------------------------------------------------------------------------
+AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
+AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+AnonWildcard                         .abbreviate_str_repr('AnonWildcard');
+AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras');
+// =================================================================================================
 // non-terminals for the special functions/variables:
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
                                                                   choice(lws(semicolon),
                                                                          word_break)));
@@ -8506,7 +8490,6 @@ const SpecialFunctionUpdateConfigurationUnary =
                                 TrailingCommentFollowedBySemicolonOrWordBreak)));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-// -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
@@ -8525,9 +8508,9 @@ const SpecialFunctionNotInclude =
                          ),
                         ));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 // other non-terminals:
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 const NamedWildcardReference  = xform(seq(at,                                        // [0]
                                           optional(caret),                           // [1]
                                           optional(xform(parseInt, uint)),           // [2]
@@ -8601,18 +8584,19 @@ const ScalarAssignment        =
                                () => seq(LimitedContentNoSemis,
                                          TrailingCommentFollowedBySemicolonOrWordBreak))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
-// -------------------------------------------------------------------------------------------------
-// content-related rules:
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
+// Content-related rules:
+// =================================================================================================
 const make_LimitedContent_rule = plain_text_rule  =>
       choice(NamedWildcardReference,
              ScalarReference,
              AnonWildcardNoLoras,
              plain_text_rule);
-const LimitedContent = make_LimitedContent_rule(plain_text);
-LimitedContent.abbreviate_str_repr('LimitedContent');
-const LimitedContentNoSemis = make_LimitedContent_rule(plain_text_no_semis);
-LimitedContentNoSemis.abbreviate_str_repr('LimitedContentNoSemis');
+// -------------------------------------------------------------------------------------------------
+const LimitedContent          = make_LimitedContent_rule(plain_text);
+const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis);
+LimitedContent                .abbreviate_str_repr('LimitedContent');
+LimitedContentNoSemis         .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
 const make_Content_rule       = ({ before_plain_text_rules = [],
                                    after_plain_text_rules  = [] } = {}) =>
@@ -8629,6 +8613,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         ScalarAssignment,
         ScalarReference,
       );
+// -------------------------------------------------------------------------------------------------
 const ContentNoLoras          = make_Content_rule({
   after_plain_text_rules: [
     AnonWildcardNoLoras,
@@ -8656,7 +8641,7 @@ const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
 const Prompt                  = tws(TopLevelContentStar);
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 Prompt.finalize();
 // =================================================================================================
 // END OF SD PROMPT GRAMMAR SECTION.
