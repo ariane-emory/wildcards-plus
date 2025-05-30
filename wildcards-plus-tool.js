@@ -3408,6 +3408,9 @@ function RegExp_raw(strings, ...values) {
   const raw_source = String.raw(strings, ...values);
   return new RegExp(raw_source);
 }
+
+// -------------------------------------------------------------------------------------------------
+const raw = String.raw;
 // -------------------------------------------------------------------------------------------------
 // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
 // -------------------------------------------------------------------------------------------------
@@ -8403,17 +8406,24 @@ const dot_hash                = l('.#');
 const filename                = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
+const wb_uint                 = xform(r_raw`\d+(?=[\s|}])`, parseInt);
+// -------------------------------------------------------------------------------------------------
+any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
+comments                      .abbreviate_str_repr('comments_star');
+discarded_comment             .abbreviate_str_repr('discarded_comment');
+discarded_comments            .abbreviate_str_repr('discarded_comments');
+dot_hash                      .abbreviate_str_repr('dot_hash');
+filename                      .abbreviate_str_repr('filename');
+ident                         .abbreviate_str_repr('ident');
+wb_uint                       .abbreviate_str_repr('wb_uint');
 // -------------------------------------------------------------------------------------------------
 // plain_text variants:
 // -------------------------------------------------------------------------------------------------
-const raw = String.raw;
-const brackets                  = '[\\(\\)\\[\\]]+';
 const structural_chars          = '{|}';
 const syntax_chars              = '@#$%';
 const comment_beginning         = raw`\/\/|\/\*`;
-const wb_uint                 = xform(r_raw`\d+(?=[\s|}])`, parseInt);
 // -------------------------------------------------------------------------------------------------
-const plain_text_chars = (additional_excluded_chars) =>
+const make_plain_text_char_Regexp_source_str = (additional_excluded_chars) =>
       // raw`${brackets}|` +
       raw`(?:\\.|` +
       raw`(?!`+
@@ -8421,31 +8431,22 @@ const plain_text_chars = (additional_excluded_chars) =>
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
+const make_plain_text_rule = (additional_excluded_chars) => 
+      r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
 // -------------------------------------------------------------------------------------------------
-const plain_text               =
-      r_raw`${plain_text_chars('' )}+`;
-const plain_text_no_semis      =
-      r_raw`${plain_text_chars(':')}+`;
+const plain_text               = make_plain_text_rule('');
+const plain_text_no_semis      = make_plain_text_rule(';');
 // -------------------------------------------------------------------------------------------------
-const old_plain_text           = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
-const old_plain_text_no_semis  = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
+plain_text                     .abbreviate_str_repr('plain_text');
+plain_text_no_semis            .abbreviate_str_repr('plain_text_no_semis');
+// -------------------------------------------------------------------------------------------------
+// const old_plain_text           = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
+// const old_plain_text_no_semis  = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
 // -------------------------------------------------------------------------------------------------
 console.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
-console.log(`old_plain_text:          ${inspect_fun(old_plain_text.regexp.source)}`);
+// console.log(`old_plain_text:          ${inspect_fun(old_plain_text.regexp.source)}`);
 console.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
-console.log(`old_plain_text_no_semis: ${inspect_fun(old_plain_text_no_semis.regexp.source)}`);
-// -------------------------------------------------------------------------------------------------
-any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
-comments                      .abbreviate_str_repr('comments_star');
-discarded_comment             .abbreviate_str_repr(false); // 'discarded_comment');
-discarded_comments            .abbreviate_str_repr('discarded_comments_star');
-dot_hash                      .abbreviate_str_repr('dot_hash');
-filename                      .abbreviate_str_repr('filename');
-ident                         .abbreviate_str_repr('ident');
-// structural_text               .abbreviate_str_repr('structural_text');
-plain_text                    .abbreviate_str_repr('plain_text');
-plain_text_no_semis           .abbreviate_str_repr('plain_text_no_semis');
-wb_uint                       .abbreviate_str_repr('wb_uint');
+// console.log(`old_plain_text_no_semis: ${inspect_fun(old_plain_text_no_semis.regexp.source)}`);
 // -------------------------------------------------------------------------------------------------
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
