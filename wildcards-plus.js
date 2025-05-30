@@ -8391,11 +8391,16 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
                                                                   choice(lws(semicolon),
                                                                          word_break)));
+TrailingCommentFollowedBySemicolonOrWordBreak
+  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
 const TrailingCommentsAndSemicolon = discard(lws(semicolon));
+TrailingCommentsAndSemicolon
+  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
                 TrailingCommentFollowedBySemicolonOrWordBreak));
+SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8404,10 +8409,12 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
+UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
                 TrailingCommentFollowedBySemicolonOrWordBreak));
+SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8416,6 +8423,7 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
+UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
@@ -8499,21 +8507,7 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          ),
                         ));
-// -------------------------------------------------------------------------------------------------
-TrailingCommentFollowedBySemicolonOrWordBreak
-  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
-TrailingCommentsAndSemicolon
-  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
-SpecialFunctionUIPrompt
-  .abbreviate_str_repr('SpecialFunctionUIPrompt');
-SpecialFunctionUINegPrompt
-  .abbreviate_str_repr('SpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUINegPrompt
-  .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUIPrompt
-  .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
-SpecialFunctionNotInclude
-  .abbreviate_str_repr('SpecialFunctionNotInclude');
+SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // =================================================================================================
 // other non-terminals:
 // =================================================================================================
@@ -8537,12 +8531,15 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                                                              min_ct,
                                                                              max_ct);
                                       });
+NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
 const NamedWildcardDesignator = second(seq(at, ident)); 
+NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
                                       wst_seq(NamedWildcardDesignator,
                                               wst_cutting_seq(equals, 
                                                               discarded_comments,
                                                               AnonWildcard)));  
+NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
 const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
@@ -8560,37 +8557,33 @@ const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), id
 
                                         return objs;
                                       });
+NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
 const ScalarReference         = xform(seq(dollar, optional(caret), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
+ScalarReference.abbreviate_str_repr('ScalarReference');
 const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
+ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarAssignment        =
-xform(arr =>
-  new ASTScalarAssignment(arr[0],
-                          arr[1][1],
-                          arr[1][0] == '='),
-  wst_seq(ScalarDesignator,                       // [0]
-          discarded_comments,                     // - 
-          wst_cutting_seq(
-            choice(plus_equals, equals),          // [1][0]
-            discarded_comments,                   // -
-            first(choice(() => seq(rjsonc_string, // [1][1]
-                                   TrailingCommentFollowedBySemicolonOrWordBreak),  
-                         () => seq(hwst_plus(choice(LimitedContentNoSemis,
-                                                    discarded_comment)),
-                                   TrailingCommentFollowedBySemicolonOrWordBreak
-                                   // TrailingCommentsAndSemicolon
-                                  ),
-                         () => seq(LimitedContentNoSemis,
-                                   TrailingCommentFollowedBySemicolonOrWordBreak))))));
-// -------------------------------------------------------------------------------------------------
-NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
-NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
-NamedWildcardReference .abbreviate_str_repr('NamedWildcardReference');
-NamedWildcardUsage     .abbreviate_str_repr('NamedWildcardUsage');
-ScalarAssignment       .abbreviate_str_repr('ScalarAssignment');
-ScalarDesignator       .abbreviate_str_repr('ScalarDesignator');
-ScalarReference        .abbreviate_str_repr('ScalarReference');
+      xform(arr =>
+        new ASTScalarAssignment(arr[0],
+                                arr[1][1],
+                                arr[1][0] == '='),
+        wst_seq(ScalarDesignator,                       // [0]
+                discarded_comments,                     // - 
+                wst_cutting_seq(
+                  choice(plus_equals, equals),          // [1][0]
+                  discarded_comments,                   // -
+                  first(choice(() => seq(rjsonc_string, // [1][1]
+                                         TrailingCommentFollowedBySemicolonOrWordBreak),  
+                               () => seq(hwst_plus(choice(LimitedContentNoSemis,
+                                                          discarded_comment)),
+                                         TrailingCommentFollowedBySemicolonOrWordBreak
+                                         // TrailingCommentsAndSemicolon
+                                        ),
+                               () => seq(LimitedContentNoSemis,
+                                         TrailingCommentFollowedBySemicolonOrWordBreak))))));
+ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // =================================================================================================
 // Content-related rules:
 // =================================================================================================
@@ -8602,7 +8595,6 @@ const make_LimitedContent_rule = plain_text_rule  =>
 // -------------------------------------------------------------------------------------------------
 const LimitedContent          = make_LimitedContent_rule(plain_text);
 const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis);
-// -------------------------------------------------------------------------------------------------
 LimitedContent                .abbreviate_str_repr('LimitedContent');
 LimitedContentNoSemis         .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
