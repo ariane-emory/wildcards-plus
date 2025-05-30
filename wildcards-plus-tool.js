@@ -8470,8 +8470,7 @@ simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-const SimpleCheckFlag              = xform(with_swb(seq(question,
-                                                        plus(ident, dot))),
+const SimpleCheckFlag              = xform(with_swb(seq(question, plus(ident, dot))),
                                            arr => {
                                              const args = [arr[1]];
 
