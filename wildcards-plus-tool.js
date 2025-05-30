@@ -1,4 +1,4 @@
-#!/usr/bin/env node --expose-gc
+j#!/usr/bin/env node --expose-gc
 // -*- fill-column: 100; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 // THIS FILE IS NOT THE DRAW THINGS SCRIPT: that's over in wildcards-plus.js.
@@ -7351,7 +7351,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   function walk(thing, indent = 0) {
     const log = (guard_bool, msg) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
-      if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+      // if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+      if (guard_bool) console.log(`${' '.repeat(indent*2)}${msg}`);
     };
 
     // log(log_expand_and_walk_enabled,
