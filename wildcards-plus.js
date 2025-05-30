@@ -23,20 +23,20 @@
 let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = true;
 let inspect_depth                     = 50;
-let log_configuration_enabled         = false;
+let log_configuration_enabled         = true;
 let log_enabled                       = true;
 let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
-let log_flags_enabled                 = false;
+let log_flags_enabled                 = true;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = false;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_after_includes_enabled  = false;
-let print_ast_and_die                 = false;
 let print_ast_before_includes_enabled = false;
+let print_ast_after_includes_enabled  = false;
+let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
 let unnecessary_choice_is_error       = false;
@@ -174,7 +174,7 @@ class Rule {
     const ret = this.__direct_children();
 
     if (ret.includes(undefined))
-      throw new Error(`__direct_children ` +
+      throw new Error(`direct_children ` +
                       `${inspect_fun(ret)} ` +
                       `included undefined for ` +
                       `${inspect_fun(this)}`);
@@ -1874,7 +1874,7 @@ const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_s
 
 
 // =================================================================================================
-function make_whitespace_decorator2(name, elem_index) {
+function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
   const tag = Symbol(name);
 
   const decorate = function (rule) {
@@ -1915,8 +1915,8 @@ function make_whitespace_decorator2(name, elem_index) {
     const builder = elem_index == 0 ? first : second;
     
     const built = builder(elem_index == 0
-                          ? seq(rule, whites_star)
-                          : seq(whites_star, rule));
+                          ? seq(rule, whitespace_rule)
+                          : seq(whitespace_rule, rule));
     
     built[tag] = true;
     built.__original_rule = rule;
@@ -1938,9 +1938,6 @@ function make_whitespace_decorator2(name, elem_index) {
 
   return decorate;
 }
-// -------------------------------------------------------------------------------------------------
-const lws4 = make_whitespace_decorator2("LWS4", 1);
-const tws4 = make_whitespace_decorator2("TWS4", 0);
 // =================================================================================================
 
 
@@ -1962,10 +1959,52 @@ const tws4 = make_whitespace_decorator2("TWS4", 0);
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
+const hwhites_star       = r(/[ \t]*/);
+const hwhites_plus       = r(/[ \t]+/);
 // whites_star.memoize = false;
 // whites_plus.memoize = false;
 whites_star.abbreviate_str_repr('whites*');
 whites_plus.abbreviate_str_repr('whites+');
+hwhites_star.abbreviate_str_repr('hwhites*');
+hwhites_plus.abbreviate_str_repr('hwhites+');
+// -------------------------------------------------------------------------------------------------
+const lws = make_whitespace_decorator2("LWS", 1, whites_star);
+const tws = make_whitespace_decorator2("TWS", 0, whites_star);
+const lhws = make_whitespace_decorator2("LWS", 1, hwhites_star);
+const thws = make_whitespace_decorator2("TWS", 0, hwhites_star);
+// -------------------------------------------------------------------------------------------------
+// whitespace tolerant combinators:
+// -------------------------------------------------------------------------------------------------
+const make_wst_quantified_combinator = (base_combinator, lws_rule) => 
+      ((rule, sep = null) => base_combinator(lws_rule(rule), lws_rule(sep)));
+const make_wst_seq_combinator = (base_combinator, lws_rule) =>
+      //      (...rules) => tws(base_combinator(...rules.map(x => lws_rule(x))));
+      (...rules) => base_combinator(...rules.map(x => lws_rule(x)));
+// -------------------------------------------------------------------------------------------------
+const wst_choice      = (...options) => lws(choice(...options));
+const wst_star        = make_wst_quantified_combinator(star, lws);
+const wst_plus        = make_wst_quantified_combinator(plus, lws);
+const wst_seq         = make_wst_seq_combinator(seq, lws);
+const wst_enc         = make_wst_seq_combinator(enc, lws);
+const wst_cutting_seq = make_wst_seq_combinator(cutting_seq, lws);
+const wst_cutting_enc = make_wst_seq_combinator(cutting_enc, lws);
+const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
+const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
+const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
+const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
+// -------------------------------------------------------------------------------------------------
+const hwst_choice      = (...options) => lws(choice(...options));
+const hwst_star        = make_wst_quantified_combinator(star, lhws);
+const hwst_plus        = make_wst_quantified_combinator(plus, lhws);
+const hwst_seq         = make_wst_seq_combinator(seq, lhws);
+const hwst_enc         = make_wst_seq_combinator(enc, lhws);
+const hwst_cutting_seq = make_wst_seq_combinator(cutting_seq, lhws);
+const hwst_cutting_enc = make_wst_seq_combinator(cutting_enc, lhws);
+const hwst_par_enc     = rule => hwst_cutting_enc(lpar, rule, rpar);
+const hwst_brc_enc     = rule => hwst_cutting_enc(lbrc, rule, rbrc);
+const hwst_sqr_enc     = rule => hwst_cutting_enc(lsqr, rule, rsqr);
+const hwst_tri_enc     = rule => hwst_cutting_enc(ltri, rule, rtri);
+// -------------------------------------------------------------------------------------------------
 // simple 'words':
 // -------------------------------------------------------------------------------------------------
 const alpha_snake             = r(/[a-zA-Z_]+/);
@@ -1976,9 +2015,6 @@ lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
 uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
-// -------------------------------------------------------------------------------------------------
-const lws = lws4;
-const tws = tws4;
 // -------------------------------------------------------------------------------------------------
 // common numbers:
 const udecimal           = r(/\d+\.\d+/);
@@ -2213,26 +2249,6 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
                           wst_star(arg_rule, sep),
                           close));
 // -------------------------------------------------------------------------------------------------
-// whitespace tolerant combinators:
-// -------------------------------------------------------------------------------------------------
-const __make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(lws(rule), lws(sep)));
-const __make_wst_seq_combinator = base_combinator =>
-      //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
-      (...rules) => base_combinator(...rules.map(x => lws(x)));
-// -------------------------------------------------------------------------------------------------
-const wst_choice      = (...options) => lws(choice(...options));
-const wst_star        = __make_wst_quantified_combinator(star);
-const wst_plus        = __make_wst_quantified_combinator(plus);
-const wst_seq         = __make_wst_seq_combinator(seq);
-const wst_enc         = __make_wst_seq_combinator(enc);
-const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
-const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
-const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
-const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
-const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
-// -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
 const push            = ((value, rule) =>
@@ -2390,6 +2406,7 @@ const rjsonc_single_quoted_string =
         /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
 
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
+rjsonc_string.abbreviate_str_repr('rjsonc_string');
 
 const rJsonc = second(wst_seq(jsonc_comments,
                               choice(() => rJsoncObject,  () => JsoncArray,
@@ -2397,7 +2414,6 @@ const rJsonc = second(wst_seq(jsonc_comments,
                                      () => json_null,     () => json_true,
                                      () => json_false,    () => json_number),
                               jsonc_comments));
-
 
 const rJsoncObject =
       choice(
@@ -2957,8 +2973,8 @@ function smart_join(arr, indent) {
   
   arr = [...arr.flat(Infinity).filter(x=> x)];
 
-  if (arr.includes("''") || arr.includes('""'))
-    throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
+  // if (arr.includes("''") || arr.includes('""'))
+  //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
 
   if (arr.length === 0) // investigate why this is necessary.
     return '';
@@ -3021,8 +3037,8 @@ function smart_join(arr, indent) {
       if (log_smart_join_enabled)
         log(`CONSUME ${inspect_fun(right_word)}!`);
 
-      if (right_word === '""' || right_word === "''")
-        throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
+      // if (right_word === '""' || right_word === "''")
+      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
 
       left_word  = right_word;
       str       += left_word;
@@ -3526,8 +3542,8 @@ class Context {
     
     this.configuration.loras.push(lora);
 
-    if (log_configuration_enabled)
-      log(`added LoRA ${compress(inspect_fun(lora))} to ${this}`);
+    // if (log_configuration_enabled)
+    //   log(`added LoRA ${compress(inspect_fun(lora))} to ${this}`);
   }
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
@@ -3551,10 +3567,8 @@ class Context {
       return;
     }
     
-    if (log_flags_enabled) {
-      // throw new Error("wtf");
-      console.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
-    }
+    // if (log_flags_enabled) 
+    //   console.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
 
     const new_flag_head = new_flag.slice(0, -1);
     
@@ -3647,7 +3661,7 @@ class Context {
   }
   // -------------------------------------------------------------------------------------------------
   munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
-    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
 
     // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
 
@@ -3677,7 +3691,6 @@ class Context {
         munged_configuration.model = `${munged_configuration.model}.ckpt`;
       else 
         munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
-      
     }
     
     // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
@@ -7110,14 +7123,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
-    if (guard_bool) console.log(`${indent}${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = (guard_bool, msg) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
       // if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-      if (guard_bool) console.log(`${indent}${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+      if (guard_bool) console.log(`${' '.repeat(indent*2)}${msg}`);
     };
 
     // log(log_expand_and_walk_enabled,
@@ -7169,7 +7182,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       const got = context.named_wildcards.get(thing.name);
 
       if (!got)
-        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
+        return `\\<WARNING: named wildcard @${thing.name} not found!>`;
 
       let res = [];
       
@@ -7204,12 +7217,13 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
       let got = context.scalar_variables.get(thing.name) ??
-          `<WARNING: scalar '${thing.name}' not found}>`;
+          `\\<WARNING: scalar '${thing.name}' not found}>`;
+
+      log(true, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
       if (thing.capitalize)
         got = capitalize(got);
 
-      log(true, `scalar ref returned: ${inspect_fun(got)}`);
       
       return got;
     }
@@ -7288,7 +7302,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           `ASSIGNING ${inspect_fun(thing.source)} ` +
           `TO '${thing.destination.name}'`);
       
-      let   new_val = walk(thing.source, indent + 1);
+      let   new_val = expand_wildcards(thing.source, context, indent + 1);
       const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
       if (! thing.assign)
@@ -7296,10 +7310,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       
       context.scalar_variables.set(thing.destination.name, new_val);
 
+      log(true,
+          `assign scalar $${thing.destination.name} = ${inspect_fun(new_val)}`);
       log(context.noisy,
-          `ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
-      log(context.noisy,
-          `VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
+          `vars after: ${inspect_fun(context.scalar_variables)}`);
       
       return '';
     }
@@ -7616,11 +7630,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
   const walked = walk(thing, indent + 1);
 
-  if (walked === '""' ||
-      walked === "''" ||
-      walked?.includes('""') ||
-      walked?.includes("''"))
-    throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
+  // if (walked === '""' ||
+  //     walked === "''" ||
+  //     walked?.includes('""') ||
+  //     walked?.includes("''"))
+  //   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
 
   const ret = unescape(smart_join(walked,
                                   indent + 1));
@@ -7697,8 +7711,8 @@ class ASTCheckFlags extends ASTNode {
     this.flags = flag_arrs;
     this.consequently_set_flag_tail = consequently_set_flag_tail;
 
-    if (log_flags_enabled)
-      console.log(`constructed ${inspect_fun(this)}`)
+    // if (log_flags_enabled)
+    //   console.log(`constructed ${inspect_fun(this)}`)
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -7736,8 +7750,8 @@ class ASTNotFlag extends ASTNode  {
     this.consequently_set_flag_tail = consequently_set_flag_tail
     this.set_immediately            = set_immediately;
 
-    if (log_flags_enabled)
-      console.log(`constructed ${inspect_fun(this)}`)
+    // if (log_flags_enabled)
+    //   console.log(`constructed ${inspect_fun(this)}`)
     
     // if (this.set_immediately)
     //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
@@ -8102,43 +8116,37 @@ class ASTUINegPrompt extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-// const structural_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
-// const plaintext                = /[^{|}\s]+/;
-// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
-// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
-// const plaintext                = r(/(?:\\\s|[^\s{|}])+/);
-// const plaintext_no_parens      = /[^{|}\s()]+/;
-const discarded_comment           = discard(c_comment);
-const discarded_comments          = discard(wst_star(c_comment));
-const comments                    = wst_star(c_comment);
-const any_assignment_operator     = choice(equals, plus_equals);
-const dot_hash                    = l('.#');
-const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
-const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-                                          str => str.toLowerCase().replace(/-/g, '_'));
-// const lpt re = /[()\[\]:;]/;
-if (false) {
-  const re = r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
-}
+// const structural_text      = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const plaintext            = /[^{|}\s]+/;
+// const plaintext            = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
+// const plaintext            = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
+// const plaintext            = r(/(?:\\\s|[^\s{|}])+/);
+// const plaintext_no_parens  = /[^{|}\s()]+/;
+const comments                = wst_star(c_comment);
+const discarded_comment       = discard(c_comment);
+const discarded_comments      = discard(wst_star(c_comment));
+const any_assignment_operator = choice(equals, plus_equals);
+const dot_hash                = l('.#');
+const filename                = r(/[A-Za-z0-9 ._\-()]+/);
+const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+                                      str => str.toLowerCase().replace(/-/g, '_'));
 
-const structural_chars            = String.raw`()\[\]:`;
-const structural_text             = r(new RegExp(String.raw`[${structural_chars}]+`));
-const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s` +
-                                                 structural_chars + 
-                                                 String.raw`;]|\/\/|\/\*)\S)+`));
-// const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[${structural_chars}{|}<>])`),
-                                          parseInt);
-any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
-discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
-discarded_comments                .abbreviate_str_repr('discarded_comments_star');
-comments                          .abbreviate_str_repr('comments_star');
-dot_hash                          .abbreviate_str_repr('dot_hash');
-filename                          .abbreviate_str_repr('filename');
-ident                             .abbreviate_str_repr('ident');
-structural_text                   .abbreviate_str_repr('structural_text');
-plain_text                        .abbreviate_str_repr('plain_text');
-wb_uint                           .abbreviate_str_repr('wb_uint');
+const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+/);
+const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
+
+const wb_uint                 = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
+                                      parseInt);
+any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
+comments                      .abbreviate_str_repr('comments_star');
+discarded_comment             .abbreviate_str_repr(false); // 'discarded_comment');
+discarded_comments            .abbreviate_str_repr('discarded_comments_star');
+dot_hash                      .abbreviate_str_repr('dot_hash');
+filename                      .abbreviate_str_repr('filename');
+ident                         .abbreviate_str_repr('ident');
+// structural_text               .abbreviate_str_repr('structural_text');
+plain_text                    .abbreviate_str_repr('plain_text');
+plain_text_no_semis           .abbreviate_str_repr('plain_text_no_semis');
+wb_uint                       .abbreviate_str_repr('wb_uint');
 // -------------------------------------------------------------------------------------------------
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
@@ -8207,111 +8215,111 @@ const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/)
 word_break                         .abbreviate_str_repr('word_break');
 simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
 simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
-const SimpleCheckFlag               = xform(seq(question,
-                                                plus(ident, dot),
-                                                simple_check_flag_word_break),
-                                            arr => {
-                                              const args = [arr[1]];
+const SimpleCheckFlag              = xform(seq(question,
+                                               plus(ident, dot),
+                                               simple_check_flag_word_break),
+                                           arr => {
+                                             const args = [arr[1]];
 
-                                              if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (simple) GOT ARR ` +
-                                                            `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (simple) WITH ARGS ` +
-                                                            `${inspect_fun(args)}`);
-                                              }
+                                             // if (log_flags_enabled) {
+                                             //   console.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
+                                             //               `GOT ARR ${inspect_fun(arr)}`);
+                                             //   console.log(`CONSTRUCTING CHECKFLAG (simple) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
 
-                                              return new ASTCheckFlags(args);
-                                            });
-const SimpleNotFlag                 = xform(seq(bang,
-                                                optional(hash),
-                                                plus(ident, dot),
-                                                simple_not_flag_word_break),
-                                            arr => {
-                                              const args = [arr[2],
-                                                            { set_immediately: !!arr[1][0]}];
+                                             return new ASTCheckFlags(args);
+                                           });
+const SimpleNotFlag                = xform(seq(bang,
+                                               optional(hash),
+                                               plus(ident, dot),
+                                               simple_not_flag_word_break),
+                                           arr => {
+                                             const args = [arr[2],
+                                                           { set_immediately: !!arr[1][0]}];
 
-                                              if (log_flags_enabled) {
-                                                console.log(`CONSTRUCTING NOTFLAG (simple) GOT arr ` +
-                                                            `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING NOTFLAG (simple) WITH ARGS ` +
-                                                            `${inspect_fun(args)}`);
-                                              }
+                                             // if (log_flags_enabled) {
+                                             //   console.log(`CONSTRUCTING NOTFLAG (simple) ` +
+                                             //               `GOT arr ${inspect_fun(arr)}`);
+                                             //   console.log(`CONSTRUCTING NOTFLAG (simple) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
 
-                                              return new ASTNotFlag(...args);
-                                            })
-const CheckFlagWithOrAlternatives   = xform(seq(question,
-                                                plus(plus(ident, dot), comma),
-                                                word_break),
-                                            arr => {
-                                              const args = [arr[1]];
+                                             return new ASTNotFlag(...args);
+                                           })
+const CheckFlagWithOrAlternatives  = xform(seq(question,
+                                               plus(plus(ident, dot), comma),
+                                               word_break),
+                                           arr => {
+                                             const args = [arr[1]];
 
-                                              if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (or) GOT ARR ` +
-                                                            `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (or) WITH ARGS ` +
-                                                            `${inspect_fun(args)}`);
-                                              }
+                                             // if (log_flags_enabled) {
+                                             //   console.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
+                                             //               `GOT ARR ${inspect_fun(arr)}`);
+                                             //   console.log(`CONSTRUCTING CHECKFLAG (or) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
 
-                                              return new ASTCheckFlags(...args);
-                                            });
-const CheckFlagWithSetConsequent    = xform(seq(question,         // [0]
-                                                plus(ident, dot), // [1]
-                                                dot_hash,         // [2]
-                                                plus(ident, dot), // [3]
-                                                word_break),      // [-]
-                                            arr => {
-                                              const args = [ [ arr[1] ], arr[3] ]; 
+                                             return new ASTCheckFlags(...args);
+                                           });
+const CheckFlagWithSetConsequent   = xform(seq(question,         // [0]
+                                               plus(ident, dot), // [1]
+                                               dot_hash,         // [2]
+                                               plus(ident, dot), // [3]
+                                               word_break),      // [-]
+                                           arr => {
+                                             const args = [ [ arr[1] ], arr[3] ]; 
 
-                                              if (log_flags_enabled) {
-                                                console.log(`\nCONSTRUCTING CHECKFLAG (set) GOT ARR ` +
-                                                            `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING CHECKFLAG (set) WITH ARGS ` +
-                                                            `${inspect_fun(args)}`);
-                                              }
+                                             // if (log_flags_enabled) {
+                                             //   console.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
+                                             //               `GOT ARR ${inspect_fun(arr)}`);
+                                             //   console.log(`CONSTRUCTING CHECKFLAG (set) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
 
-                                              return new ASTCheckFlags(...args);
-                                            });
-const NotFlagWithSetConsequent      = xform(seq(bang,
-                                                plus(ident, dot),
-                                                dot_hash,
-                                                plus(ident, dot),
-                                                word_break),
-                                            arr => {
-                                              const args = [arr[1],
-                                                            { consequently_set_flag_tail: arr[3] }]; 
+                                             return new ASTCheckFlags(...args);
+                                           });
+const NotFlagWithSetConsequent     = xform(seq(bang,
+                                               plus(ident, dot),
+                                               dot_hash,
+                                               plus(ident, dot),
+                                               word_break),
+                                           arr => {
+                                             const args = [arr[1],
+                                                           { consequently_set_flag_tail: arr[3] }]; 
 
-                                              if (log_flags_enabled) {
-                                                console.log(`CONSTRUCTING NOTFLAG (set) GOT arr ` +
-                                                            `${inspect_fun(arr)}`);
-                                                console.log(`CONSTRUCTING NOTFLAG (set) WITH ARGS ` +
-                                                            `${inspect_fun(args)}`);
-                                              }
-                                              
-                                              return new ASTNotFlag(...args);
-                                            })
-const TestFlag                       = choice(
+                                             // if (log_flags_enabled) {
+                                             //   console.log(`CONSTRUCTING NOTFLAG (set) `+
+                                             //               `GOT arr ${inspect_fun(arr)}`);
+                                             //   console.log(`CONSTRUCTING NOTFLAG (set) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
+                                             
+                                             return new ASTNotFlag(...args);
+                                           })
+const TestFlag                     = choice(
   SimpleCheckFlag,
   SimpleNotFlag,
   NotFlagWithSetConsequent,
   CheckFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
 );
-const SetFlag                       = xform(second(seq(hash, plus(ident, dot), word_break)),
-                                            arr => {
-                                              if (log_flags_enabled)
-                                                if (arr.length > 1)
-                                                  console.log(`CONSTRUCTING SETFLAG WITH ` +
-                                                              `${inspect_fun(arr)}`);
-                                              return new ASTSetFlag(arr);
-                                            });
-const UnsetFlag                     = xform(second(seq(shebang, plus(ident, dot), word_break)),
-                                            arr => {
-                                              if (log_flags_enabled)
-                                                if (arr.length > 1)
-                                                  console.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                                              ` ${inspect_fun(arr)}`);
-                                              return new ASTUnsetFlag(arr);
-                                            });
+const SetFlag                      = xform(second(seq(hash, plus(ident, dot), word_break)),
+                                           arr => {
+                                             // if (log_flags_enabled)
+                                             //   if (arr.length > 1)
+                                             //     console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                             //                 `${inspect_fun(arr)}`);
+                                             return new ASTSetFlag(arr);
+                                           });
+const UnsetFlag                    = xform(second(seq(shebang, plus(ident, dot), word_break)),
+                                           arr => {
+                                             // if (log_flags_enabled)
+                                             //   if (arr.length > 1)
+                                             //     console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                             //                 ` ${inspect_fun(arr)}`);
+                                             return new ASTUnsetFlag(arr);
+                                           });
 SimpleCheckFlag.abbreviate_str_repr('SimpleCheckFlag');
 SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
 CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
@@ -8323,18 +8331,18 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const OptionalSpecialFunctionTail          = discard(seq(comments,
-                                                         choice(lws(semicolon),
-                                                                word_break)));
-const MandatorySpecialFunctionTail = discard(lws(semicolon));
-OptionalSpecialFunctionTail.abbreviate_str_repr('OptionalSpecialFunctionTail');
-MandatorySpecialFunctionTail.abbreviate_str_repr('MandatorySpecialFunctionTail');
+const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
+                                                                  choice(lws(semicolon),
+                                                                         word_break)));
+TrailingCommentFollowedBySemicolonOrWordBreak
+  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+const TrailingCommentsAndSemicolon = discard(lws(semicolon));
+TrailingCommentsAndSemicolon
+  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
-                OptionalSpecialFunctionTail
-                // word_break
-               ));
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
@@ -8344,12 +8352,11 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
+UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-                OptionalSpecialFunctionTail
-                // word_break
-               ));
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
@@ -8360,14 +8367,13 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
 UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
                           first(wst_seq(discarded_comments,      // -
                                         rjsonc_string,           // [0][1]
                                         discarded_comments))),   // -
-                OptionalSpecialFunctionTail));
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8386,7 +8392,7 @@ const SpecialFunctionSetPickSingle =
                 wst_seq(equals,                                       // [1][0]
                         discarded_comments,                           // -
                         choice(() => LimitedContent, lc_alpha_snake), // [1][1]
-                        OptionalSpecialFunctionTail))); 
+                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
@@ -8395,36 +8401,36 @@ const SpecialFunctionSetPickMultiple =
                 wst_seq(equals,                                          // [1][0]
                         discarded_comments,                              // -
                         choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
-                        OptionalSpecialFunctionTail))); 
+                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                OptionalSpecialFunctionTail));
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                OptionalSpecialFunctionTail));
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                         // [0]
-                discarded_comments,                                              // -
-                wst_cutting_seq(any_assignment_operator,                         // [1][0]
-                                discarded_comments,                              // -
-                                choice(rJsonc, () => LimitedContent), // [1][1]
-                                OptionalSpecialFunctionTail))); 
+            seq(c_ident,                                                            // [0]
+                discarded_comments,                                                 // -
+                wst_cutting_seq(any_assignment_operator,                            // [1][0]
+                                discarded_comments,                                 // -
+                                choice(rJsonc, () => LimitedContent),               // [1][1]
+                                TrailingCommentFollowedBySemicolonOrWordBreak))); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                         // [0]
-                discarded_comments,                                                    // -
-                wst_cutting_seq(choice(plus_equals, equals),                           // [1][0]
-                                discarded_comments,                                    // -
+            seq(/conf(?:ig)?/,                                                      // [0]
+                discarded_comments,                                                 // -
+                wst_cutting_seq(choice(plus_equals, equals),                        // [1][0]
+                                discarded_comments,                                 // -
                                 choice(rJsoncObject, () => LimitedContent), // [1][1]
-                                OptionalSpecialFunctionTail)));
+                                TrailingCommentFollowedBySemicolonOrWordBreak)));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -8463,8 +8469,8 @@ AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternati
 const make_AnonWildcard_rule  = alternative_rule  =>
       xform(arr => new ASTAnonWildcard(arr),
             wst_brc_enc(wst_star(alternative_rule, pipe)));
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
-const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
+const AnonWildcard            = make_AnonWildcard_rule(AnonWildcardAlternative);
+const AnonWildcardNoLoras     = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
 AnonWildcard.abbreviate_str_repr('AnonWildcard');
 AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
 // -------------------------------------------------------------------------------------------------
@@ -8472,7 +8478,7 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                           optional(caret),                           // [1]
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,
-                                                         second(seq(dash, uint)))),   // [3]
+                                                         second(seq(dash, uint)))),  // [3]
                                           optional(/[,&]/),                          // [4]
                                           ident),                                    // [5]
                                       arr => {
@@ -8522,33 +8528,40 @@ const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
 const ScalarAssignment        =
-      xform(arr => new ASTScalarAssignment(arr[0],
-                                           arr[1][1],
-                                           arr[1][0] == '='),
-            wst_seq(ScalarDesignator,                                   // [0]
-                    discarded_comments,                                 // - 
-                    wst_cutting_seq(choice(plus_equals, equals),        // [1][0]
-                                    discarded_comments,                 // -
-                                    first(choice(() => seq(rjsonc_string, // [1][1]
-                                                           OptionalSpecialFunctionTail),  
-                                                 () => seq(wst_plus(choice(LimitedContent,
-                                                                           // structural_text, // BUGS PARSE!
-                                                                           discarded_comment)),
-                                                           MandatorySpecialFunctionTail),
-                                                 () => seq(LimitedContent,
-                                                           OptionalSpecialFunctionTail))))));
+      xform(arr =>
+        new ASTScalarAssignment(arr[0],
+                                arr[1][1],
+                                arr[1][0] == '='),
+        wst_seq(ScalarDesignator,                       // [0]
+                discarded_comments,                     // - 
+                wst_cutting_seq(
+                  choice(plus_equals, equals),          // [1][0]
+                  discarded_comments,                   // -
+                  first(choice(() => seq(rjsonc_string, // [1][1]
+                                         TrailingCommentFollowedBySemicolonOrWordBreak),  
+                               () => seq(hwst_plus(choice(LimitedContentNoSemis,
+                                                          discarded_comment)),
+                                         TrailingCommentsAndSemicolon),
+                               () => seq(LimitedContentNoSemis,
+                                         TrailingCommentFollowedBySemicolonOrWordBreak))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
-const LimitedContent          = choice(NamedWildcardReference,
-                                       ScalarReference,
-                                       AnonWildcardNoLoras,
-                                       plain_text);
+// -------------------------------------------------------------------------------------------------
+const make_LimitedContent_rule = plain_text_rule  =>
+      choice(NamedWildcardReference,
+             ScalarReference,
+             AnonWildcardNoLoras,
+             plain_text_rule);
+const LimitedContent = make_LimitedContent_rule(plain_text);
 LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule       = ({ before_plain_text_rules = [], after_plain_text_rules = [] } = {}) =>
+const LimitedContentNoSemis = make_LimitedContent_rule(plain_text_no_semis);
+LimitedContentNoSemis.abbreviate_str_repr('LimitedContentNoSemis');
+// -------------------------------------------------------------------------------------------------
+const make_Content_rule       = ({ before_plain_text_rules = [],
+                                   after_plain_text_rules  = [] } = {}) =>
       choice(
         ...before_plain_text_rules,
         plain_text,
         ...after_plain_text_rules,
-        structural_text,
         NamedWildcardReference,
         SpecialFunctionNotInclude,
         discarded_comment,
@@ -8780,3 +8793,4 @@ catch(ex) {
   }
 }
 // -------------------------------------------------------------------------------------------------
+k

@@ -8373,37 +8373,37 @@ class ASTUINegPrompt extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-// const structural_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
-// const plaintext                = /[^{|}\s]+/;
-// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
-// const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
-// const plaintext                = r(/(?:\\\s|[^\s{|}])+/);
-// const plaintext_no_parens      = /[^{|}\s()]+/;
-const discarded_comment           = discard(c_comment);
-const discarded_comments          = discard(wst_star(c_comment));
-const comments                    = wst_star(c_comment);
-const any_assignment_operator     = choice(equals, plus_equals);
-const dot_hash                    = l('.#');
-const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
-const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-                                          str => str.toLowerCase().replace(/-/g, '_'));
+// const structural_text      = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const plaintext            = /[^{|}\s]+/;
+// const plaintext            = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
+// const plaintext            = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
+// const plaintext            = r(/(?:\\\s|[^\s{|}])+/);
+// const plaintext_no_parens  = /[^{|}\s()]+/;
+const comments                = wst_star(c_comment);
+const discarded_comment       = discard(c_comment);
+const discarded_comments      = discard(wst_star(c_comment));
+const any_assignment_operator = choice(equals, plus_equals);
+const dot_hash                = l('.#');
+const filename                = r(/[A-Za-z0-9 ._\-()]+/);
+const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+                                      str => str.toLowerCase().replace(/-/g, '_'));
 
-const plain_text                  = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+/);
-const plain_text_no_semis         = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
+const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+/);
+const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
 
-const wb_uint                     = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
-                                          parseInt);
-any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
-discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
-discarded_comments                .abbreviate_str_repr('discarded_comments_star');
-comments                          .abbreviate_str_repr('comments_star');
-dot_hash                          .abbreviate_str_repr('dot_hash');
-filename                          .abbreviate_str_repr('filename');
-ident                             .abbreviate_str_repr('ident');
-// structural_text                   .abbreviate_str_repr('structural_text');
-plain_text                        .abbreviate_str_repr('plain_text');
-plain_text_no_semis               .abbreviate_str_repr('plain_text_no_semis');
-wb_uint                           .abbreviate_str_repr('wb_uint');
+const wb_uint                 = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
+                                      parseInt);
+any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
+comments                      .abbreviate_str_repr('comments_star');
+discarded_comment             .abbreviate_str_repr(false); // 'discarded_comment');
+discarded_comments            .abbreviate_str_repr('discarded_comments_star');
+dot_hash                      .abbreviate_str_repr('dot_hash');
+filename                      .abbreviate_str_repr('filename');
+ident                         .abbreviate_str_repr('ident');
+// structural_text               .abbreviate_str_repr('structural_text');
+plain_text                    .abbreviate_str_repr('plain_text');
+plain_text_no_semis           .abbreviate_str_repr('plain_text_no_semis');
+wb_uint                       .abbreviate_str_repr('wb_uint');
 // -------------------------------------------------------------------------------------------------
 // A1111-style LoRAs:
 // -------------------------------------------------------------------------------------------------
@@ -8472,111 +8472,111 @@ const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/)
 word_break                         .abbreviate_str_repr('word_break');
 simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
 simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
-const SimpleCheckFlag               = xform(seq(question,
-                                                plus(ident, dot),
-                                                simple_check_flag_word_break),
-                                            arr => {
-                                              const args = [arr[1]];
+const SimpleCheckFlag              = xform(seq(question,
+                                               plus(ident, dot),
+                                               simple_check_flag_word_break),
+                                           arr => {
+                                             const args = [arr[1]];
 
-                                              // if (log_flags_enabled) {
-                                              //   console.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
-                                              //               `GOT ARR ${inspect_fun(arr)}`);
-                                              //   console.log(`CONSTRUCTING CHECKFLAG (simple) ` +
-                                              //               `WITH ARGS ${inspect_fun(args)}`);
-                                              // }
+                                             // if (log_flags_enabled) {
+                                             //   console.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
+                                             //               `GOT ARR ${inspect_fun(arr)}`);
+                                             //   console.log(`CONSTRUCTING CHECKFLAG (simple) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
 
-                                              return new ASTCheckFlags(args);
-                                            });
-const SimpleNotFlag                 = xform(seq(bang,
-                                                optional(hash),
-                                                plus(ident, dot),
-                                                simple_not_flag_word_break),
-                                            arr => {
-                                              const args = [arr[2],
-                                                            { set_immediately: !!arr[1][0]}];
+                                             return new ASTCheckFlags(args);
+                                           });
+const SimpleNotFlag                = xform(seq(bang,
+                                               optional(hash),
+                                               plus(ident, dot),
+                                               simple_not_flag_word_break),
+                                           arr => {
+                                             const args = [arr[2],
+                                                           { set_immediately: !!arr[1][0]}];
 
-                                              // if (log_flags_enabled) {
-                                              //   console.log(`CONSTRUCTING NOTFLAG (simple) ` +
-                                              //               `GOT arr ${inspect_fun(arr)}`);
-                                              //   console.log(`CONSTRUCTING NOTFLAG (simple) ` +
-                                              //               `WITH ARGS ${inspect_fun(args)}`);
-                                              // }
+                                             // if (log_flags_enabled) {
+                                             //   console.log(`CONSTRUCTING NOTFLAG (simple) ` +
+                                             //               `GOT arr ${inspect_fun(arr)}`);
+                                             //   console.log(`CONSTRUCTING NOTFLAG (simple) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
 
-                                              return new ASTNotFlag(...args);
-                                            })
-const CheckFlagWithOrAlternatives   = xform(seq(question,
-                                                plus(plus(ident, dot), comma),
-                                                word_break),
-                                            arr => {
-                                              const args = [arr[1]];
+                                             return new ASTNotFlag(...args);
+                                           })
+const CheckFlagWithOrAlternatives  = xform(seq(question,
+                                               plus(plus(ident, dot), comma),
+                                               word_break),
+                                           arr => {
+                                             const args = [arr[1]];
 
-                                              // if (log_flags_enabled) {
-                                              //   console.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
-                                              //               `GOT ARR ${inspect_fun(arr)}`);
-                                              //   console.log(`CONSTRUCTING CHECKFLAG (or) ` +
-                                              //               `WITH ARGS ${inspect_fun(args)}`);
-                                              // }
+                                             // if (log_flags_enabled) {
+                                             //   console.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
+                                             //               `GOT ARR ${inspect_fun(arr)}`);
+                                             //   console.log(`CONSTRUCTING CHECKFLAG (or) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
 
-                                              return new ASTCheckFlags(...args);
-                                            });
-const CheckFlagWithSetConsequent    = xform(seq(question,         // [0]
-                                                plus(ident, dot), // [1]
-                                                dot_hash,         // [2]
-                                                plus(ident, dot), // [3]
-                                                word_break),      // [-]
-                                            arr => {
-                                              const args = [ [ arr[1] ], arr[3] ]; 
+                                             return new ASTCheckFlags(...args);
+                                           });
+const CheckFlagWithSetConsequent   = xform(seq(question,         // [0]
+                                               plus(ident, dot), // [1]
+                                               dot_hash,         // [2]
+                                               plus(ident, dot), // [3]
+                                               word_break),      // [-]
+                                           arr => {
+                                             const args = [ [ arr[1] ], arr[3] ]; 
 
-                                              // if (log_flags_enabled) {
-                                              //   console.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
-                                              //               `GOT ARR ${inspect_fun(arr)}`);
-                                              //   console.log(`CONSTRUCTING CHECKFLAG (set) ` +
-                                              //               `WITH ARGS ${inspect_fun(args)}`);
-                                              // }
+                                             // if (log_flags_enabled) {
+                                             //   console.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
+                                             //               `GOT ARR ${inspect_fun(arr)}`);
+                                             //   console.log(`CONSTRUCTING CHECKFLAG (set) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
 
-                                              return new ASTCheckFlags(...args);
-                                            });
-const NotFlagWithSetConsequent      = xform(seq(bang,
-                                                plus(ident, dot),
-                                                dot_hash,
-                                                plus(ident, dot),
-                                                word_break),
-                                            arr => {
-                                              const args = [arr[1],
-                                                            { consequently_set_flag_tail: arr[3] }]; 
+                                             return new ASTCheckFlags(...args);
+                                           });
+const NotFlagWithSetConsequent     = xform(seq(bang,
+                                               plus(ident, dot),
+                                               dot_hash,
+                                               plus(ident, dot),
+                                               word_break),
+                                           arr => {
+                                             const args = [arr[1],
+                                                           { consequently_set_flag_tail: arr[3] }]; 
 
-                                              // if (log_flags_enabled) {
-                                              //   console.log(`CONSTRUCTING NOTFLAG (set) `+
-                                              //               `GOT arr ${inspect_fun(arr)}`);
-                                              //   console.log(`CONSTRUCTING NOTFLAG (set) ` +
-                                              //               `WITH ARGS ${inspect_fun(args)}`);
-                                              // }
-                                              
-                                              return new ASTNotFlag(...args);
-                                            })
-const TestFlag                       = choice(
+                                             // if (log_flags_enabled) {
+                                             //   console.log(`CONSTRUCTING NOTFLAG (set) `+
+                                             //               `GOT arr ${inspect_fun(arr)}`);
+                                             //   console.log(`CONSTRUCTING NOTFLAG (set) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
+                                             
+                                             return new ASTNotFlag(...args);
+                                           })
+const TestFlag                     = choice(
   SimpleCheckFlag,
   SimpleNotFlag,
   NotFlagWithSetConsequent,
   CheckFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
 );
-const SetFlag                       = xform(second(seq(hash, plus(ident, dot), word_break)),
-                                            arr => {
-                                              // if (log_flags_enabled)
-                                              //   if (arr.length > 1)
-                                              //     console.log(`CONSTRUCTING SETFLAG WITH ` +
-                                              //                 `${inspect_fun(arr)}`);
-                                              return new ASTSetFlag(arr);
-                                            });
-const UnsetFlag                     = xform(second(seq(shebang, plus(ident, dot), word_break)),
-                                            arr => {
-                                              // if (log_flags_enabled)
-                                              //   if (arr.length > 1)
-                                              //     console.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                              //                 ` ${inspect_fun(arr)}`);
-                                              return new ASTUnsetFlag(arr);
-                                            });
+const SetFlag                      = xform(second(seq(hash, plus(ident, dot), word_break)),
+                                           arr => {
+                                             // if (log_flags_enabled)
+                                             //   if (arr.length > 1)
+                                             //     console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                             //                 `${inspect_fun(arr)}`);
+                                             return new ASTSetFlag(arr);
+                                           });
+const UnsetFlag                    = xform(second(seq(shebang, plus(ident, dot), word_break)),
+                                           arr => {
+                                             // if (log_flags_enabled)
+                                             //   if (arr.length > 1)
+                                             //     console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                             //                 ` ${inspect_fun(arr)}`);
+                                             return new ASTUnsetFlag(arr);
+                                           });
 SimpleCheckFlag.abbreviate_str_repr('SimpleCheckFlag');
 SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
 CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
@@ -8591,9 +8591,9 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
                                                                   choice(lws(semicolon),
                                                                          word_break)));
-const TrailingCommentsAndSemicolon = discard(lws(semicolon));
 TrailingCommentFollowedBySemicolonOrWordBreak
   .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+const TrailingCommentsAndSemicolon = discard(lws(semicolon));
 TrailingCommentsAndSemicolon
   .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 const SpecialFunctionUIPrompt =
@@ -8800,8 +8800,7 @@ const ScalarAssignment        =
                                                           discarded_comment)),
                                          TrailingCommentsAndSemicolon),
                                () => seq(LimitedContentNoSemis,
-                                         TrailingCommentFollowedBySemicolonOrWordBreak),
-                              )))));
+                                         TrailingCommentFollowedBySemicolonOrWordBreak))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // -------------------------------------------------------------------------------------------------
 const make_LimitedContent_rule = plain_text_rule  =>
