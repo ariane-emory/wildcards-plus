@@ -8404,6 +8404,9 @@ const with_swb                = rule =>
 const seq_with_swb            = (...rules) =>
       xform(seq(...rules, structural_word_break),
             arr => arr.slice(0, -1));
+// cuts after ALL rules if a SWB isn't found, NOT after first rule:
+const cutting_seq_with_swb    = (...rules) => 
+      first(cutting_seq(seq(...rules), structural_word_break));
 // -------------------------------------------------------------------------------------------------
 const swb_uint                = with_swb(uint);
 // -------------------------------------------------------------------------------------------------
