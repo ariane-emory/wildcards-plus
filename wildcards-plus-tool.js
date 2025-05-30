@@ -8455,6 +8455,7 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // word breaks:
 // =================================================================================================
+// these are inadvisably complex:
 const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
 const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
 const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
@@ -8648,16 +8649,11 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
                                                                   choice(lws(semicolon),
                                                                          word_break)));
-TrailingCommentFollowedBySemicolonOrWordBreak
-  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
 const TrailingCommentsAndSemicolon = discard(lws(semicolon));
-TrailingCommentsAndSemicolon
-  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
                 TrailingCommentFollowedBySemicolonOrWordBreak));
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8666,12 +8662,10 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
                 TrailingCommentFollowedBySemicolonOrWordBreak));
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8680,7 +8674,6 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
@@ -8688,7 +8681,6 @@ const SpecialFunctionInclude =
                                         rjsonc_string,           // [0][1]
                                         discarded_comments))),   // -
                 TrailingCommentFollowedBySemicolonOrWordBreak));
-SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8698,7 +8690,6 @@ const UnexpectedSpecialFunctionInclude =
                                      "running the wildcards-plus.js script " +
                                      "inside Draw Things",
                                      input, index - 1));
-UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                        // [0]
@@ -8764,7 +8755,25 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          ),
                         ));
-SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
+// -------------------------------------------------------------------------------------------------
+TrailingCommentFollowedBySemicolonOrWordBreak
+  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+TrailingCommentsAndSemicolon
+  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
+SpecialFunctionInclude
+  .abbreviate_str_repr('SpecialFunctionInclude');
+SpecialFunctionUINegPrompt
+  .abbreviate_str_repr('SpecialFunctionUINegPrompt');
+SpecialFunctionUIPrompt
+  .abbreviate_str_repr('SpecialFunctionUIPrompt');
+UnexpectedSpecialFunctionInclude
+  .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+UnexpectedSpecialFunctionUINegPrompt
+  .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+UnexpectedSpecialFunctionUIPrompt
+  .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+SpecialFunctionNotInclude
+  .abbreviate_str_repr('SpecialFunctionNotInclude');
 // =================================================================================================
 // other non-terminals:
 // =================================================================================================
