@@ -8476,7 +8476,8 @@ simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-const SimpleCheckFlag              = xform(seq_with_swb(question, plus(ident, dot)),
+const SimpleCheckFlag              = xform(seq_with_swb(question,
+                                                        plus(ident, dot)),
                                            arr => {
                                              // console.log(`ARR: ${inspect_fun(arr)}`);
                                              
@@ -8507,7 +8508,8 @@ const SimpleNotFlag                = xform(seq_with_swb(bang,
 
                                              return new ASTNotFlag(...args);
                                            })
-const CheckFlagWithOrAlternatives  = xform(seq_with_swb(question, plus(plus(ident, dot), comma)),
+const CheckFlagWithOrAlternatives  = xform(seq_with_swb(question,
+                                                        plus(plus(ident, dot), comma)),
                                            arr => {
                                              const args = [arr[1]];
 
@@ -8553,7 +8555,8 @@ const NotFlagWithSetConsequent     = xform(seq_with_swb(bang,
                                              
                                              return new ASTNotFlag(...args);
                                            })
-const SetFlag                      = xform(second(seq_with_swb(hash, plus(ident, dot))),
+const SetFlag                      = xform(second(seq_with_swb(hash,
+                                                               plus(ident, dot))),
                                            arr => {
                                              // if (log_flags_enabled)
                                              //   if (arr.length > 1)
@@ -8561,7 +8564,8 @@ const SetFlag                      = xform(second(seq_with_swb(hash, plus(ident,
                                              //                 `${inspect_fun(arr)}`);
                                              return new ASTSetFlag(arr);
                                            });
-const UnsetFlag                    = xform(second(seq_with_swb(shebang, plus(ident, dot))),
+const UnsetFlag                    = xform(second(seq_with_swb(shebang,
+                                                               plus(ident, dot))),
                                            arr => {
                                              // if (log_flags_enabled)
                                              //   if (arr.length > 1)
