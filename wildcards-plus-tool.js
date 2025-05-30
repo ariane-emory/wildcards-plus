@@ -8402,8 +8402,10 @@ const structural_word_break   = r(/(?=[\s|}])/);
 const seq_with_swb            = (...rules) =>
       xform(seq(...rules, structural_word_break),
             arr => arr.slice(0, -1)); 
+const with_swb                = rule =>
+      first(seq(rule, structural_word_break));
 // -------------------------------------------------------------------------------------------------
-const swb_uint                = xform(first(seq_with_swb(uint)), parseInt);
+const swb_uint                = with_swb(uint);
 // -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
 comments                      .abbreviate_str_repr('comments_star');
