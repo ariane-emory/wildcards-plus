@@ -8404,15 +8404,16 @@ const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
 //const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
 const structural_chars        = '{|}';
 const syntax_chars            = '@#$%';
-const plain_text_no_semis     = r_raw`(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*`;
-
-const plain_text              = r_raw`(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*`;
-const plain_text_2            = r_raw`(?:\\.|(?![\s${syntax_chars}{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*`;
+const comment_beginning       = String.raw`\/\/|\/\*`;
+const plain_text_no_semis     =
+      r_raw`(?:\\.|(?![\s${syntax_chars}${structural_chars};]|${comment_beginning}})\S)(?:\\.|(?![\s${structural_chars};]|${comment_beginning}})\S)*`;
+const plain_text              =
+      r_raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}]|${comment_beginning}})\S)(?:\\.|(?![\s${structural_chars}]|${comment_beginning}})\S)*`;
 
 console.log(`plain_text:   ${plain_text.regexp.source}`);
-console.log(`plain_text_2: ${plain_text_2.regexp.source}`);
+// console.log(`plain_text_2: ${plain_text_2.regexp.source}`);
 
-throw new Error("stop"); 
+// throw new Error("stop"); 
 
 const wb_uint                 = xform(r_raw`\d+(?=[\s|}])`, parseInt);
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
