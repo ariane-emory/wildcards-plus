@@ -8376,8 +8376,7 @@ const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                           str => str.toLowerCase().replace(/-/g, '_'));
 
-const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s` +
-                                                 String.raw`]|\/\/|\/\*)\S)+`));
+const plain_text                  = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 
 const wb_uint                     = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
                                           parseInt);
