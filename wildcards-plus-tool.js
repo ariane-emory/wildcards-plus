@@ -291,9 +291,9 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
-let print_ast_then_die                = true;
+let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
 let unnecessary_choice_is_error       = false;
@@ -8394,10 +8394,10 @@ const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
 
 //const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+/);
-const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)((?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*)/);
-const plain_text_no_semic     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)((?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*)/);
+//const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
 
-const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
+const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
+const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
 
 const wb_uint                 = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
                                       parseInt);
