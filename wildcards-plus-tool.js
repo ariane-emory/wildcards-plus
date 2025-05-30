@@ -292,7 +292,7 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = false;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = true;;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
@@ -8376,8 +8376,7 @@ const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                           str => str.toLowerCase().replace(/-/g, '_'));
 
-const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s` +
-                                                 String.raw`]|\/\/|\/\*)\S)+`));
+const plain_text                  = r(/(?:\\.|(?![@#$%{|}\s]|\/\/|\/\*)\S)+/);
 
 const wb_uint                     = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
                                           parseInt);
@@ -8784,7 +8783,6 @@ const ScalarAssignment        =
                                     first(choice(() => seq(rjsonc_string, // [1][1]
                                                            OptionalSpecialFunctionTail),  
                                                  () => seq(wst_plus(choice(LimitedContent,
-                                                                           // structural_text, // BUGS PARSE!
                                                                            discarded_comment)),
                                                            MandatorySpecialFunctionTail),
                                                  () => seq(LimitedContent,
