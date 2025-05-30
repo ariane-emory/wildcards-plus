@@ -3263,8 +3263,11 @@ function smart_join(arr, indent) {
       if (log_smart_join_enabled)
         log(`CONSUME ${inspect_fun(right_word)}!`);
 
+      if (right_word === '""')
+        throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr: ${inspect_fun(arr)}`);
+
       if (right_word === "''")
-        throw new Error(`sus right_word: ${inspect_fun(right_word)}`);
+        throw new Error(`sus right_word 2: ${inspect_fun(right_word)}\nin arr: ${inspect_fun(arr)}`);
       
       left_word  = right_word;
       str       += left_word;
