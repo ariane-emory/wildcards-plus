@@ -8740,7 +8740,7 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                           optional(caret),                           // [1]
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,
-                                                         second(seq(dash, uint)))),   // [3]
+                                                         second(seq(dash, uint)))),  // [3]
                                           optional(/[,&]/),                          // [4]
                                           ident),                                    // [5]
                                       arr => {
@@ -8806,6 +8806,7 @@ const ScalarAssignment        =
                                                            TrailingCommentFollowedBySemicolon),
                                                 )))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
+// -------------------------------------------------------------------------------------------------
 const make_LimitedContent_rule = plain_text_rule  =>
       choice(NamedWildcardReference,
              ScalarReference,
@@ -8815,12 +8816,13 @@ const LimitedContent = make_LimitedContent_rule(plain_text);
 LimitedContent.abbreviate_str_repr('LimitedContent');
 const LimitedContentNoSemis = make_LimitedContent_rule(plain_text_no_semis);
 LimitedContentNoSemis.abbreviate_str_repr('LimitedContentNoSemis');
-const make_Content_rule       = ({ before_plain_text_rules = [], after_plain_text_rules = [] } = {}) =>
+// -------------------------------------------------------------------------------------------------
+const make_Content_rule       = ({ before_plain_text_rules = [],
+                                   after_plain_text_rules = [] } = {}) =>
       choice(
         ...before_plain_text_rules,
         plain_text,
         ...after_plain_text_rules,
-        // structural_text,
         NamedWildcardReference,
         SpecialFunctionNotInclude,
         discarded_comment,
