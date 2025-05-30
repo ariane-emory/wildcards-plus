@@ -8389,34 +8389,34 @@ class ASTUINegPrompt extends ASTNode {
 // =================================================================================================
 // terminals:
 // =================================================================================================
-const comments                   = wst_star(c_comment);
-const discarded_comment          = discard(c_comment);
-const discarded_comments         = discard(wst_star(c_comment));
-const any_assignment_operator    = choice(equals, plus_equals);
-const dot_hash                   = l('.#');
-const filename                   = r(/[A-Za-z0-9 ._\-()]+/);
-const ident                      = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-                                         str => str.toLowerCase().replace(/-/g, '_'));
-const structural_word_break      = r(/(?=[\s|}])/);
+const comments                = wst_star(c_comment);
+const discarded_comment       = discard(c_comment);
+const discarded_comments      = discard(wst_star(c_comment));
+const any_assignment_operator = choice(equals, plus_equals);
+const dot_hash                = l('.#');
+const filename                = r(/[A-Za-z0-9 ._\-()]+/);
+const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+                                      str => str.toLowerCase().replace(/-/g, '_'));
+const structural_word_break   = r(/(?=[\s|}])/);
 // -------------------------------------------------------------------------------------------------
-const with_structural_word_break = rule => first(seq(rule, structural_word_break))
+const with_swb                = rule => first(seq(rule, structural_word_break))
 // -------------------------------------------------------------------------------------------------
-const swb_uint                   = xform(with_structural_word_break(uint), parseInt);
+const swb_uint                = xform(with_swb(uint), parseInt);
 // -------------------------------------------------------------------------------------------------
-any_assignment_operator          .abbreviate_str_repr('any_assignment_operator');
-comments                         .abbreviate_str_repr('comments_star');
-discarded_comment                .abbreviate_str_repr('discarded_comment');
-discarded_comments               .abbreviate_str_repr('discarded_comments');
-dot_hash                         .abbreviate_str_repr('dot_hash');
-filename                         .abbreviate_str_repr('filename');
-ident                            .abbreviate_str_repr('ident');
-swb_uint                         .abbreviate_str_repr('swb_uint');
+any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
+comments                      .abbreviate_str_repr('comments_star');
+discarded_comment             .abbreviate_str_repr('discarded_comment');
+discarded_comments            .abbreviate_str_repr('discarded_comments');
+dot_hash                      .abbreviate_str_repr('dot_hash');
+filename                      .abbreviate_str_repr('filename');
+ident                         .abbreviate_str_repr('ident');
+swb_uint                      .abbreviate_str_repr('swb_uint');
 // =================================================================================================
 // plain_text variants:
 // =================================================================================================
-const structural_chars           = '{|}';
-const syntax_chars               = '@#$%';
-const comment_beginning          = raw`\/\/|\/\*`;
+const structural_chars        = '{|}';
+const syntax_chars            = '@#$%';
+const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_char_Regexp_source_str = (additional_excluded_chars) =>
       // raw`${brackets}|` +
