@@ -8783,9 +8783,9 @@ const ScalarAssignment        =
                                     discarded_comments,                 // -
                                     first(choice(() => seq(rjsonc_string, // [1][1]
                                                            OptionalSpecialFunctionTail),  
-                                                 () => seq(wst_plus(choice(LimitedContentNoSemis,
-                                                                           discarded_comment)),
-                                                           MandatorySpecialFunctionTail),
+                                                 // () => seq(wst_plus(choice(LimitedContentNoSemis,
+                                                 //                           discarded_comment)),
+                                                 //           MandatorySpecialFunctionTail),
                                                  () => seq(LimitedContentNoSemis,
                                                            OptionalSpecialFunctionTail),
                                                 )))));
