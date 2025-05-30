@@ -2131,7 +2131,9 @@ const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_s
 
 
 // =================================================================================================
-function make_whitespace_decorator2(name, elem_index) {
+function make_whitespace_decorator2(name, elem_index, whitespace_rule = whites_star) {
+  // whitespace_rule = whitespace_rule === undefined ? whites_star : whitespace_rule;
+  
   const tag = Symbol(name);
 
   const decorate = function (rule) {
@@ -2172,8 +2174,8 @@ function make_whitespace_decorator2(name, elem_index) {
     const builder = elem_index == 0 ? first : second;
     
     const built = builder(elem_index == 0
-                          ? seq(rule, whites_star)
-                          : seq(whites_star, rule));
+                          ? seq(rule, whitespace_rule)
+                          : seq(whitespace_rule, rule));
     
     built[tag] = true;
     built.__original_rule = rule;
@@ -2195,9 +2197,6 @@ function make_whitespace_decorator2(name, elem_index) {
 
   return decorate;
 }
-// -------------------------------------------------------------------------------------------------
-const lws4 = make_whitespace_decorator2("LWS4", 1);
-const tws4 = make_whitespace_decorator2("TWS4", 0);
 // =================================================================================================
 
 
@@ -2219,10 +2218,16 @@ const tws4 = make_whitespace_decorator2("TWS4", 0);
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
+const hwhites_star       = r(/[ \t]*/);
+const hwhites_plus       = r(/[ \t]+/);
 // whites_star.memoize = false;
 // whites_plus.memoize = false;
 whites_star.abbreviate_str_repr('whites*');
 whites_plus.abbreviate_str_repr('whites+');
+// -------------------------------------------------------------------------------------------------
+const lws4 = make_whitespace_decorator2("LWS4", 1);
+const tws4 = make_whitespace_decorator2("TWS4", 0);
+// -------------------------------------------------------------------------------------------------
 // simple 'words':
 // -------------------------------------------------------------------------------------------------
 const alpha_snake             = r(/[a-zA-Z_]+/);
