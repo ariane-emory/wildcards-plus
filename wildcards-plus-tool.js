@@ -8401,22 +8401,22 @@ const structural_word_break      = r(/(?=[\s|}])/);
 // -------------------------------------------------------------------------------------------------
 const with_structural_word_break = rule => first(seq(rule, structural_word_break))
 // -------------------------------------------------------------------------------------------------
-const wb_uint                    = xform(with_structural_word_break(uint), parseInt);
+const swb_uint                   = xform(with_structural_word_break(uint), parseInt);
 // -------------------------------------------------------------------------------------------------
-any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
-comments                      .abbreviate_str_repr('comments_star');
-discarded_comment             .abbreviate_str_repr('discarded_comment');
-discarded_comments            .abbreviate_str_repr('discarded_comments');
-dot_hash                      .abbreviate_str_repr('dot_hash');
-filename                      .abbreviate_str_repr('filename');
-ident                         .abbreviate_str_repr('ident');
-wb_uint                       .abbreviate_str_repr('wb_uint');
+any_assignment_operator          .abbreviate_str_repr('any_assignment_operator');
+comments                         .abbreviate_str_repr('comments_star');
+discarded_comment                .abbreviate_str_repr('discarded_comment');
+discarded_comments               .abbreviate_str_repr('discarded_comments');
+dot_hash                         .abbreviate_str_repr('dot_hash');
+filename                         .abbreviate_str_repr('filename');
+ident                            .abbreviate_str_repr('ident');
+swb_uint                         .abbreviate_str_repr('swb_uint');
 // =================================================================================================
 // plain_text variants:
 // =================================================================================================
-const structural_chars         = '{|}';
-const syntax_chars             = '@#$%';
-const comment_beginning        = raw`\/\/|\/\*`;
+const structural_chars           = '{|}';
+const syntax_chars               = '@#$%';
+const comment_beginning          = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_char_Regexp_source_str = (additional_excluded_chars) =>
       // raw`${brackets}|` +
@@ -8630,7 +8630,7 @@ const make_ASTAnonWildcardAlternative = arr => {
 const make_AnonWildcardAlternative_rule = content_star_rule => 
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
-                lws(optional(wb_uint, 1)),
+                lws(optional(swb_uint, 1)),
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
                 lws(content_star_rule)));
 // -------------------------------------------------------------------------------------------------
