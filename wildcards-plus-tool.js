@@ -7546,7 +7546,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           `ASSIGNING ${inspect_fun(thing.source)} ` +
           `TO '${thing.destination.name}'`);
       
-      let   new_val = walk(thing.source, indent + 1);
+      let   new_val = expand_wildcards(thing.source, context, indent + 1);
       const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
       if (! thing.assign)
