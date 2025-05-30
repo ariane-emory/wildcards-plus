@@ -8409,9 +8409,9 @@ const plain_text_non_head_chars = (additional_chars = '') =>
       String.raw`[\s${syntax_chars}${structural_chars}${additional_chars}]`;
 
 const plain_text                =
-      r_raw`(?:\\.|(?!${plain_text_non_head_chars()}|${comment_beginning}})\S)(?:\\.|(?![\s${structural_chars}]|${comment_beginning}})\S)*`;
+      r_raw`(?:\\.|(?!${plain_text_non_head_chars()}|${comment_beginning})\S)(?:\\.|(?![\s${structural_chars}]|${comment_beginning}})\S)*`;
 const plain_text_no_semis       =
-      r_raw`(?:\\.|(?!${plain_text_non_head_chars(':')}|${comment_beginning}})\S)(?:\\.|(?![\s${structural_chars};]|${comment_beginning}})\S)*`;
+      r_raw`(?:\\.|(?!${plain_text_non_head_chars(':')}|${comment_beginning})\S)(?:\\.|(?![\s${structural_chars};]|${comment_beginning}})\S)*`;
 
 
 const wb_uint                 = xform(r_raw`\d+(?=[\s|}])`, parseInt);
