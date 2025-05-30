@@ -3404,13 +3404,13 @@ function smart_join(arr, indent) {
   return str;
 }
 // -------------------------------------------------------------------------------------------------
+function raw(strings, ...values) {
+  return String.raw(strings, ...values);
+}
+// -------------------------------------------------------------------------------------------------
 function RegExp_raw(strings, ...values) {
   const raw_source = raw(strings, ...values);
   return new RegExp(raw_source);
-}
-// -------------------------------------------------------------------------------------------------
-function raw(strings, ...values) {
-  return String.raw(strings, ...values);
 }
 // -------------------------------------------------------------------------------------------------
 // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
