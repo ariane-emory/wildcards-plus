@@ -8411,7 +8411,7 @@ const brackets                  = '[\\(\\)\\[\\]]+';
 const structural_chars          = '{|}';
 const syntax_chars              = '@#$%';
 const comment_beginning         = raw`\/\/|\/\*`;
-
+// -------------------------------------------------------------------------------------------------
 const plain_text_head = (additional_excluded_chars) =>
       // raw`${brackets}|` +
       raw`(?:\\.|` +
@@ -8424,12 +8424,11 @@ const plain_text_tail = (additional_excluded_chars) =>
       raw`(?![\s${structural_chars}${additional_excluded_chars}]|` +
       raw`${comment_beginning})` +
       raw`\S)`;
-
+// -------------------------------------------------------------------------------------------------
 const plain_text               =
       r_raw`${plain_text_head('' )}${plain_text_tail('' )}*`;
 const plain_text_no_semis      =
       r_raw`${plain_text_head(':')}${plain_text_tail(';')}*`;
-
 // -------------------------------------------------------------------------------------------------
 const old_plain_text           = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
 const old_plain_text_no_semis  = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
