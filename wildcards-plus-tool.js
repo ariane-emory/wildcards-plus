@@ -8591,18 +8591,18 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const TrailingCommentFollowedBySemicolon          = discard(seq(comments,
-                                                         choice(lws(semicolon),
-                                                                word_break)));
+const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
+                                                                  choice(lws(semicolon),
+                                                                         word_break)));
 const TrailingCommentsAndSemicolon = discard(lws(semicolon));
-TrailingCommentFollowedBySemicolon.abbreviate_str_repr('TrailingCommentFollowedBySemicolon');
-TrailingCommentsAndSemicolon.abbreviate_str_repr('TrailingCommentsAndSemicolon');
+TrailingCommentFollowedBySemicolonOrWordBreak
+  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+TrailingCommentsAndSemicolon.abbreviate
+_str_repr('TrailingCommentsAndSemicolon');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
-                TrailingCommentFollowedBySemicolon
-                // word_break
-               ));
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
@@ -8612,12 +8612,13 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
+UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-                TrailingCommentFollowedBySemicolon
-                // word_break
-               ));
+          TrailingCommentFollowedBySemicolonOrWordBreak
+          // word_break
+         ));
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
@@ -8627,7 +8628,6 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
@@ -8635,7 +8635,7 @@ const SpecialFunctionInclude =
                           first(wst_seq(discarded_comments,      // -
                                         rjsonc_string,           // [0][1]
                                         discarded_comments))),   // -
-                TrailingCommentFollowedBySemicolon));
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8654,7 +8654,7 @@ const SpecialFunctionSetPickSingle =
                 wst_seq(equals,                                       // [1][0]
                         discarded_comments,                           // -
                         choice(() => LimitedContent, lc_alpha_snake), // [1][1]
-                        TrailingCommentFollowedBySemicolon))); 
+                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
@@ -8663,36 +8663,36 @@ const SpecialFunctionSetPickMultiple =
                 wst_seq(equals,                                          // [1][0]
                         discarded_comments,                              // -
                         choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
-                        TrailingCommentFollowedBySemicolon))); 
+                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                TrailingCommentFollowedBySemicolon));
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                TrailingCommentFollowedBySemicolon));
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                         // [0]
-                discarded_comments,                                              // -
-                wst_cutting_seq(any_assignment_operator,                         // [1][0]
-                                discarded_comments,                              // -
-                                choice(rJsonc, () => LimitedContent), // [1][1]
-                                TrailingCommentFollowedBySemicolon))); 
+            seq(c_ident,                                                            // [0]
+                discarded_comments,                                                 // -
+                wst_cutting_seq(any_assignment_operator,                            // [1][0]
+                                discarded_comments,                                 // -
+                                choice(rJsonc, () => LimitedContent),               // [1][1]
+                                TrailingCommentFollowedBySemicolonOrWordBreak))); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                         // [0]
-                discarded_comments,                                                    // -
-                wst_cutting_seq(choice(plus_equals, equals),                           // [1][0]
-                                discarded_comments,                                    // -
+            seq(/conf(?:ig)?/,                                                      // [0]
+                discarded_comments,                                                 // -
+                wst_cutting_seq(choice(plus_equals, equals),                        // [1][0]
+                                discarded_comments,                                 // -
                                 choice(rJsoncObject, () => LimitedContent), // [1][1]
-                                TrailingCommentFollowedBySemicolon)));
+                                TrailingCommentFollowedBySemicolonOrWordBreak)));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -8793,17 +8793,17 @@ const ScalarAssignment        =
       xform(arr => new ASTScalarAssignment(arr[0],
                                            arr[1][1],
                                            arr[1][0] == '='),
-            wst_seq(ScalarDesignator,                                   // [0]
-                    discarded_comments,                                 // - 
-                    wst_cutting_seq(choice(plus_equals, equals),        // [1][0]
-                                    discarded_comments,                 // -
+            wst_seq(ScalarDesignator,                                     // [0]
+                    discarded_comments,                                   // - 
+                    wst_cutting_seq(choice(plus_equals, equals),          // [1][0]
+                                    discarded_comments,                   // -
                                     first(choice(() => seq(rjsonc_string, // [1][1]
-                                                           TrailingCommentFollowedBySemicolon),  
+                                                           TrailingCommentFollowedBySemicolonOrWordBreak),  
                                                  () => seq(hwst_plus(choice(LimitedContentNoSemis,
                                                                             discarded_comment)),
                                                            TrailingCommentsAndSemicolon),
                                                  () => seq(LimitedContentNoSemis,
-                                                           TrailingCommentFollowedBySemicolon),
+                                                           TrailingCommentFollowedBySemicolonOrWordBreak),
                                                 )))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // -------------------------------------------------------------------------------------------------
