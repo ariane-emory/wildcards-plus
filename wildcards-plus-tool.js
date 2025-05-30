@@ -8806,7 +8806,9 @@ const ScalarAssignment        =
                                          TrailingCommentFollowedBySemicolonOrWordBreak),  
                                () => seq(hwst_plus(choice(LimitedContentNoSemis,
                                                           discarded_comment)),
-                                         TrailingCommentsAndSemicolon),
+                                         TrailingCommentFollowedBySemicolonOrWordBreak
+                                         // TrailingCommentsAndSemicolon
+                                        ),
                                () => seq(LimitedContentNoSemis,
                                          TrailingCommentFollowedBySemicolonOrWordBreak))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');

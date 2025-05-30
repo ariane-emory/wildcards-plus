@@ -7547,10 +7547,11 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       
       let walked_file = expand_wildcards(thing.file, context, indent + 1); // not walk!
 
-      // log(`walked_file is ${typeof walked_file} ` +
-      //             `${walked_file.constructor.name} ` +
-      //             `${inspect_fun(walked_file)} ` +
-      //             `${Array.isArray(walked_file)}`);
+      log(true,
+          `walked_file is ${typeof walked_file} ` +
+          `${walked_file.constructor.name} ` +
+          `${inspect_fun(walked_file)} ` +
+          `${Array.isArray(walked_file)}`);
 
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
@@ -7558,15 +7559,19 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       // if (Array.isArray(thing.weight))
       //   throw new Error("boom");
       
+      log(true,
+          `walking weight ${inspect_fun(thing.weight)}`);
+
       let walked_weight = expand_wildcards(thing.weight, context, indent + 1); // not walk!
       
       // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
       //   throw "bomb";
       
-      // log(`walked_weight is ${typeof walked_weight} ` +
-      //             `${walked_weight.constructor.name} ` +
-      //             `${inspect_fun(walked_weight)} ` +
-      //             `${Array.isArray(walked_weight)}`);
+      log(true,
+          `walked_weight is ${typeof walked_weight} ` +
+          `${walked_weight.constructor.name} ` +
+          `${inspect_fun(walked_weight)}, ` +
+          `Array.isArray(${Array.isArray(walked_weight)})`);
       
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
@@ -8131,8 +8136,11 @@ const filename                = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
 
-const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+/);
-const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
+//const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+/);
+//const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
+
+const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
+const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
 
 const wb_uint                 = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
                                       parseInt);
