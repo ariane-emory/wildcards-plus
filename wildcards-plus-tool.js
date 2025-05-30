@@ -2132,8 +2132,6 @@ const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_s
 
 // =================================================================================================
 function make_whitespace_decorator2(name, elem_index, whitespace_rule = whites_star) {
-  // whitespace_rule = whitespace_rule === undefined ? whites_star : whitespace_rule;
-  
   const tag = Symbol(name);
 
   const decorate = function (rule) {
@@ -2224,9 +2222,13 @@ const hwhites_plus       = r(/[ \t]+/);
 // whites_plus.memoize = false;
 whites_star.abbreviate_str_repr('whites*');
 whites_plus.abbreviate_str_repr('whites+');
+hwhites_star.abbreviate_str_repr('hwhites*');
+hwhites_plus.abbreviate_str_repr('hwhites+');
 // -------------------------------------------------------------------------------------------------
-const lws4 = make_whitespace_decorator2("LWS4", 1);
-const tws4 = make_whitespace_decorator2("TWS4", 0);
+const lws = make_whitespace_decorator2("LWS", 1);
+const tws = make_whitespace_decorator2("TWS", 0);
+const lhws = make_whitespace_decorator2("LWS", 1, hwhites_star);
+const thws = make_whitespace_decorator2("TWS", 0, hwhites_star);
 // -------------------------------------------------------------------------------------------------
 // simple 'words':
 // -------------------------------------------------------------------------------------------------
@@ -2238,9 +2240,6 @@ lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
 uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
-// -------------------------------------------------------------------------------------------------
-const lws = lws4;
-const tws = tws4;
 // -------------------------------------------------------------------------------------------------
 // common numbers:
 const udecimal           = r(/\d+\.\d+/);
