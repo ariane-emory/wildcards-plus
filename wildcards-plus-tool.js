@@ -60,8 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = false;
-
+  // log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -2648,6 +2647,7 @@ const rjsonc_single_quoted_string =
         /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
 
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
+rjsonc_string.abbreviate_str_repr('rjsonc_string');
 
 const rJsonc = second(wst_seq(jsonc_comments,
                               choice(() => rJsoncObject,  () => JsoncArray,
@@ -2655,7 +2655,6 @@ const rJsonc = second(wst_seq(jsonc_comments,
                                      () => json_null,     () => json_true,
                                      () => json_false,    () => json_number),
                               jsonc_comments));
-
 
 const rJsoncObject =
       choice(
@@ -8784,11 +8783,12 @@ const ScalarAssignment        =
                                     discarded_comments,                 // -
                                     first(choice(() => seq(rjsonc_string, // [1][1]
                                                            OptionalSpecialFunctionTail),  
-                                                 () => seq(wst_plus(choice(LimitedContent,
+                                                 () => seq(wst_plus(choice(LimitedContentNoSemis,
                                                                            discarded_comment)),
                                                            MandatorySpecialFunctionTail),
-                                                 () => seq(LimitedContent,
-                                                           OptionalSpecialFunctionTail))))));
+                                                 () => seq(LimitedContentNoSemis,
+                                                           OptionalSpecialFunctionTail),
+                                                )))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const make_LimitedContent_rule = plain_text_rule  =>
       choice(NamedWildcardReference,
