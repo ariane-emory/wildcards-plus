@@ -1,0 +1,15 @@
+// @wizards_artists
+// @wizards_artists
+// @wizards_artists
+// @wizards_artists
+// @wizards_artists
+// @wizards_artists
+
+#foo#poop
+{ ?foo.#bar.baz }
+{ !corge.#grault.quux }
+{ ?poop, }
+{ ?poop. }
+
+%foo = [];123
+
