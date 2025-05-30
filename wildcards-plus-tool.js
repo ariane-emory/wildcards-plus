@@ -8509,8 +8509,8 @@ const SimpleNotFlag                = xform(seq_with_swb(bang,
 
                                              return new ASTNotFlag(...args);
                                            })
-const CheckFlagWithOrAlternatives  = xform(seq_with_swb(question,
-                                                        plus(plus(ident, dot), comma)),
+const CheckFlagWithOrAlternatives  = xform(cutting_seq_with_swb(question,
+                                                                plus(plus(ident, dot), comma)),
                                            arr => {
                                              const args = [arr[1]];
 
@@ -8523,10 +8523,10 @@ const CheckFlagWithOrAlternatives  = xform(seq_with_swb(question,
 
                                              return new ASTCheckFlags(...args);
                                            });
-const CheckFlagWithSetConsequent   = xform(seq_with_swb(question,          // [0]
-                                                        plus(ident, dot),  // [1]
-                                                        dot_hash,          // [2]
-                                                        plus(ident, dot)), // [3]
+const CheckFlagWithSetConsequent   = xform(cutting_seq_with_swb(question,          // [0]
+                                                                plus(ident, dot),  // [1]
+                                                                dot_hash,          // [2]
+                                                                plus(ident, dot)), // [3]
                                            arr => {
                                              const args = [ [ arr[1] ], arr[3] ]; 
 
@@ -8539,10 +8539,10 @@ const CheckFlagWithSetConsequent   = xform(seq_with_swb(question,          // [0
 
                                              return new ASTCheckFlags(...args);
                                            });
-const NotFlagWithSetConsequent     = xform(seq_with_swb(bang,
-                                                        plus(ident, dot),
-                                                        dot_hash,
-                                                        plus(ident, dot)),
+const NotFlagWithSetConsequent     = xform(cutting_seq_with_swb(bang,
+                                                                plus(ident, dot),
+                                                                dot_hash,
+                                                                plus(ident, dot)),
                                            arr => {
                                              const args = [arr[1],
                                                            { consequently_set_flag_tail: arr[3] }]; 
