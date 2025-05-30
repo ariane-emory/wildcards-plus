@@ -8414,13 +8414,13 @@ const plain_text_head = (additional_excluded_chars = '') =>
       raw`(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
       raw`${comment_beginning})\S)`;
 
-const plain_text_tail =
-      raw`(?:\\.|(?![\s${structural_chars}]|${comment_beginning})\S)`;
+const plain_text_tail = (additional_excluded_chars = '') =>
+      raw`(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)`;
 
-const plain_text                =
-      r_raw`${plain_text_head('' )}${plain_text_tail}*`;
+const plain_text               =
+      r_raw`${plain_text_head('' )}${plain_text_tail('' )}*`;
 const plain_text_no_semis      =
-      r_raw`${plain_text_head(':')}(?:\\.|(?![\s${structural_chars};]|${comment_beginning})\S)*`;
+      r_raw`${plain_text_head(':')}${plain_text_tail(';')}*`;
 
 const old_plain_text           = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
 const old_plain_text_no_semis  = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
