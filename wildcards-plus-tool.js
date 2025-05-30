@@ -1794,9 +1794,9 @@ class Regex extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function raw(strings, ...values) { // convenience constructor
-  return String.raw(strings, ...values);
-}
+// function raw(strings, ...values) { // convenience constructor
+//   return String.raw(strings, ...values);
+// }
 // -------------------------------------------------------------------------------------------------
 function r_raw(strings, ...values) { // convenience constructor
   const regexp = RegExp_raw(strings, ...values);
@@ -8406,6 +8406,7 @@ const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
 // -------------------------------------------------------------------------------------------------
 // plain_text variants:
 // -------------------------------------------------------------------------------------------------
+const raw = String.raw;
 const brackets                  = '[\\(\\)\\[\\]]+';
 const structural_chars          = '{|}';
 const syntax_chars              = '@#$%';
@@ -8429,14 +8430,15 @@ const plain_text               =
 const plain_text_no_semis      =
       r_raw`${plain_text_head(':')}${plain_text_tail(';')}*`;
 
+// -------------------------------------------------------------------------------------------------
 const old_plain_text           = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
 const old_plain_text_no_semis  = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
-
+// -------------------------------------------------------------------------------------------------
 console.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
 console.log(`old_plain_text:          ${inspect_fun(old_plain_text.regexp.source)}`);
 console.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
 console.log(`old_plain_text_no_semis: ${inspect_fun(old_plain_text_no_semis.regexp.source)}`);
-
+// -------------------------------------------------------------------------------------------------
 // throw new Error("stop");
 
 const wb_uint                 = xform(r_raw`\d+(?=[\s|}])`, parseInt);
