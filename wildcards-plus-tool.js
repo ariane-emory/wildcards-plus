@@ -275,14 +275,14 @@ let fire_and_forget_post_enabled      = true;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = false;
 let log_enabled                       = true;
-let log_expand_and_walk_enabled       = true;
+let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = false;
-let log_smart_join_enabled            = true;
+let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_and_die                 = false;
@@ -7860,24 +7860,24 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       walked === "''" ||
       walked?.includes('""') ||
       walked?.includes("''"))
-                throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
+    throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
 
-              const ret = unescape(smart_join(walked,
-                                              indent + 1));
+  const ret = unescape(smart_join(walked,
+                                  indent + 1));
 
-              context.munge_configuration({indent: indent + 1});
-              
-              log(log_expand_and_walk_enabled,
-                  `Expanded into ${inspect_fun(ret)}`);
-              
-              // if (ret === undefined)
-              //   throw new Error("what");
-              
-              // if (ret.match(/^\s+$/))
-              //   throw "bombλ";
+  context.munge_configuration({indent: indent + 1});
+  
+  log(log_expand_and_walk_enabled,
+      `Expanded into ${inspect_fun(ret)}`);
+  
+  // if (ret === undefined)
+  //   throw new Error("what");
+  
+  // if (ret.match(/^\s+$/))
+  //   throw "bombλ";
 
-              if (ret === '""' || ret === "''")
-        throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
+  if (ret === '""' || ret === "''")
+    throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
   
   return ret;
 }
