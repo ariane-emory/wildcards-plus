@@ -8552,6 +8552,67 @@ TestFlag.abbreviate_str_repr('TestFlag');
 SetFlag.abbreviate_str_repr('SetFlag');
 UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
+// AnonWildcard related rules:
+// -------------------------------------------------------------------------------------------------
+const make_ASTAnonWildcardAlternative = arr => {
+  const weight = arr[1][0];
+
+  if (weight == 0)
+    return DISCARD;
+  
+  // console.log(`ARR: ${inspect_fun(arr)}`);
+  const flags = ([ ...arr[0], ...arr[2] ]);
+  const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
+  const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
+  const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
+
+  const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails =
+        check_flags
+        .filter(f => f.consequently_set_flag_tail)
+        .map(f => new ASTSetFlag([ ...f.flags[0], ...f.consequently_set_flag_tail ]));
+
+  const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails =
+        not_flags
+        .filter(f => f.consequently_set_flag_tail)
+        .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
+  
+  const ASTSetFlags_for_ASTNotFlags_with_set_immediately =
+        not_flags
+        .filter(f => f.set_immediately)
+        .map(f => new ASTSetFlag(f.flag));
+
+  return new ASTAnonWildcardAlternative(
+    weight,
+    check_flags,
+    not_flags,
+    [
+      ...ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails,
+      ...ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails,
+      ...ASTSetFlags_for_ASTNotFlags_with_set_immediately,
+      ...set_or_unset_flags,
+      ...arr[3]
+    ]);
+}
+// -------------------------------------------------------------------------------------------------
+const make_AnonWildcardAlternative_rule = content_star_rule => 
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
+                lws(optional(wb_uint, 1)),
+                wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
+                lws(content_star_rule)));
+const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
+const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
+AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
+AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+// -------------------------------------------------------------------------------------------------
+const make_AnonWildcard_rule  = alternative_rule  =>
+      xform(arr => new ASTAnonWildcard(arr),
+            wst_brc_enc(wst_star(alternative_rule, pipe)));
+const AnonWildcard            = make_AnonWildcard_rule(AnonWildcardAlternative);
+const AnonWildcardNoLoras     = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
+AnonWildcard.abbreviate_str_repr('AnonWildcard');
+AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
+// -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
 const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
@@ -8676,67 +8737,6 @@ const SpecialFunctionNotInclude =
                         ));
 SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
-// AnonWildcard related rules:
-// -------------------------------------------------------------------------------------------------
-const make_ASTAnonWildcardAlternative = arr => {
-  const weight = arr[1][0];
-
-  if (weight == 0)
-    return DISCARD;
-  
-  // console.log(`ARR: ${inspect_fun(arr)}`);
-  const flags = ([ ...arr[0], ...arr[2] ]);
-  const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
-  const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
-  const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
-
-  const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails =
-        check_flags
-        .filter(f => f.consequently_set_flag_tail)
-        .map(f => new ASTSetFlag([ ...f.flags[0], ...f.consequently_set_flag_tail ]));
-
-  const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails =
-        not_flags
-        .filter(f => f.consequently_set_flag_tail)
-        .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
-  
-  const ASTSetFlags_for_ASTNotFlags_with_set_immediately =
-        not_flags
-        .filter(f => f.set_immediately)
-        .map(f => new ASTSetFlag(f.flag));
-
-  return new ASTAnonWildcardAlternative(
-    weight,
-    check_flags,
-    not_flags,
-    [
-      ...ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails,
-      ...ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails,
-      ...ASTSetFlags_for_ASTNotFlags_with_set_immediately,
-      ...set_or_unset_flags,
-      ...arr[3]
-    ]);
-}
-// -------------------------------------------------------------------------------------------------
-const make_AnonWildcardAlternative_rule = content_star_rule => 
-      xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
-                lws(optional(wb_uint, 1)),
-                wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
-                lws(content_star_rule)));
-const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
-const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
-AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
-AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-// -------------------------------------------------------------------------------------------------
-const make_AnonWildcard_rule  = alternative_rule  =>
-      xform(arr => new ASTAnonWildcard(arr),
-            wst_brc_enc(wst_star(alternative_rule, pipe)));
-const AnonWildcard            = make_AnonWildcard_rule(AnonWildcardAlternative);
-const AnonWildcardNoLoras     = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
-AnonWildcard.abbreviate_str_repr('AnonWildcard');
-AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
-// -------------------------------------------------------------------------------------------------
 // other non-terminals:
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardReference  = xform(seq(at,                                        // [0]
@@ -8812,6 +8812,8 @@ const ScalarAssignment        =
                                () => seq(LimitedContentNoSemis,
                                          TrailingCommentFollowedBySemicolonOrWordBreak))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
+// -------------------------------------------------------------------------------------------------
+// content-related rules:
 // -------------------------------------------------------------------------------------------------
 const make_LimitedContent_rule = plain_text_rule  =>
       choice(NamedWildcardReference,
