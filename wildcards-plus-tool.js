@@ -3408,7 +3408,6 @@ function RegExp_raw(strings, ...values) {
   const raw_source = String.raw(strings, ...values);
   return new RegExp(raw_source);
 }
-
 // -------------------------------------------------------------------------------------------------
 const raw = String.raw;
 // -------------------------------------------------------------------------------------------------
