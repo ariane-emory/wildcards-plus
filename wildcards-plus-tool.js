@@ -9142,6 +9142,6 @@ if (! main_disabled)
 
 // console.log(smart_join([ 'FOO', "''", 'BAR']));
 
-console.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
-   x    x  x `)));
+// console.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
+//    x    x  x `)));
 
