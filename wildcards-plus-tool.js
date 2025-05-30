@@ -8414,13 +8414,14 @@ const plain_text_head = (additional_excluded_chars = '') =>
       raw`(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
       raw`${comment_beginning})\S)`;
 
-const old_plain_text           = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
-const old_plain_text_no_semis  = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
 
 const plain_text                =
       r_raw`${plain_text_head('' )}(?:\\.|(?![\s${structural_chars}]|${comment_beginning})\S)*`;
 const plain_text_no_semis      =
       r_raw`${plain_text_head(':')}(?:\\.|(?![\s${structural_chars};]|${comment_beginning})\S)*`;
+
+const old_plain_text           = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
+const old_plain_text_no_semis  = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
 
 console.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
 console.log(`old_plain_text:          ${inspect_fun(old_plain_text.regexp.source)}`);
