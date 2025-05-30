@@ -22,24 +22,24 @@
 // -------------------------------------------------------------------------------------------------
 let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = true;
-let unnecessary_choice_is_error       = false;
-// let print_ast_enabled                 = false;
-let print_ast_json_enabled            = false;
+let inspect_depth                     = 50;
+let log_configuration_enabled         = false;
 let log_enabled                       = true;
-let log_configuration_enabled         = true;
+let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
-let log_post_enabled                  = true;
+let log_post_enabled                  = false;
 let log_smart_join_enabled            = false;
-let log_expand_and_walk_enabled       = false;  
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
+let print_ast_and_die                 = false;
+let print_ast_before_includes_enabled = false;
+let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
-let inspect_depth                     = 50;
+let unnecessary_choice_is_error       = false;
 // =================================================================================================
 
 
@@ -1068,7 +1068,7 @@ class Sequence extends Rule {
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
         log(indent + 1, `seq pushing first item ` +
-            `${abbreviate(inspect_fun(last_match_result.value))}`);
+            `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
 
       values.push(last_match_result.value);
 
@@ -1105,7 +1105,7 @@ class Sequence extends Rule {
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
-          log(indent + 1, `seq pushing ${abbreviate(inspect_fun(last_match_result.value))}`);
+          log(indent + 1, `seq pushing ${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
 
         values.push(last_match_result.value);
 
@@ -1923,9 +1923,14 @@ function make_whitespace_decorator2(name, elem_index) {
 
     // if (prettify_whitespace_combinators)
     //   built.__impl_toString = function(visited, next_id, ref_counts) {
+    //     return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+    //   };
+
+    // if (prettify_whitespace_combinators)
+    //   built.__impl_toString = function(visited, next_id, ref_counts) {
     //     if (typeof this.__toString !== 'function')
     //       console.log(`suspiciousa: ${inspect_fun(this)}`);
-    //     return `${name}(${this.__toString(visited, next_id, ref_counts)})`;
+    //     return `${name}(${this.__original_rule.__toString(visited, next_id, ref_counts)})`;
     //   };
 
     return built;
@@ -2379,11 +2384,21 @@ Jsonc.finalize();
 // =================================================================================================
 // 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
 // =================================================================================================
+const rjsonc_single_quoted_string =
+      xform(
+        s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
+        /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
+
+const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
+
 const rJsonc = second(wst_seq(jsonc_comments,
                               choice(() => rJsoncObject,  () => JsoncArray,
-                                     () => json_string,   () => json_true, () => json_false,
-                                     () => json_null,     () => json_number),
+                                     () => rjsonc_string,
+                                     () => json_null,     () => json_true,
+                                     () => json_false,    () => json_number),
                               jsonc_comments));
+
+
 const rJsoncObject =
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
@@ -2925,7 +2940,15 @@ function rand_int(x, y) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
-function smart_join(arr) {
+function smart_join(arr, indent) {
+  if (indent === undefined)
+    throw new Error("need indent");
+
+  // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+  const log = msg => {
+    return console.log(`${' '.repeat(indent*2)}${msg}`);
+  };
+  
   if (! arr)
     return arr;
   
@@ -2934,11 +2957,14 @@ function smart_join(arr) {
   
   arr = [...arr.flat(Infinity).filter(x=> x)];
 
+  if (arr.includes("''") || arr.includes('""'))
+    throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
+
   if (arr.length === 0) // investigate why this is necessary.
     return '';
   
   if (log_smart_join_enabled)
-    console.log(`JOINING ${inspect_fun(arr)}`);
+    log(`JOINING ${compress(inspect_fun(arr))}`);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
@@ -2966,7 +2992,7 @@ function smart_join(arr) {
 
     const add_a_space = () => {
       if (log_smart_join_enabled)
-        console.log(`SPACE!`);
+        log(`SPACE!`);
 
       prev_char  = ' ';
       str       += ' ';
@@ -2974,7 +3000,7 @@ function smart_join(arr) {
 
     const chomp_left_side = () => {
       if (log_smart_join_enabled)
-        console.log(`CHOMP LEFT!`);
+        log(`CHOMP LEFT!`);
       
       str      = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
@@ -2984,7 +3010,7 @@ function smart_join(arr) {
     
     const chomp_right_side = () => {
       if (log_smart_join_enabled)
-        console.log(`CHOMP RIGHT!`);
+        log(`CHOMP RIGHT!`);
 
       arr[ix] = arr[ix].slice(1);
 
@@ -2993,7 +3019,10 @@ function smart_join(arr) {
 
     const consume_right_word = () => {
       if (log_smart_join_enabled)
-        console.log(`CONSUME ${inspect_fun(right_word)}!`);
+        log(`CONSUME ${inspect_fun(right_word)}!`);
+
+      if (right_word === '""' || right_word === "''")
+        throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
 
       left_word  = right_word;
       str       += left_word;
@@ -3001,7 +3030,7 @@ function smart_join(arr) {
 
     const move_chars_left = (n) => {
       if (log_smart_join_enabled)
-        console.log(`SHIFT ${n} CHARACTERS!`);
+        log(`SHIFT ${n} CHARACTERS!`);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
       const shifted_str = right_word.substring(0, n);
@@ -3021,21 +3050,21 @@ function smart_join(arr) {
       next_char_is_escaped = right_word[0] === '\\';
 
       if (log_smart_join_enabled)
-        console.log(`ix = ${inspect_fun(ix)}, ` +
-                    `str = ${inspect_fun(str)}, ` +
-                    `left_word = ${inspect_fun(left_word)}, ` +         
-                    `right_word = ${inspect_fun(right_word)}, ` +       
-                    `prev_char = ${inspect_fun(prev_char)}, ` +         
-                    `next_char = ${inspect_fun(next_char)}, ` + 
-                    `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-                    `next_char_is_escaped = ${next_char_is_escaped}`);
+        log(`ix = ${inspect_fun(ix)}, ` +
+            `str = ${inspect_fun(str)}, ` +
+            `left_word = ${inspect_fun(left_word)}, ` +         
+            `right_word = ${inspect_fun(right_word)}, ` +       
+            `prev_char = ${inspect_fun(prev_char)}, ` +         
+            `next_char = ${inspect_fun(next_char)}, ` + 
+            `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+            `next_char_is_escaped = ${next_char_is_escaped}`);
     };
     
     update_pos_vars();
     
     if (right_word === '') {
       if (log_smart_join_enabled)
-        console.log(`JUMP EMPTY!`);
+        log(`JUMP EMPTY!`);
 
       continue;
     }
@@ -3071,7 +3100,7 @@ function smart_join(arr) {
 
     if (right_word === '') {
       if (log_smart_join_enabled)
-        console.log(`JUMP EMPTY (LATE)!`);
+        log(`JUMP EMPTY (LATE)!`);
 
       continue;
     }
@@ -3091,7 +3120,7 @@ function smart_join(arr) {
   }
 
   if (log_smart_join_enabled)
-    console.log(`JOINED ${inspect_fun(str)}`);
+    log(`JOINED ${inspect_fun(str)}`);
 
   return str;
 }
@@ -3521,9 +3550,11 @@ class Context {
       //   console.log(`skipping, already set`);
       return;
     }
-
-    if (log_flags_enabled)
+    
+    if (log_flags_enabled) {
+      // throw new Error("wtf");
       console.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
+    }
 
     const new_flag_head = new_flag.slice(0, -1);
     
@@ -7017,7 +7048,8 @@ function load_prelude(into_context = new Context()) {
   
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
   log_flags_enabled = old_log_flags_enabled;
-  log_flags_enabled = true;
+
+  // log_flags_enabled = true;
   
   if (ignored === undefined)
     throw new Error("crap");
@@ -7066,7 +7098,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   const thing_str_repr = thing => {
     const type_str  = typeof thing === 'object' ? thing.constructor.name : typeof thing;
     const thing_str = abbreviate(Array.isArray(thing)
-                                 ? thing.join(' ')
+                                 ? compress(inspect_fun(thing)) // thing.join(' ')
                                  : (typeof thing === 'string'
                                     ? inspect_fun(thing)
                                     : thing.toString()));
@@ -7078,13 +7110,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
-    if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    if (guard_bool) console.log(`${indent}${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = (guard_bool, msg) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
-      if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+      // if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+      if (guard_bool) console.log(`${indent}${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     };
 
     // log(log_expand_and_walk_enabled,
@@ -7171,11 +7204,13 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTScalarReference) {
       let got = context.scalar_variables.get(thing.name) ??
-          ''; // `<WARNING: scalar '${thing.name}' not found}>`;
+          `<WARNING: scalar '${thing.name}' not found}>`;
 
       if (thing.capitalize)
         got = capitalize(got);
 
+      log(true, `scalar ref returned: ${inspect_fun(got)}`);
+      
       return got;
     }
     // ---------------------------------------------------------------------------------------------
@@ -7381,7 +7416,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
             // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
             //           `increment by string ${inspect_fun(value)}, ` +
             //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-            context.configuration[our_name] = smart_join([tmp_str, value]);
+            context.configuration[our_name] = smart_join([tmp_str, value], indent + 1);
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
@@ -7578,8 +7613,17 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       // `${thing_type_str(thing)} ` +
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
-  
-  const ret = unescape(smart_join(walk(thing, indent + 1)));
+
+  const walked = walk(thing, indent + 1);
+
+  if (walked === '""' ||
+      walked === "''" ||
+      walked?.includes('""') ||
+      walked?.includes("''"))
+    throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
+
+  const ret = unescape(smart_join(walked,
+                                  indent + 1));
 
   context.munge_configuration({indent: indent + 1});
   
@@ -7591,6 +7635,9 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   
   // if (ret.match(/^\s+$/))
   //   throw "bombλ";
+
+  if (ret === '""' || ret === "''")
+    throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
   
   return ret;
 }
@@ -8055,7 +8102,7 @@ class ASTUINegPrompt extends ASTNode {
 // =================================================================================================
 // terminals:
 // -------------------------------------------------------------------------------------------------
-// const low_pri_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
+// const structural_text             = /[\(\)\[\]\,\.\?\!\:\;]+/;
 // const plaintext                = /[^{|}\s]+/;
 // const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
 // const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
@@ -8063,22 +8110,34 @@ class ASTUINegPrompt extends ASTNode {
 // const plaintext_no_parens      = /[^{|}\s()]+/;
 const discarded_comment           = discard(c_comment);
 const discarded_comments          = discard(wst_star(c_comment));
+const comments                    = wst_star(c_comment);
 const any_assignment_operator     = choice(equals, plus_equals);
 const dot_hash                    = l('.#');
 const filename                    = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                           str => str.toLowerCase().replace(/-/g, '_'));
-const low_pri_text                = r(/[\(\)\[\]\:\;]+/);
-const plaintext                   = r(/(?:\\.|(?![@#$%{|}\s;]|\/\/|\/\*)\S)+/);
-const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+// const lpt re = /[()\[\]:;]/;
+if (false) {
+  const re = r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
+}
+
+const structural_chars            = String.raw`()\[\]:`;
+const structural_text             = r(new RegExp(String.raw`[${structural_chars}]+`));
+const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s` +
+                                                 structural_chars + 
+                                                 String.raw`;]|\/\/|\/\*)\S)+`));
+// const wb_uint                     = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
+const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[${structural_chars}{|}<>])`),
+                                          parseInt);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
 discarded_comments                .abbreviate_str_repr('discarded_comments_star');
+comments                          .abbreviate_str_repr('comments_star');
 dot_hash                          .abbreviate_str_repr('dot_hash');
 filename                          .abbreviate_str_repr('filename');
 ident                             .abbreviate_str_repr('ident');
-low_pri_text                      .abbreviate_str_repr('low_pri_text');
-plaintext                         .abbreviate_str_repr('plaintext');
+structural_text                   .abbreviate_str_repr('structural_text');
+plain_text                        .abbreviate_str_repr('plain_text');
 wb_uint                           .abbreviate_str_repr('wb_uint');
 // -------------------------------------------------------------------------------------------------
 // A1111-style LoRAs:
@@ -8264,13 +8323,16 @@ UnsetFlag.abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 // non-terminals for the special functions/variables:
 // -------------------------------------------------------------------------------------------------
-const SpecialFunctionTail = seq(discarded_comments,
-                                choice(lws(semicolon), word_break));
-SpecialFunctionTail.abbreviate_str_repr('SpecialFunctionTail');
+const OptionalSpecialFunctionTail          = discard(seq(comments,
+                                                         choice(lws(semicolon),
+                                                                word_break)));
+const MandatorySpecialFunctionTail = discard(lws(semicolon));
+OptionalSpecialFunctionTail.abbreviate_str_repr('OptionalSpecialFunctionTail');
+MandatorySpecialFunctionTail.abbreviate_str_repr('MandatorySpecialFunctionTail');
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
-                SpecialFunctionTail
+                OptionalSpecialFunctionTail
                 // word_break
                ));
 SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
@@ -8285,7 +8347,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-                SpecialFunctionTail
+                OptionalSpecialFunctionTail
                 // word_break
                ));
 SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
@@ -8303,9 +8365,9 @@ const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
                           first(wst_seq(discarded_comments,      // -
-                                        json_string,             // [0][1]
-                                        discarded_comments))),           // -
-                SpecialFunctionTail));
+                                        rjsonc_string,           // [0][1]
+                                        discarded_comments))),   // -
+                OptionalSpecialFunctionTail));
 SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8324,7 +8386,7 @@ const SpecialFunctionSetPickSingle =
                 wst_seq(equals,                                       // [1][0]
                         discarded_comments,                           // -
                         choice(() => LimitedContent, lc_alpha_snake), // [1][1]
-                        SpecialFunctionTail))); 
+                        OptionalSpecialFunctionTail))); 
 SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
@@ -8333,17 +8395,17 @@ const SpecialFunctionSetPickMultiple =
                 wst_seq(equals,                                          // [1][0]
                         discarded_comments,                              // -
                         choice(() => LimitedContent, lc_alpha_snake),    // [1][1]
-                        SpecialFunctionTail))); 
+                        OptionalSpecialFunctionTail))); 
 SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                SpecialFunctionTail));
+                OptionalSpecialFunctionTail));
 SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                SpecialFunctionTail));
+                OptionalSpecialFunctionTail));
 SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
@@ -8351,8 +8413,8 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                              // -
                 wst_cutting_seq(any_assignment_operator,                         // [1][0]
                                 discarded_comments,                              // -
-                                choice(rJsonc, () => LimitedContent, plaintext), // [1][1]
-                                SpecialFunctionTail))); 
+                                choice(rJsonc, () => LimitedContent), // [1][1]
+                                OptionalSpecialFunctionTail))); 
 SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
@@ -8361,8 +8423,8 @@ const SpecialFunctionUpdateConfigurationUnary =
                 discarded_comments,                                                    // -
                 wst_cutting_seq(choice(plus_equals, equals),                           // [1][0]
                                 discarded_comments,                                    // -
-                                choice(rJsoncObject, () => LimitedContent, plaintext), // [1][1]
-                                SpecialFunctionTail)));
+                                choice(rJsoncObject, () => LimitedContent), // [1][1]
+                                OptionalSpecialFunctionTail)));
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -8459,29 +8521,34 @@ ScalarReference.abbreviate_str_repr('ScalarReference');
 const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
-const ScalarAssignment        = xform(arr => new ASTScalarAssignment(arr[0],
-                                                                     arr[1][1],
-                                                                     arr[1][0] == '='),
-                                      wst_seq(ScalarDesignator,                             // [0]
-                                              discarded_comments,                           // - 
-                                              wst_cutting_seq(choice(plus_equals, equals),  // [1][0]
-                                                              discarded_comments,           // -
-                                                              choice(() => LimitedContent,  // [1][1]
-                                                                     json_string,
-                                                                     plaintext),
-                                                              SpecialFunctionTail)));
+const ScalarAssignment        =
+      xform(arr => new ASTScalarAssignment(arr[0],
+                                           arr[1][1],
+                                           arr[1][0] == '='),
+            wst_seq(ScalarDesignator,                                   // [0]
+                    discarded_comments,                                 // - 
+                    wst_cutting_seq(choice(plus_equals, equals),        // [1][0]
+                                    discarded_comments,                 // -
+                                    first(choice(() => seq(rjsonc_string, // [1][1]
+                                                           OptionalSpecialFunctionTail),  
+                                                 () => seq(wst_plus(choice(LimitedContent,
+                                                                           // structural_text, // BUGS PARSE!
+                                                                           discarded_comment)),
+                                                           MandatorySpecialFunctionTail),
+                                                 () => seq(LimitedContent,
+                                                           OptionalSpecialFunctionTail))))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 const LimitedContent          = choice(NamedWildcardReference,
                                        ScalarReference,
                                        AnonWildcardNoLoras,
-                                       plaintext);
+                                       plain_text);
 LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_rules = [] } = {}) =>
+const make_Content_rule       = ({ before_plain_text_rules = [], after_plain_text_rules = [] } = {}) =>
       choice(
-        ...before_plaintext_rules,
-        plaintext,
-        ...after_plaintext_rules,
-        low_pri_text,
+        ...before_plain_text_rules,
+        plain_text,
+        ...after_plain_text_rules,
+        structural_text,
         NamedWildcardReference,
         SpecialFunctionNotInclude,
         discarded_comment,
@@ -8492,23 +8559,23 @@ const make_Content_rule       = ({ before_plaintext_rules = [], after_plaintext_
         ScalarReference,
       );
 const ContentNoLoras          = make_Content_rule({
-  after_plaintext_rules: [
+  after_plain_text_rules: [
     AnonWildcardNoLoras,
   ],
 });
 const Content                 = make_Content_rule({
-  before_plaintext_rules: [
+  before_plain_text_rules: [
     A1111StyleLora,
   ],
-  after_plaintext_rules:  [
+  after_plain_text_rules:  [
     AnonWildcard,
   ],
 });
 const TopLevelContent         = make_Content_rule({
-  before_plaintext_rules: [
+  before_plain_text_rules: [
     A1111StyleLora,
   ],
-  after_plaintext_rules:  [
+  after_plain_text_rules:  [
     AnonWildcard,
     NamedWildcardDefinition,
     SpecialFunctionInclude,
