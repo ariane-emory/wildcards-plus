@@ -271,32 +271,32 @@ if (false)
   dt_hosted             = true;
   test_structured_clone = false;
 }
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 
 
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 // GLOBAL VARIABLES:
-// -------------------------------------------------------------------------------------------------
-let abbreviate_str_repr_enabled       = true;
-let fire_and_forget_post_enabled      = false;
-let inspect_depth                     = 50;
-let log_configuration_enabled         = true;
-let log_enabled                       = true;
-let log_expand_and_walk_enabled       = false;
-let log_finalize_enabled              = false;
-let log_flags_enabled                 = true;
-let log_match_enabled                 = false;
-let log_name_lookups_enabled          = false;
-let log_picker_enabled                = false;
-let log_post_enabled                  = true;
-let log_smart_join_enabled            = false;
-let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = false;
-let print_ast_after_includes_enabled  = false;
-let print_ast_then_die                = false;
-let print_ast_json_enabled            = false;
-let save_post_requests_enable         = true;
-let unnecessary_choice_is_error       = false;
+// =================================================================================================
+let abbreviate_str_repr_enabled          = true;
+let fire_and_forget_post_enabled         = false;
+let inspect_depth                        = 50;
+let log_configuration_enabled            = true;
+let log_enabled                          = true;
+let log_expand_and_walk_enabled          = false;
+let log_finalize_enabled                 = false;
+let log_flags_enabled                    = true;
+let log_match_enabled                    = false;
+let log_name_lookups_enabled             = false;
+let log_picker_enabled                   = false;
+let log_post_enabled                     = true;
+let log_smart_join_enabled               = false;
+let prelude_disabled                     = false;
+let print_ast_before_includes_enabled    = false;
+let print_ast_after_includes_enabled     = false;
+let print_ast_then_die                   = false;
+let print_ast_json_enabled               = false;
+let save_post_requests_enable            = true;
+let treat_unnecessary_choice_as_an_error = false;
 // =================================================================================================
 
 
@@ -861,7 +861,7 @@ function choice(...options) { // convenience constructor
   if (options.length == 1) {
     console.log("WARNING: unnecessary use of choice!");
 
-    if (unnecessary_choice_is_error)
+    if (treat_unnecessary_choice_as_an_error)
       throw new Error("unnecessary use of choice");
     
     return make_rule_func(options[0]);
