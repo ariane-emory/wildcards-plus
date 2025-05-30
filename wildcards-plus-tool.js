@@ -3405,7 +3405,7 @@ function smart_join(arr, indent) {
 }
 // -------------------------------------------------------------------------------------------------
 function RegExp_raw(strings, ...values) {
-  const raw_source = String.raw(strings, ...values);
+  const raw_source = raw(strings, ...values);
   return new RegExp(raw_source);
 }
 // -------------------------------------------------------------------------------------------------
