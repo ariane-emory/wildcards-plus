@@ -99,7 +99,14 @@ function parse_file(filename) {
 
   if (sortedEntries.length > 0)
     console.log(`Total: ${format_pretty_number(total)}`);
+  
+  // -----------------------------------------------------------------------------------------------
+  // check that the parsed result is complete and expand:
+  // -----------------------------------------------------------------------------------------------
 
+  if (! result.is_finished)
+    throw new Error(`error parsing prompt at ${result.index}:\n${inspect_fun(result)}`);
+  
   return result;
 }
 // -------------------------------------------------------------------------------------------------
@@ -8935,12 +8942,6 @@ async function main() {
 
   // if (print_ast_json_enabled)
   //   console.log(`result (JSON): ${JSON.stringify(result.value)}`);
-  
-  // -----------------------------------------------------------------------------------------------
-  // check that the parsed result is complete and expand:
-  // -----------------------------------------------------------------------------------------------
-  if (! result.is_finished)
-    throw new Error(`error parsing prompt at ${result.index}:\n${inspect_fun(result)}`);
 
   let   AST          = result.value;
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
