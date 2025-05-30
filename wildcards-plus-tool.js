@@ -8398,7 +8398,9 @@ const filename                   = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                      = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                          str => str.toLowerCase().replace(/-/g, '_'));
 const structural_word_break      = r(/(?=[\s|}])/);
+// -------------------------------------------------------------------------------------------------
 const with_structural_word_break = rule => first(seq(rule, structural_word_break))
+// -------------------------------------------------------------------------------------------------
 const wb_uint                    = xform(with_structural_word_break(uint), parseInt);
 // -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
