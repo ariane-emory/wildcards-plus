@@ -1794,11 +1794,8 @@ class Regex extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function r(first_arg, second_arg) { // convenience constructor
-  if (second_arg)
-    return new Label(first_arg, new Regex(second_arg));
-  
-  return new Regex(first_arg);
+function r(regexp) { // convenience constructor
+  return new Regex(regexp);
 }
 // -------------------------------------------------------------------------------------------------
 
@@ -2294,7 +2291,7 @@ const star_whites_sep    = rule => star(rule, whites_plus);
 const plus_whites_sep    = rule => plus(rule, whites_plus);
 // -------------------------------------------------------------------------------------------------
 // string-like terminals:
-const stringlike         = quote => r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
+const stringlike         = quote => r(RegExp_raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`);
 const dq_string          = stringlike('"');
 const raw_dq_string      = r(/r"[^"]*"/);
 const sq_string          = stringlike("'");
@@ -2314,7 +2311,7 @@ const keyword            = word => {
   if (word instanceof RegExp)
     return keyword(word.source);
   
-  return r(new RegExp(String.raw(`\b${word}\b`)));
+  return r(RegExp_raw(`\b${word}\b`));
 };
 // -------------------------------------------------------------------------------------------------
 // parenthesis-like terminals:
@@ -3396,6 +3393,11 @@ function smart_join(arr, indent) {
     log(`JOINED ${inspect_fun(str)}`);
 
   return str;
+}
+// -------------------------------------------------------------------------------------------------
+function RegExp_raw(strings, ...values) {
+  const rawSource = String.raw(strings, ...values);
+  return new RegExp(rawSource);
 }
 // -------------------------------------------------------------------------------------------------
 // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
@@ -8399,8 +8401,7 @@ const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
 const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
 const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
 
-const wb_uint                 = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
-                                      parseInt);
+const wb_uint                 = xform(RegExp_raw`\d+(?=[\s|}])`, parseInt);
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
 comments                      .abbreviate_str_repr('comments_star');
 discarded_comment             .abbreviate_str_repr(false); // 'discarded_comment');
