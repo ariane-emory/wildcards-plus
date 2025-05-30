@@ -102,7 +102,7 @@ function parse_file(filename) {
   
   // check that the parsed result is complete;
   if (! result.is_finished)
-    throw new Error(`did not finishparsing prompt ` +
+    throw new Error(`did not finish parsing prompt ` +
                     `at char #${result.index}, ` +
                     `unparsed input:\n` +
                     `${abbreviate(prompt_input.substring(result.index))}\n` +
