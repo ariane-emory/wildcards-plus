@@ -8577,19 +8577,19 @@ const UnsetFlag                    = xform(second(seq_with_swb(shebang,
 const TestFlag                     = choice(
   SimpleCheckFlag,
   SimpleNotFlag,
-  NotFlagWithSetConsequent,
-  CheckFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
+  CheckFlagWithSetConsequent,
+  NotFlagWithSetConsequent,
 );
 // -------------------------------------------------------------------------------------------------
+TestFlag                   .abbreviate_str_repr('TestFlag');
+SimpleCheckFlag            .abbreviate_str_repr('SimpleCheckFlag');
+SimpleNotFlag              .abbreviate_str_repr('SimpleNotFlag');
 CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
 CheckFlagWithSetConsequent .abbreviate_str_repr('CheckFlagWithSetConsequent');
 NotFlagWithSetConsequent   .abbreviate_str_repr('NotFlagWithSetConsequent');
-SimpleCheckFlag            .abbreviate_str_repr('SimpleCheckFlag');
-SimpleNotFlag              .abbreviate_str_repr('SimpleNotFlag');
 SetFlag                    .abbreviate_str_repr('SetFlag');
 UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
-TestFlag                   .abbreviate_str_repr('TestFlag');
 // =================================================================================================
 // AnonWildcard-related rules:
 // =================================================================================================
