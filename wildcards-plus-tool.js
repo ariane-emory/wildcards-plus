@@ -291,7 +291,7 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
@@ -8430,7 +8430,7 @@ const A1111StyleLora       =
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // -------------------------------------------------------------------------------------------------
-// flag-related rules:
+// word breaks:
 // -------------------------------------------------------------------------------------------------
 const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
 const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
@@ -8438,6 +8438,9 @@ const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/)
 word_break                         .abbreviate_str_repr('word_break');
 simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
 simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
+// -------------------------------------------------------------------------------------------------
+// flag-related rules:
+// -------------------------------------------------------------------------------------------------
 const SimpleCheckFlag              = xform(seq(question,
                                                plus(ident, dot),
                                                simple_check_flag_word_break),
