@@ -8556,8 +8556,8 @@ const NotFlagWithSetConsequent     = xform(cutting_seq_with_swb(bang,
                                              
                                              return new ASTNotFlag(...args);
                                            })
-const SetFlag                      = xform(second(seq_with_swb(hash,
-                                                               plus(ident, dot))),
+const SetFlag                      = xform(second(cutting_seq_with_swb(hash,
+                                                                       plus(ident, dot))),
                                            arr => {
                                              // if (log_flags_enabled)
                                              //   if (arr.length > 1)
@@ -8565,8 +8565,8 @@ const SetFlag                      = xform(second(seq_with_swb(hash,
                                              //                 `${inspect_fun(arr)}`);
                                              return new ASTSetFlag(arr);
                                            });
-const UnsetFlag                    = xform(second(seq_with_swb(shebang,
-                                                               plus(ident, dot))),
+const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang,
+                                                                       plus(ident, dot))),
                                            arr => {
                                              // if (log_flags_enabled)
                                              //   if (arr.length > 1)
