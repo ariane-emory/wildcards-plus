@@ -8378,7 +8378,7 @@ const ident                       = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
 const plain_text                  = r(new RegExp(String.raw`(?:\\.|(?![@#$%{|}\s` +
                                                  // structural_chars + 
                                                  String.raw`;]|\/\/|\/\*)\S)+`));
-const wb_uint                     = xform(new RegExp(String.raw`\d+(?=\s|[@#$%{|}?!<>])`),
+const wb_uint                     = xform(new RegExp(String.raw`\d+(?=[\s|}])`),
                                           parseInt);
 any_assignment_operator           .abbreviate_str_repr('any_assignment_operator');
 discarded_comment                 .abbreviate_str_repr(false); // 'discarded_comment');
