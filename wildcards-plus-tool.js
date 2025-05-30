@@ -8403,20 +8403,22 @@ const dot_hash                = l('.#');
 const filename                = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
-
-//const plain_text              = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+/);
-//const plain_text_no_semis     = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)+/);
-const brackets                  = '()[]';
+// -------------------------------------------------------------------------------------------------
+// plain_text variants:
+// -------------------------------------------------------------------------------------------------
+const brackets                  = '[\\(\\)\\[\\]]+';
 const structural_chars          = '{|}';
 const syntax_chars              = '@#$%';
 const comment_beginning         = raw`\/\/|\/\*`;
 
 const plain_text_head = (additional_excluded_chars) =>
+      // raw`${brackets}|` +
       raw`(?:\\.|` +
       raw`(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
       raw`${comment_beginning})` +
       raw`\S)`;
 const plain_text_tail = (additional_excluded_chars) =>
+      // raw`${brackets}|` +
       raw`(?:\\.|` +
       raw`(?![\s${structural_chars}${additional_excluded_chars}]|` +
       raw`${comment_beginning})` +
