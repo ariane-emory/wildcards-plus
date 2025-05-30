@@ -8415,13 +8415,15 @@ const comment_beginning         = raw`\/\/|\/\*`;
 const plain_text_head = (additional_excluded_chars) =>
       // raw`${brackets}|` +
       raw`(?:\\.|` +
-      raw`(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
+      raw`(?!`+
+      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
       raw`${comment_beginning})` +
       raw`\S)`;
 const plain_text_tail = (additional_excluded_chars) =>
       // raw`${brackets}|` +
       raw`(?:\\.|` +
-      raw`(?![\s${structural_chars}${additional_excluded_chars}]|` +
+      raw`(?!`+
+      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
       raw`${comment_beginning})` +
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
