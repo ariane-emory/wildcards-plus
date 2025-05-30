@@ -8411,27 +8411,21 @@ const brackets                  = '[\\(\\)\\[\\]]+';
 const structural_chars          = '{|}';
 const syntax_chars              = '@#$%';
 const comment_beginning         = raw`\/\/|\/\*`;
+const wb_uint                 = xform(r_raw`\d+(?=[\s|}])`, parseInt);
 // -------------------------------------------------------------------------------------------------
-const plain_text_head = (additional_excluded_chars) =>
+const plain_text_chars = (additional_excluded_chars) =>
       // raw`${brackets}|` +
       raw`(?:\\.|` +
       raw`(?!`+
       raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
-      raw`${comment_beginning})` +
-      raw`\S)`;
-// equivalent to plain_text_head:
-const plain_text_tail = (additional_excluded_chars) =>
-      // raw`${brackets}|` +
-      raw`(?:\\.|` +
-      raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
-      raw`${comment_beginning})` +
+      raw`${comment_beginning}` +
+      raw`)` +
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
 const plain_text               =
-      r_raw`${plain_text_head('' )}${plain_text_tail('' )}*`;
+      r_raw`${plain_text_chars('' )}+`;
 const plain_text_no_semis      =
-      r_raw`${plain_text_head(':')}${plain_text_tail(';')}*`;
+      r_raw`${plain_text_chars(':')}+`;
 // -------------------------------------------------------------------------------------------------
 const old_plain_text           = r(/(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)(?:\\.|(?![\s{|}]|\/\/|\/\*)\S)*/);
 const old_plain_text_no_semis  = r(/(?:\\.|(?![\s@#$%{|};]|\/\/|\/\*)\S)(?:\\.|(?![\s{|};]|\/\/|\/\*)\S)*/);
@@ -8441,9 +8435,6 @@ console.log(`old_plain_text:          ${inspect_fun(old_plain_text.regexp.source
 console.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
 console.log(`old_plain_text_no_semis: ${inspect_fun(old_plain_text_no_semis.regexp.source)}`);
 // -------------------------------------------------------------------------------------------------
-// throw new Error("stop");
-
-const wb_uint                 = xform(r_raw`\d+(?=[\s|}])`, parseInt);
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
 comments                      .abbreviate_str_repr('comments_star');
 discarded_comment             .abbreviate_str_repr(false); // 'discarded_comment');
