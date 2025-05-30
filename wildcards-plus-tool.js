@@ -8709,7 +8709,6 @@ const SpecialFunctionSetPickSingle =
                         discarded_comments,                           // -
                         choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
                         TrailingCommentFollowedBySemicolonOrWordBreak))); 
-SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('multi-pick',                                            // [0]
@@ -8718,17 +8717,14 @@ const SpecialFunctionSetPickMultiple =
                         discarded_comments,                              // -
                         choice(() => LimitedContentNoSemis, lc_alpha_snake),    // [1][1]
                         TrailingCommentFollowedBySemicolonOrWordBreak))); 
-SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
                 TrailingCommentFollowedBySemicolonOrWordBreak));
-SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
-SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+          TrailingCommentFollowedBySemicolonOrWordBreak));
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                            // [0]
@@ -8737,8 +8733,6 @@ const SpecialFunctionUpdateConfigurationBinary =
                                 discarded_comments,                                 // -
                                 choice(rJsonc, () => LimitedContentNoSemis),        // [1][1]
                                 TrailingCommentFollowedBySemicolonOrWordBreak))); 
-SpecialFunctionUpdateConfigurationBinary
-  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
@@ -8747,8 +8741,6 @@ const SpecialFunctionUpdateConfigurationUnary =
                                 discarded_comments,                                 // -
                                 choice(rJsoncObject, () => LimitedContentNoSemis), // [1][1]
                                 TrailingCommentFollowedBySemicolonOrWordBreak)));
-SpecialFunctionUpdateConfigurationUnary
-  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
@@ -8767,24 +8759,36 @@ const SpecialFunctionNotInclude =
                          ),
                         ));
 // -------------------------------------------------------------------------------------------------
-TrailingCommentFollowedBySemicolonOrWordBreak
-  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
-TrailingCommentsAndSemicolon
-  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 SpecialFunctionInclude
   .abbreviate_str_repr('SpecialFunctionInclude');
+SpecialFunctionNotInclude
+  .abbreviate_str_repr('SpecialFunctionNotInclude');
+SpecialFunctionRevertPickMultiple
+  .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+SpecialFunctionRevertPickSingle
+  .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+SpecialFunctionSetPickMultiple
+  .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+SpecialFunctionSetPickSingle
+  .abbreviate_str_repr('SpecialFunctionSetPickSingle');
 SpecialFunctionUINegPrompt
   .abbreviate_str_repr('SpecialFunctionUINegPrompt');
 SpecialFunctionUIPrompt
   .abbreviate_str_repr('SpecialFunctionUIPrompt');
+SpecialFunctionUpdateConfigurationBinary
+  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+SpecialFunctionUpdateConfigurationUnary
+  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+TrailingCommentFollowedBySemicolonOrWordBreak
+  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+TrailingCommentsAndSemicolon
+  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 UnexpectedSpecialFunctionInclude
   .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 UnexpectedSpecialFunctionUINegPrompt
   .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 UnexpectedSpecialFunctionUIPrompt
   .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
-SpecialFunctionNotInclude
-  .abbreviate_str_repr('SpecialFunctionNotInclude');
 // =================================================================================================
 // other non-terminals:
 // =================================================================================================
