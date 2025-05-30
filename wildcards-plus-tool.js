@@ -2251,12 +2251,12 @@ const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
 const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
 // -------------------------------------------------------------------------------------------------
 const hwst_choice      = (...options) => lws(choice(...options));
-const hwst_star        = make_wst_quantified_combinator(star, lws);
-const hwst_plus        = make_wst_quantified_combinator(plus, lws);
-const hwst_seq         = make_wst_seq_combinator(seq, lws);
-const hwst_enc         = make_wst_seq_combinator(enc, lws);
-const hwst_cutting_seq = make_wst_seq_combinator(cutting_seq, lws);
-const hwst_cutting_enc = make_wst_seq_combinator(cutting_enc, lws);
+const hwst_star        = make_wst_quantified_combinator(star, lhws);
+const hwst_plus        = make_wst_quantified_combinator(plus, lhws);
+const hwst_seq         = make_wst_seq_combinator(seq, lhws);
+const hwst_enc         = make_wst_seq_combinator(enc, lhws);
+const hwst_cutting_seq = make_wst_seq_combinator(cutting_seq, lhws);
+const hwst_cutting_enc = make_wst_seq_combinator(cutting_enc, lhws);
 const hwst_par_enc     = rule => hwst_cutting_enc(lpar, rule, rpar);
 const hwst_brc_enc     = rule => hwst_cutting_enc(lbrc, rule, rbrc);
 const hwst_sqr_enc     = rule => hwst_cutting_enc(lsqr, rule, rsqr);
@@ -8799,9 +8799,9 @@ const ScalarAssignment        =
                                     discarded_comments,                 // -
                                     first(choice(() => seq(rjsonc_string, // [1][1]
                                                            OptionalSpecialFunctionTail),  
-                                                 // () => seq(wst_plus(choice(LimitedContentNoSemis,
-                                                 //                           discarded_comment)),
-                                                 //           MandatorySpecialFunctionTail),
+                                                 () => seq(hwst_plus(choice(LimitedContentNoSemis,
+                                                                            discarded_comment)),
+                                                           MandatorySpecialFunctionTail),
                                                  () => seq(LimitedContentNoSemis,
                                                            OptionalSpecialFunctionTail),
                                                 )))));
@@ -9143,3 +9143,6 @@ if (! main_disabled)
 // // console.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
 
 // console.log(smart_join([ 'FOO', "''", 'BAR']));
+
+console.log(inspect_fun(hwst_plus('x').match(`   x  x
+    x `)));
