@@ -1995,25 +1995,25 @@ function abbreviate(str, normalize_newlines = true, len = 100) {
   // str = compress(str);
   
   if (str.length < len)
-        return str;
+    return str;
 
-      const bracing_pairs = [
-        ['/',  '/'],
-        ['(',  ')'],
-        ['[',  ']'],
-        ['{',  '}'],
-        ['<',  '>'],
-        ['\'', '\''],
-        ['\"', '\"'],
-        ['λ(', ')'],
-      ];
+  const bracing_pairs = [
+    ['/',  '/'],
+    ['(',  ')'],
+    ['[',  ']'],
+    ['{',  '}'],
+    ['<',  '>'],
+    ['\'', '\''],
+    ['\"', '\"'],
+    ['λ(', ')'],
+  ];
 
-      for (const [left, right] of bracing_pairs) {
-        if (str.startsWith(left) && str.endsWith(right)) {
-          const inner = str.substring(left.length, len - 3 - right.length);
-          return `${left}${inner.trim()}...${right}`;
-        }
-      }
+  for (const [left, right] of bracing_pairs) {
+    if (str.startsWith(left) && str.endsWith(right)) {
+      const inner = str.substring(left.length, len - 3 - right.length);
+      return `${left}${inner.trim()}...${right}`;
+    }
+  }
 
   return `${str.substring(0, len - 3).trim()}...`;
 }
@@ -7962,36 +7962,50 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       // ASTLora:
       // ---------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLora) {
-        log(log_expand_and_walk_enabled,
-            `encountered lora ${thing} in ${context}`);
+        // log(log_expand_and_walk_enabled,
+        //     `encountered lora ${thing} in ${context}`);
+
+        let walked_file = null;
+
+        lm.indent(() => {
+          log(log_expand_and_walk_enabled,
+              `expanding file ${compress(inspect_fun(thing.file))}`);
+          
+          walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
+
+          log(true,
+              `expanded file is ${typeof walked_file} ` +
+              `${walked_file.constructor.name} ` +
+              `${inspect_fun(walked_file)} `);
+        });
         
-        let walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
-
-        log(false,
-            `walked_file is ${typeof walked_file} ` +
-            `${walked_file.constructor.name} ` +
-            `${inspect_fun(walked_file)} ` +
-            `${Array.isArray(walked_file)}`);
-
         // if (Array.isArray(walked_file))
         //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
         // if (Array.isArray(thing.weight))
         //   throw new Error("boom");
-        
-        log(log_expand_and_walk_enabled,
-            `walking weight ${compress(inspect_fun(thing.weight))}`);
 
-        let walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
+        let walked_weight = null;
         
+        lm.indent(() => {
+          log(log_expand_and_walk_enabled,
+              `expanding weight ${compress(inspect_fun(thing.weight))}`);
+
+          walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
+
+          log(log_expand_and_walk_enabled,
+              `expanded weight is ${typeof walked_weight} ` +
+              `${walked_weight.constructor.name} ` +
+              `${compress(inspect_fun(walked_weight))}, ` +
+              `Array.isArray(${Array.isArray(walked_weight)})`);
+        });
+
+        // log(log_expand_and_walk_enabled,
+        //     `walking weight ${compress(inspect_fun(thing.weight))}`);
+
         // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
         //   throw "bomb";
         
-        log(log_expand_and_walk_enabled,
-            `walked_weight is ${typeof walked_weight} ` +
-            `${walked_weight.constructor.name} ` +
-            `${compress(inspect_fun(walked_weight))}, ` +
-            `Array.isArray(${Array.isArray(walked_weight)})`);
         
         // if (Array.isArray(walked_weight))
         //   walked_weight = smart_join(walked_weight);
@@ -8059,7 +8073,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
 
-  const ret = unescape(smart_join(walk(lm.indent(() => thing))));
+  const ret = unescape(smart_join(lm.indent(() => walk(thing))));
   lm.indent(() => context.munge_configuration());
 
   // if (walked === '""' ||
