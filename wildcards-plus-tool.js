@@ -8808,8 +8808,7 @@ const TestFlag                     = choice(
   NotFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
 );
-const bad_TopLevelTestFlag = 
-      (rule, input, index) =>
+const bad_TopLevelTestFlag = (rule, input, index) =>
       new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
                           `serve no purpose and so are not permitted`,
                           input, index);
