@@ -8814,6 +8814,8 @@ UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
+  console.log(`m_AAWA ARR: ${compress(inspect_fun(arr))}`);
+  
   const weight = arr[1][0];
 
   if (weight == 0)
