@@ -4,8 +4,5 @@
 %config += { height: 500, width: 800 } CORGE
 { %config += { height: 500, width: 800 } } GRAULT
 { %config += { height: 500, width: 800 }|QUUX} 
-
-
-
-
-
+%config += { height: 500, width: 800 }
+WALDO
