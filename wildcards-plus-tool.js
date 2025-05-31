@@ -317,15 +317,21 @@ class Logger {
   }
   // -----------------------------------------------------------------------------------------------
   error(thing, unexpected) {
-    this.log(thing);
+    if (unexpected !== undefined)
+      throw new Error("bag args");
+    
+    console.error(this.indent_thing(thing))
   }
   // -----------------------------------------------------------------------------------------------
   log(thing, unexpected) {
     if (unexpected !== undefined)
       throw new Error("bag args");
     
-    // console.log(`${this.indent}${'| '.repeat(this.indent)}${thing}`);
-    console.log(`${'| '.repeat(this.indent)}${thing}`);
+    console.log(this.indent_thing(thing))
+  }
+  // -------------------------------------------------------------------------------------------------
+  indent_thing(thing) {
+    return `${'| '.repeat(this.indent)}${thing.toString()}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
