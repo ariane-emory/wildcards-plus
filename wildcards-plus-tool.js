@@ -8756,8 +8756,7 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionSetPickMultiple,
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
-                         ),
-                       ));
+                         )));
 // -------------------------------------------------------------------------------------------------
 SpecialFunctionInclude
   .abbreviate_str_repr('SpecialFunctionInclude');
