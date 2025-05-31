@@ -2003,6 +2003,8 @@ function abbreviate(str, normalize_newlines = true, len = 100) {
         ['[',  ']'],
         ['{',  '}'],
         ['<',  '>'],
+        ['\'', '\''],
+        ['\"', '\"'],
         ['λ(', ')'],
       ];
 
@@ -8056,7 +8058,6 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
   log(log_expand_and_walk_enabled,
       `Expanding wildcards in ` +
-      // `${thing_type_str(thing)} ` +
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
 
@@ -8068,9 +8069,12 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
   //     walked?.includes('""') ||
   //     walked?.includes("''"))
   //   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
-  
+
   log(log_expand_and_walk_enabled,
-      `Expanded into ${inspect_fun(ret)}`);
+      `expanded wildcards in ` +
+      `${thing_str_repr(thing)} in ` + 
+      `${context} into ` +
+      `${thing_str_repr(ret)}`);
 
   // if (ret === undefined)
   //   throw new Error("what");
