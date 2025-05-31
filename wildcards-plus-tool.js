@@ -8744,7 +8744,7 @@ const SpecialFunctionUpdateConfigurationUnary =
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
-                           SpecialFunctionUpdateConfigurationUnary, // before binary!
+                           SpecialFunctionUpdateConfigurationUnary,  // before binary!
                            SpecialFunctionUpdateConfigurationBinary,
                            (dt_hosted
                             ? SpecialFunctionUIPrompt
