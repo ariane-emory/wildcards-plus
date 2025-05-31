@@ -312,7 +312,7 @@ Array.prototype.toString = function() {
 // =================================================================================================
 class Logger {
   constructor(indent = 0, indent_str = '| ') {
-    this.indent = indent;
+    this.indent     = indent;
     this.indent_str = indent_str;
   }
   // -----------------------------------------------------------------------------------------------
@@ -340,7 +340,6 @@ const lm = { // logger manager
       this.stack.push(new_logger);
       return new_logger;
     }
-    // ---------------------------------------------------------------------------------------------
     return this.stack[this.stack.length - 1];
   },
   // -----------------------------------------------------------------------------------------------
