@@ -353,8 +353,13 @@ function indent(fn) {
 log_write("Top level");
 indent(() => {
   log_write("2nd level");
+  indent(() => {
+    log_write("3rd level");
+  });
+  log_write("Back at 2nd level");
 });
-log_write("Bacl at top level");
+       
+log_write("Back at top level");
 
 process.exit(0);
 
