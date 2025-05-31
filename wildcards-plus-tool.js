@@ -8807,6 +8807,14 @@ const TestFlag                     = choice(
   CheckFlagWithSetConsequent,
   NotFlagWithSetConsequent,
 );
+const bat_TopLevelTestFlag = 
+      (rule, input, index) =>
+      new FatalParseError("%include is only supported when " +
+                          `using wildcards-plus-tool.js, ` +
+                          `NOT when ` +
+                          "running the wildcards-plus.js script " +
+                          "inside Draw Things",
+                          input, index - 1);
 const TopLevelTestFlag             = choice(
   unexpected(SimpleCheckFlag),
   unexpected(SimpleNotFlag),
@@ -9261,7 +9269,7 @@ async function main() {
   }
 
   if (! result?.is_finished)
-    throw new Error(`error parsing ${filename}! result = ${inspect_fun(result)}`);
+    throw new Error(`error parsing ${inspect_fun(args[0])}! result = ${inspect_fun(result)}`);
       
   // -----------------------------------------------------------------------------------------------
   // just for debugging:
