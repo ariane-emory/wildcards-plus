@@ -7656,7 +7656,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                 : context.pick_multiple_priority;
           
           const picks = got.pick(thing.min_count, thing.max_count,
-                                 allow_fun, forbid_fun, id,
+                                 allow_fun, forbid_fun,
+                                 id, // replace this
                                  priority);
 
           if (log_expand_and_walk_enabled)
