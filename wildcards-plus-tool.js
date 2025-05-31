@@ -527,8 +527,8 @@ class Rule {
     return ref_counts;
   }
   // -----------------------------------------------------------------------------------------------
-  finalize(indent) {
-    if (indent !== undefined)
+  finalize(unexpected) {
+    if (unexpected !== undefined)
       throw new Error("bad args");
     
     this.__finalize(new Set());
