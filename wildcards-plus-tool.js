@@ -323,43 +323,44 @@ class Logger {
   }
 }
 // -------------------------------------------------------------------------------------------------
-const logger_stack = [];
-// -------------------------------------------------------------------------------------------------
-function get_logger() {
-  if (logger_stack.length == 0) {
-    const new_logger = new Logger(0);
-    logger_stack.push(new_logger);
-    return new_logger;
-  }
+const log_manager = {
+  stack: [],
+  get_logger() {
+    if (this.stack.length == 0) {
+      const new_logger = new Logger(0);
+      this.stack.push(new_logger);
+      return new_logger;
+    }
 
-  return logger_stack[logger_stack.length - 1];
-}
-// -------------------------------------------------------------------------------------------------
-function log_write(msg) {
-  get_logger().log(msg);
-}
-// -------------------------------------------------------------------------------------------------
-function indent(fn) {
-  logger_stack.push(new Logger(get_logger().indent + 1));
+    return this.stack[this.stack.length - 1];
+  },
 
-  try {
-    return fn();
-  } finally {
-    logger_stack.pop();
+  log(msg) {
+    this.get_logger().log(msg);
+  },
+
+  indent(fn) {
+    this.stack.push(new Logger(this.get_logger().indent + 1));
+
+    try {
+      return fn();
+    } finally {
+      this.stack.pop();
+    }
   }
 }
 // =================================================================================================
 
-log_write("Top level");
-indent(() => {
-  log_write("2nd level");
-  indent(() => {
-    log_write("3rd level");
+log_manager.log("Top level");
+log_manager.indent(() => {
+  log_manager.log("2nd level");
+  log_manager.indent(() => {
+    log_manager.log("3rd level");
   });
-  log_write("Back at 2nd level");
+  log_manager.log("Back at 2nd level");
 });
-       
-log_write("Back at top level");
+
+log_manager.log("Back at top level");
 
 process.exit(0);
 
@@ -832,100 +833,100 @@ class Star extends Quantified {
   }
 }
 // -------------------------------------------------------------------------------------------------
-                                       function // convenience constructor
-                                       star(value,
-                                            separator_value = null,
-                                            trailing_separator_mode = trailing_separator_modes.forbidden) {
-                                         return new Star(value, separator_value, trailing_separator_mode);
-                                       }
-                                       // -------------------------------------------------------------------------------------------------
+function // convenience constructor
+star(value,
+     separator_value = null,
+     trailing_separator_mode = trailing_separator_modes.forbidden) {
+  return new Star(value, separator_value, trailing_separator_mode);
+}
+// -------------------------------------------------------------------------------------------------
 
-                                       // -------------------------------------------------------------------------------------------------
-                                       // Choice class
-                                       // -------------------------------------------------------------------------------------------------
-                                       class Choice extends Rule  {
-                                         // -----------------------------------------------------------------------------------------------
-                                         constructor(...options) {
-                                           super();
-                                           this.options = options.map(make_rule_func);
-                                         }
-                                         // -----------------------------------------------------------------------------------------------
-                                         __direct_children() {
-                                           return this.options;
-                                         }
-                                         // -----------------------------------------------------------------------------------------------
-                                         __impl_finalize(indent, visited) {
-                                           for (let ix = 0; ix < this.options.length; ix++) {
-                                             this.options[ix] = this.__vivify(this.options[ix]);
-                                             this.options[ix].__finalize(indent + 1, visited);
-                                           }
-                                         }
-                                         // -----------------------------------------------------------------------------------------------
-                                         __match(indent, input, index, cache) {
-                                           let ix = 0;
-                                           
-                                           for (const option of this.options) {
-                                             ix += 1;
-                                             
-                                             if (log_match_enabled)
-                                               log(indent + 1,
-                                                   `Try option #${ix} ${option} ` +
-                                                   `at char #${index}: ` +
-                                                   `'${abbreviate(input.substring(index))}'`);
-                                             
-                                             const match_result = option.match(input, index, indent + 1, cache);
-                                             
-                                             if (match_result) { 
-                                               // if (match_result.value === DISCARD) {
-                                               //   index = match_result.index;
-                                               
-                                               //   continue;
-                                               // }
+// -------------------------------------------------------------------------------------------------
+// Choice class
+// -------------------------------------------------------------------------------------------------
+class Choice extends Rule  {
+  // -----------------------------------------------------------------------------------------------
+  constructor(...options) {
+    super();
+    this.options = options.map(make_rule_func);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.options;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    for (let ix = 0; ix < this.options.length; ix++) {
+      this.options[ix] = this.__vivify(this.options[ix]);
+      this.options[ix].__finalize(indent + 1, visited);
+    }
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    let ix = 0;
+    
+    for (const option of this.options) {
+      ix += 1;
+      
+      if (log_match_enabled)
+        log(indent + 1,
+            `Try option #${ix} ${option} ` +
+            `at char #${index}: ` +
+            `'${abbreviate(input.substring(index))}'`);
+      
+      const match_result = option.match(input, index, indent + 1, cache);
+      
+      if (match_result) { 
+        // if (match_result.value === DISCARD) {
+        //   index = match_result.index;
+        
+        //   continue;
+        // }
 
-                                               if (log_match_enabled)
-                                                 log(indent + 1, `Chose option #${ix}, ` +
-                                                     `now at char #${match_result.index}: ` +
-                                                     `'${abbreviate(input.substring(match_result.index))}'`);
-                                               
-                                               return match_result;
-                                             }
+        if (log_match_enabled)
+          log(indent + 1, `Chose option #${ix}, ` +
+              `now at char #${match_result.index}: ` +
+              `'${abbreviate(input.substring(match_result.index))}'`);
+        
+        return match_result;
+      }
 
-                                             if (log_match_enabled)
-                                               log(indent + 1, `Rejected option #${ix}.`);
-                                           }
+      if (log_match_enabled)
+        log(indent + 1, `Rejected option #${ix}.`);
+    }
 
-                                           return null;
-                                         }
-                                         // -----------------------------------------------------------------------------------------------
-                                         __impl_toString(visited, next_id, ref_counts) {
-                                           // return `{ ${this.options
-                                           //             .map(x =>
-                                           //                    this.__vivify(x)
-                                           //                    .__toString(visited, next_id, ref_counts)).join(' | ')} }`;
-                                           return `{ ${this.options
+    return null;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    // return `{ ${this.options
+    //             .map(x =>
+    //                    this.__vivify(x)
+    //                    .__toString(visited, next_id, ref_counts)).join(' | ')} }`;
+    return `{ ${this.options
                 .map(x =>
                        this.__vivify(x)
                        .__toString(visited, next_id, ref_counts)).join(' | ')} }`;
-                                         }
-                                       }
-                                       // -------------------------------------------------------------------------------------------------
-                                       function choice(...options) { // convenience constructor
-                                         if (options.length == 1) {
-                                           console.log("WARNING: unnecessary use of choice!");
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function choice(...options) { // convenience constructor
+  if (options.length == 1) {
+    console.log("WARNING: unnecessary use of choice!");
 
-                                           if (unnecessary_choice_is_error)
-                                             throw new Error("unnecessary use of choice");
-                                           
-                                           return make_rule_func(options[0]);
-                                         }
-                                         
-                                         return new Choice(...options)
-                                       }
-                                       // -------------------------------------------------------------------------------------------------
+    if (unnecessary_choice_is_error)
+      throw new Error("unnecessary use of choice");
+    
+    return make_rule_func(options[0]);
+  }
+  
+  return new Choice(...options)
+}
+// -------------------------------------------------------------------------------------------------
 
-                                       // -------------------------------------------------------------------------------------------------
-                                       // Discard class
-                                       // -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// Discard class
+// -------------------------------------------------------------------------------------------------
 class Discard extends Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(rule) {
@@ -963,407 +964,407 @@ class Discard extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-                                                                      function discard(rule) { // convenience constructor
-                                                                        return new Discard(rule)
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
+function discard(rule) { // convenience constructor
+  return new Discard(rule)
+}
+// -------------------------------------------------------------------------------------------------
 
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      // Element class
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      class Element extends Rule {
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        constructor(index, rule) {
-                                                                          super();
-                                                                          this.index = index;
-                                                                          this.rule  = make_rule_func(rule);
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __direct_children() {
-                                                                          return [ this.rule ];
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __impl_finalize(indent, visited) {
-                                                                          this.rule = this.__vivify(this.rule);
-                                                                          this.rule.__finalize(indent + 1, visited);
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __match(indent, input, index, cache) {
-                                                                          const rule_match_result = this.rule.match(input, index, indent + 1, cache);
-
-                                                                          if (! rule_match_result)
-                                                                            return null;
-
-                                                                          // if (log_match_enabled) {
-                                                                          //   log(indent, `taking elem ${this.index} from ` +
-                                                                          //       `${inspect_fun(rule_match_result)}'s value.`);
-                                                                          // }
-
-                                                                          // I forget why I did this? Could be a bad idea?
-                                                                          const ret = rule_match_result.value[this.index] === undefined
-                                                                                ? DISCARD
-                                                                                : rule_match_result.value[this.index];
-                                                                          
-                                                                          if (log_match_enabled) {
-                                                                            log(indent, `GET ELEM ${this.index} FROM ${compress(inspect_fun(rule_match_result.value))} = ` +
-                                                                                `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
-                                                                          }
-                                                                          
-                                                                          rule_match_result.value = ret;
-                                                                          
-                                                                          return rule_match_result
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __impl_toString(visited, next_id, ref_counts) {
-                                                                          // const rule     = this.__vivify(this.rule);
-                                                                          // const rule_str = rule.__toString(visited, next_id, ref_counts);
-                                                                          const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-
-                                                                          return `elem(${this.index}, ${rule_str})`;
-                                                                          // return `[${this.index}]${rule_str}`;
-                                                                        }
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      function elem(index, rule) { // convenience constructor
-                                                                        return new Element(index, rule);
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      function first(rule) {
-                                                                        rule = new Element(0, rule);
-
-                                                                        rule.__impl_toString = function(visited, next_id, ref_counts) {
-                                                                          // const rule     = this.__vivify(this.rule);
-                                                                          // const rule_str = rule.__toString(visited, next_id, ref_counts);
-                                                                          const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-
-                                                                          return `first(${rule_str})`;
-                                                                          // return `first(${rule_str})`;
-                                                                        }
-                                                                        
-                                                                        return rule;
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      function second(rule) {
-                                                                        rule = new Element(1, rule);
-
-                                                                        rule.__impl_toString = function(visited, next_id, ref_counts) {
-                                                                          // const rule     = this.__vivify(this.rule);
-                                                                          // const rule_str = rule.__toString(visited, next_id, ref_counts);
-                                                                          const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-
-                                                                          return `second(${rule_str})`;
-                                                                          // return `second(${rule_str})`;
-                                                                        }
-                                                                        
-                                                                        return rule;
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      function third(rule) {
-                                                                        rule = new Element(2, rule);
-
-                                                                        rule.__impl_toString = function(visited, next_id, ref_counts) {
-                                                                          // const rule     = this.__vivify(this.rule);
-                                                                          // const rule_str = rule.__toString(visited, next_id, ref_counts);
-                                                                          const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-
-                                                                          return `third(${rule_str})`;
-                                                                          // return `third(${rule_str})`;
-                                                                        }
-                                                                        
-                                                                        return rule;
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
-
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      // Enclosed class
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      class Enclosed extends Rule {
-                                                                        // i-----------------------------------------------------------------------------------------------
-                                                                        constructor(start_rule, body_rule, end_rule) {
-                                                                          super();
-
-                                                                          if (! end_rule) {
-                                                                            // if two args are supplied, they're (body_rule, enclosing_rule):
-                                                                            start_rule = body_rule;
-                                                                            body_rule  = start_rule;
-                                                                            // end_rule   = body_rule;
-                                                                          }
-                                                                          
-                                                                          this.start_rule = make_rule_func(start_rule);
-                                                                          this.body_rule  = make_rule_func(body_rule); 
-                                                                          this.end_rule   = make_rule_func(end_rule);  
-                                                                          
-                                                                          if (! this.end_rule)
-                                                                            this.end_rule = this.start_rule;
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __direct_children() {
-                                                                          return [ this.start_rule, this.body_rule, this.end_rule ];
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __fail_or_throw_error(start_rule_result, failed_rule_result,
-                                                                                              input, index) {
-                                                                          return null;
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __impl_finalize(indent, visited) {
-                                                                          this.start_rule = this.__vivify(this.start_rule);
-                                                                          this.body_rule  = this.__vivify(this.body_rule);
-                                                                          this.end_rule   = this.__vivify(this.end_rule);
-                                                                          this.start_rule.__finalize(indent + 1, visited);
-                                                                          this.body_rule.__finalize(indent + 1, visited);
-                                                                          this.end_rule.__finalize(indent + 1, visited);
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __match(indent, input, index, cache) {
-                                                                          const start_rule_match_result =
-                                                                                this.start_rule.match(input, index, indent + 1, cache);
-
-                                                                          if (! start_rule_match_result)
-                                                                            return null;
-
-                                                                          const body_rule_match_result =
-                                                                                this.body_rule.match(input, start_rule_match_result.index, indent + 1, cache);
-
-                                                                          if (! body_rule_match_result)
-                                                                            return this.__fail_or_throw_error(start_rule_match_result,
-                                                                                                              body_rule_match_result,
-                                                                                                              input,
-                                                                                                              start_rule_match_result.index);
-
-                                                                          const end_rule_match_result =
-                                                                                this.end_rule.match(input, body_rule_match_result.index, indent + 1, cache);
-
-                                                                          if (! end_rule_match_result)
-                                                                            return this.__fail_or_throw_error(start_rule_match_result,
-                                                                                                              body_rule_match_result,
-                                                                                                              input,
-                                                                                                              body_rule_match_result.index);
-
-                                                                          return new MatchResult(body_rule_match_result.value,
-                                                                                                 input,
-                                                                                                 end_rule_match_result.index);
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __impl_toString(visited, next_id, ref_counts) {
-                                                                          return `[${this.__vivify(this.start_rule).__toString(visited, next_id, ref_counts)} ` +
-                                                                            `${this.__vivify(this.body_rule).__toString(visited, next_id, ref_counts)} ` +
-                                                                            `${this.__vivify(this.end_rule).__toString(visited, next_id, ref_counts)}]`;
-                                                                        }
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      function enc(start_rule, body_rule, end_rule) { // convenience constructor
-                                                                        return new Enclosed(start_rule, body_rule, end_rule);
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
-
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      // CuttingEnclosed class
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      class CuttingEnclosed extends Enclosed {
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        constructor(start_rule, body_rule, end_rule) {
-                                                                          super(start_rule, body_rule, end_rule);
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __fail_or_throw_error(start_rule_result, failed_rule_result,
-                                                                                              input, index) {
-                                                                          throw new FatalParseError(// `(#1) ` +
-                                                                            `CuttingEnclosed expected [${this.body_rule} ${this.end_rule}] ` +
-                                                                              `after ${this.start_rule}`,
-                                                                            input, start_rule_result.index);
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __impl_toString(visited, next_id, ref_counts) {
-                                                                          return `[${this.__vivify(this.start_rule).__toString(visited, next_id, ref_counts)}! ` +
-                                                                            `${this.__vivify(this.body_rule).__toString(visited, next_id, ref_counts)} ` +
-                                                                            `${this.__vivify(this.end_rule).__toString(visited, next_id, ref_counts)}]`
-                                                                        }
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      // convenience constructor:
-                                                                      function cutting_enc(start_rule, body_rule, end_rule) {
-                                                                        return new CuttingEnclosed(start_rule, body_rule, end_rule);
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
-
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      // Label class
-                                                                      // -------------------------------------------------------------------------------------------------
-                                                                      class Label extends Rule {
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        constructor(label, rule) {
-                                                                          super();
-                                                                          this.label = label;
-                                                                          this.rule = make_rule_func(rule);
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __direct_children() {
-                                                                          return [ this.rule ];
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __impl_finalize(indent, visited) {
-                                                                          this.rule = this.__vivify(this.rule);
-                                                                          this.rule.__finalize(indent + 1, visited);
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __match(indent, input, index, cache) {
-                                                                          const rule_match_result = this.rule.match(input, index, indent, cache);
-
-                                                                          if (! rule_match_result)
-                                                                            return null;
-
-                                                                          return new MatchResult(
-                                                                            new LabeledValue(this.label, rule_match_result.value),
-                                                                            input,
-                                                                            rule_match_result.index);
-                                                                        }
-                                                                        // -----------------------------------------------------------------------------------------------
-                                                                        __impl_toString(visited, next_id, ref_counts) {
-                                                                          return `L('${this.label}', ` +
-                                                                            `${this.__vivify(this.rule).__toString(visited, next_id)})`;
-                                                                        }
-                                                                      }
-                                                                      // -------------------------------------------------------------------------------------------------
-  function label(label, rule) {
-    return new Label(label, rule);
+// -------------------------------------------------------------------------------------------------
+// Element class
+// -------------------------------------------------------------------------------------------------
+class Element extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(index, rule) {
+    super();
+    this.index = index;
+    this.rule  = make_rule_func(rule);
   }
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
 
-  // -------------------------------------------------------------------------------------------------
-  // NeverMatch class
-  // -------------------------------------------------------------------------------------------------
-  class NeverMatch extends Rule  {
-    // -----------------------------------------------------------------------------------------------
-    constructor() {
-      super();
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      // do nothing.
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index, cache) {
+    if (! rule_match_result)
       return null;
-    } 
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `<NEVER MATCH>`;
+
+    // if (log_match_enabled) {
+    //   log(indent, `taking elem ${this.index} from ` +
+    //       `${inspect_fun(rule_match_result)}'s value.`);
+    // }
+
+    // I forget why I did this? Could be a bad idea?
+    const ret = rule_match_result.value[this.index] === undefined
+          ? DISCARD
+          : rule_match_result.value[this.index];
+    
+    if (log_match_enabled) {
+      log(indent, `GET ELEM ${this.index} FROM ${compress(inspect_fun(rule_match_result.value))} = ` +
+          `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
     }
+    
+    rule_match_result.value = ret;
+    
+    return rule_match_result
   }
-  // -------------------------------------------------------------------------------------------------
-  const never_match = new NeverMatch();
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    // const rule     = this.__vivify(this.rule);
+    // const rule_str = rule.__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-  // -------------------------------------------------------------------------------------------------
-  // Optional class
-  // -------------------------------------------------------------------------------------------------
-  class Optional extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(rule, default_value = null) {
-      super();
-      this.rule          = make_rule_func(rule);
-      this.default_value = default_value;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.rule ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index, cache) {
-      const match_result = this.rule.match(input, index, indent + 1, cache);
-
-      if (match_result === null) {
-        const mr = new MatchResult(this.default_value !== null
-                                   ? [ this.default_value ]
-                                   : [],
-                                   input, index);
-
-        if (log_match_enabled)
-          log(indent, `returning default ${inspect_fun(mr)}`);
-
-        return mr;
-      }
-      
-      match_result.value = [ match_result.value ];
-
-      return match_result;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      this.rule = this.__vivify(this.rule);
-      
-      this.rule.__finalize(indent + 1, visited);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}?`;
-    }
+    return `elem(${this.index}, ${rule_str})`;
+    // return `[${this.index}]${rule_str}`;
   }
-  // -------------------------------------------------------------------------------------------------
-  function optional(rule, default_value = null) { // convenience constructor
-    return new Optional(rule, default_value);
+}
+// -------------------------------------------------------------------------------------------------
+function elem(index, rule) { // convenience constructor
+  return new Element(index, rule);
+}
+// -------------------------------------------------------------------------------------------------
+function first(rule) {
+  rule = new Element(0, rule);
+
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
+    // const rule     = this.__vivify(this.rule);
+    // const rule_str = rule.__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+
+    return `first(${rule_str})`;
+    // return `first(${rule_str})`;
   }
-  // -------------------------------------------------------------------------------------------------
+  
+  return rule;
+}
+// -------------------------------------------------------------------------------------------------
+function second(rule) {
+  rule = new Element(1, rule);
 
-  // -------------------------------------------------------------------------------------------------
-  // Sequence class
-  // -------------------------------------------------------------------------------------------------
-  class Sequence extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(...elements) {
-      super();
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
+    // const rule     = this.__vivify(this.rule);
+    // const rule_str = rule.__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-      if (elements.length == 0)
-        throw new Error("empty sequence");
-      
-      this.elements = elements.map(make_rule_func);
+    return `second(${rule_str})`;
+    // return `second(${rule_str})`;
+  }
+  
+  return rule;
+}
+// -------------------------------------------------------------------------------------------------
+function third(rule) {
+  rule = new Element(2, rule);
+
+  rule.__impl_toString = function(visited, next_id, ref_counts) {
+    // const rule     = this.__vivify(this.rule);
+    // const rule_str = rule.__toString(visited, next_id, ref_counts);
+    const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+
+    return `third(${rule_str})`;
+    // return `third(${rule_str})`;
+  }
+  
+  return rule;
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Enclosed class
+// -------------------------------------------------------------------------------------------------
+class Enclosed extends Rule {
+  // i-----------------------------------------------------------------------------------------------
+  constructor(start_rule, body_rule, end_rule) {
+    super();
+
+    if (! end_rule) {
+      // if two args are supplied, they're (body_rule, enclosing_rule):
+      start_rule = body_rule;
+      body_rule  = start_rule;
+      // end_rule   = body_rule;
     }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return this.elements;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __fail_or_throw_error(start_rule_result, failed_rule_result,
-                          input, index) {
+    
+    this.start_rule = make_rule_func(start_rule);
+    this.body_rule  = make_rule_func(body_rule); 
+    this.end_rule   = make_rule_func(end_rule);  
+    
+    if (! this.end_rule)
+      this.end_rule = this.start_rule;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.start_rule, this.body_rule, this.end_rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __fail_or_throw_error(start_rule_result, failed_rule_result,
+                        input, index) {
+    return null;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.start_rule = this.__vivify(this.start_rule);
+    this.body_rule  = this.__vivify(this.body_rule);
+    this.end_rule   = this.__vivify(this.end_rule);
+    this.start_rule.__finalize(indent + 1, visited);
+    this.body_rule.__finalize(indent + 1, visited);
+    this.end_rule.__finalize(indent + 1, visited);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const start_rule_match_result =
+          this.start_rule.match(input, index, indent + 1, cache);
+
+    if (! start_rule_match_result)
       return null;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      for (let ix = 0; ix < this.elements.length; ix++) {
-        this.elements[ix] = this.__vivify(this.elements[ix]);
-        this.elements[ix].__finalize(indent + 1, visited);
-      }
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index, cache) {
-      const start_rule = input[0];
+
+    const body_rule_match_result =
+          this.body_rule.match(input, start_rule_match_result.index, indent + 1, cache);
+
+    if (! body_rule_match_result)
+      return this.__fail_or_throw_error(start_rule_match_result,
+                                        body_rule_match_result,
+                                        input,
+                                        start_rule_match_result.index);
+
+    const end_rule_match_result =
+          this.end_rule.match(input, body_rule_match_result.index, indent + 1, cache);
+
+    if (! end_rule_match_result)
+      return this.__fail_or_throw_error(start_rule_match_result,
+                                        body_rule_match_result,
+                                        input,
+                                        body_rule_match_result.index);
+
+    return new MatchResult(body_rule_match_result.value,
+                           input,
+                           end_rule_match_result.index);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `[${this.__vivify(this.start_rule).__toString(visited, next_id, ref_counts)} ` +
+      `${this.__vivify(this.body_rule).__toString(visited, next_id, ref_counts)} ` +
+      `${this.__vivify(this.end_rule).__toString(visited, next_id, ref_counts)}]`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function enc(start_rule, body_rule, end_rule) { // convenience constructor
+  return new Enclosed(start_rule, body_rule, end_rule);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// CuttingEnclosed class
+// -------------------------------------------------------------------------------------------------
+class CuttingEnclosed extends Enclosed {
+  // -----------------------------------------------------------------------------------------------
+  constructor(start_rule, body_rule, end_rule) {
+    super(start_rule, body_rule, end_rule);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __fail_or_throw_error(start_rule_result, failed_rule_result,
+                        input, index) {
+    throw new FatalParseError(// `(#1) ` +
+      `CuttingEnclosed expected [${this.body_rule} ${this.end_rule}] ` +
+        `after ${this.start_rule}`,
+      input, start_rule_result.index);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `[${this.__vivify(this.start_rule).__toString(visited, next_id, ref_counts)}! ` +
+      `${this.__vivify(this.body_rule).__toString(visited, next_id, ref_counts)} ` +
+      `${this.__vivify(this.end_rule).__toString(visited, next_id, ref_counts)}]`
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// convenience constructor:
+function cutting_enc(start_rule, body_rule, end_rule) {
+  return new CuttingEnclosed(start_rule, body_rule, end_rule);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Label class
+// -------------------------------------------------------------------------------------------------
+class Label extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(label, rule) {
+    super();
+    this.label = label;
+    this.rule = make_rule_func(rule);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent, cache);
+
+    if (! rule_match_result)
+      return null;
+
+    return new MatchResult(
+      new LabeledValue(this.label, rule_match_result.value),
+      input,
+      rule_match_result.index);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `L('${this.label}', ` +
+      `${this.__vivify(this.rule).__toString(visited, next_id)})`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function label(label, rule) {
+  return new Label(label, rule);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// NeverMatch class
+// -------------------------------------------------------------------------------------------------
+class NeverMatch extends Rule  {
+  // -----------------------------------------------------------------------------------------------
+  constructor() {
+    super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing.
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    return null;
+  } 
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `<NEVER MATCH>`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+const never_match = new NeverMatch();
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Optional class
+// -------------------------------------------------------------------------------------------------
+class Optional extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule, default_value = null) {
+    super();
+    this.rule          = make_rule_func(rule);
+    this.default_value = default_value;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const match_result = this.rule.match(input, index, indent + 1, cache);
+
+    if (match_result === null) {
+      const mr = new MatchResult(this.default_value !== null
+                                 ? [ this.default_value ]
+                                 : [],
+                                 input, index);
 
       if (log_match_enabled)
-        log(indent + 1, `matching first sequence element #1 out of ` +
-            `${this.elements.length}: ${this.elements[0]} ` +
-            `at char #${index} ` +
-            `at '${abbreviate(input.substring(index))}'`);
-      
-      const start_rule_match_result =
-            this.elements[0].match(input, index, indent + 2, cache);
-      let last_match_result = start_rule_match_result;
+        log(indent, `returning default ${inspect_fun(mr)}`);
 
-      // if (log_match_enabled && last_match_result !== null)
-      //   log(indent + 1, `first last_match_result = ${abbreviate(inspect_fun(last_match_result))}`);
-      
-      if (last_match_result === null) {
-        if (log_match_enabled)
-          log(indent + 1, `did not match sequence element #1.`);
-        return null;
-      }
+      return mr;
+    }
+    
+    match_result.value = [ match_result.value ];
 
-      const values = [];
-      index        = last_match_result.index;
+    return match_result;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}?`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function optional(rule, default_value = null) { // convenience constructor
+  return new Optional(rule, default_value);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Sequence class
+// -------------------------------------------------------------------------------------------------
+class Sequence extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(...elements) {
+    super();
+
+    if (elements.length == 0)
+      throw new Error("empty sequence");
+    
+    this.elements = elements.map(make_rule_func);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.elements;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __fail_or_throw_error(start_rule_result, failed_rule_result,
+                        input, index) {
+    return null;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    for (let ix = 0; ix < this.elements.length; ix++) {
+      this.elements[ix] = this.__vivify(this.elements[ix]);
+      this.elements[ix].__finalize(indent + 1, visited);
+    }
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const start_rule = input[0];
+
+    if (log_match_enabled)
+      log(indent + 1, `matching first sequence element #1 out of ` +
+          `${this.elements.length}: ${this.elements[0]} ` +
+          `at char #${index} ` +
+          `at '${abbreviate(input.substring(index))}'`);
+    
+    const start_rule_match_result =
+          this.elements[0].match(input, index, indent + 2, cache);
+    let last_match_result = start_rule_match_result;
+
+    // if (log_match_enabled && last_match_result !== null)
+    //   log(indent + 1, `first last_match_result = ${abbreviate(inspect_fun(last_match_result))}`);
+    
+    if (last_match_result === null) {
+      if (log_match_enabled)
+        log(indent + 1, `did not match sequence element #1.`);
+      return null;
+    }
+
+    const values = [];
+    index        = last_match_result.index;
 
       if (log_match_enabled)
         log(indent + 1, `matched first sequence element #1: ` +
@@ -3007,12 +3008,12 @@ class WeightedPicker {
     if (total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
                       `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
-                                                   [
-                                                     ix,
-                                                     this.__effective_weight(ix, priority),
-                                                     this.options[ix]
-                                                   ]
-                                                 ), null, 2)}, ` +
+                        [
+                          ix,
+                          this.__effective_weight(ix, priority),
+                          this.options[ix]
+                        ]
+                      ), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
     }
     
@@ -3673,52 +3674,52 @@ const configuration_key_names = [
   { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail'          },
   { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width_explanation',
     shorthands: [ 'firstphase_width',                                                                            ] },
-  { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
-  { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
-  { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
-  { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
-  { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
-  { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
-  { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
-  { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
-  { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
-    shorthands: ['neg', 'negative' ] },
-  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
-  { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
-    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
-  { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
-  { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
-  { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
-  { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
-  { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
-  { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
-  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
-  { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
-    shorthands: [ 'separate_clipl',                                                                              ] },  
-  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
-    shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
-  { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
-  { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
-  { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
-  { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
-  { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
-  { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
-  { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
-  { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
-  { dt_name: 't5Text',                            automatic1111_name: 't5_text',
-    shorthands: [ 't5' ] },
-  { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
-  { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
-  { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
-  { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
-  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
-  { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
-  { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
-  { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
-  { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
-  { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
-  { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
-  { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
+{ dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
+{ dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
+{ dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
+{ dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
+{ dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
+{ dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
+{ dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
+{ dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
+{ dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
+  shorthands: ['neg', 'negative' ] },
+{ dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
+{ dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
+  shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
+{ dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
+{ dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
+{ dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
+{ dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
+{ dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
+{ dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
+{ dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
+{ dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
+  shorthands: [ 'separate_clipl',                                                                              ] },  
+{ dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
+  shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
+{ dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
+{ dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
+{ dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
+{ dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
+{ dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
+{ dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
+{ dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
+{ dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
+{ dt_name: 't5Text',                            automatic1111_name: 't5_text',
+  shorthands: [ 't5' ] },
+{ dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
+{ dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
+{ dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
+{ dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
+{ dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
+{ dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
+{ dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
+{ dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
+{ dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
+{ dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
+{ dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
+{ dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
 ];
 // -------------------------------------------------------------------------------------------------
 function get_other_name(return_key, find_key, find_value) {
@@ -4388,522 +4389,522 @@ const prelude_text = prelude_disabled ? '' : `
   | !wizards_artist.#tony_diterlizzi
   | !wizards_artist.#anna_dittmann
   | !wizards_artist.#dima_dmitriev
-  | !wizards_artist.#peter_doig
-  | !wizards_artist.#kees_van_dongen
-  | !wizards_artist.#gustave_dore
-  | !wizards_artist.#dave_dorman
-  | !wizards_artist.#emilio_giuseppe_dossena
-  | !wizards_artist.#david_downton
-  | !wizards_artist.#jessica_drossin
-  | !wizards_artist.#philippe_druillet
-  | !wizards_artist.#tj_drysdale
-  | !wizards_artist.#ton_dubbeldam
-  | !wizards_artist.#marcel_duchamp
-  | !wizards_artist.#joseph_ducreux
-  | !wizards_artist.#edmund_dulac
-  | !wizards_artist.#marlene_dumas
-  | !wizards_artist.#charles_dwyer
-  | !wizards_artist.#william_dyce
-  | !wizards_artist.#chris_dyer
-  | !wizards_artist.#eyvind_earle
-  | !wizards_artist.#amy_earles
-  | !wizards_artist.#lori_earley
-  | !wizards_artist.#jeff_easley
-  | !wizards_artist.#tristan_eaton
-  | !wizards_artist.#jason_edmiston
-  | !wizards_artist.#alfred_eisenstaedt
-  | !wizards_artist.#jesper_ejsing
-  | !wizards_artist.#olafur_eliasson
-  | !wizards_artist.#harrison_ellenshaw
-  | !wizards_artist.#christine_ellger
-  | !wizards_artist.#larry_elmore
-  | !wizards_artist.#joseba_elorza
-  | !wizards_artist.#peter_elson
-  | !wizards_artist.#gil_elvgren
-  | !wizards_artist.#ed_emshwiller
-  | !wizards_artist.#kilian_eng
-  | !wizards_artist.#jason_a_engle
-  | !wizards_artist.#max_ernst
-  | !wizards_artist.#romain_de_tirtoff_erte
-  | !wizards_artist.#m_c_escher
-  | !wizards_artist.#tim_etchells
-  | !wizards_artist.#walker_evans
-  | !wizards_artist.#jan_van_eyck
-  | !wizards_artist.#glenn_fabry
-  | !wizards_artist.#ludwig_fahrenkrog
-  | !wizards_artist.#shepard_fairey
-  | !wizards_artist.#andy_fairhurst
-  | !wizards_artist.#luis_ricardo_falero
-  | !wizards_artist.#jean_fautrier
-  | !wizards_artist.#andrew_ferez
-  | !wizards_artist.#hugh_ferriss
-  | !wizards_artist.#david_finch
-  | !wizards_artist.#callie_fink
-  | !wizards_artist.#virgil_finlay
-  | !wizards_artist.#anato_finnstark
-  | !wizards_artist.#howard_finster
-  | !wizards_artist.#oskar_fischinger
-  | !wizards_artist.#samuel_melton_fisher
-  | !wizards_artist.#john_anster_fitzgerald
-  | !wizards_artist.#tony_fitzpatrick
-  | !wizards_artist.#hippolyte_flandrin
-  | !wizards_artist.#dan_flavin
-  | !wizards_artist.#max_fleischer
-  | !wizards_artist.#govaert_flinck
-  | !wizards_artist.#alex_russell_flint
-  | !wizards_artist.#lucio_fontana
-  | !wizards_artist.#chris_foss
-  | !wizards_artist.#jon_foster
-  | !wizards_artist.#jean_fouquet
-  | !wizards_artist.#toby_fox
-  | !wizards_artist.#art_frahm
-  | !wizards_artist.#lisa_frank
-  | !wizards_artist.#helen_frankenthaler
-  | !wizards_artist.#frank_frazetta
-  | !wizards_artist.#kelly_freas
-  | !wizards_artist.#lucian_freud
-  | !wizards_artist.#brian_froud
-  | !wizards_artist.#wendy_froud
-  | !wizards_artist.#tom_fruin
-  | !wizards_artist.#john_wayne_gacy
-  | !wizards_artist.#justin_gaffrey
-  | !wizards_artist.#hashimoto_gaho
-  | !wizards_artist.#neil_gaiman
-  | !wizards_artist.#stephen_gammell
-  | !wizards_artist.#hope_gangloff
-  | !wizards_artist.#alex_garant
-  | !wizards_artist.#gilbert_garcin
-  | !wizards_artist.#michael_and_inessa_garmash
-  | !wizards_artist.#antoni_gaudi
-  | !wizards_artist.#paul_gauguin
-  | !wizards_artist.#giovanni_battista_gaulli
-  | !wizards_artist.#anne_geddes
-  | !wizards_artist.#bill_gekas
-  | !wizards_artist.#artemisia_gentileschi
-  | !wizards_artist.#orazio_gentileschi
-  | !wizards_artist.#daniel_f_gerhartz
-  | !wizards_artist.#theodore_gericault
-  | !wizards_artist.#jean_leon_gerome
-  | !wizards_artist.#mark_gertler
-  | !wizards_artist.#atey_ghailan
-  | !wizards_artist.#alberto_giacometti
-  | !wizards_artist.#donato_giancola
-  | !wizards_artist.#hr_giger
-  | !wizards_artist.#james_gilleard
-  | !wizards_artist.#harold_gilman
-  | !wizards_artist.#charles_ginner
-  | !wizards_artist.#jean_giraud
-  | !wizards_artist.#anne_louis_girodet
-  | !wizards_artist.#milton_glaser
-  | !wizards_artist.#warwick_goble
-  | !wizards_artist.#john_william_godward
-  | !wizards_artist.#sacha_goldberger
-  | !wizards_artist.#nan_goldin
-  | !wizards_artist.#josan_gonzalez
-  | !wizards_artist.#felix_gonzalez_torres
-  | !wizards_artist.#derek_gores
-  | !wizards_artist.#edward_gorey
-  | !wizards_artist.#arshile_gorky
-  | !wizards_artist.#alessandro_gottardo
-  | !wizards_artist.#adolph_gottlieb
-  | !wizards_artist.#francisco_goya
-  | !wizards_artist.#laurent_grasso
-  | !wizards_artist.#mab_graves
-  | !wizards_artist.#eileen_gray
-  | !wizards_artist.#kate_greenaway
-  | !wizards_artist.#alex_grey
-  | !wizards_artist.#carne_griffiths
-  | !wizards_artist.#gris_grimly
-  | !wizards_artist.#brothers_grimm
-  | !wizards_artist.#tracie_grimwood
-  | !wizards_artist.#matt_groening
-  | !wizards_artist.#alex_gross
-  | !wizards_artist.#tom_grummett
-  | !wizards_artist.#huang_guangjian
-  | !wizards_artist.#wu_guanzhong
-  | !wizards_artist.#rebecca_guay
-  | !wizards_artist.#guercino
-  | !wizards_artist.#jeannette_guichard_bunel
-  | !wizards_artist.#scott_gustafson
-  | !wizards_artist.#wade_guyton
-  | !wizards_artist.#hans_haacke
-  | !wizards_artist.#robert_hagan
-  | !wizards_artist.#philippe_halsman
-  | !wizards_artist.#maggi_hambling
-  | !wizards_artist.#richard_hamilton
-  | !wizards_artist.#bess_hamiti
-  | !wizards_artist.#tom_hammick
-  | !wizards_artist.#david_hammons
-  | !wizards_artist.#ren_hang
-  | !wizards_artist.#erin_hanson
-  | !wizards_artist.#keith_haring
-  | !wizards_artist.#alexei_harlamoff
-  | !wizards_artist.#charley_harper
-  | !wizards_artist.#john_harris
-  | !wizards_artist.#florence_harrison
-  | !wizards_artist.#marsden_hartley
-  | !wizards_artist.#ryohei_hase
-  | !wizards_artist.#childe_hassam
-  | !wizards_artist.#ben_hatke
-  | !wizards_artist.#mona_hatoum
-  | !wizards_artist.#pam_hawkes
-  | !wizards_artist.#jamie_hawkesworth
-  | !wizards_artist.#stuart_haygarth
-  | !wizards_artist.#erich_heckel
-  | !wizards_artist.#valerie_hegarty
-  | !wizards_artist.#mary_heilmann
-  | !wizards_artist.#michael_heizer
-  | !wizards_artist.#gottfried_helnwein
-  | !wizards_artist.#barkley_l_hendricks
-  | !wizards_artist.#bill_henson
-  | !wizards_artist.#barbara_hepworth
-  | !wizards_artist.#herge
-  | !wizards_artist.#carolina_herrera
-  | !wizards_artist.#george_herriman
-  | !wizards_artist.#don_hertzfeldt
-  | !wizards_artist.#prudence_heward
-  | !wizards_artist.#ryan_hewett
-  | !wizards_artist.#nora_heysen
-  | !wizards_artist.#george_elgar_hicks
-  | !wizards_artist.#lorenz_hideyoshi
-  | !wizards_artist.#brothers_hildebrandt
-  | !wizards_artist.#dan_hillier
-  | !wizards_artist.#lewis_hine
-  | !wizards_artist.#miho_hirano
-  | !wizards_artist.#harumi_hironaka
-  | !wizards_artist.#hiroshige
-  | !wizards_artist.#morris_hirshfield
-  | !wizards_artist.#damien_hirst
-  | !wizards_artist.#fan_ho
-  | !wizards_artist.#meindert_hobbema
-  | !wizards_artist.#david_hockney
-  | !wizards_artist.#filip_hodas
-  | !wizards_artist.#howard_hodgkin
-  | !wizards_artist.#ferdinand_hodler
-  | !wizards_artist.#tiago_hoisel
-  | !wizards_artist.#katsushika_hokusai
-  | !wizards_artist.#hans_holbein_the_younger
-  | !wizards_artist.#frank_holl
-  | !wizards_artist.#carsten_holler
-  | !wizards_artist.#zena_holloway
-  | !wizards_artist.#edward_hopper
-  | !wizards_artist.#aaron_horkey
-  | !wizards_artist.#alex_horley
-  | !wizards_artist.#roni_horn
-  | !wizards_artist.#john_howe
-  | !wizards_artist.#alex_howitt
-  | !wizards_artist.#meghan_howland
-  | !wizards_artist.#john_hoyland
-  | !wizards_artist.#shilin_huang
-  | !wizards_artist.#arthur_hughes
-  | !wizards_artist.#edward_robert_hughes
-  | !wizards_artist.#jack_hughes
-  | !wizards_artist.#talbot_hughes
-  | !wizards_artist.#pieter_hugo
-  | !wizards_artist.#gary_hume
-  | !wizards_artist.#friedensreich_hundertwasser
-  | !wizards_artist.#william_holman_hunt
-  | !wizards_artist.#george_hurrell
-  | !wizards_artist.#fabio_hurtado
-  | !wizards_artist.#hush
-  | !wizards_artist.#michael_hutter
-  | !wizards_artist.#pierre_huyghe
-  | !wizards_artist.#doug_hyde
-  | !wizards_artist.#louis_icart
-  | !wizards_artist.#robert_indiana
-  | !wizards_artist.#jean_auguste_dominique_ingres
-  | !wizards_artist.#robert_irwin
-  | !wizards_artist.#gabriel_isak
-  | !wizards_artist.#junji_ito
-  | !wizards_artist.#christophe_jacrot
-  | !wizards_artist.#louis_janmot
-  | !wizards_artist.#frieke_janssens
-  | !wizards_artist.#alexander_jansson
-  | !wizards_artist.#tove_jansson
-  | !wizards_artist.#aaron_jasinski
-  | !wizards_artist.#alexej_von_jawlensky
-  | !wizards_artist.#james_jean
-  | !wizards_artist.#oliver_jeffers
-  | !wizards_artist.#lee_jeffries
-  | !wizards_artist.#georg_jensen
-  | !wizards_artist.#ellen_jewett
-  | !wizards_artist.#he_jiaying
-  | !wizards_artist.#chantal_joffe
-  | !wizards_artist.#martine_johanna
-  | !wizards_artist.#augustus_john
-  | !wizards_artist.#gwen_john
-  | !wizards_artist.#jasper_johns
-  | !wizards_artist.#eastman_johnson
-  | !wizards_artist.#alfred_cheney_johnston
-  | !wizards_artist.#dorothy_johnstone
-  | !wizards_artist.#android_jones
-  | !wizards_artist.#erik_jones
-  | !wizards_artist.#jeffrey_catherine_jones
-  | !wizards_artist.#peter_andrew_jones
-  | !wizards_artist.#loui_jover
-  | !wizards_artist.#amy_judd
-  | !wizards_artist.#donald_judd
-  | !wizards_artist.#jean_jullien
-  | !wizards_artist.#matthias_jung
-  | !wizards_artist.#joe_jusko
-  | !wizards_artist.#frida_kahlo
-  | !wizards_artist.#hayv_kahraman
-  | !wizards_artist.#mw_kaluta
-  | !wizards_artist.#nadav_kander
-  | !wizards_artist.#wassily_kandinsky
-  | !wizards_artist.#jun_kaneko
-  | !wizards_artist.#titus_kaphar
-  | !wizards_artist.#michal_karcz
-  | !wizards_artist.#gertrude_kasebier
-  | !wizards_artist.#terada_katsuya
-  | !wizards_artist.#audrey_kawasaki
-  | !wizards_artist.#hasui_kawase
-  | !wizards_artist.#glen_keane
-  | !wizards_artist.#margaret_keane
-  | !wizards_artist.#ellsworth_kelly
-  | !wizards_artist.#michael_kenna
-  | !wizards_artist.#thomas_benjamin_kennington
-  | !wizards_artist.#william_kentridge
-  | !wizards_artist.#hendrik_kerstens
-  | !wizards_artist.#jeremiah_ketner
-  | !wizards_artist.#fernand_khnopff
-  | !wizards_artist.#hideyuki_kikuchi
-  | !wizards_artist.#tom_killion
-  | !wizards_artist.#thomas_kinkade
-  | !wizards_artist.#jack_kirby
-  | !wizards_artist.#ernst_ludwig_kirchner
-  | !wizards_artist.#tatsuro_kiuchi
-  | !wizards_artist.#jon_klassen
-  | !wizards_artist.#paul_klee
-  | !wizards_artist.#william_klein
-  | !wizards_artist.#yves_klein
-  | !wizards_artist.#carl_kleiner
-  | !wizards_artist.#gustav_klimt
-  | !wizards_artist.#godfrey_kneller
-  | !wizards_artist.#emily_kame_kngwarreye
-  | !wizards_artist.#chad_knight
-  | !wizards_artist.#nick_knight
-  | !wizards_artist.#helene_knoop
-  | !wizards_artist.#phil_koch
-  | !wizards_artist.#kazuo_koike
-  | !wizards_artist.#oskar_kokoschka
-  | !wizards_artist.#kathe_kollwitz
-  | !wizards_artist.#michael_komarck
-  | !wizards_artist.#satoshi_kon
-  | !wizards_artist.#jeff_koons
-  | !wizards_artist.#caia_koopman
-  | !wizards_artist.#konstantin_korovin
-  | !wizards_artist.#mark_kostabi
-  | !wizards_artist.#bella_kotak
-  | !wizards_artist.#andrea_kowch
-  | !wizards_artist.#lee_krasner
-  | !wizards_artist.#barbara_kruger
-  | !wizards_artist.#brad_kunkle
-  | !wizards_artist.#yayoi_kusama
-  | !wizards_artist.#michael_k_kutsche
-  | !wizards_artist.#ilya_kuvshinov
-  | !wizards_artist.#david_lachapelle
-  | !wizards_artist.#raphael_lacoste
-  | !wizards_artist.#lev_lagorio
-  | !wizards_artist.#rene_lalique
-  | !wizards_artist.#abigail_larson
-  | !wizards_artist.#gary_larson
-  | !wizards_artist.#denys_lasdun
-  | !wizards_artist.#maria_lassnig
-  | !wizards_artist.#dorothy_lathrop
-  | !wizards_artist.#melissa_launay
-  | !wizards_artist.#john_lavery
-  | !wizards_artist.#jacob_lawrence
-  | !wizards_artist.#thomas_lawrence
-  | !wizards_artist.#ernest_lawson
-  | !wizards_artist.#bastien_lecouffe_deharme
-  | !wizards_artist.#alan_lee
-  | !wizards_artist.#minjae_lee
-  | !wizards_artist.#nina_leen
-  | !wizards_artist.#fernand_leger
-  | !wizards_artist.#paul_lehr
-  | !wizards_artist.#frederic_leighton
-  | !wizards_artist.#alayna_lemmer
-  | !wizards_artist.#tamara_de_lempicka
-  | !wizards_artist.#sol_lewitt
-  | !wizards_artist.#jc_leyendecker
-  | !wizards_artist.#andre_lhote
-  | !wizards_artist.#roy_lichtenstein
-  | !wizards_artist.#rob_liefeld
-  | !wizards_artist.#fang_lijun
-  | !wizards_artist.#maya_lin
-  | !wizards_artist.#filippino_lippi
-  | !wizards_artist.#herbert_list
-  | !wizards_artist.#richard_long
-  | !wizards_artist.#yoann_lossel
-  | !wizards_artist.#morris_louis
-  | !wizards_artist.#sarah_lucas
-  | !wizards_artist.#maximilien_luce
-  | !wizards_artist.#loretta_lux
-  | !wizards_artist.#george_platt_lynes
-  | !wizards_artist.#frances_macdonald
-  | !wizards_artist.#august_macke
-  | !wizards_artist.#stephen_mackey
-  | !wizards_artist.#rachel_maclean
-  | !wizards_artist.#raimundo_de_madrazo_y_garreta
-  | !wizards_artist.#joe_madureira
-  | !wizards_artist.#rene_magritte
-  | !wizards_artist.#jim_mahfood
-  | !wizards_artist.#vivian_maier
-  | !wizards_artist.#aristide_maillol
-  | !wizards_artist.#don_maitz
-  | !wizards_artist.#laura_makabresku
-  | !wizards_artist.#alex_maleev
-  | !wizards_artist.#keith_mallett
-  | !wizards_artist.#johji_manabe
-  | !wizards_artist.#milo_manara
-  | !wizards_artist.#edouard_manet
-  | !wizards_artist.#henri_manguin
-  | !wizards_artist.#jeremy_mann
-  | !wizards_artist.#sally_mann
-  | !wizards_artist.#andrea_mantegna
-  | !wizards_artist.#antonio_j_manzanedo
-  | !wizards_artist.#robert_mapplethorpe
-  | !wizards_artist.#franz_marc
-  | !wizards_artist.#ivan_marchuk
-  | !wizards_artist.#brice_marden
-  | !wizards_artist.#andrei_markin
-  | !wizards_artist.#kerry_james_marshall
-  | !wizards_artist.#serge_marshennikov
-  | !wizards_artist.#agnes_martin
-  | !wizards_artist.#adam_martinakis
-  | !wizards_artist.#stephan_martiniere
-  | !wizards_artist.#ilya_mashkov
-  | !wizards_artist.#henri_matisse
-  | !wizards_artist.#rodney_matthews
-  | !wizards_artist.#anton_mauve
-  | !wizards_artist.#peter_max
-  | !wizards_artist.#mike_mayhew
-  | !wizards_artist.#angus_mcbride
-  | !wizards_artist.#anne_mccaffrey
-  | !wizards_artist.#robert_mccall
-  | !wizards_artist.#scott_mccloud
-  | !wizards_artist.#steve_mccurry
-  | !wizards_artist.#todd_mcfarlane
-  | !wizards_artist.#barry_mcgee
-  | !wizards_artist.#ryan_mcginley
-  | !wizards_artist.#robert_mcginnis
-  | !wizards_artist.#richard_mcguire
-  | !wizards_artist.#patrick_mchale
-  | !wizards_artist.#kelly_mckernan
-  | !wizards_artist.#angus_mckie
-  | !wizards_artist.#alasdair_mclellan
-  | !wizards_artist.#jon_mcnaught
-  | !wizards_artist.#dan_mcpharlin
-  | !wizards_artist.#tara_mcpherson
-  | !wizards_artist.#ralph_mcquarrie
-  | !wizards_artist.#ian_mcque
-  | !wizards_artist.#syd_mead
-  | !wizards_artist.#richard_meier
-  | !wizards_artist.#maria_sibylla_merian
-  | !wizards_artist.#willard_metcalf
-  | !wizards_artist.#gabriel_metsu
-  | !wizards_artist.#jean_metzinger
-  | !wizards_artist.#michelangelo
-  | !wizards_artist.#nicolas_mignard
-  | !wizards_artist.#mike_mignola
-  | !wizards_artist.#dimitra_milan
-  | !wizards_artist.#john_everett_millais
-  | !wizards_artist.#marilyn_minter
-  | !wizards_artist.#januz_miralles
-  | !wizards_artist.#joan_miro
-  | !wizards_artist.#joan_mitchell
-  | !wizards_artist.#hayao_miyazaki
-  | !wizards_artist.#paula_modersohn_becker
-  | !wizards_artist.#amedeo_modigliani
-  | !wizards_artist.#moebius
-  | !wizards_artist.#peter_mohrbacher
-  | !wizards_artist.#piet_mondrian
-  | !wizards_artist.#claude_monet
-  | !wizards_artist.#jean_baptiste_monge
-  | !wizards_artist.#alyssa_monks
-  | !wizards_artist.#alan_moore
-  | !wizards_artist.#antonio_mora
-  | !wizards_artist.#edward_moran
-  | !wizards_artist.#koji_morimoto
-  | !wizards_artist.#berthe_morisot
-  | !wizards_artist.#daido_moriyama
-  | !wizards_artist.#james_wilson_morrice
-  | !wizards_artist.#sarah_morris
-  | !wizards_artist.#john_lowrie_morrison
-  | !wizards_artist.#igor_morski
-  | !wizards_artist.#john_kenn_mortensen
-  | !wizards_artist.#victor_moscoso
-  | !wizards_artist.#inna_mosina
-  | !wizards_artist.#richard_mosse
-  | !wizards_artist.#thomas_edwin_mostyn
-  | !wizards_artist.#marcel_mouly
-  | !wizards_artist.#emmanuelle_moureaux
-  | !wizards_artist.#alphonse_mucha
-  | !wizards_artist.#craig_mullins
-  | !wizards_artist.#augustus_edwin_mulready
-  | !wizards_artist.#dan_mumford
-  | !wizards_artist.#edvard_munch
-  | !wizards_artist.#alfred_munnings
-  | !wizards_artist.#gabriele_munter
-  | !wizards_artist.#takashi_murakami
-  | !wizards_artist.#patrice_murciano
-  | !wizards_artist.#scott_musgrove
-  | !wizards_artist.#wangechi_mutu
-  | !wizards_artist.#go_nagai
-  | !wizards_artist.#hiroshi_nagai
-  | !wizards_artist.#patrick_nagel
-  | !wizards_artist.#tibor_nagy
-  | !wizards_artist.#scott_naismith
-  | !wizards_artist.#juliana_nan
-  | !wizards_artist.#ted_nasmith
-  | !wizards_artist.#todd_nauck
-  | !wizards_artist.#bruce_nauman
-  | !wizards_artist.#ernst_wilhelm_nay
-  | !wizards_artist.#alice_neel
-  | !wizards_artist.#keith_negley
-  | !wizards_artist.#leroy_neiman
-  | !wizards_artist.#kadir_nelson
-  | !wizards_artist.#odd_nerdrum
-  | !wizards_artist.#shirin_neshat
-  | !wizards_artist.#mikhail_nesterov
-  | !wizards_artist.#jane_newland
-  | !wizards_artist.#victo_ngai
-  | !wizards_artist.#william_nicholson
-  | !wizards_artist.#florian_nicolle
-  | !wizards_artist.#kay_nielsen
-  | !wizards_artist.#tsutomu_nihei
-  | !wizards_artist.#victor_nizovtsev
-  | !wizards_artist.#isamu_noguchi
-  | !wizards_artist.#catherine_nolin
-  | !wizards_artist.#francois_de_nome
-  | !wizards_artist.#earl_norem
-  | !wizards_artist.#phil_noto
-  | !wizards_artist.#georgia_okeeffe
-  | !wizards_artist.#terry_oakes
-  | !wizards_artist.#chris_ofili
-  | !wizards_artist.#jack_ohman
-  | !wizards_artist.#noriyoshi_ohrai
-  | !wizards_artist.#helio_oiticica
-  | !wizards_artist.#taro_okamoto
-  | !wizards_artist.#tim_okamura
-  | !wizards_artist.#naomi_okubo
-  | !wizards_artist.#atelier_olschinsky
-  | !wizards_artist.#greg_olsen
-  | !wizards_artist.#oleg_oprisco
-  | !wizards_artist.#tony_orrico
-  | !wizards_artist.#mamoru_oshii
-  | !wizards_artist.#ida_rentoul_outhwaite
-  | !wizards_artist.#yigal_ozeri
-  | !wizards_artist.#gabriel_pacheco
-  | !wizards_artist.#michael_page
-  | !wizards_artist.#rui_palha
-  | !wizards_artist.#polixeni_papapetrou
-  | !wizards_artist.#julio_le_parc
-  | !wizards_artist.#michael_parkes
-  | !wizards_artist.#philippe_parreno
-  | !wizards_artist.#maxfield_parrish
-  | !wizards_artist.#alice_pasquini
+                       | !wizards_artist.#peter_doig
+                       | !wizards_artist.#kees_van_dongen
+                       | !wizards_artist.#gustave_dore
+                       | !wizards_artist.#dave_dorman
+                       | !wizards_artist.#emilio_giuseppe_dossena
+                       | !wizards_artist.#david_downton
+                       | !wizards_artist.#jessica_drossin
+                       | !wizards_artist.#philippe_druillet
+                       | !wizards_artist.#tj_drysdale
+                       | !wizards_artist.#ton_dubbeldam
+                       | !wizards_artist.#marcel_duchamp
+                       | !wizards_artist.#joseph_ducreux
+                       | !wizards_artist.#edmund_dulac
+                       | !wizards_artist.#marlene_dumas
+                       | !wizards_artist.#charles_dwyer
+                       | !wizards_artist.#william_dyce
+                       | !wizards_artist.#chris_dyer
+                       | !wizards_artist.#eyvind_earle
+                       | !wizards_artist.#amy_earles
+                       | !wizards_artist.#lori_earley
+                       | !wizards_artist.#jeff_easley
+                       | !wizards_artist.#tristan_eaton
+                       | !wizards_artist.#jason_edmiston
+                       | !wizards_artist.#alfred_eisenstaedt
+                       | !wizards_artist.#jesper_ejsing
+                       | !wizards_artist.#olafur_eliasson
+                       | !wizards_artist.#harrison_ellenshaw
+                       | !wizards_artist.#christine_ellger
+                       | !wizards_artist.#larry_elmore
+                       | !wizards_artist.#joseba_elorza
+                       | !wizards_artist.#peter_elson
+                       | !wizards_artist.#gil_elvgren
+                       | !wizards_artist.#ed_emshwiller
+                       | !wizards_artist.#kilian_eng
+                       | !wizards_artist.#jason_a_engle
+                       | !wizards_artist.#max_ernst
+                       | !wizards_artist.#romain_de_tirtoff_erte
+                       | !wizards_artist.#m_c_escher
+                       | !wizards_artist.#tim_etchells
+                       | !wizards_artist.#walker_evans
+                       | !wizards_artist.#jan_van_eyck
+                       | !wizards_artist.#glenn_fabry
+                       | !wizards_artist.#ludwig_fahrenkrog
+                       | !wizards_artist.#shepard_fairey
+                       | !wizards_artist.#andy_fairhurst
+                       | !wizards_artist.#luis_ricardo_falero
+                       | !wizards_artist.#jean_fautrier
+                       | !wizards_artist.#andrew_ferez
+                       | !wizards_artist.#hugh_ferriss
+                       | !wizards_artist.#david_finch
+                       | !wizards_artist.#callie_fink
+                       | !wizards_artist.#virgil_finlay
+                       | !wizards_artist.#anato_finnstark
+                       | !wizards_artist.#howard_finster
+                       | !wizards_artist.#oskar_fischinger
+                       | !wizards_artist.#samuel_melton_fisher
+                       | !wizards_artist.#john_anster_fitzgerald
+                       | !wizards_artist.#tony_fitzpatrick
+                       | !wizards_artist.#hippolyte_flandrin
+                       | !wizards_artist.#dan_flavin
+                       | !wizards_artist.#max_fleischer
+                       | !wizards_artist.#govaert_flinck
+                       | !wizards_artist.#alex_russell_flint
+                       | !wizards_artist.#lucio_fontana
+                       | !wizards_artist.#chris_foss
+                       | !wizards_artist.#jon_foster
+                       | !wizards_artist.#jean_fouquet
+                       | !wizards_artist.#toby_fox
+                       | !wizards_artist.#art_frahm
+                       | !wizards_artist.#lisa_frank
+                       | !wizards_artist.#helen_frankenthaler
+                       | !wizards_artist.#frank_frazetta
+                       | !wizards_artist.#kelly_freas
+                       | !wizards_artist.#lucian_freud
+                       | !wizards_artist.#brian_froud
+                       | !wizards_artist.#wendy_froud
+                       | !wizards_artist.#tom_fruin
+                       | !wizards_artist.#john_wayne_gacy
+                       | !wizards_artist.#justin_gaffrey
+                       | !wizards_artist.#hashimoto_gaho
+                       | !wizards_artist.#neil_gaiman
+                       | !wizards_artist.#stephen_gammell
+                       | !wizards_artist.#hope_gangloff
+                       | !wizards_artist.#alex_garant
+                       | !wizards_artist.#gilbert_garcin
+                       | !wizards_artist.#michael_and_inessa_garmash
+                       | !wizards_artist.#antoni_gaudi
+                       | !wizards_artist.#paul_gauguin
+                       | !wizards_artist.#giovanni_battista_gaulli
+                       | !wizards_artist.#anne_geddes
+                       | !wizards_artist.#bill_gekas
+                       | !wizards_artist.#artemisia_gentileschi
+                       | !wizards_artist.#orazio_gentileschi
+                       | !wizards_artist.#daniel_f_gerhartz
+                       | !wizards_artist.#theodore_gericault
+                       | !wizards_artist.#jean_leon_gerome
+                       | !wizards_artist.#mark_gertler
+                       | !wizards_artist.#atey_ghailan
+                       | !wizards_artist.#alberto_giacometti
+                       | !wizards_artist.#donato_giancola
+                       | !wizards_artist.#hr_giger
+                       | !wizards_artist.#james_gilleard
+                       | !wizards_artist.#harold_gilman
+                       | !wizards_artist.#charles_ginner
+                       | !wizards_artist.#jean_giraud
+                       | !wizards_artist.#anne_louis_girodet
+                       | !wizards_artist.#milton_glaser
+                       | !wizards_artist.#warwick_goble
+                       | !wizards_artist.#john_william_godward
+                       | !wizards_artist.#sacha_goldberger
+                       | !wizards_artist.#nan_goldin
+                       | !wizards_artist.#josan_gonzalez
+                       | !wizards_artist.#felix_gonzalez_torres
+                       | !wizards_artist.#derek_gores
+                       | !wizards_artist.#edward_gorey
+                       | !wizards_artist.#arshile_gorky
+                       | !wizards_artist.#alessandro_gottardo
+                       | !wizards_artist.#adolph_gottlieb
+                       | !wizards_artist.#francisco_goya
+                       | !wizards_artist.#laurent_grasso
+                       | !wizards_artist.#mab_graves
+                       | !wizards_artist.#eileen_gray
+                       | !wizards_artist.#kate_greenaway
+                       | !wizards_artist.#alex_grey
+                       | !wizards_artist.#carne_griffiths
+                       | !wizards_artist.#gris_grimly
+                       | !wizards_artist.#brothers_grimm
+                       | !wizards_artist.#tracie_grimwood
+                       | !wizards_artist.#matt_groening
+                       | !wizards_artist.#alex_gross
+                       | !wizards_artist.#tom_grummett
+                       | !wizards_artist.#huang_guangjian
+                       | !wizards_artist.#wu_guanzhong
+                       | !wizards_artist.#rebecca_guay
+                       | !wizards_artist.#guercino
+                       | !wizards_artist.#jeannette_guichard_bunel
+                       | !wizards_artist.#scott_gustafson
+                       | !wizards_artist.#wade_guyton
+                       | !wizards_artist.#hans_haacke
+                       | !wizards_artist.#robert_hagan
+                       | !wizards_artist.#philippe_halsman
+                       | !wizards_artist.#maggi_hambling
+                       | !wizards_artist.#richard_hamilton
+                       | !wizards_artist.#bess_hamiti
+                       | !wizards_artist.#tom_hammick
+                       | !wizards_artist.#david_hammons
+                       | !wizards_artist.#ren_hang
+                       | !wizards_artist.#erin_hanson
+                       | !wizards_artist.#keith_haring
+                       | !wizards_artist.#alexei_harlamoff
+                       | !wizards_artist.#charley_harper
+                       | !wizards_artist.#john_harris
+                       | !wizards_artist.#florence_harrison
+                       | !wizards_artist.#marsden_hartley
+                       | !wizards_artist.#ryohei_hase
+                       | !wizards_artist.#childe_hassam
+                       | !wizards_artist.#ben_hatke
+                       | !wizards_artist.#mona_hatoum
+                       | !wizards_artist.#pam_hawkes
+                       | !wizards_artist.#jamie_hawkesworth
+                       | !wizards_artist.#stuart_haygarth
+                       | !wizards_artist.#erich_heckel
+                       | !wizards_artist.#valerie_hegarty
+                       | !wizards_artist.#mary_heilmann
+                       | !wizards_artist.#michael_heizer
+                       | !wizards_artist.#gottfried_helnwein
+                       | !wizards_artist.#barkley_l_hendricks
+                       | !wizards_artist.#bill_henson
+                       | !wizards_artist.#barbara_hepworth
+                       | !wizards_artist.#herge
+                       | !wizards_artist.#carolina_herrera
+                       | !wizards_artist.#george_herriman
+                       | !wizards_artist.#don_hertzfeldt
+                       | !wizards_artist.#prudence_heward
+                       | !wizards_artist.#ryan_hewett
+                       | !wizards_artist.#nora_heysen
+                       | !wizards_artist.#george_elgar_hicks
+                       | !wizards_artist.#lorenz_hideyoshi
+                       | !wizards_artist.#brothers_hildebrandt
+                       | !wizards_artist.#dan_hillier
+                       | !wizards_artist.#lewis_hine
+                       | !wizards_artist.#miho_hirano
+                       | !wizards_artist.#harumi_hironaka
+                       | !wizards_artist.#hiroshige
+                       | !wizards_artist.#morris_hirshfield
+                       | !wizards_artist.#damien_hirst
+                       | !wizards_artist.#fan_ho
+                       | !wizards_artist.#meindert_hobbema
+                       | !wizards_artist.#david_hockney
+                       | !wizards_artist.#filip_hodas
+                       | !wizards_artist.#howard_hodgkin
+                       | !wizards_artist.#ferdinand_hodler
+                       | !wizards_artist.#tiago_hoisel
+                       | !wizards_artist.#katsushika_hokusai
+                       | !wizards_artist.#hans_holbein_the_younger
+                       | !wizards_artist.#frank_holl
+                       | !wizards_artist.#carsten_holler
+                       | !wizards_artist.#zena_holloway
+                       | !wizards_artist.#edward_hopper
+                       | !wizards_artist.#aaron_horkey
+                       | !wizards_artist.#alex_horley
+                       | !wizards_artist.#roni_horn
+                       | !wizards_artist.#john_howe
+                       | !wizards_artist.#alex_howitt
+                       | !wizards_artist.#meghan_howland
+                       | !wizards_artist.#john_hoyland
+                       | !wizards_artist.#shilin_huang
+                       | !wizards_artist.#arthur_hughes
+                       | !wizards_artist.#edward_robert_hughes
+                       | !wizards_artist.#jack_hughes
+                       | !wizards_artist.#talbot_hughes
+                       | !wizards_artist.#pieter_hugo
+                       | !wizards_artist.#gary_hume
+                       | !wizards_artist.#friedensreich_hundertwasser
+                       | !wizards_artist.#william_holman_hunt
+                       | !wizards_artist.#george_hurrell
+                       | !wizards_artist.#fabio_hurtado
+                       | !wizards_artist.#hush
+                       | !wizards_artist.#michael_hutter
+                       | !wizards_artist.#pierre_huyghe
+                       | !wizards_artist.#doug_hyde
+                       | !wizards_artist.#louis_icart
+                       | !wizards_artist.#robert_indiana
+                       | !wizards_artist.#jean_auguste_dominique_ingres
+                       | !wizards_artist.#robert_irwin
+                       | !wizards_artist.#gabriel_isak
+                       | !wizards_artist.#junji_ito
+                       | !wizards_artist.#christophe_jacrot
+                       | !wizards_artist.#louis_janmot
+                       | !wizards_artist.#frieke_janssens
+                       | !wizards_artist.#alexander_jansson
+                       | !wizards_artist.#tove_jansson
+                       | !wizards_artist.#aaron_jasinski
+                       | !wizards_artist.#alexej_von_jawlensky
+                       | !wizards_artist.#james_jean
+                       | !wizards_artist.#oliver_jeffers
+                       | !wizards_artist.#lee_jeffries
+                       | !wizards_artist.#georg_jensen
+                       | !wizards_artist.#ellen_jewett
+                       | !wizards_artist.#he_jiaying
+                       | !wizards_artist.#chantal_joffe
+                       | !wizards_artist.#martine_johanna
+                       | !wizards_artist.#augustus_john
+                       | !wizards_artist.#gwen_john
+                       | !wizards_artist.#jasper_johns
+                       | !wizards_artist.#eastman_johnson
+                       | !wizards_artist.#alfred_cheney_johnston
+                       | !wizards_artist.#dorothy_johnstone
+                       | !wizards_artist.#android_jones
+                       | !wizards_artist.#erik_jones
+                       | !wizards_artist.#jeffrey_catherine_jones
+                       | !wizards_artist.#peter_andrew_jones
+                       | !wizards_artist.#loui_jover
+                       | !wizards_artist.#amy_judd
+                       | !wizards_artist.#donald_judd
+                       | !wizards_artist.#jean_jullien
+                       | !wizards_artist.#matthias_jung
+                       | !wizards_artist.#joe_jusko
+                       | !wizards_artist.#frida_kahlo
+                       | !wizards_artist.#hayv_kahraman
+                       | !wizards_artist.#mw_kaluta
+                       | !wizards_artist.#nadav_kander
+                       | !wizards_artist.#wassily_kandinsky
+                       | !wizards_artist.#jun_kaneko
+                       | !wizards_artist.#titus_kaphar
+                       | !wizards_artist.#michal_karcz
+                       | !wizards_artist.#gertrude_kasebier
+                       | !wizards_artist.#terada_katsuya
+                       | !wizards_artist.#audrey_kawasaki
+                       | !wizards_artist.#hasui_kawase
+                       | !wizards_artist.#glen_keane
+                       | !wizards_artist.#margaret_keane
+                       | !wizards_artist.#ellsworth_kelly
+                       | !wizards_artist.#michael_kenna
+                       | !wizards_artist.#thomas_benjamin_kennington
+                       | !wizards_artist.#william_kentridge
+                       | !wizards_artist.#hendrik_kerstens
+                       | !wizards_artist.#jeremiah_ketner
+                       | !wizards_artist.#fernand_khnopff
+                       | !wizards_artist.#hideyuki_kikuchi
+                       | !wizards_artist.#tom_killion
+                       | !wizards_artist.#thomas_kinkade
+                       | !wizards_artist.#jack_kirby
+                       | !wizards_artist.#ernst_ludwig_kirchner
+                       | !wizards_artist.#tatsuro_kiuchi
+                       | !wizards_artist.#jon_klassen
+                       | !wizards_artist.#paul_klee
+                       | !wizards_artist.#william_klein
+                       | !wizards_artist.#yves_klein
+                       | !wizards_artist.#carl_kleiner
+                       | !wizards_artist.#gustav_klimt
+                       | !wizards_artist.#godfrey_kneller
+                       | !wizards_artist.#emily_kame_kngwarreye
+                       | !wizards_artist.#chad_knight
+                       | !wizards_artist.#nick_knight
+                       | !wizards_artist.#helene_knoop
+                       | !wizards_artist.#phil_koch
+                       | !wizards_artist.#kazuo_koike
+                       | !wizards_artist.#oskar_kokoschka
+                       | !wizards_artist.#kathe_kollwitz
+                       | !wizards_artist.#michael_komarck
+                       | !wizards_artist.#satoshi_kon
+                       | !wizards_artist.#jeff_koons
+                       | !wizards_artist.#caia_koopman
+                       | !wizards_artist.#konstantin_korovin
+                       | !wizards_artist.#mark_kostabi
+                       | !wizards_artist.#bella_kotak
+                       | !wizards_artist.#andrea_kowch
+                       | !wizards_artist.#lee_krasner
+                       | !wizards_artist.#barbara_kruger
+                       | !wizards_artist.#brad_kunkle
+                       | !wizards_artist.#yayoi_kusama
+                       | !wizards_artist.#michael_k_kutsche
+                       | !wizards_artist.#ilya_kuvshinov
+                       | !wizards_artist.#david_lachapelle
+                       | !wizards_artist.#raphael_lacoste
+                       | !wizards_artist.#lev_lagorio
+                       | !wizards_artist.#rene_lalique
+                       | !wizards_artist.#abigail_larson
+                       | !wizards_artist.#gary_larson
+                       | !wizards_artist.#denys_lasdun
+                       | !wizards_artist.#maria_lassnig
+                       | !wizards_artist.#dorothy_lathrop
+                       | !wizards_artist.#melissa_launay
+                       | !wizards_artist.#john_lavery
+                       | !wizards_artist.#jacob_lawrence
+                       | !wizards_artist.#thomas_lawrence
+                       | !wizards_artist.#ernest_lawson
+                       | !wizards_artist.#bastien_lecouffe_deharme
+                       | !wizards_artist.#alan_lee
+                       | !wizards_artist.#minjae_lee
+                       | !wizards_artist.#nina_leen
+                       | !wizards_artist.#fernand_leger
+                       | !wizards_artist.#paul_lehr
+                       | !wizards_artist.#frederic_leighton
+                       | !wizards_artist.#alayna_lemmer
+                       | !wizards_artist.#tamara_de_lempicka
+                       | !wizards_artist.#sol_lewitt
+                       | !wizards_artist.#jc_leyendecker
+                       | !wizards_artist.#andre_lhote
+                       | !wizards_artist.#roy_lichtenstein
+                       | !wizards_artist.#rob_liefeld
+                       | !wizards_artist.#fang_lijun
+                       | !wizards_artist.#maya_lin
+                       | !wizards_artist.#filippino_lippi
+                       | !wizards_artist.#herbert_list
+                       | !wizards_artist.#richard_long
+                       | !wizards_artist.#yoann_lossel
+                       | !wizards_artist.#morris_louis
+                       | !wizards_artist.#sarah_lucas
+                       | !wizards_artist.#maximilien_luce
+                       | !wizards_artist.#loretta_lux
+                       | !wizards_artist.#george_platt_lynes
+                       | !wizards_artist.#frances_macdonald
+                       | !wizards_artist.#august_macke
+                       | !wizards_artist.#stephen_mackey
+                       | !wizards_artist.#rachel_maclean
+                       | !wizards_artist.#raimundo_de_madrazo_y_garreta
+                       | !wizards_artist.#joe_madureira
+                       | !wizards_artist.#rene_magritte
+                       | !wizards_artist.#jim_mahfood
+                       | !wizards_artist.#vivian_maier
+                       | !wizards_artist.#aristide_maillol
+                       | !wizards_artist.#don_maitz
+                       | !wizards_artist.#laura_makabresku
+                       | !wizards_artist.#alex_maleev
+                       | !wizards_artist.#keith_mallett
+                       | !wizards_artist.#johji_manabe
+                       | !wizards_artist.#milo_manara
+                       | !wizards_artist.#edouard_manet
+                       | !wizards_artist.#henri_manguin
+                       | !wizards_artist.#jeremy_mann
+                       | !wizards_artist.#sally_mann
+                       | !wizards_artist.#andrea_mantegna
+                       | !wizards_artist.#antonio_j_manzanedo
+                       | !wizards_artist.#robert_mapplethorpe
+                       | !wizards_artist.#franz_marc
+                       | !wizards_artist.#ivan_marchuk
+                       | !wizards_artist.#brice_marden
+                       | !wizards_artist.#andrei_markin
+                       | !wizards_artist.#kerry_james_marshall
+                       | !wizards_artist.#serge_marshennikov
+                       | !wizards_artist.#agnes_martin
+                       | !wizards_artist.#adam_martinakis
+                       | !wizards_artist.#stephan_martiniere
+                       | !wizards_artist.#ilya_mashkov
+                       | !wizards_artist.#henri_matisse
+                       | !wizards_artist.#rodney_matthews
+                       | !wizards_artist.#anton_mauve
+                       | !wizards_artist.#peter_max
+                       | !wizards_artist.#mike_mayhew
+                       | !wizards_artist.#angus_mcbride
+                       | !wizards_artist.#anne_mccaffrey
+                       | !wizards_artist.#robert_mccall
+                       | !wizards_artist.#scott_mccloud
+                       | !wizards_artist.#steve_mccurry
+                       | !wizards_artist.#todd_mcfarlane
+                       | !wizards_artist.#barry_mcgee
+                       | !wizards_artist.#ryan_mcginley
+                       | !wizards_artist.#robert_mcginnis
+                       | !wizards_artist.#richard_mcguire
+                       | !wizards_artist.#patrick_mchale
+                       | !wizards_artist.#kelly_mckernan
+                       | !wizards_artist.#angus_mckie
+                       | !wizards_artist.#alasdair_mclellan
+                       | !wizards_artist.#jon_mcnaught
+                       | !wizards_artist.#dan_mcpharlin
+                       | !wizards_artist.#tara_mcpherson
+                       | !wizards_artist.#ralph_mcquarrie
+                       | !wizards_artist.#ian_mcque
+                       | !wizards_artist.#syd_mead
+                       | !wizards_artist.#richard_meier
+                       | !wizards_artist.#maria_sibylla_merian
+                       | !wizards_artist.#willard_metcalf
+                       | !wizards_artist.#gabriel_metsu
+                       | !wizards_artist.#jean_metzinger
+                       | !wizards_artist.#michelangelo
+                       | !wizards_artist.#nicolas_mignard
+                       | !wizards_artist.#mike_mignola
+                       | !wizards_artist.#dimitra_milan
+                       | !wizards_artist.#john_everett_millais
+                       | !wizards_artist.#marilyn_minter
+                       | !wizards_artist.#januz_miralles
+                       | !wizards_artist.#joan_miro
+                       | !wizards_artist.#joan_mitchell
+                       | !wizards_artist.#hayao_miyazaki
+                       | !wizards_artist.#paula_modersohn_becker
+                       | !wizards_artist.#amedeo_modigliani
+                       | !wizards_artist.#moebius
+                       | !wizards_artist.#peter_mohrbacher
+                       | !wizards_artist.#piet_mondrian
+                       | !wizards_artist.#claude_monet
+                       | !wizards_artist.#jean_baptiste_monge
+                       | !wizards_artist.#alyssa_monks
+                       | !wizards_artist.#alan_moore
+                       | !wizards_artist.#antonio_mora
+                       | !wizards_artist.#edward_moran
+                       | !wizards_artist.#koji_morimoto
+                       | !wizards_artist.#berthe_morisot
+                       | !wizards_artist.#daido_moriyama
+                       | !wizards_artist.#james_wilson_morrice
+                       | !wizards_artist.#sarah_morris
+                       | !wizards_artist.#john_lowrie_morrison
+                       | !wizards_artist.#igor_morski
+                       | !wizards_artist.#john_kenn_mortensen
+                       | !wizards_artist.#victor_moscoso
+                       | !wizards_artist.#inna_mosina
+                       | !wizards_artist.#richard_mosse
+                       | !wizards_artist.#thomas_edwin_mostyn
+                       | !wizards_artist.#marcel_mouly
+                       | !wizards_artist.#emmanuelle_moureaux
+                       | !wizards_artist.#alphonse_mucha
+                       | !wizards_artist.#craig_mullins
+                       | !wizards_artist.#augustus_edwin_mulready
+                       | !wizards_artist.#dan_mumford
+                       | !wizards_artist.#edvard_munch
+                       | !wizards_artist.#alfred_munnings
+                       | !wizards_artist.#gabriele_munter
+                       | !wizards_artist.#takashi_murakami
+                       | !wizards_artist.#patrice_murciano
+                       | !wizards_artist.#scott_musgrove
+                       | !wizards_artist.#wangechi_mutu
+                       | !wizards_artist.#go_nagai
+                       | !wizards_artist.#hiroshi_nagai
+                       | !wizards_artist.#patrick_nagel
+                       | !wizards_artist.#tibor_nagy
+                       | !wizards_artist.#scott_naismith
+                       | !wizards_artist.#juliana_nan
+                       | !wizards_artist.#ted_nasmith
+                       | !wizards_artist.#todd_nauck
+                       | !wizards_artist.#bruce_nauman
+                       | !wizards_artist.#ernst_wilhelm_nay
+                       | !wizards_artist.#alice_neel
+                       | !wizards_artist.#keith_negley
+                       | !wizards_artist.#leroy_neiman
+                       | !wizards_artist.#kadir_nelson
+                       | !wizards_artist.#odd_nerdrum
+                       | !wizards_artist.#shirin_neshat
+                       | !wizards_artist.#mikhail_nesterov
+                       | !wizards_artist.#jane_newland
+                       | !wizards_artist.#victo_ngai
+                       | !wizards_artist.#william_nicholson
+                       | !wizards_artist.#florian_nicolle
+                       | !wizards_artist.#kay_nielsen
+                       | !wizards_artist.#tsutomu_nihei
+                       | !wizards_artist.#victor_nizovtsev
+                       | !wizards_artist.#isamu_noguchi
+                       | !wizards_artist.#catherine_nolin
+                       | !wizards_artist.#francois_de_nome
+                       | !wizards_artist.#earl_norem
+                       | !wizards_artist.#phil_noto
+                       | !wizards_artist.#georgia_okeeffe
+                       | !wizards_artist.#terry_oakes
+                       | !wizards_artist.#chris_ofili
+                       | !wizards_artist.#jack_ohman
+                       | !wizards_artist.#noriyoshi_ohrai
+                       | !wizards_artist.#helio_oiticica
+                       | !wizards_artist.#taro_okamoto
+                       | !wizards_artist.#tim_okamura
+                       | !wizards_artist.#naomi_okubo
+                       | !wizards_artist.#atelier_olschinsky
+                       | !wizards_artist.#greg_olsen
+                       | !wizards_artist.#oleg_oprisco
+                       | !wizards_artist.#tony_orrico
+                       | !wizards_artist.#mamoru_oshii
+                       | !wizards_artist.#ida_rentoul_outhwaite
+                       | !wizards_artist.#yigal_ozeri
+                       | !wizards_artist.#gabriel_pacheco
+                       | !wizards_artist.#michael_page
+                       | !wizards_artist.#rui_palha
+                       | !wizards_artist.#polixeni_papapetrou
+                       | !wizards_artist.#julio_le_parc
+                       | !wizards_artist.#michael_parkes
+                       | !wizards_artist.#philippe_parreno
+                       | !wizards_artist.#maxfield_parrish
+                       | !wizards_artist.#alice_pasquini
   | !wizards_artist.#james_mcintosh_patrick
   | !wizards_artist.#john_pawson
   | !wizards_artist.#max_pechstein
