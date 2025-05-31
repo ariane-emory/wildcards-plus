@@ -8807,30 +8807,27 @@ const TestFlag                     = choice(
   CheckFlagWithSetConsequent,
   NotFlagWithSetConsequent,
 );
-const bat_TopLevelTestFlag = 
+const bad_TopLevelTestFlag = 
       (rule, input, index) =>
-      new FatalParseError("%include is only supported when " +
-                          `using wildcards-plus-tool.js, ` +
-                          `NOT when ` +
-                          "running the wildcards-plus.js script " +
-                          "inside Draw Things",
-                          input, index - 1);
+      new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
+                          `serve no purpose and so are not permitted`,
+                          input, index);
 const TopLevelTestFlag             = choice(
-  unexpected(SimpleCheckFlag),
-  unexpected(SimpleNotFlag),
-  unexpected(CheckFlagWithOrAlternatives),
+  unexpected(SimpleCheckFlag, bad_TopLevelTestFlag),
+  unexpected(SimpleNotFlag, bad_TopLevelTestFlag),
+  unexpected(CheckFlagWithOrAlternatives, bad_TopLevelTestFlag),
   xform(CheckFlagWithSetConsequent,
         flag => {
           //lm.log(`cfwsc flag: ${compress(inspect_fun(flag))}`);
           const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
-          lm.log(`cfwsc ret:  ${inspect_fun(ret)}`);
+          // lm.log(`cfwsc ret:  ${inspect_fun(ret)}`);
           return ret;
         }),
   xform(NotFlagWithSetConsequent,
         flag => {
           //lm.log(`nfwsc flag: ${compress(inspect_fun(flag))}`);
           const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
-          lm.log(`nfwsc ret:  ${inspect_fun(ret)}`);
+          // lm.log(`nfwsc ret:  ${inspect_fun(ret)}`);
           return ret;
         })
 );
