@@ -8710,7 +8710,7 @@ const SpecialFunctionSetPickSingle =
                         choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
                         TrailingCommentFollowedBySemicolonOrWordBreak))); 
 const SpecialFunctionSetPickMultiple =
-      xform(arr => new ASTSetPickSingle(arr[1][1]),
+      xform(arr => new ASTSetPickMultiple(arr[1][1]),
             seq('multi-pick',                                            // [0]
                 discarded_comments,                                      // -
                 wst_seq(equals,                                          // [1][0]
@@ -8739,7 +8739,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                 discarded_comments,                                                 // -
                 wst_cutting_seq(choice(plus_equals, equals),                        // [1][0]
                                 discarded_comments,                                 // -
-                                choice(rJsoncObject, () => LimitedContentNoSemis), // [1][1]
+                                choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
                                 TrailingCommentFollowedBySemicolonOrWordBreak)));
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
