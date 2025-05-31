@@ -8012,6 +8012,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       `${context}`);
 
   const walked = lm.indent(() => walk(thing));
+  lm.indent(() => context.munge_configuration());
+  const ret = lm.indent(() => unescape(smart_join(walked)));
 
   // if (walked === '""' ||
   //     walked === "''" ||
@@ -8019,10 +8021,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
   //     walked?.includes("''"))
   //   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
 
-  const ret = lm.indent(() => unescape(smart_join(walked)));
 
-  lm.indent(() => context.munge_configuration());
-  
   log(log_expand_and_walk_enabled,
       `expanded into ${inspect_fun(ret)}`);
   
