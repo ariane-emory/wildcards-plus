@@ -8703,19 +8703,19 @@ const UnexpectedSpecialFunctionInclude =
                                      input, index - 1));
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single-pick',                                        // [0]
-                discarded_comments,                                   // -
-                wst_seq(equals,                                       // [1][0]
-                        discarded_comments,                           // -
+            seq('single-pick',                                               // [0]
+                discarded_comments,                                          // -
+                wst_seq(equals,                                              // [1][0]
+                        discarded_comments,                                  // -
                         choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
                         TrailingCommentFollowedBySemicolonOrWordBreak))); 
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
-            seq('multi-pick',                                            // [0]
-                discarded_comments,                                      // -
-                wst_seq(equals,                                          // [1][0]
-                        discarded_comments,                              // -
-                        choice(() => LimitedContentNoSemis, lc_alpha_snake),    // [1][1]
+            seq('multi-pick',                                                // [0]
+                discarded_comments,                                          // -
+                wst_seq(equals,                                              // [1][0]
+                        discarded_comments,                                  // -
+                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
                         TrailingCommentFollowedBySemicolonOrWordBreak))); 
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
