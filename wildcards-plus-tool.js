@@ -713,11 +713,11 @@ class Quantified extends Rule {
       : [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule            = this.__vivify(this.rule);
     this.separator_rule  = this.__vivify(this.separator_rule);
-    logger_manager.indent(() => this.rule.__finalize(indent + 1, visited));
-    logger_manager.indent(() => this.separator_rule?.__finalize(indent + 1, visited));
+    logger_manager.indent(() => this.rule.__finalize(visited));
+    logger_manager.indent(() => this.separator_rule?.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __quantified_match(indent, input, index, cache) {
@@ -955,9 +955,9 @@ class Discard extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);    
-    this.rule?.__finalize(indent + 1, visited);
+    logger_manager.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
@@ -1001,9 +1001,9 @@ class Element extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);
-    this.rule.__finalize(indent + 1, visited);
+    logger_manager.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
@@ -1312,10 +1312,10 @@ class Optional extends Rule {
     return match_result;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);
     
-    this.rule.__finalize(indent + 1, visited);
+    logger_manager.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -1351,10 +1351,10 @@ class Sequence extends Rule {
     return null;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     for (let ix = 0; ix < this.elements.length; ix++) {
       this.elements[ix] = this.__vivify(this.elements[ix]);
-      this.elements[ix].__finalize(indent + 1, visited);
+      logger_manager.indent(() => this.elements[ix].__finalize(visited));
     }
   }
   // -----------------------------------------------------------------------------------------------
@@ -1634,9 +1634,9 @@ class Unexpected extends Rule {
     return null; // new MatchResult(null, input, match_result.index);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);    
-    this.rule.__finalize(indent + 1, visited);
+    logger_manager.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
