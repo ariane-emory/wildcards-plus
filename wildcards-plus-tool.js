@@ -2889,8 +2889,15 @@ class WeightedPicker {
   pick(min_count = 1, max_count = min_count,
        allow_if = always, forbid_if = never,
        priority = null) {
-    if (! priority)
-      throw new Error("no priority");
+    if (!(typeof min_count === 'number'   && 
+          typeof max_count === 'number'   &&
+          typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
+
+    // if (! priority)
+    //   throw new Error("no priority");
 
     if ((min_count > 1 || max_count > 1) && 
         priority === picker_priority.avoid_repetition_short)
@@ -2999,6 +3006,11 @@ class WeightedPicker {
   };
   // -----------------------------------------------------------------------------------------------
   #pick_one(allow_if, forbid_if, priority) {
+    if (!(typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad #pick_one arge: ${inspect_fun(arguments)}`);
+    
     if (log_picker_enabled) {
       lm.log(`PICK ONE =================================================================================`);
       lm.log(`PRIORITY        = ${inspect_fun(priority)}`);
