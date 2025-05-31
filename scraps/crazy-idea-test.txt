@@ -1,0 +1,4 @@
+FOO
+$this = foo, bar, baz,;
+BAR
+look at $this!

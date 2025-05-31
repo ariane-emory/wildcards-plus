@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --expose-gc
 // -*- fill-column: 100; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 // THIS FILE IS NOT THE DRAW THINGS SCRIPT: that's over in wildcards-plus.js.
@@ -58,8 +58,54 @@ function ask(question) {
 // -------------------------------------------------------------------------------------------------
 function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
-  const result       = Prompt.match(prompt_input);
+  const cache        = new Map();
+  const old_log_match_enabled = log_match_enabled;
+  // log_match_enabled  = true;
+  let  result        = null;
 
+  if (dt_hosted) {
+    result = Prompt.match(prompt_input, 0, 0, cache);
+  }
+  else {
+    try {
+      result = Prompt.match(prompt_input, 0, cache);
+    }
+    catch (err) {
+      if (err instanceof FatalParseError) {
+        console.log(`ERROR: matching threw fatal parse error, ` +
+                    `halting: \n` +
+                    `${inspect_fun(err)}`);
+      }
+      else {
+        throw err;
+      }
+    }
+  }
+
+  log_match_enabled  = old_log_match_enabled;
+  
+  const sortedEntries = Array.from(cache.entries())
+        .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
+
+  let total = 0;
+
+  for (const [rule, ruleCache] of sortedEntries) {
+    lm.log(`${rule.toString()}: ` +
+           `${format_pretty_number(ruleCache.size)}`);
+    total += ruleCache.size;
+  }
+
+  if (sortedEntries.length > 0)
+    lm.log(`Total: ${format_pretty_number(total)}`);
+  
+  // check that the parsed result is complete;
+  if (! result.is_finished)
+    throw new Error(`did not finish parsing prompt ` +
+                    `at char #${result.index}, ` +
+                    `unparsed input:\n` +
+                    `${abbreviate(prompt_input.substring(result.index))}\n` +
+                    `matched:\n` +
+                    `${inspect_fun(result)}`);  
   return result;
 }
 // -------------------------------------------------------------------------------------------------
@@ -137,12 +183,12 @@ function save_post_request(options, data) {
 
   try {
     fs.writeFileSync(filename, file_data);
-    console.log(`Saved  POST data.`);
+    console.log(`Saved POST data.`);
     
     return true;
   }
   catch (err) {
-    console.error(`ERROR WHILE SAVING: ${err}`);
+    console.error(`ERROR WHILE SAVING POST REQUEST: ${err}`);
 
     return false;
   }
@@ -163,7 +209,7 @@ function process_includes(thing, context = new Context()) {
         filename = path.join(path.dirname(current_file), filename);
         
         if (context.files.includes(filename)) {
-          console.log(`WARNING: skipping duplicate include of '${filename}'.`);
+          lm.log(`WARNING: skipping duplicate include of '${filename}'.`);
           continue;
         }
 
@@ -206,7 +252,7 @@ let inspect_fun           = (thing, no_break = false) =>
     util.inspect(thing,
                  { breakLength: (no_break ? Infinity: 80),
                    maxArrayLength: Infinity,
-                   depth: 2,
+                   depth: inspect_depth,
                  });
 let dt_hosted             = false;
 // dt_hosted                 = true; // lie for testing purposes.
@@ -231,12 +277,10 @@ if (false)
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
 let abbreviate_str_repr_enabled       = true;
-let fire_and_forget_post_enabled      = true;
-let unnecessary_choice_is_error       = false;
-let print_ast_enabled                 = false;
-let print_ast_json_enabled            = false;
-let log_enabled                       = true;
+let fire_and_forget_post_enabled      = false;
+let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
+let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
@@ -244,13 +288,14 @@ let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
-let log_expand_and_walk_enabled       = false;  
-let disable_prelude                   = false;
+let prelude_disabled                  = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
+let print_ast_then_die                = false;
+let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
+let unnecessary_choice_is_error       = false;
 // =================================================================================================
-
 
 
 // =================================================================================================
@@ -261,6 +306,110 @@ Array.prototype.toString = function() {
 }
 // =================================================================================================
 
+
+// =================================================================================================
+// new logger class:
+// =================================================================================================
+class Logger {
+  constructor(indent = 0, indent_str = '| ') {
+    this.indent     = indent;
+    this.indent_str = indent_str;
+  }
+  // -----------------------------------------------------------------------------------------------
+  error(thing = '', with_indent = true) {
+    console.error(this.indent_thing(thing, with_indent));
+  }
+  // -----------------------------------------------------------------------------------------------
+  log(thing = '', with_indent = true) {
+    console.log(this.indent_thing(thing, with_indent));
+  }
+  // -----------------------------------------------------------------------------------------------
+  indent_lines(str) {
+    if (typeof str !== 'string')
+      throw new Error(`not a string: ${inspect.fun(str)}`);
+    
+    const indent_string = this.indent_str.repeat(this.indent);
+    const indented_str  = str
+          .split("\n")
+          .map(line => `${indent_string}${line}`)
+          .join("\n");
+
+    return indented_str;
+  }
+  // -----------------------------------------------------------------------------------------------
+  indent_thing(thing, with_indent = true) {
+    return with_indent
+      ? `${this.indent_lines(thing.toString())}`
+      : thing.toString();
+  }
+  // -----------------------------------------------------------------------------------------------
+  nest(indent_addend = 1) {
+    return new Logger(this.indent + indent_addend, this.indent_str);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+const lm = { // logger manager
+  stack: [],
+  // -----------------------------------------------------------------------------------------------
+  get logger() {
+    if (this.stack.length == 0) {
+      const new_logger = new Logger(0);
+      this.stack.push(new_logger);
+      return new_logger;
+    }
+    return this.stack[this.stack.length - 1];
+  },
+  // -----------------------------------------------------------------------------------------------
+  error(...args) {
+    this.logger.error(...args);    
+  },
+  // -----------------------------------------------------------------------------------------------
+  log(...args) {
+    this.logger.log(...args);
+  },
+  // -----------------------------------------------------------------------------------------------
+  indent(fn) {
+    return this.__indent(fn, 1);
+  },
+  // -----------------------------------------------------------------------------------------------
+  indent2(fn) {
+    return this.__indent(fn, 2);
+  },
+  // -----------------------------------------------------------------------------------------------
+  __indent(fn, indent_addend) {
+    if (typeof indent_addend !== 'number')
+      throw new Error(`not a number: ${inspect_fun(indent_addend)}`);
+    
+    this.stack.push(this.logger.nest(indent_addend));
+
+    try {
+      return fn();
+    }
+    finally {
+      this.stack.pop();
+    }
+  },
+  // -----------------------------------------------------------------------------------------------
+  indent_and_log(...args) {
+    this.indent(() => this.log(...args));
+  }
+}
+// -------------------------------------------------------------------------------------------------
+if (false) {
+  lm.log("Top level");
+  lm.indent(() => {
+    lm.log("2nd level");
+    lm.indent(() => {
+      lm.log("3rd level");
+    });
+    lm.log("Back at 2nd level");
+  });
+
+  lm.log("Back at top level");
+
+  process.exit(0);
+}
+// =================================================================================================
 
 
 // =================================================================================================
@@ -281,18 +430,18 @@ Array.prototype.toString = function() {
 //         |
 //         |-- Choice
 //         |-- Enclosed ------- CuttingEnclosed
-//         |-- NeverMatch
 //         |-- Optional
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
+//         |
+//         |-- (Quantified) -|-- Plus
+//         |                 |-- Star
 //         |
 //         | Rules triggering failure:
 //         |-- Expected
 //         |-- Unexpected
 //         |-- Fail
-//         |
-//         |-- (Quantified) -|-- Plus
-//         |                 |-- Star
+//         |-- NeverMatch (non-fatal)
 //         |
 //         | Technically these next 3 could be implemented as Xforms, but 
 //         | they're very convenient to have built-in (and are possibly faster
@@ -311,7 +460,7 @@ Array.prototype.toString = function() {
 //         |
 //         |-- Literal
 //         |-- Regex
-//         |
+//
 // ForwardReference (only needed when calling xform with a weird arg order)
 // LabeledValue
 // MatchResult
@@ -334,7 +483,7 @@ const trailing_separator_modes = Object.freeze({
 // FatalParseError class
 // -------------------------------------------------------------------------------------------------
 function __format_FatalParseError_message(message_body, input, index) {
-  return `${message_body} at char #${index}, ` +
+  return `${message_body} \nat char #${index}, ` +
     `found:\n` +
     `${abbreviate(input.substring(index))}`;
 }
@@ -360,8 +509,13 @@ class FatalParseError extends Error {
 // -------------------------------------------------------------------------------------------------
 class Rule {
   // -----------------------------------------------------------------------------------------------
+  constructor() {
+    // this.memoize     = false;
+    // this.abbreviated = false;
+  }
+  // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
-    if (this.__abbreviated)
+    if (this.abbreviated)
       throw new Error(`${inspect_fun(this)} is already abbreviated, this likely a programmer error`);
     
     if (! abbreviate_str_repr_enabled)
@@ -370,16 +524,15 @@ class Rule {
     if (str)
       this.__impl_toString = () => str;
     
-    this.__direct_children = () => [];
-    this.__abbreviated     = true;
-    this.memoize           = true;
+    // this.__direct_children = () => [];
+    this.abbreviated       = true;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
     const ret = this.__direct_children();
 
     if (ret.includes(undefined))
-      throw new Error(`__direct_children ` +
+      throw new Error(`direct_children ` +
                       `${inspect_fun(ret)} ` +
                       `included undefined for ` +
                       `${inspect_fun(this)}`);
@@ -399,22 +552,29 @@ class Rule {
 
     ref_counts.set(this, 1);
 
-    for (const direct_child of this.direct_children()) {
-      // console.log(`direct_child = ${inspect_fun(direct_child)}`);
-      this.__vivify(direct_child).collect_ref_counts(ref_counts);
-    }
+    if (! this.abbreviated)
+      for (const direct_child of this.direct_children()) {
+        // lm.log(`direct_child = ${inspect_fun(direct_child)}`);
+        this.__vivify(direct_child).collect_ref_counts(ref_counts);
+      }
 
     return ref_counts;
   }
   // -----------------------------------------------------------------------------------------------
-  finalize(indent = 0) {
-    this.__finalize(indent, new Set());
+  finalize(unexpected) {
+    if (unexpected !== undefined)
+      throw new Error("bad args");
+    
+    this.__finalize(new Set());
   }
   // -----------------------------------------------------------------------------------------------
-  __finalize(indent, visited) {
+  __finalize(visited, unexpected) {
+    if (unexpected !== undefined || ! (visited instanceof Set))
+      throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, ${unexpected})`);
+    
     if (visited.has(this)) {
       if (log_finalize_enabled)
-        log(indent, `skipping ${this}.`);
+        lm.log(`skipping ${this}.`);
 
       return;
     }
@@ -422,19 +582,24 @@ class Rule {
     visited.add(this);
 
     if (log_finalize_enabled)
-      log(indent, `finalizing ${this}...`);
+      lm.log(`finalizing ${this}...`);
 
-    this.__impl_finalize(indent, visited);
+    this.__impl_finalize(visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
+    if (unexpected !== undefined)
+      throw new Error("bad args");
+    
     throw new Error(`__impl_finalize is not implemented by ${this.constructor.name}`);    
   }
   // -----------------------------------------------------------------------------------------------
-  match(input, index = 0, indent = 0, cache = new Map()) {
-    if (typeof input !== 'string') {
+  match(input, index = 0, cache = new Map()) {
+    if (! (cache instanceof Map))
+      throw new Error("bad args");
+    
+    if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
-    }
     
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
@@ -442,45 +607,40 @@ class Rule {
             `Matching ${this.constructor.name} ${this.toString()}, ` +
             `but at end of input!`);
       else 
-        log(indent,
-            `Matching ${this.constructor.name} ${this.toString()} at ` +
-            `char ${index}, ` +
-            `token #${index}: ` +
-            `${abbreviate(input.substring(index))}`)
+        lm.log(`Matching ` +
+               // `${this.constructor.name} `+
+               `${abbreviate(this.toString())} at ` +
+               `char #${index}: ` +
+               `'${abbreviate(input.substring(index))}'`);
     }
-    // if (cache.has(rule)) {
-    //   const ruleCache = cache.get(rule);
-    //   if (ruleCache.has(index)) {
-    //     return ruleCache.get(index); // Return memoized result
-    //   }
-    // } else {
-    //   cache.set(rule, new Map());
-    // }
-
-    let rule_cache = cache.get(this);
+    
+    let rule_cache = null;
 
     if (this.memoize) {
+      rule_cache = cache.get(this);
+      
       if (rule_cache) {
         const got = rule_cache.get(index);
 
         if (got !== undefined) {
-          // console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
+          // lm.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
           return got;
         }
       }
       else {
-        // console.log(`init Map for ${this}`);
-        rule_cache = cache.set(this, new Map());
+        // lm.log(`init cache for rule ${this}`);
+        rule_cache = new Map();
+        cache.set(this, rule_cache);
       }
     }
     
-    const ret = this.__match(indent, input, index, cache);
+    const ret = this.__match(input, index, cache);
 
     if (ret && ret?.value === undefined) {
       throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
                       `this is likely a programmer error`);
     }
-    
+
     rule_cache?.set(index, ret);
 
     // if (ret && ret?.value === null) {
@@ -489,20 +649,22 @@ class Rule {
     // }
     
     if (log_match_enabled) {
-      if (ret)
-        log(indent,
-            `<= ${this.constructor.name} ${this.toString()} returned: ` +
-            `${JSON.stringify(ret)}`);
-      else
-        log(indent,
-            `<= Matching ${this.constructor.name} ` +
-            `${this.toString()} returned null.`);
+      // if (ret)
+      lm.log(`<= ${this.constructor.name} ${this.toString()} ` +
+             `returned: ${compress(inspect_fun(ret))}`);
+      // else
+      //   log(indent,
+      //       `<= Matching ${this.constructor.name} ${this.toString()} ` +
+      //       `returned null.`);
     }
 
     return ret;
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
+    if (! (cache instanceof Map))
+      throw new Error("bad args");
+
     throw new Error(`__match is not implemented by ${this.constructor.name}`);
   }
   // -----------------------------------------------------------------------------------------------
@@ -511,14 +673,14 @@ class Rule {
     const next_id    = { value: 0 };
 
     // if (ref_counts.size > 0) {
-    //   console.log(`REF_COUNTS:`);
-    //   console.log('{');
+    //   lm.log(`REF_COUNTS:`);
+    //   lm.log('{');
     
     //   for (const [key, value] of ref_counts)
-    //     console.log(`  ${inspect_fun(key, true)} ` +
+    //     lm.log(`  ${inspect_fun(key, true)} ` +
     //                 `=> ${value},`);
     
-    //   console.log('}');
+    //   lm.log('}');
     // }
     
     return this.__toString(new Map(), next_id, ref_counts).replace('() => ', '');
@@ -532,15 +694,11 @@ class Rule {
           .__impl_toString(visited, next_id, ref_counts)
           .replace('() => ', '');
     
-    if (this.direct_children().length == 0) {
-      return abbreviate(__call_impl_toString(), 32);
-      // return __call_impl_toString();
-    }
+    if (this.abbreviated || this.direct_children().length == 0)
+      return abbreviate(__call_impl_toString(), 64);
     
-    if (visited.has(this)) {
-      const got_id = visited.get(this);
+    if (visited.has(this)) 
       return `#${visited.get(this)}#`;
-    }
 
     // mark as visited (but not yet emitted)
     visited.set(this, NaN);
@@ -598,14 +756,17 @@ class Quantified extends Rule {
       : [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule            = this.__vivify(this.rule);
     this.separator_rule  = this.__vivify(this.separator_rule);
-    this.rule           .__finalize(indent + 1, visited);
-    this.separator_rule?.__finalize(indent + 1, visited);
+    lm.indent(() => this.rule.__finalize(visited));
+    lm.indent(() => this.separator_rule?.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __quantified_match(indent, input, index, cache) {
+  __quantified_match(input, index, cache) {
+    if (! (cache instanceof Map))
+      throw new Error("bad args");
+    
     const values        = [];
     let prev_index      = null;
     const rewind_index  = ()   => index = prev_index;
@@ -614,12 +775,10 @@ class Quantified extends Rule {
       index      = ix;
     };
 
-    indent += 1;
-
-    let match_result = this.rule.match(input, index, indent + 1, cache);
+    let match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (match_result === undefined)
-      throw new Error("math_result === undefined, this likely indicated a programmer error");
+      throw new Error("match_result === undefined, this likely indicated a programmer error");
     
     if (match_result === false)
       throw new Error("math_result === false, this likely indicated a programmer error");
@@ -636,10 +795,10 @@ class Quantified extends Rule {
     while (true) {
       if (this.separator_rule) {
         if (log_match_enabled)
-          log(indent,
-              `Matching separator rule ${this.separator_rule}...`);
+          lm.log(`Matching separator rule ${this.separator_rule}...`);
         
-        const separator_match_result = this.separator_rule.match(input, index, indent + 1, cache);
+        const separator_match_result =
+              lm.indent(() => this.separator_rule.match(input, index, cache));
 
         if (! separator_match_result) {
           // required mode stuff:
@@ -650,20 +809,18 @@ class Quantified extends Rule {
           }
 
           if (log_match_enabled)
-            log(indent,
-                `did NOT Match separator rule ${this.separator_rule}...`);
+            lm.log(`did NOT Match separator rule ${this.separator_rule}...`);
           
           break;
         }
 
         if (log_match_enabled)
-          log(indent,
-              `matched separator rule ${this.separator_rule}...`);
+          lm.log(`matched separator rule ${this.separator_rule}...`);
 
         update_index(separator_match_result.index);
       } // end of if (this.separator_rule)
 
-      match_result = this.rule.match(input, index, indent + 1, cache);
+      match_result = lm.indent(() => this.rule.match(input, index, cache));
 
       if (! match_result) {
         if (this.separator_rule) {
@@ -693,8 +850,8 @@ class Quantified extends Rule {
 // -------------------------------------------------------------------------------------------------
 class Plus extends Quantified {
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const __quantified_match_result = this.__quantified_match(indent, input, index, cache);
+  __match(input, index, cache) {
+    const __quantified_match_result = lm.indent(() => this.__quantified_match(input, index, cache));
 
     return __quantified_match_result?.value.length > 0
       ? __quantified_match_result
@@ -723,8 +880,8 @@ function plus(rule, // convenience constructor
 // -------------------------------------------------------------------------------------------------
 class Star extends Quantified {
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    return this.__quantified_match(indent, input, index, cache);
+  __match(input, index, cache) {
+    return this.__quantified_match(input, index, cache);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -758,23 +915,26 @@ class Choice extends Rule  {
     return this.options;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     for (let ix = 0; ix < this.options.length; ix++) {
       this.options[ix] = this.__vivify(this.options[ix]);
-      this.options[ix].__finalize(indent + 1, visited);
+      lm.indent(() => this.options[ix].__finalize(visited));
     }
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     let ix = 0;
     
     for (const option of this.options) {
       ix += 1;
       
       if (log_match_enabled)
-        log(indent + 1, `Try option #${ix}: ${option}`);
+        lm.indent(() =>
+          lm.log(`Try option #${ix} ${option} ` +
+                 `at char #${index}: ` +
+                 `'${abbreviate(input.substring(index))}'`));
       
-      const match_result = option.match(input, index, indent + 2, cache);
+      const match_result = lm.indent(() => option.match(input, index, cache));
       
       if (match_result) { 
         // if (match_result.value === DISCARD) {
@@ -784,13 +944,17 @@ class Choice extends Rule  {
         // }
 
         if (log_match_enabled)
-          log(indent + 1, `Chose option #${ix}!`);
+          lm.indent(() =>
+            lm.log(`Chose option #${ix}, ` +
+                   `now at char #${match_result.index}: ` +
+                   `'${abbreviate(input.substring(match_result.index))}'`));
         
         return match_result;
       }
 
       if (log_match_enabled)
-        log(indent + 1, `Rejected option #${ix}.`);
+        lm.indent(() =>
+          lm.log(`Rejected option #${ix}.`));
     }
 
     return null;
@@ -836,23 +1000,23 @@ class Discard extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);    
-    this.rule?.__finalize(indent + 1, visited);
+    lm.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     if (! this.rule)
       return new MatchResult(null, input, index);
     
-    const match_result = this.rule.match(input, index, indent + 1, cache);
+    const match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (! match_result)
       return null;
 
     const mr = new MatchResult(DISCARD, input, match_result.index);
 
-    // console.log(`MR: ${inspect_fun(mr)}`);
+    // lm.log(`MR: ${inspect_fun(mr)}`);
     
     return mr;
   } 
@@ -882,13 +1046,13 @@ class Element extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);
-    this.rule.__finalize(indent + 1, visited);
+    lm.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
+  __match(input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, cache);
 
     if (! rule_match_result)
       return null;
@@ -903,10 +1067,10 @@ class Element extends Rule {
           ? DISCARD
           : rule_match_result.value[this.index];
     
-    if (log_match_enabled) {
-      log(indent, `GET ELEM ${this.index} FROM ${inspect_fun(rule_match_result.value)} = ` +
-          `${typeof ret === 'symbol' ? ret.toString() : inspect_fun(ret)}`);
-    }
+    if (log_match_enabled) 
+      lm.log(`get elem ${this.index} from ` +
+             `${compress(inspect_fun(rule_match_result.value))} = ` +
+             `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
     
     rule_match_result.value = ret;
     
@@ -935,7 +1099,7 @@ function first(rule) {
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-    return `1st(${rule_str})`;
+    return `first(${rule_str})`;
     // return `first(${rule_str})`;
   }
   
@@ -950,7 +1114,7 @@ function second(rule) {
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-    return `2nd(${rule_str})`;
+    return `second(${rule_str})`;
     // return `second(${rule_str})`;
   }
   
@@ -965,7 +1129,7 @@ function third(rule) {
     // const rule_str = rule.__toString(visited, next_id, ref_counts);
     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
 
-    return `3rd(${rule_str})`;
+    return `third(${rule_str})`;
     // return `third(${rule_str})`;
   }
   
@@ -1005,24 +1169,24 @@ class Enclosed extends Rule {
     return null;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.start_rule = this.__vivify(this.start_rule);
     this.body_rule  = this.__vivify(this.body_rule);
     this.end_rule   = this.__vivify(this.end_rule);
-    this.start_rule.__finalize(indent + 1, visited);
-    this.body_rule.__finalize(indent + 1, visited);
-    this.end_rule.__finalize(indent + 1, visited);
+    lm.indent(() => this.start_rule.__finalize(visited));
+    lm.indent(() => this.body_rule .__finalize(visited));
+    lm.indent(() => this.end_rule  .__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     const start_rule_match_result =
-          this.start_rule.match(input, index, indent + 1, cache);
+          lm.indent(() => this.start_rule.match(input, index, cache));
 
     if (! start_rule_match_result)
       return null;
 
     const body_rule_match_result =
-          this.body_rule.match(input, start_rule_match_result.index, indent + 1, cache);
+          lm.indent(() => this.body_rule.match(input, start_rule_match_result.index, cache));
 
     if (! body_rule_match_result)
       return this.__fail_or_throw_error(start_rule_match_result,
@@ -1031,7 +1195,7 @@ class Enclosed extends Rule {
                                         start_rule_match_result.index);
 
     const end_rule_match_result =
-          this.end_rule.match(input, body_rule_match_result.index, indent + 1, cache);
+          lm.indent(() => this.end_rule.match(input, body_rule_match_result.index, cache));
 
     if (! end_rule_match_result)
       return this.__fail_or_throw_error(start_rule_match_result,
@@ -1068,7 +1232,7 @@ class CuttingEnclosed extends Enclosed {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#1) ` +
-      `expected (${this.body_rule} ${this.end_rule}) ` +
+      `CuttingEnclosed expected [${this.body_rule} ${this.end_rule}] ` +
         `after ${this.start_rule}`,
       input, start_rule_result.index);
   }
@@ -1103,10 +1267,10 @@ class Label extends Rule {
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     this.rule = this.__vivify(this.rule);
-    this.rule.__finalize(indent + 1, visited);
+    lm.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     const rule_match_result = this.rule.match(input, index, indent, cache);
 
     if (! rule_match_result)
@@ -1146,7 +1310,7 @@ class NeverMatch extends Rule  {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     return null;
   } 
   // -----------------------------------------------------------------------------------------------
@@ -1173,8 +1337,8 @@ class Optional extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const match_result = this.rule.match(input, index, indent + 1, cache);
+  __match(input, index, cache) {
+    const match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (match_result === null) {
       const mr = new MatchResult(this.default_value !== null
@@ -1183,7 +1347,7 @@ class Optional extends Rule {
                                  input, index);
 
       if (log_match_enabled)
-        log(indent, `returning default ${inspect_fun(mr)}`);
+        lm.log(`returning default ${inspect_fun(mr)}`);
 
       return mr;
     }
@@ -1193,10 +1357,10 @@ class Optional extends Rule {
     return match_result;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);
     
-    this.rule.__finalize(indent + 1, visited);
+    lm.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -1216,6 +1380,10 @@ class Sequence extends Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(...elements) {
     super();
+
+    if (elements.length == 0)
+      throw new Error("empty sequence");
+    
     this.elements = elements.map(make_rule_func);
   }
   // -----------------------------------------------------------------------------------------------
@@ -1228,46 +1396,53 @@ class Sequence extends Rule {
     return null;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     for (let ix = 0; ix < this.elements.length; ix++) {
       this.elements[ix] = this.__vivify(this.elements[ix]);
-      this.elements[ix].__finalize(indent + 1, visited);
+      lm.indent(() => this.elements[ix].__finalize(visited));
     }
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      log(indent + 1, `matching first sequence item #0 out of ` +
-          `${this.elements.length}: ${this.elements[0]}...`);
+      lm.indent_and_log(`matching first sequence element #1 out of ` +
+                        `${this.elements.length}: ${this.elements[0]} ` +
+                        `at char #${index} ` +
+                        `at '${abbreviate(input.substring(index))}'`);
     
     const start_rule_match_result =
-          this.elements[0].match(input, index, indent + 2, cache);
+          lm.indent2(() => this.elements[0].match(input, index, cache));
+    
     let last_match_result = start_rule_match_result;
 
-    if (log_match_enabled && last_match_result !== null)
-      log(indent + 1, `first last_match_result = ${inspect_fun(last_match_result)}`);
+    // if (log_match_enabled && last_match_result !== null)
+    //   log(indent + 1, `first last_match_result = ${abbreviate(inspect_fun(last_match_result))}`);
     
     if (last_match_result === null) {
       if (log_match_enabled)
-        log(indent + 1, `did not match sequence item #1.`);
+        lm.indent(() =>
+          lm.log(`did not match sequence element #1.`));
       return null;
     }
 
-    if (log_match_enabled)
-      log(indent + 1, `matched sequence item #0: ` +
-          `${JSON.stringify(last_match_result)}.`);
-    
     const values = [];
     index        = last_match_result.index;
 
     if (log_match_enabled)
-      log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
+      lm.indent_and_log(`matched first sequence element #1: ` +
+                        `${compress(inspect_fun(last_match_result))}, ` +
+                        `now at char #${index}: ` +
+                        `'${abbreviate(input.substring(index))}'`);
+
+    // if (log_match_enabled)
+    //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
-        log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+        lm.indent_and_log(`seq pushing first item ` +
+                          `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
 
       values.push(last_match_result.value);
 
@@ -1275,31 +1450,38 @@ class Sequence extends Rule {
       //   throw new Error("STOP @ PUSH 1");
     }
     else if (log_match_enabled)
-      log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
+      lm.indent(() => lm.log( `discarding ${inspect_fun(last_match_result)}!`));
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        log(indent + 1, `matching sequence item #${ix} out of ` +
-            `${this.elements.length}: ${this.elements[ix]}...`);
+        lm.indent_and_log(`matching sequence element #${ix+ 1} out of ` +
+                          `${this.elements.length}: ${this.elements[ix]} ` +
+                          `at char #${index}: ` +
+                          `'${abbreviate(input.substring(index))}'`);
       
       const element = this.elements[ix];
 
-      last_match_result = element.match(input, index, indent + 2, cache);
+      last_match_result = lm.indent2(() => element.match(input, index, cache));
 
       if (! last_match_result) {
         if (log_match_enabled)
-          log(indent + 1, `did not match sequence item #${ix}.`);
+          lm.indent_and_log(`did not match sequence item #${ix}.`);
+        
         return this.__fail_or_throw_error(start_rule_match_result,
                                           last_match_result,
                                           input, index);
       }
 
       if (log_match_enabled)
-        log(indent + 1, `matched sequence item #${ix}.`);
+        lm.indent_and_log(`matched sequence element #${ix+1}: ` +
+                          `${compress(inspect_fun(last_match_result))}, ` +
+                          `now at char #${last_match_result.index}: ` +
+                          `'${abbreviate(input.substring(last_match_result.index))}'`);
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
-          log(indent + 1, `seq pushing ${inspect_fun(last_match_result.value)}`);
+          lm.indent_and_log(`seq pushing ` +
+                            `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
 
         values.push(last_match_result.value);
 
@@ -1314,7 +1496,7 @@ class Sequence extends Rule {
     //   throw new Error("STOP @ RET");
     
     const mr = new MatchResult(values, input, last_match_result.index);
-    // console.log(`SEQ MR = ${inspect_fun(mr)}`);
+    // lm.log(`SEQ MR = ${inspect_fun(mr)}`);
     return mr;
   }
   // -----------------------------------------------------------------------------------------------
@@ -1345,7 +1527,7 @@ class CuttingSequence extends Sequence {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
-      `expected (${this.elements.slice(1).join(" ")}) ` +
+      `CuttingSequence expected [${this.elements.slice(1).join(" ")}] ` +
         `after ${this.elements[0]}`,
       input, start_rule_result.index);
   }
@@ -1380,13 +1562,13 @@ class Xform extends Rule {
     return this.__vivify(this.rule).direct_children();
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);
-    this.rule.__finalize(indent + 1, visited);
+    lm.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
+  __match(input, index, cache) {
+    const rule_match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (! rule_match_result)
       return null;
@@ -1439,8 +1621,8 @@ class Expected extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const match_result = this.rule.match(input, index, indent + 1, cache);
+  __match(input, index, cache) {
+    const match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (! match_result) {
       if (this.error_func)
@@ -1454,7 +1636,7 @@ class Expected extends Rule {
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     this.rule = this.__vivify(this.rule);    
-    this.rule.__finalize(indent + 1, visited);
+    lm.indent(() => this.rule.__finalize(visited))
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -1482,8 +1664,8 @@ class Unexpected extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const match_result = this.rule.match(input, index, indent + 1, cache);
+  __match(input, index, cache) {
+    const match_result = lm.indent(() => this.rule.match(input, index, cache));
     
     if (match_result) {
       if (this.error_func) {
@@ -1498,13 +1680,13 @@ class Unexpected extends Rule {
     return null; // new MatchResult(null, input, match_result.index);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);    
-    this.rule.__finalize(indent + 1, visited);
+    lm.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
-    return `!${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+    return `!${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}!`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1527,7 +1709,7 @@ class Fail extends Rule {
     return [];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     throw this.error_func
       ? this.error_func(this, index, input)
       : new FatalParseError(`hit automatic failure Rule`, input, index);
@@ -1547,6 +1729,54 @@ function fail(error_func = null) { // convenience constructor
 }
 // -------------------------------------------------------------------------------------------------
 
+// // -------------------------------------------------------------------------------------------------
+// // Tail class
+// // -------------------------------------------------------------------------------------------------
+// class Tail extends Rule {
+//   // -----------------------------------------------------------------------------------------------
+//   constructor(index, rule) {
+//     super();
+//     this.rule  = make_rule_func(rule);
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __direct_children() {
+//     return [ this.rule ];
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __impl_finalize(indent, visited) {
+//     this.rule = this.__vivify(this.rule);
+//     this.rule.__finalize(indent + 1, visited);
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __match(input, index, cache) {
+//     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
+
+//     if (! rule_match_result)
+//       return null;
+
+//     // I forget why I did this? Could be a bad idea?
+//     const ret = rule_match_result.value.slice(1);
+
+//     if (log_match_enabled)
+//       log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
+//           `${inspect_fun(ret)}`);
+
+//     rule_match_result.value = ret;
+
+//     return rule_match_result
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __impl_toString(visited, next_id, ref_counts) {
+//     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+//     return `CDR(${rule_str})`;
+//   }
+// }
+// // -------------------------------------------------------------------------------------------------
+// function tail(rule) { // convenience constructor
+//   return new Tail(rule);
+// }
+// // =================================================================================================
+
 // -------------------------------------------------------------------------------------------------
 // TokenLabel class, this can probably be deleted soon?
 // -------------------------------------------------------------------------------------------------
@@ -1565,7 +1795,7 @@ class TokenLabel extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     if (index_is_at_end_of_input(index, input))
       return null;
 
@@ -1607,7 +1837,7 @@ class Literal extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     if (index_is_at_end_of_input(index, input))
       return null;
 
@@ -1658,18 +1888,18 @@ class Regex extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      log(indent, `testing  /${this.regexp.source}/ at char ${index} of ` +
-          `'${abbreviate(input.substring(index))}'`); 
+      lm.indent_and_log(`testing /${this.regexp.source}/ at char ${index}: ` +
+                        `'${abbreviate(input.substring(index))}'`);
 
     const re_match = this.regexp.exec(input);
     
     if (! re_match) {
       if (log_match_enabled)
-        log(indent, `RETURN NULL!`);
+        lm.indent_and_log(`regex did not match`);
       return null;
     }
 
@@ -1683,11 +1913,13 @@ class Regex extends Rule {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function r(first_arg, second_arg) { // convenience constructor
-  if (second_arg)
-    return new Label(first_arg, new Regex(second_arg));
-  
-  return new Regex(first_arg);
+function r_raw(strings, ...values) { // convenience constructor
+  const regexp = RegExp_raw(strings, ...values);
+  return new Regex(regexp);
+}
+// -------------------------------------------------------------------------------------------------
+function r(regexp) { // convenience constructor
+  return new Regex(regexp);
 }
 // -------------------------------------------------------------------------------------------------
 
@@ -1752,47 +1984,62 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
-function abbreviate(str, len = 100) {
-  if (str.length < len) {
-    return str
-  }
-  else {
-    const bracing_pairs = [
-      ['/',  '/'],
-      ['(',  ')'],
-      ['[',  ']'],
-      ['{',  '}'],
-      ['<',  '>'],
-      ['λ(', ')'],
-    ];
+function abbreviate(str, normalize_newlines = true, len = 100) {
+  if (typeof str !== 'string')
+    throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
 
-    for (const [left, right] of bracing_pairs) {
-      if (str.startsWith(left) && str.endsWith(right)) { // special case for regex source strings
-        str = str.substring(left.length, len - 3 - right.length);
-        const ret = `${left}${str.replace("\n","").trim()}...${right}`;
-        return ret;
-      }
+  // Normalize all newlines first
+  if (normalize_newlines)
+    str = str.replace(/\r?\n/g, '\\n');
+
+  // str = compress(str);
+  
+  if (str.length < len)
+    return str;
+
+  const bracing_pairs = [
+    ['/',  '/'],
+    ['(',  ')'],
+    ['[',  ']'],
+    ['{',  '}'],
+    ['<',  '>'],
+    ['\'', '\''],
+    ['\"', '\"'],
+    ['λ(', ')'],
+  ];
+
+  for (const [left, right] of bracing_pairs) {
+    if (str.startsWith(left) && str.endsWith(right)) {
+      const inner = str.substring(left.length, len - 3 - right.length);
+      return `${left}${inner.trim()}...${right}`;
     }
-    
-    return `${str.substring(0, len - 3).replace("\n","").trim()}...`;
   }
+
+  return `${str.substring(0, len - 3).trim()}...`;
+}
+// -------------------------------------------------------------------------------------------------
+function compress(str) {
+  if (typeof str !== 'string')
+    throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
+  
+  return str.replace(/\s+/g, ' ');
 }
 // -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
   return index == input.length
 }
-// -------------------------------------------------------------------------------------------------
-function log(indent, str = "", indent_str = "| ") {
-  if (! log_enabled)
-    return;
+// // -------------------------------------------------------------------------------------------------
+// function log(indent, str = "", indent_str = "| ") {
+//   if (! log_enabled)
+//     return;
 
-  console.log(`${indent_str.repeat(indent)}${str}`);
-}
+//   lm.log(`${indent_str.repeat(indent)}${str}`);
+// }
 // -------------------------------------------------------------------------------------------------
 function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
-  console.log(char.repeat(width));
+  lm.log(char.repeat(width));
 }
-LOG_LINE.line_width = 90;
+LOG_LINE.line_width = 100;
 // -------------------------------------------------------------------------------------------------
 function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
   if (typeof thing === 'string')
@@ -1834,6 +2081,261 @@ function pipe_funs(...fns) {
 
 
 // =================================================================================================
+// Whitespace combinators, these should go somewhere else?
+// =================================================================================================
+const prettify_whitespace_combinators = true;
+// =================================================================================================
+
+// =================================================================================================
+const lws0                = rule => {
+  rule = second(seq(whites_star, rule));
+  
+  if (prettify_whitespace_combinators) {
+    rule.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+      return `LWS0(${rule_str})`;
+    }
+  }
+
+  return rule;
+};
+const tws0                = rule => { 
+  rule = first(seq(rule, whites_star));
+
+  if (prettify_whitespace_combinators) {
+    rule.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
+      return `TWS0(${rule_str})`;
+    }
+  }
+  
+  return rule;
+};
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
+  let klass = {
+    [class_name_str]: class extends Rule {
+      // -------------------------------------------------------------------------------------------
+      constructor(rule) {
+        super();
+        this.base_rule = make_rule_func(rule);
+        this.rule = builder(this.base_rule);
+      }
+      // -------------------------------------------------------------------------------------------
+      __direct_children() {
+        return [this.rule];
+      }
+      // -------------------------------------------------------------------------------------------
+      __impl_finalize(indent, visited) {
+        this.rule = this.__vivify(this.rule);
+        lm.indent(() => this.rule.__finalize(visited))
+        this.base_rule = this.__vivify(this.base_rule);
+        lm.indent(() => this.base_rule.__finalize(visited));
+      }
+      // -------------------------------------------------------------------------------------------
+      __match(input, index, cache) {
+        return lm.indent(() => this.rule.match(input, index, cache));
+      }
+      // -------------------------------------------------------------------------------------------
+      __impl_toString(visited, next_id, ref_counts) {
+        if (typeof this.base_rule.__toString !== 'function')
+          throw new Error(inspect_fun(this));
+        
+        return prettify_whitespace_combinators
+          ? `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`
+          : this.base_rule.toString();
+      }
+    }
+  }[class_name_str];
+
+  let factory_fun = (rule, noisy = false) => {
+    if (noisy)
+      throw new Error('bomb');
+    
+    // const log = noisy ? lm.log : () => {};
+    rule = make_rule_func(rule);
+
+    let stringified_rule = null;
+
+    try {
+      stringified_rule = 
+        dt_hosted && typeof rule === 'function'
+        ? 'function'
+        : abbreviate(compress(inspect_fun(rule)));
+    }
+    catch (err) {
+      if (!dt_hosted)
+        throw err;
+      
+      stringified_rule = '<unprintable>';
+    }
+
+    if (!rule) {
+      lm.log(`return original null rule ${stringified_rule}`);
+      return rule;
+    }
+
+    if (typeof rule === 'function') {
+      lm.log(`return klassed function ${stringified_rule}`);
+      return new klass(rule);
+    }
+    
+    if (rule instanceof klass) {
+      lm.log(`return original klassed rule ${stringified_rule}`);
+      return rule;
+    }
+    
+    if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
+      lm.log(`return original rule ${stringified_rule}`);
+      return rule;
+    }
+
+    lm.log(`return klassed ${stringified_rule}`);
+    
+    return new klass(rule);
+  }
+  
+  return [ klass, factory_fun ];
+}
+// -------------------------------------------------------------------------------------------------
+const [ WithLWS, lws1 ] =
+      make_whitespace_Rule_class_and_factory_fun("LWS1", rule => second(seq(whites_star, rule)));
+const [ WithTWS, tws1 ] =
+      make_whitespace_Rule_class_and_factory_fun("TWS1", rule => first(seq(rule, whites_star)));
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_decorator0(name, builder, extractor) {
+  return rule => {
+    const built = builder(rule);
+
+    if (prettify_whitespace_combinators)
+      built.__impl_toString = function(visited, next_id, ref_counts) {
+        const rule_str = extractor(this).__toString(visited, next_id, ref_counts);
+        return `${name}(${rule_str})`;
+      };
+
+    return built;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+const lws2 = make_whitespace_decorator0("LWS2",
+                                        rule => second(seq(whites_star, rule)),
+                                        rule => rule.elements[1]  // your original form
+                                       );
+const tws2 = make_whitespace_decorator0("TWS2",
+                                        rule => first(seq(rule, whites_star)),
+                                        rule => rule.elements[0]
+                                       );
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_decorator1(name, builder) {
+  const tag = Symbol(name);
+  
+  return function (rule) {
+    rule = make_rule_func(rule);
+
+    if (!rule) return rule;
+
+    if (rule[tag]) return rule;
+    
+    if (rule instanceof Rule  &&
+        rule.direct_children().length > 0 &&
+        rule.direct_children().every(x => x[tag]))
+      return rule;
+    
+    const built = builder(rule);
+    built[tag] = true;
+
+    if (prettify_whitespace_combinators)
+      built.__impl_toString = function(visited, next_id, ref_counts) {
+        return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+      };
+
+    return built;
+  };
+}
+// -------------------------------------------------------------------------------------------------
+const lws3 = make_whitespace_decorator1("LWS3", rule => second(seq(whites_star, rule)));
+const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_star)));
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
+  const tag = Symbol(name);
+
+  const decorate = function (rule) {
+    rule = make_rule_func(rule);
+
+    if (!rule)
+      return rule;
+
+    if (rule[tag])
+      return rule;
+
+    // Unwrap if Choice of tagged rules
+    if (rule instanceof Choice &&
+        rule.options.every(option => option[tag])) {
+      const unwrapped_options = rule.options.map(option => option.__original_rule || option);
+      const rebuilt_choice = new Choice(...unwrapped_options);
+      
+      // lm.log(`constructed ${inspect_fun(rebuilt_choice)}`);
+      const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
+      // lm.log(`decorated ${inspect_fun(decorated)}`);
+      return decorated;
+    }
+
+    if (rule instanceof Sequence) {
+      if (elem_index == 1 &&
+          rule.elements[0][tag])
+        return rule;
+      else if (elem_index == 0 &&
+               rule.elements[rule.elements.length - 1][tag])
+        return rule;
+    }
+    
+    if (rule instanceof Rule &&
+        rule.direct_children().length > 0 &&
+        rule.direct_children().every(x => x[tag]))
+      return rule;
+
+    const builder = elem_index == 0 ? first : second;
+    
+    const built = builder(elem_index == 0
+                          ? seq(rule, whitespace_rule)
+                          : seq(whitespace_rule, rule));
+    
+    built[tag] = true;
+    built.__original_rule = rule;
+
+    // if (prettify_whitespace_combinators)
+    //   built.__impl_toString = function(visited, next_id, ref_counts) {
+    //     return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+    //   };
+
+    // if (prettify_whitespace_combinators)
+    //   built.__impl_toString = function(visited, next_id, ref_counts) {
+    //     if (typeof this.__toString !== 'function')
+    //       lm.log(`suspiciousa: ${inspect_fun(this)}`);
+    //     return `${name}(${this.__original_rule.__toString(visited, next_id, ref_counts)})`;
+    //   };
+
+    return built;
+  };
+
+  return decorate;
+}
+// =================================================================================================
+
+
+// =================================================================================================
 // COMMON-GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
 // Code in this section originally copy/pasted from the common-grammar.js file in my
@@ -1848,7 +2350,57 @@ function pipe_funs(...fns) {
 // =================================================================================================
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
+// whitespace:
+const whites_star        = r(/\s*/);
+const whites_plus        = r(/\s+/);
+const hwhites_star       = r(/[ \t]*/);
+const hwhites_plus       = r(/[ \t]+/);
+// whites_star.memoize = false;
+// whites_plus.memoize = false;
+whites_star.abbreviate_str_repr('whites*');
+whites_plus.abbreviate_str_repr('whites+');
+hwhites_star.abbreviate_str_repr('hwhites*');
+hwhites_plus.abbreviate_str_repr('hwhites+');
+// -------------------------------------------------------------------------------------------------
+const lws = make_whitespace_decorator2("LWS", 1, whites_star);
+const tws = make_whitespace_decorator2("TWS", 0, whites_star);
+const lhws = make_whitespace_decorator2("LWS", 1, hwhites_star);
+const thws = make_whitespace_decorator2("TWS", 0, hwhites_star);
+// -------------------------------------------------------------------------------------------------
+// whitespace tolerant combinators:
+// -------------------------------------------------------------------------------------------------
+const make_wst_quantified_combinator = (base_combinator, lws_rule) => 
+      ((rule, sep = null) => base_combinator(lws_rule(rule), lws_rule(sep)));
+const make_wst_seq_combinator = (base_combinator, lws_rule) =>
+      //      (...rules) => tws(base_combinator(...rules.map(x => lws_rule(x))));
+      (...rules) => base_combinator(...rules.map(x => lws_rule(x)));
+// -------------------------------------------------------------------------------------------------
+const wst_choice      = (...options) => lws(choice(...options));
+const wst_star        = make_wst_quantified_combinator(star, lws);
+const wst_plus        = make_wst_quantified_combinator(plus, lws);
+const wst_seq         = make_wst_seq_combinator(seq, lws);
+const wst_enc         = make_wst_seq_combinator(enc, lws);
+const wst_cutting_seq = make_wst_seq_combinator(cutting_seq, lws);
+const wst_cutting_enc = make_wst_seq_combinator(cutting_enc, lws);
+const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
+const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
+const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
+const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
+// -------------------------------------------------------------------------------------------------
+const hwst_choice      = (...options) => lws(choice(...options));
+const hwst_star        = make_wst_quantified_combinator(star, lhws);
+const hwst_plus        = make_wst_quantified_combinator(plus, lhws);
+const hwst_seq         = make_wst_seq_combinator(seq, lhws);
+const hwst_enc         = make_wst_seq_combinator(enc, lhws);
+const hwst_cutting_seq = make_wst_seq_combinator(cutting_seq, lhws);
+const hwst_cutting_enc = make_wst_seq_combinator(cutting_enc, lhws);
+const hwst_par_enc     = rule => hwst_cutting_enc(lpar, rule, rpar);
+const hwst_brc_enc     = rule => hwst_cutting_enc(lbrc, rule, rbrc);
+const hwst_sqr_enc     = rule => hwst_cutting_enc(lsqr, rule, rsqr);
+const hwst_tri_enc     = rule => hwst_cutting_enc(ltri, rule, rtri);
+// -------------------------------------------------------------------------------------------------
 // simple 'words':
+// -------------------------------------------------------------------------------------------------
 const alpha_snake             = r(/[a-zA-Z_]+/);
 const lc_alpha_snake          = r(/[a-z_]+/);
 const uc_alpha_snake          = r(/[A-Z_]+/);
@@ -1856,35 +2408,7 @@ alpha_snake.abbreviate_str_repr('alpha_snake');
 lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
 uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // -------------------------------------------------------------------------------------------------
-// whitespace:
-const whites_star        = r(/\s*/);
-const whites_plus        = r(/\s+/);
-whites_star.memoize = false;
-whites_plus.memoize = false;
-whites_star.__impl_toString = () => 'Whites*';
-whites_plus.__impl_toString = () => 'Whites+';
-const d_whites_star      = discard(whites_star);
-const d_whites_plus      = discard(whites_plus);
-// -------------------------------------------------------------------------------------------------
 // leading/trailing whitespace:
-const lws                = rule => {
-  rule = second(seq(whites_star, rule));
-  
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `LWS(${rule_str})`;
-  }
-
-  return rule;
-};
-const tws                = rule => {
-  rule = first(seq(rule, whites_star));
-
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-    return `TWS(${rule_str})`;
-  }
-};
 // -------------------------------------------------------------------------------------------------
 // common numbers:
 const udecimal           = r(/\d+\.\d+/);
@@ -1893,12 +2417,12 @@ const uint               = r(/\d+/);
 const sdecimal           = r(/[+-]?\d+\.\d+/);
 const srational          = r(/[+-]?\d+\/[1-9]\d*/);
 const sint               = r(/[+-]?\d+/)
-udecimal.__impl_toString = () => 'udecimal';
-urational.__impl_toString = () => 'urational';
-uint.__impl_toString     = () => 'uint';
-sdecimal.__impl_toString = () => 'sdecimal';
-srational.__impl_toString = () => 'srational';
-sint.__impl_toString = () => 'sint';
+udecimal.abbreviate_str_repr('udecimal');
+urational.abbreviate_str_repr('urational');
+uint.abbreviate_str_repr('uint');
+sdecimal.abbreviate_str_repr('sdecimal');
+srational.abbreviate_str_repr('srational');
+sint.abbreviate_str_repr('sint');
 // -------------------------------------------------------------------------------------------------
 // common separated quantified rules:
 const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
@@ -1907,12 +2431,17 @@ const star_whites_sep    = rule => star(rule, whites_plus);
 const plus_whites_sep    = rule => plus(rule, whites_plus);
 // -------------------------------------------------------------------------------------------------
 // string-like terminals:
-const stringlike         = quote => r(new RegExp(String.raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`));
+const stringlike         = quote => r_raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`;
 const dq_string          = stringlike('"');
-const sq_string          = stringlike("'");
-const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
 const raw_dq_string      = r(/r"[^"]*"/);
+const sq_string          = stringlike("'");
 const template_string    = r(/`(?:[^\\`]|\\.)*`/);
+const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
+dq_string.abbreviate_str_repr('dq_string');
+raw_dq_string.abbreviate_str_repr('raw_dq_string');
+sq_string.abbreviate_str_repr('sq_string');
+template_string.abbreviate_str_repr('template_string');
+triple_dq_string.abbreviate_str_repr('triple_dq_string');
 // -------------------------------------------------------------------------------------------------
 // keyword helper:
 const keyword            = word => {
@@ -1922,18 +2451,30 @@ const keyword            = word => {
   if (word instanceof RegExp)
     return keyword(word.source);
   
-  return r(new RegExp(String.raw(`\b${word}\b`)));
+  return r(RegExp_raw(`\b${word}\b`));
 };
 // -------------------------------------------------------------------------------------------------
 // parenthesis-like terminals:
-const lpar               = l('(');
-const rpar               = l(')');
-const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
-const rbrc               = l('{}'[1]); 
-const lsqr               = l('[]'[0]);
-const rsqr               = l('[]'[1]);
-const lt                 = l('<');
 const gt                 = l('>');
+const rtri               = l('>');
+const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
+const lpar               = l('(');
+const lsqr               = l('[]'[0]);
+const lt                 = l('<');
+const ltri               = l('<');
+const rbrc               = l('{}'[1]);
+const rpar               = l(')');
+const rsqr               = l('[]'[1]);
+gt.abbreviate_str_repr('gt');
+lbrc.abbreviate_str_repr('lbrc');
+lpar.abbreviate_str_repr('lpar');
+lsqr.abbreviate_str_repr('lsqr');
+lt.abbreviate_str_repr('lt');
+ltri.abbreviate_str_repr('ltri');
+rbrc.abbreviate_str_repr('rbrc');
+rpar.abbreviate_str_repr('rpar');
+rsqr.abbreviate_str_repr('rsqr');
+rtri.abbreviate_str_repr('rtri');
 // -------------------------------------------------------------------------------------------------
 // common enclosed rules:
 const par_enc            = rule => cutting_enc(lpar, rule, rpar);
@@ -1941,29 +2482,35 @@ const brc_enc            = rule => cutting_enc(lbrc, rule, rbrc);
 const sqr_enc            = rule => cutting_enc(lsqr, rule, rsqr);
 const tri_enc            = rule => cutting_enc(lt,   rule, gt);
 // const wse                = rule => enc(whites_star, rule, whites_star);
-const wse                = rule => {
-  rule = enc(whites_star, rule, whites_star);
-  
-  rule.__impl_toString = function(visited, next_id, ref_counts) {
-    const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
-    return `WSE(${rule_str})`;
-  }
+// const wse                = rule => {
+//   rule = enc(whites_star, rule, whites_star);
 
-  return rule;
-};
+//   rule.__impl_toString = function(visited, next_id, ref_counts) {
+//     const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
+//     return `WSE(${rule_str})`;
+//   }
+
+//   return rule;
+// };
 // -------------------------------------------------------------------------------------------------
 // basic arithmetic ops:
 const factor_op          = r(/[\/\*\%]/);
 const term_op            = r(/[\+\-]/);
+factor_op.abbreviate_str_repr('factor_op');
+term_op.abbreviate_str_repr('term_op');
 // -------------------------------------------------------------------------------------------------
 // Pascal-like terminals:
 const pascal_assign_op   = l('=');
+pascal_assign_op.abbreviate_str_repr('pascal_assign_op');
 // -------------------------------------------------------------------------------------------------
 // Python-like terminals:
 const python_exponent_op = l('**');
 const python_logic_word  = r(/and|or|not|xor/);
+python_exponent_op.abbreviate_str_repr('python_exponent_op');
+python_logic_word.abbreviate_str_repr('python_logic_word');
 // -------------------------------------------------------------------------------------------------
 // common punctuation:
+const at                 = l('@');
 const ampersand          = l('&');
 const asterisk           = l('*');
 const bang               = l('!');
@@ -1971,18 +2518,50 @@ const bslash             = l('\\');
 const caret              = l('^');
 const colon              = l(':');
 const comma              = l(',');
+const dash               = l('-');
 const dash_arrow         = l('->');
+const dollar             = l('$');
 const dot                = l('.');
-const eq_arrow           = l('=>');
 const ellipsis           = l('...');
 const equals             = l('=');
+const equals_arrow       = l('=>');
+const hash               = l('#');
+const decr_equals        = l('-=');
+const plus_equals        = l('+=');
 const percent            = l('%');
 const pipe               = l('|');
 const pound              = l('#');
 const question           = l('?');
 const range              = l('..');
 const semicolon          = l(';');
+const shebang            = l('#!');
 const slash              = l('/');
+ampersand.abbreviate_str_repr('ampersand');
+at.abbreviate_str_repr('at');
+asterisk.abbreviate_str_repr('asterisk');
+bang.abbreviate_str_repr('bang');
+bslash.abbreviate_str_repr('bslash');
+caret.abbreviate_str_repr('caret');
+colon.abbreviate_str_repr('colon');
+comma.abbreviate_str_repr('comma');
+dash.abbreviate_str_repr('dash');
+dash_arrow.abbreviate_str_repr('dash_arrow');
+decr_equals.abbreviate_str_repr('decr_equals');
+plus_equals.abbreviate_str_repr('plus_equals');
+dollar.abbreviate_str_repr('dollar');
+dot.abbreviate_str_repr('dot');
+ellipsis.abbreviate_str_repr('ellipsis');
+equals_arrow.abbreviate_str_repr('eq_arrow');
+equals.abbreviate_str_repr('equals');
+hash.abbreviate_str_repr('hash');
+percent.abbreviate_str_repr('percent');
+pipe.abbreviate_str_repr('pipe');
+pound.abbreviate_str_repr('pound');
+question.abbreviate_str_repr('question');
+range.abbreviate_str_repr('range');
+semicolon.abbreviate_str_repr('semicolon');
+shebang.abbreviate_str_repr('shebang');
+slash.abbreviate_str_repr('slash');
 // -------------------------------------------------------------------------------------------------
 // C-like numbers:
 const c_bin              = r(/0b[01]/);
@@ -1991,10 +2570,10 @@ const c_hex              = r(/0x[0-9a-f]+/);
 const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
 const c_octal            = r(/0o[0-7]+/);
 const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
-const c_sint             = sint;
+const c_sint             = r(/[+-]?\d+/)
 const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
 const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
-const c_uint             = uint;
+const c_uint             = r(/\d+/);
 const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
 c_bin                    .abbreviate_str_repr('c_bin');
 c_char                   .abbreviate_str_repr('c_char');
@@ -2013,7 +2592,7 @@ const c_bitwise_and      = l('&');
 const c_bitwise_bool_op  = r(/&&|\|\|/);
 const c_bitwise_not      = l('~');
 const c_bitwise_or       = l('|');
-const c_bitwise_xor      = caret; 
+const c_bitwise_xor      = l('^');
 const c_bool             = choice('true', 'false');
 const c_ccomparison_op   = r(/<=?|>=?|[!=]/);
 const c_incr_decr        = r(/\+\+|--/);
@@ -2058,37 +2637,11 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = wse('('), close = wse(')'), sep = ',') =>
+const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep = comma) =>
       seq(fun_rule,
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
                           close));
-// -------------------------------------------------------------------------------------------------
-// whitespace tolerant combinators:
-// -------------------------------------------------------------------------------------------------
-const __make_wst_quantified_combinator = base_combinator => 
-      ((rule, sep = null) => base_combinator(wse(rule), sep));
-const __make_wst_quantified_combinator_alt = base_combinator =>
-      ((rule, sep = null) =>
-        lws(base_combinator(tws(rule),
-                            sep ? seq(sep, whites_star) : null)));
-const __make_wst_seq_combinator = base_combinator =>
-      //      (...rules) => tws(base_combinator(...rules.map(x => lws(x))));
-      (...rules) => base_combinator(...rules.map(x => lws(x)));
-// -------------------------------------------------------------------------------------------------
-const wst_choice      = (...options) => wse(choice(...options));
-const wst_star        = __make_wst_quantified_combinator(star);
-const wst_plus        = __make_wst_quantified_combinator(plus);
-const wst_star_alt    = __make_wst_quantified_combinator_alt(star);
-const wst_plus_alt    = __make_wst_quantified_combinator_alt(plus);
-const wst_seq         = __make_wst_seq_combinator(seq);
-const wst_enc         = __make_wst_seq_combinator(enc);
-const wst_cutting_seq = __make_wst_seq_combinator(cutting_seq);
-const wst_cutting_enc = __make_wst_seq_combinator(cutting_enc);
-const wst_par_enc     = rule => cutting_enc(wse(lpar), rule, wse(rpar));
-const wst_brc_enc     = rule => cutting_enc(wse(lbrc), rule, wse(rbrc));
-const wst_sqr_enc     = rule => cutting_enc(wse(lsqr), rule, wse(rsqr));
-const wst_tri_enc     = rule => cutting_enc(wse(lt),   rule, wse(gt));
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
@@ -2110,14 +2663,14 @@ const Json = choice(() => JsonObject,  () => JsonArray,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const JsonObject = xform(arr =>  Object.fromEntries(arr), 
-                         wst_cutting_enc('{',
+                         wst_cutting_enc(lbrc,
                                          wst_star(
                                            xform(arr => [arr[0], arr[2]],
-                                                 wst_seq(() => json_string, ':', Json)),
-                                           ','),
-                                         '}'));
+                                                 wst_seq(() => json_string, colon, Json)),
+                                           comma),
+                                         rbrc));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const JsonArray = wst_cutting_enc('[', wst_star(Json, ','), ']');
+const JsonArray = wst_cutting_enc(lsqr, wst_star(Json, comma), rsqr);
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -2126,11 +2679,11 @@ const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
 // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
 const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
 // True ← "true"
-const json_true = xform(x => true, 'true');
+const json_true = xform(x => true, /true\b/);
 // False ← "false"
-const json_false = xform(x => false, 'false');
+const json_false = xform(x => false, /false\b/);
 // Null ← "null"
-const json_null = xform(x => null, 'null');
+const json_null = xform(x => null, /null\b/);
 // Minus ← "-"
 const json_minus = l('-');
 // IntegralPart ← "0" / [1-9] [0-9]*
@@ -2147,7 +2700,7 @@ const reify_json_number = arr => {
   const exponent        = arr[3];
   const number          = multiplier * ((integer_part + fractional_part)**exponent);
 
-  // console.log(`ARR: ${inspect_fun(arr)}`);
+  // lm.log(`ARR: ${inspect_fun(arr)}`);
   return number;
   // return arr;
 };
@@ -2155,12 +2708,12 @@ const json_number = xform(reify_json_number,
                           seq(optional(json_minus),
                               xform(parseInt, json_integralPart), 
                               xform(arr => {
-                                // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
+                                // lm.log(`fractional part ARR: ${inspect_fun(arr)}`);
                                 return parseFloat(arr[0]);
                               }, optional(json_fractionalPart, 0.0)),
                               xform(parseInt, first(optional(json_exponentPart, 1)))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
-const json_S = whites_plus;
+const json_S = r(/\s+/);
 Json.abbreviate_str_repr('Json');
 JsonObject.abbreviate_str_repr('JsonObject');
 JsonArray.abbreviate_str_repr('JsonArray');
@@ -2193,40 +2746,40 @@ const Jsonc = second(wst_seq(jsonc_comments,
                                     () => json_null,    () => json_number),
                              jsonc_comments));
 const JsoncArray =
-      wst_cutting_enc('[',
+      wst_cutting_enc(lsqr,
                       wst_star(second(seq(jsonc_comments,
                                           Jsonc,
                                           jsonc_comments)),
-                               ','),
-                      ']');
+                               comma),
+                      rsqr);
 const JsoncObject =
       choice(
-        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
-          // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
+          // lm.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
           const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
-          // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
+          // lm.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc('{}'[0], () => json_string, ":"), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, () => json_string, colon),
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
-                optional(second(wst_seq(',',
+                optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
                                                         () => json_string,
                                                         jsonc_comments,
-                                                        ':',
+                                                        colon,
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
-                                                       ))             
-                                          , ',')),
+                                                       )),
+                                          comma)),
                                )),
-                '{}'[1]))); // dumb hack for rainbow brackets sake
+                rbrc))); // dumb hack for rainbow brackets sake
 Jsonc.abbreviate_str_repr('Jsonc');
 jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
@@ -2241,37 +2794,47 @@ Jsonc.finalize();
 // =================================================================================================
 // 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
 // =================================================================================================
+const rjsonc_single_quoted_string =
+      xform(
+        s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
+        /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
+
+const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
+rjsonc_string.abbreviate_str_repr('rjsonc_string');
+
 const rJsonc = second(wst_seq(jsonc_comments,
                               choice(() => rJsoncObject,  () => JsoncArray,
-                                     () => json_string,   () => json_true, () => json_false,
-                                     () => json_null,     () => json_number),
+                                     () => rjsonc_string,
+                                     () => json_null,     () => json_true,
+                                     () => json_false,    () => json_number),
                               jsonc_comments));
+
 const rJsoncObject =
       choice(
-        xform(arr => ({}), wst_seq('{', '}')),
+        xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
           const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc('{}'[0], () => choice(json_string, c_ident), ":"), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, () => choice(json_string, c_ident), colon), // dumb hack for rainbow brackets sake
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
-                optional(second(wst_seq(',',
+                optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
                                                         choice(json_string, c_ident),
                                                         jsonc_comments,
-                                                        ':',
+                                                        colon,
                                                         jsonc_comments,
                                                         Jsonc, 
                                                         jsonc_comments
-                                                       ))             
-                                          , ',')),
+                                                       )),
+                                          comma)),
                                )),
-                '{}'[1]))); // dumb hack for rainbow brackets sake
+                rbrc))); // dumb hack for rainbow brackets sake
 rJsonc.abbreviate_str_repr('rJsonc');
 rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
@@ -2292,6 +2855,7 @@ const picker_priority = Object.freeze({
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
+const id = (x) => x;
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
 // const picker_priority_descriptions_to_names = new Map(
@@ -2301,7 +2865,7 @@ const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]
 class WeightedPicker {
   // -----------------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
-    // console.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
+    // lm.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
@@ -2324,26 +2888,34 @@ class WeightedPicker {
   }
   // -----------------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count,
-       allow_if = always, forbid_if = never,
+       allow_if = always, forbid_if = never, each = id,
        priority = null) {
-    if (! priority)
-      throw new Error("no priority");
+    if (!(typeof min_count === 'number'   && 
+          typeof max_count === 'number'   &&
+          typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof each      === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
+
+    // if (! priority)
+    //   throw new Error("no priority");
 
     if ((min_count > 1 || max_count > 1) && 
         priority === picker_priority.avoid_repetition_short)
       this.__clear_used_indices();
     
     if (log_picker_enabled)
-      console.log(`PICK ${min_count}-${max_count}`);
+      lm.log(`PICK ${min_count}-${max_count}`);
     
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
     const res = [];
     
     for (let ix = 0; ix < count; ix++)
-      res.push(this.pick_one(allow_if, forbid_if, priority));
+      res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
 
     if (log_picker_enabled)
-      console.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+      lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
 
     return res;
   }
@@ -2368,13 +2940,13 @@ class WeightedPicker {
     this.last_pick_index = null;
 
     if (log_picker_enabled)
-      console.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+      lm.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -----------------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
     if (log_picker_enabled) {
-      console.log(`this.options      = ${inspect_fun(this.options)}`);
-      console.log(`this.used_indices = ${inspect_fun(this.used_indices)}`);
+      lm.log(`this.options      = ${compress(inspect_fun(this.options))}`);
+      lm.log(`this.used_indices = ${compress(inspect_fun(this.used_indices))}`);
     }
     
     if (! priority)
@@ -2430,30 +3002,35 @@ class WeightedPicker {
     }
 
     if (log_picker_enabled)
-      console.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+      lm.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
     return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
-  pick_one(allow_if, forbid_if, priority) {
+  #pick_one(allow_if, forbid_if, priority) {
+    if (!(typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad #pick_one arge: ${inspect_fun(arguments)}`);
+    
     if (log_picker_enabled) {
-      console.log(`PICK ONE =================================================================================`);
-      console.log(`PRIORITY        = ${inspect_fun(priority)}`);
-      console.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
-      console.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+      lm.log(`PICK ONE =================================================================================`);
+      lm.log(`PRIORITY        = ${inspect_fun(priority)}`);
+      lm.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+      lm.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
     }
     
     if (! (priority && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
     if (log_picker_enabled) {
-      console.log(`PICK_ONE!`);
-      console.log(`PICK FROM ${JSON.stringify(this)}`);
+      lm.log(`PICK_ONE!`);
+      lm.log(`PICK FROM ${JSON.stringify(this)}`);
     }
 
     if (this.options.length === 0) {
       if (log_picker_enabled)
-        console.log(`PICK_ONE: NO OPTIONS 1!`);
+        lm.log(`PICK_ONE: NO OPTIONS 1!`);
       
       return null;
     }
@@ -2462,7 +3039,7 @@ class WeightedPicker {
     
     if (this.__indices_are_exhausted(legal_option_indices, priority)) {
       if (log_picker_enabled)
-        console.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+        lm.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       
       if (priority === picker_priority.avoid_repetition_long) {
         if (this.last_pick_index !== null) {
@@ -2479,45 +3056,45 @@ class WeightedPicker {
       }
 
       if (log_picker_enabled)
-        console.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+        lm.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
       
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
       if (log_picker_enabled)
-        console.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+        lm.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
 
       return null;
     }
 
     if (legal_option_indices.length === 1) {
       if (log_picker_enabled)
-        console.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+        lm.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
       
       this.__record_index_usage(legal_option_indices[0]);
 
       if (log_picker_enabled)
-        console.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+        lm.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
       
       return this.options[legal_option_indices[0]].value;
     }
 
     if (log_picker_enabled)
-      console.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+      lm.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
     if (log_picker_enabled)
-      console.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
+      lm.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
 
       if (log_picker_enabled) {
-        console.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-        console.log(`COUNTING ${inspect_fun(this.options[legal_option_ix])} = ${adjusted_weight}`);
-        console.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+        lm.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+        lm.log(`COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ${adjusted_weight}`);
+        lm.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
       }
       
       total_weight += adjusted_weight;
@@ -2527,22 +3104,22 @@ class WeightedPicker {
     if (total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
                       `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
-                                                   [
-                                                     ix,
-                                                     this.__effective_weight(ix, priority),
-                                                     this.options[ix]
-                                                   ]
-                                                 ), null, 2)}, ` +
+                        [
+                          ix,
+                          this.__effective_weight(ix, priority),
+                          this.options[ix]
+                        ]
+                      ), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
     }
     
     let random = Math.random() * total_weight;
 
     if (log_picker_enabled) {
-      console.log(`----------------------------------------------------------------------------------`);
-      console.log(`RANDOM IS ${random}`);
-      console.log(`TOTAL_WEIGHT IS ${total_weight}`);
-      console.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+      lm.log(`----------------------------------------------------------------------------------`);
+      lm.log(`RANDOM IS ${random}`);
+      lm.log(`TOTAL_WEIGHT IS ${total_weight}`);
+      lm.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
     }
     
     for (const legal_option_ix of legal_option_indices) {
@@ -2553,7 +3130,7 @@ class WeightedPicker {
         continue;
       
       if (log_picker_enabled)
-        console.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+        lm.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -2583,6 +3160,133 @@ function arr_is_prefix_of_arr(prefix_arr, full_arr) {
       return false;
   
   return true;
+}
+
+// -------------------------------------------------------------------------------------------------
+function benchmark(thunk, {
+  batch_count    = 50,
+  reps_per_batch = 10000,
+  print_div      = 10,
+  quiet          = true,
+} = {}) {
+  let running_avg  = 0;
+  let result       = null;
+  let start_mem    = -Infinity; // placeholder value, don't worry.
+  const start_time = performance.now();
+
+  const fn = () => measure_time(() => {
+    for (let ix = 0; ix < reps_per_batch; ix++) {
+      result = thunk();
+    }
+  });
+  
+  for (let oix = 0; oix < batch_count; oix++) {
+    // lm.log(`oix: ${oix}`);
+    
+    global.gc(); // triggers GC
+    start_mem  = process.memoryUsage().heapUsed;
+    
+    const time = fn();
+
+    running_avg = (((running_avg * oix) + time) / (oix + 1));
+
+    if (quiet) {
+      process.stdout.write('.');
+      if (((oix + 1) % 100) == 0)
+        process.stdout.write('\n');
+    }
+    else if (((oix + 1) % print_div) == 0) {
+      process.stdout.write('\n');
+      console.log();
+      console.log(`${ordinal_string(oix + 1)} batch of ` +
+                  `${format_pretty_number(reps_per_batch)} ` +
+                  `(out of ${format_pretty_number(batch_count)}): `);
+      console.log(`result:                 ${rjson_stringify(result)}`);
+      console.log(`mem at start:           ${format_pretty_bytes(start_mem)}`);
+      const now = process.memoryUsage().heapUsed;
+      console.log(`mem now:                ${format_pretty_bytes(now)}`);
+      console.log(`mem diff:               ${format_pretty_bytes(now - start_mem)}`);
+      console.log(`time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
+      console.log(`time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
+      console.log(`total runtime:          ` +
+                  `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+                  `seconds`);
+      console.log(`rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
+      console.log(`est. runs/second:       ${Math.round(runs_per_second_est)}`);
+      console.log(`EST. TIME PER MILLION:  ` +
+                  `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
+      process.stdout.write('\n');
+    }
+  }
+  
+  console.log();
+  console.log(`batch_count:            ${batch_count}`);
+  console.log(`reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
+  console.log(`total reps:             ${format_pretty_number(batch_count * reps_per_batch)}`);
+  console.log(`last result:            ${rjson_stringify(result)}`);
+  const now = process.memoryUsage().heapUsed;
+  console.log(`final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
+  console.log(`total runtime:          ` +
+              `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+              `seconds`);
+  console.log(`rounded avg time/batch: ${format_pretty_number(Math.round(running_avg))} ms`);
+  const single_run_est = running_avg / reps_per_batch;
+  const runs_per_second_est = 1_000_000 / running_avg;
+  console.log(`est. runs/second:       ` +
+              `${format_pretty_number(Math.round(runs_per_second_est))}`);
+  console.log(`EST. TIME PER MILLION:  ` +
+              `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
+              `ms`);
+  console.log();
+  return running_avg;
+}
+// -----------------------------------------------------------------------------
+function format_pretty_bytes(bytes) {
+  const units = ['bytes', 'KB', 'MB', 'GB'];
+  const base = 1024;
+
+  const sign = Math.sign(bytes);
+  let absBytes = Math.abs(bytes);
+
+  let i = 0;
+  while (absBytes >= base && i < units.length - 1) {
+    absBytes /= base;
+    i++;
+  }
+
+  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
+}
+// -------------------------------------------------------------------------------------------------
+function indent_lines(indent, str, indent_str = "| ") {
+  if (typeof str !== 'string')
+    throw new Error(`not a string: ${inspect.fun(str)}`);
+  
+  const indent_string = indent_str.repeat(indent);
+  const indented_str  = str
+        .split("\n")
+        .map(line => `${indent_string}${line}`)
+        .join("\n");
+
+  return indented_str;
+}
+// -------------------------------------------------------------------------------------------------
+function measure_time(fun) {
+  const start    = performance.now();
+  fun();
+  const end      = performance.now();
+  const duration = end - start;
+  return duration;
+}
+// -------------------------------------------------------------------------------------------------
+function rjson_stringify(obj) {
+  if (obj === undefined)
+    return 'undefined';
+  
+  return JSON.stringify(obj)
+    .replace(/"(\w+)"\s*:/g, ' $1: ')
+    .replace(/{ /g, '{')
+    .replace(/},{/g, '}, {');
 }
 // -------------------------------------------------------------------------------------------------
 function capitalize(string) {
@@ -2625,11 +3329,12 @@ function choose_indefinite_article(word) {
 
   return 'a';
 }
-// -------------------------------------------------------------------------------------------------
-function compress(str) {
-  return str.replace(/\s+/g, ' ');
+// ------------------------------------------------------------------------------------------------
+function format_pretty_number(num) {
+  const [intPart, fracPart] = num.toString().split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
 }
-
 // -------------------------------------------------------------------------------------------------
 function format_pretty_list(arr) {
   const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
@@ -2665,7 +3370,15 @@ function rand_int(x, y) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
-function smart_join(arr) {
+function smart_join(arr, unexpected) {
+  if (unexpected !== undefined)
+    throw new Error("bad args");
+  
+  // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+  // const log = msg => {
+  //   return console.log(`${' '.repeat(indent*2)}${msg}`);
+  // };
+  
   if (! arr)
     return arr;
   
@@ -2674,11 +3387,14 @@ function smart_join(arr) {
   
   arr = [...arr.flat(Infinity).filter(x=> x)];
 
+  // if (arr.includes("''") || arr.includes('""'))
+  //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
+
   if (arr.length === 0) // investigate why this is necessary.
     return '';
   
   if (log_smart_join_enabled)
-    console.log(`JOINING ${inspect_fun(arr)}`);
+    lm.log(`JOINING ${compress(inspect_fun(arr))}`);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
@@ -2706,7 +3422,7 @@ function smart_join(arr) {
 
     const add_a_space = () => {
       if (log_smart_join_enabled)
-        console.log(`SPACE!`);
+        lm.log(`SPACE!`);
 
       prev_char  = ' ';
       str       += ' ';
@@ -2714,7 +3430,7 @@ function smart_join(arr) {
 
     const chomp_left_side = () => {
       if (log_smart_join_enabled)
-        console.log(`CHOMP LEFT!`);
+        lm.log(`CHOMP LEFT!`);
       
       str      = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
@@ -2724,7 +3440,7 @@ function smart_join(arr) {
     
     const chomp_right_side = () => {
       if (log_smart_join_enabled)
-        console.log(`CHOMP RIGHT!`);
+        lm.log(`CHOMP RIGHT!`);
 
       arr[ix] = arr[ix].slice(1);
 
@@ -2733,7 +3449,10 @@ function smart_join(arr) {
 
     const consume_right_word = () => {
       if (log_smart_join_enabled)
-        console.log(`CONSUME ${inspect_fun(right_word)}!`);
+        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+
+      // if (right_word === '""' || right_word === "''")
+      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
 
       left_word  = right_word;
       str       += left_word;
@@ -2741,7 +3460,7 @@ function smart_join(arr) {
 
     const move_chars_left = (n) => {
       if (log_smart_join_enabled)
-        console.log(`SHIFT ${n} CHARACTERS!`);
+        lm.log(`SHIFT ${n} CHARACTERS!`);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
       const shifted_str = right_word.substring(0, n);
@@ -2761,21 +3480,21 @@ function smart_join(arr) {
       next_char_is_escaped = right_word[0] === '\\';
 
       if (log_smart_join_enabled)
-        console.log(`ix = ${inspect_fun(ix)}, ` +
-                    `str = ${inspect_fun(str)}, ` +
-                    `left_word = ${inspect_fun(left_word)}, ` +         
-                    `right_word = ${inspect_fun(right_word)}, ` +       
-                    `prev_char = ${inspect_fun(prev_char)}, ` +         
-                    `next_char = ${inspect_fun(next_char)}, ` + 
-                    `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-                    `next_char_is_escaped = ${next_char_is_escaped}`);
+        lm.log(`ix = ${inspect_fun(ix)}, ` +
+               `str = ${inspect_fun(str)}, ` +
+               `left_word = ${inspect_fun(left_word)}, ` +         
+               `right_word = ${inspect_fun(right_word)}, ` +       
+               `prev_char = ${inspect_fun(prev_char)}, ` +         
+               `next_char = ${inspect_fun(next_char)}, ` + 
+               `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+               `next_char_is_escaped = ${next_char_is_escaped}`);
     };
     
     update_pos_vars();
     
     if (right_word === '') {
       if (log_smart_join_enabled)
-        console.log(`JUMP EMPTY!`);
+        lm.log(`JUMP EMPTY!`);
 
       continue;
     }
@@ -2811,31 +3530,38 @@ function smart_join(arr) {
 
     if (right_word === '') {
       if (log_smart_join_enabled)
-        console.log(`JUMP EMPTY (LATE)!`);
+        lm.log(`JUMP EMPTY (LATE)!`);
 
       continue;
     }
 
     if (!chomped &&
-        (prev_char_is_escaped && !' n'.includes(prev_char) || 
-         (!(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-          // !(next_char_is_escaped && ",.!?".includes(right_word[1])) && 
-          !right_word.startsWith('\\n') &&
-          !right_word.startsWith('\\ ') && 
-          !punctuationp (next_char)     && 
-          !linkingp     (prev_char)     &&
-          !linkingp     (next_char)     &&
-          !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-          !'([])'.substring(2,4).includes(next_char))))
+        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+        !right_word.startsWith('\\n') &&
+        !right_word.startsWith('\\ ') && 
+        !punctuationp (next_char)     && 
+        !linkingp     (prev_char)     &&
+        !linkingp     (next_char)     &&
+        !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
+        !'([])'.substring(2,4).includes(next_char))
       add_a_space();
 
     consume_right_word();
   }
 
   if (log_smart_join_enabled)
-    console.log(`JOINED ${inspect_fun(str)}`);
-  
+    lm.log(`JOINED ${inspect_fun(str)}`);
+
   return str;
+}
+// -------------------------------------------------------------------------------------------------
+function raw(strings, ...values) {
+  return String.raw(strings, ...values);
+}
+// -------------------------------------------------------------------------------------------------
+function RegExp_raw(strings, ...values) {
+  const raw_source = raw(strings, ...values);
+  return new RegExp(raw_source);
 }
 // -------------------------------------------------------------------------------------------------
 // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
@@ -2918,7 +3644,7 @@ if (test_structured_clone) {
     if (clone.a !== clone.b)
       throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
 
-    console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
+    lm.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
   }
   // test #2: break shared references (unshare), this one seems to work:
   {
@@ -2927,7 +3653,7 @@ if (test_structured_clone) {
     if (clone.a === clone.b)
       throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
 
-    console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
+    lm.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
   }
   // test #4: should fail do to cycle, with unshare = false:
   try {
@@ -2941,7 +3667,7 @@ if (test_structured_clone) {
     if (err.message === 'test #3 should have failed.')
       throw err;
     else 
-      console.log(`test #3 failed as intended.`);
+      lm.log(`test #3 failed as intended.`);
   }
   // test #4: should fail do to cycle, with unshare = true:
   try {
@@ -2954,7 +3680,7 @@ if (test_structured_clone) {
     if (err.message === 'test #4 should have failed.') 
       throw err;
     else
-      console.log(`test #3 failed as intended.`);
+      lm.log(`test #3 failed as intended.`);
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -3100,9 +3826,9 @@ const configuration_key_names = [
 // -------------------------------------------------------------------------------------------------
 function get_other_name(return_key, find_key, find_value) {
   if (log_name_lookups_enabled)
-    console.log(`\nLOOKING UP ${return_key} FOR ` +
-                `${inspect_fun(find_key)} ` +
-                `${inspect_fun(find_value)}`);
+    lm.log(`\nLOOKING UP ${return_key} FOR ` +
+           `${inspect_fun(find_key)} ` +
+           `${inspect_fun(find_value)}`);
 
   let find_value_lc = find_value.toLowerCase();
 
@@ -3114,7 +3840,7 @@ function get_other_name(return_key, find_key, find_value) {
 
   if (got) {
     if (log_name_lookups_enabled)
-      console.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+      lm.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
 
     return got[return_key];
   }
@@ -3124,15 +3850,15 @@ function get_other_name(return_key, find_key, find_value) {
   // -----------------------------------------------------------------------------------------------
   got = configuration_key_names.find(obj => {
     if (log_name_lookups_enabled)
-      console.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
-                  `${inspect_fun(find_value_lc)} = ` +
-                  `${obj[return_key].toLowerCase() === find_value_lc}`);
+      lm.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
+             `${inspect_fun(find_value_lc)} = ` +
+             `${obj[return_key].toLowerCase() === find_value_lc}`);
     return obj[return_key].toLowerCase() === find_value_lc;
   });
 
   if (got) {
     if (log_name_lookups_enabled)
-      console.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
+      lm.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
     
     return got[return_key];
   } 
@@ -3144,8 +3870,8 @@ function get_other_name(return_key, find_key, find_value) {
 
   if (got) {
     if (log_name_lookups_enabled)
-      console.log(`GOT ${return_key} FOR ` +
-                  `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
+      lm.log(`GOT ${return_key} FOR ` +
+             `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
     
     return got[return_key];
   }
@@ -3154,7 +3880,7 @@ function get_other_name(return_key, find_key, find_value) {
   // didn't find it on either sise, just return the argument:
   // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
-    console.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
+    lm.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
 
   // possibly an error? maybe not always.
   return find_value;
@@ -3173,7 +3899,7 @@ function get_our_name(name) {
                ? get_dt_name
                : get_automatic1111_name)(name);
 
-  // console.log(`got our name for ${name}: ${res}`);
+  // lm.log(`got our name for ${name}: ${res}`);
   
   return res;
 }
@@ -3227,20 +3953,20 @@ class Context {
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
     this.configuration.loras ||= [];
 
-    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    // const log = msg => lm.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
 
     if (index !== -1) {
       if (! replace)
         return;
       
-      this.configuration.splice(index, 1); // Remove the existing entry
+      this.configuration.loras.splice(index, 1); // Remove the existing entry
     }
     
     this.configuration.loras.push(lora);
 
-    if (log_configuration_enabled)
-      log(`ADDED ${compress(inspect_fun(lora))} TO ${this}`);
+    // if (log_configuration_enabled)
+    //   log(`added LoRA ${compress(inspect_fun(lora))} to ${this}`);
   }
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
@@ -3257,30 +3983,30 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(new_flag) {
-    if (log_flags_enabled)
-      console.log(`\nADDING ${inspect_fun(new_flag)} TO FLAGS: ${inspect_fun(this.flags)}`);
-
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
-      if (log_flags_enabled)
-        console.log(`SKIPPING, ALREADY SET`);
+      // if (log_flags_enabled)
+      //   lm.log(`skipping, already set`);
       return;
     }
+    
+    // if (log_flags_enabled) 
+    //   lm.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
 
     const new_flag_head = new_flag.slice(0, -1);
     
     this.flags = this.flags.filter(existing_flag => {
       if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
         if (log_flags_enabled)
-          console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A PREFIX OF ` +
-                      `NEW FLAG ${inspect_fun(new_flag)}`);
+          lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+                 `new flag ${compress(inspect_fun(new_flag))}`);
         return false;
       }
       
       if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
         if (log_flags_enabled)
-          console.log(`DISCARD ${inspect_fun(existing_flag)} BECAUSE IT IS A SUFFIX OF ` +
-                      `NEW FLAG'S HEAD ${inspect_fun(new_flag_head)}`);
+          lm.log(`discard ${inspect_fun(existing_flag)} because it is a suffix of ` +
+                 `new flag's head ${compress(inspect_fun(new_flag_head))}`);
         return false; 
       }
       
@@ -3292,12 +4018,12 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
     if (log_flags_enabled)
-      console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+      lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
     this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
 
     if (log_flags_enabled)
-      console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+      lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -3306,16 +4032,16 @@ class Context {
 
     for (const [name, nwc] of this.named_wildcards) {
       if (nwc instanceof ASTLatchedNamedWildcardValue) {
-        // console.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
+        // lm.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
         this.named_wildcards.set(name, nwc.original_value);
       } /* else {
-           console.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
-        } */
+           lm.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
+           } */
     }
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    // console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    // lm.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
       flags:                        structured_clone(this.flags),
@@ -3335,7 +4061,7 @@ class Context {
         this.configuration.loras === copy.configuration.loras)
       throw new Error("oh no");
 
-    // console.log(`CLONED CONTEXT`);
+    // lm.log(`CLONED CONTEXT`);
     
     return copy;
   }
@@ -3358,9 +4084,9 @@ class Context {
   }
   // -------------------------------------------------------------------------------------------------
   munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
-    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    // const log = msg => lm.log(`${' '.repeat(indent*2)}${msg}`);
 
-    // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
+    // lm.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
 
     const munged_configuration = structured_clone(this.configuration);
 
@@ -3368,8 +4094,9 @@ class Context {
       return munged_configuration;
 
     if (munged_configuration.model === '') {
-      log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-          `what you meant to do, your prompt template may contain an error!`);
+      lm.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
+             `what you meant to do, your prompt template may contain an error!`,
+             log_expand_and_walk_enabled);
       delete munged_configuration.model;
     }
     else if (munged_configuration.model) {
@@ -3388,7 +4115,6 @@ class Context {
         munged_configuration.model = `${munged_configuration.model}.ckpt`;
       else 
         munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
-      
     }
     
     // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
@@ -3402,15 +4128,17 @@ class Context {
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
       if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-        log(`Correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-            `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
+        lm.log(`correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+               `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`,
+               log_expand_and_walk_enabled);
         munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
       }
     }
     // when running in Node.js, sampler needs to be a string::
     else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      log(`Correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-          `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+      lm.log(`correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+             `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
+             log_expand_and_walk_enabled);
       munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
 
@@ -3421,7 +4149,8 @@ class Context {
 
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
-          log(`%seed = -1 due to n_iter > 1`);
+          lm.log(`%seed = -1 due to n_iter > 1`,
+                 log_expand_and_walk_enabled);
 
         munged_configuration.seed = -1;
       }
@@ -3429,14 +4158,15 @@ class Context {
         const random = Math.floor(Math.random() * (2 ** 32));
         
         if (log_configuration_enabled)
-          log(`%seed = ${random} due to no seed`);
+          lm.log(`%seed = ${random} due to no seed`,
+                 log_expand_and_walk_enabled);
 
         munged_configuration.seed = random;
       }
     }
 
     // if (log_configuration_enabled)
-    //   log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+    //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
 
     this.configuration =  munged_configuration;
   }
@@ -3453,7 +4183,7 @@ class Context {
 // =================================================================================================
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
-const prelude_text = disable_prelude ? '' : `
+const prelude_text = prelude_disabled ? '' : `
 @__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
                            |?male   #gender.male
                            |?neuter #gender.neuter}
@@ -3491,15 +4221,15 @@ const prelude_text = disable_prelude ? '' : `
 @highish_random_weight  = {1.< @low_digit }
 @gt1_random_weight      = {1.< @any_digit }
 @high_random_weight     = {1.< @high_digit}
-@pony_score_9           = {score_9,                                                            }
-@pony_score_8_up        = {score_9, score_8_up,                                                }
-@pony_score_7_up        = {score_9, score_8_up, score_7_up,                                    }
-@pony_score_6_up        = {score_9, score_8_up, score_7_up, score_6_up,                        }
-@pony_score_5_up        = {score_9, score_8_up, score_7_up, score_6_up, score_5_up,            }
-@pony_score_4_up        = {score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up,}
-@aris_defaults          = {masterpiece, best quality, absurdres, aesthetic, 8k,
-                           high depth of field, ultra high resolution, detailed background,
-                           wide shot,}
+@pony_score_9           = {                                                             score_9, }
+@pony_score_8_up        = {                                                 score_8_up, score_9, }
+@pony_score_7_up        = {                                     score_7_up, score_8_up, score_9, }
+@pony_score_6_up        = {                         score_6_up, score_7_up, score_8_up, score_9, }
+@pony_score_5_up        = {             score_5_up, score_6_up, score_7_up, score_8_up, score_9, }
+@pony_score_4_up        = { score_4_up, score_5_up, score_6_up, score_7_up, score_8_up, score_9, }
+@aris_defaults          = { masterpiece, best quality, absurdres, aesthetic, 8k,
+                            high depth of field, ultra high resolution, detailed background,
+                            wide shot,}
 
 //--------------------------------------------------------------------------------------------------
 // Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
@@ -6744,15 +7474,22 @@ const prelude_text = disable_prelude ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
+  const old_log_flags_enabled = log_flags_enabled;
+  log_flags_enabled = false;
+  
   if (! prelude_parse_result) {
     const old_log_match_enabled = log_match_enabled;
     log_match_enabled = false; 
     prelude_parse_result = Prompt.match(prelude_text);
     log_match_enabled = old_log_match_enabled;
   }
-  
-  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
 
+  // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
+  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+  log_flags_enabled = old_log_flags_enabled;
+
+  // log_flags_enabled = true;
+  
   if (ignored === undefined)
     throw new Error("crap");
   
@@ -6764,10 +7501,12 @@ function load_prelude(into_context = new Context()) {
 
 
 // =================================================================================================
-// THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
+// THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
-function expand_wildcards(thing, context = new Context(), indent = 0) {
-  // ---------------------------------------------------------------------------------------------
+function expand_wildcards(thing, context = new Context(), unexpected = undefined) {
+  if (unexpected !== undefined)
+    throw new Error("bad args");
+  // -----------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
       if (context.flag_is_set(not_flag.flag))
@@ -6799,8 +7538,13 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   // -----------------------------------------------------------------------------------------------
   const thing_str_repr = thing => {
     const type_str  = typeof thing === 'object' ? thing.constructor.name : typeof thing;
+    // const thing_str = abbreviate(Array.isArray(thing)
+    //                              ? inspect_fun(thing) 
+    //                              : (typeof thing === 'string'
+    //                                 ? inspect_fun(thing)
+    //                                 : thing.toString()));
     const thing_str = abbreviate(Array.isArray(thing)
-                                 ? thing.join(' ')
+                                 ? compress(inspect_fun(thing)) 
                                  : (typeof thing === 'string'
                                     ? inspect_fun(thing)
                                     : thing.toString()));
@@ -6810,217 +7554,265 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   const thing_type_str = thing =>
         typeof thing === 'object' ? thing.constructor.name : typeof thing;
   // -----------------------------------------------------------------------------------------------
-  const log = (guard_bool, msg) => { 
+  const log = (guard_bool, msg, with_indentation = true) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
-    if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    if (guard_bool) lm.log(msg, with_indentation);
   };
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, indent = 0) {
-    const log = (guard_bool, msg) => {
+  function walk(thing, undexpected) {
+    if (unexpected !== undefined)
+      throw new Error("bad args");
+    
+    const log = (guard_bool, msg, with_indentation = true) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
-      if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+      // if (guard_bool) lm.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+      if (guard_bool) lm.log(msg, with_indentation);
     };
 
-    // log(log_expand_and_walk_enabled,
-    //     `walk thing: ${abbreviate(Array.isArray(thing) ? thing.join(' ') : thing.toString())}`);
-    
+    class ThrownReturn {
+      constructor(value) {
+        this.value = value;
+      }
+    }
+
     log(log_expand_and_walk_enabled,
         `Walking ` +
-        // `${thing_type_str(thing)} ` +
         `${thing_str_repr(thing)} in ` + 
         `${context}`);
-    
-    // ---------------------------------------------------------------------------------------------
-    // basic types (strings and Arrays):
-    // ---------------------------------------------------------------------------------------------
-    if (typeof thing === 'string')
-      return thing;
-    // ---------------------------------------------------------------------------------------------
-    else if (Array.isArray(thing)) {
-      const ret = [];
 
-      for (const t of thing) 
-        ret.push(walk(t, indent + 1));
+    try {
+      // -------------------------------------------------------------------------------------------
+      // basic types (strings and Arrays):
+      // -------------------------------------------------------------------------------------------
+      if (typeof thing === 'string')
+        throw new ThrownReturn(thing);
+      // -------------------------------------------------------------------------------------------
+      else if (Array.isArray(thing)) {
+        const ret = [];
 
-      return ret;
-    }
-    // ---------------------------------------------------------------------------------------------
-    // flags:
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSetFlag) {
-      // log(`SET FLAG '${thing.name}'.`);
-      
-      context.set_flag(thing.flag);
+        // for (const t of thing) {
+        lm.indent(() => {
+          if (log_expand_and_walk_enabled)
+            throw new Error("bomb");
+          
+          for (let ix = 0; ix < thing.length; ix++) {
+            log(log_expand_and_walk_enabled,
+                `Walking array element #${ix + 1} `+
+                `of ${thing.length} ` +
+                `${thing_str_repr(thing[ix])}`);
 
-      return ''; // produce nothing
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUnsetFlag) {
-      log(log_flags_enabled,
-          `UNSETTING FLAG '${thing.flag}'.`);
+            const elem_ret = lm.indent(() => walk(thing[ix]));
 
-      context.unset_flag(thing.flag);
-      
-      return ''; // produce nothing
-    }
-    // ---------------------------------------------------------------------------------------------
-    // references:
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTNamedWildcardReference) {
-      const got = context.named_wildcards.get(thing.name);
+            ret.push(elem_ret);
 
-      if (!got)
-        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
+            log(log_expand_and_walk_enabled,
+                `walking array element #${ix + 1} `+
+                `of ${thing.length} ` +
+                `${thing_str_repr(thing[ix])} ` +
+                `returned ${thing_str_repr(elem_ret)}`);
 
-      let res = [];
-      
-      if (got instanceof ASTLatchedNamedWildcardValue) {
-        for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(expand_wildcards(got, context, indent + 1)); // not walk!
+          }
+        });
+
+        throw new ThrownReturn(ret);
       }
-      else {
-        const priority = thing.min_count === 1 && thing.max_count === 1
-              ? context.pick_one_priority
-              : context.pick_multiple_priority;
+      // -------------------------------------------------------------------------------------------
+      // flags:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTSetFlag) {
+        // log(`SET FLAG '${thing.name}'.`);
         
-        const picks = got.pick(thing.min_count, thing.max_count,
-                               allow_fun, forbid_fun,
-                               priority);
+        context.set_flag(thing.flag);
+
+        throw new ThrownReturn(''); // produce nothing
+      }
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUnsetFlag) {
+        log(log_flags_enabled,
+            `unsetting flag '${thing.flag}'.`);
+
+        context.unset_flag(thing.flag);
         
-        res.push(...picks.map(p => expand_wildcards(p?.body ?? '', context, indent + 1))); // not walk!
+        throw new ThrownReturn(''); // produce nothing
       }
-      
-      res = res.filter(s => s !== '');
+      // -------------------------------------------------------------------------------------------
+      // references:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTNamedWildcardReference) {
+        const got = context.named_wildcards.get(thing.name);
 
-      if (thing.capitalize && res.length > 0) {
-        res[0] = capitalize(res[0]);
-      }
+        if (!got)
+          throw new ThrownReturn(`\\<WARNING: named wildcard @${thing.name} not found!>`);
 
-      return thing.joiner == ','
-        ? res.join(", ")
-        : (thing.joiner == '&'
-           ? format_pretty_list(res)
-           : res.join(" "));
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTScalarReference) {
-      let got = context.scalar_variables.get(thing.name) ??
-          `Scalarl '${thing.name}' not found}`;
-
-      if (thing.capitalize)
-        got = capitalize(got);
-
-      return got;
-    }
-    // ---------------------------------------------------------------------------------------------
-    // NamedWildcards:
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTLatchNamedWildcard) {
-      const got = context.named_wildcards.get(thing.name);
-      
-      if (!got)
-        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
-
-      // console.log(`CONSIDER ${inspect_fun(got)}`);
-
-      if (got instanceof ASTLatchedNamedWildcardValue) {
-        return `\\<WARNING: tried to latch already-latched NamedWildcard @${thing.name}, ` +
-          `check your template!>`;
-      } else {
-        console.log(`LATCHING ${inspect_fun(got)}`);
+        let res = [];
         
-        // throw new Error('bomb');
+        if (got instanceof ASTLatchedNamedWildcardValue) {
+          for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
+            res.push(lm.indent(() => expand_wildcards(got.latched_value, context))); // not walk!
+        }
+        else {
+          const priority = thing.min_count === 1 && thing.max_count === 1
+                ? context.pick_one_priority
+                : context.pick_multiple_priority;
+          
+          const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context));
+          const picks = got.pick(thing.min_count, thing.max_count,
+                                 allow_fun, forbid_fun, each, 
+                                 priority);
+
+          if (log_expand_and_walk_enabled)
+            lm.indent_and_log(`picked items ${thing_str_repr(picks)}`);
+
+          // const walked_picks = picks.map(each);
+          res.push(...picks); // not walk!
+        }
+        
+        res = res.filter(s => s !== '');
+
+        if (thing.capitalize && res.length > 0) {
+          res[0] = capitalize(res[0]);
+        }
+
+        throw new ThrownReturn(thing.joiner == ','
+                               ? res.join(", ")
+                               : (thing.joiner == '&'
+                                  ? format_pretty_list(res)
+                                  : res.join(" ")));
       }
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTScalarReference) {
+        let got = context.scalar_variables.get(thing.name) ??
+            `\\<WARNING: scalar '${thing.name}' not found}>`;
 
-      const latched = new ASTLatchedNamedWildcardValue(walk(got, indent + 1), got);
+        log(false, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
-      // console.log(`LATCHED IS ${inspect_fun(latched)}`);
-      
-      log(context.noisy,
-          `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
-      
-      context.named_wildcards.set(thing.name, latched);
+        if (thing.capitalize)
+          got = capitalize(got);
 
-      return '';
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUnlatchNamedWildcard) {
-      let got = context.named_wildcards.get(thing.name);
-
-      if (!got)
-        return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
-
-      if (! (got instanceof ASTLatchedNamedWildcardValue)) {
-        return `\\<WARNING: tried to unlatch already-unlatched NamedWildcard @${thing.name}, ` +
-          `check your template!>`;
+        
+        throw new ThrownReturn(got);
       }
+      // -------------------------------------------------------------------------------------------
+      // NamedWildcards:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTLatchNamedWildcard) {
+        const got = context.named_wildcards.get(thing.name);
+        
+        if (!got)
+          throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.name} not found!>`);
 
-      context.named_wildcards.set(thing.name, got.original_value);
+        // lm.log(`CONSIDER ${inspect_fun(got)}`);
 
-      log(context.noisy,
-          `UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+        if (got instanceof ASTLatchedNamedWildcardValue) {
+          throw new ThrownReturn(`\\<WARNING: tried to latch already-latched NamedWildcard ` +
+                                 `@${thing.name}, check your template!>`);
+        } /* else {
+             lm.log(`LATCHING ${inspect_fun(got)}`);
+             
+             // throw new Error('bomb');
+             } */
 
-      return ''; // produce no text.
-    } 
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTNamedWildcardDefinition) {
-      if (context.named_wildcards.has(thing.destination))
-        log(true, `WARNING: redefining named wildcard @${thing.destination.name}, ` +
-            `you may not have intended to do this, check your template!`);
+        const latched = new ASTLatchedNamedWildcardValue(lm.indent(() => walk(got, context)), got);
 
-      context.named_wildcards.set(thing.destination, thing.wildcard);
+        // lm.log(`LATCHED IS ${inspect_fun(latched)}`);
+        
+        log(context.noisy,
+            `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+        
+        context.named_wildcards.set(thing.name, latched);
 
-      return '';
-    }
-    // ---------------------------------------------------------------------------------------------
-    // internal objects:
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTLatchedNamedWildcardValue) {
-      return thing.latched_value;
-    }
-    // ---------------------------------------------------------------------------------------------
-    // scalar assignment:
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUpdateScalar) {
-      log(context.noisy, '');
-      log(context.noisy,
-          `ASSIGNING ${inspect_fun(thing.source)} ` +
-          `TO '${thing.destination.name}'`);
+        throw new ThrownReturn('');
+      }
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUnlatchNamedWildcard) {
+        let got = context.named_wildcards.get(thing.name);
+
+        if (!got)
+          throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.name} not found!>`);
+
+        if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+          throw new ThrownReturn(`\\<WARNING: tried to unlatch already-unlatched NamedWildcard ` +
+                                 `@${thing.name}, ` +
+                                 `check your template!>`);
+        }
+
+        context.named_wildcards.set(thing.name, got.original_value);
+
+        log(context.noisy,
+            `UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+
+        throw new ThrownReturn(''); // produce no text.
+      } 
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTNamedWildcardDefinition) {
+        if (context.named_wildcards.has(thing.name))
+          log(true, `WARNING: redefining named wildcard @${thing.name.name}, ` +
+              `you may not have intended to do this, check your template!`);
+
+        context.named_wildcards.set(thing.name, thing.wildcard);
+
+        throw new ThrownReturn('');
+      }
+      // -------------------------------------------------------------------------------------------
+      // internal objects:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTLatchedNamedWildcardValue) {
+        throw new ThrownReturn(thing.latched_value);
+      }
+      // -------------------------------------------------------------------------------------------
+      // scalar assignment:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTScalarAssignment) {
+        log(context.noisy, '');
+        log(context.noisy,
+            `assigning ${inspect_fun(thing.source)} ` +
+            `to '${thing.destination.name}'`);
+        
+        let   new_val = lm.indent(() => expand_wildcards(thing.source, context));
+        const old_val = context.scalar_variables.get(thing.destination.name)??'';
+
+        if (! thing.assign)
+          new_val = smart_join([ old_val, new_val ]);
+        
+        context.scalar_variables.set(thing.destination.name, new_val);
+
+        log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
+            log_expand_and_walk_enabled);
+        
+        throw new ThrownReturn('');
+      }
+      // -------------------------------------------------------------------------------------------
+      // AnonWildcards:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTAnonWildcard) {
+        const picked = thing.pick(1, 1,
+                                  allow_fun, forbid_fun, id, 
+                                  context.pick_one_priority)[0];
+
+        log(log_expand_and_walk_enabled,
+            `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
+        
+        const pick = picked?.body;
+
+        if (log_expand_and_walk_enabled)
+            lm.indent_and_log(pick
+                              ? `picked ${thing_str_repr(pick)}`
+                              : `picked empty`);
+
+          if (! pick)
+            throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
       
-      let   new_val = walk(thing.source, indent + 1);
-      const old_val = context.scalar_variables.get(thing.destination.name)??'';
-
-      if (! thing.assign)
-        new_val = smart_join([ old_val, new_val ]);
-      
-      context.scalar_variables.set(thing.destination.name, new_val);
-
-      log(context.noisy,
-          `ASSIGN ${inspect_fun(new_val)} TO "${thing.destination.name}'`);
-      log(context.noisy,
-          `VARS AFTER: ${inspect_fun(context.scalar_variables)}`);
-      
-      return '';
-    }
-    // ---------------------------------------------------------------------------------------------
-    // AnonWildcards:
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTAnonWildcard) {
-      const pick = thing.pick_one(allow_fun, forbid_fun,
-                                  context.pick_one_priority)?.body;
-
-      if (! pick)
-        return ''; // inelegant... investigate why this is necessary?
-      
-      return walk(pick, indent + 1);
+      throw new ThrownReturn(lm.indent(() => walk(pick)));
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUpdateConfigurationUnary ||
              thing instanceof ASTUpdateConfigurationBinary) {
       let value = thing.value;
 
+      // lm.log(`THING: ${thing} ${inspect_fun(thing)}`);
+      
       if (value instanceof ASTNode) {
-        const expanded_value = expand_wildcards(thing.value, context, indent + 1); // not walk!
+        const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
         const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                               ? rJsoncObject
                                               : rJsonc).match(expanded_value);
@@ -7043,20 +7835,19 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       if (thing instanceof ASTUpdateConfigurationUnary) { // ASTUpdateConfigurationUnary
         let new_obj = value;
 
-        for (const key of Object.keys(value)) {
+        for (const key of Object.keys(value)) 
           new_obj[get_our_name(key)??key] = value[key]
-        }
         
         context.configuration = thing.assign
           ? new_obj
           : { ...context.configuration, ...new_obj };
 
-        log(log_configuration_enabled,
-            `%config ${thing.assign ? '=' : '+='} ` +
-            `${inspect_fun(new_obj, true)}`
-            // + `, configuration is now: ` +
-            // `${inspect_fun(context.configuration, true)}`
-           );
+        lm.indent(() => log(log_configuration_enabled,
+                            `%config ${thing.assign ? '=' : '+='} ` +
+                            `${inspect_fun(new_obj, true)}`
+                            // + `, configuration is now: ` +
+                            // `${inspect_fun(context.configuration, true)}`
+                           ));
       }
       else { // ASTUpdateConfigurationBinary
         const our_name = get_our_name(thing.key); 
@@ -7113,7 +7904,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
             // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
             //           `increment by string ${inspect_fun(value)}, ` +
             //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-            context.configuration[our_name] = smart_join([tmp_str, value]);
+            context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value]));
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
@@ -7124,16 +7915,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           }
         }
 
-        log(log_configuration_enabled,
-            `%${our_name} ` +
-            `${thing.assign ? '=' : '+='} ` +
-            `${inspect_fun(value, true)}`
-            // + `, configuration is now: ` +
-            // `${inspect_fun(context.configuration, true)}`
-           );
+        lm.indent(() => log(log_configuration_enabled,
+                            `%${our_name} ` +
+                            `${thing.assign ? '=' : '+='} ` +
+                            `${inspect_fun(value, true)}`,
+                            log_expand_and_walk_enabled));
       }
       
-      return '';
+      throw new ThrownReturn('');
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTSetPickSingle || 
@@ -7146,8 +7935,8 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
-      const walked    = picker_priority[expand_wildcards(thing.limited_content,
-                                                         context, indent + 1).toLowerCase()];
+      const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
+                                                                         context)).toLowerCase()];
 
       // if (log_configuration_enabled)
       //   log(`SET PICK DATA: ` +
@@ -7165,7 +7954,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
           `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
           `${inspect_fun(walked)}.`);
       
-      return '';
+      throw new ThrownReturn('');
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
@@ -7173,25 +7962,25 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
             ? { desc: 'UI prompt', text: ui_prompt }
             : { desc: 'UI negative prompt', text: ui_neg_prompt };
       
-      console.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+      lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
 
       let res = null;
 
       try {
-        res = Prompt.match(sub_prompt. text);
+        res = Prompt.match(sub_prompt.text);
       }
       catch(err) {
         if (err instanceof FatalParseError)
-          return `\\<WARNING: parsing ${sub_prompt.desc} failed: ${err}>`;
+          throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} failed: ${err}>`);
         else
           throw err;
       }
 
       
       if (!res || !res.is_finished)
-        return `\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`;
+        throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`);
 
-      return expand_wildcards(res.value, context, indent + 1);
+      throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTRevertPickSingle || 
@@ -7219,37 +8008,56 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       context[cur_key]   = prior_val;
       context[prior_key] = cur_val;
 
-      return '';
+      throw new ThrownReturn('');
     }
     // ---------------------------------------------------------------------------------------------
     // ASTLora:
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
-      log(log_expand_and_walk_enabled,
-          `ENCOUNTERED LORA ${thing} IN ${context}`);
+      // log(log_expand_and_walk_enabled,
+      //     `encountered lora ${thing} in ${context}`);
+
+      let walked_file = null;
+
+      lm.indent(() => {
+        log(log_expand_and_walk_enabled,
+            `expanding file ${compress(inspect_fun(thing.file))}`);
+        
+        walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
+
+        log(log_expand_and_walk_enabled,
+            `expanded file is ${typeof walked_file} ` +
+            `${walked_file.constructor.name} ` +
+            `${inspect_fun(walked_file)} `);
+      });
       
-      let walked_file = expand_wildcards(thing.file, context, indent + 1); // not walk!
-
-      // log(`walked_file is ${typeof walked_file} ` +
-      //             `${walked_file.constructor.name} ` +
-      //             `${inspect_fun(walked_file)} ` +
-      //             `${Array.isArray(walked_file)}`);
-
       // if (Array.isArray(walked_file))
       //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
 
       // if (Array.isArray(thing.weight))
       //   throw new Error("boom");
+
+      let walked_weight = null;
       
-      let walked_weight = expand_wildcards(thing.weight, context, indent + 1); // not walk!
-      
+      lm.indent(() => {
+        log(log_expand_and_walk_enabled,
+            `expanding weight ${compress(inspect_fun(thing.weight))}`);
+        
+        walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
+
+        log(log_expand_and_walk_enabled,
+            `expanded weight is ${typeof walked_weight} ` +
+            `${walked_weight.constructor.name} ` +
+            `${compress(inspect_fun(walked_weight))}, ` +
+            `Array.isArray(${Array.isArray(walked_weight)})`);
+      });
+
+      // log(log_expand_and_walk_enabled,
+      //     `walking weight ${compress(inspect_fun(thing.weight))}`);
+
       // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
       //   throw "bomb";
       
-      // log(`walked_weight is ${typeof walked_weight} ` +
-      //             `${walked_weight.constructor.name} ` +
-      //             `${inspect_fun(walked_weight)} ` +
-      //             `${Array.isArray(walked_weight)}`);
       
       // if (Array.isArray(walked_weight))
       //   walked_weight = smart_join(walked_weight);
@@ -7281,17 +8089,10 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
       const weight = weight_match_result.value;
       
-      context.add_lora_uniquely({ file: file, weight: weight }, { indent: indent });
+      context.add_lora_uniquely({ file: file, weight: weight });
       
-      return '';
+      throw new ThrownReturn('');
     }
-    // ---------------------------------------------------------------------------------------------
-    // ASTUpdateNegativePrompt:
-    // ---------------------------------------------------------------------------------------------
-    // else if (thing instanceof ASTUpdateNegativePrompt) {
-    //   const temporaryNode = new ASTUpdateConfigurationBinary("negative_prompt", thing.value, thing.assign);
-    //   return expand_wildcards(temporaryNode, context, indent + 1);
-    // }
     // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
     // ---------------------------------------------------------------------------------------------
@@ -7302,29 +8103,53 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
                        : typeof thing) +
                       ' ' +
                       inspect_fun(thing));
+
     }
   }
+  catch (obj) {
+    if (! (obj instanceof ThrownReturn))
+      throw obj;
 
-  log(log_expand_and_walk_enabled,
-      `Expanding wildcards in ` +
-      // `${thing_type_str(thing)} ` +
-      `${thing_str_repr(thing)} in ` + 
-      `${context}`);
-  
-  const ret = unescape(smart_join(walk(thing, indent + 1)));
+    log(log_expand_and_walk_enabled,
+        `walking ` +
+        `${thing_str_repr(thing)} in ` + 
+        `${context} returned ` +
+        `${thing_str_repr(obj.value)}`);
 
-  context.munge_configuration({indent: indent + 1});
-  
-  log(log_expand_and_walk_enabled,
-      `Expanded into ${inspect_fun(ret)}`);
-  
-  // if (ret === undefined)
-  //   throw new Error("what");
-  
-  // if (ret.match(/^\s+$/))
-  //   throw "bombλ";
-  
-  return ret;
+    return obj.value;
+  }
+}
+
+log(log_expand_and_walk_enabled,
+    `Expanding wildcards in ` +
+    `${thing_str_repr(thing)} in ` + 
+    `${context}`);
+
+const ret = unescape(smart_join(lm.indent(() => walk(thing))));
+lm.indent(() => context.munge_configuration());
+
+// if (walked === '""' ||
+//     walked === "''" ||
+//     walked?.includes('""') ||
+//     walked?.includes("''"))
+//   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
+
+log(log_expand_and_walk_enabled,
+    `expanded wildcards in ` +
+    `${thing_str_repr(thing)} in ` + 
+    `${context} into ` +
+    `${thing_str_repr(ret)}`);
+
+// if (ret === undefined)
+//   throw new Error("what");
+
+// if (ret.match(/^\s+$/))
+//   throw "bombλ";
+
+if (ret === '""' || ret === "''")
+  throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
+
+return ret;
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -7382,8 +8207,8 @@ class ASTCheckFlags extends ASTNode {
     this.flags = flag_arrs;
     this.consequently_set_flag_tail = consequently_set_flag_tail;
 
-    if (log_flags_enabled)
-      console.log(`constructed ${inspect_fun(this)}`)
+    // if (log_flags_enabled)
+    //   lm.log(`constructed ${inspect_fun(this)}`)
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -7421,11 +8246,11 @@ class ASTNotFlag extends ASTNode  {
     this.consequently_set_flag_tail = consequently_set_flag_tail
     this.set_immediately            = set_immediately;
 
-    if (log_flags_enabled)
-      console.log(`constructed ${inspect_fun(this)}`)
+    // if (log_flags_enabled)
+    //   lm.log(`constructed ${inspect_fun(this)}`)
     
     // if (this.set_immediately)
-    //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
+    //   lm.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
   // -------------------------------------------------------------------------------------------------
   toString() {
@@ -7455,7 +8280,7 @@ class ASTNamedWildcardReference extends ASTNode {
     this.max_count  = max_count;
     this.joiner     = joiner;
     this.capitalize = capitalize;
-    // console.log(`BUILT ${inspect_fun(this)}`);
+    // lm.log(`BUILT ${inspect_fun(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -7502,7 +8327,7 @@ class ASTScalarReference extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Scalar assignment:
 // -------------------------------------------------------------------------------------------------
-class ASTUpdateScalar extends ASTNode  {
+class ASTScalarAssignment extends ASTNode  {
   constructor(destination, source, assign) {
     super();
     this.destination = destination;
@@ -7522,7 +8347,7 @@ class ASTLora extends ASTNode {
     super();
     this.file   = file;
     this.weight = weight;
-    // console.log(`Constructed LoRa ${this}!`);
+    // lm.log(`Constructed LoRa ${this}!`);
   }
   // -----------------------------------------------------------------------------------------------
   toString(with_types = false ) {
@@ -7560,14 +8385,14 @@ class ASTUnlatchNamedWildcard extends ASTNode {
 // Named wildcard definitions:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardDefinition extends ASTNode {
-  constructor(destination, wildcard) {
+  constructor(name, wildcard) {
     super();
-    this.destination = destination;
+    this.name = name;
     this.wildcard    = wildcard;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `@${this.destination} = ${this.wildcard}`;
+    return `@${this.name} = ${this.wildcard}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -7593,15 +8418,11 @@ class ASTAnonWildcard  extends ASTNode {
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
-    // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+    // lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
     return this.picker.pick(...args);
-  }
-  // -----------------------------------------------------------------------------------------------
-  pick_one(...args) {
-    return this.picker.pick_one(...args);
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -7615,10 +8436,10 @@ class ASTAnonWildcard  extends ASTNode {
       const is_last    = ix == (this.picker.options.length - 1);
       const has_guards = (option.value.check_flags?.length > 0) || (option.value.not_flags?.length > 0);
 
-      // console.log(`option:     ${inspect_fun(option)}`);
-      // console.log(`cfs.l:      ${option.value.check_flags?.length}`);
-      // console.log(`nfs.l:      ${option.value.not_flags?.length}`);
-      // console.log(`has_guards: ${has_guards}`);
+      // lm.log(`option:     ${inspect_fun(option)}`);
+      // lm.log(`cfs.l:      ${option.value.check_flags?.length}`);
+      // lm.log(`nfs.l:      ${option.value.not_flags?.length}`);
+      // lm.log(`has_guards: ${has_guards}`);
       
       if (!is_empty && !has_weight && !has_guards)
         str += ' ';
@@ -7664,13 +8485,13 @@ class ASTAnonWildcardAlternative extends ASTNode {
       bits.push(not.toString());
     
     for (const thing of this.body) {
-      // console.log(`push bit ${thing.toString()} (${thing.toString().length})`)
+      // lm.log(`push bit ${thing.toString()} (${thing.toString().length})`)
       bits.push(thing.toString());
     }
 
     str += bits.join(' ');
 
-    // console.log(`BITS: ${inspect_fun(bits)}`);
+    // lm.log(`BITS: ${inspect_fun(bits)}`);
     
     return str;
   }
@@ -7786,74 +8607,218 @@ class ASTUINegPrompt extends ASTNode {
 // SD PROMPT GRAMMAR SECTION:
 // =================================================================================================
 // terminals:
+// =================================================================================================
+const comments                = wst_star(c_comment);
+const discarded_comment       = discard(c_comment);
+const discarded_comments      = discard(wst_star(c_comment));
+const any_assignment_operator = choice(equals, plus_equals);
+const dot_hash                = l('.#');
+const filename                = r(/[A-Za-z0-9 ._\-()]+/);
+const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+                                      str => str.toLowerCase().replace(/-/g, '_'));
+const structural_word_break   = r(/(?=[\s|}])/);
 // -------------------------------------------------------------------------------------------------
-// const low_pri_text          = /[\(\)\[\]\,\.\?\!\:\;]+/;
-// const plaintext             = /[^{|}\s]+/;
-// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|[^\s{|}]))+/);
-// const plaintext             = r(/(?:(?![{|}\s]|\/\/|\/\*)[\S])+/); // stop at comments
-// const plaintext             = r(/(?:\\\s|[^\s{|}])+/);
-// const plaintext_no_parens   = /[^{|}\s()]+/;
-const any_assignment_operator  = choice(() => assignment_operator, () => incr_assignment_operator);
-const assignment_operator      = second(seq(wst_star(() => comment), '=', wst_star(() => comment)));
-const comment                  = discard(c_comment);
-const escaped_brc              = second(choice('\\{', '\\}'));
-const filename                 = r(/[A-Za-z0-9 ._\-()]+/);
-const ident                    = r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/);
-const incr_assignment_operator = second(seq(wst_star(comment), '+=', wst_star(comment)));
-const low_pri_text             = r(/[\(\)\[\]\,\.\?\!\:\);]+/);
-const plaintext                = r(/(?:(?![{|}\s]|\/\/|\/\*)(?:\\\s|\S))+/);
-const wb_uint                  = xform(parseInt, /\b\d+(?=\s|[{|}]|$)/);
-const word_break               = r(/(?=\s|[{|}\.\,\?\!\(\)]|$)/);
-any_assignment_operator        .abbreviate_str_repr('any_assignment_operator');
-assignment_operator            .abbreviate_str_repr('assignment_operator');
-comment                        .abbreviate_str_repr(false);
-escaped_brc                    .abbreviate_str_repr('escaped_brc');
-filename                       .abbreviate_str_repr('filename');
-ident                          .abbreviate_str_repr('ident');
-incr_assignment_operator       .abbreviate_str_repr('incr_assignment_operator');
-low_pri_text                   .abbreviate_str_repr('low_pri_text');
-plaintext                      .abbreviate_str_repr('plaintext');
-wb_uint                        .abbreviate_str_repr('wb_uint');
-word_break                     .abbreviate_str_repr('word_break');
-// ^ conservative regex, no unicode or weird symbols
+const with_swb                = rule =>
+      first(seq(rule, structural_word_break));
+const seq_with_swb            = (...rules) =>
+      first(seq(seq(...rules), structural_word_break));
+// these cut after ALL rules if a SWB isn't found, NOT after first rule:
+const cutting_with_swb                = rule =>
+      first(cutting_seq(rule, structural_word_break));
+const cutting_seq_with_swb    = (...rules) => 
+      first(cutting_seq(seq(...rules), structural_word_break));
 // -------------------------------------------------------------------------------------------------
-// discard comments:
+const swb_uint                = with_swb(uint);
 // -------------------------------------------------------------------------------------------------
-const discarded_comments        = discard(wst_star(comment));
-discarded_comments              .abbreviate_str_repr('-comment*');
+any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
+comments                      .abbreviate_str_repr('comments_star');
+discarded_comment             .abbreviate_str_repr('discarded_comment');
+discarded_comments            .abbreviate_str_repr('discarded_comments');
+dot_hash                      .abbreviate_str_repr('dot_hash');
+filename                      .abbreviate_str_repr('filename');
+ident                         .abbreviate_str_repr('ident');
+swb_uint                      .abbreviate_str_repr('swb_uint');
+// =================================================================================================
+// plain_text variants:
+// =================================================================================================
+const structural_chars        = '{|}';
+const syntax_chars            = '@#$%';
+const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
-// combinators:
+const make_plain_text_char_Regexp_source_str = (additional_excluded_chars) =>
+      // raw`${brackets}|` +
+      raw`(?:\\.|` +
+      raw`(?!`+
+      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
+      raw`${comment_beginning}` +
+      raw`)` +
+      raw`\S)`;
 // -------------------------------------------------------------------------------------------------
-// const unarySpecialFunction = (prefix, rule, xform_func) =>
-//       xform(wst_cutting_seq(wst_seq(`%${prefix}`,          // [0][0]
-//                                     discarded_comments,     // -
-//                                     '(',                   // [0][1]
-//                                     discarded_comments),    // -
-//                             rule,                          // [1]
-//                             discarded_comments,             // -
-//                             ')'),                          // [2]
-//             arr => xform_func(arr[1]));
+const make_plain_text_rule = (additional_excluded_chars) => 
+      r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
 // -------------------------------------------------------------------------------------------------
+const plain_text               = make_plain_text_rule('');
+const plain_text_no_semis      = make_plain_text_rule(';');
+// -------------------------------------------------------------------------------------------------
+plain_text                     .abbreviate_str_repr('plain_text');
+plain_text_no_semis            .abbreviate_str_repr('plain_text_no_semis');
+// -------------------------------------------------------------------------------------------------
+// lm.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
+// lm.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
+// =================================================================================================
 // A1111-style LoRAs:
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint);
 const A1111StyleLora       =
       xform(arr => new ASTLora(arr[3], arr[4][0]),
-            wst_seq('<',                                    // [0]
+            wst_seq(ltri,                                   // [0]
                     'lora',                                 // [1]
-                    ':',                                    // [2]
+                    colon,                                  // [2]
                     choice(filename, () => LimitedContent), // [3]
-                    optional(second(wst_seq(':',
+                    optional(second(wst_seq(colon,
                                             choice(A1111StyleLoraWeight,
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
-                    '>'));
+                    rtri));
+// -------------------------------------------------------------------------------------------------
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
+// =================================================================================================
+// word breaks:
+// =================================================================================================
+// these are inadvisably complex:
+const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
+const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
+const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
 // -------------------------------------------------------------------------------------------------
-// helper funs used by xforms:
+word_break                         .abbreviate_str_repr('word_break');
+simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
+simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
+// =================================================================================================
+// flag-related rules:
+// =================================================================================================
+const SimpleCheckFlag              = xform(seq_with_swb(question,
+                                                        plus(ident, dot)),
+                                           arr => {
+                                             // lm.log(`ARR: ${inspect_fun(arr)}`);
+                                             
+                                             const args = [arr[1]];
+
+                                             // if (log_flags_enabled) {
+                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
+                                             //               `GOT ARR ${inspect_fun(arr)}`);
+                                             //   lm.log(`CONSTRUCTING CHECKFLAG (simple) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
+
+                                             return new ASTCheckFlags(args);
+                                           });
+const SimpleNotFlag                = xform(seq_with_swb(bang,
+                                                        optional(hash),
+                                                        plus(ident, dot)),
+                                           arr => {
+                                             const args = [arr[2],
+                                                           { set_immediately: !!arr[1][0]}];
+
+                                             // if (log_flags_enabled) {
+                                             //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
+                                             //               `GOT arr ${inspect_fun(arr)}`);
+                                             //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
+
+                                             return new ASTNotFlag(...args);
+                                           })
+const CheckFlagWithOrAlternatives  = xform(cutting_seq_with_swb(question,
+                                                                plus(plus(ident, dot), comma)),
+                                           arr => {
+                                             const args = [arr[1]];
+
+                                             // if (log_flags_enabled) {
+                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
+                                             //               `GOT ARR ${inspect_fun(arr)}`);
+                                             //   lm.log(`CONSTRUCTING CHECKFLAG (or) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
+
+                                             return new ASTCheckFlags(...args);
+                                           });
+const CheckFlagWithSetConsequent   = xform(cutting_seq_with_swb(question,          // [0]
+                                                                plus(ident, dot),  // [1]
+                                                                dot_hash,          // [2]
+                                                                plus(ident, dot)), // [3]
+                                           arr => {
+                                             const args = [ [ arr[1] ], arr[3] ]; 
+
+                                             // if (log_flags_enabled) {
+                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
+                                             //               `GOT ARR ${inspect_fun(arr)}`);
+                                             //   lm.log(`CONSTRUCTING CHECKFLAG (set) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
+
+                                             return new ASTCheckFlags(...args);
+                                           });
+const NotFlagWithSetConsequent     = xform(cutting_seq_with_swb(bang,
+                                                                plus(ident, dot),
+                                                                dot_hash,
+                                                                plus(ident, dot)),
+                                           arr => {
+                                             const args = [arr[1],
+                                                           { consequently_set_flag_tail: arr[3] }]; 
+
+                                             // if (log_flags_enabled) {
+                                             //   lm.log(`CONSTRUCTING NOTFLAG (set) `+
+                                             //               `GOT arr ${inspect_fun(arr)}`);
+                                             //   lm.log(`CONSTRUCTING NOTFLAG (set) ` +
+                                             //               `WITH ARGS ${inspect_fun(args)}`);
+                                             // }
+                                             
+                                             return new ASTNotFlag(...args);
+                                           })
+const SetFlag                      = xform(second(cutting_seq_with_swb(hash,
+                                                                       plus(ident, dot))),
+                                           arr => {
+                                             // if (log_flags_enabled)
+                                             //   if (arr.length > 1)
+                                             //     lm.log(`CONSTRUCTING SETFLAG WITH ` +
+                                             //                 `${inspect_fun(arr)}`);
+                                             return new ASTSetFlag(arr);
+                                           });
+const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang,
+                                                                       plus(ident, dot))),
+                                           arr => {
+                                             // if (log_flags_enabled)
+                                             //   if (arr.length > 1)
+                                             //     lm.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                             //                 ` ${inspect_fun(arr)}`);
+                                             return new ASTUnsetFlag(arr);
+                                           });
+const TestFlag                     = choice(
+  SimpleCheckFlag,
+  SimpleNotFlag,
+  CheckFlagWithOrAlternatives,
+  CheckFlagWithSetConsequent,
+  NotFlagWithSetConsequent,
+);
 // -------------------------------------------------------------------------------------------------
+TestFlag                   .abbreviate_str_repr('TestFlag');
+SimpleCheckFlag            .abbreviate_str_repr('SimpleCheckFlag');
+SimpleNotFlag              .abbreviate_str_repr('SimpleNotFlag');
+CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
+CheckFlagWithSetConsequent .abbreviate_str_repr('CheckFlagWithSetConsequent');
+NotFlagWithSetConsequent   .abbreviate_str_repr('NotFlagWithSetConsequent');
+SetFlag                    .abbreviate_str_repr('SetFlag');
+UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
+// =================================================================================================
+// AnonWildcard-related rules:
+// =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
+  const weight = arr[1][0];
+
+  if (weight == 0)
+    return DISCARD;
+  
   // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
@@ -7876,7 +8841,7 @@ const make_ASTAnonWildcardAlternative = arr => {
         .map(f => new ASTSetFlag(f.flag));
 
   return new ASTAnonWildcardAlternative(
-    arr[1][0],
+    weight,
     check_flags,
     not_flags,
     [
@@ -7888,100 +8853,37 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 }
 // -------------------------------------------------------------------------------------------------
-// flag-related non-terminals:
+const make_AnonWildcardAlternative_rule = content_star_rule => 
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
+                lws(optional(swb_uint, 1)),
+                wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
+                lws(content_star_rule)));
 // -------------------------------------------------------------------------------------------------
-const CheckFlagWithOrAlternatives = xform(seq('?', plus(plus(ident, '.'), ','), word_break),
-                                          arr => {
-                                            const args = [arr[1]];
-
-                                            if (log_flags_enabled) {
-                                              console.log(`\nCONSTRUCTING CHECKFLAG (1) GOT ARR ` +
-                                                          `${inspect_fun(arr)}`);
-                                              console.log(`CONSTRUCTING CHECKFLAG (1) WITH ARGS ` +
-                                                          `${inspect_fun(args)}`);
-                                            }
-
-                                            return new ASTCheckFlags(...args);
-                                          });
-const CheckFlagWithSetConsequent  = xform(seq('?',              // [0]
-                                              plus(ident, '.'), // [1]
-                                              '.#',             // [2]
-                                              plus(ident, '.'), // [3]
-                                              word_break),      // [-]
-                                          arr => {
-                                            const args = [ [ arr[1] ], arr[3] ]; 
-
-                                            if (log_flags_enabled) {
-                                              console.log(`\nCONSTRUCTING CHECKFLAG (2) GOT ARR ` +
-                                                          `${inspect_fun(arr)}`);
-                                              console.log(`CONSTRUCTING CHECKFLAG (2) WITH ARGS ` +
-                                                          `${inspect_fun(args)}`);
-                                            }
-
-                                            return new ASTCheckFlags(...args);
-                                          });
-const NotFlagWithSetConsequent    = xform(seq('!', plus(ident, '.'), '.#', plus(ident, '.'), word_break),
-                                          arr => {
-                                            const args = [arr[1],
-                                                          { consequently_set_flag_tail: arr[3] }]; 
-
-                                            if (log_flags_enabled) {
-                                              console.log(`CONSTRUCTING NOTFLAG (2) GOT arr ` +
-                                                          `${inspect_fun(arr)}`);
-                                              console.log(`CONSTRUCTING NOTFLAG (2) WITH ARGS ` +
-                                                          `${inspect_fun(args)}`);
-                                            }
-                                            
-                                            return new ASTNotFlag(...args);
-                                          })
-const SimpleNotFlag              = xform(seq('!', optional('#'), plus(ident, '.'), word_break),
-                                         arr => {
-                                           const args = [arr[2],
-                                                         { set_immediately: !!arr[1][0]}];
-
-                                           if (log_flags_enabled) {
-                                             console.log(`CONSTRUCTING NOTFLAG (1) GOT arr ` +
-                                                         `${inspect_fun(arr)}`);
-                                             console.log(`CONSTRUCTING NOTFLAG (1) WITH ARGS ` +
-                                                         `${inspect_fun(args)}`);
-                                           }
-
-                                           return new ASTNotFlag(...args);
-                                         })
-const TestFlag                   = choice(CheckFlagWithSetConsequent,
-                                          CheckFlagWithOrAlternatives,
-                                          NotFlagWithSetConsequent,
-                                          SimpleNotFlag);
-const SetFlag                  = xform(second(seq('#', plus(ident, '.'), word_break)),
-                                       arr => {
-                                         if (log_flags_enabled)
-                                           if (arr.length > 1)
-                                             console.log(`CONSTRUCTING SETFLAG WITH ` +
-                                                         `${inspect_fun(arr)}`);
-                                         return new ASTSetFlag(arr);
-                                       });
-const UnsetFlag                = xform(second(seq('#!', plus(ident, '.'), word_break)),
-                                       arr => {
-                                         if (log_flags_enabled)
-                                           if (arr.length > 1)
-                                             console.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                                         ` ${inspect_fun(arr)}`);
-                                         return new ASTUnsetFlag(arr);
-                                       });
-SimpleNotFlag.abbreviate_str_repr('SimpleNotFlag');
-CheckFlagWithSetConsequent.abbreviate_str_repr('CheckFlagWithSetConsequent');
-CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
-NotFlagWithSetConsequent.abbreviate_str_repr('NotFlagWithSetConsequent');
-TestFlag.abbreviate_str_repr('TestFlag');
-SetFlag.abbreviate_str_repr('SetFlag');
-UnsetFlag.abbreviate_str_repr('UnsetFlag');
+const make_AnonWildcard_rule  = alternative_rule  =>
+      xform(arr => new ASTAnonWildcard(arr),
+            wst_brc_enc(wst_star(alternative_rule, pipe)));
 // -------------------------------------------------------------------------------------------------
+const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
+const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
+const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
+// -------------------------------------------------------------------------------------------------
+AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
+AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+AnonWildcard                         .abbreviate_str_repr('AnonWildcard');
+AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras');
+// =================================================================================================
 // non-terminals for the special functions/variables:
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
+const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
+                                                                  choice(lws(semicolon),
+                                                                         word_break)));
+const TrailingCommentsAndSemicolon = discard(lws(semicolon));
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
-            'ui-prompt');
-SpecialFunctionUIPrompt.abbreviate_str_repr('SpecialFunctionUIPrompt');
+            seq('ui-prompt',
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -7992,8 +8894,8 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      input, index - 1));
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
-            'ui-neg-prompt');
-SpecialFunctionUINegPrompt.abbreviate_str_repr('SpecialFunctionUINegPrompt');
+            seq('ui-neg-prompt',
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8002,17 +8904,13 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1));
-UnexpectedSpecialFunctionUINegPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUIPrompt.abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
                           first(wst_seq(discarded_comments,      // -
-                                        json_string,             // [0][1]
+                                        rjsonc_string,           // [0][1]
                                         discarded_comments))),   // -
-                discarded_comments,                              // -
-                lws(optional(';'))));                            // -
-SpecialFunctionInclude.abbreviate_str_repr('SpecialFunctionInclude');
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8022,95 +8920,101 @@ const UnexpectedSpecialFunctionInclude =
                                      "running the wildcards-plus.js script " +
                                      "inside Draw Things",
                                      input, index - 1));
-UnexpectedSpecialFunctionInclude.abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single-pick',               // [0]
-                wst_seq(discarded_comments,  // -
-                        assignment_operator, // [1][0]
-                        discarded_comments,  // -
-                        choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-SpecialFunctionSetPickSingle.abbreviate_str_repr('SpecialFunctionSetPickSingle');
+            seq('single-pick',                                               // [0]
+                discarded_comments,                                          // -
+                wst_seq(equals,                                              // [1][0]
+                        discarded_comments,                                  // -
+                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
+                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
 const SpecialFunctionSetPickMultiple =
-      xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('multi-pick',                // [0]
-                wst_seq(discarded_comments,  // -
-                        assignment_operator, // [1][0]
-                        discarded_comments,  // -
-                        choice(() => LimitedContent, lc_alpha_snake)))); // [1][1]
-SpecialFunctionSetPickMultiple.abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+      xform(arr => new ASTSetPickMultiple(arr[1][1]),
+            seq('multi-pick',                                                // [0]
+                discarded_comments,                                          // -
+                wst_seq(equals,                                              // [1][0]
+                        discarded_comments,                                  // -
+                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
+                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
-            seq('revert-single-pick', word_break));
-SpecialFunctionRevertPickSingle.abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+            seq('revert-single-pick',
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
-            seq('revert-multi-pick', word_break));
-SpecialFunctionRevertPickMultiple.abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+            seq('revert-multi-pick',
+                TrailingCommentFollowedBySemicolonOrWordBreak));
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                    // [0]
-                wst_seq(discarded_comments,                                 // -
-                        any_assignment_operator,                            // [1][0]
-                        discarded_comments,                                 // -
-                        choice(rJsonc, () => LimitedContent, plaintext)))); // [1][1]
-SpecialFunctionUpdateConfigurationBinary
-  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+            seq(c_ident,                                                            // [0]
+                discarded_comments,                                                 // -
+                wst_cutting_seq(any_assignment_operator,                            // [1][0]
+                                discarded_comments,                                 // -
+                                choice(rJsonc, () => LimitedContentNoSemis),        // [1][1]
+                                TrailingCommentFollowedBySemicolonOrWordBreak))); 
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                    // [0]
-                wst_seq(discarded_comments,                                       // -
-                        choice(incr_assignment_operator, assignment_operator),    // [1][0]
-                        discarded_comments,                                       // -
-                        choice(rJsoncObject, () => LimitedContent, plaintext)))); // [1][1]   
+            seq(/conf(?:ig)?/,                                                      // [0]
+                discarded_comments,                                                 // -
+                wst_cutting_seq(choice(plus_equals, equals),                        // [1][0]
+                                discarded_comments,                                 // -
+                                choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
+                                TrailingCommentFollowedBySemicolonOrWordBreak)));
+const SpecialFunctionNotInclude =
+      second(cutting_seq(percent,
+                         choice(
+                           SpecialFunctionUpdateConfigurationUnary,  // before binary!
+                           SpecialFunctionUpdateConfigurationBinary,
+                           (dt_hosted
+                            ? SpecialFunctionUIPrompt
+                            : UnexpectedSpecialFunctionUIPrompt),
+                           (dt_hosted
+                            ? SpecialFunctionUINegPrompt
+                            : UnexpectedSpecialFunctionUINegPrompt),
+                           SpecialFunctionSetPickSingle,
+                           SpecialFunctionSetPickMultiple,
+                           SpecialFunctionRevertPickSingle,
+                           SpecialFunctionRevertPickMultiple,
+                         )));
+// -------------------------------------------------------------------------------------------------
+SpecialFunctionInclude
+  .abbreviate_str_repr('SpecialFunctionInclude');
+SpecialFunctionNotInclude
+  .abbreviate_str_repr('SpecialFunctionNotInclude');
+SpecialFunctionRevertPickMultiple
+  .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+SpecialFunctionRevertPickSingle
+  .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+SpecialFunctionSetPickMultiple
+  .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+SpecialFunctionSetPickSingle
+  .abbreviate_str_repr('SpecialFunctionSetPickSingle');
+SpecialFunctionUINegPrompt
+  .abbreviate_str_repr('SpecialFunctionUINegPrompt');
+SpecialFunctionUIPrompt
+  .abbreviate_str_repr('SpecialFunctionUIPrompt');
+SpecialFunctionUpdateConfigurationBinary
+  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-// -------------------------------------------------------------------------------------------------
-const SpecialFunctionNotInclude =
-      second(cutting_seq('%',
-                         choice((dt_hosted
-                                 ? SpecialFunctionUIPrompt
-                                 : UnexpectedSpecialFunctionUIPrompt),
-                                (dt_hosted
-                                 ? SpecialFunctionUINegPrompt
-                                 : UnexpectedSpecialFunctionUINegPrompt),
-                                SpecialFunctionSetPickSingle,
-                                SpecialFunctionSetPickMultiple,
-                                SpecialFunctionRevertPickSingle,
-                                SpecialFunctionRevertPickMultiple,
-                                SpecialFunctionUpdateConfigurationUnary,
-                                SpecialFunctionUpdateConfigurationBinary),
-                         discarded_comments,
-                         lws(optional(';'))));
-SpecialFunctionNotInclude.abbreviate_str_repr('SpecialFunctionNotInclude');
-// -------------------------------------------------------------------------------------------------
+TrailingCommentFollowedBySemicolonOrWordBreak
+  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+TrailingCommentsAndSemicolon
+  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
+UnexpectedSpecialFunctionInclude
+  .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+UnexpectedSpecialFunctionUINegPrompt
+  .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+UnexpectedSpecialFunctionUIPrompt
+  .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+// =================================================================================================
 // other non-terminals:
-// -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative =
-      xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                optional(wb_uint, 1),
-                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                () => ContentStar));
-AnonWildcardAlternative.abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcardAlternativeNoLoras =
-      xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                optional(wb_uint, 1),
-                wst_star(choice(comment, TestFlag, SetFlag, UnsetFlag)),
-                () => ContentNoLorasStar));
-AnonWildcardAlternativeNoLoras.abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard            = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternative, '|')));
-const AnonWildcardNoLoras     = xform(arr => new ASTAnonWildcard(arr),
-                                      brc_enc(wst_star(AnonWildcardAlternativeNoLoras, '|')));
-// AnonWildcard.abbreviate_str_repr('AnonWildcard');
-// AnonWildcardNoLoras.abbreviate_str_repr('AnonWildcardNoLoras');
-const NamedWildcardReference  = xform(seq('@',                                       // [0]
-                                          optional('^'),                             // [1]
+// =================================================================================================
+const NamedWildcardReference  = xform(seq(at,                                        // [0]
+                                          optional(caret),                           // [1]
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,
-                                                         second(seq('-', uint)))),   // [3]
+                                                         second(seq(dash, uint)))),  // [3]
                                           optional(/[,&]/),                          // [4]
                                           ident),                                    // [5]
                                       arr => {
@@ -8127,15 +9031,15 @@ const NamedWildcardReference  = xform(seq('@',                                  
                                                                              max_ct);
                                       });
 NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
-const NamedWildcardDesignator = second(seq('@', ident)); 
+const NamedWildcardDesignator = second(seq(at, ident)); 
 NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
-const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0][0], arr[1]),
-                                      wst_cutting_seq(wst_seq(NamedWildcardDesignator, // [0][0]
-                                                              assignment_operator),    // -
-                                                      discarded_comments,
-                                                      AnonWildcard));                  // [1]
+const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
+                                      wst_seq(NamedWildcardDesignator,
+                                              wst_cutting_seq(equals, 
+                                                              discarded_comments,
+                                                              AnonWildcard)));  
 NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
-const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ident),
+const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
                                               [ arr[1][0], arr[2][0], arr[3], []];
@@ -8153,56 +9057,90 @@ const NamedWildcardUsage      = xform(seq('@', optional("!"), optional("#"), ide
                                         return objs;
                                       });
 NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
-const ScalarReference         = xform(seq('$', optional('^'), ident),
+const ScalarReference         = xform(seq(dollar, optional(caret), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]));
 ScalarReference.abbreviate_str_repr('ScalarReference');
-const ScalarDesignator        = xform(seq('$', ident),
+const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]));
 ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
-const ScalarUpdate            = xform(arr => new ASTUpdateScalar(arr[0][0], arr[1],
-                                                                 arr[0][1] == '='),
-                                      wst_cutting_seq(wst_seq(ScalarDesignator,             // [0][0]
-                                                              discarded_comments,
-                                                              choice(incr_assignment_operator,
-                                                                     assignment_operator)), // [0][1]
-                                                      discarded_comments,                   // [1]
-                                                      choice(() => LimitedContent,
-                                                             json_string,
-                                                             plaintext),
-                                                      discarded_comments,
-                                                      lws(optional(';'))));
-ScalarUpdate.abbreviate_str_repr('ScalarUpdate');
-const LimitedContent          = choice(NamedWildcardReference,
-                                       ScalarReference,
-                                       AnonWildcardNoLoras,
-                                       plaintext);
-LimitedContent.abbreviate_str_repr('LimitedContent');
-const make_Content_rule       = (...prepended_rules) =>
-      choice(...prepended_rules,
-             comment,
-             SpecialFunctionNotInclude,
-             NamedWildcardReference,
-             NamedWildcardUsage,
-             SetFlag,
-             UnsetFlag,
-             ScalarUpdate,
+const ScalarAssignment        =
+      xform(arr =>
+        new ASTScalarAssignment(arr[0],
+                                arr[1][1],
+                                arr[1][0] == '='),
+        wst_seq(ScalarDesignator,                       // [0]
+                discarded_comments,                     // - 
+                wst_cutting_seq(
+                  choice(plus_equals, equals),          // [1][0]
+                  discarded_comments,                   // -
+                  first(choice(() => seq(rjsonc_string, // [1][1]
+                                         TrailingCommentFollowedBySemicolonOrWordBreak),  
+                               () => seq(hwst_plus(choice(LimitedContentNoSemis,
+                                                          discarded_comment)),
+                                         TrailingCommentFollowedBySemicolonOrWordBreak
+                                         // TrailingCommentsAndSemicolon
+                                        ),
+                               () => seq(LimitedContentNoSemis,
+                                         TrailingCommentFollowedBySemicolonOrWordBreak))))));
+ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
+// =================================================================================================
+// Content-related rules:
+// =================================================================================================
+const make_LimitedContent_rule = plain_text_rule  =>
+      choice(NamedWildcardReference,
              ScalarReference,
-             // anon_wildcard_rule,
-             escaped_brc,
-             low_pri_text,
-             plaintext);
-const ContentNoLoras          = make_Content_rule(AnonWildcardNoLoras);
-const Content                 = make_Content_rule(A1111StyleLora,
-                                                  AnonWildcard);
-const TopLevelContent         = make_Content_rule(SpecialFunctionInclude,
-                                                  NamedWildcardDefinition,
-                                                  A1111StyleLora,
-                                                  AnonWildcard);
+             AnonWildcardNoLoras,
+             plain_text_rule);
+// -------------------------------------------------------------------------------------------------
+const LimitedContent          = make_LimitedContent_rule(plain_text);
+const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis);
+LimitedContent                .abbreviate_str_repr('LimitedContent');
+LimitedContentNoSemis         .abbreviate_str_repr('LimitedContentNoSemis');
+// -------------------------------------------------------------------------------------------------
+const make_Content_rule       = ({ before_plain_text_rules = [],
+                                   after_plain_text_rules  = [] } = {}) =>
+      choice(
+        ...before_plain_text_rules,
+        plain_text,
+        ...after_plain_text_rules,
+        NamedWildcardReference,
+        SpecialFunctionNotInclude,
+        discarded_comment,
+        NamedWildcardUsage,
+        SetFlag,
+        UnsetFlag,
+        ScalarAssignment,
+        ScalarReference,
+      );
+// -------------------------------------------------------------------------------------------------
+const ContentNoLoras          = make_Content_rule({
+  after_plain_text_rules: [
+    AnonWildcardNoLoras,
+  ],
+});
+const Content                 = make_Content_rule({
+  before_plain_text_rules: [
+    A1111StyleLora,
+  ],
+  after_plain_text_rules:  [
+    AnonWildcard,
+  ],
+});
+const TopLevelContent         = make_Content_rule({
+  before_plain_text_rules: [
+    A1111StyleLora,
+  ],
+  after_plain_text_rules:  [
+    AnonWildcard,
+    NamedWildcardDefinition,
+    SpecialFunctionInclude,
+  ],
+});
 const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
-const Prompt                  = TopLevelContentStar;
-// -------------------------------------------------------------------------------------------------
+const Prompt                  = tws(TopLevelContentStar);
+// =================================================================================================
 Prompt.finalize();
 // =================================================================================================
 // END OF SD PROMPT GRAMMAR SECTION.
@@ -8272,10 +9210,22 @@ async function main() {
       input.on('end', () => resolve(data));
       input.on('error', err => reject(err));
     });
+
+    try {
+      result = Prompt.match(prompt_input);
+    }
+    catch (err) {
+      if (err instanceof FatalParseError) {
+        console.log(`got fatal parse error, halting: ${inspect_fun(err)}`);
+        process.exit(0);
+      }
+      else {
+        throw err;
+      }
+    }
     
-    result = Prompt.match(prompt_input);
     process.exit(0);
-  } else if (args.length === 0) {
+  } else if (args.length  === 0) {
     throw new Error("ERROR: No input file provided.");
   }
   else {
@@ -8285,44 +9235,41 @@ async function main() {
   // -----------------------------------------------------------------------------------------------
   // just for debugging:
   // -----------------------------------------------------------------------------------------------
-  if (print_ast_enabled)
-    console.log(`result: ${inspect_fun(result.value)}`);
+  // if (print_ast_enabled)
+  //   console.log(`result: ${inspect_fun(result.value)}`);
 
-  if (print_ast_json_enabled)
-    console.log(`result (JSON): ${JSON.stringify(result.value)}`);
-  
-  // -----------------------------------------------------------------------------------------------
-  // check that the parsed result is complete and expand:
-  // -----------------------------------------------------------------------------------------------
-  if (! result.is_finished)
-    throw new Error(`error parsing prompt at ${result.index}!`);
+  // if (print_ast_json_enabled)
+  //   console.log(`result (JSON): ${JSON.stringify(result.value)}`);
 
   let   AST          = result.value;
   const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
   
   if (print_ast_before_includes_enabled) {
     LOG_LINE();
-    console.log(`before process_includes:`);
+    lm.log(`before process_includes:`);
     LOG_LINE();
-    console.log(`${inspect_fun(AST)}`);
-    LOG_LINE();
-    console.log(`before process_includes (as JSON):`);
-    LOG_LINE();
-    console.log(`${JSON.stringify(AST)}`);
+    lm.log(`${inspect_fun(AST)}`);
+    // LOG_LINE();
+    // lm.log(`before process_includes (as JSON):`);
+    // LOG_LINE();
+    // lm.log(`${JSON.stringify(AST)}`);
   }
 
   AST = process_includes(AST, base_context);
 
   if (print_ast_after_includes_enabled) { 
     LOG_LINE();
-    console.log(`after process_includes:`);
+    lm.log(`after process_includes:`);
     LOG_LINE();
-    console.log(`${inspect_fun(AST)}`);
+    lm.log(`${inspect_fun(AST)}`);
     LOG_LINE();
-    console.log(`after process_includes (as JSON):`);
+    lm.log(`after process_includes (as JSON):`);
     LOG_LINE();
-    console.log(`${JSON.stringify(AST)}`);
+    lm.log(`${JSON.stringify(AST)}`);
   }
+
+  if (print_ast_then_die)
+    process.exit(0);
   
   let posted_count        = 0;
   let prior_prompt        = null;
@@ -8346,36 +9293,47 @@ async function main() {
 
   while (posted_count < count) {
     LOG_LINE('=');
-    console.log(`Expansion #${posted_count + 1} of ${count}:`);
+    lm.log(`Expansion #${posted_count + 1} of ${count}:`);
     LOG_LINE('=');
     
     const context = base_context.clone();
     context.reset_temporaries();
     const prompt  = expand_wildcards(AST, context);
 
-    if (log_flags_enabled || log_configuration_enabled) {
+    if (! is_empty_object(context.configuration)) {
       LOG_LINE();
-      console.log(`Flags after:`);
+      lm.log(`Final config is :`);
       LOG_LINE();
-      console.log(`${inspect_fun(context.flags)}`);
+      lm.log(inspect_fun(context.configuration));
     }
 
-    LOG_LINE();
-    console.log(`Final config is is:`);
-    LOG_LINE();
-    console.log(inspect_fun(context.configuration));
-
+    if (log_flags_enabled || log_configuration_enabled) {
+      LOG_LINE();
+      lm.log(`Flags after:`);
+      LOG_LINE();
+      lm.log(`${inspect_fun(context.flags)}`);
+    }
     
-    LOG_LINE();
-    console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
-    LOG_LINE();
-    console.log(prompt);
+    {
+      LOG_LINE();
+      lm.log(`Scalars after:`);
+      LOG_LINE();
+      for (const [key, val] of context.scalar_variables)
+        lm.log(`$${key} = ${inspect_fun(val)}`);
+    }
 
+    {
+      LOG_LINE();
+      lm.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
+      LOG_LINE();
+      lm.log(prompt);
+    }
+    
     if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
       LOG_LINE();
-      console.log(`Expanded negative prompt:`);
+      lm.log(`Expanded negative prompt:`);
       LOG_LINE();
-      console.log(context.configuration.negative_prompt);
+      lm.log(context.configuration.negative_prompt);
     }
 
     if (!post) {
@@ -8388,12 +9346,12 @@ async function main() {
         posted_count += 1;
       }
       else  {
-        console.log();
+        lm.log();
 
-        const question = `POST this prompt as #${posted_count+1} out of ${count} ` +
+        const question_str = `POST this prompt as #${posted_count+1} out of ${count} ` +
               `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
               `POST the prior prompt)? `;
-        const answer   = await ask(question);
+        const answer   = await ask(question_str);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
           stash_priors(prompt, context.configuration);
@@ -8405,14 +9363,14 @@ async function main() {
             LOG_LINE();
             [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
             
-            console.log(`POSTing prior prompt '${prompt}'`);
+            lm.log(`POSTing prior prompt '${prompt}'`);
             
             do_post(prompt, context.configuration);
             
             continue;
           }
           else {
-            console.log(`can't rewind, no prior prompt`);
+            lm.log(`can't rewind, no prior prompt`);
           }
         }
         else { // /^y.*/
@@ -8432,29 +9390,43 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-main().catch(err => {
-  console.error(`Unhandled error:\n${err.stack}`);
-  process.exit(1);
-});
+let main_disabled = false;
+
+if (! main_disabled)
+  main().catch(err => {
+    lm.error(`Unhandled error:\n${err.stack}`);
+    process.exit(1);
+  });
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
-// console.log(`${Prompt}`);
 
-// just for demonstration... this is kind of a silly rule since it would only match an infinite series of 'x'-es:
-// const Z        = l('z');
-// const TestRule = seq('x', Z, Z, () => TestRule); 
-// console.log(`${TestRule}`);
-// console.log(``);
-// console.log(`${Prompt}`);
-// console.log(`${NamedWildcardReference}`);
+// lm.log(inspect_fun(A1111StyleLora.match('<lora:extreme_cc_v0.1_pony: @lowish_random_weight>')));
+// lm.log(); lm.log();
+// lm.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
+// lm.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
 
-// console.log(`${NormalSpecialFunction}`);
-// console.log(`${inspect_fun(NormalSpecialFunction.options)}`);
+// process.exit(0);
 
-// for (const [ix, option] of NormalSpecialFunction.options.entries())
-//   console.log(`#${ix}: ${option}`)
-// console.log(`${CheckFlagWithSetConsequent}`);
-// console.log(`${CheckFlagWithOrAlternatives}`);
-// console.log(lws('a').toString());
-// console.log(wst_star('a').toString());
+// const rule0 = tws0(lws0(choice(lws0(l('foo')), lws0(l('bar'))))); rule0.finalize();
+// const rule1 = tws1(lws1(choice(lws1(l('foo')), lws1(l('bar'))))); rule1.finalize();
+// const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar'))))); rule2.finalize();
+// const rule3 = tws3(lws3(choice(lws3(l('foo')), lws3(l('bar'))))); rule3.finalize();
+// const rule4 = tws4(lws4(choice(lws4(l('foo')), lws4(l('bar'))))); rule4.finalize();
+
+// const options = { batch_count: 100, reps_per_batch: 100_000 }; 
+
+// lm.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// // lm.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// // lm.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+
+// lm.log(smart_join([ 'FOO', "''", 'BAR']));
+
+// lm.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
+//    x    x  x `)));
+
