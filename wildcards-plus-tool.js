@@ -8805,17 +8805,19 @@ const TopLevelTestFlag             = choice(
   unexpected(SimpleCheckFlag),
   unexpected(SimpleNotFlag),
   unexpected(CheckFlagWithOrAlternatives),
-  // xform(CheckFlagWithSetConsequent,
-  //       flag => {
-  //         lm.log(`cfwst flag: ${compress(inspect_fun(flag))}`);
-  //         return new ASTAnonWildcard({make_ASTAnonWildcardAlternative([flag], 1, [])});
-  //       }),
+  xform(CheckFlagWithSetConsequent,
+        flag => {
+          //lm.log(`cfwsc flag: ${compress(inspect_fun(flag))}`);
+          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
+          lm.log(`cfwsc ret:  ${inspect_fun(ret)}`);
+          return ret;
+        }),
   xform(NotFlagWithSetConsequent,
         flag => {
           //lm.log(`nfwsc flag: ${compress(inspect_fun(flag))}`);
           const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
           lm.log(`nfwsc ret:  ${inspect_fun(ret)}`);
-                                          return ret;
+          return ret;
         })
 );
 // -------------------------------------------------------------------------------------------------
