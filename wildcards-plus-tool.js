@@ -490,6 +490,11 @@ function __format_FatalParseError_message(message_body, input, index) {
 // -------------------------------------------------------------------------------------------------
 class FatalParseError extends Error {
   constructor(message_body, input, index) {
+    if (!(typeof message_body === 'string' &&
+          typeof input === 'string' &&
+          typeof index === 'number'))
+      throw new Error(`bad arges: ${inspect_fun(arguments)}`);
+          
     super(__format_FatalParseError_message(message_body, input, index));
     this.name         = 'FatalParseError';
     this.message_body = message_body
