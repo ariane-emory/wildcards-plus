@@ -521,7 +521,7 @@ class Rule {
   __finalize(indent, visited) {
     if (visited.has(this)) {
       if (log_finalize_enabled)
-        log(indent, `skipping ${this}.`);
+        logger_manager.log(`skipping ${this}.`);
 
       return;
     }
@@ -529,7 +529,7 @@ class Rule {
     visited.add(this);
 
     if (log_finalize_enabled)
-      log(indent, `finalizing ${this}...`);
+      logger_manager.log(`finalizing ${this}...`);
 
     this.__impl_finalize(indent, visited);
   }
@@ -548,12 +548,11 @@ class Rule {
             `Matching ${this.constructor.name} ${this.toString()}, ` +
             `but at end of input!`);
       else 
-        log(indent,
-            `Matching ` +
-            // `${this.constructor.name} `+
-            `${abbreviate(this.toString())} at ` +
-            `char #${index}: ` +
-            `'${abbreviate(input.substring(index))}'`)
+        logger_manager.log(`Matching ` +
+                           // `${this.constructor.name} `+
+                           `${abbreviate(this.toString())} at ` +
+                           `char #${index}: ` +
+                           `'${abbreviate(input.substring(index))}'`);
     }
     
     let rule_cache = null;
@@ -592,9 +591,8 @@ class Rule {
     
     if (log_match_enabled) {
       // if (ret)
-      log(indent,
-          `<= ${this.constructor.name} ${this.toString()} ` +
-          `returned: ${compress(inspect_fun(ret))}`);
+      logger_manager.log(`<= ${this.constructor.name} ${this.toString()} ` +
+                         `returned: ${compress(inspect_fun(ret))}`);
       // else
       //   log(indent,
       //       `<= Matching ${this.constructor.name} ${this.toString()} ` +
@@ -1346,10 +1344,11 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      log(indent + 1, `matching first sequence element #1 out of ` +
-          `${this.elements.length}: ${this.elements[0]} ` +
-          `at char #${index} ` +
-          `at '${abbreviate(input.substring(index))}'`);
+      logger_manager.indent(() => 
+        logger_manager.log(indent + 1, `matching first sequence element #1 out of ` +
+                           `${this.elements.length}: ${this.elements[0]} ` +
+                           `at char #${index} ` +
+                           `at '${abbreviate(input.substring(index))}'`));
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2, cache);
@@ -1368,18 +1367,20 @@ class Sequence extends Rule {
     index        = last_match_result.index;
 
     if (log_match_enabled)
-      log(indent + 1, `matched first sequence element #1: ` +
-          `${compress(inspect_fun(last_match_result))}, ` +
-          `now at char #${index}: ` +
-          `'${abbreviate(input.substring(index))}'`);
+      logger_manager.indent(() => 
+        logger_manager.log(`matched first sequence element #1: ` +
+                           `${compress(inspect_fun(last_match_result))}, ` +
+                           `now at char #${index}: ` +
+                           `'${abbreviate(input.substring(index))}'`));
 
     // if (log_match_enabled)
     //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
-        log(indent + 1, `seq pushing first item ` +
-            `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
+        logger_manager.indent(() => 
+          logger_manager.log(indent + 1, `seq pushing first item ` +
+                             `${abbreviate(compress(inspect_fun(last_match_result.value)))}`));
 
       values.push(last_match_result.value);
 
@@ -1391,10 +1392,11 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        log(indent + 1, `matching sequence element #${ix+ 1} out of ` +
-            `${this.elements.length}: ${this.elements[ix]} ` +
-            `at char #${index}: ` +
-            `'${abbreviate(input.substring(index))}'`);
+        logger_manager.indent(() =>
+          logger_manager.log(indent + 1, `matching sequence element #${ix+ 1} out of ` +
+                             `${this.elements.length}: ${this.elements[ix]} ` +
+                             `at char #${index}: ` +
+                             `'${abbreviate(input.substring(index))}'`));
       
       const element = this.elements[ix];
 
@@ -1402,7 +1404,9 @@ class Sequence extends Rule {
 
       if (! last_match_result) {
         if (log_match_enabled)
-          log(indent + 1, `did not match sequence item #${ix}.`);
+          logger_manager.indent(() => 
+            logger_manager.log(indent + 1, `did not match sequence item #${ix}.`));
+        
         return this.__fail_or_throw_error(start_rule_match_result,
                                           last_match_result,
                                           input, index);
@@ -1827,8 +1831,9 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      log(indent + 1, `testing /${this.regexp.source}/ at char ${index}: ` +
-          `'${abbreviate(input.substring(index))}'`); 
+      logger_manager.indent(() =>
+        logger_manager.log(`testing /${this.regexp.source}/ at char ${index}: ` +
+                           `'${abbreviate(input.substring(index))}'`)); 
 
     const re_match = this.regexp.exec(input);
     
