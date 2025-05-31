@@ -527,7 +527,10 @@ class Rule {
     return ref_counts;
   }
   // -----------------------------------------------------------------------------------------------
-  finalize(indent = 0) {
+  finalize(indent) {
+    if (indent !== undefined)
+      throw new Error("bad args");
+    
     this.__finalize(indent, new Set());
   }
   // -----------------------------------------------------------------------------------------------
