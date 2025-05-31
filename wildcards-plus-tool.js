@@ -8912,7 +8912,9 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
-const SpecialFunctionTail = seq(comments, choice(lws(semicolon), structural_word_break));
+const SpecialFunctionTail = choice(c_comment,
+                                   lws(semicolon),
+                                   structural_word_break);
 
 const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
                                                                   choice(lws(semicolon),
