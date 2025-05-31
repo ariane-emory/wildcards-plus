@@ -310,6 +310,51 @@ Array.prototype.toString = function() {
 // =================================================================================================
 
 
+// =================================================================================================
+// new logger class:
+// =================================================================================================
+let currentLogger = null;
+function get_logger() {
+}
+// -------------------------------------------------------------------------------------------------
+function set_logger(logger) {
+  currentLogger = logger;
+}
+// -------------------------------------------------------------------------------------------------
+function log2(msg) {
+  if (currentLogger) currentLogger.log(msg);
+}
+// -------------------------------------------------------------------------------------------------
+function with_ogger(logger, fn) {
+  const prev = currentLogger;
+  currentLogger = logger;
+  try {
+    return fn();
+  } finally {
+    currentLogger = prev;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class Logger {
+  constructor(indent = 0) {
+    this.indent = indent;
+  }
+  // -----------------------------------------------------------------------------------------------
+  log(thing) {
+    console.log(`${' '.repeat(this.indent * 2)}${thing}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  nest() {
+    return new Logger(this.indent + 1);
+  }
+  // -----------------------------------------------------------------------------------------------
+  with_indent(extra, fn) {
+    const child = new Logger(this.indent + extra, this.indentSize);
+    return fn(child);
+  }
+}
+// =================================================================================================
+
 
 // =================================================================================================
 // GRAMMAR.JS CONTENT SECTION:
@@ -7902,8 +7947,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   //     walked?.includes("''"))
   //   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
 
-  const ret = unescape(smart_join(walked,
-                                  indent + 1));
+  const ret = unescape(smart_join(walked, indent + 1));
 
   context.munge_configuration({indent: indent + 1});
   
