@@ -2599,6 +2599,7 @@ const picker_priority = Object.freeze({
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
+const id = (x) => x;
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
 // const picker_priority_descriptions_to_names = new Map(
@@ -2631,10 +2632,18 @@ class WeightedPicker {
   }
   // -----------------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count,
-       allow_if = always, forbid_if = never,
+       allow_if = always, forbid_if = never, each = id,
        priority = null) {
-    if (! priority)
-      throw new Error("no priority");
+    if (!(typeof min_count === 'number'   && 
+          typeof max_count === 'number'   &&
+          typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof each      === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
+
+    // if (! priority)
+    //   throw new Error("no priority");
 
     if ((min_count > 1 || max_count > 1) && 
         priority === picker_priority.avoid_repetition_short)
@@ -2647,7 +2656,7 @@ class WeightedPicker {
     const res = [];
     
     for (let ix = 0; ix < count; ix++)
-      res.push(this.pick_one(allow_if, forbid_if, priority));
+      res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
 
     if (log_picker_enabled)
       lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
@@ -2742,7 +2751,12 @@ class WeightedPicker {
     return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
-  pick_one(allow_if, forbid_if, priority) {
+  #pick_one(allow_if, forbid_if, priority) {
+    if (!(typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad #pick_one arge: ${inspect_fun(arguments)}`);
+    
     if (log_picker_enabled) {
       lm.log(`PICK ONE =================================================================================`);
       lm.log(`PRIORITY        = ${inspect_fun(priority)}`);
@@ -7236,7 +7250,7 @@ function load_prelude(into_context = new Context()) {
 function expand_wildcards(thing, context = new Context(), unexpected = undefined) {
   if (unexpected !== undefined)
     throw new Error("bad args");
-  // ---------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
       if (context.flag_is_set(not_flag.flag))
@@ -7311,12 +7325,12 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         `${context}`);
 
     try {
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       // basic types (strings and Arrays):
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       if (typeof thing === 'string')
         throw new ThrownReturn(thing);
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (Array.isArray(thing)) {
         const ret = [];
 
@@ -7346,9 +7360,9 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         throw new ThrownReturn(ret);
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       // flags:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetFlag) {
         // log(`SET FLAG '${thing.name}'.`);
         
@@ -7356,7 +7370,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         throw new ThrownReturn(''); // produce nothing
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
         log(log_flags_enabled,
             `unsetting flag '${thing.flag}'.`);
@@ -7365,9 +7379,9 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         
         throw new ThrownReturn(''); // produce nothing
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       // references:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
         const got = context.named_wildcards.get(thing.name);
 
@@ -7378,22 +7392,23 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         
         if (got instanceof ASTLatchedNamedWildcardValue) {
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-            res.push(lm.indent(() => expand_wildcards(got, context))); // not walk!
+            res.push(lm.indent(() => expand_wildcards(got.latched_value, context))); // not walk!
         }
         else {
           const priority = thing.min_count === 1 && thing.max_count === 1
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
+          const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context));
           const picks = got.pick(thing.min_count, thing.max_count,
-                                 allow_fun, forbid_fun,
+                                 allow_fun, forbid_fun, each, 
                                  priority);
 
           if (log_expand_and_walk_enabled)
-            lm.indent_and_log(`picked items ${thing_str_repr(picks.map(x => x.body))}`);
+            lm.indent_and_log(`picked items ${thing_str_repr(picks)}`);
 
-          const walked_picks = picks.map(p => lm.indent(() => expand_wildcards(p?.body ?? '', context)));
-          res.push(...walked_picks); // not walk!
+          // const walked_picks = picks.map(each);
+          res.push(...picks); // not walk!
         }
         
         res = res.filter(s => s !== '');
@@ -7408,7 +7423,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                                   ? format_pretty_list(res)
                                   : res.join(" ")));
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
         let got = context.scalar_variables.get(thing.name) ??
             `\\<WARNING: scalar '${thing.name}' not found}>`;
@@ -7421,9 +7436,9 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         
         throw new ThrownReturn(got);
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       // NamedWildcards:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLatchNamedWildcard) {
         const got = context.named_wildcards.get(thing.name);
         
@@ -7433,8 +7448,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         // lm.log(`CONSIDER ${inspect_fun(got)}`);
 
         if (got instanceof ASTLatchedNamedWildcardValue) {
-          throw new ThrownReturn(`\\<WARNING: tried to latch already-latched NamedWildcard @${thing.name}, ` +
-                                 `check your template!>`);
+          throw new ThrownReturn(`\\<WARNING: tried to latch already-latched NamedWildcard ` +
+                                 `@${thing.name}, check your template!>`);
         } /* else {
              lm.log(`LATCHING ${inspect_fun(got)}`);
              
@@ -7452,7 +7467,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         throw new ThrownReturn('');
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnlatchNamedWildcard) {
         let got = context.named_wildcards.get(thing.name);
 
@@ -7460,7 +7475,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.name} not found!>`);
 
         if (! (got instanceof ASTLatchedNamedWildcardValue)) {
-          throw new ThrownReturn(`\\<WARNING: tried to unlatch already-unlatched NamedWildcard @${thing.name}, ` +
+          throw new ThrownReturn(`\\<WARNING: tried to unlatch already-unlatched NamedWildcard ` +
+                                 `@${thing.name}, ` +
                                  `check your template!>`);
         }
 
@@ -7471,7 +7487,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         throw new ThrownReturn(''); // produce no text.
       } 
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (context.named_wildcards.has(thing.name))
           log(true, `WARNING: redefining named wildcard @${thing.name.name}, ` +
@@ -7481,15 +7497,15 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         throw new ThrownReturn('');
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       // internal objects:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLatchedNamedWildcardValue) {
         throw new ThrownReturn(thing.latched_value);
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       // scalar assignment:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         log(context.noisy, '');
         log(context.noisy,
@@ -7509,12 +7525,18 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         
         throw new ThrownReturn('');
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       // AnonWildcards:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        const pick = thing.pick_one(allow_fun, forbid_fun,
-                                    context.pick_one_priority)?.body;
+        const picked = thing.pick(1, 1,
+                                  allow_fun, forbid_fun, id, 
+                                  context.pick_one_priority)[0];
+
+        log(log_expand_and_walk_enabled,
+            `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
+        
+        const pick = picked?.body;
 
         if (log_expand_and_walk_enabled)
           lm.indent_and_log(pick
@@ -7870,7 +7892,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
-  
+
   return ret;
 }
 // =================================================================================================
@@ -8145,10 +8167,6 @@ class ASTAnonWildcard  extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
     return this.picker.pick(...args);
-  }
-  // -----------------------------------------------------------------------------------------------
-  pick_one(...args) {
-    return this.picker.pick_one(...args);
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
