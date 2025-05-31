@@ -2855,6 +2855,7 @@ const picker_priority = Object.freeze({
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
+const id = (x) => x;
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
 // const picker_priority_descriptions_to_names = new Map(
@@ -2887,12 +2888,13 @@ class WeightedPicker {
   }
   // -----------------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count,
-       allow_if = always, forbid_if = never,
+       allow_if = always, forbid_if = never, each = id,
        priority = null) {
     if (!(typeof min_count === 'number'   && 
           typeof max_count === 'number'   &&
           typeof allow_if  === 'function' &&
           typeof forbid_if === 'function' &&
+          typeof each      === 'function' &&
           typeof priority  === 'string'))
       throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
 
@@ -7654,7 +7656,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                 : context.pick_multiple_priority;
           
           const picks = got.pick(thing.min_count, thing.max_count,
-                                 allow_fun, forbid_fun,
+                                 allow_fun, forbid_fun, id,
                                  priority);
 
           if (log_expand_and_walk_enabled)
@@ -7782,7 +7784,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
         const picked = thing.pick(1, 1,
-                                  allow_fun, forbid_fun,
+                                  allow_fun, forbid_fun, id, 
                                   context.pick_one_priority)[0];
 
         log(true, `picked: ${abbreviate(compress(inspect_fun(picked)))}`,
