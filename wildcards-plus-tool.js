@@ -7554,7 +7554,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       
       if (got instanceof ASTLatchedNamedWildcardValue) {
         for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-          res.push(expand_wildcards(got, context, indent + 1)); // not walk!
+          res.push(lm.indent(() => expand_wildcards(got, context))); // not walk!
       }
       else {
         const priority = thing.min_count === 1 && thing.max_count === 1
@@ -7613,7 +7613,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
            // throw new Error('bomb');
            } */
 
-      const latched = new ASTLatchedNamedWildcardValue(lm.indent(() => walk(got)), got);
+      const latched = new ASTLatchedNamedWildcardValue(lm.indent(() => walk(got, context)), got);
 
       // console.log(`LATCHED IS ${inspect_fun(latched)}`);
       
