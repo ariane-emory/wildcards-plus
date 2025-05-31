@@ -2903,7 +2903,7 @@ class WeightedPicker {
     const res = [];
     
     for (let ix = 0; ix < count; ix++)
-      res.push(this.pick_one(allow_if, forbid_if, priority));
+      res.push(this.#pick_one(allow_if, forbid_if, priority));
 
     if (log_picker_enabled)
       lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
@@ -2998,7 +2998,7 @@ class WeightedPicker {
     return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
-  pick_one(allow_if, forbid_if, priority) {
+  #pick_one(allow_if, forbid_if, priority) {
     if (log_picker_enabled) {
       lm.log(`PICK ONE =================================================================================`);
       lm.log(`PRIORITY        = ${inspect_fun(priority)}`);
@@ -8408,10 +8408,6 @@ class ASTAnonWildcard  extends ASTNode {
   pick(...args) {
     return this.picker.pick(...args);
   }
-  // -----------------------------------------------------------------------------------------------
-  // pick_one(...args) {
-  //   return this.picker.pick_one(...args);
-  // }
   // -----------------------------------------------------------------------------------------------
   toString() {
     let str = '{';
