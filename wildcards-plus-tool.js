@@ -329,6 +329,10 @@ class Logger {
       ? `${this.indent_str.repeat(this.indent)}${thing.toString()}`
       : thing.toString();
   }
+  // -------------------------------------------------------------------------------------------------
+  nest(indent_addend = 1) {
+    return new Logger(this.indent + indent_addend, this.indent_str);
+  }
 }
 // -------------------------------------------------------------------------------------------------
 const lm = { // logger manager
@@ -360,7 +364,10 @@ const lm = { // logger manager
   },
   // -----------------------------------------------------------------------------------------------
   __indent(fn, indent_addend) {
-    this.stack.push(new Logger(this.logger.indent + indent_addend));
+    if (typeof indent_addend !== 'number')
+      throw new Error(`not a number: ${inspect_fun(indent_addend)}`);
+    
+    this.stack.push(this.logger.nest(indent_addend));
 
     try {
       return fn();
