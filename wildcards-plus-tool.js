@@ -7658,13 +7658,14 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context));
           const picks = got.pick(thing.min_count, thing.max_count,
                                  allow_fun, forbid_fun,
-                                 id, // replace this
+                                 each, 
                                  priority);
 
           if (log_expand_and_walk_enabled)
-            lm.indent_and_log(`picked items ${thing_str_repr(picks.map(x => x.body))}`);
-          const walked_picks = picks.map(each);
-          res.push(...walked_picks); // not walk!
+            lm.indent_and_log(`picked items ${thing_str_repr(picks)}`);
+
+          // const walked_picks = picks.map(each);
+          res.push(...picks); // not walk!
         }
         
         res = res.filter(s => s !== '');
@@ -7788,8 +7789,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                                   allow_fun, forbid_fun, id, 
                                   context.pick_one_priority)[0];
 
-        log(true, `picked: ${abbreviate(compress(inspect_fun(picked)))}`,
-            log_expand_and_walk_enabled);
+        log(log_expand_and_walk_enabled,
+            `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
         
         const pick = picked?.body;
 
