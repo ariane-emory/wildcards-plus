@@ -3007,10 +3007,9 @@ class WeightedPicker {
     return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
-  #pick_one(allow_if, forbid_if, each, priority) {
+  #pick_one(allow_if, forbid_if, priority) {
     if (!(typeof allow_if  === 'function' &&
           typeof forbid_if === 'function' &&
-          typeof each      === 'function' &&
           typeof priority  === 'string'))
       throw new Error(`bad #pick_one arge: ${inspect_fun(arguments)}`);
     
