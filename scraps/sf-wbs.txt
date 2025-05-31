@@ -1,2 +1,4 @@
 %config += { height: 500, width: 800 }; FOO
+%config += { height: 500, width: 800 };BAR
+%config += { height: 500, width: 800 }; BAZ
 

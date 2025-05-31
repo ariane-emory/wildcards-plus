@@ -8912,6 +8912,8 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
+const SpecialFunctionTail = choice(lws(semicolon), structural_word_break);
+
 const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
                                                                   choice(lws(semicolon),
                                                                          word_break)));
@@ -8997,7 +8999,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                             choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
                             //STOP,
                             discarded_comments,
-                            choice(lws(semicolon), structural_word_break)
+                            SpecialFunctionTail,
                            )));
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
