@@ -3966,7 +3966,6 @@ const prelude_text = prelude_disabled ? '' : `
 @low_random_weight      = {0.< @low_digit }
 @lt1_random_weight      = {0.< @any_digit } 
 @lowish_random_weight   = {0.< @high_digit}
-@low_random_weight      = {0.< @low_digit }
 @random_weight          = {1.< @any_digit }
 @highish_random_weight  = {1.< @low_digit }
 @gt1_random_weight      = {1.< @any_digit }
