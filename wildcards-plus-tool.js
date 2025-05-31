@@ -2912,7 +2912,7 @@ class WeightedPicker {
     const res = [];
     
     for (let ix = 0; ix < count; ix++)
-      res.push(this.#pick_one(allow_if, forbid_if, priority));
+      res.push(this.#pick_one(allow_if, forbid_if, each, priority));
 
     if (log_picker_enabled)
       lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
@@ -3007,9 +3007,10 @@ class WeightedPicker {
     return Math.max(0, ret);
   };
   // -----------------------------------------------------------------------------------------------
-  #pick_one(allow_if, forbid_if, priority) {
+  #pick_one(allow_if, forbid_if, each, priority) {
     if (!(typeof allow_if  === 'function' &&
           typeof forbid_if === 'function' &&
+          typeof each      === 'function' &&
           typeof priority  === 'string'))
       throw new Error(`bad #pick_one arge: ${inspect_fun(arguments)}`);
     
