@@ -7490,6 +7490,12 @@ function load_prelude(into_context = new Context()) {
 function expand_wildcards(thing, context = new Context(), unexpected = undefined) {
   if (unexpected !== undefined)
     throw new Error("bad args");
+  // -----------------------------------------------------------------------------------------------
+  class ThrownReturn {
+    constructor(value) {
+      this.value = value;
+    }
+  }
   // ---------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
