@@ -282,7 +282,7 @@ let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
 let log_expand_and_walk_enabled       = true;
 let log_finalize_enabled              = false;
-let log_flags_enabled                 = true;
+let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
@@ -388,8 +388,7 @@ const lm = { // logger manager
     return this.__indent(fn, 2);
   }
 }
-// =================================================================================================
-
+// -------------------------------------------------------------------------------------------------
 if (false) {
   lm.log("Top level");
   lm.indent(() => {
@@ -404,6 +403,8 @@ if (false) {
 
   process.exit(0);
 }
+// =================================================================================================
+
 
 // =================================================================================================
 // GRAMMAR.JS CONTENT SECTION:
@@ -7927,7 +7928,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTLora) {
       log(log_expand_and_walk_enabled,
-          `ENCOUNTERED LORA ${thing} IN ${context}`);
+          `encountered lora ${thing} in ${context}`);
       
       let walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
 
