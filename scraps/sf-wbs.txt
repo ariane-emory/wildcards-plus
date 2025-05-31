@@ -1,3 +1,2 @@
-%config += { height: 500, width: 800 }
+%config += { height: 500, width: 800 }; FOO
 
-FOO
