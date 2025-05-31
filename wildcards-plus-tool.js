@@ -1247,7 +1247,7 @@ class Label extends Rule {
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     this.rule = this.__vivify(this.rule);
-    this.rule.__finalize(indent + 1, visited);
+    lm.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __match(input, index, cache) {
@@ -1430,7 +1430,7 @@ class Sequence extends Rule {
       //   throw new Error("STOP @ PUSH 1");
     }
     else if (log_match_enabled)
-      log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
+      lm.indent(() => lm.log( `discarding ${inspect_fun(last_match_result)}!`));
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
@@ -1645,7 +1645,7 @@ class Unexpected extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(input, index, cache) {
-    const match_result = this.rule.match(input, index, indent + 1, cache);
+    const match_result = lm.indent(() => this.rule.match(input, index, cache));
     
     if (match_result) {
       if (this.error_func) {
