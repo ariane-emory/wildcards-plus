@@ -495,7 +495,7 @@ class FatalParseError extends Error {
           typeof input === 'string' &&
           typeof index === 'number'))
       throw new Error(`bad arges: ${inspect_fun(arguments)}`);
-          
+    
     super(__format_FatalParseError_message(message_body, input, index));
     this.name         = 'FatalParseError';
     this.message_body = message_body
@@ -7806,361 +7806,361 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         const pick = picked?.body;
 
         if (log_expand_and_walk_enabled)
-            lm.indent_and_log(pick
-                              ? `picked ${thing_str_repr(pick)}`
-                              : `picked empty`);
+          lm.indent_and_log(pick
+                            ? `picked ${thing_str_repr(pick)}`
+                            : `picked empty`);
 
-          if (! pick)
-            throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
-      
-      throw new ThrownReturn(lm.indent(() => walk(pick)));
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUpdateConfigurationUnary ||
-             thing instanceof ASTUpdateConfigurationBinary) {
-      let value = thing.value;
-
-      // lm.log(`THING: ${thing} ${inspect_fun(thing)}`);
-      
-      if (value instanceof ASTNode) {
-        const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
-        const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
-                                              ? rJsoncObject
-                                              : rJsonc).match(expanded_value);
-
-        if (thing instanceof ASTUpdateConfigurationBinary) {
-          value = jsconc_parsed_expanded_value?.is_finished
-            ? jsconc_parsed_expanded_value.value
-            : expanded_value;
-        }
-        else { // ASTUpdateConfigurationUnary
-          throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                          `rJSONC object, rJsonc.match(...) result was ` +
-                          inspect_fun(jsconc_parsed_expanded_value));
-        }
+        if (! pick)
+          throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
+        
+        throw new ThrownReturn(lm.indent(() => walk(pick)));
       }
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUpdateConfigurationUnary ||
+               thing instanceof ASTUpdateConfigurationBinary) {
+        let value = thing.value;
+
+        // lm.log(`THING: ${thing} ${inspect_fun(thing)}`);
+        
+        if (value instanceof ASTNode) {
+          const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
+          const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
+                                                ? rJsoncObject
+                                                : rJsonc).match(expanded_value);
+
+          if (thing instanceof ASTUpdateConfigurationBinary) {
+            value = jsconc_parsed_expanded_value?.is_finished
+              ? jsconc_parsed_expanded_value.value
+              : expanded_value;
+          }
+          else { // ASTUpdateConfigurationUnary
+            throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
+                            `rJSONC object, rJsonc.match(...) result was ` +
+                            inspect_fun(jsconc_parsed_expanded_value));
+          }
+        }
+        else {
+          value = structured_clone(value);
+        }
+
+        if (thing instanceof ASTUpdateConfigurationUnary) { // ASTUpdateConfigurationUnary
+          let new_obj = value;
+
+          for (const key of Object.keys(value)) 
+            new_obj[get_our_name(key)??key] = value[key]
+          
+          context.configuration = thing.assign
+            ? new_obj
+            : { ...context.configuration, ...new_obj };
+
+          lm.indent(() => log(log_configuration_enabled,
+                              `%config ${thing.assign ? '=' : '+='} ` +
+                              `${inspect_fun(new_obj, true)}`
+                              // + `, configuration is now: ` +
+                              // `${inspect_fun(context.configuration, true)}`
+                             ));
+        }
+        else { // ASTUpdateConfigurationBinary
+          const our_name = get_our_name(thing.key); 
+          
+          if (thing.assign) {
+            context.configuration[our_name] = value;
+          }
+          else { // increment
+            if (Array.isArray(value)) {
+              const tmp_arr = context.configuration[our_name]??[];
+
+              if (! Array.isArray(tmp_arr))
+                throw new Error(`can't add array ${inspect_fun(value)} ` +
+                                `to non-array ${inspect_fun(tmp_arr)}`);
+              
+              const new_arr = [ ...tmp_arr, ...value ];
+              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+              //           `increment by array ${inspect_fun(value)}, ` +
+              //           `total ${inspect_fun(new_arr)}`);
+              context.configuration[our_name] = new_arr;
+            }
+            else if (typeof value === 'object') {
+              const tmp_obj = context.configuration[our_name]??{};
+
+              if (typeof tmp_obj !== 'object')
+                throw new Error(`can't add object ${inspect_fun(value)} `+
+                                `to non-object ${inspect_fun(tmp_obj)}`);
+
+              const new_obj = { ...tmp_obj, ...value };
+              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+              //           `increment by object ${inspect_fun(value)}, ` +
+              //           `total ${inspect_fun(new_obj)}`);
+              context.configuration[our_name] = new_obj;
+            }
+            else if (typeof value === 'number') {
+              const tmp_num = context.configuration[our_name]??0;
+              
+              if (typeof tmp_num !== 'number')
+                throw new Error(`can't add number ${inspect_fun(value)} `+
+                                `to non-number ${inspect_fun(tmp_num)}`);
+
+              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+              //           `increment by number ${inspect_fun(value)}, ` +
+              //           `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+              context.configuration[our_name] = tmp_num + value;
+            }
+            else if (typeof value === 'string') {
+              const tmp_str = context.configuration[our_name]??'';
+
+              if (typeof tmp_str !== 'string')
+                throw new Error(`can't add string ${inspect_fun(value)} `+
+                                `to non-string ${inspect_fun(tmp_str)}`);
+
+              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+              //           `increment by string ${inspect_fun(value)}, ` +
+              //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+              context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value]));
+            }
+            else {
+              // probly won't work most of the time, but let's try anyhow, I guess.
+              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+              //           `increment by unknown ${inspect_fun(value)}, ` +
+              //           `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+              context.configuration[our_name] = (context.configuration[our_name]??null) + value;
+            }
+          }
+
+          lm.indent(() => log(log_configuration_enabled,
+                              `%${our_name} ` +
+                              `${thing.assign ? '=' : '+='} ` +
+                              `${inspect_fun(value, true)}`,
+                              log_expand_and_walk_enabled));
+        }
+        
+        throw new ThrownReturn('');
+      }
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTSetPickSingle || 
+               thing instanceof ASTSetPickMultiple) {
+        const cur_key = thing instanceof ASTSetPickSingle
+              ? 'pick_one_priority'
+              : 'pick_multiple_priority';
+        const prior_key = thing instanceof ASTSetPickSingle
+              ? 'prior_pick_one_priority'
+              : 'prior_pick_multiple_priority';
+        const cur_val   = context[cur_key];
+        const prior_val = context[prior_key];
+        const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
+                                                                           context)).toLowerCase()];
+
+        // if (log_configuration_enabled)
+        //   log(`SET PICK DATA: ` +
+        //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+        //                               cur_val: cur_val, prior_val: prior_val,
+        //                               walked: walked})}`);
+        
+        if (! picker_priority_descriptions.includes(walked))
+          throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+
+        context[prior_key] = context[cur_key];
+        context[cur_key]   = walked;
+
+        log(log_configuration_enabled,
+            `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+            `${inspect_fun(walked)}.`);
+        
+        throw new ThrownReturn('');
+      }
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
+        const sub_prompt = thing instanceof ASTUIPrompt
+              ? { desc: 'UI prompt', text: ui_prompt }
+              : { desc: 'UI negative prompt', text: ui_neg_prompt };
+        
+        lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+
+        let res = null;
+
+        try {
+          res = Prompt.match(sub_prompt.text);
+        }
+        catch(err) {
+          if (err instanceof FatalParseError)
+            throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} failed: ${err}>`);
+          else
+            throw err;
+        }
+
+        
+        if (!res || !res.is_finished)
+          throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`);
+
+        throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
+      }
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTRevertPickSingle || 
+               thing instanceof ASTRevertPickMultiple) {
+        const cur_key = thing instanceof ASTRevertPickSingle
+              ? 'pick_one_priority'
+              : 'pick_multiple_priority';
+        const prior_key = thing instanceof ASTRevertPickSingle
+              ? 'prior_pick_one_priority'
+              : 'prior_pick_multiple_priority';
+        const cur_val   = context[cur_key];
+        const prior_val = context[prior_key];
+
+        // if (log_configuration_enabled)
+        //   log(`REVERT PICK DATA: ` +
+        //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+        //                               cur_val: cur_val, prior_val: prior_val })}`);
+        
+        // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
+        log(log_configuration_enabled,
+            `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+            `${inspect_fun(prior_val)}.`);
+        
+        context[cur_key]   = prior_val;
+        context[prior_key] = cur_val;
+
+        throw new ThrownReturn('');
+      }
+      // ---------------------------------------------------------------------------------------------
+      // ASTLora:
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTLora) {
+        // log(log_expand_and_walk_enabled,
+        //     `encountered lora ${thing} in ${context}`);
+
+        let walked_file = null;
+
+        lm.indent(() => {
+          log(log_expand_and_walk_enabled,
+              `expanding file ${compress(inspect_fun(thing.file))}`);
+          
+          walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
+
+          log(log_expand_and_walk_enabled,
+              `expanded file is ${typeof walked_file} ` +
+              `${walked_file.constructor.name} ` +
+              `${inspect_fun(walked_file)} `);
+        });
+        
+        // if (Array.isArray(walked_file))
+        //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
+
+        // if (Array.isArray(thing.weight))
+        //   throw new Error("boom");
+
+        let walked_weight = null;
+        
+        lm.indent(() => {
+          log(log_expand_and_walk_enabled,
+              `expanding weight ${compress(inspect_fun(thing.weight))}`);
+          
+          walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
+
+          log(log_expand_and_walk_enabled,
+              `expanded weight is ${typeof walked_weight} ` +
+              `${walked_weight.constructor.name} ` +
+              `${compress(inspect_fun(walked_weight))}, ` +
+              `Array.isArray(${Array.isArray(walked_weight)})`);
+        });
+
+        // log(log_expand_and_walk_enabled,
+        //     `walking weight ${compress(inspect_fun(thing.weight))}`);
+
+        // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
+        //   throw "bomb";
+        
+        
+        // if (Array.isArray(walked_weight))
+        //   walked_weight = smart_join(walked_weight);
+
+        const weight_match_result = json_number.match(walked_weight);
+
+        if (!weight_match_result || !weight_match_result.is_finished)
+          throw new Error(`LoRA weight must be a number, got ` +
+                          `${inspect_fun(walked_weight)}`);
+
+        let file = walked_file.toLowerCase();
+
+        if (file === '')
+          throw new Error(`LoRA file name is empty!`);
+        
+        // if (file.endsWith('_lora_f16.ckpt')) {
+        if (file.endsWith('.ckpt')) {
+          // do nothing 
+        }
+        else if (file.endsWith('_lora_f16')) {
+          file = `${file}.ckpt`;
+        }
+        else if (file.endsWith('_lora')) {
+          file = `${file}_f16.ckpt`;
+        }
+        else {
+          file = `${file}_lora_f16.ckpt`;
+        }
+
+        const weight = weight_match_result.value;
+        
+        context.add_lora_uniquely({ file: file, weight: weight });
+        
+        throw new ThrownReturn('');
+      }
+      // ---------------------------------------------------------------------------------------------
+      // uncrecognized type:
+      // ---------------------------------------------------------------------------------------------
       else {
-        value = structured_clone(value);
+        throw new Error(`confusing thing: ` +
+                        (typeof thing === 'object'
+                         ? thing?.constructor.name
+                         : typeof thing) +
+                        ' ' +
+                        inspect_fun(thing));
+
       }
-
-      if (thing instanceof ASTUpdateConfigurationUnary) { // ASTUpdateConfigurationUnary
-        let new_obj = value;
-
-        for (const key of Object.keys(value)) 
-          new_obj[get_our_name(key)??key] = value[key]
-        
-        context.configuration = thing.assign
-          ? new_obj
-          : { ...context.configuration, ...new_obj };
-
-        lm.indent(() => log(log_configuration_enabled,
-                            `%config ${thing.assign ? '=' : '+='} ` +
-                            `${inspect_fun(new_obj, true)}`
-                            // + `, configuration is now: ` +
-                            // `${inspect_fun(context.configuration, true)}`
-                           ));
-      }
-      else { // ASTUpdateConfigurationBinary
-        const our_name = get_our_name(thing.key); 
-        
-        if (thing.assign) {
-          context.configuration[our_name] = value;
-        }
-        else { // increment
-          if (Array.isArray(value)) {
-            const tmp_arr = context.configuration[our_name]??[];
-
-            if (! Array.isArray(tmp_arr))
-              throw new Error(`can't add array ${inspect_fun(value)} ` +
-                              `to non-array ${inspect_fun(tmp_arr)}`);
-            
-            const new_arr = [ ...tmp_arr, ...value ];
-            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-            //           `increment by array ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun(new_arr)}`);
-            context.configuration[our_name] = new_arr;
-          }
-          else if (typeof value === 'object') {
-            const tmp_obj = context.configuration[our_name]??{};
-
-            if (typeof tmp_obj !== 'object')
-              throw new Error(`can't add object ${inspect_fun(value)} `+
-                              `to non-object ${inspect_fun(tmp_obj)}`);
-
-            const new_obj = { ...tmp_obj, ...value };
-            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-            //           `increment by object ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun(new_obj)}`);
-            context.configuration[our_name] = new_obj;
-          }
-          else if (typeof value === 'number') {
-            const tmp_num = context.configuration[our_name]??0;
-            
-            if (typeof tmp_num !== 'number')
-              throw new Error(`can't add number ${inspect_fun(value)} `+
-                              `to non-number ${inspect_fun(tmp_num)}`);
-
-            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-            //           `increment by number ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
-            context.configuration[our_name] = tmp_num + value;
-          }
-          else if (typeof value === 'string') {
-            const tmp_str = context.configuration[our_name]??'';
-
-            if (typeof tmp_str !== 'string')
-              throw new Error(`can't add string ${inspect_fun(value)} `+
-                              `to non-string ${inspect_fun(tmp_str)}`);
-
-            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-            //           `increment by string ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-            context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value]));
-          }
-          else {
-            // probly won't work most of the time, but let's try anyhow, I guess.
-            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-            //           `increment by unknown ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
-            context.configuration[our_name] = (context.configuration[our_name]??null) + value;
-          }
-        }
-
-        lm.indent(() => log(log_configuration_enabled,
-                            `%${our_name} ` +
-                            `${thing.assign ? '=' : '+='} ` +
-                            `${inspect_fun(value, true)}`,
-                            log_expand_and_walk_enabled));
-      }
-      
-      throw new ThrownReturn('');
     }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSetPickSingle || 
-             thing instanceof ASTSetPickMultiple) {
-      const cur_key = thing instanceof ASTSetPickSingle
-            ? 'pick_one_priority'
-            : 'pick_multiple_priority';
-      const prior_key = thing instanceof ASTSetPickSingle
-            ? 'prior_pick_one_priority'
-            : 'prior_pick_multiple_priority';
-      const cur_val   = context[cur_key];
-      const prior_val = context[prior_key];
-      const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
-                                                                         context)).toLowerCase()];
+    catch (obj) {
+      if (! (obj instanceof ThrownReturn))
+        throw obj;
 
-      // if (log_configuration_enabled)
-      //   log(`SET PICK DATA: ` +
-      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-      //                               cur_val: cur_val, prior_val: prior_val,
-      //                               walked: walked})}`);
-      
-      if (! picker_priority_descriptions.includes(walked))
-        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+      log(log_expand_and_walk_enabled,
+          `walking ` +
+          `${thing_str_repr(thing)} in ` + 
+          `${context} returned ` +
+          `${thing_str_repr(obj.value)}`);
 
-      context[prior_key] = context[cur_key];
-      context[cur_key]   = walked;
-
-      log(log_configuration_enabled,
-          `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-          `${inspect_fun(walked)}.`);
-      
-      throw new ThrownReturn('');
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
-      const sub_prompt = thing instanceof ASTUIPrompt
-            ? { desc: 'UI prompt', text: ui_prompt }
-            : { desc: 'UI negative prompt', text: ui_neg_prompt };
-      
-      lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
-
-      let res = null;
-
-      try {
-        res = Prompt.match(sub_prompt.text);
-      }
-      catch(err) {
-        if (err instanceof FatalParseError)
-          throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} failed: ${err}>`);
-        else
-          throw err;
-      }
-
-      
-      if (!res || !res.is_finished)
-        throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`);
-
-      throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTRevertPickSingle || 
-             thing instanceof ASTRevertPickMultiple) {
-      const cur_key = thing instanceof ASTRevertPickSingle
-            ? 'pick_one_priority'
-            : 'pick_multiple_priority';
-      const prior_key = thing instanceof ASTRevertPickSingle
-            ? 'prior_pick_one_priority'
-            : 'prior_pick_multiple_priority';
-      const cur_val   = context[cur_key];
-      const prior_val = context[prior_key];
-
-      // if (log_configuration_enabled)
-      //   log(`REVERT PICK DATA: ` +
-      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-      //                               cur_val: cur_val, prior_val: prior_val })}`);
-      
-      // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-      //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
-      log(log_configuration_enabled,
-          `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-          `${inspect_fun(prior_val)}.`);
-      
-      context[cur_key]   = prior_val;
-      context[prior_key] = cur_val;
-
-      throw new ThrownReturn('');
-    }
-    // ---------------------------------------------------------------------------------------------
-    // ASTLora:
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTLora) {
-      // log(log_expand_and_walk_enabled,
-      //     `encountered lora ${thing} in ${context}`);
-
-      let walked_file = null;
-
-      lm.indent(() => {
-        log(log_expand_and_walk_enabled,
-            `expanding file ${compress(inspect_fun(thing.file))}`);
-        
-        walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
-
-        log(log_expand_and_walk_enabled,
-            `expanded file is ${typeof walked_file} ` +
-            `${walked_file.constructor.name} ` +
-            `${inspect_fun(walked_file)} `);
-      });
-      
-      // if (Array.isArray(walked_file))
-      //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
-
-      // if (Array.isArray(thing.weight))
-      //   throw new Error("boom");
-
-      let walked_weight = null;
-      
-      lm.indent(() => {
-        log(log_expand_and_walk_enabled,
-            `expanding weight ${compress(inspect_fun(thing.weight))}`);
-        
-        walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
-
-        log(log_expand_and_walk_enabled,
-            `expanded weight is ${typeof walked_weight} ` +
-            `${walked_weight.constructor.name} ` +
-            `${compress(inspect_fun(walked_weight))}, ` +
-            `Array.isArray(${Array.isArray(walked_weight)})`);
-      });
-
-      // log(log_expand_and_walk_enabled,
-      //     `walking weight ${compress(inspect_fun(thing.weight))}`);
-
-      // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
-      //   throw "bomb";
-      
-      
-      // if (Array.isArray(walked_weight))
-      //   walked_weight = smart_join(walked_weight);
-
-      const weight_match_result = json_number.match(walked_weight);
-
-      if (!weight_match_result || !weight_match_result.is_finished)
-        throw new Error(`LoRA weight must be a number, got ` +
-                        `${inspect_fun(walked_weight)}`);
-
-      let file = walked_file.toLowerCase();
-
-      if (file === '')
-        throw new Error(`LoRA file name is empty!`);
-      
-      // if (file.endsWith('_lora_f16.ckpt')) {
-      if (file.endsWith('.ckpt')) {
-        // do nothing 
-      }
-      else if (file.endsWith('_lora_f16')) {
-        file = `${file}.ckpt`;
-      }
-      else if (file.endsWith('_lora')) {
-        file = `${file}_f16.ckpt`;
-      }
-      else {
-        file = `${file}_lora_f16.ckpt`;
-      }
-
-      const weight = weight_match_result.value;
-      
-      context.add_lora_uniquely({ file: file, weight: weight });
-      
-      throw new ThrownReturn('');
-    }
-    // ---------------------------------------------------------------------------------------------
-    // uncrecognized type:
-    // ---------------------------------------------------------------------------------------------
-    else {
-      throw new Error(`confusing thing: ` +
-                      (typeof thing === 'object'
-                       ? thing?.constructor.name
-                       : typeof thing) +
-                      ' ' +
-                      inspect_fun(thing));
-
+      return obj.value;
     }
   }
-  catch (obj) {
-    if (! (obj instanceof ThrownReturn))
-      throw obj;
 
-    log(log_expand_and_walk_enabled,
-        `walking ` +
-        `${thing_str_repr(thing)} in ` + 
-        `${context} returned ` +
-        `${thing_str_repr(obj.value)}`);
+  log(log_expand_and_walk_enabled,
+      `Expanding wildcards in ` +
+      `${thing_str_repr(thing)} in ` + 
+      `${context}`);
 
-    return obj.value;
-  }
-}
+  const ret = unescape(smart_join(lm.indent(() => walk(thing))));
+  lm.indent(() => context.munge_configuration());
 
-log(log_expand_and_walk_enabled,
-    `Expanding wildcards in ` +
-    `${thing_str_repr(thing)} in ` + 
-    `${context}`);
+  // if (walked === '""' ||
+  //     walked === "''" ||
+  //     walked?.includes('""') ||
+  //     walked?.includes("''"))
+  //   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
 
-const ret = unescape(smart_join(lm.indent(() => walk(thing))));
-lm.indent(() => context.munge_configuration());
+  log(log_expand_and_walk_enabled,
+      `expanded wildcards in ` +
+      `${thing_str_repr(thing)} in ` + 
+      `${context} into ` +
+      `${thing_str_repr(ret)}`);
 
-// if (walked === '""' ||
-//     walked === "''" ||
-//     walked?.includes('""') ||
-//     walked?.includes("''"))
-//   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
+  // if (ret === undefined)
+  //   throw new Error("what");
 
-log(log_expand_and_walk_enabled,
-    `expanded wildcards in ` +
-    `${thing_str_repr(thing)} in ` + 
-    `${context} into ` +
-    `${thing_str_repr(ret)}`);
+  // if (ret.match(/^\s+$/))
+  //   throw "bombλ";
 
-// if (ret === undefined)
-//   throw new Error("what");
+  if (ret === '""' || ret === "''")
+    throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
 
-// if (ret.match(/^\s+$/))
-//   throw "bombλ";
-
-if (ret === '""' || ret === "''")
-  throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
-
-return ret;
+  return ret;
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -8985,6 +8985,15 @@ const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
                 SpecialFunctionTail));
+
+
+
+
+
+
+
+
+
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                            // [0]
@@ -9002,6 +9011,20 @@ const SpecialFunctionUpdateConfigurationUnary =
                             lws(choice(rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
                             SpecialFunctionTail,
                            )));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
@@ -9110,20 +9133,15 @@ const ScalarAssignment        =
         new ASTScalarAssignment(arr[0],
                                 arr[1][1],
                                 arr[1][0] == '='),
-        wst_seq(ScalarDesignator,                       // [0]
-                discarded_comments,                     // - 
-                wst_cutting_seq(
-                  choice(plus_equals, equals),          // [1][0]
-                  discarded_comments,                   // -
-                  first(choice(() => seq(rjsonc_string, // [1][1]
-                                         TrailingCommentFollowedBySemicolonOrWordBreak),  
-                               () => seq(hwst_plus(choice(LimitedContentNoSemis,
+        seq(ScalarDesignator,                                 // [0]
+            discarded_comments,                               // - 
+            cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
+                        discarded_comments,                   // -
+                        lws(choice(() => rjsonc_string, // [1][1]
+                                   () => hwst_plus(choice(LimitedContentNoSemis,
                                                           discarded_comment)),
-                                         TrailingCommentFollowedBySemicolonOrWordBreak
-                                         // TrailingCommentsAndSemicolon
-                                        ),
-                               () => seq(LimitedContentNoSemis,
-                                         TrailingCommentFollowedBySemicolonOrWordBreak))))));
+                                   // () => LimitedContentNoSemis,
+                                   SpecialFunctionTail)))));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // =================================================================================================
 // Content-related rules:
@@ -9277,7 +9295,7 @@ async function main() {
 
   if (! result?.is_finished)
     throw new Error(`error parsing ${inspect_fun(args[0])}! result = ${inspect_fun(result)}`);
-      
+  
   // -----------------------------------------------------------------------------------------------
   // just for debugging:
   // -----------------------------------------------------------------------------------------------
