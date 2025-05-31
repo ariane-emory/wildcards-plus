@@ -7752,8 +7752,9 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (context.named_wildcards.has(thing.name))
-          log(true, `WARNING: redefining named wildcard @${thing.name.name}, ` +
-              `you may not have intended to do this, check your template!`);
+          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
+              `you may not have intended to do this, check your template!`,
+              log_expand_and_walk_enabled);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
