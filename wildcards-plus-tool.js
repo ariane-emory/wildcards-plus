@@ -188,7 +188,7 @@ function save_post_request(options, data) {
     return true;
   }
   catch (err) {
-    console.error(`ERROR WHILE SAVING: ${err}`);
+    console.error(`ERROR WHILE SAVING POST REQUEST: ${err}`);
 
     return false;
   }
