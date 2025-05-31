@@ -290,7 +290,7 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
@@ -9468,4 +9468,4 @@ if (! main_disabled)
 // lm.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
 //    x    x  x `)));
 
-expect(never_match).match("nope")
+// expect(never_match).match("nope")
