@@ -8801,6 +8801,21 @@ const TestFlag                     = choice(
   CheckFlagWithSetConsequent,
   NotFlagWithSetConsequent,
 );
+const TopLevelTestFlag             = choice(
+  unexpected(SimpleCheckFlag),
+  unexpected(SimpleNotFlag),
+  unexpected(CheckFlagWithOrAlternatives),
+  xform(CheckFlagWithSetConsequent,
+        arr => {
+          lm.log(`cfwst arr: ${compress(inspect_fun(arr))}`);
+          return arr;
+        }),
+  xform(NotFlagWithSetConsequent,
+        arr => {
+          lm.log(`nfwsc arr: ${compress(inspect_fun(arr))}`);
+          return arr;
+        })
+);
 // -------------------------------------------------------------------------------------------------
 TestFlag                   .abbreviate_str_repr('TestFlag');
 SimpleCheckFlag            .abbreviate_str_repr('SimpleCheckFlag');
@@ -8814,7 +8829,7 @@ UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
-  console.log(`m_AAWA ARR: ${compress(inspect_fun(arr))}`);
+  // console.log(`m_AAWA ARR: ${abbreviate(compress(inspect_fun(arr)))}`);
   
   const weight = arr[1][0];
 
@@ -9131,6 +9146,7 @@ const Content                 = make_Content_rule({
 const TopLevelContent         = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
+    TopLevelTestFlag,
   ],
   after_plain_text_rules:  [
     AnonWildcard,
