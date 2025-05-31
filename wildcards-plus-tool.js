@@ -8995,7 +8995,10 @@ const SpecialFunctionUpdateConfigurationUnary =
                 cutting_seq(lws(choice(plus_equals, equals)),                        // [1][0]
                             discarded_comments,                                 // -
                             choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
-                            STOP)));
+                            //STOP,
+                            discarded_comments,
+                            choice(lws(semicolon), structural_word_break)
+                           )));
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
