@@ -8985,15 +8985,6 @@ const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
                 SpecialFunctionTail));
-
-
-
-
-
-
-
-
-
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                            // [0]
@@ -9011,20 +9002,6 @@ const SpecialFunctionUpdateConfigurationUnary =
                             lws(choice(rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
                             SpecialFunctionTail,
                            )));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
