@@ -8803,9 +8803,9 @@ const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang,
 const TestFlag                     = choice(
   SimpleCheckFlag,
   SimpleNotFlag,
-  CheckFlagWithOrAlternatives,
   CheckFlagWithSetConsequent,
   NotFlagWithSetConsequent,
+  CheckFlagWithOrAlternatives,
 );
 const bad_TopLevelTestFlag = 
       (rule, input, index) =>
@@ -8815,7 +8815,6 @@ const bad_TopLevelTestFlag =
 const TopLevelTestFlag             = choice(
   unexpected(SimpleCheckFlag, bad_TopLevelTestFlag),
   unexpected(SimpleNotFlag, bad_TopLevelTestFlag),
-  unexpected(CheckFlagWithOrAlternatives, bad_TopLevelTestFlag),
   xform(CheckFlagWithSetConsequent,
         flag => {
           //lm.log(`cfwsc flag: ${compress(inspect_fun(flag))}`);
@@ -8829,7 +8828,8 @@ const TopLevelTestFlag             = choice(
           const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
           // lm.log(`nfwsc ret:  ${inspect_fun(ret)}`);
           return ret;
-        })
+        }),
+  unexpected(CheckFlagWithOrAlternatives, bad_TopLevelTestFlag),
 );
 // -------------------------------------------------------------------------------------------------
 TestFlag                   .abbreviate_str_repr('TestFlag');
