@@ -7783,20 +7783,19 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         if (thing instanceof ASTUpdateConfigurationUnary) { // ASTUpdateConfigurationUnary
           let new_obj = value;
 
-          for (const key of Object.keys(value)) {
+          for (const key of Object.keys(value)) 
             new_obj[get_our_name(key)??key] = value[key]
-          }
           
           context.configuration = thing.assign
             ? new_obj
             : { ...context.configuration, ...new_obj };
 
-          log(log_configuration_enabled,
-              `%config ${thing.assign ? '=' : '+='} ` +
-              `${inspect_fun(new_obj, true)}`
-              // + `, configuration is now: ` +
-              // `${inspect_fun(context.configuration, true)}`
-             );
+          lm.indent(() => log(log_configuration_enabled,
+                              `%config ${thing.assign ? '=' : '+='} ` +
+                              `${inspect_fun(new_obj, true)}`
+                              // + `, configuration is now: ` +
+                              // `${inspect_fun(context.configuration, true)}`
+                             ));
         }
         else { // ASTUpdateConfigurationBinary
           const our_name = get_our_name(thing.key); 
@@ -7864,12 +7863,11 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
             }
           }
 
-          log(log_configuration_enabled,
-              `%${our_name} ` +
-              `${thing.assign ? '=' : '+='} ` +
-              `${inspect_fun(value, true)}`,
-              log_expand_and_walk_enabled
-             );
+          lm.indent(() => log(log_configuration_enabled,
+                              `%${our_name} ` +
+                              `${thing.assign ? '=' : '+='} ` +
+                              `${inspect_fun(value, true)}`,
+                              log_expand_and_walk_enabled));
         }
         
         throw new ThrownReturn('');
