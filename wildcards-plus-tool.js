@@ -7580,12 +7580,18 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         lm.indent(() => {
           for (let ix = 0; ix < thing.length; ix++) {
             lm.log(`Walking array element #${ix + 1} `+
-                   `of ${thing.length}`);
+                   `of ${thing.length} ` +
+                   `${thing_str_repr(thing[ix])}`);
 
-            lm.indent(() => ret.push(walk(thing[ix])));
+            const elem_ret = lm.indent(() => walk(thing[ix]));
 
-            lm.log(`walked array element #${ix + 1} `+
-                   `of ${thing.length}`);
+            ret.push(elem_ret);
+
+            lm.log(`walking array element #${ix + 1} `+
+                   `of ${thing.length} ` +
+                   `${thing_str_repr(thing[ix])} ` +
+                   `returned ${thing_str_repr(elem_ret)}`);
+
           }
         });
 
@@ -8000,7 +8006,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         lm.indent(() => {
           log(log_expand_and_walk_enabled,
               `expanding weight ${compress(inspect_fun(thing.weight))}`);
-
+          
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
 
           log(log_expand_and_walk_enabled,
