@@ -280,7 +280,7 @@ let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
-let log_expand_and_walk_enabled       = true;
+let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
@@ -7578,19 +7578,24 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         // for (const t of thing) {
         lm.indent(() => {
+          if (log_expand_and_walk_enabled)
+            throw new Error("bomb");
+          
           for (let ix = 0; ix < thing.length; ix++) {
-            lm.log(`Walking array element #${ix + 1} `+
-                   `of ${thing.length} ` +
-                   `${thing_str_repr(thing[ix])}`);
+            log(log_expand_and_walk_enabled,
+                `Walking array element #${ix + 1} `+
+                `of ${thing.length} ` +
+                `${thing_str_repr(thing[ix])}`);
 
             const elem_ret = lm.indent(() => walk(thing[ix]));
 
             ret.push(elem_ret);
 
-            lm.log(`walking array element #${ix + 1} `+
-                   `of ${thing.length} ` +
-                   `${thing_str_repr(thing[ix])} ` +
-                   `returned ${thing_str_repr(elem_ret)}`);
+            log(log_expand_and_walk_enabled,
+                `walking array element #${ix + 1} `+
+                `of ${thing.length} ` +
+                `${thing_str_repr(thing[ix])} ` +
+                `returned ${thing_str_repr(elem_ret)}`);
 
           }
         });
@@ -7640,7 +7645,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                                  allow_fun, forbid_fun,
                                  priority);
 
-          lm.indent_and_log(`picked items ${thing_str_repr(picks.map(x => x.body))}`);
+          if (log_expand_and_walk_enabled)
+            lm.indent_and_log(`picked items ${thing_str_repr(picks.map(x => x.body))}`);
 
           const walked_picks = picks.map(p => lm.indent(() => expand_wildcards(p?.body ?? '', context)));
           res.push(...walked_picks); // not walk!
@@ -7766,12 +7772,13 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         const pick = thing.pick_one(allow_fun, forbid_fun,
                                     context.pick_one_priority)?.body;
 
-        lm.indent_and_log(pick
-                          ? `picked ${thing_str_repr(pick)}`
-                          : `picked empty`);
+        if (log_expand_and_walk_enabled)
+          lm.indent_and_log(pick
+                            ? `picked ${thing_str_repr(pick)}`
+                            : `picked empty`);
 
         if (! pick)
-          throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
+              throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
         
         throw new ThrownReturn(lm.indent(() => walk(pick)));
       }
@@ -7996,7 +8003,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
 
-          log(true,
+          log(log_expand_and_walk_enabled,
               `expanded file is ${typeof walked_file} ` +
               `${walked_file.constructor.name} ` +
               `${inspect_fun(walked_file)} `);
