@@ -7876,13 +7876,6 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
       return '';
     }
     // ---------------------------------------------------------------------------------------------
-    // ASTUpdateNegativePrompt:
-    // ---------------------------------------------------------------------------------------------
-    // else if (thing instanceof ASTUpdateNegativePrompt) {
-    //   const temporaryNode = new ASTUpdateConfigurationBinary("negative_prompt", thing.value, thing.assign);
-    //   return expand_wildcards(temporaryNode, context, indent + 1);
-    // }
-    // ---------------------------------------------------------------------------------------------
     // uncrecognized type:
     // ---------------------------------------------------------------------------------------------
     else {
