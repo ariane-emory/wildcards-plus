@@ -234,6 +234,11 @@ function __format_FatalParseError_message(message_body, input, index) {
 // -------------------------------------------------------------------------------------------------
 class FatalParseError extends Error {
   constructor(message_body, input, index) {
+    if (!(typeof message_body === 'string' &&
+          typeof input === 'string' &&
+          typeof index === 'number'))
+      throw new Error(`bad arges: ${inspect_fun(arguments)}`);
+    
     super(__format_FatalParseError_message(message_body, input, index));
     this.name         = 'FatalParseError';
     this.message_body = message_body
@@ -1417,7 +1422,7 @@ class Unexpected extends Rule {
         throw err instanceof Error ? err : new FatalParseError(err, input, index);
       }
       else {
-        throw new FatalParseError(`unexpected ${this.rule}`);
+        throw new FatalParseError(`unexpected ${this.rule}`, input, index);
       }
     };
     
@@ -8372,7 +8377,7 @@ const cutting_with_swb                = rule =>
 const cutting_seq_with_swb    = (...rules) => 
       first(cutting_seq(seq(...rules), structural_word_break));
 // -------------------------------------------------------------------------------------------------
-const swb_uint                = with_swb(uint);
+const swb_uint                = xform(parseInt, with_swb(uint));
 // -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
 comments                      .abbreviate_str_repr('comments_star');
@@ -8541,9 +8546,33 @@ const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang,
 const TestFlag                     = choice(
   SimpleCheckFlag,
   SimpleNotFlag,
-  CheckFlagWithOrAlternatives,
   CheckFlagWithSetConsequent,
   NotFlagWithSetConsequent,
+  CheckFlagWithOrAlternatives,
+);
+const bad_TopLevelTestFlag = 
+      (rule, input, index) =>
+      new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
+                          `serve no purpose and so are not permitted`,
+                          input, index);
+const TopLevelTestFlag             = choice(
+  unexpected(SimpleCheckFlag, bad_TopLevelTestFlag),
+  unexpected(SimpleNotFlag, bad_TopLevelTestFlag),
+  xform(CheckFlagWithSetConsequent,
+        flag => {
+          //lm.log(`cfwsc flag: ${compress(inspect_fun(flag))}`);
+          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
+          // lm.log(`cfwsc ret:  ${inspect_fun(ret)}`);
+          return ret;
+        }),
+  xform(NotFlagWithSetConsequent,
+        flag => {
+          //lm.log(`nfwsc flag: ${compress(inspect_fun(flag))}`);
+          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
+          // lm.log(`nfwsc ret:  ${inspect_fun(ret)}`);
+          return ret;
+        }),
+  unexpected(CheckFlagWithOrAlternatives, bad_TopLevelTestFlag),
 );
 // -------------------------------------------------------------------------------------------------
 TestFlag                   .abbreviate_str_repr('TestFlag');
@@ -8558,6 +8587,8 @@ UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
+  // console.log(`m_AAWA ARR: ${compress(inspect_fun(arr))}`);
+  
   const weight = arr[1][0];
 
   if (weight == 0)
@@ -8873,6 +8904,7 @@ const Content                 = make_Content_rule({
 const TopLevelContent         = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
+    TopLevelTestFlag,
   ],
   after_plain_text_rules:  [
     AnonWildcard,
