@@ -338,7 +338,7 @@ class Logger {
 const lm = { // logger manager
   stack: [],
   // -----------------------------------------------------------------------------------------------
-  get_logger() {
+  get logger() {
     if (this.stack.length == 0) {
       const new_logger = new Logger(0);
       this.stack.push(new_logger);
@@ -356,18 +356,21 @@ const lm = { // logger manager
   },
   // -----------------------------------------------------------------------------------------------
   error(thing, unexpected) {
-    this.log(thing);
+    if (unexpected !== undefined)
+      throw new Error("bag args");
+
+    this.logger.error(msg);    
   },
   // -----------------------------------------------------------------------------------------------
   log(msg, unexpected) {
     if (unexpected !== undefined)
       throw new Error("bag args");
 
-    this.get_logger().log(msg);
+    this.logger.log(msg);
   },
   // -----------------------------------------------------------------------------------------------
   __indent(fn, indent_addend) {
-    this.stack.push(new Logger(this.get_logger().indent + indent_addend));
+    this.stack.push(new Logger(this.logger.indent + indent_addend));
 
     try {
       return fn();
