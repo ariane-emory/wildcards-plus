@@ -343,16 +343,12 @@ const lm = { // logger manager
     return this.stack[this.stack.length - 1];
   },
   // -----------------------------------------------------------------------------------------------
-  indent_and_log(msg, with_indent = true) {
-    this.indent(() => this.log(msg));
+  error(...args) {
+    this.logger.error(...args);    
   },
   // -----------------------------------------------------------------------------------------------
-  log(thing = '', with_indent = true) {
-    this.logger.log(thing, with_indent);
-  },
-  // -----------------------------------------------------------------------------------------------
-  error(thing = '', with_indent = true) {
-    this.logger.error(thing, with_indent);    
+  log(...args) {
+    this.logger.log(...args);
   },
   // -----------------------------------------------------------------------------------------------
   indent(fn) {
@@ -372,6 +368,10 @@ const lm = { // logger manager
     finally {
       this.stack.pop();
     }
+  },
+  // -----------------------------------------------------------------------------------------------
+  indent_and_log(...args) {
+    this.indent(() => this.log(...args));
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -1602,7 +1602,7 @@ class Expected extends Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __match(input, index, cache) {
-    const match_result = this.rule.match(input, index, indent + 1, cache);
+    const match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (! match_result) {
       if (this.error_func)
@@ -1616,7 +1616,7 @@ class Expected extends Rule {
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
     this.rule = this.__vivify(this.rule);    
-    this.rule.__finalize(indent + 1, visited);
+    lm.indent(() => this.rule.__finalize(visited))
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
