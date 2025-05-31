@@ -7655,6 +7655,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
+          const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context));
           const picks = got.pick(thing.min_count, thing.max_count,
                                  allow_fun, forbid_fun,
                                  id, // replace this
@@ -7662,8 +7663,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
           if (log_expand_and_walk_enabled)
             lm.indent_and_log(`picked items ${thing_str_repr(picks.map(x => x.body))}`);
-
-          const walked_picks = picks.map(p => lm.indent(() => expand_wildcards(p?.body ?? '', context)));
+          const walked_picks = picks.map(each);
           res.push(...walked_picks); // not walk!
         }
         
