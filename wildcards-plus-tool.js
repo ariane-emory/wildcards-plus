@@ -8043,6 +8043,13 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
     catch (obj) {
       if (! (obj instanceof ThrownReturn))
         throw obj;
+
+      log(log_expand_and_walk_enabled,
+          `walking ` +
+          `${thing_str_repr(thing)} in ` + 
+          `${context} returned ` +
+          `${thing_str_repr(obj.value)}`);
+
       return obj.value;
     }
   }
