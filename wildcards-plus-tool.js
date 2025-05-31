@@ -7576,11 +7576,21 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       else if (Array.isArray(thing)) {
         const ret = [];
 
-        for (const t of thing) 
-          lm.indent(() => ret.push(walk(t)));
+        // for (const t of thing) {
+        lm.indent(() => {
+          for (let ix = 0; ix < thing.length; ix++) {
+            lm.log(`Walking array element #${ix + 1} `+
+                   `of ${thing.length}`);
+
+            lm.indent(() => ret.push(walk(thing[ix])));
+
+            lm.log(`walked array element #${ix + 1} `+
+                   `of ${thing.length}`);
+          }
+        });
 
         throw new ThrownReturn(ret);
-      }
+        }
       // ---------------------------------------------------------------------------------------------
       // flags:
       // ---------------------------------------------------------------------------------------------
