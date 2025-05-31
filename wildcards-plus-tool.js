@@ -8628,7 +8628,7 @@ const cutting_with_swb                = rule =>
 const cutting_seq_with_swb    = (...rules) => 
       first(cutting_seq(seq(...rules), structural_word_break));
 // -------------------------------------------------------------------------------------------------
-const swb_uint                = with_swb(uint);
+const swb_uint                = xform(parseInt, with_swb(uint));
 // -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
 comments                      .abbreviate_str_repr('comments_star');
@@ -8805,15 +8805,15 @@ const TopLevelTestFlag             = choice(
   unexpected(SimpleCheckFlag),
   unexpected(SimpleNotFlag),
   unexpected(CheckFlagWithOrAlternatives),
-  xform(CheckFlagWithSetConsequent,
-        arr => {
-          lm.log(`cfwst arr: ${compress(inspect_fun(arr))}`);
-          return arr;
-        }),
+  // xform(CheckFlagWithSetConsequent,
+  //       flag => {
+  //         lm.log(`cfwst flag: ${compress(inspect_fun(flag))}`);
+  //         return new ASTAnonWildcard({make_ASTAnonWildcardAlternative([flag], 1, [])});
+  //       }),
   xform(NotFlagWithSetConsequent,
-        arr => {
-          lm.log(`nfwsc arr: ${compress(inspect_fun(arr))}`);
-          return arr;
+        flag => {
+          lm.log(`nfwsc flag: ${compress(inspect_fun(flag))}`);
+          return new ASTAnonWildcard(make_ASTAnonWildcardAlternative([[flag], [1], [], []]));
         })
 );
 // -------------------------------------------------------------------------------------------------
@@ -8829,7 +8829,7 @@ UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
-  // console.log(`m_AAWA ARR: ${abbreviate(compress(inspect_fun(arr)))}`);
+  console.log(`m_AAWA ARR: ${abbreviate(compress(inspect_fun(arr)))}`);
   
   const weight = arr[1][0];
 
