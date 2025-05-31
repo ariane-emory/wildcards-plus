@@ -2355,6 +2355,9 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
 // =================================================================================================
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
+const STOP = expect(never_match);
+STOP.abbreviate_str_repr("STOP");
+// -------------------------------------------------------------------------------------------------
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
