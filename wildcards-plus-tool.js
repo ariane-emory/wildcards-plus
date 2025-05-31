@@ -68,7 +68,7 @@ function parse_file(filename) {
   }
   else {
     try {
-      result = Prompt.match(prompt_input, 0, 0, cache);
+      result = Prompt.match(prompt_input, 0, cache);
     }
     catch (err) {
       if (err instanceof FatalParseError) {
@@ -281,7 +281,7 @@ let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
 let log_expand_and_walk_enabled       = true;
-let log_finalize_enabled              = true;
+let log_finalize_enabled              = false;
 let log_flags_enabled                 = true;
 let log_match_enabled                 = true;
 let log_name_lookups_enabled          = true;
@@ -351,14 +351,22 @@ const logger_manager = {
     this.get_logger().log(msg);
   },
   // -----------------------------------------------------------------------------------------------
-  indent(fn) {
-    this.stack.push(new Logger(this.get_logger().indent + 1));
+  __indent(fn, incement_indent) {
+    this.stack.push(new Logger(this.get_logger().indent + incement_indent));
 
     try {
       return fn();
     } finally {
       this.stack.pop();
     }
+  },
+  // -----------------------------------------------------------------------------------------------
+  indent(fn) {
+    return this.__indent(fn, 1);
+  },
+  // -----------------------------------------------------------------------------------------------
+  indent2(fn) {
+    return this.__indent(fn, 2);
   }
 }
 // =================================================================================================
@@ -560,7 +568,10 @@ class Rule {
     throw new Error(`__impl_finalize is not implemented by ${this.constructor.name}`);    
   }
   // -----------------------------------------------------------------------------------------------
-  match(input, index = 0, indent = 0, cache = new Map()) {
+  match(input, index = 0, cache = new Map()) {
+    if (! (cache instanceof Map))
+      throw new Error("bad args");
+    
     if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
     
@@ -597,7 +608,7 @@ class Rule {
       }
     }
     
-    const ret = this.__match(indent, input, index, cache);
+    const ret = this.__match(input, index, cache);
 
     if (ret && ret?.value === undefined) {
       throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
@@ -624,7 +635,10 @@ class Rule {
     return ret;
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
+    if (! (cache instanceof Map))
+      throw new Error("bad args");
+
     throw new Error(`__match is not implemented by ${this.constructor.name}`);
   }
   // -----------------------------------------------------------------------------------------------
@@ -723,7 +737,10 @@ class Quantified extends Rule {
     logger_manager.indent(() => this.separator_rule?.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __quantified_match(indent, input, index, cache) {
+  __quantified_match(input, index, cache) {
+    if (! (cache instanceof Map))
+      throw new Error("bad args");
+    
     const values        = [];
     let prev_index      = null;
     const rewind_index  = ()   => index = prev_index;
@@ -732,12 +749,10 @@ class Quantified extends Rule {
       index      = ix;
     };
 
-    indent += 1;
-
-    let match_result = this.rule.match(input, index, indent + 1, cache);
+    let match_result = logger_manager.indent(() => this.rule.match(input, index, cache));
 
     if (match_result === undefined)
-      throw new Error("math_result === undefined, this likely indicated a programmer error");
+      throw new Error("match_result === undefined, this likely indicated a programmer error");
     
     if (match_result === false)
       throw new Error("math_result === false, this likely indicated a programmer error");
@@ -756,7 +771,8 @@ class Quantified extends Rule {
         if (log_match_enabled)
           logger_manager.log(`Matching separator rule ${this.separator_rule}...`);
         
-        const separator_match_result = this.separator_rule.match(input, index, indent + 1, cache);
+        const separator_match_result =
+              logger_manager.indent(() => this.separator_rule.match(input, index, cache));
 
         if (! separator_match_result) {
           // required mode stuff:
@@ -778,7 +794,7 @@ class Quantified extends Rule {
         update_index(separator_match_result.index);
       } // end of if (this.separator_rule)
 
-      match_result = this.rule.match(input, index, indent + 1, cache);
+      match_result = logger_manager.indent(() => this.rule.match(input, index, cache));
 
       if (! match_result) {
         if (this.separator_rule) {
@@ -808,8 +824,8 @@ class Quantified extends Rule {
 // -------------------------------------------------------------------------------------------------
 class Plus extends Quantified {
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const __quantified_match_result = this.__quantified_match(indent, input, index, cache);
+  __match(input, index, cache) {
+    const __quantified_match_result = logger_manager.indent(() => this.__quantified_match(input, index, cache));
 
     return __quantified_match_result?.value.length > 0
       ? __quantified_match_result
@@ -838,8 +854,8 @@ function plus(rule, // convenience constructor
 // -------------------------------------------------------------------------------------------------
 class Star extends Quantified {
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    return this.__quantified_match(indent, input, index, cache);
+  __match(input, index, cache) {
+    return this.__quantified_match(input, index, cache);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_toString(visited, next_id, ref_counts) {
@@ -880,7 +896,7 @@ class Choice extends Rule  {
     }
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     let ix = 0;
     
     for (const option of this.options) {
@@ -892,8 +908,8 @@ class Choice extends Rule  {
                              `at char #${index}: ` +
                              `'${abbreviate(input.substring(index))}'`));
       
-      const match_result = option.match(input, index, indent + 1, cache);
-      
+      const match_result = logger_manager.indent(() => option.match(input, index, cache));
+                                                 
       if (match_result) { 
         // if (match_result.value === DISCARD) {
         //   index = match_result.index;
@@ -963,11 +979,11 @@ class Discard extends Rule {
     logger_manager.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     if (! this.rule)
       return new MatchResult(null, input, index);
     
-    const match_result = this.rule.match(input, index, indent + 1, cache);
+    const match_result = logger_manager.indent(() => this.rule.match(input, index, cache));
 
     if (! match_result)
       return null;
@@ -1009,8 +1025,8 @@ class Element extends Rule {
     logger_manager.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
+  __match(input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, cache);
 
     if (! rule_match_result)
       return null;
@@ -1136,15 +1152,15 @@ class Enclosed extends Rule {
     logger_manager.indent(() => this.end_rule  .__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     const start_rule_match_result =
-          this.start_rule.match(input, index, indent + 1, cache);
+          logger_manager.indent(() => this.start_rule.match(input, index, cache));
 
     if (! start_rule_match_result)
       return null;
 
     const body_rule_match_result =
-          this.body_rule.match(input, start_rule_match_result.index, indent + 1, cache);
+          logger_manager.indent(() => this.body_rule.match(input, start_rule_match_result.index, cache));
 
     if (! body_rule_match_result)
       return this.__fail_or_throw_error(start_rule_match_result,
@@ -1153,7 +1169,7 @@ class Enclosed extends Rule {
                                         start_rule_match_result.index);
 
     const end_rule_match_result =
-          this.end_rule.match(input, body_rule_match_result.index, indent + 1, cache);
+          logger_manager.indent(() => this.end_rule.match(input, body_rule_match_result.index, cache));
 
     if (! end_rule_match_result)
       return this.__fail_or_throw_error(start_rule_match_result,
@@ -1228,7 +1244,7 @@ class Label extends Rule {
     this.rule.__finalize(indent + 1, visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     const rule_match_result = this.rule.match(input, index, indent, cache);
 
     if (! rule_match_result)
@@ -1268,7 +1284,7 @@ class NeverMatch extends Rule  {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     return null;
   } 
   // -----------------------------------------------------------------------------------------------
@@ -1295,8 +1311,8 @@ class Optional extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const match_result = this.rule.match(input, index, indent + 1, cache);
+  __match(input, index, cache) {
+    const match_result = logger_manager.indent(() => this.rule.match(input, index, cache));
 
     if (match_result === null) {
       const mr = new MatchResult(this.default_value !== null
@@ -1361,7 +1377,7 @@ class Sequence extends Rule {
     }
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     const start_rule = input[0];
 
     if (log_match_enabled)
@@ -1371,7 +1387,8 @@ class Sequence extends Rule {
                                     `at '${abbreviate(input.substring(index))}'`);
     
     const start_rule_match_result =
-          this.elements[0].match(input, index, indent + 2, cache);
+          logger_manager.indent2(() => this.elements[0].match(input, index, cache));
+    
     let last_match_result = start_rule_match_result;
 
     // if (log_match_enabled && last_match_result !== null)
@@ -1418,7 +1435,7 @@ class Sequence extends Rule {
       
       const element = this.elements[ix];
 
-      last_match_result = element.match(input, index, indent + 2 , cache);
+      last_match_result = logger_manager.indent2(() => element.match(input, index, cache));
 
       if (! last_match_result) {
         if (log_match_enabled)
@@ -1524,8 +1541,8 @@ class Xform extends Rule {
     logger_manager.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
-    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
+  __match(input, index, cache) {
+    const rule_match_result = logger_manager.indent(() => this.rule.match(input, index, cache));
 
     if (! rule_match_result)
       return null;
@@ -1578,7 +1595,7 @@ class Expected extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     const match_result = this.rule.match(input, index, indent + 1, cache);
 
     if (! match_result) {
@@ -1621,7 +1638,7 @@ class Unexpected extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     const match_result = this.rule.match(input, index, indent + 1, cache);
     
     if (match_result) {
@@ -1666,7 +1683,7 @@ class Fail extends Rule {
     return [];
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     throw this.error_func
       ? this.error_func(this, index, input)
       : new FatalParseError(`hit automatic failure Rule`, input, index);
@@ -1705,7 +1722,7 @@ function fail(error_func = null) { // convenience constructor
 //     this.rule.__finalize(indent + 1, visited);
 //   }
 //   // -----------------------------------------------------------------------------------------------
-//   __match(indent, input, index, cache) {
+//   __match(input, index, cache) {
 //     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
 
 //     if (! rule_match_result)
@@ -1752,7 +1769,7 @@ class TokenLabel extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     if (index_is_at_end_of_input(index, input))
       return null;
 
@@ -1794,7 +1811,7 @@ class Literal extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     if (index_is_at_end_of_input(index, input))
       return null;
 
@@ -1845,7 +1862,7 @@ class Regex extends Rule {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
-  __match(indent, input, index, cache) {
+  __match(input, index, cache) {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
@@ -1861,13 +1878,13 @@ class Regex extends Rule {
     }
 
     return new MatchResult(re_match[re_match.length - 1],
-                         input,
-                         index + re_match[0].length);
-}
-// -----------------------------------------------------------------------------------------------
-__impl_toString(visited, next_id, ref_counts) {
-  return `/${this.regexp.source}/`;
-}
+                           input,
+                           index + re_match[0].length);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `/${this.regexp.source}/`;
+  }
 }
 // -------------------------------------------------------------------------------------------------
 function r_raw(strings, ...values) { // convenience constructor
@@ -2078,7 +2095,7 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
         this.base_rule.__finalize(indent + 1, visited);
       }
       // -------------------------------------------------------------------------------------------
-      __match(indent, input, index, cache) {
+      __match(input, index, cache) {
         return this.rule.match(input, index, indent + 1, cache);
       }
       // -------------------------------------------------------------------------------------------
