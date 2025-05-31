@@ -7639,8 +7639,11 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           const picks = got.pick(thing.min_count, thing.max_count,
                                  allow_fun, forbid_fun,
                                  priority);
-          
-          res.push(...picks.map(p => lm.indent(() => expand_wildcards(p?.body ?? '', context)))); // not walk!
+
+          lm.indent_and_log(`picked items ${thing_str_repr(picks.map(x => x.body))}`);
+
+          const walked_picks = picks.map(p => lm.indent(() => expand_wildcards(p?.body ?? '', context)));
+          res.push(...walked_picks); // not walk!
         }
         
         res = res.filter(s => s !== '');
@@ -7762,6 +7765,10 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       else if (thing instanceof ASTAnonWildcard) {
         const pick = thing.pick_one(allow_fun, forbid_fun,
                                     context.pick_one_priority)?.body;
+
+        lm.indent_and_log(pick
+                          ? `picked ${thing_str_repr(pick)}`
+                          : `picked empty`);
 
         if (! pick)
           throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
