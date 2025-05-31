@@ -280,7 +280,7 @@ let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
-let log_expand_and_walk_enabled       = true;
+let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
@@ -296,7 +296,6 @@ let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
 let unnecessary_choice_is_error       = false;
 // =================================================================================================
-
 
 
 // =================================================================================================
@@ -316,22 +315,18 @@ class Logger {
     this.indent = indent;
   }
   // -----------------------------------------------------------------------------------------------
-  error(thing, unexpected) {
-    if (unexpected !== undefined)
-      throw new Error("bag args");
-    
-    console.error(this.indent_thing(thing))
+  error(thing = '', with_indentation = true) {
+    console.error(this.indent_thing(thing, with_indentation));
   }
   // -----------------------------------------------------------------------------------------------
-  log(thing, unexpected) {
-    if (unexpected !== undefined)
-      throw new Error("bag args");
-    
-    console.log(this.indent_thing(thing))
+  log(thing = '', with_indentation = true) {
+    console.log(this.indent_thing(thing, with_indentation));
   }
   // -------------------------------------------------------------------------------------------------
-  indent_thing(thing) {
-    return `${'| '.repeat(this.indent)}${thing.toString()}`;
+  indent_thing(thing, with_indentation = true) {
+    return with_indentation
+      ? `${'| '.repeat(this.indent)}${thing.toString()}`
+      : thing.toString();
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -348,25 +343,24 @@ const lm = { // logger manager
     return this.stack[this.stack.length - 1];
   },
   // -----------------------------------------------------------------------------------------------
-  indent_and_log(msg, unexpected) {
-    if (unexpected !== undefined)
-      throw new Error("bag args");
-
+  indent_and_log(msg, with_indentation = true) {
     this.indent(() => this.log(msg));
   },
   // -----------------------------------------------------------------------------------------------
-  error(thing, unexpected) {
-    if (unexpected !== undefined)
-      throw new Error("bag args");
-
-    this.logger.error(msg);    
+  log(thing = '', with_indentation = true) {
+    this.logger.log(thing, with_indentation);
   },
   // -----------------------------------------------------------------------------------------------
-  log(msg, unexpected) {
-    if (unexpected !== undefined)
-      throw new Error("bag args");
-
-    this.logger.log(msg);
+  error(thing = '', with_indentation = true) {
+    this.logger.error(thing, with_indentation);    
+  },
+  // -----------------------------------------------------------------------------------------------
+  indent(fn) {
+    return this.__indent(fn, 1);
+  },
+  // -----------------------------------------------------------------------------------------------
+  indent2(fn) {
+    return this.__indent(fn, 2);
   },
   // -----------------------------------------------------------------------------------------------
   __indent(fn, indent_addend) {
@@ -378,14 +372,6 @@ const lm = { // logger manager
     finally {
       this.stack.pop();
     }
-  },
-  // -----------------------------------------------------------------------------------------------
-  indent(fn) {
-    return this.__indent(fn, 1);
-  },
-  // -----------------------------------------------------------------------------------------------
-  indent2(fn) {
-    return this.__indent(fn, 2);
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -4054,7 +4040,8 @@ class Context {
 
     if (munged_configuration.model === '') {
       lm.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-             `what you meant to do, your prompt template may contain an error!`);
+             `what you meant to do, your prompt template may contain an error!`,
+             log_expand_and_walk_enabled);
       delete munged_configuration.model;
     }
     else if (munged_configuration.model) {
@@ -4087,14 +4074,16 @@ class Context {
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
       if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
         lm.log(`correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-               `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
+               `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`,
+               log_expand_and_walk_enabled);
         munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
       }
     }
     // when running in Node.js, sampler needs to be a string::
     else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
       lm.log(`correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-             `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+             `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
+             log_expand_and_walk_enabled);
       munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
 
@@ -4105,7 +4094,8 @@ class Context {
 
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
-          lm.log(`%seed = -1 due to n_iter > 1`);
+          lm.log(`%seed = -1 due to n_iter > 1`,
+                 log_expand_and_walk_enabled);
 
         munged_configuration.seed = -1;
       }
@@ -4113,7 +4103,8 @@ class Context {
         const random = Math.floor(Math.random() * (2 ** 32));
         
         if (log_configuration_enabled)
-          lm.log(`%seed = ${random} due to no seed`);
+          lm.log(`%seed = ${random} due to no seed`,
+                 log_expand_and_walk_enabled);
 
         munged_configuration.seed = random;
       }
@@ -7455,7 +7446,7 @@ function load_prelude(into_context = new Context()) {
 
 
 // =================================================================================================
-// THE MAIN AST-WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
+// THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
 function expand_wildcards(thing, context = new Context(), unexpected = undefined) {
   if (unexpected !== undefined)
@@ -7503,19 +7494,19 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
   const thing_type_str = thing =>
         typeof thing === 'object' ? thing.constructor.name : typeof thing;
   // -----------------------------------------------------------------------------------------------
-  const log = (guard_bool, msg) => { 
+  const log = (guard_bool, msg, with_indentation = true) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
-    if (guard_bool) lm.log(msg);
+    if (guard_bool) lm.log(msg, with_indentation);
   };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, undexpected) {
     if (unexpected !== undefined)
       throw new Error("bad args");
     
-    const log = (guard_bool, msg) => {
+    const log = (guard_bool, msg, with_indentation = true) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
       // if (guard_bool) lm.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-      if (guard_bool) lm.log(msg);
+      if (guard_bool) lm.log(msg, with_indentation);
     };
 
     // log(log_expand_and_walk_enabled,
@@ -7554,7 +7545,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTUnsetFlag) {
       log(log_flags_enabled,
-          `UNSETTING FLAG '${thing.flag}'.`);
+          `unsetting flag '${thing.flag}'.`);
 
       context.unset_flag(thing.flag);
       
@@ -7604,7 +7595,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       let got = context.scalar_variables.get(thing.name) ??
           `\\<WARNING: scalar '${thing.name}' not found}>`;
 
-      log(true, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
+      log(false, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
       if (thing.capitalize)
         got = capitalize(got);
@@ -7684,8 +7675,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
     else if (thing instanceof ASTScalarAssignment) {
       log(context.noisy, '');
       log(context.noisy,
-          `ASSIGNING ${inspect_fun(thing.source)} ` +
-          `TO '${thing.destination.name}'`);
+          `assigning ${inspect_fun(thing.source)} ` +
+          `to '${thing.destination.name}'`);
       
       let   new_val = lm.indent(() => expand_wildcards(thing.source, context));
       const old_val = context.scalar_variables.get(thing.destination.name)??'';
@@ -7695,10 +7686,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       
       context.scalar_variables.set(thing.destination.name, new_val);
 
-      log(true,
-          `assign scalar $${thing.destination.name} = ${inspect_fun(new_val)}`);
-      log(context.noisy,
-          `vars after: ${inspect_fun(context.scalar_variables)}`);
+      log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
+          log_expand_and_walk_enabled);
       
       return '';
     }
@@ -7829,9 +7818,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         log(log_configuration_enabled,
             `%${our_name} ` +
             `${thing.assign ? '=' : '+='} ` +
-            `${inspect_fun(value, true)}`
-            // + `, configuration is now: ` +
-            // `${inspect_fun(context.configuration, true)}`
+            `${inspect_fun(value, true)}`,
+            log_expand_and_walk_enabled
            );
       }
       
@@ -7932,7 +7920,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       
       let walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
 
-      log(true,
+      log(false,
           `walked_file is ${typeof walked_file} ` +
           `${walked_file.constructor.name} ` +
           `${inspect_fun(walked_file)} ` +
@@ -8011,7 +7999,6 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
 
-
   const ret = lm.indent(() => unescape(smart_join(walk(thing))));
   lm.indent2(() => context.munge_configuration());
 
@@ -8020,8 +8007,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
   //     walked?.includes('""') ||
   //     walked?.includes("''"))
   //   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
-
-
+  
   log(log_expand_and_walk_enabled,
       `expanded into ${inspect_fun(ret)}`);
 
