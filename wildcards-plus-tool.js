@@ -8642,7 +8642,7 @@ const cutting_seq_with_swb    = (...rules) =>
 const swb_uint                = xform(parseInt, with_swb(uint));
 // -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
-comments                      .abbreviate_str_repr('comments_star');
+comments                      .abbreviate_str_repr('comments');
 discarded_comment             .abbreviate_str_repr('discarded_comment');
 discarded_comments            .abbreviate_str_repr('discarded_comments');
 dot_hash                      .abbreviate_str_repr('dot_hash');
@@ -8912,7 +8912,7 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
-const SpecialFunctionTail = choice(lws(semicolon), structural_word_break);
+const SpecialFunctionTail = seq(comments, choice(lws(semicolon), structural_word_break));
 
 const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
                                                                   choice(lws(semicolon),
@@ -8998,7 +8998,6 @@ const SpecialFunctionUpdateConfigurationUnary =
                             discarded_comments,                                 // -
                             choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
                             //STOP,
-                            discarded_comments,
                             SpecialFunctionTail,
                            )));
 const SpecialFunctionNotInclude =
