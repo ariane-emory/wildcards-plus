@@ -280,7 +280,7 @@ let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
-let log_expand_and_walk_enabled       = false;
+let log_expand_and_walk_enabled       = true;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
@@ -324,28 +324,28 @@ class Logger {
     console.log(this.indent_thing(thing, with_indent));
   }
   // -----------------------------------------------------------------------------------------------
+  indent_lines(str) {
+    if (typeof str !== 'string')
+      throw new Error(`not a string: ${inspect.fun(str)}`);
+    
+    const indent_string = this.indent_str.repeat(this.indent);
+    const indented_str  = str
+          .split("\n")
+          .map(line => `${indent_string}${line}`)
+          .join("\n");
+
+    return indented_str;
+  }
+  // -----------------------------------------------------------------------------------------------
   indent_thing(thing, with_indent = true) {
     return with_indent
-      ? `${this.indent_str.repeat(this.indent)}${thing.toString()}`
+      ? `${this.indent_lines(thing.toString())}`
       : thing.toString();
   }
   // -----------------------------------------------------------------------------------------------
   nest(indent_addend = 1) {
     return new Logger(this.indent + indent_addend, this.indent_str);
   }
-  // -----------------------------------------------------------------------------------------------
-  // indent_lines(indent, str, indent_str = "| ") {
-  //   if (typeof str !== 'string')
-  //     throw new Error(`not a string: ${inspect.fun(str)}`);
-  
-  //   const indent_string = indent_str.repeat(indent);
-  //   const indented_str  = str
-  //         .split("\n")
-  //         .map(line => `${indent_string}${line}`)
-  //         .join("\n");
-
-  //   return indented_str;
-  // }
 }
 // -------------------------------------------------------------------------------------------------
 const lm = { // logger manager
@@ -1068,7 +1068,7 @@ class Element extends Rule {
           : rule_match_result.value[this.index];
     
     if (log_match_enabled) 
-      lm.log(`GET ELEM ${this.index} FROM ` +
+      lm.log(`get elem ${this.index} from ` +
              `${compress(inspect_fun(rule_match_result.value))} = ` +
              `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
     
@@ -7516,8 +7516,13 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
   // -----------------------------------------------------------------------------------------------
   const thing_str_repr = thing => {
     const type_str  = typeof thing === 'object' ? thing.constructor.name : typeof thing;
+    // const thing_str = abbreviate(Array.isArray(thing)
+    //                              ? inspect_fun(thing) 
+    //                              : (typeof thing === 'string'
+    //                                 ? inspect_fun(thing)
+    //                                 : thing.toString()));
     const thing_str = abbreviate(Array.isArray(thing)
-                                 ? compress(inspect_fun(thing)) // thing.join(' ')
+                                 ? compress(inspect_fun(thing)) 
                                  : (typeof thing === 'string'
                                     ? inspect_fun(thing)
                                     : thing.toString()));
