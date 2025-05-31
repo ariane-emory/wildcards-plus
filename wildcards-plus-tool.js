@@ -311,21 +311,22 @@ Array.prototype.toString = function() {
 // new logger class:
 // =================================================================================================
 class Logger {
-  constructor(indent = 0) {
+  constructor(indent = 0, indent_str = '| ') {
     this.indent = indent;
+    this.indent_str = indent_str;
   }
   // -----------------------------------------------------------------------------------------------
-  error(thing = '', with_indentation = true) {
-    console.error(this.indent_thing(thing, with_indentation));
+  error(thing = '', with_indent = true) {
+    console.error(this.indent_thing(thing, with_indent));
   }
   // -----------------------------------------------------------------------------------------------
-  log(thing = '', with_indentation = true) {
-    console.log(this.indent_thing(thing, with_indentation));
+  log(thing = '', with_indent = true) {
+    console.log(this.indent_thing(thing, with_indent));
   }
   // -------------------------------------------------------------------------------------------------
-  indent_thing(thing, with_indentation = true) {
-    return with_indentation
-      ? `${'| '.repeat(this.indent)}${thing.toString()}`
+  indent_thing(thing, with_indent = true) {
+    return with_indent
+      ? `${this.indent_str.repeat(this.indent)}${thing.toString()}`
       : thing.toString();
   }
 }
@@ -343,16 +344,16 @@ const lm = { // logger manager
     return this.stack[this.stack.length - 1];
   },
   // -----------------------------------------------------------------------------------------------
-  indent_and_log(msg, with_indentation = true) {
+  indent_and_log(msg, with_indent = true) {
     this.indent(() => this.log(msg));
   },
   // -----------------------------------------------------------------------------------------------
-  log(thing = '', with_indentation = true) {
-    this.logger.log(thing, with_indentation);
+  log(thing = '', with_indent = true) {
+    this.logger.log(thing, with_indent);
   },
   // -----------------------------------------------------------------------------------------------
-  error(thing = '', with_indentation = true) {
-    this.logger.error(thing, with_indentation);    
+  error(thing = '', with_indent = true) {
+    this.logger.error(thing, with_indent);    
   },
   // -----------------------------------------------------------------------------------------------
   indent(fn) {
