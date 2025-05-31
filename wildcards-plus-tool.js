@@ -75,7 +75,6 @@ function parse_file(filename) {
         console.log(`ERROR: matching threw fatal parse error, ` +
                     `halting: \n` +
                     `${inspect_fun(err)}`);
-        process.exit(0);
       }
       else {
         throw err;
@@ -281,7 +280,6 @@ let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
-let log_enabled                       = true;
 let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
@@ -323,22 +321,23 @@ class Logger {
   }
 }
 // -------------------------------------------------------------------------------------------------
-const log_manager = {
+const logger_manager = {
   stack: [],
+  // -----------------------------------------------------------------------------------------------
   get_logger() {
     if (this.stack.length == 0) {
       const new_logger = new Logger(0);
       this.stack.push(new_logger);
       return new_logger;
     }
-
+    // ---------------------------------------------------------------------------------------------
     return this.stack[this.stack.length - 1];
   },
-
+  // -----------------------------------------------------------------------------------------------
   log(msg) {
     this.get_logger().log(msg);
   },
-
+  // -----------------------------------------------------------------------------------------------
   indent(fn) {
     this.stack.push(new Logger(this.get_logger().indent + 1));
 
@@ -351,18 +350,20 @@ const log_manager = {
 }
 // =================================================================================================
 
-log_manager.log("Top level");
-log_manager.indent(() => {
-  log_manager.log("2nd level");
-  log_manager.indent(() => {
-    log_manager.log("3rd level");
+if (false) {
+  logger_manager.log("Top level");
+  logger_manager.indent(() => {
+    logger_manager.log("2nd level");
+    logger_manager.indent(() => {
+      logger_manager.log("3rd level");
+    });
+    logger_manager.log("Back at 2nd level");
   });
-  log_manager.log("Back at 2nd level");
-});
 
-log_manager.log("Back at top level");
+  logger_manager.log("Back at top level");
 
-process.exit(0);
+  process.exit(0);
+}
 
 // =================================================================================================
 // GRAMMAR.JS CONTENT SECTION:
@@ -1366,668 +1367,668 @@ class Sequence extends Rule {
     const values = [];
     index        = last_match_result.index;
 
-      if (log_match_enabled)
-        log(indent + 1, `matched first sequence element #1: ` +
-            `${compress(inspect_fun(last_match_result))}, ` +
-            `now at char #${index}: ` +
-            `'${abbreviate(input.substring(index))}'`);
+    if (log_match_enabled)
+      log(indent + 1, `matched first sequence element #1: ` +
+          `${compress(inspect_fun(last_match_result))}, ` +
+          `now at char #${index}: ` +
+          `'${abbreviate(input.substring(index))}'`);
 
-      // if (log_match_enabled)
-      //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
+    // if (log_match_enabled)
+    //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
+
+    if (last_match_result.value !== DISCARD) {
+      if (log_match_enabled)
+        log(indent + 1, `seq pushing first item ` +
+            `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
+
+      values.push(last_match_result.value);
+
+      // if (values.includes(null))
+      //   throw new Error("STOP @ PUSH 1");
+    }
+    else if (log_match_enabled)
+      log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
+
+    for (let ix = 1; ix < this.elements.length; ix++) {
+      if (log_match_enabled)
+        log(indent + 1, `matching sequence element #${ix+ 1} out of ` +
+            `${this.elements.length}: ${this.elements[ix]} ` +
+            `at char #${index}: ` +
+            `'${abbreviate(input.substring(index))}'`);
+      
+      const element = this.elements[ix];
+
+      last_match_result = element.match(input, index, indent + 2 , cache);
+
+      if (! last_match_result) {
+        if (log_match_enabled)
+          log(indent + 1, `did not match sequence item #${ix}.`);
+        return this.__fail_or_throw_error(start_rule_match_result,
+                                          last_match_result,
+                                          input, index);
+      }
+
+      if (log_match_enabled)
+        log(indent + 1, `matched sequence element #${ix+1}: ` +
+            `${compress(inspect_fun(last_match_result))}, ` +
+            `now at char #${last_match_result.index}: ` +
+            `'${abbreviate(input.substring(last_match_result.index))}'`);
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
-          log(indent + 1, `seq pushing first item ` +
-              `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
+          log(indent + 1, `seq pushing ${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
 
         values.push(last_match_result.value);
 
         // if (values.includes(null))
-        //   throw new Error("STOP @ PUSH 1");
-      }
-      else if (log_match_enabled)
-        log(indent + 1, `discarding ${inspect_fun(last_match_result)}!`);
-
-      for (let ix = 1; ix < this.elements.length; ix++) {
-        if (log_match_enabled)
-          log(indent + 1, `matching sequence element #${ix+ 1} out of ` +
-              `${this.elements.length}: ${this.elements[ix]} ` +
-              `at char #${index}: ` +
-              `'${abbreviate(input.substring(index))}'`);
-        
-        const element = this.elements[ix];
-
-        last_match_result = element.match(input, index, indent + 2 , cache);
-
-        if (! last_match_result) {
-          if (log_match_enabled)
-            log(indent + 1, `did not match sequence item #${ix}.`);
-          return this.__fail_or_throw_error(start_rule_match_result,
-                                            last_match_result,
-                                            input, index);
-        }
-
-        if (log_match_enabled)
-          log(indent + 1, `matched sequence element #${ix+1}: ` +
-              `${compress(inspect_fun(last_match_result))}, ` +
-              `now at char #${last_match_result.index}: ` +
-              `'${abbreviate(input.substring(last_match_result.index))}'`);
-
-        if (last_match_result.value !== DISCARD) {
-          if (log_match_enabled)
-            log(indent + 1, `seq pushing ${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
-
-          values.push(last_match_result.value);
-
-          // if (values.includes(null))
-          //   throw new Error(`STOP @ PUSH 2 AFTER ${this.elements[ix]}`);
-        }
-
-        index = last_match_result.index;
+        //   throw new Error(`STOP @ PUSH 2 AFTER ${this.elements[ix]}`);
       }
 
-      // if (values.includes(null))
-      //   throw new Error("STOP @ RET");
-      
-      const mr = new MatchResult(values, input, last_match_result.index);
-      // console.log(`SEQ MR = ${inspect_fun(mr)}`);
-      return mr;
+      index = last_match_result.index;
     }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      const elem_strs = this.elements.map(x => this.__vivify(x) .__toString(visited,
-                                                                            next_id,
-                                                                            ref_counts));
-      const str       = elem_strs.join(' ');
-      return `[${str}]`;
-      // return `(${str})`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  function seq(...elements) { // convenience constructor
-    return new Sequence(...elements);
-  }
-  // -------------------------------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------------------------------
-  // CuttingSequence class
-  // -------------------------------------------------------------------------------------------------
-  class CuttingSequence extends Sequence {
-    // -----------------------------------------------------------------------------------------------
-    constructor(leading_rule, ...expected_rules) {
-      super(leading_rule, ...expected_rules);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __fail_or_throw_error(start_rule_result, failed_rule_result,
-                          input, index) {
-      throw new FatalParseError(// `(#2) ` +
-        `CuttingSequence expected [${this.elements.slice(1).join(" ")}] ` +
-          `after ${this.elements[0]}`,
-        input, start_rule_result.index);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      const first_str = `${this.__vivify(this.elements[0]).__toString(visited, next_id, ref_counts)}!`;
-      const rest_strs = this.elements.slice(1).map(x => this.__vivify(x)
-                                                   .__toString(visited, next_id, ref_counts));
-      const str       = [ first_str, ...rest_strs ].join(' ');
-      return `[${str}]`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // convenience constructor:
-  function cutting_seq(leading_rule, ...expected_rules) {
-    return new CuttingSequence(leading_rule, ...expected_rules);
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // Xform class
-  // -------------------------------------------------------------------------------------------------
-  class Xform extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(rule, xform_func) {
-      super();
-      this.xform_func = xform_func;
-      this.rule       = make_rule_func(rule);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return this.__vivify(this.rule).direct_children();
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      this.rule = this.__vivify(this.rule);
-      this.rule.__finalize(indent + 1, visited);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index, cache) {
-      const rule_match_result = this.rule.match(input, index, indent + 1, cache);
-
-      if (! rule_match_result)
-        return null;
-
-      rule_match_result.value = this.xform_func(rule_match_result.value);
-
-      return rule_match_result
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `λ(${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)})`;
-      // return `λ${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  function xform(...things) { // convenience constructor with magic
-    things = things.map(make_rule_func);
-
-    if (things[0] instanceof Rule ||
-        things[0] instanceof RegExp || 
-        typeof things[0] === "string" || 
-        things[0] instanceof ForwardReference) {
-      const fn   = pipe_funs(...things.slice(1));
-      const rule = things[0];
-
-      return new Xform(rule, fn);
-    }
-    else
-    {
-      const fn   = compose_funs(...things.slice(0, -1));
-      const rule = things[things.length - 1];
-
-      return new Xform(rule, fn);
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // Expected class
-  // -------------------------------------------------------------------------------------------------
-  class Expected extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(rule, error_func = null) {
-      super();
-      this.rule       = make_rule_func(rule);
-      this.error_func = error_func;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.rule ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index, cache) {
-      const match_result = this.rule.match(input, index, indent + 1, cache);
-
-      if (! match_result) {
-        if (this.error_func)
-          throw this.error_func(this, input, index)
-        else 
-          throw new FatalParseError(`expected ${this.rule}`, input, index);
-      };
-
-      return match_result;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      this.rule = this.__vivify(this.rule);    
-      this.rule.__finalize(indent + 1, visited);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  function expect(rule, error_func = null) { // convenience constructor
-    return new Expected(rule, error_func);
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // Unexpected class
-  // -------------------------------------------------------------------------------------------------
-  class Unexpected extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(rule, error_func = null) {
-      super();
-      this.rule       = make_rule_func(rule);
-      this.error_func = error_func;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.rule ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index, cache) {
-      const match_result = this.rule.match(input, index, indent + 1, cache);
-      
-      if (match_result) {
-        if (this.error_func) {
-          const err = this.error_func(this, input, index);
-          throw err instanceof Error ? err : new FatalParseError(err, input, index);
-        }
-        else {
-          throw new FatalParseError(`unexpected ${this.rule}`);
-        }
-      };
-      
-      return null; // new MatchResult(null, input, match_result.index);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      this.rule = this.__vivify(this.rule);    
-      this.rule.__finalize(indent + 1, visited);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `!${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}!`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  function unexpected(rule, error_func = null) { // convenience constructor
-    return new Unexpected(rule, error_func);
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // Fail class
-  // -------------------------------------------------------------------------------------------------
-  class Fail extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(error_func = null) {
-      super();
-      this.error_func = error_func;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index, cache) {
-      throw this.error_func
-        ? this.error_func(this, index, input)
-        : new FatalParseError(`hit automatic failure Rule`, input, index);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      // do nothing
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `<FAIL!>`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  function fail(error_func = null) { // convenience constructor
-    return new Fail(error_func);
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // // -------------------------------------------------------------------------------------------------
-  // // Tail class
-  // // -------------------------------------------------------------------------------------------------
-  // class Tail extends Rule {
-  //   // -----------------------------------------------------------------------------------------------
-  //   constructor(index, rule) {
-  //     super();
-  //     this.rule  = make_rule_func(rule);
-  //   }
-  //   // -----------------------------------------------------------------------------------------------
-  //   __direct_children() {
-  //     return [ this.rule ];
-  //   }
-  //   // -----------------------------------------------------------------------------------------------
-  //   __impl_finalize(indent, visited) {
-  //     this.rule = this.__vivify(this.rule);
-  //     this.rule.__finalize(indent + 1, visited);
-  //   }
-  //   // -----------------------------------------------------------------------------------------------
-  //   __match(indent, input, index, cache) {
-  //     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
-
-  //     if (! rule_match_result)
-  //       return null;
-
-  //     // I forget why I did this? Could be a bad idea?
-  //     const ret = rule_match_result.value.slice(1);
-
-  //     if (log_match_enabled)
-  //       log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
-  //           `${inspect_fun(ret)}`);
-
-  //     rule_match_result.value = ret;
-
-  //     return rule_match_result
-  //   }
-  //   // -----------------------------------------------------------------------------------------------
-  //   __impl_toString(visited, next_id, ref_counts) {
-  //     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-  //     return `CDR(${rule_str})`;
-  //   }
-  // }
-  // // -------------------------------------------------------------------------------------------------
-  // function tail(rule) { // convenience constructor
-  //   return new Tail(rule);
-  // }
-  // // =================================================================================================
-
-  // -------------------------------------------------------------------------------------------------
-  // TokenLabel class, this can probably be deleted soon?
-  // -------------------------------------------------------------------------------------------------
-  class TokenLabel extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(label) {
-      super();
-      this.label  = label;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      // do nothing.
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index, cache) {
-      if (index_is_at_end_of_input(index, input))
-        return null;
-
-      let the_token = input[index];
-
-      if (the_token?.label != this.label)
-        return null;
-
-      return new MatchResult(the_token,
-                             input,
-                             index + 1) // always matches just 1 token.
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `'${this.label}'`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  function tok(label) { // convenience constructor
-    return new TokenLabel(label);
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // Literal class
-  // -------------------------------------------------------------------------------------------------
-  class Literal extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(string) {
-      super();
-      this.string  = string;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      // do nothing.
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index, cache) {
-      if (index_is_at_end_of_input(index, input))
-        return null;
-
-      if (! input.startsWith(this.string, index))
-        return null;
-
-      return new MatchResult(this.string,
-                             input,
-                             index + this.string.length)
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `'${this.string}'`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  function l(first_arg, second_arg) { // convenience constructor
-    if (second_arg)
-      return new Label(first_arg, new Literal(second_arg));
+    // if (values.includes(null))
+    //   throw new Error("STOP @ RET");
     
-    return new Literal(first_arg);
+    const mr = new MatchResult(values, input, last_match_result.index);
+    // console.log(`SEQ MR = ${inspect_fun(mr)}`);
+    return mr;
   }
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    const elem_strs = this.elements.map(x => this.__vivify(x) .__toString(visited,
+                                                                          next_id,
+                                                                          ref_counts));
+    const str       = elem_strs.join(' ');
+    return `[${str}]`;
+    // return `(${str})`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function seq(...elements) { // convenience constructor
+  return new Sequence(...elements);
+}
+// -------------------------------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------------------------------
-  // Regex class
-  // -------------------------------------------------------------------------------------------------
-  class Regex extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(regexp) {
-      super();
-      this.regexp  = this.#ensure_RegExp_sticky_flag(regexp);
-    }
-    // -----------------------------------------------------------------------------------------------
-    #ensure_RegExp_sticky_flag(regexp) {
-      // e.ensure_thing_has_class(RegExp, regexp);
+// -------------------------------------------------------------------------------------------------
+// CuttingSequence class
+// -------------------------------------------------------------------------------------------------
+class CuttingSequence extends Sequence {
+  // -----------------------------------------------------------------------------------------------
+  constructor(leading_rule, ...expected_rules) {
+    super(leading_rule, ...expected_rules);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __fail_or_throw_error(start_rule_result, failed_rule_result,
+                        input, index) {
+    throw new FatalParseError(// `(#2) ` +
+      `CuttingSequence expected [${this.elements.slice(1).join(" ")}] ` +
+        `after ${this.elements[0]}`,
+      input, start_rule_result.index);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    const first_str = `${this.__vivify(this.elements[0]).__toString(visited, next_id, ref_counts)}!`;
+    const rest_strs = this.elements.slice(1).map(x => this.__vivify(x)
+                                                 .__toString(visited, next_id, ref_counts));
+    const str       = [ first_str, ...rest_strs ].join(' ');
+    return `[${str}]`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// convenience constructor:
+function cutting_seq(leading_rule, ...expected_rules) {
+  return new CuttingSequence(leading_rule, ...expected_rules);
+}
+// -------------------------------------------------------------------------------------------------
 
-      return regexp.sticky
-        ? regexp
-        : new RegExp(regexp.source, regexp.flags + 'y');
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      // do nothing.
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(indent, input, index, cache) {
-      this.regexp.lastIndex = index;
+// -------------------------------------------------------------------------------------------------
+// Xform class
+// -------------------------------------------------------------------------------------------------
+class Xform extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule, xform_func) {
+    super();
+    this.xform_func = xform_func;
+    this.rule       = make_rule_func(rule);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.__vivify(this.rule).direct_children();
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const rule_match_result = this.rule.match(input, index, indent + 1, cache);
 
+    if (! rule_match_result)
+      return null;
+
+    rule_match_result.value = this.xform_func(rule_match_result.value);
+
+    return rule_match_result
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `λ(${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)})`;
+    // return `λ${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function xform(...things) { // convenience constructor with magic
+  things = things.map(make_rule_func);
+
+  if (things[0] instanceof Rule ||
+      things[0] instanceof RegExp || 
+      typeof things[0] === "string" || 
+      things[0] instanceof ForwardReference) {
+    const fn   = pipe_funs(...things.slice(1));
+    const rule = things[0];
+
+    return new Xform(rule, fn);
+  }
+  else
+  {
+    const fn   = compose_funs(...things.slice(0, -1));
+    const rule = things[things.length - 1];
+
+    return new Xform(rule, fn);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Expected class
+// -------------------------------------------------------------------------------------------------
+class Expected extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule, error_func = null) {
+    super();
+    this.rule       = make_rule_func(rule);
+    this.error_func = error_func;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const match_result = this.rule.match(input, index, indent + 1, cache);
+
+    if (! match_result) {
+      if (this.error_func)
+        throw this.error_func(this, input, index)
+      else 
+        throw new FatalParseError(`expected ${this.rule}`, input, index);
+    };
+
+    return match_result;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);    
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function expect(rule, error_func = null) { // convenience constructor
+  return new Expected(rule, error_func);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Unexpected class
+// -------------------------------------------------------------------------------------------------
+class Unexpected extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule, error_func = null) {
+    super();
+    this.rule       = make_rule_func(rule);
+    this.error_func = error_func;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    const match_result = this.rule.match(input, index, indent + 1, cache);
+    
+    if (match_result) {
+      if (this.error_func) {
+        const err = this.error_func(this, input, index);
+        throw err instanceof Error ? err : new FatalParseError(err, input, index);
+      }
+      else {
+        throw new FatalParseError(`unexpected ${this.rule}`);
+      }
+    };
+    
+    return null; // new MatchResult(null, input, match_result.index);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    this.rule = this.__vivify(this.rule);    
+    this.rule.__finalize(indent + 1, visited);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `!${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}!`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function unexpected(rule, error_func = null) { // convenience constructor
+  return new Unexpected(rule, error_func);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Fail class
+// -------------------------------------------------------------------------------------------------
+class Fail extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(error_func = null) {
+    super();
+    this.error_func = error_func;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    throw this.error_func
+      ? this.error_func(this, index, input)
+      : new FatalParseError(`hit automatic failure Rule`, input, index);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `<FAIL!>`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function fail(error_func = null) { // convenience constructor
+  return new Fail(error_func);
+}
+// -------------------------------------------------------------------------------------------------
+
+// // -------------------------------------------------------------------------------------------------
+// // Tail class
+// // -------------------------------------------------------------------------------------------------
+// class Tail extends Rule {
+//   // -----------------------------------------------------------------------------------------------
+//   constructor(index, rule) {
+//     super();
+//     this.rule  = make_rule_func(rule);
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __direct_children() {
+//     return [ this.rule ];
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __impl_finalize(indent, visited) {
+//     this.rule = this.__vivify(this.rule);
+//     this.rule.__finalize(indent + 1, visited);
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __match(indent, input, index, cache) {
+//     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
+
+//     if (! rule_match_result)
+//       return null;
+
+//     // I forget why I did this? Could be a bad idea?
+//     const ret = rule_match_result.value.slice(1);
+
+//     if (log_match_enabled)
+//       log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
+//           `${inspect_fun(ret)}`);
+
+//     rule_match_result.value = ret;
+
+//     return rule_match_result
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __impl_toString(visited, next_id, ref_counts) {
+//     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+//     return `CDR(${rule_str})`;
+//   }
+// }
+// // -------------------------------------------------------------------------------------------------
+// function tail(rule) { // convenience constructor
+//   return new Tail(rule);
+// }
+// // =================================================================================================
+
+// -------------------------------------------------------------------------------------------------
+// TokenLabel class, this can probably be deleted soon?
+// -------------------------------------------------------------------------------------------------
+class TokenLabel extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(label) {
+    super();
+    this.label  = label;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing.
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    if (index_is_at_end_of_input(index, input))
+      return null;
+
+    let the_token = input[index];
+
+    if (the_token?.label != this.label)
+      return null;
+
+    return new MatchResult(the_token,
+                           input,
+                           index + 1) // always matches just 1 token.
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `'${this.label}'`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function tok(label) { // convenience constructor
+  return new TokenLabel(label);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Literal class
+// -------------------------------------------------------------------------------------------------
+class Literal extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(string) {
+    super();
+    this.string  = string;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing.
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    if (index_is_at_end_of_input(index, input))
+      return null;
+
+    if (! input.startsWith(this.string, index))
+      return null;
+
+    return new MatchResult(this.string,
+                           input,
+                           index + this.string.length)
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `'${this.string}'`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function l(first_arg, second_arg) { // convenience constructor
+  if (second_arg)
+    return new Label(first_arg, new Literal(second_arg));
+  
+  return new Literal(first_arg);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Regex class
+// -------------------------------------------------------------------------------------------------
+class Regex extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(regexp) {
+    super();
+    this.regexp  = this.#ensure_RegExp_sticky_flag(regexp);
+  }
+  // -----------------------------------------------------------------------------------------------
+  #ensure_RegExp_sticky_flag(regexp) {
+    // e.ensure_thing_has_class(RegExp, regexp);
+
+    return regexp.sticky
+      ? regexp
+      : new RegExp(regexp.source, regexp.flags + 'y');
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing.
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(indent, input, index, cache) {
+    this.regexp.lastIndex = index;
+
+    if (log_match_enabled)
+      log(indent + 1, `testing /${this.regexp.source}/ at char ${index}: ` +
+          `'${abbreviate(input.substring(index))}'`); 
+
+    const re_match = this.regexp.exec(input);
+    
+    if (! re_match) {
       if (log_match_enabled)
-        log(indent + 1, `testing /${this.regexp.source}/ at char ${index}: ` +
-            `'${abbreviate(input.substring(index))}'`); 
-
-      const re_match = this.regexp.exec(input);
-      
-      if (! re_match) {
-        if (log_match_enabled)
-          log(indent, `regex did not match`);
-        return null;
-      }
-
-      return new MatchResult(re_match[re_match.length - 1],
-                             input,
-                             index + re_match[0].length);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `/${this.regexp.source}/`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  function r_raw(strings, ...values) { // convenience constructor
-    const regexp = RegExp_raw(strings, ...values);
-    return new Regex(regexp);
-  }
-  // -------------------------------------------------------------------------------------------------
-  function r(regexp) { // convenience constructor
-    return new Regex(regexp);
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // ForwardReference class, possibly delete this.
-  // -------------------------------------------------------------------------------------------------
-  class ForwardReference {
-    // -----------------------------------------------------------------------------------------------
-    constructor(func) {
-      this.func = func;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.func() ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __toString() {
-      return "???";
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString() {
-      return "???";
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  const ref = (func) => new ForwardReference(func);
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // LabeledValue class
-  // -------------------------------------------------------------------------------------------------
-  class LabeledValue {
-    // -----------------------------------------------------------------------------------------------
-    constructor(label, value) {
-      this.label  = label;
-      this.value  = value;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // MatchResult class
-  // -------------------------------------------------------------------------------------------------
-  class MatchResult {
-    // -----------------------------------------------------------------------------------------------
-    constructor(value, input, index) {
-      this.value       = value;
-      this.index       = index; // a number.
-      this.is_finished = index == input.length; 
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // helper functions and related vars:
-  // -------------------------------------------------------------------------------------------------
-  function abbreviate(str, len = 100) {
-    // Normalize all newlines first
-    str = str.replace(/\r?\n/g, '\\n');
-
-    if (str.length < len)
-      return str;
-
-    const bracing_pairs = [
-      ['/',  '/'],
-      ['(',  ')'],
-      ['[',  ']'],
-      ['{',  '}'],
-      ['<',  '>'],
-      ['λ(', ')'],
-    ];
-
-    for (const [left, right] of bracing_pairs) {
-      if (str.startsWith(left) && str.endsWith(right)) {
-        const inner = str.substring(left.length, len - 3 - right.length);
-        return `${left}${inner.trim()}...${right}`;
-      }
+        log(indent, `regex did not match`);
+      return null;
     }
 
-    return `${str.substring(0, len - 3).trim()}...`;
+    return new MatchResult(re_match[re_match.length - 1],
+                           input,
+                           index + re_match[0].length);
   }
-  // -------------------------------------------------------------------------------------------------
-  function index_is_at_end_of_input(index, input) {
-    return index == input.length
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `/${this.regexp.source}/`;
   }
-  // -------------------------------------------------------------------------------------------------
-  function log(indent, str = "", indent_str = "| ") {
-    if (! log_enabled)
-      return;
+}
+// -------------------------------------------------------------------------------------------------
+function r_raw(strings, ...values) { // convenience constructor
+  const regexp = RegExp_raw(strings, ...values);
+  return new Regex(regexp);
+}
+// -------------------------------------------------------------------------------------------------
+function r(regexp) { // convenience constructor
+  return new Regex(regexp);
+}
+// -------------------------------------------------------------------------------------------------
 
-    console.log(`${indent_str.repeat(indent)}${str}`);
+// -------------------------------------------------------------------------------------------------
+// ForwardReference class, possibly delete this.
+// -------------------------------------------------------------------------------------------------
+class ForwardReference {
+  // -----------------------------------------------------------------------------------------------
+  constructor(func) {
+    this.func = func;
   }
-  // -------------------------------------------------------------------------------------------------
-  function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
-    console.log(char.repeat(width));
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.func() ];
   }
-  LOG_LINE.line_width = 100;
-  // -------------------------------------------------------------------------------------------------
-  function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
-    if (typeof thing === 'string')
-      return new Literal(thing);
-    else if (thing instanceof RegExp)
-      return new Regex(thing);
-    else
-      return thing;
+  // -----------------------------------------------------------------------------------------------
+  __toString() {
+    return "???";
   }
-  // -------------------------------------------------------------------------------------------------
-  function maybe_make_TokenLabel_from_string(thing) {
-    if (typeof thing === 'string')
-      return new TokenLabel(thing);
-
-    return thing
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString() {
+    return "???";
   }
-  // -------------------------------------------------------------------------------------------------
-  let make_rule_func = maybe_make_RE_or_Literal_from_Regexp_or_string
-  // -------------------------------------------------------------------------------------------------
-  function compose_funs(...fns) {
-    return fns.length === 0
-      ? x => x
-      : pipe_funs(...[...fns].reverse());
+}
+// -------------------------------------------------------------------------------------------------
+const ref = (func) => new ForwardReference(func);
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// LabeledValue class
+// -------------------------------------------------------------------------------------------------
+class LabeledValue {
+  // -----------------------------------------------------------------------------------------------
+  constructor(label, value) {
+    this.label  = label;
+    this.value  = value;
   }
-  // -------------------------------------------------------------------------------------------------
-  function pipe_funs(...fns) {
-    if (fns.length === 0)
-      return x => x;
-    else if (fns.length === 1)
-      return fns[0];
-
-    const [head, ...rest] = fns;
-
-    return rest.reduce((acc, fn) => x => fn(acc(x)), head);
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
   }
-  // =================================================================================================
-  // END OF GRAMMAR.JS CONTENT SECTION.
-  // =================================================================================================
+}
+// -------------------------------------------------------------------------------------------------
 
+// -------------------------------------------------------------------------------------------------
+// MatchResult class
+// -------------------------------------------------------------------------------------------------
+class MatchResult {
+  // -----------------------------------------------------------------------------------------------
+  constructor(value, input, index) {
+    this.value       = value;
+    this.index       = index; // a number.
+    this.is_finished = index == input.length; 
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+}
+// -------------------------------------------------------------------------------------------------
 
-  // =================================================================================================
-  // Whitespace combinators, these should go somewhere else?
-  // =================================================================================================
-  const prettify_whitespace_combinators = true;
-  // =================================================================================================
+// -------------------------------------------------------------------------------------------------
+// helper functions and related vars:
+// -------------------------------------------------------------------------------------------------
+function abbreviate(str, len = 100) {
+  // Normalize all newlines first
+  str = str.replace(/\r?\n/g, '\\n');
 
-  // =================================================================================================
-  const lws0                = rule => {
-    rule = second(seq(whites_star, rule));
-    
-    if (prettify_whitespace_combinators) {
-      rule.__impl_toString = function(visited, next_id, ref_counts) {
-        const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-        return `LWS0(${rule_str})`;
-      }
+  if (str.length < len)
+    return str;
+
+  const bracing_pairs = [
+    ['/',  '/'],
+    ['(',  ')'],
+    ['[',  ']'],
+    ['{',  '}'],
+    ['<',  '>'],
+    ['λ(', ')'],
+  ];
+
+  for (const [left, right] of bracing_pairs) {
+    if (str.startsWith(left) && str.endsWith(right)) {
+      const inner = str.substring(left.length, len - 3 - right.length);
+      return `${left}${inner.trim()}...${right}`;
     }
+  }
 
-    return rule;
-  };
-  const tws0                = rule => { 
-    rule = first(seq(rule, whites_star));
+  return `${str.substring(0, len - 3).trim()}...`;
+}
+// -------------------------------------------------------------------------------------------------
+function index_is_at_end_of_input(index, input) {
+  return index == input.length
+}
+// // -------------------------------------------------------------------------------------------------
+// function log(indent, str = "", indent_str = "| ") {
+//   if (! log_enabled)
+//     return;
 
-    if (prettify_whitespace_combinators) {
-      rule.__impl_toString = function(visited, next_id, ref_counts) {
-        const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
-        return `TWS0(${rule_str})`;
-      }
+//   console.log(`${indent_str.repeat(indent)}${str}`);
+// }
+// -------------------------------------------------------------------------------------------------
+function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
+  console.log(char.repeat(width));
+}
+LOG_LINE.line_width = 100;
+// -------------------------------------------------------------------------------------------------
+function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
+  if (typeof thing === 'string')
+    return new Literal(thing);
+  else if (thing instanceof RegExp)
+    return new Regex(thing);
+  else
+    return thing;
+}
+// -------------------------------------------------------------------------------------------------
+function maybe_make_TokenLabel_from_string(thing) {
+  if (typeof thing === 'string')
+    return new TokenLabel(thing);
+
+  return thing
+}
+// -------------------------------------------------------------------------------------------------
+let make_rule_func = maybe_make_RE_or_Literal_from_Regexp_or_string
+// -------------------------------------------------------------------------------------------------
+function compose_funs(...fns) {
+  return fns.length === 0
+    ? x => x
+    : pipe_funs(...[...fns].reverse());
+}
+// -------------------------------------------------------------------------------------------------
+function pipe_funs(...fns) {
+  if (fns.length === 0)
+    return x => x;
+  else if (fns.length === 1)
+    return fns[0];
+
+  const [head, ...rest] = fns;
+
+  return rest.reduce((acc, fn) => x => fn(acc(x)), head);
+}
+// =================================================================================================
+// END OF GRAMMAR.JS CONTENT SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// Whitespace combinators, these should go somewhere else?
+// =================================================================================================
+const prettify_whitespace_combinators = true;
+// =================================================================================================
+
+// =================================================================================================
+const lws0                = rule => {
+  rule = second(seq(whites_star, rule));
+  
+  if (prettify_whitespace_combinators) {
+    rule.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+      return `LWS0(${rule_str})`;
     }
-    
+  }
+
+  return rule;
+};
+const tws0                = rule => { 
+  rule = first(seq(rule, whites_star));
+
+  if (prettify_whitespace_combinators) {
+    rule.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
+      return `TWS0(${rule_str})`;
+    }
+  }
+  
   return rule;
 };
 // =================================================================================================
@@ -3674,52 +3675,52 @@ const configuration_key_names = [
   { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail'          },
   { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width_explanation',
     shorthands: [ 'firstphase_width',                                                                            ] },
-{ dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
-{ dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
-{ dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
-{ dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
-{ dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
-{ dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
-{ dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
-{ dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
-{ dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
-  shorthands: ['neg', 'negative' ] },
-{ dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
-{ dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
-  shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
-{ dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
-{ dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
-{ dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
-{ dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
-{ dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
-{ dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
-{ dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
-{ dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
-  shorthands: [ 'separate_clipl',                                                                              ] },  
-{ dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
-  shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
-{ dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
-{ dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
-{ dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
-{ dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
-{ dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
-{ dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
-{ dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
-{ dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
-{ dt_name: 't5Text',                            automatic1111_name: 't5_text',
-  shorthands: [ 't5' ] },
-{ dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
-{ dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
-{ dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
-{ dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
-{ dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
-{ dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
-{ dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
-{ dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
-{ dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
-{ dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
-{ dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
-{ dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
+  { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
+  { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
+  { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
+  { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
+  { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
+  { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
+  { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
+  { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
+  { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
+    shorthands: ['neg', 'negative' ] },
+  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
+  { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
+    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
+  { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
+  { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
+  { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
+  { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
+  { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
+  { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
+  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
+  { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
+    shorthands: [ 'separate_clipl',                                                                              ] },  
+  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
+    shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
+  { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
+  { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
+  { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
+  { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
+  { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
+  { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
+  { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
+  { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
+  { dt_name: 't5Text',                            automatic1111_name: 't5_text',
+    shorthands: [ 't5' ] },
+  { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
+  { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
+  { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
+  { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
+  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
+  { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
+  { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
+  { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
+  { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
+  { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
+  { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
+  { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
 ];
 // -------------------------------------------------------------------------------------------------
 function get_other_name(return_key, find_key, find_value) {
