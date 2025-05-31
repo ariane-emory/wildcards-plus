@@ -7,4 +7,4 @@
 %config += { height: 500, width: 800 }
 WALDO
 
-%config += { height: 500, width: 800 } /* a comment */FRED
+%config += { height: 500, width: 800 }/* a comment */FRED
