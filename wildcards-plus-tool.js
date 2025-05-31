@@ -316,8 +316,11 @@ class Logger {
     this.indent = indent;
   }
   // -----------------------------------------------------------------------------------------------
-  log(thing) {
-    console.log(`${' '.repeat(this.indent * 2)}${thing}`);
+  log(thing, unexpected) {
+    if (unexpected !== undefined)
+      throw new Error("bag args");
+    
+    console.log(`${this.indent}${'| '.repeat(this.indent)}${thing}`);
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -326,7 +329,7 @@ const logger_manager = {
   // -----------------------------------------------------------------------------------------------
   get_logger() {
     if (this.stack.length == 0) {
-      const new_logger = new Logger(0);
+      const new_logger = new Logger(1);
       this.stack.push(new_logger);
       return new_logger;
     }
@@ -334,7 +337,17 @@ const logger_manager = {
     return this.stack[this.stack.length - 1];
   },
   // -----------------------------------------------------------------------------------------------
-  log(msg) {
+  indent_and_log(msg, unexpected) {
+    if (unexpected !== undefined)
+      throw new Error("bag args");
+
+    this.indent(() => this.log(msg));
+  },
+  // -----------------------------------------------------------------------------------------------
+  log(msg, unexpected) {
+    if (unexpected !== undefined)
+      throw new Error("bag args");
+
     this.get_logger().log(msg);
   },
   // -----------------------------------------------------------------------------------------------
@@ -519,6 +532,9 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   __finalize(indent, visited) {
+    // if (unexpected !== undefined)
+    //   throw new Error("bad args");
+    
     if (visited.has(this)) {
       if (log_finalize_enabled)
         logger_manager.log(`skipping ${this}.`);
@@ -697,8 +713,8 @@ class Quantified extends Rule {
   __impl_finalize(indent, visited) {
     this.rule            = this.__vivify(this.rule);
     this.separator_rule  = this.__vivify(this.separator_rule);
-    this.rule           .__finalize(indent + 1, visited);
-    this.separator_rule?.__finalize(indent + 1, visited);
+    logger_manager.indent(() => this.rule.__finalize(indent + 1, visited));
+    logger_manager.indent(() => this.separator_rule?.__finalize(indent + 1, visited));
   }
   // -----------------------------------------------------------------------------------------------
   __quantified_match(indent, input, index, cache) {
@@ -732,8 +748,7 @@ class Quantified extends Rule {
     while (true) {
       if (this.separator_rule) {
         if (log_match_enabled)
-          log(indent,
-              `Matching separator rule ${this.separator_rule}...`);
+          logger_manager.log(`Matching separator rule ${this.separator_rule}...`);
         
         const separator_match_result = this.separator_rule.match(input, index, indent + 1, cache);
 
@@ -746,15 +761,13 @@ class Quantified extends Rule {
           }
 
           if (log_match_enabled)
-            log(indent,
-                `did NOT Match separator rule ${this.separator_rule}...`);
+            logger_manager.log(`did NOT Match separator rule ${this.separator_rule}...`);
           
           break;
         }
 
         if (log_match_enabled)
-          log(indent,
-              `matched separator rule ${this.separator_rule}...`);
+          logger_manager.log(`matched separator rule ${this.separator_rule}...`);
 
         update_index(separator_match_result.index);
       } // end of if (this.separator_rule)
@@ -868,10 +881,10 @@ class Choice extends Rule  {
       ix += 1;
       
       if (log_match_enabled)
-        log(indent + 1,
-            `Try option #${ix} ${option} ` +
-            `at char #${index}: ` +
-            `'${abbreviate(input.substring(index))}'`);
+        logger_manager.indent(() =>
+          logger_manager.log(`Try option #${ix} ${option} ` +
+                             `at char #${index}: ` +
+                             `'${abbreviate(input.substring(index))}'`));
       
       const match_result = option.match(input, index, indent + 1, cache);
       
@@ -883,15 +896,17 @@ class Choice extends Rule  {
         // }
 
         if (log_match_enabled)
-          log(indent + 1, `Chose option #${ix}, ` +
-              `now at char #${match_result.index}: ` +
-              `'${abbreviate(input.substring(match_result.index))}'`);
+          logger_manager.indent(() =>
+            logger_manager.log(`Chose option #${ix}, ` +
+                               `now at char #${match_result.index}: ` +
+                               `'${abbreviate(input.substring(match_result.index))}'`));
         
         return match_result;
       }
 
       if (log_match_enabled)
-        log(indent + 1, `Rejected option #${ix}.`);
+        logger_manager.indent(() =>
+          logger_manager.log(`Rejected option #${ix}.`));
     }
 
     return null;
@@ -1004,10 +1019,10 @@ class Element extends Rule {
           ? DISCARD
           : rule_match_result.value[this.index];
     
-    if (log_match_enabled) {
-      log(indent, `GET ELEM ${this.index} FROM ${compress(inspect_fun(rule_match_result.value))} = ` +
-          `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
-    }
+    if (log_match_enabled) 
+      logger_manager.log(`GET ELEM ${this.index} FROM ` +
+                         `${compress(inspect_fun(rule_match_result.value))} = ` +
+                         `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
     
     rule_match_result.value = ret;
     
@@ -1284,7 +1299,7 @@ class Optional extends Rule {
                                  input, index);
 
       if (log_match_enabled)
-        log(indent, `returning default ${inspect_fun(mr)}`);
+        logger_manager.log(`returning default ${inspect_fun(mr)}`);
 
       return mr;
     }
@@ -1344,11 +1359,10 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      logger_manager.indent(() => 
-        logger_manager.log(indent + 1, `matching first sequence element #1 out of ` +
-                           `${this.elements.length}: ${this.elements[0]} ` +
-                           `at char #${index} ` +
-                           `at '${abbreviate(input.substring(index))}'`));
+      logger_manager.indent_and_log(`matching first sequence element #1 out of ` +
+                                    `${this.elements.length}: ${this.elements[0]} ` +
+                                    `at char #${index} ` +
+                                    `at '${abbreviate(input.substring(index))}'`);
     
     const start_rule_match_result =
           this.elements[0].match(input, index, indent + 2, cache);
@@ -1359,7 +1373,8 @@ class Sequence extends Rule {
     
     if (last_match_result === null) {
       if (log_match_enabled)
-        log(indent + 1, `did not match sequence element #1.`);
+        logger_manager.indent(() =>
+          logger_manager.log(`did not match sequence element #1.`));
       return null;
     }
 
@@ -1367,20 +1382,18 @@ class Sequence extends Rule {
     index        = last_match_result.index;
 
     if (log_match_enabled)
-      logger_manager.indent(() => 
-        logger_manager.log(`matched first sequence element #1: ` +
-                           `${compress(inspect_fun(last_match_result))}, ` +
-                           `now at char #${index}: ` +
-                           `'${abbreviate(input.substring(index))}'`));
+      logger_manager.indent_and_log(`matched first sequence element #1: ` +
+                                    `${compress(inspect_fun(last_match_result))}, ` +
+                                    `now at char #${index}: ` +
+                                    `'${abbreviate(input.substring(index))}'`);
 
     // if (log_match_enabled)
     //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
-        logger_manager.indent(() => 
-          logger_manager.log(indent + 1, `seq pushing first item ` +
-                             `${abbreviate(compress(inspect_fun(last_match_result.value)))}`));
+        logger_manager.indent_and_log(`seq pushing first item ` +
+                                      `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
 
       values.push(last_match_result.value);
 
@@ -1392,11 +1405,10 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        logger_manager.indent(() =>
-          logger_manager.log(indent + 1, `matching sequence element #${ix+ 1} out of ` +
-                             `${this.elements.length}: ${this.elements[ix]} ` +
-                             `at char #${index}: ` +
-                             `'${abbreviate(input.substring(index))}'`));
+        logger_manager.indent_and_log(`matching sequence element #${ix+ 1} out of ` +
+                                      `${this.elements.length}: ${this.elements[ix]} ` +
+                                      `at char #${index}: ` +
+                                      `'${abbreviate(input.substring(index))}'`);
       
       const element = this.elements[ix];
 
@@ -1404,8 +1416,7 @@ class Sequence extends Rule {
 
       if (! last_match_result) {
         if (log_match_enabled)
-          logger_manager.indent(() => 
-            logger_manager.log(indent + 1, `did not match sequence item #${ix}.`));
+          logger_manager.indent_and_log(`did not match sequence item #${ix}.`);
         
         return this.__fail_or_throw_error(start_rule_match_result,
                                           last_match_result,
@@ -1413,14 +1424,15 @@ class Sequence extends Rule {
       }
 
       if (log_match_enabled)
-        log(indent + 1, `matched sequence element #${ix+1}: ` +
-            `${compress(inspect_fun(last_match_result))}, ` +
-            `now at char #${last_match_result.index}: ` +
-            `'${abbreviate(input.substring(last_match_result.index))}'`);
+        logger_manager.indent_and_log(`matched sequence element #${ix+1}: ` +
+                                      `${compress(inspect_fun(last_match_result))}, ` +
+                                      `now at char #${last_match_result.index}: ` +
+                                      `'${abbreviate(input.substring(last_match_result.index))}'`);
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
-          log(indent + 1, `seq pushing ${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
+          logger_manager.indent_and_log(`seq pushing ` +
+                                        `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
 
         values.push(last_match_result.value);
 
@@ -1831,26 +1843,25 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      logger_manager.indent(() =>
-        logger_manager.log(`testing /${this.regexp.source}/ at char ${index}: ` +
-                           `'${abbreviate(input.substring(index))}'`)); 
+      logger_manager.indent_and_log(`testing /${this.regexp.source}/ at char ${index}: ` +
+                                    `'${abbreviate(input.substring(index))}'`);
 
     const re_match = this.regexp.exec(input);
     
     if (! re_match) {
       if (log_match_enabled)
-        log(indent, `regex did not match`);
+        logger_manager.indent_and_log(`regex did not match`);
       return null;
     }
 
     return new MatchResult(re_match[re_match.length - 1],
-                           input,
-                           index + re_match[0].length);
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id, ref_counts) {
-    return `/${this.regexp.source}/`;
-  }
+                         input,
+                         index + re_match[0].length);
+}
+// -----------------------------------------------------------------------------------------------
+__impl_toString(visited, next_id, ref_counts) {
+  return `/${this.regexp.source}/`;
+}
 }
 // -------------------------------------------------------------------------------------------------
 function r_raw(strings, ...values) { // convenience constructor
@@ -2080,7 +2091,7 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     if (noisy)
       throw new Error('bomb');
     
-    const log = noisy ? console.log : () => {};
+    // const log = noisy ? console.log : () => {};
     rule = make_rule_func(rule);
 
     let stringified_rule = null;
@@ -2099,26 +2110,27 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     }
 
     if (!rule) {
-      log(`return original null rule ${stringified_rule}`);
+      logger_manager.log(`return original null rule ${stringified_rule}`);
       return rule;
     }
 
     if (typeof rule === 'function') {
-      log(`return klassed function ${stringified_rule}`);
+      logger_manager.log(`return klassed function ${stringified_rule}`);
       return new klass(rule);
     }
     
     if (rule instanceof klass) {
-      log(`return original klassed rule ${stringified_rule}`);
+      logger_manager.log(`return original klassed rule ${stringified_rule}`);
       return rule;
     }
     
     if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-      log(`return original rule ${stringified_rule}`);
+      logger_manager.log(`return original rule ${stringified_rule}`);
       return rule;
     }
 
-    log(`return klassed ${stringified_rule}`);
+    logger_manager.log(`return klassed ${stringified_rule}`);
+    
     return new klass(rule);
   }
   
@@ -3274,14 +3286,14 @@ function rand_int(x, y) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
-function smart_join(arr, indent) {
-  if (indent === undefined)
-    throw new Error("need indent");
-
+function smart_join(arr, unexpected) {
+  if (unexpected !== undefined)
+    throw new Error("bad args");
+  
   // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-  const log = msg => {
-    return console.log(`${' '.repeat(indent*2)}${msg}`);
-  };
+  // const log = msg => {
+  //   return console.log(`${' '.repeat(indent*2)}${msg}`);
+  // };
   
   if (! arr)
     return arr;
@@ -3857,7 +3869,7 @@ class Context {
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
     this.configuration.loras ||= [];
 
-    const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
 
     if (index !== -1) {
@@ -3988,7 +4000,7 @@ class Context {
   }
   // -------------------------------------------------------------------------------------------------
   munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
-    const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+    // const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
 
     // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
 
@@ -3998,8 +4010,8 @@ class Context {
       return munged_configuration;
 
     if (munged_configuration.model === '') {
-      log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-          `what you meant to do, your prompt template may contain an error!`);
+      logger_manager.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
+                         `what you meant to do, your prompt template may contain an error!`);
       delete munged_configuration.model;
     }
     else if (munged_configuration.model) {
@@ -4031,15 +4043,15 @@ class Context {
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
       if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-        log(`correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-            `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
+        logger_manager.log(`correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+                           `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`);
         munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
       }
     }
     // when running in Node.js, sampler needs to be a string::
     else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      log(`correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-          `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
+      logger_manager.log(`correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+                         `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`);
       munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
 
@@ -4050,7 +4062,7 @@ class Context {
 
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
-          log(`%seed = -1 due to n_iter > 1`);
+          logger_manager.log(`%seed = -1 due to n_iter > 1`);
 
         munged_configuration.seed = -1;
       }
@@ -4058,14 +4070,14 @@ class Context {
         const random = Math.floor(Math.random() * (2 ** 32));
         
         if (log_configuration_enabled)
-          log(`%seed = ${random} due to no seed`);
+          logger_manager.log(`%seed = ${random} due to no seed`);
 
         munged_configuration.seed = random;
       }
     }
 
     // if (log_configuration_enabled)
-    //   log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+    //   logger_manager.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
 
     this.configuration =  munged_configuration;
   }
@@ -7384,8 +7396,6 @@ function load_prelude(into_context = new Context()) {
   }
 
   // console.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
-
-  
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
   log_flags_enabled = old_log_flags_enabled;
 
@@ -7450,14 +7460,14 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
   // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
-    if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    if (guard_bool) logger_manager.log(msg);
   };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, indent = 0) {
     const log = (guard_bool, msg) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
       // if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-      if (guard_bool) console.log(`${' '.repeat(indent*2)}${msg}`);
+      if (guard_bool) logger_manager.log(msg);
     };
 
     // log(log_expand_and_walk_enabled,
@@ -7930,7 +7940,7 @@ function expand_wildcards(thing, context = new Context(), indent = 0) {
 
       const weight = weight_match_result.value;
       
-      context.add_lora_uniquely({ file: file, weight: weight }, { indent: indent });
+      context.add_lora_uniquely({ file: file, weight: weight });
       
       return '';
     }
