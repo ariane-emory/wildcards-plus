@@ -7668,7 +7668,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           `ASSIGNING ${inspect_fun(thing.source)} ` +
           `TO '${thing.destination.name}'`);
       
-      let   new_val = expand_wildcards(thing.source, context, indent + 1);
+      let   new_val = lm.indent(() => expand_wildcards(thing.source, context));
       const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
       if (! thing.assign)
@@ -7911,7 +7911,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       log(log_expand_and_walk_enabled,
           `ENCOUNTERED LORA ${thing} IN ${context}`);
       
-      let walked_file = expand_wildcards(thing.file, context, indent + 1); // not walk!
+      let walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
 
       log(true,
           `walked_file is ${typeof walked_file} ` +
@@ -7928,7 +7928,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       log(log_expand_and_walk_enabled,
           `walking weight ${compress(inspect_fun(thing.weight))}`);
 
-      let walked_weight = expand_wildcards(thing.weight, context, indent + 1); // not walk!
+      let walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
       
       // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
       //   throw "bomb";
