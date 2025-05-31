@@ -531,12 +531,12 @@ class Rule {
     if (indent !== undefined)
       throw new Error("bad args");
     
-    this.__finalize(indent, new Set());
+    this.__finalize(new Set());
   }
   // -----------------------------------------------------------------------------------------------
-  __finalize(indent, visited) {
-    // if (unexpected !== undefined)
-    //   throw new Error("bad args");
+  __finalize(visited, unexpected) {
+    if (unexpected !== undefined || ! (visited instanceof Set))
+      throw new Error("bad args");
     
     if (visited.has(this)) {
       if (log_finalize_enabled)
@@ -550,7 +550,7 @@ class Rule {
     if (log_finalize_enabled)
       logger_manager.log(`finalizing ${this}...`);
 
-    this.__impl_finalize(indent, visited);
+    this.__impl_finalize(visited);
   }
   // -----------------------------------------------------------------------------------------------
   __impl_finalize(indent, visited) {
