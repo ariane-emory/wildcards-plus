@@ -536,7 +536,7 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   __finalize(visited, unexpected) {
     if (unexpected !== undefined || ! (visited instanceof Set))
-      throw new Error("bad args");
+      throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, ${unexpected})`);
     
     if (visited.has(this)) {
       if (log_finalize_enabled)
@@ -870,10 +870,10 @@ class Choice extends Rule  {
     return this.options;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     for (let ix = 0; ix < this.options.length; ix++) {
       this.options[ix] = this.__vivify(this.options[ix]);
-      this.options[ix].__finalize(indent + 1, visited);
+      logger_manager.indent(() => this.options[ix].__finalize(visited));
     }
   }
   // -----------------------------------------------------------------------------------------------
@@ -1124,13 +1124,13 @@ class Enclosed extends Rule {
     return null;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.start_rule = this.__vivify(this.start_rule);
     this.body_rule  = this.__vivify(this.body_rule);
     this.end_rule   = this.__vivify(this.end_rule);
-    this.start_rule.__finalize(indent + 1, visited);
-    this.body_rule.__finalize(indent + 1, visited);
-    this.end_rule.__finalize(indent + 1, visited);
+    logger_manager.indent(() => this.start_rule.__finalize(visited));
+    logger_manager.indent(() => this.body_rule .__finalize(visited));
+    logger_manager.indent(() => this.end_rule  .__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
@@ -1516,9 +1516,9 @@ class Xform extends Rule {
     return this.__vivify(this.rule).direct_children();
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);
-    this.rule.__finalize(indent + 1, visited);
+    logger_manager.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __match(indent, input, index, cache) {
