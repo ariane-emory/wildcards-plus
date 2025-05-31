@@ -325,7 +325,7 @@ function log2(msg) {
   if (currentLogger) currentLogger.log(msg);
 }
 // -------------------------------------------------------------------------------------------------
-function with_ogger(logger, fn) {
+function with_logger(logger, fn) {
   const prev = currentLogger;
   currentLogger = logger;
   try {
