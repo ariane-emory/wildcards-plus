@@ -2096,13 +2096,13 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
       // -------------------------------------------------------------------------------------------
       __impl_finalize(indent, visited) {
         this.rule = this.__vivify(this.rule);
-        this.rule.__finalize(indent + 1, visited);
+        lm.indent(() => this.rule.__finalize(visited))
         this.base_rule = this.__vivify(this.base_rule);
-        this.base_rule.__finalize(indent + 1, visited);
+        lm.indent(() => this.base_rule.__finalize(visited));
       }
       // -------------------------------------------------------------------------------------------
       __match(input, index, cache) {
-        return this.rule.match(input, index, indent + 1, cache);
+        return lm.indent(() => this.rule.match(input, index, cache));
       }
       // -------------------------------------------------------------------------------------------
       __impl_toString(visited, next_id, ref_counts) {
@@ -7836,8 +7836,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
             : 'prior_pick_multiple_priority';
       const cur_val   = context[cur_key];
       const prior_val = context[prior_key];
-      const walked    = picker_priority[expand_wildcards(thing.limited_content,
-                                                         context, indent + 1).toLowerCase()];
+      const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
+                                                                         context)).toLowerCase()];
 
       // if (log_configuration_enabled)
       //   log(`SET PICK DATA: ` +
