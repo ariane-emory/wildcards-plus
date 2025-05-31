@@ -8812,8 +8812,10 @@ const TopLevelTestFlag             = choice(
   //       }),
   xform(NotFlagWithSetConsequent,
         flag => {
-          lm.log(`nfwsc flag: ${compress(inspect_fun(flag))}`);
-          return new ASTAnonWildcard(make_ASTAnonWildcardAlternative([[flag], [1], [], []]));
+          //lm.log(`nfwsc flag: ${compress(inspect_fun(flag))}`);
+          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
+          lm.log(`nfwsc ret:  ${inspect_fun(ret)}`);
+                                          return ret;
         })
 );
 // -------------------------------------------------------------------------------------------------
@@ -8829,7 +8831,7 @@ UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
-  console.log(`m_AAWA ARR: ${abbreviate(compress(inspect_fun(arr)))}`);
+  // console.log(`m_AAWA ARR: ${compress(inspect_fun(arr))}`);
   
   const weight = arr[1][0];
 
