@@ -329,10 +329,23 @@ class Logger {
       ? `${this.indent_str.repeat(this.indent)}${thing.toString()}`
       : thing.toString();
   }
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   nest(indent_addend = 1) {
     return new Logger(this.indent + indent_addend, this.indent_str);
   }
+  // -----------------------------------------------------------------------------------------------
+  // indent_lines(indent, str, indent_str = "| ") {
+  //   if (typeof str !== 'string')
+  //     throw new Error(`not a string: ${inspect.fun(str)}`);
+  
+  //   const indent_string = indent_str.repeat(indent);
+  //   const indented_str  = str
+  //         .split("\n")
+  //         .map(line => `${indent_string}${line}`)
+  //         .join("\n");
+
+  //   return indented_str;
+  // }
 }
 // -------------------------------------------------------------------------------------------------
 const lm = { // logger manager
@@ -3214,6 +3227,19 @@ function format_pretty_bytes(bytes) {
 
   const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
   return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
+}
+// -------------------------------------------------------------------------------------------------
+function indent_lines(indent, str, indent_str = "| ") {
+  if (typeof str !== 'string')
+    throw new Error(`not a string: ${inspect.fun(str)}`);
+  
+  const indent_string = indent_str.repeat(indent);
+  const indented_str  = str
+        .split("\n")
+        .map(line => `${indent_string}${line}`)
+        .join("\n");
+
+  return indented_str;
 }
 // -------------------------------------------------------------------------------------------------
 function measure_time(fun) {
