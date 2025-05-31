@@ -8924,7 +8924,7 @@ const TrailingCommentsAndSemicolon = discard(lws(semicolon));
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8936,7 +8936,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8951,7 +8951,7 @@ const SpecialFunctionInclude =
                           first(wst_seq(discarded_comments,      // -
                                         rjsonc_string,           // [0][1]
                                         discarded_comments))),   // -
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8968,7 +8968,7 @@ const SpecialFunctionSetPickSingle =
                 wst_seq(equals,                                              // [1][0]
                         discarded_comments,                                  // -
                         choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
-                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                        SpecialFunctionTail))); 
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
             seq('multi-pick',                                                // [0]
@@ -8976,15 +8976,15 @@ const SpecialFunctionSetPickMultiple =
                 wst_seq(equals,                                              // [1][0]
                         discarded_comments,                                  // -
                         choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
-                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                        SpecialFunctionTail))); 
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                            // [0]
@@ -8992,7 +8992,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 wst_cutting_seq(any_assignment_operator,                            // [1][0]
                                 discarded_comments,                                 // -
                                 choice(rJsonc, () => LimitedContentNoSemis),        // [1][1]
-                                TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                                SpecialFunctionTail))); 
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
@@ -9000,7 +9000,6 @@ const SpecialFunctionUpdateConfigurationUnary =
                 cutting_seq(lws(choice(plus_equals, equals)),                        // [1][0]
                             discarded_comments,                                 // -
                             choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
-                            //STOP,
                             SpecialFunctionTail,
                            )));
 const SpecialFunctionNotInclude =
