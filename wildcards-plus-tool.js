@@ -7881,7 +7881,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       if (!res || !res.is_finished)
         return `\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`;
 
-      return expand_wildcards(res.value, context, indent + 1);
+      return lm.indent(() => expand_wildcards(res.value, context, ));
     }
     // ---------------------------------------------------------------------------------------------
     else if (thing instanceof ASTRevertPickSingle || 
