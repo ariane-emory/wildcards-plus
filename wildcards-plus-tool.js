@@ -1984,30 +1984,43 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
-function abbreviate(str, len = 100) {
+function abbreviate(str, normalize_newlines = true, len = 100) {
+  if (typeof str !== 'string')
+    throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
+
   // Normalize all newlines first
-  str = str.replace(/\r?\n/g, '\\n');
+  if (normalize_newlines)
+    str = str.replace(/\r?\n/g, '\\n');
 
+  // str = compress(str);
+  
   if (str.length < len)
-    return str;
+        return str;
 
-  const bracing_pairs = [
-    ['/',  '/'],
-    ['(',  ')'],
-    ['[',  ']'],
-    ['{',  '}'],
-    ['<',  '>'],
-    ['λ(', ')'],
-  ];
+      const bracing_pairs = [
+        ['/',  '/'],
+        ['(',  ')'],
+        ['[',  ']'],
+        ['{',  '}'],
+        ['<',  '>'],
+        ['λ(', ')'],
+      ];
 
-  for (const [left, right] of bracing_pairs) {
-    if (str.startsWith(left) && str.endsWith(right)) {
-      const inner = str.substring(left.length, len - 3 - right.length);
-      return `${left}${inner.trim()}...${right}`;
-    }
-  }
+      for (const [left, right] of bracing_pairs) {
+        if (str.startsWith(left) && str.endsWith(right)) {
+          const inner = str.substring(left.length, len - 3 - right.length);
+          return `${left}${inner.trim()}...${right}`;
+        }
+      }
 
   return `${str.substring(0, len - 3).trim()}...`;
+}
+// -------------------------------------------------------------------------------------------------
+function compress(str) {
+  if (typeof str !== 'string')
+    throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
+  
+  return str.replace(/\s+/g, ' ');
 }
 // -------------------------------------------------------------------------------------------------
 function index_is_at_end_of_input(index, input) {
@@ -3299,13 +3312,6 @@ function choose_indefinite_article(word) {
     return 'an';
 
   return 'a';
-}
-// -------------------------------------------------------------------------------------------------
-function compress(str) {
-  if (typeof str !== 'string')
-    throw new Error(`compress: expected a string, got ${typeof str}: ${inspect_fun(str)}`);
-  
-  return str.replace(/\s+/g, ' ');
 }
 // ------------------------------------------------------------------------------------------------
 function format_pretty_number(num) {
@@ -7552,7 +7558,6 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
     
     log(log_expand_and_walk_enabled,
         `Walking ` +
-        // `${thing_type_str(thing)} ` +
         `${thing_str_repr(thing)} in ` + 
         `${context}`);
     
@@ -8038,7 +8043,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       `${context}`);
 
   const ret = lm.indent(() => unescape(smart_join(walk(thing))));
-  lm.indent2(() => context.munge_configuration());
+  lm.indent(() => context.munge_configuration());
 
   // if (walked === '""' ||
   //     walked === "''" ||
@@ -8047,7 +8052,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
   //   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
   
   log(log_expand_and_walk_enabled,
-      `expanded into ${inspect_fun(ret)}`);
+      `Expanded into ${inspect_fun(ret)}`);
 
   // if (ret === undefined)
   //   throw new Error("what");
