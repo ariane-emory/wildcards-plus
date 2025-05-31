@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  // log_match_enabled  = true;
+  log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -609,9 +609,8 @@ class Rule {
     
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
-        log(indent,
-            `Matching ${this.constructor.name} ${this.toString()}, ` +
-            `but at end of input!`);
+        lm.indent(() => lm.log(`Matching ${this.constructor.name} ${this.toString()}, ` +
+                               `but at end of input!`));
       else 
         lm.log(`Matching ` +
                // `${this.constructor.name} `+
@@ -9466,3 +9465,4 @@ if (! main_disabled)
 // lm.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
 //    x    x  x `)));
 
+expect(never_match).match("nope")
