@@ -553,7 +553,10 @@ class Rule {
     this.__impl_finalize(visited);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
+    if (unexpected !== undefined)
+      throw new Error("bad args");
+    
     throw new Error(`__impl_finalize is not implemented by ${this.constructor.name}`);    
   }
   // -----------------------------------------------------------------------------------------------
