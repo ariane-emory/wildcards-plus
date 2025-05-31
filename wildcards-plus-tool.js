@@ -7490,12 +7490,6 @@ function load_prelude(into_context = new Context()) {
 function expand_wildcards(thing, context = new Context(), unexpected = undefined) {
   if (unexpected !== undefined)
     throw new Error("bad args");
-  // -----------------------------------------------------------------------------------------------
-  class ThrownReturn {
-    constructor(value) {
-      this.value = value;
-    }
-  }
   // ---------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
@@ -7558,7 +7552,13 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       // if (guard_bool) lm.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
       if (guard_bool) lm.log(msg, with_indentation);
     };
-    
+
+    class ThrownReturn {
+      constructor(value) {
+        this.value = value;
+      }
+    }
+
     log(log_expand_and_walk_enabled,
         `Walking ` +
         `${thing_str_repr(thing)} in ` + 
