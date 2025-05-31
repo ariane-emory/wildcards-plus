@@ -7769,21 +7769,22 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       // AnonWildcards:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        const picked = thing.pick_one(allow_fun, forbid_fun,
-                                      context.pick_one_priority)
+        const picked = thing.pick(1, 1,
+                                  allow_fun, forbid_fun,
+                                  context.pick_one_priority)[0];
 
         log(true, `picked: ${abbreviate(compress(inspect_fun(picked)))}`,
             log_expand_and_walk_enabled);
-      
+        
         const pick = picked?.body;
 
         if (log_expand_and_walk_enabled)
-        lm.indent_and_log(pick
-                          ? `picked ${thing_str_repr(pick)}`
-                          : `picked empty`);
+            lm.indent_and_log(pick
+                              ? `picked ${thing_str_repr(pick)}`
+                              : `picked empty`);
 
-      if (! pick)
-        throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
+          if (! pick)
+            throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
       
       throw new ThrownReturn(lm.indent(() => walk(pick)));
     }
