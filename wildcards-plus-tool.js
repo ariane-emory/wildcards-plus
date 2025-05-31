@@ -8059,7 +8059,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
 
-  const ret = lm.indent(() => unescape(smart_join(walk(thing))));
+  const ret = unescape(smart_join(walk(lm.indent(() => thing))));
   lm.indent(() => context.munge_configuration());
 
   // if (walked === '""' ||
