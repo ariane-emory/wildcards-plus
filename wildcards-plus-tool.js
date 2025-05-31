@@ -576,7 +576,9 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   __finalize(visited, unexpected) {
     if (unexpected !== undefined || ! (visited instanceof Set))
-      throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, ${unexpected})`);
+      throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, `+
+                      `${unexpected}) ` +
+                      `args: ${inspect_fun(arguments)}}`);
     
     if (visited.has(this)) {
       if (log_finalize_enabled)
@@ -1639,7 +1641,7 @@ class Expected extends Rule {
     return match_result;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);    
     lm.indent(() => this.rule.__finalize(visited))
   }
@@ -8990,10 +8992,10 @@ const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
                 discarded_comments,                                                 // -
-                wst_cutting_seq(choice(plus_equals, equals),                        // [1][0]
-                                discarded_comments,                                 // -
-                                choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
-                                TrailingCommentFollowedBySemicolonOrWordBreak)));
+                cutting_seq(lws(choice(plus_equals, equals)),                        // [1][0]
+                            discarded_comments,                                 // -
+                            choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
+                            STOP)));
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
