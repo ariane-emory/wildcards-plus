@@ -8011,9 +8011,9 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
 
-  const walked = lm.indent(() => walk(thing));
-  lm.indent(() => context.munge_configuration());
-  const ret = lm.indent(() => unescape(smart_join(walked)));
+
+  const ret = lm.indent(() => unescape(smart_join(walk(thing))));
+  lm.indent2(() => context.munge_configuration());
 
   // if (walked === '""' ||
   //     walked === "''" ||
@@ -8024,10 +8024,10 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
   log(log_expand_and_walk_enabled,
       `expanded into ${inspect_fun(ret)}`);
-  
+
   // if (ret === undefined)
   //   throw new Error("what");
-  
+
   // if (ret.match(/^\s+$/))
   //   throw "bombλ";
 
