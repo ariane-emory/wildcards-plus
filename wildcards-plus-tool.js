@@ -8965,18 +8965,18 @@ const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                               // [0]
                 discarded_comments,                                          // -
-                wst_seq(equals,                                              // [1][0]
-                        discarded_comments,                                  // -
-                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
-                        SpecialFunctionTail))); 
+                cutting_seq(lws(equals),                                              // [1][0]
+                            discarded_comments,                                  // -
+                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
             seq('multi-pick',                                                // [0]
                 discarded_comments,                                          // -
-                wst_seq(equals,                                              // [1][0]
-                        discarded_comments,                                  // -
-                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
-                        SpecialFunctionTail))); 
+                cutting_seq(lws(equals),                                     // [1][0]
+                            discarded_comments,                              // -
+                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
@@ -8989,17 +8989,17 @@ const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                            // [0]
                 discarded_comments,                                                 // -
-                wst_cutting_seq(any_assignment_operator,                            // [1][0]
-                                discarded_comments,                                 // -
-                                choice(rJsonc, () => LimitedContentNoSemis),        // [1][1]
-                                SpecialFunctionTail))); 
+                cutting_seq(lws(any_assignment_operator),                           // [1][0]
+                            discarded_comments,                                     // -
+                            lws(choice(rJsonc, () => LimitedContentNoSemis)),       // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
                 discarded_comments,                                                 // -
-                cutting_seq(lws(choice(plus_equals, equals)),                        // [1][0]
-                            discarded_comments,                                 // -
-                            choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
+                cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
+                            discarded_comments,                                     // -
+                            lws(choice(rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
                             SpecialFunctionTail,
                            )));
 const SpecialFunctionNotInclude =
