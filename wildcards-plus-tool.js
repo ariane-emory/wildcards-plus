@@ -8409,9 +8409,9 @@ class ASTAnonWildcard  extends ASTNode {
     return this.picker.pick(...args);
   }
   // -----------------------------------------------------------------------------------------------
-  pick_one(...args) {
-    return this.picker.pick_one(...args);
-  }
+  // pick_one(...args) {
+  //   return this.picker.pick_one(...args);
+  // }
   // -----------------------------------------------------------------------------------------------
   toString() {
     let str = '{';
