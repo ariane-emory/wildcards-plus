@@ -323,7 +323,7 @@ class Logger {
   log(thing = '', with_indent = true) {
     console.log(this.indent_thing(thing, with_indent));
   }
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   indent_thing(thing, with_indent = true) {
     return with_indent
       ? `${this.indent_str.repeat(this.indent)}${thing.toString()}`
