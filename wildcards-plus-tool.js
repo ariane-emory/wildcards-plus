@@ -75,6 +75,7 @@ function parse_file(filename) {
         console.log(`ERROR: matching threw fatal parse error, ` +
                     `halting: \n` +
                     `${inspect_fun(err)}`);
+        return null;
       }
       else {
         throw err;
@@ -217,8 +218,8 @@ function process_includes(thing, context = new Context()) {
 
         const parse_file_result = parse_file(filename);
 
-        if (! parse_file_result.is_finished)
-          throw new Error(`error parsing ${filename}! ${inspect_fun(parse_file_result)}`);
+        if (! parse_file_result?.is_finished)
+          throw new Error(`error parsing ${filename}! result = ${inspect_fun(parse_file_result)}`);
         
         res.push(walk(parse_file_result.value, context.shallow_copy()));
       }
@@ -1678,7 +1679,7 @@ class Unexpected extends Rule {
         throw err instanceof Error ? err : new FatalParseError(err, input, index);
       }
       else {
-        throw new FatalParseError(`unexpected ${this.rule}`);
+        throw new FatalParseError(`unexpected ${this.rule}`, input, index);
       }
     };
     
@@ -9258,7 +9259,10 @@ async function main() {
   else {
     result = parse_file(args[0]);
   }
-  
+
+  if (! result?.is_finished)
+    throw new Error(`error parsing ${filename}! result = ${inspect_fun(result)}`);
+      
   // -----------------------------------------------------------------------------------------------
   // just for debugging:
   // -----------------------------------------------------------------------------------------------
