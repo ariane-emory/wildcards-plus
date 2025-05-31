@@ -90,13 +90,13 @@ function parse_file(filename) {
   let total = 0;
 
   for (const [rule, ruleCache] of sortedEntries) {
-    console.log(`${rule.toString()}: ` +
-                `${format_pretty_number(ruleCache.size)}`);
+    lm.log(`${rule.toString()}: ` +
+           `${format_pretty_number(ruleCache.size)}`);
     total += ruleCache.size;
   }
 
   if (sortedEntries.length > 0)
-    console.log(`Total: ${format_pretty_number(total)}`);
+    lm.log(`Total: ${format_pretty_number(total)}`);
   
   // check that the parsed result is complete;
   if (! result.is_finished)
@@ -209,7 +209,7 @@ function process_includes(thing, context = new Context()) {
         filename = path.join(path.dirname(current_file), filename);
         
         if (context.files.includes(filename)) {
-          console.log(`WARNING: skipping duplicate include of '${filename}'.`);
+          lm.log(`WARNING: skipping duplicate include of '${filename}'.`);
           continue;
         }
 
@@ -316,11 +316,16 @@ class Logger {
     this.indent = indent;
   }
   // -----------------------------------------------------------------------------------------------
+  error(thing, unexpected) {
+    this.log(thing);
+  }
+  // -----------------------------------------------------------------------------------------------
   log(thing, unexpected) {
     if (unexpected !== undefined)
       throw new Error("bag args");
     
-    console.log(`${this.indent}${'| '.repeat(this.indent)}${thing}`);
+    // console.log(`${this.indent}${'| '.repeat(this.indent)}${thing}`);
+    console.log(`${'| '.repeat(this.indent)}${thing}`);
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -329,7 +334,7 @@ const lm = { // logger manager
   // -----------------------------------------------------------------------------------------------
   get_logger() {
     if (this.stack.length == 0) {
-      const new_logger = new Logger(1);
+      const new_logger = new Logger(0);
       this.stack.push(new_logger);
       return new_logger;
     }
@@ -342,6 +347,10 @@ const lm = { // logger manager
       throw new Error("bag args");
 
     this.indent(() => this.log(msg));
+  },
+  // -----------------------------------------------------------------------------------------------
+  error(thing, unexpected) {
+    this.log(thing);
   },
   // -----------------------------------------------------------------------------------------------
   log(msg, unexpected) {
@@ -529,7 +538,7 @@ class Rule {
 
     if (! this.abbreviated)
       for (const direct_child of this.direct_children()) {
-        // console.log(`direct_child = ${inspect_fun(direct_child)}`);
+        // lm.log(`direct_child = ${inspect_fun(direct_child)}`);
         this.__vivify(direct_child).collect_ref_counts(ref_counts);
       }
 
@@ -598,12 +607,12 @@ class Rule {
         const got = rule_cache.get(index);
 
         if (got !== undefined) {
-          // console.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
+          // lm.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
           return got;
         }
       }
       else {
-        // console.log(`init cache for rule ${this}`);
+        // lm.log(`init cache for rule ${this}`);
         rule_cache = new Map();
         cache.set(this, rule_cache);
       }
@@ -648,14 +657,14 @@ class Rule {
     const next_id    = { value: 0 };
 
     // if (ref_counts.size > 0) {
-    //   console.log(`REF_COUNTS:`);
-    //   console.log('{');
+    //   lm.log(`REF_COUNTS:`);
+    //   lm.log('{');
     
     //   for (const [key, value] of ref_counts)
-    //     console.log(`  ${inspect_fun(key, true)} ` +
+    //     lm.log(`  ${inspect_fun(key, true)} ` +
     //                 `=> ${value},`);
     
-    //   console.log('}');
+    //   lm.log('}');
     // }
     
     return this.__toString(new Map(), next_id, ref_counts).replace('() => ', '');
@@ -991,7 +1000,7 @@ class Discard extends Rule {
 
     const mr = new MatchResult(DISCARD, input, match_result.index);
 
-    // console.log(`MR: ${inspect_fun(mr)}`);
+    // lm.log(`MR: ${inspect_fun(mr)}`);
     
     return mr;
   } 
@@ -1471,7 +1480,7 @@ class Sequence extends Rule {
     //   throw new Error("STOP @ RET");
     
     const mr = new MatchResult(values, input, last_match_result.index);
-    // console.log(`SEQ MR = ${inspect_fun(mr)}`);
+    // lm.log(`SEQ MR = ${inspect_fun(mr)}`);
     return mr;
   }
   // -----------------------------------------------------------------------------------------------
@@ -1993,11 +2002,11 @@ function index_is_at_end_of_input(index, input) {
 //   if (! log_enabled)
 //     return;
 
-//   console.log(`${indent_str.repeat(indent)}${str}`);
+//   lm.log(`${indent_str.repeat(indent)}${str}`);
 // }
 // -------------------------------------------------------------------------------------------------
 function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
-  console.log(char.repeat(width));
+  lm.log(char.repeat(width));
 }
 LOG_LINE.line_width = 100;
 // -------------------------------------------------------------------------------------------------
@@ -2115,7 +2124,7 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     if (noisy)
       throw new Error('bomb');
     
-    // const log = noisy ? console.log : () => {};
+    // const log = noisy ? lm.log : () => {};
     rule = make_rule_func(rule);
 
     let stringified_rule = null;
@@ -2246,9 +2255,9 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
       const unwrapped_options = rule.options.map(option => option.__original_rule || option);
       const rebuilt_choice = new Choice(...unwrapped_options);
       
-      // console.log(`constructed ${inspect_fun(rebuilt_choice)}`);
+      // lm.log(`constructed ${inspect_fun(rebuilt_choice)}`);
       const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
-      // console.log(`decorated ${inspect_fun(decorated)}`);
+      // lm.log(`decorated ${inspect_fun(decorated)}`);
       return decorated;
     }
 
@@ -2283,7 +2292,7 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
     // if (prettify_whitespace_combinators)
     //   built.__impl_toString = function(visited, next_id, ref_counts) {
     //     if (typeof this.__toString !== 'function')
-    //       console.log(`suspiciousa: ${inspect_fun(this)}`);
+    //       lm.log(`suspiciousa: ${inspect_fun(this)}`);
     //     return `${name}(${this.__original_rule.__toString(visited, next_id, ref_counts)})`;
     //   };
 
@@ -2660,7 +2669,7 @@ const reify_json_number = arr => {
   const exponent        = arr[3];
   const number          = multiplier * ((integer_part + fractional_part)**exponent);
 
-  // console.log(`ARR: ${inspect_fun(arr)}`);
+  // lm.log(`ARR: ${inspect_fun(arr)}`);
   return number;
   // return arr;
 };
@@ -2668,7 +2677,7 @@ const json_number = xform(reify_json_number,
                           seq(optional(json_minus),
                               xform(parseInt, json_integralPart), 
                               xform(arr => {
-                                // console.log(`fractional part ARR: ${inspect_fun(arr)}`);
+                                // lm.log(`fractional part ARR: ${inspect_fun(arr)}`);
                                 return parseFloat(arr[0]);
                               }, optional(json_fractionalPart, 0.0)),
                               xform(parseInt, first(optional(json_exponentPart, 1)))));
@@ -2716,9 +2725,9 @@ const JsoncObject =
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
-          // console.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
+          // lm.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
           const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
-          // console.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
+          // lm.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
@@ -3127,7 +3136,7 @@ function benchmark(thunk, {
   });
   
   for (let oix = 0; oix < batch_count; oix++) {
-    // console.log(`oix: ${oix}`);
+    // lm.log(`oix: ${oix}`);
     
     global.gc(); // triggers GC
     start_mem  = process.memoryUsage().heapUsed;
@@ -3584,7 +3593,7 @@ if (test_structured_clone) {
     if (clone.a !== clone.b)
       throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
 
-    console.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
+    lm.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
   }
   // test #2: break shared references (unshare), this one seems to work:
   {
@@ -3593,7 +3602,7 @@ if (test_structured_clone) {
     if (clone.a === clone.b)
       throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
 
-    console.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
+    lm.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
   }
   // test #4: should fail do to cycle, with unshare = false:
   try {
@@ -3607,7 +3616,7 @@ if (test_structured_clone) {
     if (err.message === 'test #3 should have failed.')
       throw err;
     else 
-      console.log(`test #3 failed as intended.`);
+      lm.log(`test #3 failed as intended.`);
   }
   // test #4: should fail do to cycle, with unshare = true:
   try {
@@ -3620,7 +3629,7 @@ if (test_structured_clone) {
     if (err.message === 'test #4 should have failed.') 
       throw err;
     else
-      console.log(`test #3 failed as intended.`);
+      lm.log(`test #3 failed as intended.`);
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -3766,9 +3775,9 @@ const configuration_key_names = [
 // -------------------------------------------------------------------------------------------------
 function get_other_name(return_key, find_key, find_value) {
   if (log_name_lookups_enabled)
-    console.log(`\nLOOKING UP ${return_key} FOR ` +
-                `${inspect_fun(find_key)} ` +
-                `${inspect_fun(find_value)}`);
+    lm.log(`\nLOOKING UP ${return_key} FOR ` +
+           `${inspect_fun(find_key)} ` +
+           `${inspect_fun(find_value)}`);
 
   let find_value_lc = find_value.toLowerCase();
 
@@ -3780,7 +3789,7 @@ function get_other_name(return_key, find_key, find_value) {
 
   if (got) {
     if (log_name_lookups_enabled)
-      console.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+      lm.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
 
     return got[return_key];
   }
@@ -3839,7 +3848,7 @@ function get_our_name(name) {
                ? get_dt_name
                : get_automatic1111_name)(name);
 
-  // console.log(`got our name for ${name}: ${res}`);
+  // lm.log(`got our name for ${name}: ${res}`);
   
   return res;
 }
@@ -3893,7 +3902,7 @@ class Context {
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
     this.configuration.loras ||= [];
 
-    // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+    // const log = msg => lm.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
 
     if (index !== -1) {
@@ -3926,27 +3935,27 @@ class Context {
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
       // if (log_flags_enabled)
-      //   console.log(`skipping, already set`);
+      //   lm.log(`skipping, already set`);
       return;
     }
     
     // if (log_flags_enabled) 
-    //   console.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
+    //   lm.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
 
     const new_flag_head = new_flag.slice(0, -1);
     
     this.flags = this.flags.filter(existing_flag => {
       if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
         if (log_flags_enabled)
-          console.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
-                      `new flag ${compress(inspect_fun(new_flag))}`);
+          lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+                 `new flag ${compress(inspect_fun(new_flag))}`);
         return false;
       }
       
       if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
         if (log_flags_enabled)
-          console.log(`discard ${inspect_fun(existing_flag)} because it is a suffix of ` +
-                      `new flag's head ${compress(inspect_fun(new_flag_head))}`);
+          lm.log(`discard ${inspect_fun(existing_flag)} because it is a suffix of ` +
+                 `new flag's head ${compress(inspect_fun(new_flag_head))}`);
         return false; 
       }
       
@@ -3958,12 +3967,12 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
     if (log_flags_enabled)
-      console.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+      lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
     this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
 
     if (log_flags_enabled)
-      console.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+      lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -3972,16 +3981,16 @@ class Context {
 
     for (const [name, nwc] of this.named_wildcards) {
       if (nwc instanceof ASTLatchedNamedWildcardValue) {
-        // console.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
+        // lm.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
         this.named_wildcards.set(name, nwc.original_value);
       } /* else {
-           console.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
+           lm.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
            } */
     }
   }
   // -----------------------------------------------------------------------------------------------
   clone() {
-    // console.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    // lm.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
       flags:                        structured_clone(this.flags),
@@ -4001,7 +4010,7 @@ class Context {
         this.configuration.loras === copy.configuration.loras)
       throw new Error("oh no");
 
-    // console.log(`CLONED CONTEXT`);
+    // lm.log(`CLONED CONTEXT`);
     
     return copy;
   }
@@ -4024,9 +4033,9 @@ class Context {
   }
   // -------------------------------------------------------------------------------------------------
   munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
-    // const log = msg => console.log(`${' '.repeat(indent*2)}${msg}`);
+    // const log = msg => lm.log(`${' '.repeat(indent*2)}${msg}`);
 
-    // console.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
+    // lm.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
 
     const munged_configuration = structured_clone(this.configuration);
 
@@ -7419,7 +7428,7 @@ function load_prelude(into_context = new Context()) {
     log_match_enabled = old_log_match_enabled;
   }
 
-  // console.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
+  // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
   const ignored = expand_wildcards(prelude_parse_result.value, into_context);
   log_flags_enabled = old_log_flags_enabled;
 
@@ -7495,7 +7504,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
     
     const log = (guard_bool, msg) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
-      // if (guard_bool) console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
+      // if (guard_bool) lm.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
       if (guard_bool) lm.log(msg);
     };
 
@@ -7602,20 +7611,20 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       if (!got)
         return `\\<WARNING: Named wildcard @${thing.name} not found!>`;
 
-      // console.log(`CONSIDER ${inspect_fun(got)}`);
+      // lm.log(`CONSIDER ${inspect_fun(got)}`);
 
       if (got instanceof ASTLatchedNamedWildcardValue) {
         return `\\<WARNING: tried to latch already-latched NamedWildcard @${thing.name}, ` +
           `check your template!>`;
       } /* else {
-           console.log(`LATCHING ${inspect_fun(got)}`);
+           lm.log(`LATCHING ${inspect_fun(got)}`);
            
            // throw new Error('bomb');
            } */
 
       const latched = new ASTLatchedNamedWildcardValue(lm.indent(() => walk(got, context)), got);
 
-      // console.log(`LATCHED IS ${inspect_fun(latched)}`);
+      // lm.log(`LATCHED IS ${inspect_fun(latched)}`);
       
       log(context.noisy,
           `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
@@ -7700,7 +7709,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
              thing instanceof ASTUpdateConfigurationBinary) {
       let value = thing.value;
 
-      // console.log(`THING: ${thing} ${inspect_fun(thing)}`);
+      // lm.log(`THING: ${thing} ${inspect_fun(thing)}`);
       
       if (value instanceof ASTNode) {
         const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
@@ -7796,7 +7805,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
             // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
             //           `increment by string ${inspect_fun(value)}, ` +
             //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-            context.configuration[our_name] = smart_join([tmp_str, value], indent + 1);
+            context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value]));
           }
           else {
             // probly won't work most of the time, but let's try anyhow, I guess.
@@ -7856,7 +7865,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
             ? { desc: 'UI prompt', text: ui_prompt }
             : { desc: 'UI negative prompt', text: ui_neg_prompt };
       
-      console.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+      lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
 
       let res = null;
 
@@ -8075,7 +8084,7 @@ class ASTCheckFlags extends ASTNode {
     this.consequently_set_flag_tail = consequently_set_flag_tail;
 
     // if (log_flags_enabled)
-    //   console.log(`constructed ${inspect_fun(this)}`)
+    //   lm.log(`constructed ${inspect_fun(this)}`)
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8114,10 +8123,10 @@ class ASTNotFlag extends ASTNode  {
     this.set_immediately            = set_immediately;
 
     // if (log_flags_enabled)
-    //   console.log(`constructed ${inspect_fun(this)}`)
+    //   lm.log(`constructed ${inspect_fun(this)}`)
     
     // if (this.set_immediately)
-    //   console.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
+    //   lm.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
   // -------------------------------------------------------------------------------------------------
   toString() {
@@ -8147,7 +8156,7 @@ class ASTNamedWildcardReference extends ASTNode {
     this.max_count  = max_count;
     this.joiner     = joiner;
     this.capitalize = capitalize;
-    // console.log(`BUILT ${inspect_fun(this)}`);
+    // lm.log(`BUILT ${inspect_fun(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8214,7 +8223,7 @@ class ASTLora extends ASTNode {
     super();
     this.file   = file;
     this.weight = weight;
-    // console.log(`Constructed LoRa ${this}!`);
+    // lm.log(`Constructed LoRa ${this}!`);
   }
   // -----------------------------------------------------------------------------------------------
   toString(with_types = false ) {
@@ -8285,7 +8294,7 @@ class ASTAnonWildcard  extends ASTNode {
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
-    // console.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+    // lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
@@ -8307,10 +8316,10 @@ class ASTAnonWildcard  extends ASTNode {
       const is_last    = ix == (this.picker.options.length - 1);
       const has_guards = (option.value.check_flags?.length > 0) || (option.value.not_flags?.length > 0);
 
-      // console.log(`option:     ${inspect_fun(option)}`);
-      // console.log(`cfs.l:      ${option.value.check_flags?.length}`);
-      // console.log(`nfs.l:      ${option.value.not_flags?.length}`);
-      // console.log(`has_guards: ${has_guards}`);
+      // lm.log(`option:     ${inspect_fun(option)}`);
+      // lm.log(`cfs.l:      ${option.value.check_flags?.length}`);
+      // lm.log(`nfs.l:      ${option.value.not_flags?.length}`);
+      // lm.log(`has_guards: ${has_guards}`);
       
       if (!is_empty && !has_weight && !has_guards)
         str += ' ';
@@ -8356,13 +8365,13 @@ class ASTAnonWildcardAlternative extends ASTNode {
       bits.push(not.toString());
     
     for (const thing of this.body) {
-      // console.log(`push bit ${thing.toString()} (${thing.toString().length})`)
+      // lm.log(`push bit ${thing.toString()} (${thing.toString().length})`)
       bits.push(thing.toString());
     }
 
     str += bits.join(' ');
 
-    // console.log(`BITS: ${inspect_fun(bits)}`);
+    // lm.log(`BITS: ${inspect_fun(bits)}`);
     
     return str;
   }
@@ -8534,8 +8543,8 @@ const plain_text_no_semis      = make_plain_text_rule(';');
 plain_text                     .abbreviate_str_repr('plain_text');
 plain_text_no_semis            .abbreviate_str_repr('plain_text_no_semis');
 // -------------------------------------------------------------------------------------------------
-// console.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
-// console.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
+// lm.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
+// lm.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
@@ -8571,14 +8580,14 @@ simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_
 const SimpleCheckFlag              = xform(seq_with_swb(question,
                                                         plus(ident, dot)),
                                            arr => {
-                                             // console.log(`ARR: ${inspect_fun(arr)}`);
+                                             // lm.log(`ARR: ${inspect_fun(arr)}`);
                                              
                                              const args = [arr[1]];
 
                                              // if (log_flags_enabled) {
-                                             //   console.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
+                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
                                              //               `GOT ARR ${inspect_fun(arr)}`);
-                                             //   console.log(`CONSTRUCTING CHECKFLAG (simple) ` +
+                                             //   lm.log(`CONSTRUCTING CHECKFLAG (simple) ` +
                                              //               `WITH ARGS ${inspect_fun(args)}`);
                                              // }
 
@@ -8592,9 +8601,9 @@ const SimpleNotFlag                = xform(seq_with_swb(bang,
                                                            { set_immediately: !!arr[1][0]}];
 
                                              // if (log_flags_enabled) {
-                                             //   console.log(`CONSTRUCTING NOTFLAG (simple) ` +
+                                             //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
                                              //               `GOT arr ${inspect_fun(arr)}`);
-                                             //   console.log(`CONSTRUCTING NOTFLAG (simple) ` +
+                                             //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
                                              //               `WITH ARGS ${inspect_fun(args)}`);
                                              // }
 
@@ -8606,9 +8615,9 @@ const CheckFlagWithOrAlternatives  = xform(cutting_seq_with_swb(question,
                                              const args = [arr[1]];
 
                                              // if (log_flags_enabled) {
-                                             //   console.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
+                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
                                              //               `GOT ARR ${inspect_fun(arr)}`);
-                                             //   console.log(`CONSTRUCTING CHECKFLAG (or) ` +
+                                             //   lm.log(`CONSTRUCTING CHECKFLAG (or) ` +
                                              //               `WITH ARGS ${inspect_fun(args)}`);
                                              // }
 
@@ -8622,9 +8631,9 @@ const CheckFlagWithSetConsequent   = xform(cutting_seq_with_swb(question,       
                                              const args = [ [ arr[1] ], arr[3] ]; 
 
                                              // if (log_flags_enabled) {
-                                             //   console.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
+                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
                                              //               `GOT ARR ${inspect_fun(arr)}`);
-                                             //   console.log(`CONSTRUCTING CHECKFLAG (set) ` +
+                                             //   lm.log(`CONSTRUCTING CHECKFLAG (set) ` +
                                              //               `WITH ARGS ${inspect_fun(args)}`);
                                              // }
 
@@ -8639,9 +8648,9 @@ const NotFlagWithSetConsequent     = xform(cutting_seq_with_swb(bang,
                                                            { consequently_set_flag_tail: arr[3] }]; 
 
                                              // if (log_flags_enabled) {
-                                             //   console.log(`CONSTRUCTING NOTFLAG (set) `+
+                                             //   lm.log(`CONSTRUCTING NOTFLAG (set) `+
                                              //               `GOT arr ${inspect_fun(arr)}`);
-                                             //   console.log(`CONSTRUCTING NOTFLAG (set) ` +
+                                             //   lm.log(`CONSTRUCTING NOTFLAG (set) ` +
                                              //               `WITH ARGS ${inspect_fun(args)}`);
                                              // }
                                              
@@ -8652,7 +8661,7 @@ const SetFlag                      = xform(second(cutting_seq_with_swb(hash,
                                            arr => {
                                              // if (log_flags_enabled)
                                              //   if (arr.length > 1)
-                                             //     console.log(`CONSTRUCTING SETFLAG WITH ` +
+                                             //     lm.log(`CONSTRUCTING SETFLAG WITH ` +
                                              //                 `${inspect_fun(arr)}`);
                                              return new ASTSetFlag(arr);
                                            });
@@ -8661,7 +8670,7 @@ const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang,
                                            arr => {
                                              // if (log_flags_enabled)
                                              //   if (arr.length > 1)
-                                             //     console.log(`CONSTRUCTING UNSETFLAG WITH` +
+                                             //     lm.log(`CONSTRUCTING UNSETFLAG WITH` +
                                              //                 ` ${inspect_fun(arr)}`);
                                              return new ASTUnsetFlag(arr);
                                            });
@@ -9117,26 +9126,26 @@ async function main() {
   
   if (print_ast_before_includes_enabled) {
     LOG_LINE();
-    console.log(`before process_includes:`);
+    lm.log(`before process_includes:`);
     LOG_LINE();
-    console.log(`${inspect_fun(AST)}`);
+    lm.log(`${inspect_fun(AST)}`);
     // LOG_LINE();
-    // console.log(`before process_includes (as JSON):`);
+    // lm.log(`before process_includes (as JSON):`);
     // LOG_LINE();
-    // console.log(`${JSON.stringify(AST)}`);
+    // lm.log(`${JSON.stringify(AST)}`);
   }
 
   AST = process_includes(AST, base_context);
 
   if (print_ast_after_includes_enabled) { 
     LOG_LINE();
-    console.log(`after process_includes:`);
+    lm.log(`after process_includes:`);
     LOG_LINE();
-    console.log(`${inspect_fun(AST)}`);
+    lm.log(`${inspect_fun(AST)}`);
     LOG_LINE();
-    console.log(`after process_includes (as JSON):`);
+    lm.log(`after process_includes (as JSON):`);
     LOG_LINE();
-    console.log(`${JSON.stringify(AST)}`);
+    lm.log(`${JSON.stringify(AST)}`);
   }
 
   if (print_ast_then_die)
@@ -9164,7 +9173,7 @@ async function main() {
 
   while (posted_count < count) {
     LOG_LINE('=');
-    console.log(`Expansion #${posted_count + 1} of ${count}:`);
+    lm.log(`Expansion #${posted_count + 1} of ${count}:`);
     LOG_LINE('=');
     
     const context = base_context.clone();
@@ -9173,38 +9182,38 @@ async function main() {
 
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
-      console.log(`Final config is :`);
+      lm.log(`Final config is :`);
       LOG_LINE();
-      console.log(inspect_fun(context.configuration));
+      lm.log(inspect_fun(context.configuration));
     }
 
     if (log_flags_enabled || log_configuration_enabled) {
       LOG_LINE();
-      console.log(`Flags after:`);
+      lm.log(`Flags after:`);
       LOG_LINE();
-      console.log(`${inspect_fun(context.flags)}`);
+      lm.log(`${inspect_fun(context.flags)}`);
     }
     
     {
       LOG_LINE();
-      console.log(`Scalars after:`);
+      lm.log(`Scalars after:`);
       LOG_LINE();
       for (const [key, val] of context.scalar_variables)
-        console.log(`$${key} = ${inspect_fun(val)}`);
+        lm.log(`$${key} = ${inspect_fun(val)}`);
     }
 
     {
       LOG_LINE();
-      console.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
+      lm.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
       LOG_LINE();
-      console.log(prompt);
+      lm.log(prompt);
     }
     
     if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
       LOG_LINE();
-      console.log(`Expanded negative prompt:`);
+      lm.log(`Expanded negative prompt:`);
       LOG_LINE();
-      console.log(context.configuration.negative_prompt);
+      lm.log(context.configuration.negative_prompt);
     }
 
     if (!post) {
@@ -9217,7 +9226,7 @@ async function main() {
         posted_count += 1;
       }
       else  {
-        console.log();
+        lm.log();
 
         const question_str = `POST this prompt as #${posted_count+1} out of ${count} ` +
               `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
@@ -9234,14 +9243,14 @@ async function main() {
             LOG_LINE();
             [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
             
-            console.log(`POSTing prior prompt '${prompt}'`);
+            lm.log(`POSTing prior prompt '${prompt}'`);
             
             do_post(prompt, context.configuration);
             
             continue;
           }
           else {
-            console.log(`can't rewind, no prior prompt`);
+            lm.log(`can't rewind, no prior prompt`);
           }
         }
         else { // /^y.*/
@@ -9265,17 +9274,17 @@ let main_disabled = false;
 
 if (! main_disabled)
   main().catch(err => {
-    console.error(`Unhandled error:\n${err.stack}`);
+    lm.error(`Unhandled error:\n${err.stack}`);
     process.exit(1);
   });
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
 
-// console.log(inspect_fun(A1111StyleLora.match('<lora:extreme_cc_v0.1_pony: @lowish_random_weight>')));
-// console.log(); console.log();
-// console.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
-// console.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
+// lm.log(inspect_fun(A1111StyleLora.match('<lora:extreme_cc_v0.1_pony: @lowish_random_weight>')));
+// lm.log(); lm.log();
+// lm.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
+// lm.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
 
 // process.exit(0);
 
@@ -9287,17 +9296,17 @@ if (! main_disabled)
 
 // const options = { batch_count: 100, reps_per_batch: 100_000 }; 
 
-// console.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// console.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// // console.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// // console.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// lm.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// // lm.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+// // lm.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
 
-// console.log(smart_join([ 'FOO', "''", 'BAR']));
+// lm.log(smart_join([ 'FOO', "''", 'BAR']));
 
-// console.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
+// lm.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
 //    x    x  x `)));
 
