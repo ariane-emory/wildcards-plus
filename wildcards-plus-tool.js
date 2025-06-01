@@ -2853,7 +2853,7 @@ const rJsoncObject =
                                                        )),
                                           comma)),
                                )),
-                rbrc))); // dumb hack for rainbow brackets sake
+                rbrc)));
 rJsonc.abbreviate_str_repr('rJsonc');
 rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
@@ -8703,6 +8703,26 @@ const A1111StyleLora       =
 // -------------------------------------------------------------------------------------------------
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
+// =================================================================================================
+// mod RJSONC:
+// =================================================================================================
+const rJsonc_internal_word_break = r(/(?=[\s,:])/);
+const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
+                                                  choice(() => rJsoncObject,
+                                                         () => rJsoncArray,
+                                                         seq(choice(rjsonc_string,
+                                                                    json_null,     json_true,
+                                                                    json_false,    json_number),
+                                                             structural_word_break)),
+                                                  jsonc_comments));
+const mod_rJsonc_intternal        = second(wst_seq(jsonc_comments,
+                                                   choice(() => rJsoncObject,
+                                                         () => rJsoncArray,
+                                                         first(seq(rjsonc_string, rJsonc_internal_word_break)),
+                                                         seq(choice(json_null,     json_true,
+                                                                    json_false,    json_number),
+                                                             rJsonc_internal_word_break)),
+                                                  jsonc_comments));
 // =================================================================================================
 // word breaks:
 // =================================================================================================
