@@ -8658,13 +8658,14 @@ const dot_hash                = l('.#')
       .abbreviate_str_repr('dot_hash');
 const filename                = r(/[A-Za-z0-9 ._\-()]+/)
       .abbreviate_str_repr('filename');
-const ident                   = xform(str => str.toLowerCase().replace(/-/g, '_'),
-                                      r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/))
+const ident                   =
+      xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+            str => str.toLowerCase().replace(/-/g, '_'))
       .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
 // =================================================================================================
-// plain_text variants:
+// plain_text terminal variants:
 // =================================================================================================
 const structural_chars        = '{|}';
 const syntax_chars            = '@#$%';
@@ -8681,9 +8682,9 @@ const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
 const make_plain_text_rule = additional_excluded_chars => 
       r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
 // -------------------------------------------------------------------------------------------------
-const plain_text               = make_plain_text_rule('')
+const plain_text           = make_plain_text_rule('')
       .abbreviate_str_repr('plain_text');
-const plain_text_no_semis      = make_plain_text_rule(';')
+const plain_text_no_semis  = make_plain_text_rule(';')
       .abbreviate_str_repr('plain_text_no_semis');
 // =================================================================================================
 // A1111-style LoRAs:
@@ -8745,7 +8746,8 @@ const CheckFlagWithOrAlternatives =
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
-            }).abbreviate_str_repr('CheckFlagWithOrAlternatives');
+            })
+      .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const CheckFlagWithSetConsequent =
       xform(cutting_seq_with_swb(question,            // [0]
                                  dot_chained(ident),  // [1]
@@ -8754,7 +8756,8 @@ const CheckFlagWithSetConsequent =
             arr => {
               const args = [ [ arr[1] ], arr[3] ]; 
               return new ASTCheckFlags(...args);
-            }).abbreviate_str_repr('CheckFlagWithSetConsequent');
+            })
+      .abbreviate_str_repr('CheckFlagWithSetConsequent');
 const NotFlagWithSetConsequent =
       xform(cutting_seq_with_swb(bang,
                                  dot_chained(ident),
@@ -8766,21 +8769,17 @@ const NotFlagWithSetConsequent =
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
-const SetFlag =
-      xform(second(cutting_seq_with_swb(hash, dot_chained(ident))),
-            arr => new ASTSetFlag(arr))
+const SetFlag = xform(second(cutting_seq_with_swb(hash, dot_chained(ident))),
+                      arr => new ASTSetFlag(arr))
       .abbreviate_str_repr('SetFlag');
-const UnsetFlag =
-      xform(second(cutting_seq_with_swb(shebang, dot_chained(ident))),
-            arr => new ASTUnsetFlag(arr))
+const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, dot_chained(ident))),
+                        arr => new ASTUnsetFlag(arr))
       .abbreviate_str_repr('UnsetFlag');
-const TestFlag = choice(
-  SimpleCheckFlag,
-  SimpleNotFlag,
-  CheckFlagWithSetConsequent,
-  NotFlagWithSetConsequent,
-  CheckFlagWithOrAlternatives,
-)
+const TestFlag = choice(SimpleCheckFlag,
+                        SimpleNotFlag,
+                        CheckFlagWithSetConsequent,
+                        NotFlagWithSetConsequent,
+                        CheckFlagWithOrAlternatives)
       .abbreviate_str_repr('TestFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
@@ -8793,17 +8792,16 @@ const wrap_TestFlag_in_AnonWildcard    = rule =>
         new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
 // -------------------------------------------------------------------------------------------------
 const TopLevelTestFlag =
-      choice(
-        unexpected_TestFlag_at_top_level(SimpleCheckFlag)
-          .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
-        unexpected_TestFlag_at_top_level(SimpleNotFlag)
-          .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
-        wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-          .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-        wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-          .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
-        unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
-          .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
+      choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
+             .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
+             unexpected_TestFlag_at_top_level(SimpleNotFlag)
+             .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
+             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
+             .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
 // =================================================================================================
 // AnonWildcard-related rules:
 // =================================================================================================
@@ -8851,7 +8849,7 @@ const make_AnonWildcardAlternative_rule = content_star_rule =>
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
                 lws(content_star_rule)));
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcard_rule            = alternative_rule  =>
+const make_AnonWildcard_rule         = alternative_rule  =>
       xform(arr => new ASTAnonWildcard(arr),
             wst_brc_enc(wst_star(alternative_rule, pipe)));
 // -------------------------------------------------------------------------------------------------
@@ -8867,26 +8865,23 @@ const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAltern
 // non-terminals for the special functions/variables:
 // =================================================================================================
 const SpecialFunctionTail =
-      choice(
-        seq(discarded_comments, lws(semicolon)),
-        structural_word_break)
+      choice(seq(discarded_comments, lws(semicolon)),
+             structural_word_break)
       .abbreviate_str_repr('SpecialFunctionTail');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
-      xform(
-        seq('ui-prompt', SpecialFunctionTail),
-        () => new ASTUIPrompt())
+      xform(seq('ui-prompt', SpecialFunctionTail),
+            () => new ASTUIPrompt())
       .abbreviate_str_repr('SpecialFunctionUIPrompt');
 // -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUIPrompt =
-      unexpected(
-        SpecialFunctionUIPrompt,
-        (rule, input, index) =>
-        new FatalParseError("%ui-prompt is only supported when " +
-                            "using wildcards-plus.js inside Draw Things, " +
-                            "NOT when " +
-                            "running the wildcards-plus-tool.js script",
-                            input, index - 1))
+      unexpected(SpecialFunctionUIPrompt,
+                 (rule, input, index) =>
+                 new FatalParseError("%ui-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUINegPrompt =
@@ -8896,7 +8891,7 @@ const SpecialFunctionUINegPrompt =
 // -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
-                 (rule, input, index)=>
+                 (rule, input, index) =>
                  new FatalParseError("%ui-neg-prompt is only supported when " +
                                      "using wildcards-plus.js inside Draw Things, " +
                                      "NOT when " +
@@ -8946,15 +8941,15 @@ const SpecialFunctionSetPickMultiple =
       .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionRevertPickSingle =
-      xform(() => new ASTRevertPickSingle(),
-            seq('revert-single-pick',
-                SpecialFunctionTail))
+      xform(seq('revert-single-pick',
+                SpecialFunctionTail),
+            () => new ASTRevertPickSingle())
       .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionRevertPickMultiple =
-      xform(() => new ASTRevertPickMultiple(),
-            seq('revert-multi-pick',
-                SpecialFunctionTail))
+      xform(seq('revert-multi-pick',
+                SpecialFunctionTail),
+            () => new ASTRevertPickMultiple())
       .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
