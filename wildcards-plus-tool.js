@@ -9044,6 +9044,16 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                         const join    = arr[4][0] ?? '';
                                         const caret   = arr[1][0];
                                         const trailer = arr[6][0];
+
+                                        if (min_ct == 0 && max_ct == 0) {
+                                          lm.log(`WARNING: retrieving 0 items from a named ` +
+                                                 `wildcard is a strange thing to do. We'll allow ` +
+                                                 `it, but you may have made an error in your ` +
+                                                 `template`,
+                                                 false)
+                                          
+                                          return DISCARD;
+                                        }
                                         
                                         return new ASTNamedWildcardReference(ident,
                                                                              join,
