@@ -8886,7 +8886,7 @@ const TestFlag                     = choice(
   CheckFlagWithOrAlternatives,
 );
 // -------------------------------------------------------------------------------------------------
-const UnexpectedTopLevelTestFlag   = rule => 
+const UnexpectedTopLevelTestFlag    = rule => 
       unexpected(rule, (rule, input, index) =>
         new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
                             `serve no purpose and so are not permitted`,
