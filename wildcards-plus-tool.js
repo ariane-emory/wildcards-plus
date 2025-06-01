@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  // log_match_enabled  = true;
+  log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -9138,6 +9138,15 @@ const LimitedContent          = make_LimitedContent_rule(plain_text)
 const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
+lm.log(`THIS:  ${inspect_fun(plain_text)}`);
+lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
+
+const malformed_token =
+      // tokens starting with % are actually usually caught before getting here.
+      unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
+                 (rule, input, index, match_result) => 
+                 new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
+
 const make_Content_rule       = ({ before_plain_text_rules = [],
                                    after_plain_text_rules  = [] } = {}) =>
       choice(
@@ -9152,6 +9161,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         UnsetFlag,
         ScalarAssignment,
         ScalarReference,
+        malformed_token,
       );
 // -------------------------------------------------------------------------------------------------
 const ContentNoLoras          = make_Content_rule({
@@ -9440,7 +9450,7 @@ let main_disabled = false;
 if (! main_disabled)
   main().catch(err => {
     lm.error(`Unhandled error:\n${err.stack}`);
-    process.exit(1);
+    // process.exit(1);
   });
 // =================================================================================================
 // END OF MAIN SECTION.
