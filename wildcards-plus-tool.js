@@ -8681,11 +8681,11 @@ const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
 const make_plain_text_rule = additional_excluded_chars => 
       r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
 // -------------------------------------------------------------------------------------------------
-const plain_text               = make_plain_text_rule('');
-const plain_text_no_semis      = make_plain_text_rule(';');
+const plain_text               = make_plain_text_rule('')
+      .abbreviate_str_repr('plain_text');
+const plain_text_no_semis      = make_plain_text_rule(';')
+      .abbreviate_str_repr('plain_text_no_semis');
 // -------------------------------------------------------------------------------------------------
-plain_text                     .abbreviate_str_repr('plain_text');
-plain_text_no_semis            .abbreviate_str_repr('plain_text_no_semis');
 // -------------------------------------------------------------------------------------------------
 // lm.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
 // lm.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
