@@ -657,8 +657,8 @@ class Rule {
     
     if (log_match_enabled) {
       // if (ret)
-      lm.log(`<= ${this.constructor.name} ${this.toString()} ` +
-             `returned: ${compress(inspect_fun(ret))}`);
+      lm.log(`<= ${this.constructor.name} ${abbreviate(this.toString())} ` +
+             `returned: ${abbreviate(compress(inspect_fun(ret)))}`);
       // else
       //   log(indent,
       //       `<= Matching ${this.constructor.name} ${this.toString()} ` +
