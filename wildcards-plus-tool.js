@@ -2820,21 +2820,21 @@ const rjsonc_single_quoted_string =
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
 
-const rJsonc = second(wst_seq(jsonc_comments,
-                              choice(() => rJsoncObject,  () => rJsoncArray,
+const Rjsonc = second(wst_seq(jsonc_comments,
+                              choice(() => RjsoncObject,  () => RjsoncArray,
                                      rjsonc_string,
                                      json_null,     json_true,
                                      json_false,    json_number),
                               jsonc_comments));
-const rJsoncArray =
+const RjsoncArray =
       wst_cutting_enc(lsqr,
                       wst_star(second(seq(jsonc_comments,
-                                          rJsonc,
+                                          Rjsonc,
                                           jsonc_comments)),
                                comma),
                       rsqr);
 
-const rJsoncObject =
+const RjsoncObject =
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
@@ -2844,7 +2844,7 @@ const rJsoncObject =
               wst_cutting_seq(
                 wst_enc(lbrc, choice(rjsonc_string, c_ident), colon), 
                 jsonc_comments,
-                rJsonc,
+                Rjsonc,
                 jsonc_comments,
                 optional(second(wst_seq(comma,
                                         wst_star(
@@ -2860,10 +2860,10 @@ const rJsoncObject =
                                           comma)),
                                )),
                 rbrc)));
-rJsonc.abbreviate_str_repr('rJsonc');
-rJsoncObject.abbreviate_str_repr('rJsoncObject');
+Rjsonc.abbreviate_str_repr('Rjsonc');
+RjsoncObject.abbreviate_str_repr('RjsoncObject');
 // -------------------------------------------------------------------------------------------------
-rJsonc.finalize(); 
+Rjsonc.finalize(); 
 // =================================================================================================
 // END OF 'relaxed' JSONC GRAMMAR SECTION.
 // =================================================================================================
@@ -7840,8 +7840,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
           const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
-                                                ? rJsoncObject
-                                                : rJsonc).match(expanded_value);
+                                                ? RjsoncObject
+                                                : Rjsonc).match(expanded_value);
 
           if (thing instanceof ASTUpdateConfigurationBinary) {
             value = jsconc_parsed_expanded_value?.is_finished
@@ -7850,7 +7850,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           }
           else { // ASTUpdateConfigurationUnary
             throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                            `rJSONC object, rJsonc.match(...) result was ` +
+                            `rJSONC object, Rjsonc.match(...) result was ` +
                             inspect_fun(jsconc_parsed_expanded_value));
           }
         }
@@ -8643,20 +8643,18 @@ const filename                = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
 // const structural_word_break   = r(/(?=[\s|}])/);
-const structural_word_break   = r(/(?=[\s|}]|$)/);
-structural_word_break.abbreviate_str_repr('structural_word_break');
+const structural_word_break   = r(/(?=[\s|}]|$)/)
+      .abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
-const with_swb                = rule =>
-      first(seq(rule, structural_word_break));
-const seq_with_swb            = (...rules) =>
-      first(seq(seq(...rules), structural_word_break));
+const with_swb                = rule => first(seq(rule, structural_word_break));
+const seq_with_swb            = (...rules) => first(seq(seq(...rules), structural_word_break));
 // these cut after ALL rules if a SWB isn't found, NOT after first rule:
-const cutting_with_swb                = rule =>
-      first(cutting_seq(rule, structural_word_break));
-const cutting_seq_with_swb    = (...rules) => 
-      first(cutting_seq(seq(...rules), structural_word_break));
+const cutting_with_swb        = rule => first(cutting_seq(rule, structural_word_break));
+const cutting_seq_with_swb    = (...rules) => first(cutting_seq(seq(...rules),
+                                                                structural_word_break));
 // -------------------------------------------------------------------------------------------------
-const swb_uint                = xform(parseInt, with_swb(uint));
+const swb_uint                = xform(parseInt, with_swb(uint))
+      .abbreviate_str_repr('swb_uint');
 // -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
 comments                      .abbreviate_str_repr('comments');
@@ -8665,7 +8663,6 @@ discarded_comments            .abbreviate_str_repr('discarded_comments');
 dot_hash                      .abbreviate_str_repr('dot_hash');
 filename                      .abbreviate_str_repr('filename');
 ident                         .abbreviate_str_repr('ident');
-swb_uint                      .abbreviate_str_repr('swb_uint');
 // =================================================================================================
 // plain_text variants:
 // =================================================================================================
@@ -8673,8 +8670,7 @@ const structural_chars        = '{|}';
 const syntax_chars            = '@#$%';
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_char_Regexp_source_str = (additional_excluded_chars) =>
-      // raw`${brackets}|` +
+const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
       raw`(?:\\.|` +
       raw`(?!`+
       raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
@@ -8682,7 +8678,7 @@ const make_plain_text_char_Regexp_source_str = (additional_excluded_chars) =>
       raw`)` +
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_rule = (additional_excluded_chars) => 
+const make_plain_text_rule = additional_excluded_chars => 
       r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
 // -------------------------------------------------------------------------------------------------
 const plain_text               = make_plain_text_rule('');
@@ -8714,145 +8710,117 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // mod RJSONC:
 // =================================================================================================
-// const rJsonc_internal_word_break = r(/(?=[\s,])/);
-const rJsoncTopLevel        = second(wst_seq(jsonc_comments,
-                                             first(choice(seq(choice(JsoncObject,    // rJsoncObject,
-                                                                     JsoncArray,     // rJsoncArray,
-                                                                     rjsonc_string),
-                                                              optional(() => SpecialFunctionTail)),
-                                                          seq(choice(json_null,
-                                                                     json_true,
-                                                                     json_false,
-                                                                     json_number),
-                                                              () => SpecialFunctionTail))),
-                                             // v these would be consumed by SpecialFunctionTail anyhow, right?
-                                             /* jsonc_comments */)); 
+const ExposedRjsonc = 
+      second(wst_seq(jsonc_comments,
+                     first(choice(seq(choice(JsoncObject,    // RjsoncObject,
+                                             JsoncArray,     // RjsoncArray,
+                                             rjsonc_string),
+                                      optional(() => SpecialFunctionTail)),
+                                  seq(choice(json_null,
+                                             json_true,
+                                             json_false,
+                                             json_number),
+                                      () => SpecialFunctionTail))),
+                     // v these will be consumed by SpecialFunctionTail anyhow, right?
+                     /* jsonc_comments */)); 
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-const SimpleCheckFlag              = xform(seq_with_swb(question, dot_chained(ident)),
-                                           arr => {
-                                             // lm.log(`ARR: ${inspect_fun(arr)}`);
-                                             
-                                             const args = [arr[1]];
+const SimpleCheckFlag =
+      xform(seq_with_swb(question, dot_chained(ident)),
+            arr => {
+              // lm.log(`ARR: ${inspect_fun(arr)}`);
+              
+              const args = [arr[1]];
 
-                                             // if (log_flags_enabled) {
-                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
-                                             //               `GOT ARR ${inspect_fun(arr)}`);
-                                             //   lm.log(`CONSTRUCTING CHECKFLAG (simple) ` +
-                                             //               `WITH ARGS ${inspect_fun(args)}`);
-                                             // }
+              // if (log_flags_enabled) {
+              //   lm.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
+              //               `GOT ARR ${inspect_fun(arr)}`);
+              //   lm.log(`CONSTRUCTING CHECKFLAG (simple) ` +
+              //               `WITH ARGS ${inspect_fun(args)}`);
+              // }
 
-                                             return new ASTCheckFlags(args);
-                                           });
-const SimpleNotFlag                = xform(seq_with_swb(bang,
-                                                        optional(hash),
-                                                        dot_chained(ident)),
-                                           arr => {
-                                             const args = [arr[2],
-                                                           { set_immediately: !!arr[1][0]}];
+              return new ASTCheckFlags(args);
+            });
+const SimpleNotFlag =
+      xform(seq_with_swb(bang,
+                         optional(hash),
+                         dot_chained(ident)),
+            arr => {
+              const args = [arr[2],
+                            { set_immediately: !!arr[1][0]}];
 
-                                             // if (log_flags_enabled) {
-                                             //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
-                                             //               `GOT arr ${inspect_fun(arr)}`);
-                                             //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
-                                             //               `WITH ARGS ${inspect_fun(args)}`);
-                                             // }
+              // if (log_flags_enabled) {
+              //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
+              //               `GOT arr ${inspect_fun(arr)}`);
+              //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
+              //               `WITH ARGS ${inspect_fun(args)}`);
+              // }
 
-                                             return new ASTNotFlag(...args);
-                                           })
-const CheckFlagWithOrAlternatives  = xform(cutting_seq_with_swb(question,
-                                                                plus(dot_chained(ident), comma)),
-                                           arr => {
-                                             const args = [arr[1]];
+              return new ASTNotFlag(...args);
+            })
+const CheckFlagWithOrAlternatives =
+      xform(cutting_seq_with_swb(question,
+                                 plus(dot_chained(ident), comma)),
+            arr => {
+              const args = [arr[1]];
 
-                                             // if (log_flags_enabled) {
-                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
-                                             //               `GOT ARR ${inspect_fun(arr)}`);
-                                             //   lm.log(`CONSTRUCTING CHECKFLAG (or) ` +
-                                             //               `WITH ARGS ${inspect_fun(args)}`);
-                                             // }
+              // if (log_flags_enabled) {
+              //   lm.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
+              //               `GOT ARR ${inspect_fun(arr)}`);
+              //   lm.log(`CONSTRUCTING CHECKFLAG (or) ` +
+              //               `WITH ARGS ${inspect_fun(args)}`);
+              // }
 
-                                             return new ASTCheckFlags(...args);
-                                           });
-const CheckFlagWithSetConsequent   = xform(cutting_seq_with_swb(question,            // [0]
-                                                                dot_chained(ident),  // [1]
-                                                                dot_hash,            // [2]
-                                                                dot_chained(ident)), // [3]
-                                           arr => {
-                                             const args = [ [ arr[1] ], arr[3] ]; 
+              return new ASTCheckFlags(...args);
+            });
+const CheckFlagWithSetConsequent =
+      xform(cutting_seq_with_swb(question,            // [0]
+                                 dot_chained(ident),  // [1]
+                                 dot_hash,            // [2]
+                                 dot_chained(ident)), // [3]
+            arr => {
+              const args = [ [ arr[1] ], arr[3] ]; 
 
-                                             // if (log_flags_enabled) {
-                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
-                                             //               `GOT ARR ${inspect_fun(arr)}`);
-                                             //   lm.log(`CONSTRUCTING CHECKFLAG (set) ` +
-                                             //               `WITH ARGS ${inspect_fun(args)}`);
-                                             // }
+              // if (log_flags_enabled) {
+              //   lm.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
+              //               `GOT ARR ${inspect_fun(arr)}`);
+              //   lm.log(`CONSTRUCTING CHECKFLAG (set) ` +
+              //               `WITH ARGS ${inspect_fun(args)}`);
+              // }
 
-                                             return new ASTCheckFlags(...args);
-                                           });
-const NotFlagWithSetConsequent     = xform(cutting_seq_with_swb(bang,
-                                                                dot_chained(ident),
-                                                                dot_hash,
-                                                                dot_chained(ident)),
-                                           arr => {
-                                             const args = [arr[1],
-                                                           { consequently_set_flag_tail: arr[3] }]; 
+              return new ASTCheckFlags(...args);
+            });
+const NotFlagWithSetConsequent =
+      xform(cutting_seq_with_swb(bang,
+                                 dot_chained(ident),
+                                 dot_hash,
+                                 dot_chained(ident)),
+            arr => {
+              const args = [arr[1],
+                            { consequently_set_flag_tail: arr[3] }]; 
 
-                                             // if (log_flags_enabled) {
-                                             //   lm.log(`CONSTRUCTING NOTFLAG (set) `+
-                                             //               `GOT arr ${inspect_fun(arr)}`);
-                                             //   lm.log(`CONSTRUCTING NOTFLAG (set) ` +
-                                             //               `WITH ARGS ${inspect_fun(args)}`);
-                                             // }
-                                             
-                                             return new ASTNotFlag(...args);
-                                           })
-const SetFlag                      = xform(second(cutting_seq_with_swb(hash, dot_chained(ident))),
-                                           arr => {
-                                             // if (log_flags_enabled)
-                                             //   if (arr.length > 1)
-                                             //     lm.log(`CONSTRUCTING SETFLAG WITH ` +
-                                             //                 `${inspect_fun(arr)}`);
-                                             return new ASTSetFlag(arr);
-                                           });
-const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang, dot_chained(ident))),
-                                           arr => {
-                                             // if (log_flags_enabled)
-                                             //   if (arr.length > 1)
-                                             //     lm.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                             //                 ` ${inspect_fun(arr)}`);
-                                             return new ASTUnsetFlag(arr);
-                                           });
-const TestFlag                     = choice(
+              // if (log_flags_enabled) {
+              //   lm.log(`CONSTRUCTING NOTFLAG (set) `+
+              //               `GOT arr ${inspect_fun(arr)}`);
+              //   lm.log(`CONSTRUCTING NOTFLAG (set) ` +
+              //               `WITH ARGS ${inspect_fun(args)}`);
+              // }
+              
+              return new ASTNotFlag(...args);
+            })
+const SetFlag =
+      xform(second(cutting_seq_with_swb(hash, dot_chained(ident))),
+            arr => new ASTSetFlag(arr));
+const UnsetFlag =
+      xform(second(cutting_seq_with_swb(shebang, dot_chained(ident))),
+            arr => new ASTUnsetFlag(arr));
+const TestFlag = choice(
   SimpleCheckFlag,
   SimpleNotFlag,
   CheckFlagWithSetConsequent,
   NotFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
-);
-// -------------------------------------------------------------------------------------------------
-//const UnexpectedTestFlagAtTopLevel    = rule =>
-const unexpected_TestFlag_at_top_level    = rule => 
-      unexpected(rule, (rule, input, index) =>
-        new FatalParseError(`check/not flag guards without set consequents at the top level ` +
-                            `would serve no purpose and so are not permitted`,
-                            input, index));
-const wrap_TestFlag_in_AnonWildcard = rule =>
-      xform(rule, flag =>
-        new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
-// -------------------------------------------------------------------------------------------------
-const TopLevelTestFlag              = choice(
-  unexpected_TestFlag_at_top_level(SimpleCheckFlag)
-    .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
-  unexpected_TestFlag_at_top_level(SimpleNotFlag)
-    .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
-  wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-    .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-  wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-    .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
-  unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
-    .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'),
 );
 // -------------------------------------------------------------------------------------------------
 TestFlag                   .abbreviate_str_repr('TestFlag');
@@ -8863,6 +8831,28 @@ CheckFlagWithSetConsequent .abbreviate_str_repr('CheckFlagWithSetConsequent');
 NotFlagWithSetConsequent   .abbreviate_str_repr('NotFlagWithSetConsequent');
 SetFlag                    .abbreviate_str_repr('SetFlag');
 UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
+// -------------------------------------------------------------------------------------------------
+const unexpected_TestFlag_at_top_level = rule => 
+      unexpected(rule, (rule, input, index) =>
+        new FatalParseError(`check/not flag guards without set consequents at the top level ` +
+                            `would serve no purpose and so are not permitted`,
+                            input, index));
+const wrap_TestFlag_in_AnonWildcard    = rule =>
+      xform(rule, flag =>
+        new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
+// -------------------------------------------------------------------------------------------------
+const TopLevelTestFlag =
+      choice(
+        unexpected_TestFlag_at_top_level(SimpleCheckFlag)
+          .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
+        unexpected_TestFlag_at_top_level(SimpleNotFlag)
+          .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
+        wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+          .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+        wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+          .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+        unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
+          .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
 // =================================================================================================
 // AnonWildcard-related rules:
 // =================================================================================================
@@ -9006,7 +8996,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                                 // -
                 cutting_seq(lws(any_assignment_operator),                           // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(rJsoncTopLevel,
+                            lws(choice(ExposedRjsonc,
                                        first(seq(() => LimitedContentNoSemis,
                                                  SpecialFunctionTail))))            // [1][1]
                            )));
@@ -9016,7 +9006,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                 discarded_comments,                                                 // -
                 cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(first(seq(rJsoncObject, // mod_rJsoncObject,
+                            lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
                                                  optional(SpecialFunctionTail))),
                                        first(seq(() => LimitedContentNoSemis,
                                                  SpecialFunctionTail)))),           // [1][1]
