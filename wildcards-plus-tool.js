@@ -8718,8 +8718,10 @@ const rJsoncTopLevel        = second(wst_seq(jsonc_comments,
                                                                      JsoncArray,     // rJsoncArray,
                                                                      rjsonc_string),
                                                               optional(() => SpecialFunctionTail)),
-                                                          seq(choice(json_null,     json_true,
-                                                                     json_false,    json_number),
+                                                          seq(choice(json_null,
+                                                                     json_true,
+                                                                     json_false,
+                                                                     json_number),
                                                               () => SpecialFunctionTail))),
                                              /* jsonc_comments */)); // these would be consumed by SpecialFunctionTail anyhow, right?
 // maybe this could be replaced with normal RJSONC:
@@ -8990,10 +8992,6 @@ const SpecialFunctionTail = choice(
   seq(discarded_comments, lws(semicolon)),
   structural_word_break,
 );
-// const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
-//                                                                   choice(lws(semicolon),
-//                                                                          word_break)));
-const TrailingCommentsAndSemicolon = discard(lws(semicolon));
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
@@ -9117,10 +9115,6 @@ SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-// TrailingCommentFollowedBySemicolonOrWordBreak
-//   .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
-TrailingCommentsAndSemicolon
-  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 UnexpectedSpecialFunctionInclude
   .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 UnexpectedSpecialFunctionUINegPrompt
