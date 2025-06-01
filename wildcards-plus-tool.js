@@ -2813,11 +2813,18 @@ const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
 
 const rJsonc = second(wst_seq(jsonc_comments,
-                              choice(() => rJsoncObject,  () => JsoncArray,
+                              choice(() => rJsoncObject,  () => rJsoncArray,
                                      () => rjsonc_string,
                                      () => json_null,     () => json_true,
                                      () => json_false,    () => json_number),
                               jsonc_comments));
+const rJsoncArray =
+      wst_cutting_enc(lsqr,
+                      wst_star(second(seq(jsonc_comments,
+                                          rJsonc,
+                                          jsonc_comments)),
+                               comma),
+                      rsqr);
 
 const rJsoncObject =
       choice(
@@ -2829,7 +2836,7 @@ const rJsoncObject =
               wst_cutting_seq(
                 wst_enc(lbrc, () => choice(json_string, c_ident), colon), // dumb hack for rainbow brackets sake
                 jsonc_comments,
-                Jsonc,
+                rJsonc,
                 jsonc_comments,
                 optional(second(wst_seq(comma,
                                         wst_star(
