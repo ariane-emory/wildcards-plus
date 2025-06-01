@@ -7697,14 +7697,14 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
-        let str = thing.joiner.startsWith(',')
+        let str = thing.joiner === ','
             ? res.join(", ")
             : (thing.joiner == '&'
                ? format_pretty_list(res)
                : res.join(" "));
 
-        if (thing.joiner === ',,' && str.length > 0)
-          str += ',';
+        if (thing.trailer === ',' && str.length > 0)
+          str = smart_join([str, ',']);
         
         throw new ThrownReturn(str);
       }
@@ -8303,13 +8303,14 @@ class ASTNotFlag extends ASTNode  {
 // NamedWildcard references:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardReference extends ASTNode {
-  constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
+  constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1, trailer = '') {
     super();
     this.name       = name;
-    this.min_count  = min_count;
-    this.max_count  = max_count;
     this.joiner     = joiner;
     this.capitalize = capitalize;
+    this.min_count  = min_count;
+    this.max_count  = max_count;
+    this.trailer    = trailer;
     // lm.log(`BUILT ${inspect_fun(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
@@ -9005,20 +9006,24 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,
                                                          second(seq(dash, uint)))),  // [3]
-                                          optional(/,,|[,&]/),                       // [4]
-                                          ident),                                    // [5]
+                                          optional(/[,&]/),                          // [4]
+                                          ident,                                     // [5]
+                                          optional(',', ''),                         // [6]
+                                         ), 
                                       arr => {
-                                        const ident  = arr[5];
-                                        const min_ct = arr[2][0] ?? 1;
-                                        const max_ct = arr[3][0] ?? min_ct;
-                                        const join   = arr[4][0] ?? '';
-                                        const caret  = arr[1][0];
+                                        const ident   = arr[5];
+                                        const min_ct  = arr[2][0] ?? 1;
+                                        const max_ct  = arr[3][0] ?? min_ct;
+                                        const join    = arr[4][0] ?? '';
+                                        const caret   = arr[1][0];
+                                        const trailer = arr[6][0];
                                         
                                         return new ASTNamedWildcardReference(ident,
                                                                              join,
                                                                              caret,
                                                                              min_ct,
-                                                                             max_ct);
+                                                                             max_ct,
+                                                                             trailer);
                                       })
       .abbreviate_str_repr('NamedWildcardReference');
 // -------------------------------------------------------------------------------------------------
