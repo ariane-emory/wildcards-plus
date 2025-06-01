@@ -9054,7 +9054,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                                 // -
                 cutting_seq(lws(any_assignment_operator),                           // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(rJsonc, () => LimitedContentNoSemis)),       // [1][1]
+                            lws(choice(mod_rJsonc_external, () => LimitedContentNoSemis)),       // [1][1]
                             SpecialFunctionTail))); 
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
@@ -9062,7 +9062,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                 discarded_comments,                                                 // -
                 cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
+                            lws(choice(mod_rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
                             SpecialFunctionTail,
                            )));
 const SpecialFunctionNotInclude =
