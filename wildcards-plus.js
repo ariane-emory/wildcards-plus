@@ -1277,8 +1277,8 @@ class CuttingSequence extends Sequence {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
-      `CuttingSequence expected [${this.elements.slice(1).join(" ")}] ` +
-        `after ${this.elements[0]}`,
+      `CuttingSequence expected ${this.elements[0]} to be followed by ` +
+        `[${this.elements.slice(1).join(" ")}]`,                         
       input, start_rule_result.index);
   }
   // -----------------------------------------------------------------------------------------------
