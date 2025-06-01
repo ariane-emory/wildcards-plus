@@ -290,9 +290,9 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
+let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
-let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
 let unnecessary_choice_is_error       = false;
@@ -7694,15 +7694,19 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         
         res = res.filter(s => s !== '');
 
-        if (thing.capitalize && res.length > 0) {
+        if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
-        }
 
-        throw new ThrownReturn(thing.joiner == ','
-                               ? res.join(", ")
-                               : (thing.joiner == '&'
-                                  ? format_pretty_list(res)
-                                  : res.join(" ")));
+        let str = thing.joiner.startsWith(',')
+            ? res.join(", ")
+            : (thing.joiner == '&'
+               ? format_pretty_list(res)
+               : res.join(" "));
+
+        if (thing.joiner === ',,' && str.length > 0)
+          str += ',';
+        
+        throw new ThrownReturn(str);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
@@ -9001,7 +9005,7 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,
                                                          second(seq(dash, uint)))),  // [3]
-                                          optional(/[,&]/),                          // [4]
+                                          optional(/,,|[,&]/),                       // [4]
                                           ident),                                    // [5]
                                       arr => {
                                         const ident  = arr[5];
