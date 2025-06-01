@@ -8808,29 +8808,24 @@ const TopLevelTestFlag =
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
-  // console.log(`m_AAWA ARR: ${compress(inspect_fun(arr))}`);
-  
+  // console.log(`ARR: ${inspect_fun(arr)}`);
   const weight = arr[1][0];
 
   if (weight == 0)
     return DISCARD;
   
-  // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
-
   const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails =
         check_flags
         .filter(f => f.consequently_set_flag_tail)
         .map(f => new ASTSetFlag([ ...f.flags[0], ...f.consequently_set_flag_tail ]));
-
   const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails =
         not_flags
         .filter(f => f.consequently_set_flag_tail)
         .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
-  
   const ASTSetFlags_for_ASTNotFlags_with_set_immediately =
         not_flags
         .filter(f => f.set_immediately)
@@ -8871,30 +8866,34 @@ const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAltern
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
-const SpecialFunctionTail = choice(
-  seq(discarded_comments, lws(semicolon)),
-  structural_word_break,
-)
+const SpecialFunctionTail =
+      choice(
+        seq(discarded_comments, lws(semicolon)),
+        structural_word_break)
       .abbreviate_str_repr('SpecialFunctionTail');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
-      xform(() => new ASTUIPrompt(),
-            seq('ui-prompt',
-                SpecialFunctionTail))
+      xform(
+        seq('ui-prompt', SpecialFunctionTail),
+        () => new ASTUIPrompt())
       .abbreviate_str_repr('SpecialFunctionUIPrompt');
+// -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUIPrompt =
-      unexpected(SpecialFunctionUIPrompt,
-                 (rule, input, index) =>
-                 new FatalParseError("%ui-prompt is only supported when " +
-                                     "using wildcards-plus.js inside Draw Things, " +
-                                     "NOT when " +
-                                     "running the wildcards-plus-tool.js script",
-                                     input, index - 1))
+      unexpected(
+        SpecialFunctionUIPrompt,
+        (rule, input, index) =>
+        new FatalParseError("%ui-prompt is only supported when " +
+                            "using wildcards-plus.js inside Draw Things, " +
+                            "NOT when " +
+                            "running the wildcards-plus-tool.js script",
+                            input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionUINegPrompt =
-      xform(() => new ASTUINegPrompt(),
-            seq('ui-neg-prompt',
-                SpecialFunctionTail))
+      xform(seq('ui-neg-prompt', SpecialFunctionTail),
+            () => new ASTUINegPrompt())
       .abbreviate_str_repr('SpecialFunctionUINegPrompt');
+// -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8904,6 +8903,7 @@ const UnexpectedSpecialFunctionUINegPrompt =
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
@@ -8913,6 +8913,7 @@ const SpecialFunctionInclude =
                                        ))),  
                 SpecialFunctionTail))
       .abbreviate_str_repr('SpecialFunctionInclude');
+// -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8923,6 +8924,7 @@ const UnexpectedSpecialFunctionInclude =
                                      "inside Draw Things",
                                      input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                                        // [0]
@@ -8932,6 +8934,7 @@ const SpecialFunctionSetPickSingle =
                             lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
                             SpecialFunctionTail)))
       .abbreviate_str_repr('SpecialFunctionSetPickSingle');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
             seq('multi-pick',                                                         // [0]
@@ -8941,16 +8944,19 @@ const SpecialFunctionSetPickMultiple =
                             lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
                             SpecialFunctionTail)))
       .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
                 SpecialFunctionTail))
       .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
                 SpecialFunctionTail))
       .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                            // [0]
@@ -8962,6 +8968,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                                                  SpecialFunctionTail))))            // [1][1]
                            )))
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
@@ -8971,9 +8978,9 @@ const SpecialFunctionUpdateConfigurationUnary =
                             lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
                                                  optional(SpecialFunctionTail))),
                                        first(seq(() => LimitedContentNoSemis,
-                                                 SpecialFunctionTail)))),           // [1][1]
-                           )))
+                                                 SpecialFunctionTail)))))))         // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
@@ -9015,14 +9022,17 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                                                              max_ct);
                                       })
       .abbreviate_str_repr('NamedWildcardReference');
+// -------------------------------------------------------------------------------------------------
 const NamedWildcardDesignator = second(seq(at, ident))
       .abbreviate_str_repr('NamedWildcardDesignator');
+// -------------------------------------------------------------------------------------------------
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
                                       wst_seq(NamedWildcardDesignator,
                                               wst_cutting_seq(equals, 
                                                               discarded_comments,
                                                               AnonWildcard)))
       .abbreviate_str_repr('NamedWildcardDefinition');
+// -------------------------------------------------------------------------------------------------
 const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
@@ -9041,12 +9051,15 @@ const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), id
                                         return objs;
                                       })
       .abbreviate_str_repr('NamedWildcardUsage');
+// -------------------------------------------------------------------------------------------------
 const ScalarReference         = xform(seq(dollar, optional(caret), ident),
                                       arr => new ASTScalarReference(arr[2], arr[1][0]))
       .abbreviate_str_repr('ScalarReference');
+// -------------------------------------------------------------------------------------------------
 const ScalarDesignator        = xform(seq(dollar, ident),
                                       arr => new ASTScalarReference(arr[1]))
       .abbreviate_str_repr('ScalarDesignator');
+// -------------------------------------------------------------------------------------------------
 const ScalarAssignment        =
       xform(arr =>
         new ASTScalarAssignment(arr[0],
@@ -9066,7 +9079,7 @@ const ScalarAssignment        =
 // =================================================================================================
 // Content-related rules:
 // =================================================================================================
-const make_LimitedContent_rule = plain_text_rule  =>
+const make_LimitedContent_rule = plain_text_rule =>
       choice(
         NamedWildcardReference,
         AnonWildcardNoLoras,
