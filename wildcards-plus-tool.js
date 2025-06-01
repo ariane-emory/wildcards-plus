@@ -8685,14 +8685,11 @@ const plain_text               = make_plain_text_rule('')
       .abbreviate_str_repr('plain_text');
 const plain_text_no_semis      = make_plain_text_rule(';')
       .abbreviate_str_repr('plain_text_no_semis');
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-// lm.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
-// lm.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
-const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint);
+const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
+      .abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora       =
       xform(arr => new ASTLora(arr[3], arr[4][0]),
             wst_seq(ltri,                                   // [0]
@@ -8703,10 +8700,9 @@ const A1111StyleLora       =
                                             choice(A1111StyleLoraWeight,
                                                    () => LimitedContent))),
                              "1.0"), // [4][0]
-                    rtri));
+                    rtri))
+      .abbreviate_str_repr('A1111StyleLora');
 // -------------------------------------------------------------------------------------------------
-A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
-A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // mod RJSONC:
 // =================================================================================================
