@@ -291,7 +291,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -3364,9 +3364,12 @@ function format_pretty_number(num) {
 function format_pretty_list(arr) {
   const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
 
-  if (items.length === 0) return "";
-  if (items.length === 1) return items[0];
-  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  if (items.length === 0)
+    return "";
+  if (items.length === 1)
+    return items[0];
+  if (items.length === 2)
+    return `${items[0]} and ${items[1]}`;
 
   const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
   
@@ -7703,8 +7706,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                ? format_pretty_list(res)
                : res.join(" "));
 
-        if (thing.trailer === ',' && str.length > 0)
-          str = smart_join([str, ',']);
+        if (thing.trailer && str.length > 0)
+          str = smart_join([str, thing.trailer]);
         
         throw new ThrownReturn(str);
       }
@@ -9008,7 +9011,7 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                                          second(seq(dash, uint)))),  // [3]
                                           optional(/[,&]/),                          // [4]
                                           ident,                                     // [5]
-                                          optional(',', ''),                         // [6]
+                                          optional(/[,.!?]/, ''),                    // [6]
                                          ), 
                                       arr => {
                                         const ident   = arr[5];
@@ -9103,8 +9106,8 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         plain_text,
         ...after_plain_text_rules,
         discarded_comment,
-        NamedWildcardUsage,
         NamedWildcardReference,
+        NamedWildcardUsage,
         SpecialFunctionNotInclude,
         SetFlag,
         UnsetFlag,
