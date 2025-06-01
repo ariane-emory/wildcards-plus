@@ -400,8 +400,8 @@ class Rule {
     
     if (log_match_enabled) {
       // if (ret)
-      lm.log(`<= ${this.constructor.name} ${this.toString()} ` +
-             `returned: ${compress(inspect_fun(ret))}`);
+      lm.log(`<= ${this.constructor.name} ${abbreviate(this.toString())} ` +
+             `returned: ${abbreviate(compress(inspect_fun(ret)))}`);
       // else
       //   log(indent,
       //       `<= Matching ${this.constructor.name} ${this.toString()} ` +
@@ -820,7 +820,7 @@ class Element extends Rule {
     if (log_match_enabled) 
       lm.log(`get elem ${this.index} from ` +
              `${compress(inspect_fun(rule_match_result.value))} = ` +
-             `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
+             `${typeof ret === 'symbol' ? ret.toString() : abbreviate(compress(inspect_fun(ret)))}`);
     
     rule_match_result.value = ret;
     
@@ -1158,7 +1158,8 @@ class Sequence extends Rule {
 
     if (log_match_enabled)
       lm.indent_and_log(`matching first sequence element #1 out of ` +
-                        `${this.elements.length}: ${this.elements[0]} ` +
+                        `${this.elements.length}: ` +
+                        `${abbreviate(compress(this.elements[0].toString()))} ` +
                         `at char #${index} ` +
                         `at '${abbreviate(input.substring(index))}'`);
     
@@ -1204,8 +1205,9 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        lm.indent_and_log(`matching sequence element #${ix+ 1} out of ` +
-                          `${this.elements.length}: ${this.elements[ix]} ` +
+        lm.indent_and_log(`matching sequence element #${ix + 1} out of ` +
+                          `${this.elements.length}: ` +
+                          `${abbreviate(compress(this.elements[ix].toString()))} ` +
                           `at char #${index}: ` +
                           `'${abbreviate(input.substring(index))}'`);
       
@@ -1277,8 +1279,8 @@ class CuttingSequence extends Sequence {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
-      `CuttingSequence expected [${this.elements.slice(1).join(" ")}] ` +
-        `after ${this.elements[0]}`,
+      `CuttingSequence expected ${this.elements[0]} to be followed by ` +
+        `[${this.elements.slice(1).join(" ")}]`,
       input, start_rule_result.index);
   }
   // -----------------------------------------------------------------------------------------------
@@ -1642,7 +1644,7 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      lm.indent_and_log(`testing /${this.regexp.source}/ at char ${index}: ` +
+      lm.indent_and_log(`testing /${this.regexp.source}/ at char #${index}: ` +
                         `'${abbreviate(input.substring(index))}'`);
 
     const re_match = this.regexp.exec(input);
@@ -2412,7 +2414,8 @@ const enclosing       = (left, enclosed, right) =>
 // =================================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
 const Json = choice(() => JsonObject,  () => JsonArray,
-                    () => json_string, () => json_true,   () => json_false,
+                    () => json_string,
+                    () => json_true,   () => json_false,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const JsonObject = xform(arr =>  Object.fromEntries(arr), 
@@ -2494,9 +2497,10 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =================================================================================================
 const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(jsonc_comments,
-                             choice(() => JsoncObject,  () => JsoncArray,
-                                    () => json_string,  () => json_true, () => json_false,
-                                    () => json_null,    () => json_number),
+                             choice(() => JsoncObject, () => JsoncArray,
+                                    json_string,
+                                    json_null,         json_true,
+                                    json_false,        json_number),
                              jsonc_comments));
 const JsoncArray =
       wst_cutting_enc(lsqr,
@@ -2515,7 +2519,7 @@ const JsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, () => json_string, colon),
+                wst_enc(lbrc, json_string, colon),
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
@@ -2523,7 +2527,7 @@ const JsoncObject =
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
-                                                        () => json_string,
+                                                        json_string,
                                                         jsonc_comments,
                                                         colon,
                                                         jsonc_comments,
@@ -2532,7 +2536,7 @@ const JsoncObject =
                                                        )),
                                           comma)),
                                )),
-                rbrc))); // dumb hack for rainbow brackets sake
+                rbrc)));
 Jsonc.abbreviate_str_repr('Jsonc');
 jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
@@ -2556,11 +2560,18 @@ const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
 
 const rJsonc = second(wst_seq(jsonc_comments,
-                              choice(() => rJsoncObject,  () => JsoncArray,
-                                     () => rjsonc_string,
-                                     () => json_null,     () => json_true,
-                                     () => json_false,    () => json_number),
+                              choice(() => rJsoncObject,  () => rJsoncArray,
+                                     rjsonc_string,
+                                     json_null,     json_true,
+                                     json_false,    json_number),
                               jsonc_comments));
+const rJsoncArray =
+      wst_cutting_enc(lsqr,
+                      wst_star(second(seq(jsonc_comments,
+                                          rJsonc,
+                                          jsonc_comments)),
+                               comma),
+                      rsqr);
 
 const rJsoncObject =
       choice(
@@ -2570,15 +2581,15 @@ const rJsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, () => choice(json_string, c_ident), colon), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, choice(rjsonc_string, c_ident), colon), 
                 jsonc_comments,
-                Jsonc,
+                rJsonc,
                 jsonc_comments,
                 optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
-                                                        choice(json_string, c_ident),
+                                                        choice(rjsonc_string, c_ident),
                                                         jsonc_comments,
                                                         colon,
                                                         jsonc_comments,
@@ -2587,7 +2598,7 @@ const rJsoncObject =
                                                        )),
                                           comma)),
                                )),
-                rbrc))); // dumb hack for rainbow brackets sake
+                rbrc)));
 rJsonc.abbreviate_str_repr('rJsonc');
 rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
@@ -8371,6 +8382,7 @@ const filename                = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
 const structural_word_break   = r(/(?=[\s|}])/);
+structural_word_break.abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule =>
       first(seq(rule, structural_word_break));
@@ -8437,6 +8449,63 @@ const A1111StyleLora       =
 // -------------------------------------------------------------------------------------------------
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
+// =================================================================================================
+// mod RJSONC:
+// =================================================================================================
+const rJsonc_internal_word_break = r(/(?=[\s,])/);
+const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
+                                                  choice(() => mod_rJsoncObject,
+                                                         () => mod_rJsoncArray,
+                                                         rjsonc_string,
+                                                         seq(choice(json_null,     json_true,
+                                                                    json_false,    json_number),
+                                                             structural_word_break)),
+                                                  jsonc_comments));
+const mod_rJsonc_internal        = second(wst_seq(jsonc_comments,
+                                                  choice(() => mod_rJsoncObject,
+                                                         () => mod_rJsoncArray,
+                                                         // first(seq(rjsonc_string, rJsonc_internal_word_break)),
+                                                         rjsonc_string,
+                                                         seq(choice(json_null,     json_true,
+                                                                    json_false,    json_number),
+                                                             rJsonc_internal_word_break)),
+                                                  jsonc_comments));
+const mod_rJsoncArray =
+      wst_cutting_enc(lsqr,
+                      wst_star(second(seq(jsonc_comments,
+                                          mod_rJsonc_internal,
+                                          jsonc_comments)),
+                               comma),
+                      rsqr);
+const mod_rJsoncObject =
+      choice(
+        xform(arr => ({}), wst_seq(lbrc, rbrc)),
+        xform(arr => {
+          const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+          return Object.fromEntries(new_arr);
+        },
+              wst_cutting_seq(
+                wst_enc(lbrc, choice(rjsonc_string, c_ident), colon), // dumb hack for rainbow brackets sake
+                jsonc_comments,
+                mod_rJsonc_internal,
+                jsonc_comments,
+                optional(second(wst_seq(comma,
+                                        wst_star(
+                                          xform(arr =>  [arr[1], arr[5]],
+                                                wst_seq(jsonc_comments,
+                                                        choice(rjsonc_string, c_ident),
+                                                        jsonc_comments,
+                                                        colon,
+                                                        jsonc_comments,
+                                                        mod_rJsonc_internal, 
+                                                        jsonc_comments
+                                                       )),
+                                          comma)),
+                               )),
+                rbrc)));
+mod_rJsoncArray           .abbreviate_str_repr('mod_rJsoncArray');
+rJsonc_internal_word_break.abbreviate_str_repr('rJsonc_internal_word_break');
+mod_rJsoncObject          .abbreviate_str_repr('mod_rJsoncObject');
 // =================================================================================================
 // word breaks:
 // =================================================================================================
@@ -8656,9 +8725,8 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 // non-terminals for the special functions/variables:
 // =================================================================================================
 const SpecialFunctionTail = choice(
+  seq(discarded_comments, optional(lws(semicolon))),
   structural_word_break,
-  lws(semicolon),
-  c_comment,
 );
 // const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
 //                                                                   choice(lws(semicolon),
@@ -8693,7 +8761,8 @@ const SpecialFunctionInclude =
             seq(c_funcall('%include',                            // [0][0]
                           first(wst_seq(discarded_comments,      // -
                                         rjsonc_string,           // [0][1]
-                                        discarded_comments))),   // -
+                                        discarded_comments,      // -
+                                       ))),  
                 SpecialFunctionTail));
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -8734,16 +8803,21 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                                 // -
                 cutting_seq(lws(any_assignment_operator),                           // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(rJsonc, () => LimitedContentNoSemis)),       // [1][1]
-                            SpecialFunctionTail))); 
+                            lws(choice(first(seq(mod_rJsonc_external,
+                                                 optional(SpecialFunctionTail))),
+                                       first(seq(() => LimitedContentNoSemis,
+                                                 SpecialFunctionTail))))            // [1][1]
+                           ))); 
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
                 discarded_comments,                                                 // -
                 cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
-                            SpecialFunctionTail,
+                            lws(choice(first(seq(mod_rJsoncObject,
+                                                 optional(SpecialFunctionTail))),
+                                       first(seq(() => LimitedContentNoSemis,
+                                                 SpecialFunctionTail)))),           // [1][1]
                            )));
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
@@ -8886,10 +8960,10 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         ...before_plain_text_rules,
         plain_text,
         ...after_plain_text_rules,
-        NamedWildcardReference,
-        SpecialFunctionNotInclude,
         discarded_comment,
         NamedWildcardUsage,
+        NamedWildcardReference,
+        SpecialFunctionNotInclude,
         SetFlag,
         UnsetFlag,
         ScalarAssignment,

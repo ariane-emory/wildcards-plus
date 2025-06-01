@@ -1077,7 +1077,7 @@ class Element extends Rule {
     if (log_match_enabled) 
       lm.log(`get elem ${this.index} from ` +
              `${compress(inspect_fun(rule_match_result.value))} = ` +
-             `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
+             `${typeof ret === 'symbol' ? ret.toString() : abbreviate(compress(inspect_fun(ret)))}`);
     
     rule_match_result.value = ret;
     
@@ -1415,7 +1415,8 @@ class Sequence extends Rule {
 
     if (log_match_enabled)
       lm.indent_and_log(`matching first sequence element #1 out of ` +
-                        `${this.elements.length}: ${this.elements[0]} ` +
+                        `${this.elements.length}: ` +
+                        `${abbreviate(compress(this.elements[0].toString()))} ` +
                         `at char #${index} ` +
                         `at '${abbreviate(input.substring(index))}'`);
     
@@ -1461,8 +1462,9 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        lm.indent_and_log(`matching sequence element #${ix+ 1} out of ` +
-                          `${this.elements.length}: ${this.elements[ix]} ` +
+        lm.indent_and_log(`matching sequence element #${ix + 1} out of ` +
+                          `${this.elements.length}: ` +
+                          `${abbreviate(compress(this.elements[ix].toString()))} ` +
                           `at char #${index}: ` +
                           `'${abbreviate(input.substring(index))}'`);
       
@@ -1899,7 +1901,7 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      lm.indent_and_log(`testing /${this.regexp.source}/ at char ${index}: ` +
+      lm.indent_and_log(`testing /${this.regexp.source}/ at char #${index}: ` +
                         `'${abbreviate(input.substring(index))}'`);
 
     const re_match = this.regexp.exec(input);
@@ -9014,8 +9016,10 @@ const UnexpectedSpecialFunctionUINegPrompt =
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
-                          second(wst_seq(discarded_comments,      // -
-                                         rjsonc_string))),        // [0][1]
+                          first(wst_seq(discarded_comments,      // -
+                                        rjsonc_string,           // [0][1]
+                                        discarded_comments,      // -
+                                       ))),  
                 SpecialFunctionTail));
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -9213,10 +9217,10 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         ...before_plain_text_rules,
         plain_text,
         ...after_plain_text_rules,
-        NamedWildcardReference,
-        SpecialFunctionNotInclude,
         discarded_comment,
         NamedWildcardUsage,
+        NamedWildcardReference,
+        SpecialFunctionNotInclude,
         SetFlag,
         UnsetFlag,
         ScalarAssignment,
@@ -9369,8 +9373,11 @@ async function main() {
     // lm.log(`${JSON.stringify(AST)}`);
   }
 
-  AST = process_includes(AST, base_context);
+  if (print_ast_then_die)
+    process.exit(0);
 
+  AST = process_includes(AST, base_context);
+  
   if (print_ast_after_includes_enabled) { 
     LOG_LINE();
     lm.log(`after process_includes:`);
@@ -9382,9 +9389,6 @@ async function main() {
     lm.log(`${JSON.stringify(AST)}`);
   }
 
-  if (print_ast_then_die)
-    process.exit(0);
-  
   let posted_count        = 0;
   let prior_prompt        = null;
   let prior_configuration = null;
