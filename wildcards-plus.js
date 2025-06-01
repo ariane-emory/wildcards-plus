@@ -7464,6 +7464,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         if (thing.capitalize)
           got = capitalize(got);
 
+        if (thing.trailer && got.length > 0)
+          got = smart_join([got, thing.trailer]);
         
         throw new ThrownReturn(got);
       }
@@ -8084,10 +8086,11 @@ class ASTNamedWildcardReference extends ASTNode {
 // Scalar references:
 // -------------------------------------------------------------------------------------------------
 class ASTScalarReference extends ASTNode {
-  constructor(name, capitalize) {
+  constructor(name, capitalize = '', trailer = '') {
     super();
     this.name       = name;
     this.capitalize = capitalize;
+    this.trailer    = trailer;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8802,8 +8805,13 @@ const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), id
                                       })
       .abbreviate_str_repr('NamedWildcardUsage');
 // -------------------------------------------------------------------------------------------------
-const ScalarReference         = xform(seq(dollar, optional(caret), ident),
-                                      arr => new ASTScalarReference(arr[2], arr[1][0]))
+const ScalarReference         = xform(seq(dollar,
+                                          optional(caret),
+                                          ident,
+                                          optional(/(?:\.\.\.|[,.!?])/, '')),
+                                      arr => new ASTScalarReference(arr[2],
+                                                                    arr[1][0],
+                                                                    arr[3][0]))
       .abbreviate_str_repr('ScalarReference');
 // -------------------------------------------------------------------------------------------------
 const ScalarDesignator        = xform(seq(dollar, ident),
