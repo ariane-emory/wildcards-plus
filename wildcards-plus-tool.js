@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  // log_match_enabled  = true;
+  log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -8710,7 +8710,7 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 const rJsonc_internal_word_break = r(/(?=[\s,:])/);
 rJsonc_internal_word_break.abbreviate_str_repr('rJsonc_internal_word_break');
 const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
-                                                  choice(() => rJsoncObject,
+                                                  choice(() => mod_rJsoncObject,
                                                          () => mod_rJsoncArray,
                                                          rjsonc_string,
                                                          seq(choice(json_null,     json_true,
@@ -8732,7 +8732,7 @@ const mod_rJsoncArray =
                                           jsonc_comments)),
                                comma),
                       rsqr);
-
+mod_rJsoncArray.abbreviate_str_repr('mod_rJsoncArray');
 const mod_rJsoncObject =
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
@@ -8759,6 +8759,7 @@ const mod_rJsoncObject =
                                           comma)),
                                )),
                 rbrc)));
+mod_rJsoncObject.abbreviate_str_repr('mod_rJsoncObject');
 // =================================================================================================
 // word breaks:
 // =================================================================================================
