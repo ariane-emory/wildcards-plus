@@ -8713,7 +8713,7 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // mod RJSONC:
 // =================================================================================================
-const rJsonc_internal_word_break = r(/(?=[\s,])/);
+// const rJsonc_internal_word_break = r(/(?=[\s,])/);
 const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
                                                   first(choice(seq(choice(JsoncObject,    // rJsoncObject,
                                                                           JsoncArray,     // rJsoncArray,
