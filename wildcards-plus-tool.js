@@ -532,6 +532,8 @@ class Rule {
     
     // this.__direct_children = () => [];
     this.abbreviated       = true;
+
+    return this;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
@@ -8723,64 +8725,8 @@ const rJsoncTopLevel        = second(wst_seq(jsonc_comments,
                                                                      json_false,
                                                                      json_number),
                                                               () => SpecialFunctionTail))),
-                                             /* jsonc_comments */)); // these would be consumed by SpecialFunctionTail anyhow, right?
-// maybe this could be replaced with normal RJSONC:
-// const mod_rJsonc_internal        = second(wst_seq(jsonc_comments,
-//                                                   choice(() => mod_rJsoncObject,
-//                                                          () => mod_rJsoncArray,
-//                                                          // first(seq(rjsonc_string, rJsonc_internal_word_break)),
-//                                                          rjsonc_string,
-//                                                          first(seq(choice(json_null,     json_true,
-//                                                                           json_false,    json_number),
-//                                                                    rJsonc_internal_word_break))),
-//                                                   jsonc_comments));
-// const mod_rJsoncArray =
-//       wst_cutting_enc(lsqr,
-//                       wst_star(second(seq(jsonc_comments,
-//                                           mod_rJsonc_internal,
-//                                           jsonc_comments)),
-//                                comma),
-//                       rsqr);
-// const mod_rJsoncObject =
-//       choice(
-//         xform(arr => ({}), wst_seq(lbrc, rbrc)),
-//         xform(arr => {
-//           const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
-//           return Object.fromEntries(new_arr);
-//         },
-//               wst_cutting_seq(
-//                 wst_enc(lbrc, choice(rjsonc_string, c_ident), colon), // dumb hack for rainbow brackets sake
-//                 jsonc_comments,
-//                 mod_rJsonc_internal,
-//                 jsonc_comments,
-//                 optional(second(wst_seq(comma,
-//                                         wst_star(
-//                                           xform(arr =>  [arr[1], arr[5]],
-//                                                 wst_seq(jsonc_comments,
-//                                                         choice(rjsonc_string, c_ident),
-//                                                         jsonc_comments,
-//                                                         colon,
-//                                                         jsonc_comments,
-//                                                         mod_rJsonc_internal, 
-//                                                         jsonc_comments
-//                                                        )),
-//                                           comma)),
-//                                )),
-//                 rbrc)));
-// mod_rJsoncArray           .abbreviate_str_repr('mod_rJsoncArray');
-// rJsonc_internal_word_break.abbreviate_str_repr('rJsonc_internal_word_break');
-// mod_rJsoncObject          .abbreviate_str_repr('mod_rJsoncObject');
-// =================================================================================================
-// word breaks:
-// =================================================================================================
-// these are inadvisably complex:
-// const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
-// const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
-// const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
-// // -------------------------------------------------------------------------------------------------
-// word_break                         .abbreviate_str_repr('word_break');
-// simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
-// simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
+                                             // v these would be consumed by SpecialFunctionTail anyhow, right?
+                                             /* jsonc_comments */)); 
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
@@ -8886,21 +8832,27 @@ const TestFlag                     = choice(
   CheckFlagWithOrAlternatives,
 );
 // -------------------------------------------------------------------------------------------------
-const UnexpectedTopLevelTestFlag    = rule => 
+//const UnexpectedTestFlagAtTopLevel    = rule =>
+const unexpected_TestFlag_at_top_level    = rule => 
       unexpected(rule, (rule, input, index) =>
-        new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
-                            `serve no purpose and so are not permitted`,
+        new FatalParseError(`check/not flag guards without set consequents at the top level ` +
+                            `would serve no purpose and so are not permitted`,
                             input, index));
 const wrap_TestFlag_in_AnonWildcard = rule =>
       xform(rule, flag =>
         new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
 // -------------------------------------------------------------------------------------------------
 const TopLevelTestFlag              = choice(
-  UnexpectedTopLevelTestFlag(SimpleCheckFlag),
-  UnexpectedTopLevelTestFlag(SimpleNotFlag),
-  wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent),
-  wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent),
-  UnexpectedTopLevelTestFlag(CheckFlagWithOrAlternatives),
+  unexpected_TestFlag_at_top_level(SimpleCheckFlag)
+    .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
+  unexpected_TestFlag_at_top_level(SimpleNotFlag)
+    .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
+  wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+    .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+  wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+    .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+  unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
+    .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'),
 );
 // -------------------------------------------------------------------------------------------------
 TestFlag                   .abbreviate_str_repr('TestFlag');
