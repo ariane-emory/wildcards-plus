@@ -9115,10 +9115,10 @@ const ScalarAssignment        =
             cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
                         discarded_comments,                   // -
                         lws(choice(() => rjsonc_string, // [1][1]
-                                   () => hwst_plus(choice(LimitedContentNoSemis,
-                                                          discarded_comment)),
-                                   // () => LimitedContentNoSemis,
-                                   SpecialFunctionTail)))));
+                                   // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
+                                   () => LimitedContentNoSemis,
+                                  )),
+                        SpecialFunctionTail)));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // =================================================================================================
 // Content-related rules:
