@@ -1069,9 +1069,8 @@ class Element extends Rule {
     //       `${inspect_fun(rule_match_result)}'s value.`);
     // }
 
-    // I forget why I did this? Could be a bad idea?
     const ret = rule_match_result.value[this.index] === undefined
-          ? DISCARD
+          ? DISCARD // <- I forget why I did this? Could be a bad idea?
           : rule_match_result.value[this.index];
     
     if (log_match_enabled) 
@@ -8714,9 +8713,9 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // mod RJSONC:
 // =================================================================================================
 // const rJsonc_internal_word_break = r(/(?=[\s,])/);
-const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
-                                                  first(choice(seq(choice(JsoncObject,    // rJsoncObject,
-                                                                          JsoncArray,     // rJsoncArray,
+const rJsoncTopLevel        = second(wst_seq(jsonc_comments,
+                                             first(choice(seq(choice(JsoncObject,    // rJsoncObject,
+                                                                     JsoncArray,     // rJsoncArray,
                                                                           rjsonc_string),
                                                                    optional(() => SpecialFunctionTail)),
                                                                seq(choice(json_null,     json_true,
@@ -9066,7 +9065,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                                 // -
                 cutting_seq(lws(any_assignment_operator),                           // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(mod_rJsonc_external,
+                            lws(choice(rJsoncTopLevel,
                                        first(seq(() => LimitedContentNoSemis,
                                                  SpecialFunctionTail))))            // [1][1]
                            )));
