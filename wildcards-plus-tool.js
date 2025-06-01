@@ -3365,13 +3365,13 @@ function format_pretty_list(arr) {
   const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
 
   if (items.length === 0)
-    return "";
+    return '';
   if (items.length === 1)
     return items[0];
   if (items.length === 2)
     return `${items[0]} and ${items[1]}`;
 
-  const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  const ret = `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
   
   return ret;
 }
@@ -9007,8 +9007,8 @@ const SpecialFunctionNotInclude =
 const NamedWildcardReference  = xform(seq(at,                                        // [0]
                                           optional(caret),                           // [1]
                                           optional(xform(parseInt, uint)),           // [2]
-                                          optional(xform(parseInt,
-                                                         second(seq(dash, uint)))),  // [3]
+                                          optional(xform(parseInt,                   // [3]
+                                                         second(seq(dash, uint)))),
                                           optional(/[,&]/),                          // [4]
                                           ident,                                     // [5]
                                           optional(/(?:\.\.\.|[,.!?])/, ''),         // [6]
