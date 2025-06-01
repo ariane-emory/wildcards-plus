@@ -4238,10 +4238,12 @@ const prelude_text = prelude_disabled ? '' : `
                            {?gender.female hers
                            |?gender.male   his
                            |?gender.neuter its       }}
+
 @any_digit              = {\\0|\\1|\\2|\\3|\\4
                           |\\5|\\6|\\7|\\8|\\9}
 @low_digit              = {\\0|\\1|\\2|\\3|\\4}
 @high_digit             = {\\5|\\6|\\7|\\8|\\9}
+
 @low_random_weight      = {0.< @low_digit }
 @lt1_random_weight      = {0.< @any_digit } 
 @lowish_random_weight   = {0.< @high_digit}
@@ -4249,12 +4251,31 @@ const prelude_text = prelude_disabled ? '' : `
 @highish_random_weight  = {1.< @low_digit }
 @gt1_random_weight      = {1.< @any_digit }
 @high_random_weight     = {1.< @high_digit}
-@pony_score_9           = {                                                             score_9, }
-@pony_score_8_up        = {                                                 score_8_up, score_9, }
-@pony_score_7_up        = {                                     score_7_up, score_8_up, score_9, }
-@pony_score_6_up        = {                         score_6_up, score_7_up, score_8_up, score_9, }
-@pony_score_5_up        = {             score_5_up, score_6_up, score_7_up, score_8_up, score_9, }
-@pony_score_4_up        = { score_4_up, score_5_up, score_6_up, score_7_up, score_8_up, score_9, }
+
+// @pony_score_9           = { score_9, score_8_up,                                                  }
+// @pony_score_8_up        = { score_9, score_8_up, score_7_up,                                      }
+// @pony_score_7_up        = { score_9, score_8_up, score_7_up,                                      }
+// @pony_score_6_up        = { score_9, score_8_up, score_7_up, score_6_up,                          }
+// @pony_score_5_up        = { score_9, score_8_up, score_7_up, score_6_up,             score_5_up,  }
+// @pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_ }
+
+@pony_scores =
+{0
+|?pony score_4_up,
+|?pony score_5_up,
+|?pony score_6_up,
+|?pony score_7_up,
+|?pony score_8_up,
+|?pony score_9,
+}
+
+@high_pony_scores =
+{0
+|?pony score_7_up,
+|?pony score_8_up,
+|?pony score_9,
+}
+
 @aris_defaults          = { masterpiece, best quality, absurdres, aesthetic, 8k,
                             high depth of field, ultra high resolution, detailed background,
                             wide shot,}
