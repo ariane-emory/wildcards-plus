@@ -8690,7 +8690,7 @@ const plain_text_no_semis      = make_plain_text_rule(';')
 // =================================================================================================
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
       .abbreviate_str_repr('A1111StyleLoraWeight');
-const A1111StyleLora       =
+const A1111StyleLora =
       xform(arr => new ASTLora(arr[3], arr[4][0]),
             wst_seq(ltri,                                   // [0]
                     'lora',                                 // [1]
@@ -8702,7 +8702,6 @@ const A1111StyleLora       =
                              "1.0"), // [4][0]
                     rtri))
       .abbreviate_str_repr('A1111StyleLora');
-// -------------------------------------------------------------------------------------------------
 // =================================================================================================
 // mod RJSONC:
 // =================================================================================================
@@ -8723,21 +8722,13 @@ const ExposedRjsonc =
 // flag-related rules:
 // =================================================================================================
 const SimpleCheckFlag =
-      xform(seq_with_swb(question, dot_chained(ident)),
+      xform(seq_with_swb(question,
+                         dot_chained(ident)),
             arr => {
-              // lm.log(`ARR: ${inspect_fun(arr)}`);
-              
               const args = [arr[1]];
-
-              // if (log_flags_enabled) {
-              //   lm.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
-              //               `GOT ARR ${inspect_fun(arr)}`);
-              //   lm.log(`CONSTRUCTING CHECKFLAG (simple) ` +
-              //               `WITH ARGS ${inspect_fun(args)}`);
-              // }
-
               return new ASTCheckFlags(args);
-            });
+            })
+      .abbreviate_str_repr('SimpleCheckFlag');
 const SimpleNotFlag =
       xform(seq_with_swb(bang,
                          optional(hash),
@@ -8745,31 +8736,16 @@ const SimpleNotFlag =
             arr => {
               const args = [arr[2],
                             { set_immediately: !!arr[1][0]}];
-
-              // if (log_flags_enabled) {
-              //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
-              //               `GOT arr ${inspect_fun(arr)}`);
-              //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
-              //               `WITH ARGS ${inspect_fun(args)}`);
-              // }
-
               return new ASTNotFlag(...args);
             })
+      .abbreviate_str_repr('SimpleNotFlag');
 const CheckFlagWithOrAlternatives =
       xform(cutting_seq_with_swb(question,
                                  plus(dot_chained(ident), comma)),
             arr => {
               const args = [arr[1]];
-
-              // if (log_flags_enabled) {
-              //   lm.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
-              //               `GOT ARR ${inspect_fun(arr)}`);
-              //   lm.log(`CONSTRUCTING CHECKFLAG (or) ` +
-              //               `WITH ARGS ${inspect_fun(args)}`);
-              // }
-
               return new ASTCheckFlags(...args);
-            });
+            }).abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const CheckFlagWithSetConsequent =
       xform(cutting_seq_with_swb(question,            // [0]
                                  dot_chained(ident),  // [1]
@@ -8777,16 +8753,8 @@ const CheckFlagWithSetConsequent =
                                  dot_chained(ident)), // [3]
             arr => {
               const args = [ [ arr[1] ], arr[3] ]; 
-
-              // if (log_flags_enabled) {
-              //   lm.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
-              //               `GOT ARR ${inspect_fun(arr)}`);
-              //   lm.log(`CONSTRUCTING CHECKFLAG (set) ` +
-              //               `WITH ARGS ${inspect_fun(args)}`);
-              // }
-
               return new ASTCheckFlags(...args);
-            });
+            }).abbreviate_str_repr('CheckFlagWithSetConsequent');
 const NotFlagWithSetConsequent =
       xform(cutting_seq_with_swb(bang,
                                  dot_chained(ident),
@@ -8795,38 +8763,23 @@ const NotFlagWithSetConsequent =
             arr => {
               const args = [arr[1],
                             { consequently_set_flag_tail: arr[3] }]; 
-
-              // if (log_flags_enabled) {
-              //   lm.log(`CONSTRUCTING NOTFLAG (set) `+
-              //               `GOT arr ${inspect_fun(arr)}`);
-              //   lm.log(`CONSTRUCTING NOTFLAG (set) ` +
-              //               `WITH ARGS ${inspect_fun(args)}`);
-              // }
-              
               return new ASTNotFlag(...args);
-            })
+            }).abbreviate_str_repr('NotFlagWithSetConsequent');
 const SetFlag =
       xform(second(cutting_seq_with_swb(hash, dot_chained(ident))),
-            arr => new ASTSetFlag(arr));
+            arr => new ASTSetFlag(arr))
+  .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
       xform(second(cutting_seq_with_swb(shebang, dot_chained(ident))),
-            arr => new ASTUnsetFlag(arr));
+            arr => new ASTUnsetFlag(arr))
+      .abbreviate_str_repr('UnsetFlag');
 const TestFlag = choice(
   SimpleCheckFlag,
   SimpleNotFlag,
   CheckFlagWithSetConsequent,
   NotFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
-);
-// -------------------------------------------------------------------------------------------------
-TestFlag                   .abbreviate_str_repr('TestFlag');
-SimpleCheckFlag            .abbreviate_str_repr('SimpleCheckFlag');
-SimpleNotFlag              .abbreviate_str_repr('SimpleNotFlag');
-CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
-CheckFlagWithSetConsequent .abbreviate_str_repr('CheckFlagWithSetConsequent');
-NotFlagWithSetConsequent   .abbreviate_str_repr('NotFlagWithSetConsequent');
-SetFlag                    .abbreviate_str_repr('SetFlag');
-UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
+).abbreviate_str_repr('TestFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
       unexpected(rule, (rule, input, index) =>
@@ -8905,15 +8858,15 @@ const make_AnonWildcard_rule  = alternative_rule  =>
       xform(arr => new ASTAnonWildcard(arr),
             wst_brc_enc(wst_star(alternative_rule, pipe)));
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
-const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
-const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
+const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar)
+      .abbreviate_str_repr('AnonWildcardAlternative');
+const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar)
+      .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative)
+      .abbreviate_str_repr('AnonWildcard');
+const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras)
+      .abbreviate_str_repr('AnonWildcardNoLoras');
 // -------------------------------------------------------------------------------------------------
-AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
-AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-AnonWildcard                         .abbreviate_str_repr('AnonWildcard');
-AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras');
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
@@ -8952,7 +8905,8 @@ const SpecialFunctionInclude =
                                         rjsonc_string,           // [0][1]
                                         discarded_comments,      // -
                                        ))),  
-                SpecialFunctionTail));
+                SpecialFunctionTail))
+      .abbreviate_str_repr('SpecialFunctionInclude');
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -9022,12 +8976,9 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionSetPickMultiple,
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
-                         )));
-// -------------------------------------------------------------------------------------------------
-SpecialFunctionInclude
-  .abbreviate_str_repr('SpecialFunctionInclude');
-SpecialFunctionNotInclude
+                         )))
   .abbreviate_str_repr('SpecialFunctionNotInclude');
+// -------------------------------------------------------------------------------------------------
 SpecialFunctionRevertPickMultiple
   .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 SpecialFunctionRevertPickSingle
