@@ -8885,28 +8885,22 @@ const TestFlag                     = choice(
   NotFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
 );
-const bad_TopLevelTestFlag = (rule, input, index) =>
-      new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
-                          `serve no purpose and so are not permitted`,
-                          input, index);
-const TopLevelTestFlag             = choice(
-  unexpected(SimpleCheckFlag, bad_TopLevelTestFlag),
-  unexpected(SimpleNotFlag, bad_TopLevelTestFlag),
-  xform(CheckFlagWithSetConsequent,
-        flag => {
-          //lm.log(`cfwsc flag: ${compress(inspect_fun(flag))}`);
-          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
-          // lm.log(`cfwsc ret:  ${inspect_fun(ret)}`);
-          return ret;
-        }),
-  xform(NotFlagWithSetConsequent,
-        flag => {
-          //lm.log(`nfwsc flag: ${compress(inspect_fun(flag))}`);
-          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
-          // lm.log(`nfwsc ret:  ${inspect_fun(ret)}`);
-          return ret;
-        }),
-  unexpected(CheckFlagWithOrAlternatives, bad_TopLevelTestFlag),
+// -------------------------------------------------------------------------------------------------
+const UnexpectedTopLevelTestFlag   = rule => 
+      unexpected(rule, (rule, input, index) =>
+        new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
+                            `serve no purpose and so are not permitted`,
+                            input, index));
+const wrap_TestFlag_in_AnonWildcard = rule =>
+      xform(rule, flag =>
+        new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
+// -------------------------------------------------------------------------------------------------
+const TopLevelTestFlag              = choice(
+  UnexpectedTopLevelTestFlag(SimpleCheckFlag),
+  UnexpectedTopLevelTestFlag(SimpleNotFlag),
+  wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent),
+  wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent),
+  UnexpectedTopLevelTestFlag(CheckFlagWithOrAlternatives),
 );
 // -------------------------------------------------------------------------------------------------
 TestFlag                   .abbreviate_str_repr('TestFlag');
