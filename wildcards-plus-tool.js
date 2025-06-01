@@ -9011,7 +9011,7 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                                          second(seq(dash, uint)))),  // [3]
                                           optional(/[,&]/),                          // [4]
                                           ident,                                     // [5]
-                                          optional(/[,.!?]/, ''),                    // [6]
+                                          optional(/\.\.\,|[,.!?]/, ''),                    // [6]
                                          ), 
                                       arr => {
                                         const ident   = arr[5];
