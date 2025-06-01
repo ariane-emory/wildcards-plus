@@ -8705,60 +8705,6 @@ const A1111StyleLora       =
 A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
 A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
-// mod RJSONC:
-// =================================================================================================
-const rJsonc_internal_word_break = r(/(?=[\s,:])/);
-const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
-                                                  choice(() => rJsoncObject,
-                                                         () => mod_rJsoncArray,
-                                                         seq(choice(rjsonc_string,
-                                                                    json_null,     json_true,
-                                                                    json_false,    json_number),
-                                                             structural_word_break)),
-                                                  jsonc_comments));
-const mod_rJsonc_internal         = second(wst_seq(jsonc_comments,
-                                                   choice(() => mod_rJsoncObject,
-                                                          () => mod_rJsoncArray,
-                                                          first(seq(rjsonc_string, rJsonc_internal_word_break)),
-                                                         seq(choice(json_null,     json_true,
-                                                                    json_false,    json_number),
-                                                             rJsonc_internal_word_break)),
-                                                  jsonc_comments));
-const mod_rJsoncArray =
-      wst_cutting_enc(lsqr,
-                      wst_star(second(seq(jsonc_comments,
-                                          mod_rJsonc_internal,
-                                          jsonc_comments)),
-                               comma),
-                      rsqr);
-
-const mod_rJsoncObject =
-      choice(
-        xform(arr => ({}), wst_seq(lbrc, rbrc)),
-        xform(arr => {
-          const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
-          return Object.fromEntries(new_arr);
-        },
-              wst_cutting_seq(
-                wst_enc(lbrc, choice(rjsonc_string, c_ident), colon), // dumb hack for rainbow brackets sake
-                jsonc_comments,
-                mod_rJsonc_internal,
-                jsonc_comments,
-                optional(second(wst_seq(comma,
-                                        wst_star(
-                                          xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(jsonc_comments,
-                                                        choice(rjsonc_string, c_ident),
-                                                        jsonc_comments,
-                                                        colon,
-                                                        jsonc_comments,
-                                                        mod_rJsonc_internal, 
-                                                        jsonc_comments
-                                                       )),
-                                          comma)),
-                               )),
-                rbrc)));
-// =================================================================================================
 // word breaks:
 // =================================================================================================
 // these are inadvisably complex:
