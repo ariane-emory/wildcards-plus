@@ -8720,8 +8720,7 @@ const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
                                                          rjsonc_string,
                                                          first(seq(choice(json_null,     json_true,
                                                                           json_false,    json_number),
-                                                                   choice(structural_word_break,
-                                                                          semicolon),
+                                                                   () => SpecialFunctionTail,
                                                                   ))),
                                                   jsonc_comments));
 const mod_rJsonc_internal        = second(wst_seq(jsonc_comments,
@@ -8988,7 +8987,7 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 // non-terminals for the special functions/variables:
 // =================================================================================================
 const SpecialFunctionTail = choice(
-  seq(discarded_comments, optional(lws(semicolon))),
+  seq(discarded_comments, lws(semicolon)),
   structural_word_break,
 );
 // const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
