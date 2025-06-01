@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = true;
+  // log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -290,7 +290,7 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
@@ -8714,18 +8714,18 @@ const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
                                                   choice(() => mod_rJsoncObject,
                                                          () => mod_rJsoncArray,
                                                          rjsonc_string,
-                                                         seq(choice(json_null,     json_true,
-                                                                    json_false,    json_number),
-                                                             structural_word_break)),
+                                                         first(seq(choice(json_null,     json_true,
+                                                                          json_false,    json_number),
+                                                                   structural_word_break))),
                                                   jsonc_comments));
 const mod_rJsonc_internal        = second(wst_seq(jsonc_comments,
                                                   choice(() => mod_rJsoncObject,
                                                          () => mod_rJsoncArray,
                                                          // first(seq(rjsonc_string, rJsonc_internal_word_break)),
                                                          rjsonc_string,
-                                                         seq(choice(json_null,     json_true,
-                                                                    json_false,    json_number),
-                                                             rJsonc_internal_word_break)),
+                                                         first(seq(choice(json_null,     json_true,
+                                                                          json_false,    json_number),
+                                                                   rJsonc_internal_word_break))),
                                                   jsonc_comments));
 const mod_rJsoncArray =
       wst_cutting_enc(lsqr,
