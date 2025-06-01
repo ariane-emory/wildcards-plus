@@ -2624,7 +2624,7 @@ c_shift_assign           .abbreviate_str_repr('c_shift_assign');
 c_unicode_ident          .abbreviate_str_repr('c_unicode_ident');
 // -------------------------------------------------------------------------------------------------
 // dotted chains:
-const dot_chain          = rule => plus(rule, dot); 
+const dot_chained        = rule => plus(rule, dot); 
 // -------------------------------------------------------------------------------------------------
 // common comment styles:
 const c_block_comment    = r(/\/\*[^]*?\*\//);
@@ -8784,8 +8784,7 @@ const rJsoncTopLevel        = second(wst_seq(jsonc_comments,
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-const SimpleCheckFlag              = xform(seq_with_swb(question,
-                                                        plus(ident, dot)),
+const SimpleCheckFlag              = xform(seq_with_swb(question, dot_chained(ident)),
                                            arr => {
                                              // lm.log(`ARR: ${inspect_fun(arr)}`);
                                              
@@ -8802,7 +8801,7 @@ const SimpleCheckFlag              = xform(seq_with_swb(question,
                                            });
 const SimpleNotFlag                = xform(seq_with_swb(bang,
                                                         optional(hash),
-                                                        plus(ident, dot)),
+                                                        dot_chained(ident)),
                                            arr => {
                                              const args = [arr[2],
                                                            { set_immediately: !!arr[1][0]}];
@@ -8817,7 +8816,7 @@ const SimpleNotFlag                = xform(seq_with_swb(bang,
                                              return new ASTNotFlag(...args);
                                            })
 const CheckFlagWithOrAlternatives  = xform(cutting_seq_with_swb(question,
-                                                                plus(plus(ident, dot), comma)),
+                                                                plus(dot_chained(ident), comma)),
                                            arr => {
                                              const args = [arr[1]];
 
@@ -8830,10 +8829,10 @@ const CheckFlagWithOrAlternatives  = xform(cutting_seq_with_swb(question,
 
                                              return new ASTCheckFlags(...args);
                                            });
-const CheckFlagWithSetConsequent   = xform(cutting_seq_with_swb(question,          // [0]
-                                                                plus(ident, dot),  // [1]
-                                                                dot_hash,          // [2]
-                                                                plus(ident, dot)), // [3]
+const CheckFlagWithSetConsequent   = xform(cutting_seq_with_swb(question,            // [0]
+                                                                dot_chained(ident),  // [1]
+                                                                dot_hash,            // [2]
+                                                                dot_chained(ident)), // [3]
                                            arr => {
                                              const args = [ [ arr[1] ], arr[3] ]; 
 
@@ -8847,9 +8846,9 @@ const CheckFlagWithSetConsequent   = xform(cutting_seq_with_swb(question,       
                                              return new ASTCheckFlags(...args);
                                            });
 const NotFlagWithSetConsequent     = xform(cutting_seq_with_swb(bang,
-                                                                plus(ident, dot),
+                                                                dot_chained(ident),
                                                                 dot_hash,
-                                                                plus(ident, dot)),
+                                                                dot_chained(ident)),
                                            arr => {
                                              const args = [arr[1],
                                                            { consequently_set_flag_tail: arr[3] }]; 
@@ -8863,8 +8862,7 @@ const NotFlagWithSetConsequent     = xform(cutting_seq_with_swb(bang,
                                              
                                              return new ASTNotFlag(...args);
                                            })
-const SetFlag                      = xform(second(cutting_seq_with_swb(hash,
-                                                                       plus(ident, dot))),
+const SetFlag                      = xform(second(cutting_seq_with_swb(hash, dot_chained(ident))),
                                            arr => {
                                              // if (log_flags_enabled)
                                              //   if (arr.length > 1)
@@ -8872,8 +8870,7 @@ const SetFlag                      = xform(second(cutting_seq_with_swb(hash,
                                              //                 `${inspect_fun(arr)}`);
                                              return new ASTSetFlag(arr);
                                            });
-const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang,
-                                                                       plus(ident, dot))),
+const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang, dot_chained(ident))),
                                            arr => {
                                              // if (log_flags_enabled)
                                              //   if (arr.length > 1)

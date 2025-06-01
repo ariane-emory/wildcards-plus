@@ -1787,11 +1787,6 @@ function index_is_at_end_of_input(index, input) {
 //   lm.log(`${indent_str.repeat(indent)}${str}`);
 // }
 // -------------------------------------------------------------------------------------------------
-function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
-  lm.log(char.repeat(width));
-}
-LOG_LINE.line_width = 100;
-// -------------------------------------------------------------------------------------------------
 function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
   if (typeof thing === 'string')
     return new Literal(thing);
@@ -1836,8 +1831,6 @@ function pipe_funs(...fns) {
 // =================================================================================================
 const prettify_whitespace_combinators = true;
 // =================================================================================================
-
-// =================================================================================================
 const lws0                = rule => {
   rule = second(seq(whites_star, rule));
   
@@ -1863,7 +1856,6 @@ const tws0                = rule => {
   return rule;
 };
 // =================================================================================================
-
 
 // =================================================================================================
 function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
@@ -1958,7 +1950,6 @@ const [ WithTWS, tws1 ] =
       make_whitespace_Rule_class_and_factory_fun("TWS1", rule => first(seq(rule, whites_star)));
 // =================================================================================================
 
-
 // =================================================================================================
 function make_whitespace_decorator0(name, builder, extractor) {
   return rule => {
@@ -1983,7 +1974,6 @@ const tws2 = make_whitespace_decorator0("TWS2",
                                         rule => rule.elements[0]
                                        );
 // =================================================================================================
-
 
 // =================================================================================================
 function make_whitespace_decorator1(name, builder) {
@@ -2016,7 +2006,6 @@ function make_whitespace_decorator1(name, builder) {
 const lws3 = make_whitespace_decorator1("LWS3", rule => second(seq(whites_star, rule)));
 const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_star)));
 // =================================================================================================
-
 
 // =================================================================================================
 function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
@@ -2111,13 +2100,13 @@ const hwhites_star       = r(/[ \t]*/);
 const hwhites_plus       = r(/[ \t]+/);
 // whites_star.memoize = false;
 // whites_plus.memoize = false;
-whites_star.abbreviate_str_repr('whites*');
-whites_plus.abbreviate_str_repr('whites+');
+whites_star .abbreviate_str_repr('whites*');
+whites_plus .abbreviate_str_repr('whites+');
 hwhites_star.abbreviate_str_repr('hwhites*');
 hwhites_plus.abbreviate_str_repr('hwhites+');
 // -------------------------------------------------------------------------------------------------
-const lws = make_whitespace_decorator2("LWS", 1, whites_star);
-const tws = make_whitespace_decorator2("TWS", 0, whites_star);
+const lws  = make_whitespace_decorator2("LWS", 1, whites_star);
+const tws  = make_whitespace_decorator2("TWS", 0, whites_star);
 const lhws = make_whitespace_decorator2("LWS", 1, hwhites_star);
 const thws = make_whitespace_decorator2("TWS", 0, hwhites_star);
 // -------------------------------------------------------------------------------------------------
@@ -2219,11 +2208,11 @@ const ltri               = l('<');
 const rbrc               = l('{}'[1]);
 const rpar               = l(')');
 const rsqr               = l('[]'[1]);
-gt.abbreviate_str_repr('gt');
+gt  .abbreviate_str_repr('gt');
+lt  .abbreviate_str_repr('lt');
 lbrc.abbreviate_str_repr('lbrc');
 lpar.abbreviate_str_repr('lpar');
 lsqr.abbreviate_str_repr('lsqr');
-lt.abbreviate_str_repr('lt');
 ltri.abbreviate_str_repr('ltri');
 rbrc.abbreviate_str_repr('rbrc');
 rpar.abbreviate_str_repr('rpar');
@@ -2235,23 +2224,12 @@ const par_enc            = rule => cutting_enc(lpar, rule, rpar);
 const brc_enc            = rule => cutting_enc(lbrc, rule, rbrc);
 const sqr_enc            = rule => cutting_enc(lsqr, rule, rsqr);
 const tri_enc            = rule => cutting_enc(lt,   rule, gt);
-// const wse                = rule => enc(whites_star, rule, whites_star);
-// const wse                = rule => {
-//   rule = enc(whites_star, rule, whites_star);
-
-//   rule.__impl_toString = function(visited, next_id, ref_counts) {
-//     const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
-//     return `WSE(${rule_str})`;
-//   }
-
-//   return rule;
-// };
 // -------------------------------------------------------------------------------------------------
 // basic arithmetic ops:
 const factor_op          = r(/[\/\*\%]/);
 const term_op            = r(/[\+\-]/);
 factor_op.abbreviate_str_repr('factor_op');
-term_op.abbreviate_str_repr('term_op');
+term_op  .abbreviate_str_repr('term_op');
 // -------------------------------------------------------------------------------------------------
 // Pascal-like terminals:
 const pascal_assign_op   = l('=');
@@ -2261,7 +2239,7 @@ pascal_assign_op.abbreviate_str_repr('pascal_assign_op');
 const python_exponent_op = l('**');
 const python_logic_word  = r(/and|or|not|xor/);
 python_exponent_op.abbreviate_str_repr('python_exponent_op');
-python_logic_word.abbreviate_str_repr('python_logic_word');
+python_logic_word .abbreviate_str_repr('python_logic_word');
 // -------------------------------------------------------------------------------------------------
 // common punctuation:
 const at                 = l('@');
@@ -2290,32 +2268,32 @@ const range              = l('..');
 const semicolon          = l(';');
 const shebang            = l('#!');
 const slash              = l('/');
-ampersand.abbreviate_str_repr('ampersand');
-at.abbreviate_str_repr('at');
-asterisk.abbreviate_str_repr('asterisk');
-bang.abbreviate_str_repr('bang');
-bslash.abbreviate_str_repr('bslash');
-caret.abbreviate_str_repr('caret');
-colon.abbreviate_str_repr('colon');
-comma.abbreviate_str_repr('comma');
-dash.abbreviate_str_repr('dash');
-dash_arrow.abbreviate_str_repr('dash_arrow');
-decr_equals.abbreviate_str_repr('decr_equals');
-plus_equals.abbreviate_str_repr('plus_equals');
-dollar.abbreviate_str_repr('dollar');
-dot.abbreviate_str_repr('dot');
-ellipsis.abbreviate_str_repr('ellipsis');
-equals_arrow.abbreviate_str_repr('eq_arrow');
-equals.abbreviate_str_repr('equals');
-hash.abbreviate_str_repr('hash');
-percent.abbreviate_str_repr('percent');
-pipe.abbreviate_str_repr('pipe');
-pound.abbreviate_str_repr('pound');
-question.abbreviate_str_repr('question');
-range.abbreviate_str_repr('range');
-semicolon.abbreviate_str_repr('semicolon');
-shebang.abbreviate_str_repr('shebang');
-slash.abbreviate_str_repr('slash');
+ampersand                .abbreviate_str_repr('ampersand');
+at                       .abbreviate_str_repr('at');
+asterisk                 .abbreviate_str_repr('asterisk');
+bang                     .abbreviate_str_repr('bang');
+bslash                   .abbreviate_str_repr('bslash');
+caret                    .abbreviate_str_repr('caret');
+colon                    .abbreviate_str_repr('colon');
+comma                    .abbreviate_str_repr('comma');
+dash                     .abbreviate_str_repr('dash');
+dash_arrow               .abbreviate_str_repr('dash_arrow');
+decr_equals              .abbreviate_str_repr('decr_equals');
+plus_equals              .abbreviate_str_repr('plus_equals');
+dollar                   .abbreviate_str_repr('dollar');
+dot                      .abbreviate_str_repr('dot');
+ellipsis                 .abbreviate_str_repr('ellipsis');
+equals_arrow             .abbreviate_str_repr('eq_arrow');
+equals                   .abbreviate_str_repr('equals');
+hash                     .abbreviate_str_repr('hash');
+percent                  .abbreviate_str_repr('percent');
+pipe                     .abbreviate_str_repr('pipe');
+pound                    .abbreviate_str_repr('pound');
+question                 .abbreviate_str_repr('question');
+range                    .abbreviate_str_repr('range');
+semicolon                .abbreviate_str_repr('semicolon');
+shebang                  .abbreviate_str_repr('shebang');
+slash                    .abbreviate_str_repr('slash');
 // -------------------------------------------------------------------------------------------------
 // C-like numbers:
 const c_bin              = r(/0b[01]/);
@@ -3036,6 +3014,11 @@ function indent_lines(indent, str, indent_str = "| ") {
 
   return indented_str;
 }
+// -------------------------------------------------------------------------------------------------
+function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
+  lm.log(char.repeat(width));
+}
+LOG_LINE.line_width = 100;
 // -------------------------------------------------------------------------------------------------
 function measure_time(fun) {
   const start    = performance.now();
