@@ -8715,12 +8715,13 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 const rJsonc_internal_word_break = r(/(?=[\s,])/);
 const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
-                                                  choice(() => mod_rJsoncObject,
-                                                         () => mod_rJsoncArray,
-                                                         rjsonc_string,
+                                                  choice(first(seq(choice(() => mod_rJsoncObject,
+                                                                          () => mod_rJsoncArray,
+                                                                          rjsonc_string),
+                                                                   optional(() => SpecialFunctionTail))),
                                                          first(seq(choice(json_null,     json_true,
                                                                           json_false,    json_number),
-                                                                   // () => SpecialFunctionTail,
+                                                                   () => SpecialFunctionTail,
                                                                   ))),
                                                   jsonc_comments));
 const mod_rJsonc_internal        = second(wst_seq(jsonc_comments,
@@ -9065,8 +9066,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                                 // -
                 cutting_seq(lws(any_assignment_operator),                           // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(first(seq(mod_rJsonc_external,
-                                                 optional(SpecialFunctionTail))),
+                            lws(choice(mod_rJsonc_external,
                                        first(seq(() => LimitedContentNoSemis,
                                                  SpecialFunctionTail))))            // [1][1]
                            )));
