@@ -2669,7 +2669,8 @@ const enclosing       = (left, enclosed, right) =>
 // =================================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
 const Json = choice(() => JsonObject,  () => JsonArray,
-                    () => json_string, () => json_true,   () => json_false,
+                    () => json_string,
+                    () => json_true,   () => json_false,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const JsonObject = xform(arr =>  Object.fromEntries(arr), 
@@ -2751,9 +2752,10 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =================================================================================================
 const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(jsonc_comments,
-                             choice(() => JsoncObject,  () => JsoncArray,
-                                    json_string,  json_true, json_false,
-                                    json_null,    json_number),
+                             choice(() => JsoncObject, () => JsoncArray,
+                                    json_string,
+                                    json_null,         json_true,
+                                    json_false,        json_number),
                              jsonc_comments));
 const JsoncArray =
       wst_cutting_enc(lsqr,
