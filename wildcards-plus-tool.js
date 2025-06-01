@@ -8935,21 +8935,23 @@ const SpecialFunctionSetPickMultiple =
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                SpecialFunctionTail));
+                SpecialFunctionTail))
+      .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                SpecialFunctionTail));
+                SpecialFunctionTail))
+      .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                            // [0]
-                discarded_comments,                                                 // -
-                cutting_seq(lws(any_assignment_operator),                           // [1][0]
-                            discarded_comments,                                     // -
-                            lws(choice(ExposedRjsonc,
-                                       first(seq(() => LimitedContentNoSemis,
-                                                 SpecialFunctionTail))))            // [1][1]
-                           )));
+xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
+      seq(c_ident,                                                            // [0]
+          discarded_comments,                                                 // -
+          cutting_seq(lws(any_assignment_operator),                           // [1][0]
+                      discarded_comments,                                     // -
+                      lws(choice(ExposedRjsonc,
+                                 first(seq(() => LimitedContentNoSemis,
+                                           SpecialFunctionTail))))            // [1][1]
+                     )));
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
@@ -8977,12 +8979,8 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
                          )))
-  .abbreviate_str_repr('SpecialFunctionNotInclude');
+      .abbreviate_str_repr('SpecialFunctionNotInclude');
 // -------------------------------------------------------------------------------------------------
-SpecialFunctionRevertPickMultiple
-  .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
-SpecialFunctionRevertPickSingle
-  .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 SpecialFunctionSetPickMultiple
   .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 SpecialFunctionSetPickSingle
