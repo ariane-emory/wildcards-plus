@@ -2791,7 +2791,7 @@ const JsoncObject =
                                                        )),
                                           comma)),
                                )),
-                rbrc))); // dumb hack for rainbow brackets sake
+                rbrc))); 
 Jsonc.abbreviate_str_repr('Jsonc');
 jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
