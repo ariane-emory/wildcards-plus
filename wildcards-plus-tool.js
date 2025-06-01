@@ -8698,13 +8698,13 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // word breaks:
 // =================================================================================================
 // these are inadvisably complex:
-const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
-const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
-const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
-// -------------------------------------------------------------------------------------------------
-word_break                         .abbreviate_str_repr('word_break');
-simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
-simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
+// const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
+// const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
+// const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
+// // -------------------------------------------------------------------------------------------------
+// word_break                         .abbreviate_str_repr('word_break');
+// simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
+// simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
@@ -8917,9 +8917,9 @@ const SpecialFunctionTail = choice(
   lws(semicolon),
   c_comment,
 );
-const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
-                                                                  choice(lws(semicolon),
-                                                                         word_break)));
+// const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
+//                                                                   choice(lws(semicolon),
+//                                                                          word_break)));
 const TrailingCommentsAndSemicolon = discard(lws(semicolon));
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
@@ -9039,8 +9039,8 @@ SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-TrailingCommentFollowedBySemicolonOrWordBreak
-  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+// TrailingCommentFollowedBySemicolonOrWordBreak
+//   .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
 TrailingCommentsAndSemicolon
   .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 UnexpectedSpecialFunctionInclude
