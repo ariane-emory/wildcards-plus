@@ -8764,11 +8764,12 @@ const NotFlagWithSetConsequent =
               const args = [arr[1],
                             { consequently_set_flag_tail: arr[3] }]; 
               return new ASTNotFlag(...args);
-            }).abbreviate_str_repr('NotFlagWithSetConsequent');
+            })
+      .abbreviate_str_repr('NotFlagWithSetConsequent');
 const SetFlag =
       xform(second(cutting_seq_with_swb(hash, dot_chained(ident))),
             arr => new ASTSetFlag(arr))
-  .abbreviate_str_repr('SetFlag');
+      .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
       xform(second(cutting_seq_with_swb(shebang, dot_chained(ident))),
             arr => new ASTUnsetFlag(arr))
@@ -8779,7 +8780,8 @@ const TestFlag = choice(
   CheckFlagWithSetConsequent,
   NotFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
-).abbreviate_str_repr('TestFlag');
+)
+      .abbreviate_str_repr('TestFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
       unexpected(rule, (rule, input, index) =>
@@ -8854,7 +8856,7 @@ const make_AnonWildcardAlternative_rule = content_star_rule =>
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
                 lws(content_star_rule)));
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcard_rule  = alternative_rule  =>
+const make_AnonWildcard_rule            = alternative_rule  =>
       xform(arr => new ASTAnonWildcard(arr),
             wst_brc_enc(wst_star(alternative_rule, pipe)));
 // -------------------------------------------------------------------------------------------------
@@ -8891,8 +8893,8 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-          SpecialFunctionTail))
-  .abbreviate_str_repr('SpecialFunctionUINegPrompt');
+                SpecialFunctionTail))
+      .abbreviate_str_repr('SpecialFunctionUINegPrompt');
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8922,14 +8924,14 @@ const UnexpectedSpecialFunctionInclude =
                                      input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 const SpecialFunctionSetPickSingle =
-xform(arr => new ASTSetPickSingle(arr[1][1]),
-      seq('single-pick',                                                        // [0]
-          discarded_comments,                                                   // -
-          cutting_seq(lws(equals),                                              // [1][0]
-                      discarded_comments,                                       // -
-                      lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
-                      SpecialFunctionTail)))
-  .abbreviate_str_repr('SpecialFunctionSetPickSingle');
+      xform(arr => new ASTSetPickSingle(arr[1][1]),
+            seq('single-pick',                                                        // [0]
+                discarded_comments,                                                   // -
+                cutting_seq(lws(equals),                                              // [1][0]
+                            discarded_comments,                                       // -
+                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
+                            SpecialFunctionTail)))
+      .abbreviate_str_repr('SpecialFunctionSetPickSingle');
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
             seq('multi-pick',                                                         // [0]
@@ -8963,14 +8965,14 @@ const SpecialFunctionUpdateConfigurationBinary =
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
-          discarded_comments,                                                 // -
-          cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
-                      discarded_comments,                                     // -
-                      lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
-                                           optional(SpecialFunctionTail))),
-                                 first(seq(() => LimitedContentNoSemis,
-                                           SpecialFunctionTail)))),           // [1][1]
-                     )))
+                discarded_comments,                                                 // -
+                cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
+                            discarded_comments,                                     // -
+                            lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
+                                                 optional(SpecialFunctionTail))),
+                                       first(seq(() => LimitedContentNoSemis,
+                                                 SpecialFunctionTail)))),           // [1][1]
+                           )))
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
@@ -8989,7 +8991,6 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionRevertPickMultiple,
                          )))
       .abbreviate_str_repr('SpecialFunctionNotInclude');
-// -------------------------------------------------------------------------------------------------
 // =================================================================================================
 // other non-terminals:
 // =================================================================================================
@@ -9012,16 +9013,16 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                                                              caret,
                                                                              min_ct,
                                                                              max_ct);
-                                      });
-NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
-const NamedWildcardDesignator = second(seq(at, ident)); 
-NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
+                                      })
+      .abbreviate_str_repr('NamedWildcardReference');
+const NamedWildcardDesignator = second(seq(at, ident))
+      .abbreviate_str_repr('NamedWildcardDesignator');
 const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
                                       wst_seq(NamedWildcardDesignator,
                                               wst_cutting_seq(equals, 
                                                               discarded_comments,
-                                                              AnonWildcard)));  
-NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
+                                                              AnonWildcard)))
+      .abbreviate_str_repr('NamedWildcardDefinition');
 const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), ident),
                                       arr => {
                                         const [ bang, hash, ident, objs ] =
@@ -9038,14 +9039,14 @@ const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), id
                                           objs.push(new ASTLatchNamedWildcard(ident));
 
                                         return objs;
-                                      });
-NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
+                                      })
+      .abbreviate_str_repr('NamedWildcardUsage');
 const ScalarReference         = xform(seq(dollar, optional(caret), ident),
-                                      arr => new ASTScalarReference(arr[2], arr[1][0]));
-ScalarReference.abbreviate_str_repr('ScalarReference');
+                                      arr => new ASTScalarReference(arr[2], arr[1][0]))
+      .abbreviate_str_repr('ScalarReference');
 const ScalarDesignator        = xform(seq(dollar, ident),
-                                      arr => new ASTScalarReference(arr[1]));
-ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
+                                      arr => new ASTScalarReference(arr[1]))
+      .abbreviate_str_repr('ScalarDesignator');
 const ScalarAssignment        =
       xform(arr =>
         new ASTScalarAssignment(arr[0],
@@ -9060,8 +9061,8 @@ const ScalarAssignment        =
                           () => LimitedContentNoSemis,
                           // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
                         )),
-                        SpecialFunctionTail)));
-ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
+                        SpecialFunctionTail)))
+      .abbreviate_str_repr('ScalarAssignment');
 // =================================================================================================
 // Content-related rules:
 // =================================================================================================
@@ -9073,10 +9074,10 @@ const make_LimitedContent_rule = plain_text_rule  =>
         ScalarReference,
       );
 // -------------------------------------------------------------------------------------------------
-const LimitedContent          = make_LimitedContent_rule(plain_text);
-const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis);
-LimitedContent                .abbreviate_str_repr('LimitedContent');
-LimitedContentNoSemis         .abbreviate_str_repr('LimitedContentNoSemis');
+const LimitedContent          = make_LimitedContent_rule(plain_text)
+      .abbreviate_str_repr('LimitedContent');
+const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
+      .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
 const make_Content_rule       = ({ before_plain_text_rules = [],
                                    after_plain_text_rules  = [] } = {}) =>
