@@ -8716,12 +8716,12 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 const rJsoncTopLevel        = second(wst_seq(jsonc_comments,
                                              first(choice(seq(choice(JsoncObject,    // rJsoncObject,
                                                                      JsoncArray,     // rJsoncArray,
-                                                                          rjsonc_string),
-                                                                   optional(() => SpecialFunctionTail)),
-                                                               seq(choice(json_null,     json_true,
-                                                                          json_false,    json_number),
-                                                                   () => SpecialFunctionTail))),
-                                                  /* jsonc_comments */)); // these would be consumed by SpecialFunctionTail anyhow, right?
+                                                                     rjsonc_string),
+                                                              optional(() => SpecialFunctionTail)),
+                                                          seq(choice(json_null,     json_true,
+                                                                     json_false,    json_number),
+                                                              () => SpecialFunctionTail))),
+                                             /* jsonc_comments */)); // these would be consumed by SpecialFunctionTail anyhow, right?
 // maybe this could be replaced with normal RJSONC:
 // const mod_rJsonc_internal        = second(wst_seq(jsonc_comments,
 //                                                   choice(() => mod_rJsoncObject,
@@ -9554,4 +9554,4 @@ if (! main_disabled)
 
 // expect(never_match).match("nope")
 // log_match_enabled = true;
-console.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')));
+//sconsole.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')));
