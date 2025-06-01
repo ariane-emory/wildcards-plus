@@ -319,7 +319,9 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   __finalize(visited, unexpected) {
     if (unexpected !== undefined || ! (visited instanceof Set))
-      throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, ${unexpected})`);
+      throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, `+
+                      `${unexpected}) ` +
+                      `args: ${inspect_fun(arguments)}}`);
     
     if (visited.has(this)) {
       if (log_finalize_enabled)
@@ -352,9 +354,8 @@ class Rule {
     
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
-        log(indent,
-            `Matching ${this.constructor.name} ${this.toString()}, ` +
-            `but at end of input!`);
+        lm.indent(() => lm.log(`Matching ${this.constructor.name} ${this.toString()}, ` +
+                               `but at end of input!`));
       else 
         lm.log(`Matching ` +
                // `${this.constructor.name} `+
@@ -1383,7 +1384,7 @@ class Expected extends Rule {
     return match_result;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);    
     lm.indent(() => this.rule.__finalize(visited))
   }
@@ -2099,6 +2100,9 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
 // =================================================================================================
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
+const STOP = expect(never_match);
+STOP.abbreviate_str_repr("STOP");
+// -------------------------------------------------------------------------------------------------
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
@@ -8381,7 +8385,7 @@ const cutting_seq_with_swb    = (...rules) =>
 const swb_uint                = xform(parseInt, with_swb(uint));
 // -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
-comments                      .abbreviate_str_repr('comments_star');
+comments                      .abbreviate_str_repr('comments');
 discarded_comment             .abbreviate_str_repr('discarded_comment');
 discarded_comments            .abbreviate_str_repr('discarded_comments');
 dot_hash                      .abbreviate_str_repr('dot_hash');
@@ -8437,13 +8441,13 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // word breaks:
 // =================================================================================================
 // these are inadvisably complex:
-const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
-const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
-const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
-// -------------------------------------------------------------------------------------------------
-word_break                         .abbreviate_str_repr('word_break');
-simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
-simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
+// const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
+// const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
+// const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
+// // -------------------------------------------------------------------------------------------------
+// word_break                         .abbreviate_str_repr('word_break');
+// simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
+// simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
@@ -8551,8 +8555,7 @@ const TestFlag                     = choice(
   NotFlagWithSetConsequent,
   CheckFlagWithOrAlternatives,
 );
-const bad_TopLevelTestFlag = 
-      (rule, input, index) =>
+const bad_TopLevelTestFlag = (rule, input, index) =>
       new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
                           `serve no purpose and so are not permitted`,
                           input, index);
@@ -8652,14 +8655,19 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
-const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
-                                                                  choice(lws(semicolon),
-                                                                         word_break)));
+const SpecialFunctionTail = choice(
+  structural_word_break,
+  lws(semicolon),
+  c_comment,
+);
+// const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
+//                                                                   choice(lws(semicolon),
+//                                                                          word_break)));
 const TrailingCommentsAndSemicolon = discard(lws(semicolon));
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8671,7 +8679,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8686,7 +8694,7 @@ const SpecialFunctionInclude =
                           first(wst_seq(discarded_comments,      // -
                                         rjsonc_string,           // [0][1]
                                         discarded_comments))),   // -
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8700,42 +8708,43 @@ const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                               // [0]
                 discarded_comments,                                          // -
-                wst_seq(equals,                                              // [1][0]
-                        discarded_comments,                                  // -
-                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
-                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                cutting_seq(lws(equals),                                              // [1][0]
+                            discarded_comments,                                  // -
+                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
             seq('multi-pick',                                                // [0]
                 discarded_comments,                                          // -
-                wst_seq(equals,                                              // [1][0]
-                        discarded_comments,                                  // -
-                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
-                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                cutting_seq(lws(equals),                                     // [1][0]
+                            discarded_comments,                              // -
+                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                            // [0]
                 discarded_comments,                                                 // -
-                wst_cutting_seq(any_assignment_operator,                            // [1][0]
-                                discarded_comments,                                 // -
-                                choice(rJsonc, () => LimitedContentNoSemis),        // [1][1]
-                                TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                cutting_seq(lws(any_assignment_operator),                           // [1][0]
+                            discarded_comments,                                     // -
+                            lws(choice(rJsonc, () => LimitedContentNoSemis)),       // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
                 discarded_comments,                                                 // -
-                wst_cutting_seq(choice(plus_equals, equals),                        // [1][0]
-                                discarded_comments,                                 // -
-                                choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
-                                TrailingCommentFollowedBySemicolonOrWordBreak)));
+                cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
+                            discarded_comments,                                     // -
+                            lws(choice(rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
+                            SpecialFunctionTail,
+                           )));
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
@@ -8773,8 +8782,8 @@ SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-TrailingCommentFollowedBySemicolonOrWordBreak
-  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+// TrailingCommentFollowedBySemicolonOrWordBreak
+//   .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
 TrailingCommentsAndSemicolon
   .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 UnexpectedSpecialFunctionInclude
@@ -8844,29 +8853,27 @@ const ScalarAssignment        =
         new ASTScalarAssignment(arr[0],
                                 arr[1][1],
                                 arr[1][0] == '='),
-        wst_seq(ScalarDesignator,                       // [0]
-                discarded_comments,                     // - 
-                wst_cutting_seq(
-                  choice(plus_equals, equals),          // [1][0]
-                  discarded_comments,                   // -
-                  first(choice(() => seq(rjsonc_string, // [1][1]
-                                         TrailingCommentFollowedBySemicolonOrWordBreak),  
-                               () => seq(hwst_plus(choice(LimitedContentNoSemis,
-                                                          discarded_comment)),
-                                         TrailingCommentFollowedBySemicolonOrWordBreak
-                                         // TrailingCommentsAndSemicolon
-                                        ),
-                               () => seq(LimitedContentNoSemis,
-                                         TrailingCommentFollowedBySemicolonOrWordBreak))))));
+        seq(ScalarDesignator,                                 // [0]
+            discarded_comments,                               // - 
+            cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
+                        discarded_comments,                   // -
+                        lws(choice(
+                          () => rjsonc_string, // [1][1]
+                          () => LimitedContentNoSemis,
+                          // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
+                        )),
+                        SpecialFunctionTail)));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // =================================================================================================
 // Content-related rules:
 // =================================================================================================
 const make_LimitedContent_rule = plain_text_rule  =>
-      choice(NamedWildcardReference,
-             ScalarReference,
-             AnonWildcardNoLoras,
-             plain_text_rule);
+      choice(
+        NamedWildcardReference,
+        AnonWildcardNoLoras,
+        plain_text_rule,
+        ScalarReference,
+      );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent          = make_LimitedContent_rule(plain_text);
 const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis);
