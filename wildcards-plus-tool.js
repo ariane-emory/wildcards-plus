@@ -2752,8 +2752,8 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(jsonc_comments,
                              choice(() => JsoncObject,  () => JsoncArray,
-                                    () => json_string,  () => json_true, () => json_false,
-                                    () => json_null,    () => json_number),
+                                    json_string,  json_true, json_false,
+                                    json_null,    json_number),
                              jsonc_comments));
 const JsoncArray =
       wst_cutting_enc(lsqr,
@@ -2772,7 +2772,7 @@ const JsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, () => json_string, colon),
+                wst_enc(lbrc, json_string, colon),
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
@@ -2780,7 +2780,7 @@ const JsoncObject =
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
-                                                        () => json_string,
+                                                        json_string,
                                                         jsonc_comments,
                                                         colon,
                                                         jsonc_comments,
@@ -2814,9 +2814,9 @@ rjsonc_string.abbreviate_str_repr('rjsonc_string');
 
 const rJsonc = second(wst_seq(jsonc_comments,
                               choice(() => rJsoncObject,  () => rJsoncArray,
-                                     () => rjsonc_string,
-                                     () => json_null,     () => json_true,
-                                     () => json_false,    () => json_number),
+                                     rjsonc_string,
+                                     json_null,     json_true,
+                                     json_false,    json_number),
                               jsonc_comments));
 const rJsoncArray =
       wst_cutting_enc(lsqr,
@@ -2834,7 +2834,7 @@ const rJsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, () => choice(json_string, c_ident), colon), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, choice(json_string, c_ident), colon), // dumb hack for rainbow brackets sake
                 jsonc_comments,
                 rJsonc,
                 jsonc_comments,
