@@ -8715,14 +8715,15 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 const rJsonc_internal_word_break = r(/(?=[\s,])/);
 const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
-                                                  first(choice(seq(choice(() => mod_rJsoncObject,
-                                                                          () => mod_rJsoncArray,
+                                                  first(choice(seq(choice(() => rJsoncObject,
+                                                                          () => rJsoncArray,
                                                                           rjsonc_string),
                                                                    optional(() => SpecialFunctionTail)),
                                                                seq(choice(json_null,     json_true,
                                                                           json_false,    json_number),
                                                                    () => SpecialFunctionTail))),
                                                   jsonc_comments));
+// maybe this could be replaced with normal RJSONC:
 const mod_rJsonc_internal        = second(wst_seq(jsonc_comments,
                                                   choice(() => mod_rJsoncObject,
                                                          () => mod_rJsoncArray,
