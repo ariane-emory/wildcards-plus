@@ -1534,8 +1534,8 @@ class CuttingSequence extends Sequence {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
-      `CuttingSequence expected [${this.elements.slice(1).join(" ")}] ` +
-        `after ${this.elements[0]}`,
+      `CuttingSequence expected ${this.elements[0]} to be followed by ` +
+        `[${this.elements.slice(1).join(" ")}]`,
       input, start_rule_result.index);
   }
   // -----------------------------------------------------------------------------------------------
@@ -8637,6 +8637,7 @@ const filename                = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
 const structural_word_break   = r(/(?=[\s|}])/);
+structural_word_break.abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule =>
       first(seq(rule, structural_word_break));
@@ -8707,18 +8708,19 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // mod RJSONC:
 // =================================================================================================
 const rJsonc_internal_word_break = r(/(?=[\s,:])/);
+rJsonc_internal_word_break.abbreviate_str_repr('rJsonc_internal_word_break');
 const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
                                                   choice(() => rJsoncObject,
                                                          () => mod_rJsoncArray,
-                                                         seq(choice(rjsonc_string,
-                                                                    json_null,     json_true,
+                                                         rjsonc_string,
+                                                         seq(choice(json_null,     json_true,
                                                                     json_false,    json_number),
                                                              structural_word_break)),
                                                   jsonc_comments));
-const mod_rJsonc_internal         = second(wst_seq(jsonc_comments,
-                                                   choice(() => mod_rJsoncObject,
-                                                          () => mod_rJsoncArray,
-                                                          first(seq(rjsonc_string, rJsonc_internal_word_break)),
+const mod_rJsonc_internal        = second(wst_seq(jsonc_comments,
+                                                  choice(() => mod_rJsoncObject,
+                                                         () => mod_rJsoncArray,
+                                                         first(seq(rjsonc_string, rJsonc_internal_word_break)),
                                                          seq(choice(json_null,     json_true,
                                                                     json_false,    json_number),
                                                              rJsonc_internal_word_break)),
