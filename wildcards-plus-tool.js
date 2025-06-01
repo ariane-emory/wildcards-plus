@@ -657,8 +657,8 @@ class Rule {
     
     if (log_match_enabled) {
       // if (ret)
-      lm.log(`<= ${this.constructor.name} ${this.toString()} ` +
-             `returned: ${compress(inspect_fun(ret))}`);
+      lm.log(`<= ${this.constructor.name} ${abbreviate(this.toString())} ` +
+             `returned: ${abbreviate(compress(inspect_fun(ret)))}`);
       // else
       //   log(indent,
       //       `<= Matching ${this.constructor.name} ${this.toString()} ` +
@@ -8708,7 +8708,6 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // mod RJSONC:
 // =================================================================================================
 const rJsonc_internal_word_break = r(/(?=[\s,:])/);
-rJsonc_internal_word_break.abbreviate_str_repr('rJsonc_internal_word_break');
 const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
                                                   choice(() => mod_rJsoncObject,
                                                          () => mod_rJsoncArray,
@@ -8732,7 +8731,6 @@ const mod_rJsoncArray =
                                           jsonc_comments)),
                                comma),
                       rsqr);
-mod_rJsoncArray.abbreviate_str_repr('mod_rJsoncArray');
 const mod_rJsoncObject =
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
@@ -8759,7 +8757,9 @@ const mod_rJsoncObject =
                                           comma)),
                                )),
                 rbrc)));
-mod_rJsoncObject.abbreviate_str_repr('mod_rJsoncObject');
+mod_rJsoncArray           .abbreviate_str_repr('mod_rJsoncArray');
+rJsonc_internal_word_break.abbreviate_str_repr('rJsonc_internal_word_break');
+mod_rJsoncObject          .abbreviate_str_repr('mod_rJsoncObject');
 // =================================================================================================
 // word breaks:
 // =================================================================================================
@@ -9057,16 +9057,21 @@ const SpecialFunctionUpdateConfigurationBinary =
                 discarded_comments,                                                 // -
                 cutting_seq(lws(any_assignment_operator),                           // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(mod_rJsonc_external, () => LimitedContentNoSemis)),       // [1][1]
-                            SpecialFunctionTail))); 
+                            lws(choice(first(seq(mod_rJsonc_external,
+                                                 optional(lws(semicolon)))),
+                                       first(seq(() => LimitedContentNoSemis,
+                                                 SpecialFunctionTail))))            // [1][1]
+                           ))); 
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
                 discarded_comments,                                                 // -
                 cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(mod_rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
-                            SpecialFunctionTail,
+                            lws(choice(first(seq(mod_rJsoncObject,
+                                                 optional(lws(semicolon)))),
+                                       first(seq(() => LimitedContentNoSemis,
+                                                 SpecialFunctionTail)))),           // [1][1]
                            )));
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
