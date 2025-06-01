@@ -8707,7 +8707,7 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // mod RJSONC:
 // =================================================================================================
-const rJsonc_internal_word_break = r(/(?=[\s,:])/);
+const rJsonc_internal_word_break = r(/(?=[\s,])/);
 const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
                                                   choice(() => mod_rJsoncObject,
                                                          () => mod_rJsoncArray,
@@ -8719,7 +8719,8 @@ const mod_rJsonc_external        = second(wst_seq(jsonc_comments,
 const mod_rJsonc_internal        = second(wst_seq(jsonc_comments,
                                                   choice(() => mod_rJsoncObject,
                                                          () => mod_rJsoncArray,
-                                                         first(seq(rjsonc_string, rJsonc_internal_word_break)),
+                                                         // first(seq(rjsonc_string, rJsonc_internal_word_break)),
+                                                         rjsonc_string,
                                                          seq(choice(json_null,     json_true,
                                                                     json_false,    json_number),
                                                              rJsonc_internal_word_break)),
@@ -8979,9 +8980,8 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 // non-terminals for the special functions/variables:
 // =================================================================================================
 const SpecialFunctionTail = choice(
+  seq(discarded_comments, optional(lws(semicolon))),
   structural_word_break,
-  lws(semicolon),
-  c_comment,
 );
 // const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
 //                                                                   choice(lws(semicolon),
@@ -9014,9 +9014,8 @@ const UnexpectedSpecialFunctionUINegPrompt =
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
-                          first(wst_seq(discarded_comments,      // -
-                                        rjsonc_string,           // [0][1]
-                                        discarded_comments))),   // -
+                          second(wst_seq(discarded_comments,      // -
+                                         rjsonc_string))),        // [0][1]
                 SpecialFunctionTail));
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
@@ -9058,7 +9057,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                 cutting_seq(lws(any_assignment_operator),                           // [1][0]
                             discarded_comments,                                     // -
                             lws(choice(first(seq(mod_rJsonc_external,
-                                                 optional(lws(semicolon)))),
+                                                 optional(SpecialFunctionTail))),
                                        first(seq(() => LimitedContentNoSemis,
                                                  SpecialFunctionTail))))            // [1][1]
                            ))); 
@@ -9069,7 +9068,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                 cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
                             discarded_comments,                                     // -
                             lws(choice(first(seq(mod_rJsoncObject,
-                                                 optional(lws(semicolon)))),
+                                                 optional(SpecialFunctionTail))),
                                        first(seq(() => LimitedContentNoSemis,
                                                  SpecialFunctionTail)))),           // [1][1]
                            )));
