@@ -8632,17 +8632,8 @@ class ASTUINegPrompt extends ASTNode {
 // =================================================================================================
 // SD PROMPT GRAMMAR SECTION:
 // =================================================================================================
-// terminals:
+// structural_word_break and its helper combinators:
 // =================================================================================================
-const comments                = wst_star(c_comment);
-const discarded_comment       = discard(c_comment);
-const discarded_comments      = discard(wst_star(c_comment));
-const any_assignment_operator = choice(equals, plus_equals);
-const dot_hash                = l('.#');
-const filename                = r(/[A-Za-z0-9 ._\-()]+/);
-const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-                                      str => str.toLowerCase().replace(/-/g, '_'));
-// const structural_word_break   = r(/(?=[\s|}])/);
 const structural_word_break   = r(/(?=[\s|}]|$)/)
       .abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
@@ -8652,17 +8643,26 @@ const seq_with_swb            = (...rules) => first(seq(seq(...rules), structura
 const cutting_with_swb        = rule => first(cutting_seq(rule, structural_word_break));
 const cutting_seq_with_swb    = (...rules) => first(cutting_seq(seq(...rules),
                                                                 structural_word_break));
-// -------------------------------------------------------------------------------------------------
+// =================================================================================================
+// terminals:
+// =================================================================================================
+const any_assignment_operator = choice(equals, plus_equals)
+      .abbreviate_str_repr('any_assignment_operator');
+const comments                = wst_star(c_comment)
+      .abbreviate_str_repr('comments');
+const discarded_comment       = discard(c_comment)
+      .abbreviate_str_repr('discarded_comment');
+const discarded_comments      = discard(wst_star(c_comment))
+      .abbreviate_str_repr('discarded_comments');
+const dot_hash                = l('.#')
+      .abbreviate_str_repr('dot_hash');
+const filename                = r(/[A-Za-z0-9 ._\-()]+/)
+      .abbreviate_str_repr('filename');
+const ident                   = xform(str => str.toLowerCase().replace(/-/g, '_'),
+                                      r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/))
+      .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
-// -------------------------------------------------------------------------------------------------
-any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
-comments                      .abbreviate_str_repr('comments');
-discarded_comment             .abbreviate_str_repr('discarded_comment');
-discarded_comments            .abbreviate_str_repr('discarded_comments');
-dot_hash                      .abbreviate_str_repr('dot_hash');
-filename                      .abbreviate_str_repr('filename');
-ident                         .abbreviate_str_repr('ident');
 // =================================================================================================
 // plain_text variants:
 // =================================================================================================
