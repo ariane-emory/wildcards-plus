@@ -9114,20 +9114,23 @@ const ScalarAssignment        =
             discarded_comments,                               // - 
             cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
                         discarded_comments,                   // -
-                        lws(choice(() => rjsonc_string, // [1][1]
-                                   // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
-                                   () => LimitedContentNoSemis,
-                                  )),
+                        lws(choice(
+                          () => rjsonc_string, // [1][1]
+                          () => LimitedContentNoSemis,
+                          // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
+                        )),
                         SpecialFunctionTail)));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // =================================================================================================
 // Content-related rules:
 // =================================================================================================
 const make_LimitedContent_rule = plain_text_rule  =>
-      choice(NamedWildcardReference,
-             ScalarReference,
-             AnonWildcardNoLoras,
-             plain_text_rule);
+      choice(
+        NamedWildcardReference,
+        AnonWildcardNoLoras,
+        plain_text_rule,
+        ScalarReference,
+      );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent          = make_LimitedContent_rule(plain_text);
 const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis);
