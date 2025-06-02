@@ -3969,6 +3969,8 @@ function get_next_context_id() {
 }
 // -------------------------------------------------------------------------------------------------
 class Context {
+  #configuration;
+  // -----------------------------------------------------------------------------------------------
   constructor({ 
     flags                        = [], 
     scalar_variables             = new Map(),
@@ -4041,18 +4043,18 @@ class Context {
       negative_prompt:              this.negative_prompt,
     });
     
-    copy.__configuration = this.configuration;
+    copy.#configuration = this.configuration;
 
     return copy;
   }
   // -----------------------------------------------------------------------------------------------
   get configuration() {
-    return this.__configuration;
+    return this.#configuration;
   }
   // -----------------------------------------------------------------------------------------------
   set configuration(config) {
     // lm.log(`CLONING CONFIGURATION!`);
-    this.__configuration = structured_clone(config, { unshare: true });
+    this.#configuration = structured_clone(config, { unshare: true });
   }
   // -----------------------------------------------------------------------------------------------
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
@@ -4313,165 +4315,165 @@ const prelude_text = prelude_disabled ? '' : `
 //--------------------------------------------------------------------------------------------------
 
 @xl_magic_small_1_to_1 =
-{ %h   = 512;   %w    = 512;
-  %oh  = 576;   %ow   = 768;
-  %th  = 768;   %tw   = 1024;
-  %nh  = 1344;  %nw   = 1792;
+{ %w    = 512;  %h   = 512;   
+  %ow   = 768;  %oh  = 576;   
+  %tw   = 1024; %th  = 768;   
+  %nw   = 1792; %nh  = 1344;  
   %hrf = false;
   #xl_magic_small_1_to_1
   #xl_magic_small
   #xl_magic_1_to_1
 }
 
-@xl_magic_small_2_to_3 =
-{ %h    = 512;   %w    = 768;
-  %oh   = 576;   %ow   = 768;
-  %th   = 768;   %tw   = 1024;
-  %nh   = 1344;  %nw   = 1792;
-  %hrf  = false;
-  #xl_magic_small_2_to_3
-  #xl_magic_small
-  #xl_magic_2_to_3
-}
-
 @xl_magic_small_3_to_2 =
-{ %h    = 768;   %w    = 512;
-  %oh   = 768;   %ow   = 576;
-  %th   = 1024;  %tw   = 768;
-  %nh   = 1792;  %nw   = 1344;
+{ %w    = 768;  %h    = 512;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1024; %th   = 768;   
+  %nw   = 1792; %nh   = 1344;  
   %hrf  = false;
   #xl_magic_small_3_to_2
   #xl_magic_small
   #xl_magic_3_to_2
 }
 
-@xl_magic_small_3_to_4 =
-{ %h   = 576;    %w   = 768;
-  %oh  = 576;    %ow  = 768;
-  %th  = 768;    %tw  = 1024;
-  %nh  = 1344;   %nw  = 1792;
-  %hrf = false;
-  #xl_magic_small_3_to_4
+@xl_magic_small_2_to_3 =
+{ %w    = 512;  %h    = 768;   
+  %ow   = 576;  %oh   = 768;   
+  %tw   = 768;  %th   = 1024;  
+  %nw   = 1344; %nh   = 1792;  
+  %hrf  = false;
+  #xl_magic_small_2_to_3
   #xl_magic_small
-  #xl_magic_3_to_4
+  #xl_magic_2_to_3
 }
 
 @xl_magic_small_4_to_3 =
-{ %h   = 768;    %w   = 576;
-  %oh  = 768;    %ow  = 576;
-  %th  = 1024;   %tw  = 768;
-  %nh  = 1792;   %nw  = 1344;
+{ %w   = 768;  %h   = 576;    
+  %ow  = 768;  %oh  = 576;    
+  %tw  = 1024; %th  = 768;    
+  %nw  = 1792; %nh  = 1344;   
   %hrf = false;
   #xl_magic_small_4_to_3
   #xl_magic_small
   #xl_magic_4_to_3
 }
 
-@xl_magic_small_9_to_16 =
-{ %h   = 576;    %w   = 1024;
-  %oh  = 576;    %ow  = 768;
-  %th  = 768;    %tw  = 1024;
-  %nh  = 1344;   %nw  = 1792;
+@xl_magic_small_3_to_4 =
+{ %w   = 576;  %h   = 768;    
+  %ow  = 576;  %oh  = 768;    
+  %tw  = 768;  %th  = 1024;   
+  %nw  = 1344; %nh  = 1792;   
   %hrf = false;
-  #xl_magic_small_9_to_16
+  #xl_magic_small_3_to_4
   #xl_magic_small
-  #xl_magic_9_to_16
+  #xl_magic_3_to_4
 }
 
 @xl_magic_small_16_to_9 =
-{ %h   = 1024;   %w   = 576;
-  %oh  = 768;    %ow  = 576;
-  %th  = 1024;   %tw  = 768;
-  %nh  = 1792;   %nw  = 1344;
+{ %w   = 1024;  %h   = 576;    
+  %ow  = 768;   %oh  = 576;    
+  %tw  = 1024;  %th  = 768;    
+  %nw  = 1792;  %nh  = 1344;   
   %hrf = false;
   #xl_magic_small_16_to_9
   #xl_magic_small
   #xl_magic_16_to_9
 }
 
+@xl_magic_small_9_to_16 =
+{ %w   = 576;  %h   = 1024;   
+  %ow  = 576;  %oh  = 768;    
+  %tw  = 768;  %th  = 1024;   
+  %nw  = 1344; %nh  = 1792;   
+  %hrf = false;
+  #xl_magic_small_9_to_16
+  #xl_magic_small
+  #xl_magic_9_to_16
+}
+
 @xl_magic_medium_1_to_1 =
-{ %w   = 1024;   %h   = 1024;
-  %oh  = 576;    %ow  = 768;
-  %th  = 768;    %tw  = 1024;
-  %nh  = 1344;   %nw  = 1792;
+{ %h   = 1024;  %w   = 1024;   
+  %ow  = 768;   %oh  = 576;    
+  %tw  = 1024;  %th  = 768;    
+  %nw  = 1792;  %nh  = 1344;   
   %hrf = false;
   #xl_magic_medium_1_to_1
   #xl_magic_medium
   #xl_magic_1_to_1
 }
 
-@xl_magic_medium_2_to_3 =
-{ %h   = 832;    %w   = 1216;
-  %oh  = 576;    %ow  = 768;
-  %th  = 768;    %tw  = 1024;
-  %nh  = 1344;   %nw  = 1792;
-  %hrf = false;
-  #xl_magic_medium_2_to_3
-  #xl_magic_medium
-  #xl_magic_2_to_3
-}
-
 @xl_magic_medium_3_to_2 =
-{ %h   = 1216;   %w   = 832;
-  %oh  = 768;    %ow  = 576;
-  %th  = 1024;   %tw  = 768;
-  %nh  = 1792;   %nw  = 1344;
+{ %w   = 1216;  %h   = 832;    
+  %ow  = 768;   %oh  = 576;    
+  %tw  = 1024;  %th  = 768;    
+  %nw  = 1792;  %nh  = 1344;   
   %hrf = false;
   #xl_magic_medium_3_to_2
   #xl_magic_medium
   #xl_magic_3_to_2
 }
 
-@xl_magic_medium_3_to_4 =
-{ %h   = 896;    %w    = 1152;
-  %oh  = 576;    %ow   = 768;
-  %th  = 768;    %tw   = 1024;
-  %nh  = 1344;   %nw   = 1792;
+@xl_magic_medium_2_to_3 =
+{ %w   = 832;  %h   = 1216;   
+  %ow  = 576;  %oh  = 768;    
+  %tw  = 768;  %th  = 1024;   
+  %nw  = 1344; %nh  = 1792;   
   %hrf = false;
-  #xl_magic_medium_3_to_4
+  #xl_magic_medium_2_to_3
   #xl_magic_medium
-  #xl_magic_3_to_4
+  #xl_magic_2_to_3
 }
 
 @xl_magic_medium_4_to_3 =
-{ %h   = 1152;   %w   = 896;
-  %oh  = 768;    %ow  = 576;
-  %th  = 1024;   %tw  = 768;
-  %nh  = 1792;   %nw  = 1344;
+{ %w    = 1152;  %h   = 896;    
+  %ow   = 768;   %oh  = 576;    
+  %tw   = 1024;  %th  = 768;    
+  %nw   = 1792;  %nh  = 1344;   
   %hrf = false;
   #xl_magic_medium_4_to_3
   #xl_magic_medium
   #xl_magic_4_to_3
 }
 
-@xl_magic_medium_9_to_16 =
-{ %h   = 768;    %w   = 1344;
-  %oh  = 576;    %ow  = 768;
-  %th  = 768;    %tw  = 1024;
-  %nh  = 1344;   %nw  = 1792;
+@xl_magic_medium_3_to_4 =
+{ %w   = 896;  %h   = 1152;   
+  %ow  = 576;  %oh  = 768;    
+  %tw  = 768;  %th  = 1024;   
+  %nw  = 1344; %nh  = 1792;   
   %hrf = false;
-  #xl_magic_medium_9_to_16
+  #xl_magic_medium_3_to_4
   #xl_magic_medium
-  #xl_magic_9_to_16
+  #xl_magic_3_to_4
 }
 
 @xl_magic_medium_16_to_9 =
-{ %h   = 1344;   %w   = 768;
-  %oh  = 768;    %ow  = 576;
-  %th  = 1024;   %tw  = 768;
-  %nh  = 1792;   %nw  = 1344;
+{ %w   = 1344;  %h   = 768;    
+  %ow  = 768;   %oh  = 576;    
+  %tw  = 1024;  %th  = 768;    
+  %nw  = 1792;  %nh  = 1344;   
   %hrf = false;
   #xl_magic_medium_16_to_9
   #xl_magic_medium
   #xl_magic_16_to_9
 }
 
+@xl_magic_medium_9_to_16 =
+{ %w   = 768;  %h   = 1344;   
+  %ow  = 576;  %oh  = 768;    
+  %tw  = 768;  %th  = 1024;   
+  %nw  = 1344; %nh  = 1792;   
+  %hrf = false;
+  #xl_magic_medium_9_to_16
+  #xl_magic_medium
+  #xl_magic_9_to_16
+}
+
 @xl_magic_large_1_to_1 = 
-{ %h    = 1536;   %w    = 1536;
-  %oh   = 576;    %ow   = 768;
-  %th   = 768;    %tw   = 1024;
-  %nh   = 1344;   %nw   = 1792;
-  %hrfh = 512;    %hrfw = 512;
+{ %w    = 1536;  %h    = 1536;   
+  %ow   = 768;   %oh   = 576;    
+  %tw   = 1024;  %th   = 768;    
+  %nw   = 1792;  %nh   = 1344;   
+  %hrfw = 512;   %hrfh = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_large_1_to_1
@@ -4479,25 +4481,12 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_1_to_1
 }
 
-@xl_magic_large_2_to_3 =
-{ %h    = 1280;   %w    = 1920;
-  %oh   = 576;    %ow   = 768; 
-  %th   = 768;    %tw   = 1024;
-  %nh   = 1344;   %nw   = 1792;
-  %hrfh = 512;    %hrfw = 768; 
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_large_2_to_3
-  #xl_magic_large
-  #xl_magic_2_to_3
-}
-
 @xl_magic_large_3_to_2 =
-{ %h    = 1920;   %w    = 1280;
-  %oh   = 768;    %ow   = 576;
-  %th   = 1024;   %tw   = 768;
-  %nh   = 1792;   %nw   = 1344;
-  %hrfh = 768;    %hrfw = 512;
+{ %w    = 1920;  %h    = 1280;   
+  %ow   = 768;   %oh   = 576;    
+  %tw   = 1024;  %th   = 768;    
+  %nw   = 1792;  %nh   = 1344;   
+  %hrfw = 768;   %hrfh = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_large_3_to_2
@@ -4505,25 +4494,25 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_3_to_2
 }
 
-@xl_magic_large_4_to_3 =
-{ %h    = 1792;   %w    = 1344;
-  %oh   = 768;    %ow   = 576;
-  %th   = 1024;   %tw   = 768;
-  %nh   = 1792;   %nw   = 1344;
-  %hrfh = 768;    %hrfw = 576;
+@xl_magic_large_2_to_3 =
+{ %w    = 1280;  %h    = 1920;   
+  %ow   = 576;   %oh   = 768;    
+  %tw   = 768;   %th   = 1024;   
+  %nw   = 1344;  %nh   = 1792;   
+  %hrfw = 512;   %hrfh = 768;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic_large_4_to_3
+  #xl_magic_large_2_to_3
   #xl_magic_large
-  #xl_magic_4_to_3
+  #xl_magic_2_to_3
 }
 
 @xl_magic_large_3_to_4 =
-{ %h    = 1344;   %w    = 1792;
-  %oh   = 576;    %ow   = 768; 
-  %th   = 768;    %tw   = 1024;
-  %nh   = 1344;   %nw   = 1792;
-  %hrfh = 576;    %hrfw = 768; 
+{ %w    = 1344;  %h    = 1792;   
+  %ow   = 576;   %oh   = 768;    
+  %tw   = 768;   %th   = 1024;   
+  %nw   = 1344;  %nh   = 1792;   
+  %hrfw = 576;   %hrfh = 768;
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_large_3_to_4
@@ -4531,30 +4520,43 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_3_to_4
 }
 
-@xl_magic_large_9_to_16 =
-{ %h    = 1152;   %w    = 2048;
-  %oh   = 576;    %ow   = 768; 
-  %th   = 768;    %tw   = 1024;
-  %nh   = 1344;   %nw   = 1792;
-  %hrfh = 576;    %hrfw = 1024;
+@xl_magic_large_4_to_3 =
+{ %w    = 1792;  %h    = 1344;   
+  %ow   = 768;   %oh   = 576;    
+  %tw   = 1024;  %th   = 768;    
+  %nw   = 1792;  %nh   = 1344;   
+  %hrfw = 768;   %hrfh = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic_large_9_to_16
+  #xl_magic_large_4_to_3
   #xl_magic_large
-  #xl_magic_9_to_16
+  #xl_magic_4_to_3
 }
 
 @xl_magic_large_16_to_9 =
-{ %h    = 2048;   %w    = 1152;
-  %oh   = 768;    %ow   = 576;
-  %th   = 1024;   %tw   = 768;
-  %nh   = 1792;   %nw   = 1344;
-  %hrfh = 1024;   %hrfw = 576;
+{ %w    = 2048;  %h    = 1152;   
+  %ow   = 768;   %oh   = 576;    
+  %tw   = 1024;  %th   = 768;    
+  %nw   = 1792;  %nh   = 1344;   
+  %hrfw = 1024;  %hrfh = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_large_16_to_9
   #xl_magic_large
   #xl_magic_16_to_9
+}
+
+@xl_magic_large_9_to_16 =
+{ %w    = 1152;  %h    = 2048;   
+  %ow   = 576;   %oh   = 768;    
+  %tw   = 768;   %th   = 1024;   
+  %nw   = 1344;  %nh   = 1792;   
+  %hrfw = 576;   %hrfh = 1024;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_large_9_to_16
+  #xl_magic_large
+  #xl_magic_9_to_16
 }
 
 // Resolutions:
