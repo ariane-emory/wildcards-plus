@@ -8881,8 +8881,8 @@ const LimitedContent          = make_LimitedContent_rule(plain_text)
 const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
-lm.log(`THIS:  ${inspect_fun(plain_text)}`);
-lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
+// lm.log(`THIS:  ${inspect_fun(plain_text)}`);
+// lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
 
 // const malformed_token =
 //       // tokens starting with % are actually usually caught before getting here.
@@ -8913,7 +8913,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         UnsetFlag,
         ScalarAssignment,
         ScalarReference,
-        make_malformed_token_rule(r_raw`(?!${structural_chars})\S.*`), // reminder, structural_chars === '{|}'
+        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S.*`), // reminder, structural_chars === '{|}'
       );
 
 // -------------------------------------------------------------------------------------------------
@@ -8932,11 +8932,11 @@ const Content                 = make_Content_rule({
 });
 const TopLevelContent         = make_Content_rule({
   before_plain_text_rules: [
-    make_malformed_token_rule(r_raw`}\S*`),
     A1111StyleLora,
     TopLevelTestFlag,
   ],
   after_plain_text_rules:  [
+    make_malformed_token_rule(r_raw`}\S*`),
     AnonWildcard,
     NamedWildcardDefinition,
     SpecialFunctionInclude,

@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = true;
+  // log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -288,10 +288,10 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_smart_join_enabled            = false;
+let log_smart_join_enabled            = true;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -3527,12 +3527,17 @@ function smart_join(arr, unexpected) {
       continue;
     }
 
+    if (right_word === '<') {
+      str += '<';
+      continue;
+    }
+
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
       move_chars_left(3);
     
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       move_chars_left(1);
-    
+
     // Normalize article if needed:
     const article_match = str.match(/(?:^|\s)([Aa])$/);
     
@@ -3551,6 +3556,11 @@ function smart_join(arr, unexpected) {
       chomped = true;
     }
     
+    if (str.endsWith('<')) {
+      chomp_left_side();
+      chomped = true;
+    }
+
     if (right_word.startsWith('<')) {
       chomp_right_side();
       chomped = true;
@@ -4239,17 +4249,17 @@ const prelude_text = prelude_disabled ? '' : `
                            |?gender.male   his
                            |?gender.neuter its       }}
 
-@any_digit              = {\\0|\\1|\\2|\\3|\\4
+@digit                  = {\\0|\\1|\\2|\\3|\\4
                           |\\5|\\6|\\7|\\8|\\9}
 @low_digit              = {\\0|\\1|\\2|\\3|\\4}
 @high_digit             = {\\5|\\6|\\7|\\8|\\9}
 
 @low_random_weight      = {0.< @low_digit }
-@lt1_random_weight      = {0.< @any_digit } 
+@lt1_random_weight      = {0.< @digit } 
 @lowish_random_weight   = {0.< @high_digit}
-@random_weight          = {1.< @any_digit }
+@random_weight          = {1.< @digit }
 @highish_random_weight  = {1.< @low_digit }
-@gt1_random_weight      = {1.< @any_digit }
+@gt1_random_weight      = {1.< @digit }
 @high_random_weight     = {1.< @high_digit}
 
 // @pony_score_9           = { score_9, score_8_up,                                                  }
@@ -9138,8 +9148,8 @@ const LimitedContent          = make_LimitedContent_rule(plain_text)
 const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
-lm.log(`THIS:  ${inspect_fun(plain_text)}`);
-lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
+// lm.log(`THIS:  ${inspect_fun(plain_text)}`);
+// lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
 
 // const malformed_token =
 //       // tokens starting with % are actually usually caught before getting here.
@@ -9170,7 +9180,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         UnsetFlag,
         ScalarAssignment,
         ScalarReference,
-        make_malformed_token_rule(r_raw`(?!${structural_chars})\S.*`), // reminder, structural_chars === '{|}'
+        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S.*`), // reminder, structural_chars === '{|}'
       );
 
 // -------------------------------------------------------------------------------------------------
