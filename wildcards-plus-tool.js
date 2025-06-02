@@ -7733,9 +7733,11 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         let str = thing.joiner === ','
             ? res.join(", ")
-            : (thing.joiner == '&'
-               ? format_pretty_list(res)
-               : res.join(" "));
+            : (thing.joiner == '|'
+               ? res.join(' | ')
+               : (thing.joiner == '&'
+                  ? format_pretty_list(res)
+                  : res.join(" ")));
 
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer]);
@@ -9043,7 +9045,7 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,                   // [3]
                                                          second(seq(dash, uint)))),
-                                          optional(/[,&]/),                          // [4]
+                                          optional(/[,&|]/),                          // [4]
                                           ident,                                     // [5]
                                           optional(/(?:\.\.\.|[,.!?])/, ''),         // [6]
                                          ), 
