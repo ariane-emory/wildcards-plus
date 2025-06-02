@@ -1,0 +1,63 @@
+@xl_magic_lerge_1_to_1 = 
+{
+"height": 1536,
+"width": 1536,
+"originalImageHeight": 576,
+"originalImageWidth": 768,
+"targetImageHeight": 768,
+"targetImageWidth": 1024,
+"negativeOriginalImageHeight": 1344,
+"negativeOriginalImageWidth": 1792,
+"hiresFix": true,
+"hiresFixHeight": 512,
+"hiresFixWidth": 512,
+"hiresFixStrength": 0.6
+}
+
+@xl_magic_lerge_3_to_2 =
+{
+"height": 1920,
+"width": 1280,
+"originalImageHeight": 576,
+"originalImageWidth": 768,
+"targetImageHeight": 768,
+"targetImageWidth": 1024,
+"negativeOriginalImageHeight": 1344,
+"negativeOriginalImageWidth": 1792,
+"hiresFixHeight": 768,
+"hiresFixWidth": 512,
+"hiresFix": true,
+"hiresFixStrength": 0.6
+}
+
+@xl_magic_lerge_4_to_3 =
+{
+"height": 1796,
+"width": 1344,
+"originalImageHeight": 576,
+"originalImageWidth": 768,
+"targetImageHeight": 768,
+"targetImageWidth": 1024,
+"negativeOriginalImageHeight": 1344,
+"negativeOriginalImageWidth": 1792,
+"hiresFixHeight": 768,
+"hiresFixWidth": 576,
+"hiresFix": true,
+"hiresFixStrength": 0.6
+}
+
+@xl_magic_lerge_16_to_9 =
+{
+"height": 2048,
+"width": 1152,
+"originalImageHeight": 576,
+"originalImageWidth": 768,
+"targetImageHeight": 768,
+"targetImageWidth": 1024,
+"negativeOriginalImageHeight": 1344,
+"negativeOriginalImageWidth": 1792,
+"hiresFixHeight": 1024,
+"hiresFixWidth": 576,
+"hiresFix": true,
+"hiresFixStrength": 0.6
+}
