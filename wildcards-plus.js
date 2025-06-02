@@ -9049,20 +9049,19 @@ const SpecialFunctionUpdateConfigurationBinary =
                             discarded_comments,                                     // -
                             lws(choice(ExposedRjsonc,
                                        first(seq(() => LimitedContentNoSemis,
-                                                 SpecialFunctionTail))))            // [1][1]
-                           )))
+                                                 SpecialFunctionTail)))))))         // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                      // [0]
-                discarded_comments,                                                 // -
-                cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
-                            discarded_comments,                                     // -
+            seq(/conf(?:ig)?/,                                                        // [0]
+                discarded_comments,                                                   // -
+                cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
+                            discarded_comments,                                       // -
                             lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
                                                  optional(SpecialFunctionTail))),
                                        first(seq(() => LimitedContentNoSemis,
-                                                 SpecialFunctionTail)))))))         // [1][1]
+                                                 optional(SpecialFunctionTail)))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
