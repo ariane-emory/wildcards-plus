@@ -3614,8 +3614,9 @@ const configuration_key_names = [
   { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
   { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
   { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
-  { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
-];
+  { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'
+    shorthands: [ "znp" ] },
+]];
 // -------------------------------------------------------------------------------------------------
 function get_other_name(return_key, find_key, find_value) {
   if (log_name_lookups_enabled)
