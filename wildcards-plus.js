@@ -3565,17 +3565,21 @@ const configuration_key_names = [
   { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
   { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
   { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
-  { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
-  { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
+  { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'
+    shorthands: [ "noh" ] },
+  { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'
+    shorthands: [ "now" ] },
   { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
-    shorthands: ['neg', 'negative' ] },
+      shorthands: ['neg', 'negative' ] },
   { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
   { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
     shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
-  { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
-  { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
+  { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'
+    shorthands: [ "oh" ] },
+  { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'
+    shorthands: [ "ow" ] },
   { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
-  { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
+    { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
   { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
   { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
   { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
@@ -3594,10 +3598,12 @@ const configuration_key_names = [
   { dt_name: 't5Text',                            automatic1111_name: 't5_text',
     shorthands: [ 't5' ] },
   { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
-  { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
-  { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
+  { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'
+    shorthands: [ "th" ] },
+  { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'
+    jshorthands: [ "tw" ] },
   { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
-  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
+    { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
   { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
   { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
   { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
