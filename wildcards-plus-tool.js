@@ -4429,7 +4429,7 @@ const prelude_text = prelude_disabled ? '' : `
   %oh   = 576;    %ow   = 768;
   %th   = 768;    %tw   = 1024;
   %nh   = 1344;   %nw   = 1792;
-  %hrfh = 512;    %hrww = 512;
+  %hrfh = 512;    %hrfw = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
 }
@@ -4439,7 +4439,7 @@ const prelude_text = prelude_disabled ? '' : `
   %oh   = 576;    %ow   = 768; 
   %th   = 768;    %tw   = 1024;
   %nh   = 1344;   %nw   = 1792;
-  %hrfh = 512;    %hrww = 768; 
+  %hrfh = 512;    %hrfw = 768; 
   %hrf  = true;
   %hrf_strength = 0.6;
 }
@@ -4449,7 +4449,7 @@ const prelude_text = prelude_disabled ? '' : `
   %oh   = 768;    %ow   = 576;
   %th   = 1024;   %tw   = 768;
   %nh   = 1792;   %nw   = 1344;
-  %hrfh = 768;    %hrww = 512;
+  %hrfh = 768;    %hrfw = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
 }
@@ -4459,7 +4459,7 @@ const prelude_text = prelude_disabled ? '' : `
   %oh   = 768;    %ow   = 576;
   %th   = 1024;   %tw   = 768;
   %nh   = 1792;   %nw   = 1344;
-  %hrfh = 768;    %hrww = 576;
+  %hrfh = 768;    %hrfw = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
 }
@@ -4469,7 +4469,7 @@ const prelude_text = prelude_disabled ? '' : `
   %oh   = 576;    %ow   = 768; 
   %th   = 768;    %tw   = 1024;
   %nh   = 1344;   %nw   = 1792;
-  %hrfh = 576;    %hrww = 768; 
+  %hrfh = 576;    %hrfw = 768; 
   %hrf  = true;
   %hrf_strength = 0.6;
 }
@@ -4479,7 +4479,7 @@ const prelude_text = prelude_disabled ? '' : `
   %oh   = 576;    %ow   = 768; 
   %th   = 768;    %tw   = 1024;
   %nh   = 1344;   %nw   = 1792;
-  %hrfh = 576;    %hrww = 1024;
+  %hrfh = 576;    %hrfw = 1024;
   %hrf  = true;
   %hrf_strength = 0.6;
 }
@@ -4489,7 +4489,7 @@ const prelude_text = prelude_disabled ? '' : `
   %oh   = 768;    %ow   = 576;
   %th   = 1024;   %tw   = 768;
   %nh   = 1792;   %nw   = 1344;
-  %hrfh = 1024;   %hrww = 576;
+  %hrfh = 1024;   %hrfw = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
 }
