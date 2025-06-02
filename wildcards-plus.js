@@ -9072,15 +9072,20 @@ try {
   // lm.log(`pipeline.prompts is:`);
   // LOG_LINE();
   // lm.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
-  LOG_LINE();
-  lm.log(`The wildcards-plus prompt is:`);
-  LOG_LINE();
-  lm.log(`${prompt_string}`);
-
   const base_context = load_prelude();
   base_context.configuration          = pipeline.configuration;
   base_context.pick_one_priority      = user_selected_pick_one_priority;
   base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
+
+  LOG_LINE();
+  lm.log(`base_context.configuration is:`);
+  LOG_LINE();
+  lm.log(`${JSON.stringify(base_context.configuration, null, 2)}`);
+
+  LOG_LINE();
+  lm.log(`The wildcards-plus prompt is:`);
+  LOG_LINE();
+  lm.log(`${prompt_string}`);
 
   // -----------------------------------------------------------------------------------------------
   // main loop:
