@@ -9104,9 +9104,9 @@ try {
 
     // expand the wildcards using a cloned context and generate a new configuration:
     
-    lm.log(`BEFORE CLONING CONTEXT...`);
+    // lm.log(`BEFORE CLONING CONTEXT...`);
     const context = base_context.clone();
-    lm.log(`AFTER CLONING CONTEXT`);
+    // lm.log(`AFTER CLONING CONTEXT`);
     const prompt  = expand_wildcards(AST, context);
     context.munge_configuration();
 
