@@ -3722,7 +3722,7 @@ class Context {
     this.named_wildcards              = named_wildcards;
     this.noisy                        = noisy;
     this.files                        = files;
-    this.configuration                = structured_clone(configuration, { unshare: true });
+    this.configuration                = configuration;
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
@@ -3731,6 +3731,61 @@ class Context {
 
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
+  }
+  // -----------------------------------------------------------------------------------------------
+  clone() {
+    // lm.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    
+    const copy = new Context({
+      flags:                        structured_clone(this.flags),
+      scalar_variables:             new Map(this.scalar_variables), // slightly shared
+      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
+      noisy:                        this.noisy,
+      files:                        structured_clone(this.files),
+      configuration:                this.configuration, 
+      top_file:                     this.top_file,
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.pick_multiple_priority,
+    });
+
+    if (this.configuration.loras && copy.configuration.loras &&
+        this.configuration.loras === copy.configuration.loras)
+      throw new Error("oh no");
+
+    // lm.log(`CLONED CONTEXT`);
+    
+    return copy;
+  }
+  // -----------------------------------------------------------------------------------------------
+  shallow_copy() {
+    var copy = new Context({
+      flags:                        this.flags,
+      scalar_variables:             this.scalar_variables,
+      named_wildcards:              this.named_wildcards,
+      noisy:                        this.noisy,
+      files:                        this.files,
+      top_file:                     false, // deliberately not copied!
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,
+      prior_pick_multiple_priority: this.pick_multiple_priority,      
+      negative_prompt:              this.negative_prompt,
+    });
+    
+    copy.__configuration = this.configuration;
+
+    return copy;
+  }
+  // -----------------------------------------------------------------------------------------------
+  get configuration() {
+    return this.__configuration;
+  }
+  // -----------------------------------------------------------------------------------------------
+  set configuration(config) {
+    lm.log(`CLONING CONFIGURATION!`);
+    this.__configuration = structured_clone(config, { unshare: true });
   }
   // -----------------------------------------------------------------------------------------------
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
@@ -3821,49 +3876,6 @@ class Context {
            lm.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
            } */
     }
-  }
-  // -----------------------------------------------------------------------------------------------
-  clone() {
-    // lm.log(`CLONING CONTEXT ${inspect_fun(this)}`);
-    
-    const copy = new Context({
-      flags:                        structured_clone(this.flags),
-      scalar_variables:             new Map(this.scalar_variables), // slightly shared
-      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
-      noisy:                        this.noisy,
-      files:                        structured_clone(this.files),
-      configuration:                structured_clone(this.configuration, { unshare: true }),
-      top_file:                     this.top_file,
-      pick_one_priority:            this.pick_one_priority,
-      prior_pick_one_priority:      this.prior_pick_one_priority,
-      pick_multiple_priority:       this.pick_multiple_priority,      
-      prior_pick_multiple_priority: this.pick_multiple_priority,
-    });
-
-    if (this.configuration.loras && copy.configuration.loras &&
-        this.configuration.loras === copy.configuration.loras)
-      throw new Error("oh no");
-
-    // lm.log(`CLONED CONTEXT`);
-    
-    return copy;
-  }
-  // -----------------------------------------------------------------------------------------------
-  shallow_copy() {
-    return new Context({
-      flags:                        this.flags,
-      scalar_variables:             this.scalar_variables,
-      named_wildcards:              this.named_wildcards,
-      noisy:                        this.noisy,
-      files:                        this.files,
-      configuration:                this.configuration,
-      top_file:                     false, // deliberately not copied!
-      pick_one_priority:            this.pick_one_priority,
-      prior_pick_one_priority:      this.prior_pick_one_priority,
-      pick_multiple_priority:       this.pick_multiple_priority,
-      prior_pick_multiple_priority: this.pick_multiple_priority,      
-      negative_prompt:              this.negative_prompt,
-    });
   }
   // -------------------------------------------------------------------------------------------------
   munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
