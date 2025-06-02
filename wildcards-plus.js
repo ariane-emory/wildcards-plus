@@ -3270,12 +3270,17 @@ function smart_join(arr, unexpected) {
       continue;
     }
 
+    if (right_word === '<') {
+      str += '<';
+      continue;
+    }
+
     while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
       move_chars_left(3);
     
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       move_chars_left(1);
-    
+
     // Normalize article if needed:
     const article_match = str.match(/(?:^|\s)([Aa])$/);
     
@@ -3294,6 +3299,11 @@ function smart_join(arr, unexpected) {
       chomped = true;
     }
     
+    if (str.endsWith('<')) {
+      chomp_left_side();
+      chomped = true;
+    }
+
     if (right_word.startsWith('<')) {
       chomp_right_side();
       chomped = true;
@@ -3982,17 +3992,17 @@ const prelude_text = prelude_disabled ? '' : `
                            |?gender.male   his
                            |?gender.neuter its       }}
 
-@any_digit              = {\\0|\\1|\\2|\\3|\\4
+@digit                  = {\\0|\\1|\\2|\\3|\\4
                           |\\5|\\6|\\7|\\8|\\9}
 @low_digit              = {\\0|\\1|\\2|\\3|\\4}
 @high_digit             = {\\5|\\6|\\7|\\8|\\9}
 
 @low_random_weight      = {0.< @low_digit }
-@lt1_random_weight      = {0.< @any_digit } 
+@lt1_random_weight      = {0.< @digit } 
 @lowish_random_weight   = {0.< @high_digit}
-@random_weight          = {1.< @any_digit }
+@random_weight          = {1.< @digit }
 @highish_random_weight  = {1.< @low_digit }
-@gt1_random_weight      = {1.< @any_digit }
+@gt1_random_weight      = {1.< @digit }
 @high_random_weight     = {1.< @high_digit}
 
 // @pony_score_9           = { score_9, score_8_up,                                                  }
@@ -7466,9 +7476,11 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         let str = thing.joiner === ','
             ? res.join(", ")
-            : (thing.joiner == '&'
-               ? format_pretty_list(res)
-               : res.join(" "));
+            : (thing.joiner == '|'
+               ? res.join(' | ')
+               : (thing.joiner == '&'
+                  ? format_pretty_list(res)
+                  : res.join(" ")));
 
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer]);
@@ -8776,7 +8788,7 @@ const NamedWildcardReference  = xform(seq(at,                                   
                                           optional(xform(parseInt, uint)),           // [2]
                                           optional(xform(parseInt,                   // [3]
                                                          second(seq(dash, uint)))),
-                                          optional(/[,&]/),                          // [4]
+                                          optional(/[,&|]/),                          // [4]
                                           ident,                                     // [5]
                                           optional(/(?:\.\.\.|[,.!?])/, ''),         // [6]
                                          ), 
