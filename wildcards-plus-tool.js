@@ -9014,7 +9014,7 @@ const swb_uint                = xform(parseInt, with_swb(uint))
 // plain_text terminal variants:
 // =================================================================================================
 const structural_chars        = '{|}';
-const syntax_chars            = '@#$%';
+const syntax_chars            = '@#$%;';
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
@@ -9490,7 +9490,7 @@ const LimitedContent          = make_LimitedContent_rule(plain_text)
                 UnsetFlag,
                 ScalarAssignment,
                 ScalarReference,
-                make_malformed_token_rule(r_raw`(?![${structural_chars}])\S.*`), // reminder, structural_chars === '{|}'
+                make_malformed_token_rule(r_raw`(?![${structural_chars};])\S.*`), // reminder, structural_chars === '{|}'
               );
 
         // -------------------------------------------------------------------------------------------------
@@ -9818,4 +9818,4 @@ if (! main_disabled)
 
 // expect(never_match).match("nope")
 // log_match_enabled = true;
-//sconsole.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')));
+//sconsole.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')))
