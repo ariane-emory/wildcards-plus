@@ -3712,6 +3712,8 @@ function get_next_context_id() {
 }
 // -------------------------------------------------------------------------------------------------
 class Context {
+  #configuration;
+  // -----------------------------------------------------------------------------------------------
   constructor({ 
     flags                        = [], 
     scalar_variables             = new Map(),
@@ -3784,18 +3786,18 @@ class Context {
       negative_prompt:              this.negative_prompt,
     });
     
-    copy.__configuration = this.configuration;
+    copy.#configuration = this.configuration;
 
     return copy;
   }
   // -----------------------------------------------------------------------------------------------
   get configuration() {
-    return this.__configuration;
+    return this.#configuration;
   }
   // -----------------------------------------------------------------------------------------------
   set configuration(config) {
     // lm.log(`CLONING CONFIGURATION!`);
-    this.__configuration = structured_clone(config, { unshare: true });
+    this.#configuration = structured_clone(config, { unshare: true });
   }
   // -----------------------------------------------------------------------------------------------
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
