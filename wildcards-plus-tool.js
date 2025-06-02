@@ -4313,8 +4313,82 @@ const prelude_text = prelude_disabled ? '' : `
                             high depth of field, ultra high resolution, detailed background,
                             wide shot,}
 
+
 //--------------------------------------------------------------------------------------------------
-// Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
+// content based on XL Magic Config's defaults:
+//--------------------------------------------------------------------------------------------------
+
+@xl_magic_small_1_to_1 =
+{ %h    = 512;   %w    = 512;
+  %oh   = 576;   %ow   = 768;
+  %th   = 768;   %tw   = 1024;
+  %nh   = 1344;  %nw   = 1792;
+  %hrf  = false;
+}
+
+@xl_magic_small_2_to_3 =
+{ %h    = 512;   %w    = 768;
+  %oh   = 768;   %ow   = 576;
+  %th   = 1024;  %tw   = 768;
+  %nh   = 1792;  %nw   = 1344;
+  %hrf  = false;
+}
+
+@xl_magic_small_3_to_2 =
+{ %h    = 768;   %w    = 512;
+  %oh   = 576;   %ow   = 768;
+  %th   = 768;   %tw   = 1024;
+  %nh   = 1344;  %nw   = 1792;
+  %hrf  = false;
+}
+
+@xl_magic_small_4_to_3 =
+{ %h   = 768;    %w   = 576;
+  %oh  = 768;    %ow  = 576;
+  %th  = 1024;   %tw  = 768;
+  %nh  = 1792;   %nw  = 1344;
+  %hrf = false;
+}
+
+
+@xl_magic_small_3_to_4 =
+{ %h   = 576;    %w   = 768;
+  %oh  = 576;    %ow  = 768;
+  %th  = 768;    %tw  = 1024;
+  %nh  = 1344;   %nw  = 1792;
+  %hrf = false;
+}
+
+@xl_magic_small_9_to_16 =
+{ %h   = 1024;   %w   = 576;
+  %oh  = 576;    %ow  = 768;
+  %th  = 768;    %tw  = 1024;
+  %nh  = 1344;   %nw  = 1792;
+  %hrf = false;
+}
+
+@xl_magic_small_16_to_9 =
+{ %h   = 576;    %w   = 1024;
+  %oh  = 768;    %ow  = 576;
+  %th  = 1024;   %tw  = 768;
+  %nh  = 1792;   %nw  = 1344;
+  %hrf = false;
+}
+
+// Resolutions:
+@xl_magic_small_random =
+{0
+| @xl_magic_small_1_to_1
+| @xl_magic_small_2_to_3
+| @xl_magic_small_3_to_2
+| @xl_magic_small_3_to_4
+| @xl_magic_small_4_to_3
+| @xl_magic_small_9_to_16
+| @xl_magic_small_16_to_9
+}
+
+//--------------------------------------------------------------------------------------------------
+// Integrated content adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
 //--------------------------------------------------------------------------------------------------
 
