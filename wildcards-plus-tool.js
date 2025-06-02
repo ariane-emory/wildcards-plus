@@ -9189,11 +9189,11 @@ const Content                 = make_Content_rule({
 });
 const TopLevelContent         = make_Content_rule({
   before_plain_text_rules: [
-    make_malformed_token_rule(r_raw`}\S*`),
     A1111StyleLora,
     TopLevelTestFlag,
   ],
   after_plain_text_rules:  [
+    make_malformed_token_rule(r_raw`}\S*`),
     AnonWildcard,
     NamedWildcardDefinition,
     SpecialFunctionInclude,
