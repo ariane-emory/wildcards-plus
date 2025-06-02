@@ -65,7 +65,9 @@ class Logger {
   }
   // -----------------------------------------------------------------------------------------------
   log(thing = '', with_indent = true) {
-    console.log(this.indent_thing(thing, with_indent));
+    const full_output = this.indent_thing(thing, with_indent);
+    for (const line of full_output.split('\n'))
+      console.log(line);
   }
   // -----------------------------------------------------------------------------------------------
   indent_lines(str) {
@@ -8783,82 +8785,87 @@ const SpecialFunctionNotInclude =
 // =================================================================================================
 // other non-terminals:
 // =================================================================================================
-const NamedWildcardReference  = xform(seq(at,                                        // [0]
-                                          optional(caret),                           // [1]
-                                          optional(xform(parseInt, uint)),           // [2]
-                                          optional(xform(parseInt,                   // [3]
-                                                         second(seq(dash, uint)))),
-                                          optional(/[,&|]/),                          // [4]
-                                          ident,                                     // [5]
-                                          optional(/(?:\.\.\.|[,.!?])/, ''),         // [6]
-                                         ), 
-                                      arr => {
-                                        const ident   = arr[5];
-                                        const min_ct  = arr[2][0] ?? 1;
-                                        const max_ct  = arr[3][0] ?? min_ct;
-                                        const join    = arr[4][0] ?? '';
-                                        const caret   = arr[1][0];
-                                        const trailer = arr[6][0];
+const NamedWildcardReference  =
+      xform(seq(at,                                        // [0]
+                optional(caret),                           // [1]
+                optional(xform(parseInt, uint)),           // [2]
+                optional(xform(parseInt,                   // [3]
+                               second(seq(dash, uint)))),
+                optional(/[,&|]/),                         // [4]
+                ident,                                     // [5]
+                optional(/(?:\.\.\.|[,.!?])/, ''),         // [6]
+               ), 
+            arr => {
+              const ident   = arr[5];
+              const min_ct  = arr[2][0] ?? 1;
+              const max_ct  = arr[3][0] ?? min_ct;
+              const join    = arr[4][0] ?? '';
+              const caret   = arr[1][0];
+              const trailer = arr[6][0];
 
-                                        if (min_ct == 0 && max_ct == 0) {
-                                          lm.log(`WARNING: retrieving 0 items from a named ` +
-                                                 `wildcard is a strange thing to do. We'll allow ` +
-                                                 `it, but you may have made an error in your ` +
-                                                 `template`,
-                                                 false)
-                                          
-                                          return DISCARD;
-                                        }
-                                        
-                                        return new ASTNamedWildcardReference(ident,
-                                                                             join,
-                                                                             caret,
-                                                                             min_ct,
-                                                                             max_ct,
-                                                                             trailer);
-                                      })
+              if (min_ct == 0 && max_ct == 0) {
+                lm.log(`WARNING: retrieving 0 items from a named ` +
+                       `wildcard is a strange thing to do. We'll allow ` +
+                       `it, but you may have made a mistake in your ` +
+                       `template.`,
+                       false)
+                
+                return DISCARD;
+              }
+              
+              return new ASTNamedWildcardReference(ident,
+                                                   join,
+                                                   caret,
+                                                   min_ct,
+                                                   max_ct,
+                                                   trailer);
+            })
       .abbreviate_str_repr('NamedWildcardReference');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDesignator = second(seq(at, ident))
       .abbreviate_str_repr('NamedWildcardDesignator');
 // -------------------------------------------------------------------------------------------------
-const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
-                                      wst_seq(NamedWildcardDesignator,
-                                              wst_cutting_seq(equals, 
-                                                              discarded_comments,
-                                                              AnonWildcard)))
+const NamedWildcardDefinition =
+      xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
+            wst_seq(NamedWildcardDesignator,
+                    wst_cutting_seq(equals, 
+                                    discarded_comments,
+                                    AnonWildcard)))
       .abbreviate_str_repr('NamedWildcardDefinition');
 // -------------------------------------------------------------------------------------------------
-const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), ident),
-                                      arr => {
-                                        const [ bang, hash, ident, objs ] =
-                                              [ arr[1][0], arr[2][0], arr[3], []];
-                                        
-                                        if (!bang && !hash)
-                                          return new ASTNamedWildcardReference(ident);
+const NamedWildcardUsage      =
+      xform(seq(at, optional(bang), optional(hash), ident),
+            arr => {
+              const [ bang, hash, ident, objs ] =
+                    [ arr[1][0], arr[2][0], arr[3], []];
+              
+              if (!bang && !hash)
+                return new ASTNamedWildcardReference(ident);
 
-                                        // goes before hash so that "@!#" works correctly:
-                                        if (bang) 
-                                          objs.push(new ASTUnlatchNamedWildcard(ident));
+              // goes before hash so that "@!#" works correctly:
+              if (bang) 
+                objs.push(new ASTUnlatchNamedWildcard(ident));
 
-                                        if (hash)
-                                          objs.push(new ASTLatchNamedWildcard(ident));
+              if (hash)
+                objs.push(new ASTLatchNamedWildcard(ident));
 
-                                        return objs;
-                                      })
+              return objs;
+            })
       .abbreviate_str_repr('NamedWildcardUsage');
 // -------------------------------------------------------------------------------------------------
-const ScalarReference         = xform(seq(dollar,
-                                          optional(caret),
-                                          ident,
-                                          optional(/(?:\.\.\.|[,.!?])/, '')),
-                                      arr => new ASTScalarReference(arr[2],
-                                                                    arr[1][0],
-                                                                    arr[3][0]))
+const ScalarReference         =
+      xform(seq(dollar,
+                optional(caret),
+                ident,
+                optional(/(?:\.\.\.|[,.!?])/, '')),
+            arr => new ASTScalarReference(arr[2],
+                                          arr[1][0],
+                                          arr[3][0]))
       .abbreviate_str_repr('ScalarReference');
 // -------------------------------------------------------------------------------------------------
-const ScalarDesignator        = xform(seq(dollar, ident),
-                                      arr => new ASTScalarReference(arr[1]))
+const ScalarDesignator        =
+      xform(seq(dollar, ident),
+            arr => new ASTScalarReference(arr[1]))
       .abbreviate_str_repr('ScalarDesignator');
 // -------------------------------------------------------------------------------------------------
 const ScalarAssignment        =
