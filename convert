@@ -8,10 +8,10 @@
 "targetImageWidth": 1024,
 "negativeOriginalImageHeight": 1344,
 "negativeOriginalImageWidth": 1792,
-"hiresFix": true,
 "hiresFixHeight": 512,
 "hiresFixWidth": 512,
-"hiresFixStrength": 0.6
+"hiresFixStrength": 0.6,
+"hiresFix": true,
 }
 
 @xl_magic_lerge_3_to_2 =
@@ -26,8 +26,8 @@
 "negativeOriginalImageWidth": 1792,
 "hiresFixHeight": 768,
 "hiresFixWidth": 512,
+"hiresFixStrength": 0.6,
 "hiresFix": true,
-"hiresFixStrength": 0.6
 }
 
 @xl_magic_lerge_4_to_3 =
@@ -42,8 +42,8 @@
 "negativeOriginalImageWidth": 1792,
 "hiresFixHeight": 768,
 "hiresFixWidth": 576,
+"hiresFixStrength": 0.6,
 "hiresFix": true,
-"hiresFixStrength": 0.6
 }
 
 @xl_magic_lerge_16_to_9 =
@@ -58,6 +58,6 @@
 "negativeOriginalImageWidth": 1792,
 "hiresFixHeight": 1024,
 "hiresFixWidth": 576,
+"hiresFixStrength": 0.6,
 "hiresFix": true,
-"hiresFixStrength": 0.6
 }
