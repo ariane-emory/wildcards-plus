@@ -3773,7 +3773,6 @@ const configuration_key_names = [
   // -----------------------------------------------------------------------------------------------
   { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
   { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
-  { dt_name: 'height',                            automatic1111_name: 'height'                                     },
   { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
   { dt_name: 'model',                             automatic1111_name: 'model'                                      },
   { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
@@ -3784,8 +3783,24 @@ const configuration_key_names = [
   { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
   { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
   { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
-  { dt_name: 'width',                             automatic1111_name: 'width'                                      },
   { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
+
+  { dt_name: 'height',                            automatic1111_name: 'height',
+    shorthands: [ 'h', 'ih', ] },
+  { dt_name: 'width',                             automatic1111_name: 'width',
+    shorthands: [ 'w', 'iw', ] },
+  { dt_name: 'negativeOriginalImageHeight',       automatic1111_name: 'negative_original_height',
+    shorthands: [ 'noih', 'noh', 'nih', 'nh', 'negativeOriginalHeight', ] },
+  { dt_name: 'negativeOriginalImageWidth',        automatic1111_name: 'negative_original_width',
+    shorthands: [ 'noiw', 'now', 'niw', 'nw', 'negativeOriginalWidth',  ] },
+  { dt_name: 'originalImageHeight',               automatic1111_name: 'original_height',
+    shorthands: [ 'oih', 'oh', 'originalHeight', ] },
+  { dt_name: 'originalImageWidth',                automatic1111_name: 'original_width',
+    shorthands: [ 'oiw', 'ow', 'originalWidth'   ] },
+  { dt_name: 'targetImageHeight',                 automatic1111_name: 'target_height',
+    shorthands: [ 'tih', 'th', 'targetHeight', ] },
+  { dt_name: 'targetImageWidth',                  automatic1111_name: 'target_width',
+    shorthands: [ 'tiw', 'tw', 'targedWidth',  ] },
   // -----------------------------------------------------------------------------------------------
   // differing keys:
   // -----------------------------------------------------------------------------------------------
@@ -3822,19 +3837,11 @@ const configuration_key_names = [
   { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
   { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
   { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
-  { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'
-    shorthands: [ "noh" ] },
-  { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'
-    shorthands: [ "now" ] },
   { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
     shorthands: ['neg', 'negative' ] },
   { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
   { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
     shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
-  { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'
-    shorthands: [ "oh" ] },
-  { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'
-    shorthands: [ "ow" ] },
   { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
   { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
   { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
@@ -3855,10 +3862,6 @@ const configuration_key_names = [
   { dt_name: 't5Text',                            automatic1111_name: 't5_text',
     shorthands: [ 't5' ] },
   { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
-  { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'
-    shorthands: [ "th" ] },
-  { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'
-    jshorthands: [ "tw" ] },
   { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
   { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
   { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
