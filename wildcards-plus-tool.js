@@ -3825,7 +3825,7 @@ const configuration_key_names = [
     shorthands: [ 'guidance',                                                                                    ] },
   { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug'                                   },
   { dt_name: 'hiresFix',                          automatic1111_name: 'high_resolution_fix',
-    shorthands: [ 'enable_hr',                                                                                   ] },
+    shorthands: [ 'enable_hr', 'hrf' ]                                                                             },
   { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height_explanation',
     shorthands: [ 'firstphase_height',                                                                           ] },
   { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail'          },
