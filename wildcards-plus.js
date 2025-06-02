@@ -4198,7 +4198,7 @@ const prelude_text = prelude_disabled ? '' : `
 }
 
 @xl_magic_large_4_to_3 =
-{ %h    = 1796;   %w    = 1344;
+{ %h    = 1792;   %w    = 1344;
   %oh   = 768;    %ow   = 576;
   %th   = 1024;   %tw   = 768;
   %nh   = 1792;   %nw   = 1344;
@@ -4208,7 +4208,7 @@ const prelude_text = prelude_disabled ? '' : `
 }
 
 @xl_magic_large_3_to_4 =
-{ %h    = 1344;   %w    = 1796;
+{ %h    = 1344;   %w    = 1792;
   %oh   = 576;    %ow   = 768; 
   %th   = 768;    %tw   = 1024;
   %nh   = 1344;   %nw   = 1792;
