@@ -322,8 +322,10 @@ class Logger {
   }
   // -----------------------------------------------------------------------------------------------
   log(thing = '', with_indent = true) {
-    console.log(this.indent_thing(thing, with_indent));
-  }
+    const full_output = this.indent_thing(thing, with_indent);
+    for (const line of full_output.split('\n'))
+      console.log(line);
+    }
   // -----------------------------------------------------------------------------------------------
   indent_lines(str) {
     if (typeof str !== 'string')
