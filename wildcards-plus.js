@@ -1422,7 +1422,7 @@ class Unexpected extends Rule {
     
     if (match_result) {
       if (this.error_func) {
-        const err = this.error_func(this, input, index);
+        const err = this.error_func(this, input, index, match_result);
         throw err instanceof Error ? err : new FatalParseError(err, input, index);
       }
       else {
@@ -8881,6 +8881,24 @@ const LimitedContent          = make_LimitedContent_rule(plain_text)
 const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
+lm.log(`THIS:  ${inspect_fun(plain_text)}`);
+lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
+
+// const malformed_token =
+//       // tokens starting with % are actually usually caught before getting here.
+//       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
+//                  (rule, input, index, match_result) => 
+//                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
+
+
+const make_malformed_token_rule = rule => 
+      unexpected(rule,
+                 (rule, input, index, match_result) => {
+                   // throw new Error('bomb');
+                   return new FatalParseError(`encountered malformed token: ` +
+                                              `${inspect_fun(match_result.value)}`, input, index);
+                 }).abbreviate_str_repr(`malformed(${rule.toString()})`);
+
 const make_Content_rule       = ({ before_plain_text_rules = [],
                                    after_plain_text_rules  = [] } = {}) =>
       choice(
@@ -8895,7 +8913,9 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         UnsetFlag,
         ScalarAssignment,
         ScalarReference,
+        make_malformed_token_rule(r_raw`(?!${structural_chars})\S.*`), // reminder, structural_chars === '{|}'
       );
+
 // -------------------------------------------------------------------------------------------------
 const ContentNoLoras          = make_Content_rule({
   after_plain_text_rules: [
@@ -8912,6 +8932,7 @@ const Content                 = make_Content_rule({
 });
 const TopLevelContent         = make_Content_rule({
   before_plain_text_rules: [
+    make_malformed_token_rule(r_raw`}\S*`),
     A1111StyleLora,
     TopLevelTestFlag,
   ],
