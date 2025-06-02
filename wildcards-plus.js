@@ -9020,23 +9020,23 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
   ];
 });
 
-// console.log(`USER SELECTION:`);
-// console.log(JSON.stringify(user_selection, null, 2));
+// lm.log(`USER SELECTION:`);
+// lm.log(JSON.stringify(user_selection, null, 2));
 
 prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
 const clear_first = user_selection[2];
 const user_selected_pick_one_priority =
       picker_priority_descriptions[user_selection[3][0]];
-// console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
+// lm.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 const user_selected_pick_multiple_priority =
       picker_priority_descriptions[user_selection[4][0]];
-// console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
+// lm.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
-console.log(`Single pick priority:   ${user_selected_pick_one_priority}`);
-console.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
+lm.log(`Single pick priority:   ${user_selected_pick_one_priority}`);
+lm.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
 
 // -------------------------------------------------------------------------------------------------
 // parse the prompt_string here:
@@ -9053,17 +9053,17 @@ try {
   // -----------------------------------------------------------------------------------------------
 
   LOG_LINE();
-  console.log(`pipeline.configuration is:`);
+  lm.log(`pipeline.configuration is:`);
   LOG_LINE();
-  console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
+  lm.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
   // LOG_LINE();
-  // console.log(`pipeline.prompts is:`);
+  // lm.log(`pipeline.prompts is:`);
   // LOG_LINE();
-  // console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
+  // lm.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
   LOG_LINE();
-  console.log(`The wildcards-plus prompt is:`);
+  lm.log(`The wildcards-plus prompt is:`);
   LOG_LINE();
-  console.log(`${prompt_string}`);
+  lm.log(`${prompt_string}`);
 
   const base_context = load_prelude();
   base_context.configuration          = pipeline.configuration;
@@ -9077,7 +9077,7 @@ try {
     const start_date = new Date();
 
     LOG_LINE();
-    console.log(`Beginning expansion #${ix+1} out of ${batch_count} at ` +
+    lm.log(`Beginning expansion #${ix+1} out of ${batch_count} at ` +
                 `${format_simple_time(start_date)}:`);
     LOG_LINE();
 
@@ -9088,26 +9088,26 @@ try {
     context.munge_configuration();
 
     LOG_LINE();
-    console.log(`GENERATED CONFIGURATION:`);
+    lm.log(`GENERATED CONFIGURATION:`);
     LOG_LINE();
-    console.log(`${JSON.stringify(context.configuration, null, 2)}`);
+    lm.log(`${JSON.stringify(context.configuration, null, 2)}`);
 
     // throw new Error("stop here");
     
     LOG_LINE();
-    console.log(`The expanded prompt is:`);
+    lm.log(`The expanded prompt is:`);
     LOG_LINE();
-    console.log(`${prompt}`);
+    lm.log(`${prompt}`);
     
     if (context.configuration.negativePrompt || context.configuration.negativePrompt === '') {
       LOG_LINE();
-      console.log(`Expanded negative prompt:`);
+      lm.log(`Expanded negative prompt:`);
       LOG_LINE();
-      console.log(context.configuration.negativePrompt);
+      lm.log(context.configuration.negativePrompt);
     } else {
       LOG_LINE();
-      console.log(`No negative prompt, using negative prompt from UI: ` +
-                  `${inspect_fun(ui_neg_prompt)}.`);
+      lm.log(`No negative prompt, using negative prompt from UI: ` +
+             `${inspect_fun(ui_neg_prompt)}.`);
       
       context.configuration.negativePrompt = ui_neg_prompt;
     }
@@ -9115,13 +9115,13 @@ try {
     LOG_LINE();
 
     if (clear_first) {
-      console.log(`Clearing canvas...`);
+      lm.log(`Clearing canvas...`);
       canvas.clear();
     } else {
-      console.log(`Not clearing canvas`);
+      lm.log(`Not clearing canvas`);
     }
 
-    console.log(`Generating image #${ix+1} out of ${batch_count} at ${format_simple_time()}...`);
+    lm.log(`Generating image #${ix+1} out of ${batch_count} at ${format_simple_time()}...`);
 
     // ---------------------------------------------------------------------------------------------
     // run the pipeline:
@@ -9139,23 +9139,23 @@ try {
     const end_time     = new Date().getTime();
     const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
-    console.log(`... image generated in ${elapsed_time} seconds.`);
+    lm.log(`... image generated in ${elapsed_time} seconds.`);
   }
 
   LOG_LINE();
-  console.log('Job complete. Open the console to see the job report.');
+  lm.log('Job complete. Open the console to see the job report.');
 }
 catch(ex) {
   if (ex instanceof Error) {
     if (ex.message === 'cancelled')
-      console.log(`Cancelled.`);
+      lm.log(`Cancelled.`);
     else
-      console.log(`wildcards-plus caught a fatal exception, ` +
-                  `click here to open the console for more details\n\n` + 
+      lm.log(`wildcards-plus caught a fatal exception, ` +
+             `click here to open the console for more details\n\n` + 
                   `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
   } else {
-    console.log(`wildcards-plus caught a fatal exception, ` +
-                `click here to open the console for more details\n` +
+    lm.log(`wildcards-plus caught a fatal exception, ` +
+           `click here to open the console for more details\n` +
                 `exception:\n${inspect_fun(ex)}`);
   }
 }
