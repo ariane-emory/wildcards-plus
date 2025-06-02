@@ -3543,7 +3543,7 @@ const configuration_key_names = [
   { dt_name: 'targetImageHeight',                 automatic1111_name: 'target_height',
     shorthands: [ 'tih', 'th', 'targetHeight', ] },
   { dt_name: 'targetImageWidth',                  automatic1111_name: 'target_width',
-    shorthands: [ 'tiw', 'tw', 'targedWidth',  ] },
+    shorthands: [ 'tiw', 'tw', 'targetWidth',  ] },
   // -----------------------------------------------------------------------------------------------
   // differing keys:
   // -----------------------------------------------------------------------------------------------
@@ -4061,6 +4061,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 768;   %tw   = 1024;
   %nh  = 1344;  %nw   = 1792;
   %hrf = false;
+  #xl_magic_small_1_to_1
+  #xl_magic_small
+  #xl_magic_1_to_1
 }
 
 @xl_magic_small_2_to_3 =
@@ -4069,6 +4072,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th   = 768;   %tw   = 1024;
   %nh   = 1344;  %nw   = 1792;
   %hrf  = false;
+  #xl_magic_small_2_to_3
+  #xl_magic_small
+  #xl_magic_2_to_3
 }
 
 @xl_magic_small_3_to_2 =
@@ -4077,6 +4083,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th   = 1024;  %tw   = 768;
   %nh   = 1792;  %nw   = 1344;
   %hrf  = false;
+  #xl_magic_small_3_to_2
+  #xl_magic_small
+  #xl_magic_3_to_2
 }
 
 @xl_magic_small_3_to_4 =
@@ -4085,6 +4094,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 768;    %tw  = 1024;
   %nh  = 1344;   %nw  = 1792;
   %hrf = false;
+  #xl_magic_small_3_to_4
+  #xl_magic_small
+  #xl_magic_3_to_4
 }
 
 @xl_magic_small_4_to_3 =
@@ -4093,6 +4105,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 1024;   %tw  = 768;
   %nh  = 1792;   %nw  = 1344;
   %hrf = false;
+  #xl_magic_small_4_to_3
+  #xl_magic_small
+  #xl_magic_4_to_3
 }
 
 @xl_magic_small_9_to_16 =
@@ -4101,6 +4116,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 768;    %tw  = 1024;
   %nh  = 1344;   %nw  = 1792;
   %hrf = false;
+  #xl_magic_small_9_to_16
+  #xl_magic_small
+  #xl_magic_9_to_16
 }
 
 @xl_magic_small_16_to_9 =
@@ -4109,6 +4127,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 1024;   %tw  = 768;
   %nh  = 1792;   %nw  = 1344;
   %hrf = false;
+  #xl_magic_small_16_to_9
+  #xl_magic_small
+  #xl_magic_16_to_9
 }
 
 @xl_magic_medium_1_to_1 =
@@ -4117,6 +4138,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 768;    %tw  = 1024;
   %nh  = 1344;   %nw  = 1792;
   %hrf = false;
+  #xl_magic_medium_1_to_1
+  #xl_magic_medium
+  #xl_magic_1_to_1
 }
 
 @xl_magic_medium_2_to_3 =
@@ -4125,6 +4149,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 768;    %tw  = 1024;
   %nh  = 1344;   %nw  = 1792;
   %hrf = false;
+  #xl_magic_medium_2_to_3
+  #xl_magic_medium
+  #xl_magic_2_to_3
 }
 
 @xl_magic_medium_3_to_2 =
@@ -4133,6 +4160,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 1024;   %tw  = 768;
   %nh  = 1792;   %nw  = 1344;
   %hrf = false;
+  #xl_magic_medium_3_to_2
+  #xl_magic_medium
+  #xl_magic_3_to_2
 }
 
 @xl_magic_medium_3_to_4 =
@@ -4141,6 +4171,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 768;    %tw   = 1024;
   %nh  = 1344;   %nw   = 1792;
   %hrf = false;
+  #xl_magic_medium_3_to_4
+  #xl_magic_medium
+  #xl_magic_3_to_4
 }
 
 @xl_magic_medium_4_to_3 =
@@ -4149,6 +4182,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 1024;   %tw  = 768;
   %nh  = 1792;   %nw  = 1344;
   %hrf = false;
+  #xl_magic_medium_4_to_3
+  #xl_magic_medium
+  #xl_magic_4_to_3
 }
 
 @xl_magic_medium_9_to_16 =
@@ -4157,6 +4193,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 768;    %tw  = 1024;
   %nh  = 1344;   %nw  = 1792;
   %hrf = false;
+  #xl_magic_medium_9_to_16
+  #xl_magic_medium
+  #xl_magic_9_to_16
 }
 
 @xl_magic_medium_16_to_9 =
@@ -4165,6 +4204,9 @@ const prelude_text = prelude_disabled ? '' : `
   %th  = 1024;   %tw  = 768;
   %nh  = 1792;   %nw  = 1344;
   %hrf = false;
+  #xl_magic_medium_16_to_9
+  #xl_magic_medium
+  #xl_magic_16_to_9
 }
 
 @xl_magic_large_1_to_1 = 
@@ -4175,6 +4217,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfh = 512;    %hrfw = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_large_1_to_1
+  #xl_magic_large
+  #xl_magic_1_to_1
 }
 
 @xl_magic_large_2_to_3 =
@@ -4185,6 +4230,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfh = 512;    %hrfw = 768; 
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_large_2_to_3
+  #xl_magic_large
+  #xl_magic_2_to_3
 }
 
 @xl_magic_large_3_to_2 =
@@ -4195,6 +4243,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfh = 768;    %hrfw = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_large_3_to_2
+  #xl_magic_large
+  #xl_magic_3_to_2
 }
 
 @xl_magic_large_4_to_3 =
@@ -4205,6 +4256,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfh = 768;    %hrfw = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_large_4_to_3
+  #xl_magic_large
+  #xl_magic_4_to_3
 }
 
 @xl_magic_large_3_to_4 =
@@ -4215,6 +4269,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfh = 576;    %hrfw = 768; 
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_large_3_to_4
+  #xl_magic_large
+  #xl_magic_3_to_4
 }
 
 @xl_magic_large_9_to_16 =
@@ -4225,6 +4282,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfh = 576;    %hrfw = 1024;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_large_9_to_16
+  #xl_magic_large
+  #xl_magic_9_to_16
 }
 
 @xl_magic_large_16_to_9 =
@@ -4235,6 +4295,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfh = 1024;   %hrfw = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_large_16_to_9
+  #xl_magic_large
+  #xl_magic_16_to_9
 }
 
 // Resolutions:
