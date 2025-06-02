@@ -3784,7 +3784,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   set configuration(config) {
-    lm.log(`CLONING CONFIGURATION!`);
+    // lm.log(`CLONING CONFIGURATION!`);
     this.__configuration = structured_clone(config, { unshare: true });
   }
   // -----------------------------------------------------------------------------------------------
@@ -9064,18 +9064,22 @@ try {
 
   // -----------------------------------------------------------------------------------------------
 
-  LOG_LINE();
-  lm.log(`pipeline.configuration is:`);
-  LOG_LINE();
-  lm.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
-  // LOG_LINE();
-  // lm.log(`pipeline.prompts is:`);
-  // LOG_LINE();
-  // lm.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
   const base_context = load_prelude();
   base_context.configuration          = pipeline.configuration;
   base_context.pick_one_priority      = user_selected_pick_one_priority;
   base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
+
+  // delete base_context.configuration["negativeOriginalImageHeight"];
+  // delete base_context.configuration["negativeOriginalImageWidth"];
+  // delete base_context.configuration["originalImageHeight"];
+  // delete base_context.configuration["originalImageWidth"];
+  // delete base_context.configuration["targetImageHeight"];
+  // delete base_context.configuration["targetImageWidth"];
+
+  LOG_LINE();
+  lm.log(`pipeline.configuration is:`);
+  LOG_LINE();
+  lm.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
 
   LOG_LINE();
   lm.log(`base_context.configuration is:`);
@@ -9095,12 +9099,14 @@ try {
 
     LOG_LINE();
     lm.log(`Beginning expansion #${ix+1} out of ${batch_count} at ` +
-                `${format_simple_time(start_date)}:`);
+           `${format_simple_time(start_date)}:`);
     LOG_LINE();
 
     // expand the wildcards using a cloned context and generate a new configuration:
     
+    lm.log(`BEFORE CLONING CONTEXT...`);
     const context = base_context.clone();
+    lm.log(`AFTER CLONING CONTEXT`);
     const prompt  = expand_wildcards(AST, context);
     context.munge_configuration();
 

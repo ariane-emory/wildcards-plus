@@ -4041,7 +4041,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   set configuration(config) {
-    lm.log(`CLONING CONFIGURATION!`);
+    // lm.log(`CLONING CONFIGURATION!`);
     this.__configuration = structured_clone(config, { unshare: true });
   }
   // -----------------------------------------------------------------------------------------------
