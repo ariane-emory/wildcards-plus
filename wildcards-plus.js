@@ -9152,137 +9152,137 @@ const NamedWildcardUsage      =
 
               return objs;
             })
-                  .abbreviate_str_repr('NamedWildcardUsage');
-            // -------------------------------------------------------------------------------------------------
-            const ScalarReference         =
-                  xform(seq(dollar,
-                            optional(caret),
-                            ident,
-                            optional(/(?:\.\.\.|[,.!?])/, '')),
-                        arr => new ASTScalarReference(arr[2],
-                                                      arr[1][0],
-                                                      arr[3][0]))
-                  .abbreviate_str_repr('ScalarReference');
-            // -------------------------------------------------------------------------------------------------
-            const ScalarDesignator        =
-                  xform(seq(dollar, ident),
-                        arr => new ASTScalarReference(arr[1]))
-                  .abbreviate_str_repr('ScalarDesignator');
-            // -------------------------------------------------------------------------------------------------
-            const ScalarAssignment        =
-                  xform(arr =>
-                    new ASTScalarAssignment(arr[0],
-                                            arr[1][1],
-                                            arr[1][0] == '='),
-                    seq(ScalarDesignator,                                 // [0]
-                        discarded_comments,                               // - 
-                        cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
-                                    discarded_comments,                   // -
-                                    lws(choice(
-                                      () => rjsonc_string, // [1][1]
-                                      () => LimitedContentNoSemis,
-                                      // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
-                                    )),
-                                    SpecialFunctionTail)))
-                  .abbreviate_str_repr('ScalarAssignment');
-            // =================================================================================================
-            // Content-related rules:
-            // =================================================================================================
-            const make_LimitedContent_rule = plain_text_rule =>
-                  choice(
-                    NamedWildcardReference,
-                    AnonWildcardNoLoras,
-                    plain_text_rule,
-                    ScalarReference,
-                  );
-            // -------------------------------------------------------------------------------------------------
-            const LimitedContent          = make_LimitedContent_rule(plain_text)
-                  .abbreviate_str_repr('LimitedContent');
-            const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
-                  .abbreviate_str_repr('LimitedContentNoSemis');
-            // -------------------------------------------------------------------------------------------------
-            // lm.log(`THIS:  ${inspect_fun(plain_text)}`);
-            // lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
+      .abbreviate_str_repr('NamedWildcardUsage');
+// -------------------------------------------------------------------------------------------------
+const ScalarReference         =
+      xform(seq(dollar,
+                optional(caret),
+                ident,
+                optional(/(?:\.\.\.|[,.!?])/, '')),
+            arr => new ASTScalarReference(arr[2],
+                                          arr[1][0],
+                                          arr[3][0]))
+      .abbreviate_str_repr('ScalarReference');
+// -------------------------------------------------------------------------------------------------
+const ScalarDesignator        =
+      xform(seq(dollar, ident),
+            arr => new ASTScalarReference(arr[1]))
+      .abbreviate_str_repr('ScalarDesignator');
+// -------------------------------------------------------------------------------------------------
+const ScalarAssignment        =
+      xform(arr =>
+        new ASTScalarAssignment(arr[0],
+                                arr[1][1],
+                                arr[1][0] == '='),
+        seq(ScalarDesignator,                                 // [0]
+            discarded_comments,                               // - 
+            cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
+                        discarded_comments,                   // -
+                        lws(choice(
+                          () => rjsonc_string, // [1][1]
+                          () => LimitedContentNoSemis,
+                          // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
+                        )),
+                        optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('ScalarAssignment');
+// =================================================================================================
+// Content-related rules:
+// =================================================================================================
+const make_LimitedContent_rule = plain_text_rule =>
+      choice(
+        NamedWildcardReference,
+        AnonWildcardNoLoras,
+        plain_text_rule,
+        ScalarReference,
+      );
+// -------------------------------------------------------------------------------------------------
+const LimitedContent          = make_LimitedContent_rule(plain_text)
+      .abbreviate_str_repr('LimitedContent');
+const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
+      .abbreviate_str_repr('LimitedContentNoSemis');
+// -------------------------------------------------------------------------------------------------
+// lm.log(`THIS:  ${inspect_fun(plain_text)}`);
+// lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
 
-            // const malformed_token =
-            //       // tokens starting with % are actually usually caught before getting here.
-            //       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
-            //                  (rule, input, index, match_result) => 
-            //                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
-
-
-            const make_malformed_token_rule = rule => 
-                  unexpected(rule,
-                             (rule, input, index, match_result) => {
-                               // throw new Error('bomb');
-                               return new FatalParseError(`encountered malformed token: ` +
-                                                          `${inspect_fun(match_result.value)}`, input, index);
-                             }).abbreviate_str_repr(`malformed(${rule.toString()})`);
-
-            const make_Content_rule       = ({ before_plain_text_rules = [],
-                                               after_plain_text_rules  = [] } = {}) =>
-                  choice(
-                    ...before_plain_text_rules,
-                    plain_text,
-                    ...after_plain_text_rules,
-                    discarded_comment,
-                    NamedWildcardReference,
-                    NamedWildcardUsage,
-                    SpecialFunctionNotInclude,
-                    SetFlag,
-                    UnsetFlag,
-                    ScalarAssignment,
-                    ScalarReference,
-                    make_malformed_token_rule(r_raw`(?![${structural_chars}])\S.*`), // reminder, structural_chars === '{|}'
-                  );
-
-            // -------------------------------------------------------------------------------------------------
-            const ContentNoLoras          = make_Content_rule({
-              after_plain_text_rules: [
-                AnonWildcardNoLoras,
-              ],
-            });
-            const Content                 = make_Content_rule({
-              before_plain_text_rules: [
-                A1111StyleLora,
-              ],
-              after_plain_text_rules:  [
-                AnonWildcard,
-              ],
-            });
-            const TopLevelContent         = make_Content_rule({
-              before_plain_text_rules: [
-                A1111StyleLora,
-                TopLevelTestFlag,
-              ],
-              after_plain_text_rules:  [
-                make_malformed_token_rule(r_raw`}\S*`),
-                AnonWildcard,
-                NamedWildcardDefinition,
-                SpecialFunctionInclude,
-              ],
-            });
-            const ContentNoLorasStar      = wst_star(ContentNoLoras);
-            const ContentStar             = wst_star(Content);
-            const TopLevelContentStar     = wst_star(TopLevelContent);
-            const Prompt                  = tws(TopLevelContentStar);
-            // =================================================================================================
-            Prompt.finalize();
-            // =================================================================================================
-            // END OF SD PROMPT GRAMMAR SECTION.
-            // =================================================================================================
+// const malformed_token =
+//       // tokens starting with % are actually usually caught before getting here.
+//       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
+//                  (rule, input, index, match_result) => 
+//                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
 
 
-            // =================================================================================================
-            // DEV NOTE: Copy into wildcards-plus.js through this line!
-            // =================================================================================================
-            u
+const make_malformed_token_rule = rule => 
+      unexpected(rule,
+                 (rule, input, index, match_result) => {
+                   // throw new Error('bomb');
+                   return new FatalParseError(`encountered malformed token: ` +
+                                              `${inspect_fun(match_result.value)}`, input, index);
+                 }).abbreviate_str_repr(`malformed(${rule.toString()})`);
+
+const make_Content_rule       = ({ before_plain_text_rules = [],
+                                   after_plain_text_rules  = [] } = {}) =>
+      choice(
+        ...before_plain_text_rules,
+        plain_text,
+        ...after_plain_text_rules,
+        discarded_comment,
+        NamedWildcardReference,
+        NamedWildcardUsage,
+        SpecialFunctionNotInclude,
+        SetFlag,
+        UnsetFlag,
+        ScalarAssignment,
+        ScalarReference,
+        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S.*`), // reminder, structural_chars === '{|}'
+      );
+
+// -------------------------------------------------------------------------------------------------
+const ContentNoLoras          = make_Content_rule({
+  after_plain_text_rules: [
+    AnonWildcardNoLoras,
+  ],
+});
+const Content                 = make_Content_rule({
+  before_plain_text_rules: [
+    A1111StyleLora,
+  ],
+  after_plain_text_rules:  [
+    AnonWildcard,
+  ],
+});
+const TopLevelContent         = make_Content_rule({
+  before_plain_text_rules: [
+    A1111StyleLora,
+    TopLevelTestFlag,
+  ],
+  after_plain_text_rules:  [
+    make_malformed_token_rule(r_raw`}\S*`),
+    AnonWildcard,
+    NamedWildcardDefinition,
+    SpecialFunctionInclude,
+  ],
+});
+const ContentNoLorasStar      = wst_star(ContentNoLoras);
+const ContentStar             = wst_star(Content);
+const TopLevelContentStar     = wst_star(TopLevelContent);
+const Prompt                  = tws(TopLevelContentStar);
+// =================================================================================================
+Prompt.finalize();
+// =================================================================================================
+// END OF SD PROMPT GRAMMAR SECTION.
+// =================================================================================================
 
 
-            // =================================================================================================
-            // MAIN SECTION: all of the Draw Things-specific code goes down here.
-            // -------------------------------------------------------------------------------------------------
-            // fallback prompt to be used if no wildcards are found in the UI prompt:
+// =================================================================================================
+// DEV NOTE: Copy into wildcards-plus.js through this line!
+// =================================================================================================
+
+
+
+// =================================================================================================
+// MAIN SECTION: all of the Draw Things-specific code goes down here.
+// -------------------------------------------------------------------------------------------------
+// fallback prompt to be used if no wildcards are found in the UI prompt:
 const fallback_prompt             = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
 const ui_prompt                   = pipeline.prompts.prompt;
 const ui_neg_prompt               = pipeline.prompts.negativePrompt;
@@ -9464,11 +9464,11 @@ catch(ex) {
     else
       lm.log(`wildcards-plus caught a fatal exception, ` +
              `click here to open the console for more details\n\n` + 
-                  `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
+             `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
   } else {
     lm.log(`wildcards-plus caught a fatal exception, ` +
            `click here to open the console for more details\n` +
-                `exception:\n${inspect_fun(ex)}`);
+           `exception:\n${inspect_fun(ex)}`);
   }
 }
 // =================================================================================================
