@@ -1679,7 +1679,7 @@ class Unexpected extends Rule {
     
     if (match_result) {
       if (this.error_func) {
-        const err = this.error_func(this, input, index);
+        const err = this.error_func(this, input, index, match_result);
         throw err instanceof Error ? err : new FatalParseError(err, input, index);
       }
       else {
@@ -9141,11 +9141,20 @@ const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
 lm.log(`THIS:  ${inspect_fun(plain_text)}`);
 lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
 
-const malformed_token =
-      // tokens starting with % are actually usually caught before getting here.
-      unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
-                 (rule, input, index, match_result) => 
-                 new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
+// const malformed_token =
+//       // tokens starting with % are actually usually caught before getting here.
+//       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
+//                  (rule, input, index, match_result) => 
+//                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
+
+
+const make_malformed_token_rule = rule => 
+      unexpected(rule,
+                 (rule, input, index, match_result) => {
+                   // throw new Error('bomb');
+                   return new FatalParseError(`encountered malformed token: ` +
+                                              `${inspect_fun(match_result.value)}`, input, index);
+                 }).abbreviate_str_repr(`malformed(${rule.toString()})`);
 
 const make_Content_rule       = ({ before_plain_text_rules = [],
                                    after_plain_text_rules  = [] } = {}) =>
@@ -9161,8 +9170,9 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         UnsetFlag,
         ScalarAssignment,
         ScalarReference,
-        malformed_token,
+        make_malformed_token_rule(r_raw`(?!${structural_chars})\S.*`), // reminder, structural_chars === '{|}'
       );
+
 // -------------------------------------------------------------------------------------------------
 const ContentNoLoras          = make_Content_rule({
   after_plain_text_rules: [
@@ -9179,6 +9189,7 @@ const Content                 = make_Content_rule({
 });
 const TopLevelContent         = make_Content_rule({
   before_plain_text_rules: [
+    make_malformed_token_rule(r_raw`}\S*`),
     A1111StyleLora,
     TopLevelTestFlag,
   ],
@@ -9448,43 +9459,43 @@ async function main() {
 let main_disabled = false;
 
 if (! main_disabled)
-  main().catch(err => {
-    lm.error(`Unhandled error:\n${err.stack}`);
-    // process.exit(1);
-  });
-// =================================================================================================
-// END OF MAIN SECTION.
-// =================================================================================================
+                            main().catch(err => {
+                              lm.error(`Unhandled error:\n${err.stack}`);
+                              // process.exit(1);
+                            });
+                          // =================================================================================================
+                          // END OF MAIN SECTION.
+                          // =================================================================================================
 
-// lm.log(inspect_fun(A1111StyleLora.match('<lora:extreme_cc_v0.1_pony: @lowish_random_weight>')));
-// lm.log(); lm.log();
-// lm.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
-// lm.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
+                          // lm.log(inspect_fun(A1111StyleLora.match('<lora:extreme_cc_v0.1_pony: @lowish_random_weight>')));
+                          // lm.log(); lm.log();
+                          // lm.log(`LWS0: ${tws0(lws0(choice(lws0(l('foo')), lws0(l('bar')))))}`);
+                          // lm.log(`LWS4: ${tws4(lws4(choice(lws4(l('foo')), lws4(l('bar')))))}`);
 
-// process.exit(0);
+                          // process.exit(0);
 
-// const rule0 = tws0(lws0(choice(lws0(l('foo')), lws0(l('bar'))))); rule0.finalize();
-// const rule1 = tws1(lws1(choice(lws1(l('foo')), lws1(l('bar'))))); rule1.finalize();
-// const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar'))))); rule2.finalize();
-// const rule3 = tws3(lws3(choice(lws3(l('foo')), lws3(l('bar'))))); rule3.finalize();
-// const rule4 = tws4(lws4(choice(lws4(l('foo')), lws4(l('bar'))))); rule4.finalize();
+                          // const rule0 = tws0(lws0(choice(lws0(l('foo')), lws0(l('bar'))))); rule0.finalize();
+                          // const rule1 = tws1(lws1(choice(lws1(l('foo')), lws1(l('bar'))))); rule1.finalize();
+                          // const rule2 = tws2(lws2(choice(lws2(l('foo')), lws2(l('bar'))))); rule2.finalize();
+                          // const rule3 = tws3(lws3(choice(lws3(l('foo')), lws3(l('bar'))))); rule3.finalize();
+                          // const rule4 = tws4(lws4(choice(lws4(l('foo')), lws4(l('bar'))))); rule4.finalize();
 
-// const options = { batch_count: 100, reps_per_batch: 100_000 }; 
+                          // const options = { batch_count: 100, reps_per_batch: 100_000 }; 
 
-// lm.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// lm.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// lm.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// lm.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// lm.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// lm.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// // lm.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
-// // lm.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+                          // lm.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+                          // lm.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+                          // lm.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+                          // lm.log(`RULE4: ${rule4}`); benchmark(() => rule4.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+                          // lm.log(`RULE3: ${rule3}`); benchmark(() => rule3.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+                          // lm.log(`RULE0: ${rule0}`); benchmark(() => rule0.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+                          // // lm.log(`RULE1: ${rule1}`); benchmark(() => rule1.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
+                          // // lm.log(`RULE2: ${rule2}`); benchmark(() => rule2.match(`${' '.repeat(rand_int(0, 10))}bar${' '.repeat(rand_int(0, 10))}`), options);
 
-// lm.log(smart_join([ 'FOO', "''", 'BAR']));
+                          // lm.log(smart_join([ 'FOO', "''", 'BAR']));
 
-// lm.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
-//    x    x  x `)));
+                          // lm.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
+                          //    x    x  x `)));
 
-// expect(never_match).match("nope")
-// log_match_enabled = true;
-//sconsole.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')));
+                          // expect(never_match).match("nope")
+                          // log_match_enabled = true;
+                          //sconsole.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')));
