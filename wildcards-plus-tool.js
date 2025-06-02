@@ -9384,10 +9384,12 @@ const NamedWildcardDesignator = second(seq(at, ident))
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDefinition =
       xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
-            wst_seq(NamedWildcardDesignator,
-                    wst_cutting_seq(equals, 
-                                    discarded_comments,
-                                    AnonWildcard)))
+            seq(NamedWildcardDesignator,
+                discarded_comments,
+                cutting_seq(lws(equals), 
+                            discarded_comments,
+                            first(seq(AnonWildcard,
+                                      SpecialFunctionTail)))))
       .abbreviate_str_repr('NamedWildcardDefinition');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardUsage      =
