@@ -4075,9 +4075,13 @@ const prelude_text = prelude_disabled ? '' : `
                             wide shot,}
 
 
-//--------------------------------------------------------------------------------------------------
-// content based on XL Magic Config's defaults:
-//--------------------------------------------------------------------------------------------------
+// =================================================================================================
+// content based on XL Magic Config:
+// =================================================================================================
+
+// -------------------------------------------------------------------------------------------------
+// small
+// -------------------------------------------------------------------------------------------------
 
 @xl_magic_small_1_to_1 =
 { %w    = 512;  %h    = 512;   
@@ -4085,8 +4089,10 @@ const prelude_text = prelude_disabled ? '' : `
   %tw   = 1024; %th   = 768;   
   %nw   = 1792; %nh   = 1344;  
   %hrf = false;
-  #xl_magic.aspect_ratio_1_to_1
   #xl_magic_size.small
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_3_to_2 =
@@ -4095,8 +4101,10 @@ const prelude_text = prelude_disabled ? '' : `
   %tw   = 1024; %th   = 768;   
   %nw   = 1792; %nh   = 1344;  
   %hrf  = false;
-  #xl_magic.aspect_ratio_3_to_2
   #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_2_to_3 =
@@ -4105,8 +4113,10 @@ const prelude_text = prelude_disabled ? '' : `
   %tw   = 768;  %th   = 1024;  
   %nw   = 1344; %nh   = 1792;  
   %hrf  = false;
-  #xl_magic.aspect_ratio_2_to_3
   #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_4_to_3 =
@@ -4115,8 +4125,10 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 1024; %th    = 768;    
   %nw  = 1792; %nh    = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_4_to_3
   #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_3_to_4 =
@@ -4125,8 +4137,10 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 768;  %th    = 1024;   
   %nw  = 1344; %nh    = 1792;   
   %hrf = false;
-  #xl_magic.aspect_ratio_3_to_4
   #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_16_to_9 =
@@ -4135,8 +4149,10 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 1024;  %th   = 768;    
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_16_to_9
   #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_9_to_16 =
@@ -4145,18 +4161,26 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 768;  %th    = 1024;   
   %nw  = 1344; %nh    = 1792;   
   %hrf = false;
-  #xl_magic.aspect_ratio_9_to_16
   #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
 }
 
-@xl_magic_medium_1_to_1 =
+// -------------------------------------------------------------------------------------------------
+// medium:
+// -------------------------------------------------------------------------------------------------
+
+@xl_magic_medium_1_to_1_os6 =
 { %h   = 1024;  %w    = 1024;   
   %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
+  %tw  = 1536;  %th   = 1152
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_1_to_1
   #xl_magic_size.medium
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_medium_3_to_2 =
@@ -4165,8 +4189,22 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 1024;  %th   = 768;    
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_3_to_2
   #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_3_to_2_os6 =
+{ %w   = 1216;  %h    = 832; 
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_medium_2_to_3 =
@@ -4175,8 +4213,22 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 768;   %th   = 1024;   
   %nw  = 1344;  %nh   = 1792;   
   %hrf = false;
-  #xl_magic.aspect_ratio_2_to_3
   #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_2_to_3_os6 =
+{ %w   = 832;   %h    = 1216;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1344;  %nh   = 1792;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_medium_4_to_3 =
@@ -4185,8 +4237,22 @@ const prelude_text = prelude_disabled ? '' : `
   %tw   = 1024; %th   = 768;    
   %nw   = 1792; %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_4_to_3
   #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_4_to_3_os6
+{ %w    = 1152; %h    = 896;    
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1536; %th   = 1152 
+  %nw   = 1792; %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_medium_3_to_4 =
@@ -4195,8 +4261,22 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 768;   %th   = 1024;   
   %nw  = 1344;  %nh   = 1792;   
   %hrf = false;
-  #xl_magic.aspect_ratio_3_to_4
   #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_3_to_4_os6 =
+{ %w   = 896;   %h    = 1152;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1344;  %nh   = 1792;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_medium_16_to_9 =
@@ -4205,8 +4285,22 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 1024;  %th   = 768;    
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_16_to_9
   #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_16_to_9_os6 =
+{ %w   = 1344;  %h    = 768;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_medium_9_to_16 =
@@ -4215,9 +4309,27 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 768;   %th   = 1024;   
   %nw  = 1344;  %nh   = 1792;   
   %hrf = false;
-  #xl_magic.aspect_ratio_9_to_16
   #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
 }
+
+@xl_magic_medium_9_to_16_os6 = 
+{ %w   = 768;   %h    = 1344;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 768;   %th   = 1024;   
+  %nw  = 1533;  %nh   = 1152;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+
+// -------------------------------------------------------------------------------------------------
+// large:
+// -------------------------------------------------------------------------------------------------
 
 @xl_magic_large_1_to_1 = 
 { %w    = 1536; %h    = 1536;   
@@ -4227,8 +4339,10 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 512;  %hrfh = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_1_to_1
   #xl_magic_size.large
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_3_to_2 =
@@ -4239,8 +4353,10 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 768;  %hrfh = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_3_to_2
   #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_2_to_3 =
@@ -4251,8 +4367,10 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 512;  %hrfh = 768;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_2_to_3
   #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_3_to_4 =
@@ -4263,8 +4381,10 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 576;  %hrfh = 768;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_3_to_4
   #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_4_to_3 =
@@ -4275,8 +4395,10 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 768;  %hrfh = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_4_to_3
   #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_16_to_9 =
@@ -4287,8 +4409,10 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 1024; %hrfh = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_16_to_9
   #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_9_to_16 =
@@ -4299,11 +4423,16 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 576;  %hrfh = 1024;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_9_to_16
   #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
 }
 
-// Resolutions:
+// --------------------------------------------------------------------------------------------------
+// pickers:
+// -------------------------------------------------------------------------------------------------
+
 @xl_magic_small_random =
 { @xl_magic_small_1_to_1
 | @xl_magic_small_2_to_3
@@ -4312,6 +4441,7 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_small_4_to_3
 | @xl_magic_small_9_to_16
 | @xl_magic_small_16_to_9
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_medium_random =
@@ -4322,6 +4452,16 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_medium_4_to_3
 | @xl_magic_medium_9_to_16
 | @xl_magic_medium_16_to_9
+}
+
+@xl_magic_medium_os6_random =
+{ @xl_magic_medium_1_to_1_os6
+| @xl_magic_medium_2_to_3_os6
+| @xl_magic_medium_3_to_2_os6
+| @xl_magic_medium_3_to_4_os6
+| @xl_magic_medium_4_to_3_os6
+| @xl_magic_medium_9_to_16_os6
+| @xl_magic_medium_16_to_9_os6
 }
 
 @xl_magic_large_random =
@@ -8783,6 +8923,10 @@ const ident                   =
       xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
             str => str.toLowerCase().replace(/-/g, '_'))
       .abbreviate_str_repr('ident');
+const liberal_ident           =
+      xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+            str => str.toLowerCase().replace(/-/g, '_'))
+      .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
 const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
@@ -8845,9 +8989,24 @@ const ExposedRjsonc =
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
+// const flag_ident = xform(dot_chained(ident),
+//                          arr => {
+//                            lm.log();
+//                            lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
+//                            lm.log(`FLAG_IDENT OUT: ${inspect_fun(arr)}`);
+//                            return arr;
+//                          });
+const flag_ident = xform(seq(ident, star(second(seq('.', liberal_ident)))),
+                         arr => {
+                           // lm.log();
+                           // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
+                           const ret = arr.flat(1);
+                           // lm.log(`FLAG_IDENT OUT: ${inspect_fun(ret)}`);
+                           return ret;
+                         });
 const SimpleCheckFlag =
       xform(seq_with_swb(question,
-                         dot_chained(ident)),
+                         flag_ident),
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(args);
@@ -8856,7 +9015,7 @@ const SimpleCheckFlag =
 const SimpleNotFlag =
       xform(seq_with_swb(bang,
                          optional(hash),
-                         dot_chained(ident)),
+                         flag_ident),
             arr => {
               const args = [arr[2],
                             { set_immediately: !!arr[1]}];
@@ -8865,17 +9024,17 @@ const SimpleNotFlag =
       .abbreviate_str_repr('SimpleNotFlag');
 const CheckFlagWithOrAlternatives =
       xform(cutting_seq_with_swb(question,
-                                 plus(dot_chained(ident), comma)),
+                                 plus(flag_ident, comma)),
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const CheckFlagWithSetConsequent =
-      xform(cutting_seq_with_swb(question,            // [0]
-                                 dot_chained(ident),  // [1]
-                                 dot_hash,            // [2]
-                                 dot_chained(ident)), // [3]
+      xform(cutting_seq_with_swb(question,    // [0]
+                                 flag_ident,  // [1]
+                                 dot_hash,    // [2]
+                                 flag_ident), // [3]
             arr => {
               const args = [ [ arr[1] ], arr[3] ]; 
               return new ASTCheckFlags(...args);
@@ -8883,19 +9042,19 @@ const CheckFlagWithSetConsequent =
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
 const NotFlagWithSetConsequent =
       xform(cutting_seq_with_swb(bang,
-                                 dot_chained(ident),
+                                 flag_ident,
                                  dot_hash,
-                                 dot_chained(ident)),
+                                 flag_ident),
             arr => {
               const args = [arr[1],
                             { consequently_set_flag_tail: arr[3] }]; 
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
-const SetFlag = xform(second(cutting_seq_with_swb(hash, dot_chained(ident))),
+const SetFlag = xform(second(cutting_seq_with_swb(hash, flag_ident)),
                       arr => new ASTSetFlag(arr))
       .abbreviate_str_repr('SetFlag');
-const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, dot_chained(ident))),
+const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, flag_ident)),
                         arr => new ASTUnsetFlag(arr))
       .abbreviate_str_repr('UnsetFlag');
 const TestFlag = choice(SimpleCheckFlag,
