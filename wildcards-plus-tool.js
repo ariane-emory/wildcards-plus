@@ -9553,11 +9553,11 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
       );
 
 // -------------------------------------------------------------------------------------------------
-const ContentNoLoras          = make_Content_rule({
-  after_plain_text_rules: [
-    AnonWildcardNoLoras,
-  ],
-});
+// const ContentNoLoras          = make_Content_rule({
+//   after_plain_text_rules: [
+//     AnonWildcardNoLoras,
+//   ],
+// });
 const Content                 = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
@@ -9578,7 +9578,7 @@ const TopLevelContent         = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const ContentNoLorasStar      = wst_star(ContentNoLoras);
+// const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
 const Prompt                  = tws(TopLevelContentStar);
