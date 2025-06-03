@@ -8203,15 +8203,15 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
 
-          lm.log(`expanded_value: ${inspect_fun(expanded_value)}`);
+          // lm.log(`expanded_value: ${inspect_fun(expanded_value)}`);
 
-          log_match_enabled  = true;
+          // log_match_enabled  = true;
 
           const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                                 ? RjsoncObject
                                                 : Rjsonc).match(expanded_value);
 
-          log_match_enabled  = false;
+          // log_match_enabled  = false;
           
           if (thing instanceof ASTUpdateConfigurationBinary) {
             value = jsconc_parsed_expanded_value?.is_finished
