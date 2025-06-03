@@ -4171,6 +4171,16 @@ const prelude_text = prelude_disabled ? '' : `
 // medium:
 // -------------------------------------------------------------------------------------------------
 
+@xl_magic_medium_1_to_1 =
+{ %h   = 1024;  %w    = 1024;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic.aspect_ratio_1_to_1
+  #xl_magic_size.medium
+}
+
 @xl_magic_medium_1_to_1_os6 =
 { %h   = 1024;  %w    = 1024;   
   %ow  = 768;   %oh   = 576;    
