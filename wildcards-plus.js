@@ -2415,6 +2415,12 @@ const enclosing       = (left, enclosed, right) =>
 // =================================================================================================
 // BASIC JSON GRAMMAR SECTION:
 // =================================================================================================
+const make_JsonArray_rule = value_rule => 
+      wst_cutting_enc(lsqr,
+                      wst_star(value_rule,
+                               comma),
+                      rsqr);
+// -------------------------------------------------------------------------------------------------
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
 const Json = choice(() => JsonObject,
                     () => JsonArray,
@@ -2432,7 +2438,8 @@ const JsonObject = xform(arr =>  Object.fromEntries(arr),
                                            comma),
                                          rbrc));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const JsonArray = wst_cutting_enc(lsqr, wst_star(Json, comma), rsqr);
+const JsonArray = make_JsonArray_rule(Json);
+
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -2491,8 +2498,6 @@ json_fractionalPart.abbreviate_str_repr('json_fractionalPart');
 json_exponentPart.abbreviate_str_repr('json_exponentPart');
 json_number.abbreviate_str_repr('json_number');
 json_S.abbreviate_str_repr('json_S');
-// -------------------------------------------------------------------------------------------------
-Json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
 // =================================================================================================
 // END OF BASIC JSON GRAMMAR SECTION.
 // =================================================================================================
@@ -2501,54 +2506,53 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =================================================================================================
 // JSONC GRAMMAR SECTION:
 // =================================================================================================
-const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
-const Jsonc = second(wst_seq(jsonc_comments,
-                             choice(() => JsoncObject, () => JsoncArray,
-                                    json_string,
-                                    json_null,         json_true,
-                                    json_false,        json_number),
-                             jsonc_comments));
-const JsoncArray =
-      wst_cutting_enc(lsqr,
-                      wst_star(second(seq(jsonc_comments,
-                                          Jsonc,
-                                          jsonc_comments)),
-                               comma),
-                      rsqr);
-const JsoncObject =
+const make_Jsonc_rule = (object_rule, array_rule, string_rule,
+                         comment_rule = () => jsonc_comment) =>
+      second(wst_seq(wst_star(comment_rule),
+                     choice(object_rule, array_rule, string_rule,
+                            json_null,           json_true,
+                            json_false,          json_number),
+                     wst_star(comment_rule)));
+const make_JsoncArray_rule = (value_rule,
+                              comment_rule = () => jsonc_comment) => 
+      make_JsonArray_rule(second(seq(wst_star(comment_rule),
+                                     value_rule,
+                                     wst_star(comment_rule))));
+const make_JsoncObject_rule = (key_rule, value_rule, comment_rule = () => jsonc_comment) => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
-          // lm.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
           const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
-          // lm.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, json_string, colon),
-                jsonc_comments,
-                Jsonc,
-                jsonc_comments,
+                wst_enc(lbrc, key_rule, colon),
+                wst_star(comment_rule),
+                value_rule,
+                wst_star(comment_rule),
                 optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(jsonc_comments,
-                                                        json_string,
-                                                        jsonc_comments,
+                                                wst_seq(wst_star(comment_rule),
+                                                        key_rule,
+                                                        wst_star(comment_rule),
                                                         colon,
-                                                        jsonc_comments,
-                                                        Jsonc, 
-                                                        jsonc_comments
+                                                        wst_star(comment_rule),
+                                                        value_rule, 
+                                                        wst_star(comment_rule)
                                                        )),
                                           comma)),
                                )),
-                rbrc)));
+                rbrc)))
+// -------------------------------------------------------------------------------------------------
+const Jsonc = make_Jsonc_rule(() => JsoncObject, () => JsoncArray, json_string)
+const JsoncArray = make_JsoncArray_rule(Jsonc);
+const JsoncObject = make_JsoncObject_rule(json_string, Json);
+const jsonc_comment = choice(c_block_comment, c_line_comment);
 Jsonc.abbreviate_str_repr('Jsonc');
-jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
 JsoncObject.abbreviate_str_repr('JsoncObject');
-// -------------------------------------------------------------------------------------------------
-Jsonc.finalize(); 
+jsonc_comment.abbreviate_str_repr('jsonc_comment');
 // =================================================================================================
 // END OF JSONC GRAMMAR SECTION.
 // =================================================================================================
@@ -2561,54 +2565,50 @@ const rjsonc_single_quoted_string =
       xform(
         s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
         /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
-
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
+const Rjsonc = make_Jsonc_rule(() => RjsoncObject, () => RjsoncArray, rjsonc_string);
+const RjsoncArray = make_JsoncArray_rule(Rjsonc);
+const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
-
-const Rjsonc = second(wst_seq(jsonc_comments,
-                              choice(() => RjsoncObject,  () => RjsoncArray,
-                                     rjsonc_string,
-                                     json_null,     json_true,
-                                     json_false,    json_number),
-                              jsonc_comments));
-const RjsoncArray =
-      wst_cutting_enc(lsqr,
-                      wst_star(second(seq(jsonc_comments,
-                                          Rjsonc,
-                                          jsonc_comments)),
-                               comma),
-                      rsqr);
-
-const RjsoncObject =
-      choice(
-        xform(arr => ({}), wst_seq(lbrc, rbrc)),
-        xform(arr => {
-          const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
-          return Object.fromEntries(new_arr);
-        },
-              wst_cutting_seq(
-                wst_enc(lbrc, choice(rjsonc_string, c_ident), colon), 
-                jsonc_comments,
-                Rjsonc,
-                jsonc_comments,
-                optional(second(wst_seq(comma,
-                                        wst_star(
-                                          xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(jsonc_comments,
-                                                        choice(rjsonc_string, c_ident),
-                                                        jsonc_comments,
-                                                        colon,
-                                                        jsonc_comments,
-                                                        Jsonc, 
-                                                        jsonc_comments
-                                                       )),
-                                          comma)),
-                               )),
-                rbrc)));
+rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
 Rjsonc.abbreviate_str_repr('Rjsonc');
+RjsoncArray.abbreviate_str_repr('RjsoncArray');
 RjsoncObject.abbreviate_str_repr('RjsoncObject');
 // -------------------------------------------------------------------------------------------------
-Rjsonc.finalize(); 
+// wst_cutting_enc(lsqr,
+//                 wst_star(second(seq(jsonc_comments,
+//                                     Rjsonc,
+//                                     jsonc_comments)),
+//                          comma),
+//                 rsqr);
+
+
+// const make_RjsoncObject_rule = (key_rule, value_rule)  => 
+//       choice(
+//         xform(arr => ({}), wst_seq(lbrc, rbrc)),
+//         xform(arr => {
+//           const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+//           return Object.fromEntries(new_arr);
+//         },
+//               wst_cutting_seq(
+//                 wst_enc(lbrc, key_rule, colon), 
+//                 jsonc_comments,
+//                 value_rule,
+//                 jsonc_comments,
+//                 optional(second(wst_seq(comma,
+//                                         wst_star(
+//                                           xform(arr =>  [arr[1], arr[5]],
+//                                                 wst_seq(jsonc_comments,
+//                                                         key_rule,
+//                                                         jsonc_comments,
+//                                                         colon,
+//                                                         jsonc_comments,
+//                                                         value_rule,
+//                                                         jsonc_comments
+//                                                        )),
+//                                           comma)),
+//                                )),
+//                 rbrc)));
 // =================================================================================================
 // END OF 'relaxed' JSONC GRAMMAR SECTION.
 // =================================================================================================
@@ -2874,12 +2874,12 @@ class WeightedPicker {
     if (total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
                       `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
-                        [
-                          ix,
-                          this.__effective_weight(ix, priority),
-                          this.options[ix]
-                        ]
-                      ), null, 2)}, ` +
+                          [
+                            ix,
+                            this.__effective_weight(ix, priority),
+                            this.options[ix]
+                          ]
+                        ), null, 2)}, ` +
                       `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
     }
     
@@ -4040,21 +4040,28 @@ const prelude_text = prelude_disabled ? '' : `
 @gt1_random_weight      = {1.< @digit }
 @high_random_weight     = {1.< @high_digit}
 
+@pony_score_9           = { score_9,                                                             }
+@pony_score_8_up        = { score_9, score_8_up,                                                 }
+@pony_score_7_up        = { score_9, score_8_up, score_7_up,                                     }
+@pony_score_6_up        = { score_9, score_8_up, score_7_up, score_6_up,                         }
+@pony_score_5_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up,             }
+@pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, }
+
 @pony_scores =
 {0
-|?pony score_4_up,
-|?pony score_5_up,
-|?pony score_6_up,
-|?pony score_7_up,
-|?pony score_8_up,
-|?pony score_9,
+|@pony score_4_up
+|@pony score_5_up
+|@pony score_6_up
+|@pony score_7_up
+|@pony score_8_up
+|@pony score_9
 }
 
 @high_pony_scores =
 {0
-|?pony score_7_up,
-|?pony score_8_up,
-|?pony score_9,
+|@pony_score_7_up
+|@pony_score_8_up
+|@pony_score_9
 }
 
 @aris_defaults          = { masterpiece, best quality, absurdres, aesthetic, 8k,
@@ -8789,9 +8796,9 @@ const A1111StyleLora =
 // mod RJSONC:
 // =================================================================================================
 const ExposedRjsonc = 
-      second(wst_seq(jsonc_comments,
-                     first(choice(seq(choice(JsoncObject,    // RjsoncObject,
-                                             JsoncArray,     // RjsoncArray,
+      second(wst_seq(wst_star(jsonc_comment),
+                     first(choice(seq(choice(RjsoncObject,
+                                             RjsoncArray,
                                              rjsonc_string),
                                       optional(() => SpecialFunctionTail)),
                                   seq(choice(json_null,
