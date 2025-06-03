@@ -2896,7 +2896,7 @@ const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]
 class WeightedPicker {
   // -----------------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
-    // lm.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
+    // lm.log(`CONSTRUCT WITH ${inspect_fun(initialOptions)}`);
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
@@ -3056,7 +3056,7 @@ class WeightedPicker {
 
     if (log_picker_enabled) {
       lm.log(`PICK_ONE!`);
-      lm.log(`PICK FROM ${JSON.stringify(this)}`);
+      lm.log(`PICK FROM ${inspect_fun(this)}`);
     }
 
     if (this.options.length === 0) {
@@ -3134,14 +3134,14 @@ class WeightedPicker {
     // Since we now avoid adding options with a weight of 0, this should never be true:
     if (total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
+                      `legal_options = ${inspect_fun(legal_option_indices.map(ix =>
                           [
                             ix,
                             this.__effective_weight(ix, priority),
                             this.options[ix]
                           ]
-                        ), null, 2)}, ` +
-                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
+                        ))}, ` +
+                      `used_indices = ${inspect_fun(this.used_indices)}`);
     }
     
     let random = Math.random() * total_weight;
@@ -3161,7 +3161,7 @@ class WeightedPicker {
         continue;
       
       if (log_picker_enabled)
-        lm.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+        lm.log(`ADJUSTED_WEIGHT OF ${inspect_fun(option)} IS ${adjusted_weight}`);
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -4247,7 +4247,7 @@ class Context {
     }
 
     // if (log_configuration_enabled)
-    //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+    //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
 
     this.configuration =  munged_configuration;
   }
@@ -4513,7 +4513,7 @@ const prelude_text = prelude_disabled ? '' : `
 }
 
 @xl_magic_medium_4_to_3_os6 =
-{ %w    = 1152; %h    = 896;    
+{ %w    = 1152; %h    = 896;     
   %ow   = 768;  %oh   = 576;    
   %tw   = 1536; %th   = 1152 
   %nw   = 1792; %nh   = 1344;   
@@ -9775,7 +9775,7 @@ Prompt.finalize();
 // MAIN SECTION:
 // =================================================================================================
 // fake UI prompt, just for use debugging when dt_hosted has been set to true:
-const ui_prompt = "@shape = { cube | sphere } there is a @thing here";
+const ui_prompt = "@shape = { cube | sphere } there is a @shape here";
 // -------------------------------------------------------------------------------------------------
 async function main() {
   // -----------------------------------------------------------------------------------------------
