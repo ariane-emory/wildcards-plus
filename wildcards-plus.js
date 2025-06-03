@@ -2637,7 +2637,7 @@ const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]
 class WeightedPicker {
   // -----------------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
-    // lm.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
+    // lm.log(`CONSTRUCT WITH ${inspect_fun(initialOptions)}`);
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
@@ -2797,7 +2797,7 @@ class WeightedPicker {
 
     if (log_picker_enabled) {
       lm.log(`PICK_ONE!`);
-      lm.log(`PICK FROM ${JSON.stringify(this)}`);
+      lm.log(`PICK FROM ${inspect_fun(this)}`);
     }
 
     if (this.options.length === 0) {
@@ -2875,14 +2875,14 @@ class WeightedPicker {
     // Since we now avoid adding options with a weight of 0, this should never be true:
     if (total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
+                      `legal_options = ${inspect_fun(legal_option_indices.map(ix =>
                           [
                             ix,
                             this.__effective_weight(ix, priority),
                             this.options[ix]
                           ]
-                        ), null, 2)}, ` +
-                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
+                        ))}, ` +
+                      `used_indices = ${inspect_fun(this.used_indices)}`);
     }
     
     let random = Math.random() * total_weight;
@@ -2902,7 +2902,7 @@ class WeightedPicker {
         continue;
       
       if (log_picker_enabled)
-        lm.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+        lm.log(`ADJUSTED_WEIGHT OF ${inspect_fun(option)} IS ${adjusted_weight}`);
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -3988,7 +3988,7 @@ class Context {
     }
 
     // if (log_configuration_enabled)
-    //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+    //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
 
     this.configuration =  munged_configuration;
   }
@@ -9555,7 +9555,7 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
 });
 
 // lm.log(`USER SELECTION:`);
-// lm.log(JSON.stringify(user_selection, null, 2));
+// lm.log(JSON.stringify(user_selection));
 
 prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
@@ -9601,12 +9601,12 @@ try {
   LOG_LINE();
   lm.log(`pipeline.configuration is:`);
   LOG_LINE();
-  lm.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
+  lm.log(`${inspect_fun(pipeline.configuration)}`);
 
   LOG_LINE();
   lm.log(`base_context.configuration is:`);
   LOG_LINE();
-  lm.log(`${JSON.stringify(base_context.configuration, null, 2)}`);
+  lm.log(`${inspect_fun(base_context.configuration)}`);
 
   LOG_LINE();
   lm.log(`The wildcards-plus prompt is:`);
@@ -9635,7 +9635,7 @@ try {
       LOG_LINE();
       lm.log(`GENERATED CONFIGURATION:`);
       LOG_LINE();
-      lm.log(`${JSON.stringify(context.configuration, null, 2)}`);
+      lm.log(`${inspect_fun(context.configuration)}`);
     }
 
     if (context.flags.length > 0) {
