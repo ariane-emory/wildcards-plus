@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  // log_match_enabled  = true;
+  log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -1354,10 +1354,7 @@ class Optional extends Rule {
     const match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (match_result === null) {
-      const mr = new MatchResult(this.default_value !== null
-                                 ? [ this.default_value ]
-                                 : [],
-                                 input, index);
+      const mr = new MatchResult(this.default_value, input, index);
 
       if (log_match_enabled)
         lm.log(`returning default ${inspect_fun(mr)}`);
@@ -1365,7 +1362,7 @@ class Optional extends Rule {
       return mr;
     }
     
-    match_result.value = [ match_result.value ];
+    match_result.value = match_result.value;
 
     return match_result;
   }
@@ -2723,7 +2720,7 @@ const json_fractionalPart = r(/\.[0-9]+/);
 const json_exponentPart = r(/[eE][+-]?\d+/);
 // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
 const reify_json_number = arr => {
-  const multiplier      = arr[0].length > 0 ? -1 : 1;
+  const multiplier      = arr[0] ? -1 : 1;
   const integer_part    = arr[1];
   const fractional_part = arr[2];
   const exponent        = arr[3];
@@ -2740,7 +2737,7 @@ const json_number = xform(reify_json_number,
                                 // lm.log(`fractional part ARR: ${inspect_fun(arr)}`);
                                 return parseFloat(arr[0]);
                               }, optional(json_fractionalPart, 0.0)),
-                              xform(parseInt, first(optional(json_exponentPart, 1)))));
+                              xform(parseInt, optional(json_exponentPart, 1))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = r(/\s+/);
 Json.abbreviate_str_repr('Json');
@@ -2781,7 +2778,7 @@ const make_JsoncObject_rule = (key_rule, value_rule,
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
-          const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
+          const new_arr = [ [arr[0], arr[2] ], ...(arr[4]??[]) ];
           return Object.fromEntries(new_arr);
         },
               sequence_combinator(
@@ -9038,9 +9035,9 @@ const ident                   =
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
 const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
-const optional_punctuation_trailer = first(optional(punctuation_trailer))
+const optional_punctuation_trailer = punctuation_trailer
       .abbreviate_str_repr('optional_punctuation_trailer');
-const unexpected_punctuation_trailer = first(optional(unexpected(punctuation_trailer)))
+const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
       .abbreviate_str_repr('unexpected_punctuation_trailer');
 // =================================================================================================
 // plain_text terminal variants:
@@ -9070,7 +9067,7 @@ const plain_text           = make_plain_text_rule('')
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
       .abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora =
-      xform(arr => new ASTLora(arr[3], arr[4][0]),
+      xform(arr => new ASTLora(arr[3], arr[4]),
             wst_seq(ltri,                                   // [0]
                     'lora',                                 // [1]
                     colon,                                  // [2]
@@ -9111,7 +9108,7 @@ const SimpleNotFlag =
                          dot_chained(ident)),
             arr => {
               const args = [arr[2],
-                            { set_immediately: !!arr[1][0]}];
+                            { set_immediately: !!arr[1]}];
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('SimpleNotFlag');
@@ -9197,7 +9194,7 @@ const TestFlagInAlternativeContent =
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
-  const weight = arr[1][0];
+  const weight = arr[1];
 
   if (weight == 0)
     return DISCARD;
@@ -9397,7 +9394,7 @@ const SpecialFunctionNotInclude =
 const NamedWildcardReference  =
       xform(seq(at,                                        // [0]
                 optional(caret),                           // [1]
-                optional(xform(parseInt, uint)),           // [2]
+                optional(xform(parseInt, uint), 1),        // [2]
                 optional(xform(parseInt,                   // [3]
                                second(seq(dash, uint)))),
                 optional(/[,&|]/),                         // [4]
@@ -9406,10 +9403,10 @@ const NamedWildcardReference  =
                ), 
             arr => {
               const ident   = arr[5];
-              const min_ct  = arr[2][0] ?? 1;
-              const max_ct  = arr[3][0] ?? min_ct;
-              const join    = arr[4][0] ?? '';
-              const caret   = arr[1][0];
+              const min_ct  = arr[2];
+              const max_ct  = arr[3] ?? min_ct;
+              const join    = arr[4]; // ??''
+              const caret   = arr[1];
               const trailer = arr[6];
 
               if (min_ct == 0 && max_ct == 0) {
@@ -9448,7 +9445,7 @@ const NamedWildcardUsage      =
       xform(seq(at, optional(bang), optional(hash), ident),
             arr => {
               const [ bang, hash, ident, objs ] =
-                    [ arr[1][0], arr[2][0], arr[3], []];
+                    [ arr[1], arr[2], arr[3], []];
               
               if (!bang && !hash)
                 return new ASTNamedWildcardReference(ident);
@@ -9470,7 +9467,7 @@ const ScalarReference         =
                 ident,
                 optional_punctuation_trailer),
             arr => new ASTScalarReference(arr[2],
-                                          arr[1][0],
+                                          arr[1],
                                           arr[3]))
       .abbreviate_str_repr('ScalarReference');
 // -------------------------------------------------------------------------------------------------
