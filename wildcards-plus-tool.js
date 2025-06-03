@@ -286,6 +286,7 @@ let log_configuration_enabled         = true;
 let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
+let log_loading_prelude               = true;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
@@ -7835,6 +7836,9 @@ const prelude_text = prelude_disabled ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
+  if (log_loading_prelude)
+    lm.log(`loading prelude...`);
+  
   const old_log_flags_enabled = log_flags_enabled;
   log_flags_enabled = false;
   
@@ -7855,7 +7859,10 @@ function load_prelude(into_context = new Context()) {
     throw new Error("crap");
 
   // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
-  
+
+  if (log_loading_prelude)
+    lm.log(`done loading prelude`);
+
   return into_context;
 }
 // =================================================================================================
@@ -8175,10 +8182,13 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
 
         // const ret = lm.indent(() => walk(pick));j
-        const ret = lm.indent(() => expand_wildcards(pick, context));
+        let ret = lm.indent(() => expand_wildcards(pick, context));
 
-        console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
-        
+        // console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
+
+        if (thing.trailer && ret.length > 0)
+          ret = smart_join([ret, thing.trailer]);
+
         throw new ThrownReturn(ret);
       }
       // ---------------------------------------------------------------------------------------------
@@ -8797,12 +8807,15 @@ class ASTLatchedNamedWildcardValue extends ASTNode {
 // AnonWildcards:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard  extends ASTNode {
-  constructor(options) {
+  constructor(options, trailer = null) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
-    // lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+    this.trailer = trailer;
+
+    // if (trailer)
+    //   lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
@@ -9221,15 +9234,16 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcard_rule         = alternative_rule  =>
-      xform(arr => new ASTAnonWildcard(arr),
-            wst_brc_enc(wst_star(alternative_rule, pipe)));
+const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
+      xform(arr => new ASTAnonWildcard(arr[0], arr[1]),
+            seq(wst_brc_enc(wst_star(alternative_rule, pipe)),
+                ...(can_have_trailer ? [ optional_punctuation_trailer ] : [])));
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative)
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
 const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras)
       .abbreviate_str_repr('AnonWildcardNoLoras');
@@ -9402,7 +9416,7 @@ const NamedWildcardReference  =
                                                    max_ct,
                                                    trailer);
             })
-  .abbreviate_str_repr('NamedWildcardReference');
+      .abbreviate_str_repr('NamedWildcardReference');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDesignator = second(seq(at, ident))
       .abbreviate_str_repr('NamedWildcardDesignator');
@@ -9450,358 +9464,358 @@ const ScalarReference         =
 const ScalarDesignator        =
       xform(seq(dollar, ident),
             arr => new ASTScalarReference(arr[1]))
-                  .abbreviate_str_repr('ScalarDesignator');
-            // -------------------------------------------------------------------------------------------------
-            const ScalarAssignment        =
-                  xform(arr =>
-                    new ASTScalarAssignment(arr[0],
-                                            arr[1][1],
-                                            arr[1][0] == '='),
-                    seq(ScalarDesignator,                                 // [0]
-                        discarded_comments,                               // - 
-                        cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
-                                    discarded_comments,                   // -
-                                    lws(choice(
-                                      () => rjsonc_string, // [1][1]
-                                      () => LimitedContent,
-                                      // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
-                                    )),
-                                    optional(SpecialFunctionTail))))
-                  .abbreviate_str_repr('ScalarAssignment');
-            // =================================================================================================
-            // Content-related rules:
-            // =================================================================================================
-            const make_LimitedContent_rule = plain_text_rule =>
-                  choice(
-                    NamedWildcardReference,
-                    AnonWildcardNoLoras,
-                    ...(plain_text_rule ? [ plain_text_rule ] : []),
-                    ScalarReference,
-                  );
-            // -------------------------------------------------------------------------------------------------
-            const LimitedContent          = make_LimitedContent_rule(plain_text)
-                  .abbreviate_str_repr('LimitedContent');
-            // const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
-            //       .abbreviate_str_repr('LimitedContentNoSemis');
-            // -------------------------------------------------------------------------------------------------
-            // lm.log(`THIS:  ${inspect_fun(plain_text)}`);
-            // lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
+      .abbreviate_str_repr('ScalarDesignator');
+// -------------------------------------------------------------------------------------------------
+const ScalarAssignment        =
+      xform(arr =>
+        new ASTScalarAssignment(arr[0],
+                                arr[1][1],
+                                arr[1][0] == '='),
+        seq(ScalarDesignator,                                 // [0]
+            discarded_comments,                               // - 
+            cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
+                        discarded_comments,                   // -
+                        lws(choice(
+                          () => rjsonc_string, // [1][1]
+                          () => LimitedContent,
+                          // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
+                        )),
+                        optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('ScalarAssignment');
+// =================================================================================================
+// Content-related rules:
+// =================================================================================================
+const make_LimitedContent_rule = plain_text_rule =>
+      choice(
+        NamedWildcardReference,
+        AnonWildcardNoLoras,
+        ...(plain_text_rule ? [ plain_text_rule ] : []),
+        ScalarReference,
+      );
+// -------------------------------------------------------------------------------------------------
+const LimitedContent          = make_LimitedContent_rule(plain_text)
+      .abbreviate_str_repr('LimitedContent');
+// const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
+//       .abbreviate_str_repr('LimitedContentNoSemis');
+// -------------------------------------------------------------------------------------------------
+// lm.log(`THIS:  ${inspect_fun(plain_text)}`);
+// lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
 
-            // const malformed_token =
-            //       // tokens starting with % are actually usually caught before getting here.
-            //       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
-            //                  (rule, input, index, match_result) => 
-            //                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
-
-
-            const make_malformed_token_rule = rule => 
-                  unexpected(rule,
-                             (rule, input, index, match_result) => {
-                               // throw new Error('bomb');
-                               return new FatalParseError(`encountered malformed token: ` +
-                                                          `${inspect_fun(match_result.value)}`, input, index);
-                             }).abbreviate_str_repr(`malformed(${rule.toString()})`);
-
-            const make_Content_rule       = ({ before_plain_text_rules = [],
-                                               after_plain_text_rules  = [] } = {}) =>
-                  choice(
-                    ...before_plain_text_rules,
-                    plain_text,
-                    ...after_plain_text_rules,
-                    discarded_comment,
-                    NamedWildcardReference,
-                    NamedWildcardUsage,
-                    SpecialFunctionNotInclude,
-                    SetFlag,
-                    UnsetFlag,
-                    ScalarAssignment,
-                    ScalarReference,
-                    make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
-                  );
-
-            // -------------------------------------------------------------------------------------------------
-            const ContentNoLoras          = make_Content_rule({
-              after_plain_text_rules: [
-                AnonWildcardNoLoras,
-              ],
-            });
-            const Content                 = make_Content_rule({
-              before_plain_text_rules: [
-                A1111StyleLora,
-              ],
-              after_plain_text_rules:  [
-                AnonWildcard,
-              ],
-            });
-            const TopLevelContent         = make_Content_rule({
-              before_plain_text_rules: [
-                A1111StyleLora,
-                TopLevelTestFlag,
-              ],
-              after_plain_text_rules:  [
-                make_malformed_token_rule(r_raw`}\S*`),
-                AnonWildcard,
-                NamedWildcardDefinition,
-                SpecialFunctionInclude,
-              ],
-            });
-            const ContentNoLorasStar      = wst_star(ContentNoLoras);
-            const ContentStar             = wst_star(Content);
-            const TopLevelContentStar     = wst_star(TopLevelContent);
-            const Prompt                  = tws(TopLevelContentStar);
-            // =================================================================================================
-            Prompt.finalize();
-            // =================================================================================================
-            // END OF SD PROMPT GRAMMAR SECTION.
-            // =================================================================================================
+// const malformed_token =
+//       // tokens starting with % are actually usually caught before getting here.
+//       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
+//                  (rule, input, index, match_result) => 
+//                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
 
 
-            // =================================================================================================
-            // DEV NOTE: Copy into wildcards-plus.js through this line!
-            // =================================================================================================
+const make_malformed_token_rule = rule => 
+      unexpected(rule,
+                 (rule, input, index, match_result) => {
+                   // throw new Error('bomb');
+                   return new FatalParseError(`encountered malformed token: ` +
+                                              `${inspect_fun(match_result.value)}`, input, index);
+                 }).abbreviate_str_repr(`malformed(${rule.toString()})`);
+
+const make_Content_rule       = ({ before_plain_text_rules = [],
+                                   after_plain_text_rules  = [] } = {}) =>
+      choice(
+        ...before_plain_text_rules,
+        plain_text,
+        ...after_plain_text_rules,
+        discarded_comment,
+        NamedWildcardReference,
+        NamedWildcardUsage,
+        SpecialFunctionNotInclude,
+        SetFlag,
+        UnsetFlag,
+        ScalarAssignment,
+        ScalarReference,
+        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
+      );
+
+// -------------------------------------------------------------------------------------------------
+const ContentNoLoras          = make_Content_rule({
+  after_plain_text_rules: [
+    AnonWildcardNoLoras,
+  ],
+});
+const Content                 = make_Content_rule({
+  before_plain_text_rules: [
+    A1111StyleLora,
+  ],
+  after_plain_text_rules:  [
+    AnonWildcard,
+  ],
+});
+const TopLevelContent         = make_Content_rule({
+  before_plain_text_rules: [
+    A1111StyleLora,
+    TopLevelTestFlag,
+  ],
+  after_plain_text_rules:  [
+    make_malformed_token_rule(r_raw`}\S*`),
+    AnonWildcard,
+    NamedWildcardDefinition,
+    SpecialFunctionInclude,
+  ],
+});
+const ContentNoLorasStar      = wst_star(ContentNoLoras);
+const ContentStar             = wst_star(Content);
+const TopLevelContentStar     = wst_star(TopLevelContent);
+const Prompt                  = tws(TopLevelContentStar);
+// =================================================================================================
+Prompt.finalize();
+// =================================================================================================
+// END OF SD PROMPT GRAMMAR SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// DEV NOTE: Copy into wildcards-plus.js through this line!
+// =================================================================================================
 
 
 
-            // =================================================================================================
-            // MAIN SECTION:
-            // =================================================================================================
-            // fake UI prompt, just for use debugging when dt_hosted has been set to true:
-            const ui_prompt = "@shape = { cube | sphere } there is a @thing here";
-            // -------------------------------------------------------------------------------------------------
-            async function main() {
-              // -----------------------------------------------------------------------------------------------
-              // process the command-line arguments:
-              // -----------------------------------------------------------------------------------------------
-              const args       = process.argv.slice(2);
-              let   count      = 1;
-              let   post       = false;
-              let   confirm    = false;
-              let   from_stdin = false;
+// =================================================================================================
+// MAIN SECTION:
+// =================================================================================================
+// fake UI prompt, just for use debugging when dt_hosted has been set to true:
+const ui_prompt = "@shape = { cube | sphere } there is a @thing here";
+// -------------------------------------------------------------------------------------------------
+async function main() {
+  // -----------------------------------------------------------------------------------------------
+  // process the command-line arguments:
+  // -----------------------------------------------------------------------------------------------
+  const args       = process.argv.slice(2);
+  let   count      = 1;
+  let   post       = false;
+  let   confirm    = false;
+  let   from_stdin = false;
 
-              if (args.length == 0) 
-                throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
-                                `(--stdin | <input-file>) [<count>]`);
+  if (args.length == 0) 
+    throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
+                    `(--stdin | <input-file>) [<count>]`);
 
-              if (["-p", "--post"].includes(args[0])) {
-                post = true;
-                args.shift();
-              }
-              else if (["-c", "--confirm"].includes(args[0])) {
-                post    = true;
-                confirm = true;
-                args.shift();
-              }
+  if (["-p", "--post"].includes(args[0])) {
+    post = true;
+    args.shift();
+  }
+  else if (["-c", "--confirm"].includes(args[0])) {
+    post    = true;
+    confirm = true;
+    args.shift();
+  }
 
-              if (args.length === 0)
-                throw new Error("ERROR: Must provide --stdin or an input file.");
+  if (args.length === 0)
+    throw new Error("ERROR: Must provide --stdin or an input file.");
 
-              if (args[0] === '--stdin') {
-                if (confirm)
-                  throw new Error(`the --confirm and --stdin options are incompatible.`);
-                
-                from_stdin = true;
-              }
+  if (args[0] === '--stdin') {
+    if (confirm)
+      throw new Error(`the --confirm and --stdin options are incompatible.`);
+    
+    from_stdin = true;
+  }
 
-              if (args.length > 1) 
-                count = parseInt(args[1]);
+  if (args.length > 1) 
+    count = parseInt(args[1]);
 
-              // -----------------------------------------------------------------------------------------------
-              // read prompt input:
-              // -----------------------------------------------------------------------------------------------
-              let result = null;
+  // -----------------------------------------------------------------------------------------------
+  // read prompt input:
+  // -----------------------------------------------------------------------------------------------
+  let result = null;
 
-              if (from_stdin) {
-                // Read all stdin into a string
-                let prompt_input = await new Promise((resolve, reject) => {
-                  let data = '';
-                  input.setEncoding('utf8');
-                  input.on('data', chunk => data += chunk);
-                  input.on('end', () => resolve(data));
-                  input.on('error', err => reject(err));
-                });
+  if (from_stdin) {
+    // Read all stdin into a string
+    let prompt_input = await new Promise((resolve, reject) => {
+      let data = '';
+      input.setEncoding('utf8');
+      input.on('data', chunk => data += chunk);
+      input.on('end', () => resolve(data));
+      input.on('error', err => reject(err));
+    });
 
-                try {
-                  result = Prompt.match(prompt_input);
-                }
-                catch (err) {
-                  if (err instanceof FatalParseError) {
-                    console.log(`got fatal parse error, halting: ${inspect_fun(err)}`);
-                    process.exit(0);
-                  }
-                  else {
-                    throw err;
-                  }
-                }
-                
-                process.exit(0);
-              } else if (args.length  === 0) {
-                throw new Error("ERROR: No input file provided.");
-              }
-              else {
-                result = parse_file(args[0]);
-              }
+    try {
+      result = Prompt.match(prompt_input);
+    }
+    catch (err) {
+      if (err instanceof FatalParseError) {
+        console.log(`got fatal parse error, halting: ${inspect_fun(err)}`);
+        process.exit(0);
+      }
+      else {
+        throw err;
+      }
+    }
+    
+    process.exit(0);
+  } else if (args.length  === 0) {
+    throw new Error("ERROR: No input file provided.");
+  }
+  else {
+    result = parse_file(args[0]);
+  }
 
-              if (! result?.is_finished)
-                throw new Error(`error parsing ${inspect_fun(args[0])}! result = ${inspect_fun(result)}`);
-              
-              // -----------------------------------------------------------------------------------------------
-              // just for debugging:
-              // -----------------------------------------------------------------------------------------------
-              // if (print_ast_enabled)
-              //   console.log(`result: ${inspect_fun(result.value)}`);
+  if (! result?.is_finished)
+    throw new Error(`error parsing ${inspect_fun(args[0])}! result = ${inspect_fun(result)}`);
+  
+  // -----------------------------------------------------------------------------------------------
+  // just for debugging:
+  // -----------------------------------------------------------------------------------------------
+  // if (print_ast_enabled)
+  //   console.log(`result: ${inspect_fun(result.value)}`);
 
-              // if (print_ast_json_enabled)
-              //   console.log(`result (JSON): ${JSON.stringify(result.value)}`);
+  // if (print_ast_json_enabled)
+  //   console.log(`result (JSON): ${JSON.stringify(result.value)}`);
 
-              let   AST          = result.value;
-              const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
-              
-              if (print_ast_before_includes_enabled) {
-                LOG_LINE();
-                lm.log(`before process_includes:`);
-                LOG_LINE();
-                lm.log(`${inspect_fun(AST)}`);
-                // LOG_LINE();
-                // lm.log(`before process_includes (as JSON):`);
-                // LOG_LINE();
-                // lm.log(`${JSON.stringify(AST)}`);
-              }
+  let   AST          = result.value;
+  const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
+  
+  if (print_ast_before_includes_enabled) {
+    LOG_LINE();
+    lm.log(`before process_includes:`);
+    LOG_LINE();
+    lm.log(`${inspect_fun(AST)}`);
+    // LOG_LINE();
+    // lm.log(`before process_includes (as JSON):`);
+    // LOG_LINE();
+    // lm.log(`${JSON.stringify(AST)}`);
+  }
 
-              if (print_ast_then_die)
-                process.exit(0);
+  if (print_ast_then_die)
+    process.exit(0);
 
-              AST = process_includes(AST, base_context);
-              
-              if (print_ast_after_includes_enabled) { 
-                LOG_LINE();
-                lm.log(`after process_includes:`);
-                LOG_LINE();
-                lm.log(`${inspect_fun(AST)}`);
-                LOG_LINE();
-                lm.log(`after process_includes (as JSON):`);
-                LOG_LINE();
-                lm.log(`${JSON.stringify(AST)}`);
-              }
+  AST = process_includes(AST, base_context);
+  
+  if (print_ast_after_includes_enabled) { 
+    LOG_LINE();
+    lm.log(`after process_includes:`);
+    LOG_LINE();
+    lm.log(`${inspect_fun(AST)}`);
+    LOG_LINE();
+    lm.log(`after process_includes (as JSON):`);
+    LOG_LINE();
+    lm.log(`${JSON.stringify(AST)}`);
+  }
 
-              let posted_count        = 0;
-              let prior_prompt        = null;
-              let prior_configuration = null;
-              
-              const stash_priors = (prompt, configuration) => {
-                prior_prompt        = prompt;
-                prior_configuration = structured_clone(configuration);
-              };
+  let posted_count        = 0;
+  let prior_prompt        = null;
+  let prior_configuration = null;
+  
+  const stash_priors = (prompt, configuration) => {
+    prior_prompt        = prompt;
+    prior_configuration = structured_clone(configuration);
+  };
 
-              const restore_priors = (prompt, configuration) => {
-                const ret = [ prior_prompt, prior_configuration ];
-                [ prior_prompt, prior_configuration ] = [ prompt, configuration ];
-                return ret;
-              };
+  const restore_priors = (prompt, configuration) => {
+    const ret = [ prior_prompt, prior_configuration ];
+    [ prior_prompt, prior_configuration ] = [ prompt, configuration ];
+    return ret;
+  };
 
-              const do_post = (prompt, configuration) => {
-                post_prompt({ prompt: prompt,  configuration: configuration });
-                posted_count += 1; 
-              };
+  const do_post = (prompt, configuration) => {
+    post_prompt({ prompt: prompt,  configuration: configuration });
+    posted_count += 1; 
+  };
 
-              while (posted_count < count) {
-                LOG_LINE('=');
-                lm.log(`Expansion #${posted_count + 1} of ${count}:`);
-                LOG_LINE('=');
-                
-                const context = base_context.clone();
-                context.reset_temporaries();
-                const prompt  = expand_wildcards(AST, context);
+  while (posted_count < count) {
+    LOG_LINE('=');
+    lm.log(`Expansion #${posted_count + 1} of ${count}:`);
+    LOG_LINE('=');
+    
+    const context = base_context.clone();
+    context.reset_temporaries();
+    const prompt  = expand_wildcards(AST, context);
 
-                if (! is_empty_object(context.configuration)) {
-                  LOG_LINE();
-                  lm.log(`Final config is :`);
-                  LOG_LINE();
-                  lm.log(inspect_fun(context.configuration));
-                }
+    if (! is_empty_object(context.configuration)) {
+      LOG_LINE();
+      lm.log(`Final config is :`);
+      LOG_LINE();
+      lm.log(inspect_fun(context.configuration));
+    }
 
-                if (log_flags_enabled || log_configuration_enabled) {
-                  LOG_LINE();
-                  lm.log(`Flags after:`);
-                  LOG_LINE();
-                  lm.log(`${inspect_fun(context.flags)}`);
-                }
-                
-                {
-                  LOG_LINE();
-                  lm.log(`Scalars after:`);
-                  LOG_LINE();
-                  for (const [key, val] of context.scalar_variables)
-                    lm.log(`$${key} = ${inspect_fun(val)}`);
-                }
+    if (log_flags_enabled || log_configuration_enabled) {
+      LOG_LINE();
+      lm.log(`Flags after:`);
+      LOG_LINE();
+      lm.log(`${inspect_fun(context.flags)}`);
+    }
+    
+    {
+      LOG_LINE();
+      lm.log(`Scalars after:`);
+      LOG_LINE();
+      for (const [key, val] of context.scalar_variables)
+        lm.log(`$${key} = ${inspect_fun(val)}`);
+    }
 
-                {
-                  LOG_LINE();
-                  lm.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
-                  LOG_LINE();
-                  lm.log(prompt);
-                }
-                
-                if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
-                  LOG_LINE();
-                  lm.log(`Expanded negative prompt:`);
-                  LOG_LINE();
-                  lm.log(context.configuration.negative_prompt);
-                }
+    {
+      LOG_LINE();
+      lm.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
+      LOG_LINE();
+      lm.log(prompt);
+    }
+    
+    if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
+      LOG_LINE();
+      lm.log(`Expanded negative prompt:`);
+      LOG_LINE();
+      lm.log(context.configuration.negative_prompt);
+    }
 
-                if (!post) {
-                  posted_count += 1; // a lie to make the counter correct.
-                }
-                else {
-                  if (!confirm) {
-                    LOG_LINE();
-                    do_post(prompt, context.configuration);
-                    posted_count += 1;
-                  }
-                  else  {
-                    lm.log();
+    if (!post) {
+      posted_count += 1; // a lie to make the counter correct.
+    }
+    else {
+      if (!confirm) {
+        LOG_LINE();
+        do_post(prompt, context.configuration);
+        posted_count += 1;
+      }
+      else  {
+        lm.log();
 
-                    const question_str = `POST this prompt as #${posted_count+1} out of ${count} ` +
-                          `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
-                          `POST the prior prompt)? `;
-                    const answer   = await ask(question_str);
+        const question_str = `POST this prompt as #${posted_count+1} out of ${count} ` +
+              `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
+              `POST the prior prompt)? `;
+        const answer   = await ask(question_str);
 
-                    if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
-                      stash_priors(prompt, context.configuration);
-                      continue;
-                    }
+        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
+          stash_priors(prompt, context.configuration);
+          continue;
+        }
 
-                    if (answer.match(/^p.*/i)) {
-                      if (prior_prompt) { 
-                        LOG_LINE();
-                        [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
-                        
-                        lm.log(`POSTing prior prompt '${prompt}'`);
-                        
-                        do_post(prompt, context.configuration);
-                        
-                        continue;
-                      }
-                      else {
-                        lm.log(`can't rewind, no prior prompt`);
-                      }
-                    }
-                    else { // /^y.*/
-                      LOG_LINE();
-                      const parsed    = parseInt(answer);
-                      const gen_count = isNaN(parsed) ? 1 : parsed;  
-                      
-                      for (let iix = 0; iix < gen_count; iix++)
-                        do_post(prompt, context.configuration);
-                    }
-                  }
-                }
-                
-                stash_priors(prompt, context.configuration);
-              }
+        if (answer.match(/^p.*/i)) {
+          if (prior_prompt) { 
+            LOG_LINE();
+            [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
+            
+            lm.log(`POSTing prior prompt '${prompt}'`);
+            
+            do_post(prompt, context.configuration);
+            
+            continue;
+          }
+          else {
+            lm.log(`can't rewind, no prior prompt`);
+          }
+        }
+        else { // /^y.*/
+          LOG_LINE();
+          const parsed    = parseInt(answer);
+          const gen_count = isNaN(parsed) ? 1 : parsed;  
+          
+          for (let iix = 0; iix < gen_count; iix++)
+            do_post(prompt, context.configuration);
+        }
+      }
+    }
+    
+    stash_priors(prompt, context.configuration);
+  }
 
-              LOG_LINE('=');
-            }
-            // -------------------------------------------------------------------------------------------------
+  LOG_LINE('=');
+}
+// -------------------------------------------------------------------------------------------------
 let main_disabled = false;
 
 if (! main_disabled)
@@ -9845,4 +9859,4 @@ if (! main_disabled)
 // expect(never_match).match("nope")
 // log_match_enabled = true;
 //sconsole.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')))
-  
+
