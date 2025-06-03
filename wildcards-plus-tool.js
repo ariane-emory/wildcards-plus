@@ -9928,14 +9928,14 @@ async function main() {
       lm.log(inspect_fun(context.configuration));
     }
 
-    if (log_flags_enabled || log_configuration_enabled) {
+    if (context.flags.length > 0) {
       LOG_LINE();
       lm.log(`Flags after:`);
       LOG_LINE();
       lm.log(`${inspect_fun(context.flags)}`);
     }
     
-    {
+    if (context.scalar_variables.length > 0) {
       LOG_LINE();
       lm.log(`Scalars after:`);
       LOG_LINE();
@@ -9943,12 +9943,10 @@ async function main() {
         lm.log(`$${key} = ${inspect_fun(val)}`);
     }
 
-    {
-      LOG_LINE();
-      lm.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
-      LOG_LINE();
-      lm.log(prompt);
-    }
+    LOG_LINE();
+    lm.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
+    LOG_LINE();
+    lm.log(prompt);
     
     if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
       LOG_LINE();

@@ -9630,15 +9630,29 @@ try {
     const context = base_context.clone();
     // lm.log(`AFTER CLONING CONTEXT`);
     const prompt  = expand_wildcards(AST, context);
-    context.munge_configuration();
 
-    LOG_LINE();
-    lm.log(`GENERATED CONFIGURATION:`);
-    LOG_LINE();
-    lm.log(`${JSON.stringify(context.configuration, null, 2)}`);
+    if (! is_empty_object(config.configuration)) {
+      LOG_LINE();
+      lm.log(`GENERATED CONFIGURATION:`);
+      LOG_LINE();
+      lm.log(`${JSON.stringify(context.configuration, null, 2)}`);
+    }
 
-    // throw new Error("stop here");
+    if (context.flags.length > 0) {
+      LOG_LINE();
+      lm.log(`Flags after:`);
+      LOG_LINE();
+      lm.log(`${inspect_fun(context.flags)}`);
+    }
     
+    if (context.scalar_variables.length > 0) {
+      LOG_LINE();
+      lm.log(`Scalars after:`);
+      LOG_LINE();
+      for (const [key, val] of context.scalar_variables)
+        lm.log(`$${key} = ${inspect_fun(val)}`);
+    }
+
     LOG_LINE();
     lm.log(`The expanded prompt is:`);
     LOG_LINE();
