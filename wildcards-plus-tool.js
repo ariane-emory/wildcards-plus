@@ -9076,6 +9076,10 @@ const ident                   =
       xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
             str => str.toLowerCase().replace(/-/g, '_'))
       .abbreviate_str_repr('ident');
+const liberal_ident           =
+      xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+            str => str.toLowerCase().replace(/-/g, '_'))
+      .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
 const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
