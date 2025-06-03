@@ -2774,8 +2774,9 @@ const make_JsoncArray_rule = (value_rule,
       make_JsonArray_rule(second(seq(wst_star(comment_rule),
                                      value_rule,
                                      wst_star(comment_rule))));
-const make_JsoncObject_rule = (key_rule, value_rule, { comment_rule = () => jsonc_comment,
-                                                       sequence_combinator = wst_cutting_seq } = {}) => 
+const make_JsoncObject_rule = (key_rule, value_rule,
+                               { comment_rule = () => jsonc_comment,
+                                 sequence_combinator = wst_cutting_seq } = {}) => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
