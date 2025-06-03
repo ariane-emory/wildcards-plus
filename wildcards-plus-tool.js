@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  log_match_enabled  = true;
+  // log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -9035,7 +9035,7 @@ const ident                   =
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
 const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
-const optional_punctuation_trailer = punctuation_trailer
+const optional_punctuation_trailer = optional(punctuation_trailer)
       .abbreviate_str_repr('optional_punctuation_trailer');
 const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
       .abbreviate_str_repr('unexpected_punctuation_trailer');
