@@ -9128,6 +9128,10 @@ const unexpected_TestFlag_at_top_level = rule =>
         new FatalParseError(`check/not flag guards without set consequents at the top level ` +
                             `would serve no purpose and so are not permitted`,
                             input, index));
+const innapropriately_placed_TestFlag = rule => 
+      unexpected(rule, (rule, input, index) =>
+        new FatalParseError(`innapropriately places check or not flag`,
+                            input, index));
 const wrap_TestFlag_in_AnonWildcard    = rule =>
       xform(rule, flag =>
         new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
@@ -9143,6 +9147,17 @@ const TopLevelTestFlag =
              .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
              unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
              .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
+const TestFlagInAlternativeContent =
+      choice(innapropriately_placed_TestFlag(SimpleCheckFlag)
+             .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
+             innapropriately_placed_TestFlag(SimpleNotFlag)
+             .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
+             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
+             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
 // =================================================================================================
 // AnonWildcard-related rules:
 // =================================================================================================
