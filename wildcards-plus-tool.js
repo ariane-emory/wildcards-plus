@@ -9203,7 +9203,7 @@ const make_AnonWildcardAlternative_rule = content_star_rule =>
             seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
                 lws(optional(swb_uint, 1)),
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
-                lws(content_star_rule)));
+                lws(choice(TestFlagInAlternativeContent, content_star_rule))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = alternative_rule  =>
       xform(arr => new ASTAnonWildcard(arr),
