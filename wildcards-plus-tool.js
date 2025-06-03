@@ -2833,18 +2833,17 @@ const rjsonc_single_quoted_string =
       xform(
         s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
         /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
-
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
-rjsonc_string.abbreviate_str_repr('rjsonc_string');
 
 const Rjsonc = make_Jsonc_rule(() => RjsoncObject,  () => RjsoncArray,
                                rjsonc_string,
                                json_null,     json_true,
                                json_false,    json_number);
-
 const RjsoncArray = make_JsoncArray_rule(Rjsonc);
 const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
 
+rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
+rjsonc_string.abbreviate_str_repr('rjsonc_string');
 Rjsonc.abbreviate_str_repr('Rjsonc');
 RjsoncObject.abbreviate_str_repr('RjsoncObject');
 // -------------------------------------------------------------------------------------------------
