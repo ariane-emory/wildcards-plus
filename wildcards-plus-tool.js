@@ -9138,9 +9138,10 @@ const ExposedRjsonc =
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
+const flag_ident = dot_chained(ident);
 const SimpleCheckFlag =
       xform(seq_with_swb(question,
-                         dot_chained(ident)),
+                         flag_ident),
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(args);
@@ -9149,7 +9150,7 @@ const SimpleCheckFlag =
 const SimpleNotFlag =
       xform(seq_with_swb(bang,
                          optional(hash),
-                         dot_chained(ident)),
+                         flag_ident),
             arr => {
               const args = [arr[2],
                             { set_immediately: !!arr[1]}];
@@ -9158,17 +9159,17 @@ const SimpleNotFlag =
       .abbreviate_str_repr('SimpleNotFlag');
 const CheckFlagWithOrAlternatives =
       xform(cutting_seq_with_swb(question,
-                                 plus(dot_chained(ident), comma)),
+                                 plus(flag_ident, comma)),
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const CheckFlagWithSetConsequent =
-      xform(cutting_seq_with_swb(question,            // [0]
-                                 dot_chained(ident),  // [1]
-                                 dot_hash,            // [2]
-                                 dot_chained(ident)), // [3]
+      xform(cutting_seq_with_swb(question,    // [0]
+                                 flag_ident,  // [1]
+                                 dot_hash,    // [2]
+                                 flag_ident), // [3]
             arr => {
               const args = [ [ arr[1] ], arr[3] ]; 
               return new ASTCheckFlags(...args);
@@ -9176,19 +9177,19 @@ const CheckFlagWithSetConsequent =
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
 const NotFlagWithSetConsequent =
       xform(cutting_seq_with_swb(bang,
-                                 dot_chained(ident),
+                                 flag_ident,
                                  dot_hash,
-                                 dot_chained(ident)),
+                                 flag_ident),
             arr => {
               const args = [arr[1],
                             { consequently_set_flag_tail: arr[3] }]; 
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
-const SetFlag = xform(second(cutting_seq_with_swb(hash, dot_chained(ident))),
+const SetFlag = xform(second(cutting_seq_with_swb(hash, flag_ident)),
                       arr => new ASTSetFlag(arr))
       .abbreviate_str_repr('SetFlag');
-const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, dot_chained(ident))),
+const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, flag_ident)),
                         arr => new ASTUnsetFlag(arr))
       .abbreviate_str_repr('UnsetFlag');
 const TestFlag = choice(SimpleCheckFlag,
