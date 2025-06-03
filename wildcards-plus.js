@@ -4243,8 +4243,8 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_object_scaling.4
 }
 
-@xl_magic_medium_4_to_3_os6
-{ %w    = 1152; %h    = 896;    
+@xl_magic_medium_4_to_3_os6 =
+{ %w    = 1152; %h    = 896;     
   %ow   = 768;  %oh   = 576;    
   %tw   = 1536; %th   = 1152 
   %nw   = 1792; %nh   = 1344;   
