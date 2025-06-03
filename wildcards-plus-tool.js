@@ -9017,6 +9017,8 @@ const ident                   =
       .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
+const punctuation_trailer = first(optional(/(?:\.\.\.|[,.!?])/))
+      .abbreviate_str_repr('punctuation_trailer');
 // =================================================================================================
 // plain_text terminal variants:
 // =================================================================================================
@@ -9062,13 +9064,13 @@ const A1111StyleLora =
 const ExposedRjsonc = 
       make_Jsonc_rule(first(choice(seq(choice(RjsoncObject,
                                               RjsoncArray,
-                                             rjsonc_string),
-                                      optional(() => SpecialFunctionTail)),
-                                  seq(choice(json_null,
-                                             json_true,
-                                             json_false,
-                                             json_number),
-                                      () => SpecialFunctionTail)))); 
+                                              rjsonc_string),
+                                       optional(() => SpecialFunctionTail)),
+                                   seq(choice(json_null,
+                                              json_true,
+                                              json_false,
+                                              json_number),
+                                       () => SpecialFunctionTail)))); 
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
@@ -9368,7 +9370,7 @@ const NamedWildcardReference  =
                                second(seq(dash, uint)))),
                 optional(/[,&|]/),                         // [4]
                 ident,                                     // [5]
-                optional(/(?:\.\.\.|[,.!?])/, ''),         // [6]
+                punctuation_trailer,  // [6]
                ), 
             arr => {
               const ident   = arr[5];
@@ -9376,7 +9378,7 @@ const NamedWildcardReference  =
               const max_ct  = arr[3][0] ?? min_ct;
               const join    = arr[4][0] ?? '';
               const caret   = arr[1][0];
-              const trailer = arr[6][0];
+              const trailer = arr[6];
 
               if (min_ct == 0 && max_ct == 0) {
                 lm.log(`WARNING: retrieving 0 items from a named ` +
@@ -9395,7 +9397,7 @@ const NamedWildcardReference  =
                                                    max_ct,
                                                    trailer);
             })
-      .abbreviate_str_repr('NamedWildcardReference');
+  .abbreviate_str_repr('NamedWildcardReference');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDesignator = second(seq(at, ident))
       .abbreviate_str_repr('NamedWildcardDesignator');
