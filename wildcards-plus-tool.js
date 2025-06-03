@@ -8378,7 +8378,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         if (context.in_lora)
           throw new Error(`don't nest LoRA inclusions!`);
 
-        const in_lora_context = context.shallow_clone({ in_lora: true });
+        const in_lora_context = context.shallow_copy({ in_lora: true });
         
         let walked_file = null;
 
