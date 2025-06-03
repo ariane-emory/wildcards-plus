@@ -7838,30 +7838,32 @@ let prelude_parse_result = null;
 function load_prelude(into_context = new Context()) {
   if (log_loading_prelude)
     lm.log(`loading prelude...`);
+
+  const elapsed = measure_time(() => {
+    const old_log_flags_enabled = log_flags_enabled;
+    log_flags_enabled = false;
+    
+    if (! prelude_parse_result) {
+      const old_log_match_enabled = log_match_enabled;
+      log_match_enabled = false; 
+      prelude_parse_result = Prompt.match(prelude_text);
+      log_match_enabled = old_log_match_enabled;
+    }
+
+    // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
+    const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+    log_flags_enabled = old_log_flags_enabled;
+
+    // log_flags_enabled = true;
+    
+    if (ignored === undefined)
+      throw new Error("crap");
+
+    // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
+  });
   
-  const old_log_flags_enabled = log_flags_enabled;
-  log_flags_enabled = false;
-  
-  if (! prelude_parse_result) {
-    const old_log_match_enabled = log_match_enabled;
-    log_match_enabled = false; 
-    prelude_parse_result = Prompt.match(prelude_text);
-    log_match_enabled = old_log_match_enabled;
-  }
-
-  // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
-  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
-  log_flags_enabled = old_log_flags_enabled;
-
-  // log_flags_enabled = true;
-  
-  if (ignored === undefined)
-    throw new Error("crap");
-
-  // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
-
   if (log_loading_prelude)
-    lm.log(`done loading prelude`);
+    lm.log(`done loading prelude after ${elapsed}}`);
 
   return into_context;
 }
