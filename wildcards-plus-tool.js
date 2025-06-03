@@ -4415,17 +4415,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_object_scaling.4
 }
 
-// {
-// "width": 1024,
-// "height": 1024,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
+/* {
+"width": 1024,
+"height": 1024,
+"originalImageWidth": 768,
+"originalImageHeight": 576,
+"targetImageWidth": 1536,
+"targetImageHeight": 1152,
+"negativeOriginalImageWidth": 1792,
+"negativeOriginalImageHeight": 1344,
+"hiresFix": false
+} */
 
 @xl_magic_medium_1_to_1 =
 { %h   = 1024;  %w    = 1024;   
