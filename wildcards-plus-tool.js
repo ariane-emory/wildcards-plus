@@ -202,6 +202,8 @@ function process_includes(thing, context = new Context()) {
       const res = []
 
       // console.log(`INSPECT: ${inspect_fun(thing, null, 2)}`);
+
+      const shallow_copy = context.shallow_copy({ top_file: false });
       
       for (let filename of thing.args) {
         if (typeof filename !== 'string')
@@ -221,7 +223,7 @@ function process_includes(thing, context = new Context()) {
         if (! parse_file_result?.is_finished)
           throw new Error(`error parsing ${filename}! result = ${inspect_fun(parse_file_result)}`);
         
-        res.push(walk(parse_file_result.value, context.shallow_copy({ top_file: false })));
+        res.push(walk(parse_file_result.value, shallow_copy));
       }
 
       return res;
