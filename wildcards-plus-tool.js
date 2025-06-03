@@ -2720,6 +2720,8 @@ const json_fractionalPart = r(/\.[0-9]+/);
 const json_exponentPart = r(/[eE][+-]?\d+/);
 // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
 const reify_json_number = arr => {
+  // lm.log(`REIFY ${inspect_fun(arr)}`);
+  
   const multiplier      = arr[0] ? -1 : 1;
   const integer_part    = arr[1];
   const fractional_part = arr[2];
@@ -2732,11 +2734,8 @@ const reify_json_number = arr => {
 };
 const json_number = xform(reify_json_number,
                           seq(optional(json_minus),
-                              xform(parseInt, json_integralPart), 
-                              xform(arr => {
-                                // lm.log(`fractional part ARR: ${inspect_fun(arr)}`);
-                                return parseFloat(arr[0]);
-                              }, optional(json_fractionalPart, 0.0)),
+                              xform(parseInt, json_integralPart),
+                              optional(xform(parseFloat, json_fractionalPart), 0.0),
                               xform(parseInt, optional(json_exponentPart, 1))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = r(/\s+/);
@@ -8203,10 +8202,17 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
+
+          lm.log(`expanded_value: ${inspect_fun(expanded_value)}`);
+
+          log_match_enabled  = true;
+
           const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                                 ? RjsoncObject
                                                 : Rjsonc).match(expanded_value);
 
+          log_match_enabled  = false;
+          
           if (thing instanceof ASTUpdateConfigurationBinary) {
             value = jsconc_parsed_expanded_value?.is_finished
               ? jsconc_parsed_expanded_value.value

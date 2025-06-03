@@ -27,6 +27,7 @@ let log_configuration_enabled         = true;
 let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
+let log_loading_prelude               = true;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
@@ -1094,10 +1095,7 @@ class Optional extends Rule {
     const match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (match_result === null) {
-      const mr = new MatchResult(this.default_value !== null
-                                 ? [ this.default_value ]
-                                 : [],
-                                 input, index);
+      const mr = new MatchResult(this.default_value, input, index);
 
       if (log_match_enabled)
         lm.log(`returning default ${inspect_fun(mr)}`);
@@ -1105,7 +1103,7 @@ class Optional extends Rule {
       return mr;
     }
     
-    match_result.value = [ match_result.value ];
+    match_result.value = match_result.value;
 
     return match_result;
   }
@@ -2463,7 +2461,9 @@ const json_fractionalPart = r(/\.[0-9]+/);
 const json_exponentPart = r(/[eE][+-]?\d+/);
 // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
 const reify_json_number = arr => {
-  const multiplier      = arr[0].length > 0 ? -1 : 1;
+  // lm.log(`REIFY ${inspect_fun(arr)}`);
+  
+  const multiplier      = arr[0] ? -1 : 1;
   const integer_part    = arr[1];
   const fractional_part = arr[2];
   const exponent        = arr[3];
@@ -2475,12 +2475,9 @@ const reify_json_number = arr => {
 };
 const json_number = xform(reify_json_number,
                           seq(optional(json_minus),
-                              xform(parseInt, json_integralPart), 
-                              xform(arr => {
-                                // lm.log(`fractional part ARR: ${inspect_fun(arr)}`);
-                                return parseFloat(arr[0]);
-                              }, optional(json_fractionalPart, 0.0)),
-                              xform(parseInt, first(optional(json_exponentPart, 1)))));
+                              xform(parseInt, json_integralPart),
+                              optional(xform(parseFloat, json_fractionalPart), 0.0),
+                              xform(parseInt, optional(json_exponentPart, 1))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = r(/\s+/);
 Json.abbreviate_str_repr('Json');
@@ -2506,26 +2503,25 @@ json_S.abbreviate_str_repr('json_S');
 // =================================================================================================
 // JSONC GRAMMAR SECTION:
 // =================================================================================================
-const make_Jsonc_rule = (object_rule, array_rule, string_rule,
-                         comment_rule = () => jsonc_comment) =>
+const make_Jsonc_rule = (choice_rule, comment_rule = () => jsonc_comment) =>
       second(wst_seq(wst_star(comment_rule),
-                     choice(object_rule, array_rule, string_rule,
-                            json_null,           json_true,
-                            json_false,          json_number),
+                     choice_rule,
                      wst_star(comment_rule)));
 const make_JsoncArray_rule = (value_rule,
                               comment_rule = () => jsonc_comment) => 
       make_JsonArray_rule(second(seq(wst_star(comment_rule),
                                      value_rule,
                                      wst_star(comment_rule))));
-const make_JsoncObject_rule = (key_rule, value_rule, comment_rule = () => jsonc_comment) => 
+const make_JsoncObject_rule = (key_rule, value_rule,
+                               { comment_rule = () => jsonc_comment,
+                                 sequence_combinator = wst_cutting_seq } = {}) => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
-          const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
+          const new_arr = [ [arr[0], arr[2] ], ...(arr[4]??[]) ];
           return Object.fromEntries(new_arr);
         },
-              wst_cutting_seq(
+              sequence_combinator(
                 wst_enc(lbrc, key_rule, colon),
                 wst_star(comment_rule),
                 value_rule,
@@ -2545,7 +2541,10 @@ const make_JsoncObject_rule = (key_rule, value_rule, comment_rule = () => jsonc_
                                )),
                 rbrc)))
 // -------------------------------------------------------------------------------------------------
-const Jsonc = make_Jsonc_rule(() => JsoncObject, () => JsoncArray, json_string)
+const Jsonc = make_Jsonc_rule(
+  choice(() => JsoncObject, () => JsoncArray, json_string,
+         json_null,           json_true,
+         json_false,          json_number));
 const JsoncArray = make_JsoncArray_rule(Jsonc);
 const JsoncObject = make_JsoncObject_rule(json_string, Json);
 const jsonc_comment = choice(c_block_comment, c_line_comment);
@@ -2566,7 +2565,10 @@ const rjsonc_single_quoted_string =
         s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
         /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
-const Rjsonc = make_Jsonc_rule(() => RjsoncObject, () => RjsoncArray, rjsonc_string);
+const Rjsonc = make_Jsonc_rule(
+  choice(() => RjsoncObject, () => RjsoncArray, rjsonc_string,
+         json_null,           json_true,
+         json_false,          json_number));
 const RjsoncArray = make_JsoncArray_rule(Rjsonc);
 const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
@@ -7575,27 +7577,35 @@ const prelude_text = prelude_disabled ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
-  const old_log_flags_enabled = log_flags_enabled;
-  log_flags_enabled = false;
-  
-  if (! prelude_parse_result) {
-    const old_log_match_enabled = log_match_enabled;
-    log_match_enabled = false; 
-    prelude_parse_result = Prompt.match(prelude_text);
-    log_match_enabled = old_log_match_enabled;
-  }
+  if (log_loading_prelude)
+    lm.log(`loading prelude...`);
 
-  // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
-  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
-  log_flags_enabled = old_log_flags_enabled;
+  const elapsed = measure_time(() => {
+    const old_log_flags_enabled = log_flags_enabled;
+    log_flags_enabled = false;
+    
+    if (! prelude_parse_result) {
+      const old_log_match_enabled = log_match_enabled;
+      log_match_enabled = false; 
+      prelude_parse_result = Prompt.match(prelude_text);
+      log_match_enabled = old_log_match_enabled;
+    }
 
-  // log_flags_enabled = true;
-  
-  if (ignored === undefined)
-    throw new Error("crap");
+    // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
+    const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+    log_flags_enabled = old_log_flags_enabled;
 
-  // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
+    // log_flags_enabled = true;
+    
+    if (ignored === undefined)
+      throw new Error("crap");
+
+    // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
+  });
   
+  if (log_loading_prelude)
+    lm.log(`loading prelude took ${elapsed.toFixed(3)} ms`);
+
   return into_context;
 }
 // =================================================================================================
@@ -7913,8 +7923,16 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         if (! pick)
           throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
-        
-        throw new ThrownReturn(lm.indent(() => walk(pick)));
+
+        // const ret = lm.indent(() => walk(pick));j
+        let ret = lm.indent(() => expand_wildcards(pick, context));
+
+        // console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
+
+        if (thing.trailer && ret.length > 0)
+          ret = smart_join([ret, thing.trailer]);
+
+        throw new ThrownReturn(ret);
       }
       // ---------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUpdateConfigurationUnary ||
@@ -7925,10 +7943,17 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
+
+          // lm.log(`expanded_value: ${inspect_fun(expanded_value)}`);
+
+          // log_match_enabled  = true;
+
           const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                                 ? RjsoncObject
                                                 : Rjsonc).match(expanded_value);
 
+          // log_match_enabled  = false;
+          
           if (thing instanceof ASTUpdateConfigurationBinary) {
             value = jsconc_parsed_expanded_value?.is_finished
               ? jsconc_parsed_expanded_value.value
@@ -8532,12 +8557,15 @@ class ASTLatchedNamedWildcardValue extends ASTNode {
 // AnonWildcards:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard  extends ASTNode {
-  constructor(options) {
+  constructor(options, trailer = null) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
-    // lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+    this.trailer = trailer;
+
+    // if (trailer)
+    //   lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
@@ -8757,6 +8785,11 @@ const ident                   =
       .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
+const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
+const optional_punctuation_trailer = optional(punctuation_trailer)
+      .abbreviate_str_repr('optional_punctuation_trailer');
+const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
+      .abbreviate_str_repr('unexpected_punctuation_trailer');
 // =================================================================================================
 // plain_text terminal variants:
 // =================================================================================================
@@ -8785,14 +8818,14 @@ const plain_text           = make_plain_text_rule('')
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
       .abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora =
-      xform(arr => new ASTLora(arr[3], arr[4][0]),
+      xform(arr => new ASTLora(arr[3], arr[4]),
             wst_seq(ltri,                                   // [0]
                     'lora',                                 // [1]
                     colon,                                  // [2]
-                    choice(filename, () => LimitedContent), // [3]
+                    choice(filename, () => LimitedContentNoAWCTrailers), // [3]
                     optional(second(wst_seq(colon,
                                             choice(A1111StyleLoraWeight,
-                                                   () => LimitedContent))),
+                                                   () => LimitedContentNoAWCTrailers))),
                              "1.0"), // [4][0]
                     rtri))
       .abbreviate_str_repr('A1111StyleLora');
@@ -8800,18 +8833,15 @@ const A1111StyleLora =
 // mod RJSONC:
 // =================================================================================================
 const ExposedRjsonc = 
-      second(wst_seq(wst_star(jsonc_comment),
-                     first(choice(seq(choice(RjsoncObject,
-                                             RjsoncArray,
-                                             rjsonc_string),
-                                      optional(() => SpecialFunctionTail)),
-                                  seq(choice(json_null,
-                                             json_true,
-                                             json_false,
-                                             json_number),
-                                      () => SpecialFunctionTail))),
-                     // v these will be consumed by SpecialFunctionTail anyhow, right?
-                     /* jsonc_comments */)); 
+      make_Jsonc_rule(first(choice(seq(choice(RjsoncObject,
+                                              RjsoncArray,
+                                              rjsonc_string),
+                                       optional(() => SpecialFunctionTail)),
+                                   seq(choice(json_null,
+                                              json_true,
+                                              json_false,
+                                              json_number),
+                                       () => SpecialFunctionTail)))); 
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
@@ -8829,7 +8859,7 @@ const SimpleNotFlag =
                          dot_chained(ident)),
             arr => {
               const args = [arr[2],
-                            { set_immediately: !!arr[1][0]}];
+                            { set_immediately: !!arr[1]}];
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('SimpleNotFlag');
@@ -8915,7 +8945,7 @@ const TestFlagInAlternativeContent =
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
   // console.log(`ARR: ${inspect_fun(arr)}`);
-  const weight = arr[1][0];
+  const weight = arr[1];
 
   if (weight == 0)
     return DISCARD;
@@ -8957,18 +8987,25 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcard_rule         = alternative_rule  =>
-      xform(arr => new ASTAnonWildcard(arr),
-            wst_brc_enc(wst_star(alternative_rule, pipe)));
+const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
+      xform(arr => new ASTAnonWildcard(arr[0], arr[1]),
+            seq(wst_brc_enc(wst_star(alternative_rule, pipe)),
+                can_have_trailer
+                ? optional_punctuation_trailer
+                : unexpected_punctuation_trailer));
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
       .abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
-      .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative)
+// const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
+//       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative,        true)
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras)
-      .abbreviate_str_repr('AnonWildcardNoLoras');
+const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative,        false)
+      .abbreviate_str_repr('AnonWildcardNoTrailer');
+// const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, true)
+//       .abbreviate_str_repr('AnonWildcardNoLoras');
+// const AnonWildcardNoLorasNoTrailer   = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, false)
+//       .abbreviate_str_repr('AnonWildcardNoLorasNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
@@ -9030,22 +9067,24 @@ const UnexpectedSpecialFunctionInclude =
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single-pick',                                                        // [0]
-                discarded_comments,                                                   // -
-                cutting_seq(lws(equals),                                              // [1][0]
-                            discarded_comments,                                       // -
-                            lws(choice(() => LimitedContent, lc_alpha_snake)),        // [1][1]
+            seq('single-pick',                                            // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),        
                             optional(SpecialFunctionTail))))
       .abbreviate_str_repr('SpecialFunctionSetPickSingle');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
-            seq('multi-pick',                                                         // [0]
-                discarded_comments,                                                   // -
-                cutting_seq(lws(equals),                                              // [1][0]
-                            discarded_comments,                                       // -
-                            lws(choice(() => LimitedContent, lc_alpha_snake)),        // [1][1]
-                            optional(SpecialFunctionTail))))
+            seq('multi-pick',                                             // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),
+                            optional(SpecialFunctionTail)))) 
       .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionRevertPickSingle =
@@ -9079,7 +9118,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                             discarded_comments,                                       // -
                             lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
                                                  optional(SpecialFunctionTail))),
-                                       first(seq(() => LimitedContent,
+                                       first(seq(() => LimitedContentNoAWCTrailers,
                                                  optional(SpecialFunctionTail)))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -9106,20 +9145,20 @@ const SpecialFunctionNotInclude =
 const NamedWildcardReference  =
       xform(seq(at,                                        // [0]
                 optional(caret),                           // [1]
-                optional(xform(parseInt, uint)),           // [2]
+                optional(xform(parseInt, uint), 1),        // [2]
                 optional(xform(parseInt,                   // [3]
                                second(seq(dash, uint)))),
                 optional(/[,&|]/),                         // [4]
                 ident,                                     // [5]
-                optional(/(?:\.\.\.|[,.!?])/, ''),         // [6]
+                optional_punctuation_trailer,  // [6]
                ), 
             arr => {
               const ident   = arr[5];
-              const min_ct  = arr[2][0] ?? 1;
-              const max_ct  = arr[3][0] ?? min_ct;
-              const join    = arr[4][0] ?? '';
-              const caret   = arr[1][0];
-              const trailer = arr[6][0];
+              const min_ct  = arr[2];
+              const max_ct  = arr[3] ?? min_ct;
+              const join    = arr[4]; // ??''
+              const caret   = arr[1];
+              const trailer = arr[6];
 
               if (min_ct == 0 && max_ct == 0) {
                 lm.log(`WARNING: retrieving 0 items from a named ` +
@@ -9157,7 +9196,7 @@ const NamedWildcardUsage      =
       xform(seq(at, optional(bang), optional(hash), ident),
             arr => {
               const [ bang, hash, ident, objs ] =
-                    [ arr[1][0], arr[2][0], arr[3], []];
+                    [ arr[1], arr[2], arr[3], []];
               
               if (!bang && !hash)
                 return new ASTNamedWildcardReference(ident);
@@ -9177,10 +9216,10 @@ const ScalarReference         =
       xform(seq(dollar,
                 optional(caret),
                 ident,
-                optional(/(?:\.\.\.|[,.!?])/, '')),
+                optional_punctuation_trailer),
             arr => new ASTScalarReference(arr[2],
-                                          arr[1][0],
-                                          arr[3][0]))
+                                          arr[1],
+                                          arr[3]))
       .abbreviate_str_repr('ScalarReference');
 // -------------------------------------------------------------------------------------------------
 const ScalarDesignator        =
@@ -9207,16 +9246,22 @@ const ScalarAssignment        =
 // =================================================================================================
 // Content-related rules:
 // =================================================================================================
-const make_LimitedContent_rule = plain_text_rule =>
+const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       choice(
         NamedWildcardReference,
-        AnonWildcardNoLoras,
-        plain_text_rule,
+        anon_wildcard_rule,
+        ...(plain_text_rule ? [ plain_text_rule ] : []),
         ScalarReference,
       );
 // -------------------------------------------------------------------------------------------------
-const LimitedContent          = make_LimitedContent_rule(plain_text)
+const LimitedContent =
+      make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
       .abbreviate_str_repr('LimitedContent');
+
+const LimitedContentNoAWCTrailers =
+      make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
+      .abbreviate_str_repr('LimitedContentNoAWCTrailers');
+
 // const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
 //       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
@@ -9256,11 +9301,11 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
       );
 
 // -------------------------------------------------------------------------------------------------
-const ContentNoLoras          = make_Content_rule({
-  after_plain_text_rules: [
-    AnonWildcardNoLoras,
-  ],
-});
+// const ContentNoLoras          = make_Content_rule({
+//   after_plain_text_rules: [
+//     AnonWildcardNoLoras,
+//   ],
+// });
 const Content                 = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
@@ -9281,7 +9326,7 @@ const TopLevelContent         = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const ContentNoLorasStar      = wst_star(ContentNoLoras);
+// const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
 const Prompt                  = tws(TopLevelContentStar);
