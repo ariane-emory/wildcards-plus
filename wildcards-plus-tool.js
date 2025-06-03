@@ -8376,7 +8376,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         //     `encountered lora ${thing} in ${context}`);
 
         if (context.in_lora)
-          throw new Error(`don't nest LoRA inclusions!`);
+          throw new Error(`don't nest LoRA inclusions, it's needlessly confusing!`);
 
         const in_lora_context = context.shallow_copy({ in_lora: true });
         
