@@ -2765,12 +2765,10 @@ json_S.abbreviate_str_repr('json_S');
 // =================================================================================================
 // JSONC GRAMMAR SECTION:
 // =================================================================================================
-const make_Jsonc_rule = (object_rule, array_rule, string_rule,
+const make_Jsonc_rule = (choice_rule,
                          comment_rule = () => jsonc_comment) =>
       second(wst_seq(wst_star(comment_rule),
-                     choice(object_rule, array_rule, string_rule,
-                            json_null,           json_true,
-                            json_false,          json_number),
+                     choice_rule,
                      wst_star(comment_rule)));
 const make_JsoncArray_rule = (value_rule,
                               comment_rule = () => jsonc_comment) => 
@@ -2804,7 +2802,10 @@ const make_JsoncObject_rule = (key_rule, value_rule, comment_rule = () => jsonc_
                                )),
                 rbrc)))
 // -------------------------------------------------------------------------------------------------
-const Jsonc = make_Jsonc_rule(() => JsoncObject, () => JsoncArray, json_string)
+const Jsonc = make_Jsonc_rule(
+  choice(() => JsoncObject, () => JsoncArray, json_string,
+         json_null,           json_true,
+         json_false,          json_number));
 const JsoncArray = make_JsoncArray_rule(Jsonc);
 const JsoncObject = make_JsoncObject_rule(json_string, Json);
 const jsonc_comment = choice(c_block_comment, c_line_comment);
@@ -2821,11 +2822,14 @@ jsonc_comment.abbreviate_str_repr('jsonc_comment');
 // 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
 // =================================================================================================
 const rjsonc_single_quoted_string =
-xform(
-  s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
-  /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
+      xform(
+        s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
+        /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
-const Rjsonc = make_Jsonc_rule(() => RjsoncObject, () => RjsoncArray, rjsonc_string);
+const Rjsonc = make_Jsonc_rule(
+  choice(() => RjsoncObject, () => RjsoncArray, rjsonc_string,
+         json_null,           json_true,
+         json_false,          json_number));
 const RjsoncArray = make_JsoncArray_rule(Rjsonc);
 const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
