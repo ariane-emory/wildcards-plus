@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  // log_match_enabled  = true;
+  log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -293,7 +293,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -9056,15 +9056,15 @@ const A1111StyleLora =
 // =================================================================================================
 const ExposedRjsonc = 
       second(wst_seq(jsonc_comments,
-                     first(choice(seq(choice(JsoncObject,    // RjsoncObject,
-                                             JsoncArray,     // RjsoncArray,
-                                             rjsonc_string),
-                                      optional(() => SpecialFunctionTail)),
+                     first(choice(seq(choice(RjsoncObject,
+                                             RjsoncArray,
+                                                   rjsonc_string),
+                                            optional(() => SpecialFunctionTail)),
                                   seq(choice(json_null,
                                              json_true,
                                              json_false,
                                              json_number),
-                                      () => SpecialFunctionTail))),
+                                            () => SpecialFunctionTail))),
                      // v these will be consumed by SpecialFunctionTail anyhow, right?
                      /* jsonc_comments */)); 
 // =================================================================================================
