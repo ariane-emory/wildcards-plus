@@ -2690,8 +2690,15 @@ const JsonObject = xform(arr =>  Object.fromEntries(arr),
                                                  wst_seq(() => json_string, colon, Json)),
                                            comma),
                                          rbrc));
+const make_JsonArray_rule = value_rule => 
+      wst_cutting_enc(lsqr,
+                      wst_star(value_rule,
+                               comma),
+                      rsqr);
+
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const JsonArray = wst_cutting_enc(lsqr, wst_star(Json, comma), rsqr);
+const JsonArray = make_JsonArray_rule(Json);
+
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -2771,7 +2778,8 @@ const Jsonc = second(wst_seq(jsonc_comments,
 
 const make_JsoncArray_rule = rule => 
       wst_cutting_enc(lsqr,
-                      wst_star(second(seq(Jsonc,
+                      wst_star(second(seq(jsonc_comments,
+                                          Jsonc,
                                           jsonc_comments)),
                                comma),
                       rsqr);
@@ -2807,7 +2815,7 @@ const make_JsoncObject_rule = (key_rule, value_rule) =>
                                )),
                 rbrc)));
 
-const JsoncObject = make_JsoncArray_rule(json_string, Json);
+const JsoncObject = make_JsoncObject_rule(json_string, Json);
 
 Jsonc.abbreviate_str_repr('Jsonc');
 jsonc_comments.abbreviate_str_repr('jsonc_comments');
@@ -3365,7 +3373,7 @@ function choose_indefinite_article(word) {
 
   return 'a';
 }
-                 // ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
                function format_pretty_number(num) {
                  const [intPart, fracPart] = num.toString().split(".");
                  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
