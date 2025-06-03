@@ -2771,7 +2771,7 @@ const Jsonc = second(wst_seq(jsonc_comments,
 
 const make_JsoncArray_rule = rule => 
       wst_cutting_enc(lsqr,
-                      wst_star(second(seq(jsonc_comments,
+                      wst_star(second(seq(Jsonc,
                                           jsonc_comments)),
                                comma),
                       rsqr);
