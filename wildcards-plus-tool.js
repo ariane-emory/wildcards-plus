@@ -2790,9 +2790,7 @@ const make_JsoncObject_rule = (key_rule, value_rule) =>
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
-          // lm.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
           const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
-          // lm.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
@@ -2855,34 +2853,34 @@ const RjsoncArray = make_JsonArray_rule(Rjsonc);
 //                 rsqr);
 
 
-const make_RjsoncObject_rule = (key_rule, value_rule)  => 
-      choice(
-        xform(arr => ({}), wst_seq(lbrc, rbrc)),
-        xform(arr => {
-          const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
-          return Object.fromEntries(new_arr);
-        },
-              wst_cutting_seq(
-                wst_enc(lbrc, key_rule, colon), 
-                jsonc_comments,
-                value_rule,
-                jsonc_comments,
-                optional(second(wst_seq(comma,
-                                        wst_star(
-                                          xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(jsonc_comments,
-                                                        key_rule,
-                                                        jsonc_comments,
-                                                        colon,
-                                                        jsonc_comments,
-                                                        value_rule,
-                                                        jsonc_comments
-                                                       )),
-                                          comma)),
-                               )),
-                rbrc)));
+// const make_RjsoncObject_rule = (key_rule, value_rule)  => 
+//       choice(
+//         xform(arr => ({}), wst_seq(lbrc, rbrc)),
+//         xform(arr => {
+//           const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+//           return Object.fromEntries(new_arr);
+//         },
+//               wst_cutting_seq(
+//                 wst_enc(lbrc, key_rule, colon), 
+//                 jsonc_comments,
+//                 value_rule,
+//                 jsonc_comments,
+//                 optional(second(wst_seq(comma,
+//                                         wst_star(
+//                                           xform(arr =>  [arr[1], arr[5]],
+//                                                 wst_seq(jsonc_comments,
+//                                                         key_rule,
+//                                                         jsonc_comments,
+//                                                         colon,
+//                                                         jsonc_comments,
+//                                                         value_rule,
+//                                                         jsonc_comments
+//                                                        )),
+//                                           comma)),
+//                                )),
+//                 rbrc)));
 
-const RjsoncObject = make_RjsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
+const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
 
 Rjsonc.abbreviate_str_repr('Rjsonc');
 RjsoncObject.abbreviate_str_repr('RjsoncObject');
