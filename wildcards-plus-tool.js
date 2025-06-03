@@ -9149,13 +9149,12 @@ const ExposedRjsonc =
 //                            lm.log(`FLAG_IDENT OUT: ${inspect_fun(arr)}`);
 //                            return arr;
 //                          });
-const flag_ident = xform(seq(ident,
-                             star(second(seq('.', liberal_ident)))),
+const flag_ident = xform(seq(ident, star(second(seq('.', liberal_ident)))),
                          arr => {
-                           lm.log();
-                           lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
+                           // lm.log();
+                           // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
                            const ret = arr.flat(1);
-                           lm.log(`FLAG_IDENT OUT: ${inspect_fun(ret)}`);
+                           // lm.log(`FLAG_IDENT OUT: ${inspect_fun(ret)}`);
                            return ret;
                          });
 const SimpleCheckFlag =
