@@ -2774,14 +2774,15 @@ const make_JsoncArray_rule = (value_rule,
       make_JsonArray_rule(second(seq(wst_star(comment_rule),
                                      value_rule,
                                      wst_star(comment_rule))));
-const make_JsoncObject_rule = (key_rule, value_rule, { comment_rule = () => jsonc_comment } = {}) => 
+const make_JsoncObject_rule = (key_rule, value_rule, { comment_rule = () => jsonc_comment,
+                                                       sequence_combinator = wst_cutting_seq } = {}) => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
           const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
           return Object.fromEntries(new_arr);
         },
-              wst_cutting_seq(
+              sequence_combinator(
                 wst_enc(lbrc, key_rule, colon),
                 wst_star(comment_rule),
                 value_rule,
@@ -9466,7 +9467,7 @@ const make_LimitedContent_rule = plain_text_rule =>
       choice(
         NamedWildcardReference,
         AnonWildcardNoLoras,
-        plain_text_rule,
+        ...(plain_text_rule ? [ plain_text_rule ] : []),
         ScalarReference,
       );
 // -------------------------------------------------------------------------------------------------
@@ -9836,3 +9837,4 @@ if (! main_disabled)
 // expect(never_match).match("nope")
 // log_match_enabled = true;
 //sconsole.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')))
+  
