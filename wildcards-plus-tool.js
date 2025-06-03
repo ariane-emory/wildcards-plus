@@ -4422,18 +4422,6 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_object_scaling.4
 }
 
-@xl_magic_medium_1_to_1 =
-{ %h   = 1024;  %w    = 1024;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.square
-  #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.4
-}
-
 @xl_magic_medium_1_to_1_os6 =
 { %h   = 1024;  %w    = 1024;   
   %ow  = 768;   %oh   = 576;    
@@ -4443,7 +4431,7 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_size.medium
   #xl_magic_orientation.square
   #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.4
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_medium_3_to_2 =
@@ -4458,6 +4446,18 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_object_scaling.4
 }
 
+@xl_magic_medium_3_to_2_os6 =
+{ %w   = 1216;  %h    = 832; 
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
+}
+
 @xl_magic_medium_2_to_3 =
 { %w   = 832;   %h    = 1216;   
   %ow  = 576;   %oh   = 768;    
@@ -4468,6 +4468,18 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
   #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_2_to_3_os6 =
+{ %w   = 832;   %h    = 1216;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1344;  %nh   = 1792;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_medium_4_to_3 =
