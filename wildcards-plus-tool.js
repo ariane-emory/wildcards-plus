@@ -4415,22 +4415,21 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_object_scaling.4
 }
 
-/* {
-"width": 1024,
-"height": 1024,
-"originalImageWidth": 768,
-"originalImageHeight": 576,
-"targetImageWidth": 1536,
-"targetImageHeight": 1152,
-"negativeOriginalImageWidth": 1792,
-"negativeOriginalImageHeight": 1344,
-"hiresFix": false
-} */
-
 @xl_magic_medium_1_to_1 =
 { %h   = 1024;  %w    = 1024;   
   %ow  = 768;   %oh   = 576;    
   %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_1_to_1_os6 =
+{ %h   = 1024;  %w    = 1024;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
