@@ -2765,8 +2765,7 @@ json_S.abbreviate_str_repr('json_S');
 // =================================================================================================
 // JSONC GRAMMAR SECTION:
 // =================================================================================================
-const make_Jsonc_rule = (choice_rule,
-                         comment_rule = () => jsonc_comment) =>
+const make_Jsonc_rule = (choice_rule, comment_rule = () => jsonc_comment) =>
       second(wst_seq(wst_star(comment_rule),
                      choice_rule,
                      wst_star(comment_rule)));
@@ -9059,18 +9058,15 @@ const A1111StyleLora =
 // mod RJSONC:
 // =================================================================================================
 const ExposedRjsonc = 
-      second(wst_seq(wst_star(jsonc_comment),
-                     first(choice(seq(choice(RjsoncObject,
-                                             RjsoncArray,
+      make_Jsonc_rule(first(choice(seq(choice(RjsoncObject,
+                                              RjsoncArray,
                                              rjsonc_string),
                                       optional(() => SpecialFunctionTail)),
                                   seq(choice(json_null,
                                              json_true,
                                              json_false,
                                              json_number),
-                                      () => SpecialFunctionTail))),
-                     // v these will be consumed by SpecialFunctionTail anyhow, right?
-                     /* jsonc_comments */)); 
+                                      () => SpecialFunctionTail)))); 
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
