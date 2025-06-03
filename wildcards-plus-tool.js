@@ -8377,6 +8377,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         if (context.in_lora)
           throw new Error(`don't nest LoRA inclusions!`);
+
+        const in_lora_context = context.shallow_clone({ in_lora: true });
         
         let walked_file = null;
 
@@ -8384,7 +8386,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           log(log_expand_and_walk_enabled,
               `expanding file ${compress(inspect_fun(thing.file))}`);
           
-          walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
+          walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context)); // not walk!
 
           log(log_expand_and_walk_enabled,
               `expanded file is ${typeof walked_file} ` +
@@ -8404,7 +8406,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           log(log_expand_and_walk_enabled,
               `expanding weight ${compress(inspect_fun(thing.weight))}`);
           
-          walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
+          walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context)); // not walk!
 
           log(log_expand_and_walk_enabled,
               `expanded weight is ${typeof walked_weight} ` +
