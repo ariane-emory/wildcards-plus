@@ -9017,8 +9017,8 @@ const ident                   =
       .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
-const punctuation_trailer = first(optional(/(?:\.\.\.|[,.!?])/))
-      .abbreviate_str_repr('punctuation_trailer');
+const optional_punctuation_trailer = first(optional(/(?:\.\.\.|[,.!?])/))
+      .abbreviate_str_repr('optional_punctuation_trailer');
 // =================================================================================================
 // plain_text terminal variants:
 // =================================================================================================
@@ -9370,7 +9370,7 @@ const NamedWildcardReference  =
                                second(seq(dash, uint)))),
                 optional(/[,&|]/),                         // [4]
                 ident,                                     // [5]
-                punctuation_trailer,  // [6]
+                optional_punctuation_trailer,  // [6]
                ), 
             arr => {
               const ident   = arr[5];
