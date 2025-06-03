@@ -3616,7 +3616,7 @@ const configuration_key_names = [
   { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
   { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt',
     shorthands: [ "znp" ] },
-]];
+];
 // -------------------------------------------------------------------------------------------------
 function get_other_name(return_key, find_key, find_value) {
   if (log_name_lookups_enabled)

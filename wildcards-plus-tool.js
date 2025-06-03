@@ -9253,7 +9253,7 @@ const SpecialFunctionInclude =
                                         rjsonc_string,           // [0][1]
                                         discarded_comments,      // -
                                        ))),  
-                SpecialFunctionTail))
+                optional(SpecialFunctionTail)))
       .abbreviate_str_repr('SpecialFunctionInclude');
 // -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionInclude =
@@ -9274,7 +9274,7 @@ const SpecialFunctionSetPickSingle =
                 cutting_seq(lws(equals),                                              // [1][0]
                             discarded_comments,                                       // -
                             lws(choice(() => LimitedContent, lc_alpha_snake)),        // [1][1]
-                            SpecialFunctionTail)))
+                            optional(SpecialFunctionTail))))
       .abbreviate_str_repr('SpecialFunctionSetPickSingle');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionSetPickMultiple =
@@ -9284,18 +9284,18 @@ const SpecialFunctionSetPickMultiple =
                 cutting_seq(lws(equals),                                              // [1][0]
                             discarded_comments,                                       // -
                             lws(choice(() => LimitedContent, lc_alpha_snake)),        // [1][1]
-                            SpecialFunctionTail)))
+                            optional(SpecialFunctionTail))))
       .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionRevertPickSingle =
       xform(seq('revert-single-pick',
-                SpecialFunctionTail),
+                optional(SpecialFunctionTail)),
             () => new ASTRevertPickSingle())
       .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionRevertPickMultiple =
       xform(seq('revert-multi-pick',
-                SpecialFunctionTail),
+                optional(SpecialFunctionTail)),
             () => new ASTRevertPickMultiple())
       .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 // -------------------------------------------------------------------------------------------------
@@ -9307,7 +9307,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                             discarded_comments,                                     // -
                             lws(choice(ExposedRjsonc,
                                        first(seq(() => LimitedContent,
-                                                 SpecialFunctionTail)))))))         // [1][1]
+                                                 optional(SpecialFunctionTail))))))))         // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
