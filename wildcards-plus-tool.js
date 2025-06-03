@@ -4345,6 +4345,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw   = 1792; %nh   = 1344;  
   %hrf = false;
   #xl_magic_size.small
+  #xl_magic_orientation.square
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.4
 }
@@ -4356,6 +4357,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw   = 1792; %nh   = 1344;  
   %hrf  = false;
   #xl_magic_size.small
+  #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
@@ -4367,6 +4369,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw   = 1344; %nh   = 1792;  
   %hrf  = false;
   #xl_magic_size.small
+  #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
   #xl_magic_object_scaling.4
 }
@@ -4378,6 +4381,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1792; %nh    = 1344;   
   %hrf = false;
   #xl_magic_size.small
+  #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.4
 }
@@ -4389,6 +4393,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1344; %nh    = 1792;   
   %hrf = false;
   #xl_magic_size.small
+  #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.4
 }
@@ -4400,6 +4405,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.small
+  #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.16.9
   #xl_magic_object_scaling.4
 }
@@ -4411,6 +4417,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1344; %nh    = 1792;   
   %hrf = false;
   #xl_magic_size.small
+  #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.9.16
   #xl_magic_object_scaling.4
 }
@@ -4422,6 +4429,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
+  #xl_magic_orientation.square
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.4
 }
@@ -4433,6 +4441,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
+  #xl_magic_orientation.square
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.4
 }
@@ -4444,6 +4453,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
+  #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
@@ -4455,6 +4465,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1344;  %nh   = 1792;   
   %hrf = false;
   #xl_magic_size.medium
+  #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
   #xl_magic_object_scaling.4
 }
@@ -4466,6 +4477,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw   = 1792; %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
+  #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.4
 }
@@ -4477,6 +4489,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1344;  %nh   = 1792;   
   %hrf = false;
   #xl_magic_size.medium
+  #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.4
 }
@@ -4488,6 +4501,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
+  #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.16.9
   #xl_magic_object_scaling.4
 }
@@ -4499,6 +4513,7 @@ const prelude_text = prelude_disabled ? '' : `
   %nw  = 1344;  %nh   = 1792;   
   %hrf = false;
   #xl_magic_size.medium
+  #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.9.16
   #xl_magic_object_scaling.4
 }
@@ -4512,6 +4527,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
+  #xl_magic_orientation.square
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.4
 }
@@ -4525,6 +4541,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
+  #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
@@ -4538,6 +4555,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
+  #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
   #xl_magic_object_scaling.4
 }
@@ -4551,6 +4569,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
+  #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.4
 }
@@ -4564,6 +4583,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
+  #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.4
 }
@@ -4577,6 +4597,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
+  #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.16.9
   #xl_magic_object_scaling.4
 }
@@ -4590,6 +4611,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
+  #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.9.16
   #xl_magic_object_scaling.4
 }
