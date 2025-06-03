@@ -2769,15 +2769,14 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =================================================================================================
 const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 
-const make_Jsonc_rule = (...choice_rules) =>
+const make_Jsonc_rule = (object_rule, array_rule, string_rule) =>
       second(wst_seq(jsonc_comments,
-                     choice(...choice_rules),
+                     choice(object_rule, array_rule, string_rule,
+                            json_null,           json_true,
+                            json_false,          json_number),
                      jsonc_comments));
 
-const Jsonc = make_Jsonc_rule(() => JsoncObject, () => JsoncArray,
-                              json_string,
-                              json_null,         json_true,
-                              json_false,        json_number);
+const Jsonc = make_Jsonc_rule(() => JsoncObject, () => JsoncArray, json_string)
 
 const make_JsoncArray_rule = value_rule => 
       make_JsonArray_rule(second(seq(jsonc_comments,
@@ -2835,10 +2834,7 @@ const rjsonc_single_quoted_string =
         /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
 
-const Rjsonc = make_Jsonc_rule(() => RjsoncObject,  () => RjsoncArray,
-                               rjsonc_string,
-                               json_null,     json_true,
-                               json_false,    json_number);
+const Rjsonc = make_Jsonc_rule(() => RjsoncObject,  () => RjsoncArray, rjsonc_string);
 const RjsoncArray = make_JsoncArray_rule(Rjsonc);
 const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
 
