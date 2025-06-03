@@ -3728,6 +3728,7 @@ class Context {
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
     negative_prompt              = null,
+    in_lora                      = false,
   } = {}) {
     this.context_id                   = get_next_context_id();
     this.flags                        = flags;
@@ -3741,12 +3742,13 @@ class Context {
     this.prior_pick_one_priority      = prior_pick_one_priority;
     this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-
+    this.in_lora                      = in_lora;
+    
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
   }
   // -----------------------------------------------------------------------------------------------
-  clone() {
+  clone(obj = {}) {
     // lm.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
@@ -3769,10 +3771,12 @@ class Context {
 
     // lm.log(`CLONED CONTEXT`);
     
+    Object.assign(copy, obj);
+
     return copy;
   }
   // -----------------------------------------------------------------------------------------------
-  shallow_copy() {
+  shallow_copy(obj = {}) {
     var copy = new Context({
       flags:                        this.flags,
       scalar_variables:             this.scalar_variables,
@@ -3786,9 +3790,13 @@ class Context {
       prior_pick_multiple_priority: this.pick_multiple_priority,      
       negative_prompt:              this.negative_prompt,
     });
-    
+
+    // avoid copying this by assigning to #configuration instead of using
+    // configuration argument to constructor:
     copy.#configuration = this.configuration;
 
+    Object.assign(copy, obj);
+    
     return copy;
   }
   // -----------------------------------------------------------------------------------------------
@@ -8110,13 +8118,18 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         // log(log_expand_and_walk_enabled,
         //     `encountered lora ${thing} in ${context}`);
 
+        if (context.in_lora)
+          throw new Error(`don't nest LoRA inclusions, it's needlessly confusing!`);
+
+        const in_lora_context = context.shallow_copy({ in_lora: true });
+        
         let walked_file = null;
 
         lm.indent(() => {
           log(log_expand_and_walk_enabled,
               `expanding file ${compress(inspect_fun(thing.file))}`);
           
-          walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
+          walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context)); // not walk!
 
           log(log_expand_and_walk_enabled,
               `expanded file is ${typeof walked_file} ` +
@@ -8136,7 +8149,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           log(log_expand_and_walk_enabled,
               `expanding weight ${compress(inspect_fun(thing.weight))}`);
           
-          walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
+          walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context)); // not walk!
 
           log(log_expand_and_walk_enabled,
               `expanded weight is ${typeof walked_weight} ` +
