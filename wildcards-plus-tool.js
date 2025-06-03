@@ -4299,21 +4299,28 @@ const prelude_text = prelude_disabled ? '' : `
 @gt1_random_weight      = {1.< @digit }
 @high_random_weight     = {1.< @high_digit}
 
+@pony_score_9           = { score_9,                                                             }
+@pony_score_8_up        = { score_9, score_8_up,                                                 }
+@pony_score_7_up        = { score_9, score_8_up, score_7_up,                                     }
+@pony_score_6_up        = { score_9, score_8_up, score_7_up, score_6_up,                         }
+@pony_score_5_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up,             }
+@pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, }
+
 @pony_scores =
 {0
-|?pony score_4_up,
-|?pony score_5_up,
-|?pony score_6_up,
-|?pony score_7_up,
-|?pony score_8_up,
-|?pony score_9,
+|@pony score_4_up
+|@pony score_5_up
+|@pony score_6_up
+|@pony score_7_up
+|@pony score_8_up
+|@pony score_9
 }
 
 @high_pony_scores =
 {0
-|?pony score_7_up,
-|?pony score_8_up,
-|?pony score_9,
+|@pony_score_7_up
+|@pony_score_8_up
+|@pony_score_9
 }
 
 @aris_defaults          = { masterpiece, best quality, absurdres, aesthetic, 8k,
