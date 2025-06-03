@@ -2776,15 +2776,15 @@ const Jsonc = second(wst_seq(jsonc_comments,
                                     json_false,        json_number),
                              jsonc_comments));
 
-const make_JsoncArray_rule = rule => 
+const make_JsoncArray_rule = value_rule => 
       wst_cutting_enc(lsqr,
                       wst_star(second(seq(jsonc_comments,
-                                          Jsonc,
+                                          value_rule,
                                           jsonc_comments)),
                                comma),
                       rsqr);
 
-const JsoncArray = make_JsoncArray_rule(Json);
+const JsoncArray = make_JsoncArray_rule(Jsonc);
 
 const make_JsoncObject_rule = (key_rule, value_rule) => 
       choice(
