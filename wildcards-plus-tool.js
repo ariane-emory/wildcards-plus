@@ -3508,8 +3508,8 @@ function smart_join(arr, unexpected) {
       right_word           = arr[ix]; // ?.toString() ?? "";
       prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-      next_char            = right_word[0] ?? '';
       next_char_is_escaped = right_word[0] === '\\';
+      next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
 
       if (log_smart_join_enabled)
         lm.log(`ix = ${inspect_fun(ix)}, ` +
@@ -8430,18 +8430,18 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         const weight_match_result = json_number.match(walked_weight);
 
         if (!weight_match_result || !weight_match_result.is_finished)
-              throw new Error(`LoRA weight must be a number, got ` +
-                              `${inspect_fun(walked_weight)}`);
+          throw new Error(`LoRA weight must be a number, got ` +
+                          `${inspect_fun(walked_weight)}`);
 
-            let file = walked_file.toLowerCase();
+        let file = walked_file.toLowerCase();
 
-            if (file === '')
-              throw new Error(`LoRA file name is empty!`);
-            
-            // if (file.endsWith('_lora_f16.ckpt')) {
-            if (file.endsWith('.ckpt')) {
-              // do nothing 
-            }
+        if (file === '')
+          throw new Error(`LoRA file name is empty!`);
+        
+        // if (file.endsWith('_lora_f16.ckpt')) {
+        if (file.endsWith('.ckpt')) {
+          // do nothing 
+        }
         else if (file.endsWith('_lora_f16')) {
           file = `${file}.ckpt`;
         }
@@ -9130,7 +9130,7 @@ const unexpected_TestFlag_at_top_level = rule =>
                             input, index));
 const innapropriately_placed_TestFlag = rule => 
       unexpected(rule, (rule, input, index) =>
-        new FatalParseError(`innapropriately places check or not flag`,
+        new FatalParseError(`innapropriately placed 'check' or 'not' flag`,
                             input, index));
 const wrap_TestFlag_in_AnonWildcard    = rule =>
       xform(rule, flag =>
@@ -9198,20 +9198,20 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 }
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcardAlternative_rule = content_star_rule => 
+const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
                 lws(optional(swb_uint, 1)),
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
-                lws(choice(TestFlagInAlternativeContent, content_star_rule))));
+                lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = alternative_rule  =>
       xform(arr => new ASTAnonWildcard(arr),
             wst_brc_enc(wst_star(alternative_rule, pipe)));
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar)
+const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
       .abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar)
+const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative)
       .abbreviate_str_repr('AnonWildcard');
