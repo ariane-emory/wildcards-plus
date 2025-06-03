@@ -2855,7 +2855,7 @@ const RjsoncArray = make_JsonArray_rule(Rjsonc);
 //                 rsqr);
 
 
-const RjsoncObject =
+const make_RjsoncObject_rule = (key_rule, value_rule)  => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
@@ -2863,24 +2863,27 @@ const RjsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, choice(rjsonc_string, c_ident), colon), 
+                wst_enc(lbrc, key_rule, colon), 
                 jsonc_comments,
-                Rjsonc,
+                value_rule,
                 jsonc_comments,
                 optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
-                                                        choice(rjsonc_string, c_ident),
+                                                        key_rule,
                                                         jsonc_comments,
                                                         colon,
                                                         jsonc_comments,
-                                                        Rjsonc, 
+                                                        value_rule,
                                                         jsonc_comments
                                                        )),
                                           comma)),
                                )),
                 rbrc)));
+
+const RjsoncObject = make_RjsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
+
 Rjsonc.abbreviate_str_repr('Rjsonc');
 RjsoncObject.abbreviate_str_repr('RjsoncObject');
 // -------------------------------------------------------------------------------------------------
