@@ -9248,16 +9248,16 @@ const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = fal
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
       .abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
-      .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+// const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
+//       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative,        true)
       .abbreviate_str_repr('AnonWildcard');
 const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative,        false)
       .abbreviate_str_repr('AnonWildcardNoTrailer');
-const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, true)
-      .abbreviate_str_repr('AnonWildcardNoLoras');
-const AnonWildcardNoLorasNoTrailer   = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, false)
-      .abbreviate_str_repr('AnonWildcardNoLorasNoTrailer');
+// const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, true)
+//       .abbreviate_str_repr('AnonWildcardNoLoras');
+// const AnonWildcardNoLorasNoTrailer   = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, false)
+//       .abbreviate_str_repr('AnonWildcardNoLorasNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
