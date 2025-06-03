@@ -239,7 +239,7 @@ function process_includes(thing, context = new Context()) {
     }
   }
   
-  return walk(thing, context).flat(Infinity);
+  return walk(thing, context).flat(1);
 }
 // =================================================================================================
 // END OF NODE-ONLY HELPER FUNCTIONS SECTION.
