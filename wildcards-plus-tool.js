@@ -8375,6 +8375,9 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         // log(log_expand_and_walk_enabled,
         //     `encountered lora ${thing} in ${context}`);
 
+        if (context.in_lora)
+          throw new Error(`don't nest LoRA inclusions!`);
+        
         let walked_file = null;
 
         lm.indent(() => {
@@ -8423,18 +8426,18 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         const weight_match_result = json_number.match(walked_weight);
 
         if (!weight_match_result || !weight_match_result.is_finished)
-          throw new Error(`LoRA weight must be a number, got ` +
-                          `${inspect_fun(walked_weight)}`);
+              throw new Error(`LoRA weight must be a number, got ` +
+                              `${inspect_fun(walked_weight)}`);
 
-        let file = walked_file.toLowerCase();
+            let file = walked_file.toLowerCase();
 
-        if (file === '')
-          throw new Error(`LoRA file name is empty!`);
-        
-        // if (file.endsWith('_lora_f16.ckpt')) {
-        if (file.endsWith('.ckpt')) {
-          // do nothing 
-        }
+            if (file === '')
+              throw new Error(`LoRA file name is empty!`);
+            
+            // if (file.endsWith('_lora_f16.ckpt')) {
+            if (file.endsWith('.ckpt')) {
+              // do nothing 
+            }
         else if (file.endsWith('_lora_f16')) {
           file = `${file}.ckpt`;
         }
