@@ -4005,7 +4005,7 @@ class Context {
       this.set_flag(["dt_hosted"]);
   }
   // -----------------------------------------------------------------------------------------------
-  clone() {
+  clone(obj = {}) {
     // lm.log(`CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
@@ -4028,6 +4028,8 @@ class Context {
 
     // lm.log(`CLONED CONTEXT`);
     
+    Object.assign(copy, obj);
+
     return copy;
   }
   // -----------------------------------------------------------------------------------------------
