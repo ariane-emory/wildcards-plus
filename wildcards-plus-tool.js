@@ -3985,6 +3985,7 @@ class Context {
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
     negative_prompt              = null,
+    in_lora                      = false,
   } = {}) {
     this.context_id                   = get_next_context_id();
     this.flags                        = flags;
@@ -3998,7 +3999,8 @@ class Context {
     this.prior_pick_one_priority      = prior_pick_one_priority;
     this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-
+    this.in_lora                      = in_lora;
+    
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
   }
@@ -4029,7 +4031,7 @@ class Context {
     return copy;
   }
   // -----------------------------------------------------------------------------------------------
-  shallow_copy() {
+  shallow_copy(obj = {}) {
     var copy = new Context({
       flags:                        this.flags,
       scalar_variables:             this.scalar_variables,
@@ -4043,9 +4045,13 @@ class Context {
       prior_pick_multiple_priority: this.pick_multiple_priority,      
       negative_prompt:              this.negative_prompt,
     });
-    
+
+    // avoid copying this by assigning to #configuration instead of using
+    // configuration argument to constructor:
     copy.#configuration = this.configuration;
 
+    Object.assign(copy, obj);
+    
     return copy;
   }
   // -----------------------------------------------------------------------------------------------
