@@ -7863,7 +7863,7 @@ function load_prelude(into_context = new Context()) {
   });
   
   if (log_loading_prelude)
-    lm.log(`done loading prelude after ${elapsed}}`);
+    lm.log(`loading prelude took ${elapsed.toFixed(3)} ms`);
 
   return into_context;
 }
@@ -9037,8 +9037,11 @@ const ident                   =
       .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
-const optional_punctuation_trailer = first(optional(/(?:\.\.\.|[,.!?])/))
+const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
+const optional_punctuation_trailer = first(optional(punctuation_trailer))
       .abbreviate_str_repr('optional_punctuation_trailer');
+const unexpected_punctuation_trailer = first(optional(unexpected(punctuation_trailer)))
+      .abbreviate_str_repr('unexpected_punctuation_trailer');
 // =================================================================================================
 // plain_text terminal variants:
 // =================================================================================================
@@ -9239,7 +9242,9 @@ const make_AnonWildcardAlternative_rule = content_rule =>
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
       xform(arr => new ASTAnonWildcard(arr[0], arr[1]),
             seq(wst_brc_enc(wst_star(alternative_rule, pipe)),
-                ...(can_have_trailer ? [ optional_punctuation_trailer ] : [])));
+                can_have_trailer
+                ? optional_punctuation_trailer
+                : unexpected_punctuation_trailer));
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
       .abbreviate_str_repr('AnonWildcardAlternative');
@@ -9247,8 +9252,10 @@ const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => C
       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras)
+const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, true)
       .abbreviate_str_repr('AnonWildcardNoLoras');
+const AnonWildcardNoLorasNoTrailer   = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, false)
+      .abbreviate_str_repr('AnonWildcardNoLorasNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
@@ -9487,16 +9494,22 @@ const ScalarAssignment        =
 // =================================================================================================
 // Content-related rules:
 // =================================================================================================
-const make_LimitedContent_rule = plain_text_rule =>
+const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       choice(
         NamedWildcardReference,
-        AnonWildcardNoLoras,
+        anon_wildcard_rule,
         ...(plain_text_rule ? [ plain_text_rule ] : []),
         ScalarReference,
       );
 // -------------------------------------------------------------------------------------------------
-const LimitedContent          = make_LimitedContent_rule(plain_text)
+const LimitedContent =
+      make_LimitedContent_rule(plain_text, AnonWildcardNoLoras)
       .abbreviate_str_repr('LimitedContent');
+
+const LimitedContentNoAWCTrailers =
+      make_LimitedContent_rule(plain_text, AnonWildcardNoLorasNoTrailer)
+      .abbreviate_str_repr('LimitedContentNoAWCTrailers');
+
 // const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
 //       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
