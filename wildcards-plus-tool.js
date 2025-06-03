@@ -9250,8 +9250,10 @@ const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => C
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative,        true)
       .abbreviate_str_repr('AnonWildcard');
+const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative,        false)
+      .abbreviate_str_repr('AnonWildcardNoTrailer');
 const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, true)
       .abbreviate_str_repr('AnonWildcardNoLoras');
 const AnonWildcardNoLorasNoTrailer   = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, false)
@@ -9505,11 +9507,11 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent =
-      make_LimitedContent_rule(plain_text, AnonWildcardNoLoras)
+      make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
       .abbreviate_str_repr('LimitedContent');
 
 const LimitedContentNoAWCTrailers =
-      make_LimitedContent_rule(plain_text, AnonWildcardNoLorasNoTrailer)
+      make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
       .abbreviate_str_repr('LimitedContentNoAWCTrailers');
 
 // const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
