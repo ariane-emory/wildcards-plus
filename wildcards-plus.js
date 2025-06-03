@@ -9645,7 +9645,7 @@ try {
       lm.log(`${inspect_fun(context.flags)}`);
     }
     
-    if (context.scalar_variables.length > 0) {
+    if (context.scalar_variables.size > 0) {
       LOG_LINE();
       lm.log(`Scalars after:`);
       LOG_LINE();
