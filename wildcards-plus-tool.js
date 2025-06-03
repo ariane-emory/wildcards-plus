@@ -4334,9 +4334,13 @@ const prelude_text = prelude_disabled ? '' : `
                             wide shot,}
 
 
-//--------------------------------------------------------------------------------------------------
-// content based on XL Magic Config's defaults:
-//--------------------------------------------------------------------------------------------------
+// =================================================================================================
+// content based on XL Magic Config:
+// =================================================================================================
+
+// -------------------------------------------------------------------------------------------------
+// small
+// -------------------------------------------------------------------------------------------------
 
 @xl_magic_small_1_to_1 =
 { %w    = 512;  %h    = 512;   
@@ -4422,6 +4426,10 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_object_scaling.4
 }
 
+// -------------------------------------------------------------------------------------------------
+// medium:
+// -------------------------------------------------------------------------------------------------
+
 @xl_magic_medium_1_to_1_os6 =
 { %h   = 1024;  %w    = 1024;   
   %ow  = 768;   %oh   = 576;    
@@ -4494,6 +4502,18 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_object_scaling.4
 }
 
+@xl_magic_medium_4_to_3_os6
+{ %w    = 1152; %h    = 896;    
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1536; %th   = 1152 
+  %nw   = 1792; %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.6
+}
+
 @xl_magic_medium_3_to_4 =
 { %w   = 896;   %h    = 1152;   
   %ow  = 576;   %oh   = 768;    
@@ -4504,6 +4524,18 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_3_to_4_os6 =
+{ %w   = 896;   %h    = 1152;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1344;  %nh   = 1792;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_medium_16_to_9 =
@@ -4518,6 +4550,18 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_object_scaling.4
 }
 
+@xl_magic_medium_16_to_9_os6 =
+{ %w   = 1344;  %h    = 768;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.6
+}
+
 @xl_magic_medium_9_to_16 =
 { %w   = 768;   %h    = 1344;   
   %ow  = 576;   %oh   = 768;    
@@ -4529,6 +4573,22 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.9.16
   #xl_magic_object_scaling.4
 }
+
+@xl_magic_medium_9_to_16_os6 = 
+{ %w   = 768;   %h    = 1344;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 768;   %th   = 1024;   
+  %nw  = 1533;  %nh   = 1152;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+
+// -------------------------------------------------------------------------------------------------
+// large:
+// -------------------------------------------------------------------------------------------------
 
 @xl_magic_large_1_to_1 = 
 { %w    = 1536; %h    = 1536;   
@@ -4628,7 +4688,10 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_object_scaling.4
 }
 
-// Resolutions:
+// --------------------------------------------------------------------------------------------------
+// pickers:
+// -------------------------------------------------------------------------------------------------
+
 @xl_magic_small_random =
 { @xl_magic_small_1_to_1
 | @xl_magic_small_2_to_3
@@ -4648,6 +4711,16 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_medium_4_to_3
 | @xl_magic_medium_9_to_16
 | @xl_magic_medium_16_to_9
+}
+
+@xl_magic_medium_os6_random =
+{ @xl_magic_medium_1_to_1_os6
+| @xl_magic_medium_2_to_3_os6
+| @xl_magic_medium_3_to_2_os6
+| @xl_magic_medium_3_to_4_os6
+| @xl_magic_medium_4_to_3_os6
+| @xl_magic_medium_9_to_16_os6
+| @xl_magic_medium_16_to_9_os6
 }
 
 @xl_magic_large_random =
