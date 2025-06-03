@@ -2767,25 +2767,26 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =================================================================================================
 // JSONC GRAMMAR SECTION:
 // =================================================================================================
-const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
+const jsonc_comment = choice(c_block_comment, c_line_comment);
 
-const make_Jsonc_rule = (object_rule, array_rule, string_rule) =>
-      second(wst_seq(jsonc_comments,
+const make_Jsonc_rule = (object_rule, array_rule, string_rule,
+                         comment_rule = jsonc_comment) =>
+      second(wst_seq(wst_star(comment_rule),
                      choice(object_rule, array_rule, string_rule,
                             json_null,           json_true,
                             json_false,          json_number),
-                     jsonc_comments));
+                     wst_star(comment_rule)));
 
-const Jsonc = make_Jsonc_rule(() => JsoncObject, () => JsoncArray, json_string)
-
-const make_JsoncArray_rule = value_rule => 
-      make_JsonArray_rule(second(seq(jsonc_comments,
+const make_JsoncArray_rule = (value_rule,
+                              comment_rule = jsonc_comment) => 
+      make_JsonArray_rule(second(seq(wst_star(comment_rule),
                                      value_rule,
-                                     jsonc_comments)));
-
+                                     wst_star(comment_rule))));
+// -------------------------------------------------------------------------------------------------
+const Jsonc = make_Jsonc_rule(() => JsoncObject, () => JsoncArray, json_string)
 const JsoncArray = make_JsoncArray_rule(Jsonc);
 
-const make_JsoncObject_rule = (key_rule, value_rule) => 
+const make_JsoncObject_rule = (key_rule, value_rule, comment_rule = jsonc_comment) => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
@@ -2794,19 +2795,19 @@ const make_JsoncObject_rule = (key_rule, value_rule) =>
         },
               wst_cutting_seq(
                 wst_enc(lbrc, key_rule, colon),
-                jsonc_comments,
+                wst_star(comment_rule),
                 value_rule,
-                jsonc_comments,
+                wst_star(comment_rule),
                 optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(jsonc_comments,
+                                                wst_seq(wst_star(comment_rule),
                                                         key_rule,
-                                                        jsonc_comments,
+                                                        wst_star(comment_rule),
                                                         colon,
-                                                        jsonc_comments,
+                                                        wst_star(comment_rule),
                                                         value_rule, 
-                                                        jsonc_comments
+                                                        wst_star(comment_rule)
                                                        )),
                                           comma)),
                                )),
@@ -2815,7 +2816,7 @@ const make_JsoncObject_rule = (key_rule, value_rule) =>
 const JsoncObject = make_JsoncObject_rule(json_string, Json);
 
 Jsonc.abbreviate_str_repr('Jsonc');
-jsonc_comments.abbreviate_str_repr('jsonc_comments');
+jsonc_comment.abbreviate_str_repr('jsonc_comment');
 JsoncArray.abbreviate_str_repr('JsoncArray');
 JsoncObject.abbreviate_str_repr('JsoncObject');
 // -------------------------------------------------------------------------------------------------
@@ -9066,7 +9067,7 @@ const A1111StyleLora =
 // mod RJSONC:
 // =================================================================================================
 const ExposedRjsonc = 
-      second(wst_seq(jsonc_comments,
+      second(wst_seq(wst_star(jsonc_comment),
                      first(choice(seq(choice(RjsoncObject,
                                              RjsoncArray,
                                              rjsonc_string),
