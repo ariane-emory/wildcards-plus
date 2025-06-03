@@ -3042,11 +3042,15 @@ function indent_lines(indent, str, indent_str = "| ") {
 }
 // -------------------------------------------------------------------------------------------------
 function measure_time(fun) {
-  const start    = performance.now();
+  const now = dt_hosted
+        ? Date.now
+        : performance.now.bind(performance);
+
+  const start = now();
   fun();
-  const end      = performance.now();
-  const duration = end - start;
-  return duration;
+  const end = now();
+
+  return end - start;
 }
 // -------------------------------------------------------------------------------------------------
 function rjson_stringify(obj) {
@@ -9324,7 +9328,7 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
 	  this.section('Prompt', ui_hint,
                  [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
     this.section("Batch count", "",
-                 [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
+                 [ this.slider(default_batch_count, this.slider.fractional(0), 1, 500) ]),
     this.switch(true, "Clear canvas first (maybe img2img if disabled):"),
     this.section("When picking a single item, prioritize:", "",
                  [ this.menu(picker_priority_descriptions.indexOf(picker_priority.ensure_weighted_distribution),
