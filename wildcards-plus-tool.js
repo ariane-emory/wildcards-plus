@@ -8173,8 +8173,13 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         if (! pick)
           throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
+
+        // const ret = lm.indent(() => walk(pick));j
+        const ret = lm.indent(() => expand_wildcards(pick, context));
+
+        console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
         
-        throw new ThrownReturn(lm.indent(() => walk(pick)));
+        throw new ThrownReturn(ret);
       }
       // ---------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUpdateConfigurationUnary ||
@@ -9436,7 +9441,7 @@ const ScalarReference         =
       xform(seq(dollar,
                 optional(caret),
                 ident,
-                optional_punctuation_trailer)
+                optional_punctuation_trailer),
             arr => new ASTScalarReference(arr[2],
                                           arr[1][0],
                                           arr[3]))
