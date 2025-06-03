@@ -3783,7 +3783,7 @@ class Context {
       named_wildcards:              this.named_wildcards,
       noisy:                        this.noisy,
       files:                        this.files,
-      top_file:                     false, // deliberately not copied!
+      top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,
