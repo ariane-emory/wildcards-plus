@@ -9142,7 +9142,22 @@ const ExposedRjsonc =
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-const flag_ident = dot_chained(ident);
+// const flag_ident = xform(dot_chained(ident),
+//                          arr => {
+//                            lm.log();
+//                            lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
+//                            lm.log(`FLAG_IDENT OUT: ${inspect_fun(arr)}`);
+//                            return arr;
+//                          });
+const flag_ident = xform(seq(ident,
+                             star(second(seq('.', ident)))),
+                         arr => {
+                           lm.log();
+                           lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
+                           const ret = arr.flat(1);
+                           lm.log(`FLAG_IDENT OUT: ${inspect_fun(ret)}`);
+                           return ret;
+                         });
 const SimpleCheckFlag =
       xform(seq_with_swb(question,
                          flag_ident),
