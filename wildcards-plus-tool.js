@@ -4346,6 +4346,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_1_to_1
   #xl_magic_size.small
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_small_3_to_2 =
@@ -4356,6 +4357,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf  = false;
   #xl_magic.aspect_ratio_3_to_2
   #xl_magic_size.small
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_small_2_to_3 =
@@ -4366,6 +4368,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf  = false;
   #xl_magic.aspect_ratio_2_to_3
   #xl_magic_size.small
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_small_4_to_3 =
@@ -4376,6 +4379,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_4_to_3
   #xl_magic_size.small
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_small_3_to_4 =
@@ -4386,6 +4390,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_3_to_4
   #xl_magic_size.small
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_small_16_to_9 =
@@ -4396,6 +4401,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_16_to_9
   #xl_magic_size.small
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_small_9_to_16 =
@@ -4406,6 +4412,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_9_to_16
   #xl_magic_size.small
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_medium_1_to_1 =
@@ -4416,6 +4423,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_1_to_1
   #xl_magic_size.medium
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_medium_3_to_2 =
@@ -4426,6 +4434,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_3_to_2
   #xl_magic_size.medium
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_medium_2_to_3 =
@@ -4436,6 +4445,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_2_to_3
   #xl_magic_size.medium
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_medium_4_to_3 =
@@ -4446,6 +4456,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_4_to_3
   #xl_magic_size.medium
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_medium_3_to_4 =
@@ -4456,6 +4467,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_3_to_4
   #xl_magic_size.medium
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_medium_16_to_9 =
@@ -4466,6 +4478,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_16_to_9
   #xl_magic_size.medium
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_medium_9_to_16 =
@@ -4476,6 +4489,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf = false;
   #xl_magic.aspect_ratio_9_to_16
   #xl_magic_size.medium
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_large_1_to_1 = 
@@ -4488,6 +4502,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf_strength = 0.6;
   #xl_magic.aspect_ratio_1_to_1
   #xl_magic_size.large
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_large_3_to_2 =
@@ -4500,6 +4515,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf_strength = 0.6;
   #xl_magic.aspect_ratio_3_to_2
   #xl_magic_size.large
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_large_2_to_3 =
@@ -4512,6 +4528,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf_strength = 0.6;
   #xl_magic.aspect_ratio_2_to_3
   #xl_magic_size.large
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_large_3_to_4 =
@@ -4524,6 +4541,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf_strength = 0.6;
   #xl_magic.aspect_ratio_3_to_4
   #xl_magic_size.large
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_large_4_to_3 =
@@ -4536,6 +4554,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf_strength = 0.6;
   #xl_magic.aspect_ratio_4_to_3
   #xl_magic_size.large
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_large_16_to_9 =
@@ -4548,6 +4567,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf_strength = 0.6;
   #xl_magic.aspect_ratio_16_to_9
   #xl_magic_size.large
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_large_9_to_16 =
@@ -4560,6 +4580,7 @@ const prelude_text = prelude_disabled ? '' : `
   %hrf_strength = 0.6;
   #xl_magic.aspect_ratio_9_to_16
   #xl_magic_size.large
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 // Resolutions:
@@ -4571,6 +4592,7 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_small_4_to_3
 | @xl_magic_small_9_to_16
 | @xl_magic_small_16_to_9
+  #xl_magic_object_scaling.object_scaling_4
 }
 
 @xl_magic_medium_random =
