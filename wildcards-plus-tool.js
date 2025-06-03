@@ -4344,9 +4344,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw   = 1024; %th   = 768;   
   %nw   = 1792; %nh   = 1344;  
   %hrf = false;
-  #xl_magic.aspect_ratio_1_to_1
+  #xl_magic_aspect_ratio.1_to_1
   #xl_magic_size.small
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_3_to_2 =
@@ -4355,9 +4355,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw   = 1024; %th   = 768;   
   %nw   = 1792; %nh   = 1344;  
   %hrf  = false;
-  #xl_magic.aspect_ratio_3_to_2
+  #xl_magic_aspect_ratio.3_to_2
   #xl_magic_size.small
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_2_to_3 =
@@ -4366,9 +4366,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw   = 768;  %th   = 1024;  
   %nw   = 1344; %nh   = 1792;  
   %hrf  = false;
-  #xl_magic.aspect_ratio_2_to_3
+  #xl_magic_aspect_ratio.2_to_3
   #xl_magic_size.small
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_4_to_3 =
@@ -4377,9 +4377,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 1024; %th    = 768;    
   %nw  = 1792; %nh    = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_4_to_3
+  #xl_magic_aspect_ratio.4_to_3
   #xl_magic_size.small
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_3_to_4 =
@@ -4388,9 +4388,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 768;  %th    = 1024;   
   %nw  = 1344; %nh    = 1792;   
   %hrf = false;
-  #xl_magic.aspect_ratio_3_to_4
+  #xl_magic_aspect_ratio.3_to_4
   #xl_magic_size.small
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_16_to_9 =
@@ -4399,9 +4399,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 1024;  %th   = 768;    
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_16_to_9
+  #xl_magic_aspect_ratio.16_to_9
   #xl_magic_size.small
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_small_9_to_16 =
@@ -4410,9 +4410,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 768;  %th    = 1024;   
   %nw  = 1344; %nh    = 1792;   
   %hrf = false;
-  #xl_magic.aspect_ratio_9_to_16
+  #xl_magic_aspect_ratio.9_to_16
   #xl_magic_size.small
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 // {
@@ -4433,9 +4433,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 1024;  %th   = 768;    
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_1_to_1
+  #xl_magic_aspect_ratio.1_to_1
   #xl_magic_size.medium
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_medium_3_to_2 =
@@ -4444,9 +4444,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 1024;  %th   = 768;    
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_3_to_2
+  #xl_magic_aspect_ratio.3_to_2
   #xl_magic_size.medium
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_medium_2_to_3 =
@@ -4455,9 +4455,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 768;   %th   = 1024;   
   %nw  = 1344;  %nh   = 1792;   
   %hrf = false;
-  #xl_magic.aspect_ratio_2_to_3
+  #xl_magic_aspect_ratio.2_to_3
   #xl_magic_size.medium
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_medium_4_to_3 =
@@ -4466,9 +4466,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw   = 1024; %th   = 768;    
   %nw   = 1792; %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_4_to_3
+  #xl_magic_aspect_ratio.4_to_3
   #xl_magic_size.medium
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_medium_3_to_4 =
@@ -4477,9 +4477,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 768;   %th   = 1024;   
   %nw  = 1344;  %nh   = 1792;   
   %hrf = false;
-  #xl_magic.aspect_ratio_3_to_4
+  #xl_magic_aspect_ratio.3_to_4
   #xl_magic_size.medium
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_medium_16_to_9 =
@@ -4488,9 +4488,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 1024;  %th   = 768;    
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_16_to_9
+  #xl_magic_aspect_ratio.16_to_9
   #xl_magic_size.medium
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_medium_9_to_16 =
@@ -4499,9 +4499,9 @@ const prelude_text = prelude_disabled ? '' : `
   %tw  = 768;   %th   = 1024;   
   %nw  = 1344;  %nh   = 1792;   
   %hrf = false;
-  #xl_magic.aspect_ratio_9_to_16
+  #xl_magic_aspect_ratio.9_to_16
   #xl_magic_size.medium
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_1_to_1 = 
@@ -4512,9 +4512,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 512;  %hrfh = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_1_to_1
+  #xl_magic_aspect_ratio.1_to_1
   #xl_magic_size.large
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_3_to_2 =
@@ -4525,9 +4525,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 768;  %hrfh = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_3_to_2
+  #xl_magic_aspect_ratio.3_to_2
   #xl_magic_size.large
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_2_to_3 =
@@ -4538,9 +4538,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 512;  %hrfh = 768;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_2_to_3
+  #xl_magic_aspect_ratio.2_to_3
   #xl_magic_size.large
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_3_to_4 =
@@ -4551,9 +4551,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 576;  %hrfh = 768;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_3_to_4
+  #xl_magic_aspect_ratio.3_to_4
   #xl_magic_size.large
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_4_to_3 =
@@ -4564,9 +4564,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 768;  %hrfh = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_4_to_3
+  #xl_magic_aspect_ratio.4_to_3
   #xl_magic_size.large
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_16_to_9 =
@@ -4577,9 +4577,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 1024; %hrfh = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_16_to_9
+  #xl_magic_aspect_ratio.16_to_9
   #xl_magic_size.large
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 @xl_magic_large_9_to_16 =
@@ -4590,9 +4590,9 @@ const prelude_text = prelude_disabled ? '' : `
   %hrfw = 576;  %hrfh = 1024;
   %hrf  = true;
   %hrf_strength = 0.6;
-  #xl_magic.aspect_ratio_9_to_16
+  #xl_magic_aspect_ratio.9_to_16
   #xl_magic_size.large
-  #xl_magic_object_scaling.object_scaling_4
+  #xl_magic_object_scaling.4
 }
 
 // Resolutions:
@@ -9150,7 +9150,7 @@ const ExposedRjsonc =
 //                            return arr;
 //                          });
 const flag_ident = xform(seq(ident,
-                             star(second(seq('.', ident)))),
+                             star(second(seq('.', liberal_ident)))),
                          arr => {
                            lm.log();
                            lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
