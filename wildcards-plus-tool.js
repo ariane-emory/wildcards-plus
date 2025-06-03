@@ -2834,14 +2834,13 @@ const rjsonc_single_quoted_string =
         s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
         /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
-
 const Rjsonc = make_Jsonc_rule(() => RjsoncObject,  () => RjsoncArray, rjsonc_string);
 const RjsoncArray = make_JsoncArray_rule(Rjsonc);
 const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
-
 rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
 Rjsonc.abbreviate_str_repr('Rjsonc');
+RjsoncArray.abbreviate_str_repr('RjsoncArray');
 RjsoncObject.abbreviate_str_repr('RjsoncObject');
 // -------------------------------------------------------------------------------------------------
 // wst_cutting_enc(lsqr,
