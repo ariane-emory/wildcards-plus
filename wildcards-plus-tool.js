@@ -2844,7 +2844,8 @@ const Rjsonc = second(wst_seq(jsonc_comments,
                                      json_false,    json_number),
                               jsonc_comments));
 
-const RjsoncArray = make_JsonArray_rule(Rjsonc);
+const RjsoncArray = make_JsoncArray_rule(Rjsonc);
+
 // wst_cutting_enc(lsqr,
 //                 wst_star(second(seq(jsonc_comments,
 //                                     Rjsonc,
