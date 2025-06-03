@@ -9074,10 +9074,10 @@ const A1111StyleLora =
             wst_seq(ltri,                                   // [0]
                     'lora',                                 // [1]
                     colon,                                  // [2]
-                    choice(filename, () => LimitedContent), // [3]
+                    choice(filename, () => LimitedContentNoAWCTrailers), // [3]
                     optional(second(wst_seq(colon,
                                             choice(A1111StyleLoraWeight,
-                                                   () => LimitedContent))),
+                                                   () => LimitedContentNoAWCTrailers))),
                              "1.0"), // [4][0]
                     rtri))
       .abbreviate_str_repr('A1111StyleLora');
@@ -9317,22 +9317,24 @@ const UnexpectedSpecialFunctionInclude =
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single-pick',                                                        // [0]
-                discarded_comments,                                                   // -
-                cutting_seq(lws(equals),                                              // [1][0]
-                            discarded_comments,                                       // -
-                            lws(choice(() => LimitedContent, lc_alpha_snake)),        // [1][1]
+            seq('single-pick',                                            // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),        
                             optional(SpecialFunctionTail))))
       .abbreviate_str_repr('SpecialFunctionSetPickSingle');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
-            seq('multi-pick',                                                         // [0]
-                discarded_comments,                                                   // -
-                cutting_seq(lws(equals),                                              // [1][0]
-                            discarded_comments,                                       // -
-                            lws(choice(() => LimitedContent, lc_alpha_snake)),        // [1][1]
-                            optional(SpecialFunctionTail))))
+            seq('multi-pick',                                             // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),
+                            optional(SpecialFunctionTail)))) 
       .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionRevertPickSingle =
@@ -9366,7 +9368,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                             discarded_comments,                                       // -
                             lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
                                                  optional(SpecialFunctionTail))),
-                                       first(seq(() => LimitedContent,
+                                       first(seq(() => LimitedContentNoAWCTrailers,
                                                  optional(SpecialFunctionTail)))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
