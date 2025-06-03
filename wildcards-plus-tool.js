@@ -2761,12 +2761,14 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // JSONC GRAMMAR SECTION:
 // =================================================================================================
 const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
+
 const Jsonc = second(wst_seq(jsonc_comments,
                              choice(() => JsoncObject, () => JsoncArray,
                                     json_string,
                                     json_null,         json_true,
                                     json_false,        json_number),
                              jsonc_comments));
+
 const make_JsoncArray_rule = rule => 
       wst_cutting_enc(lsqr,
                       wst_star(second(seq(jsonc_comments,
