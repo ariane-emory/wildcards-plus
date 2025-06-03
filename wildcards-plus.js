@@ -9631,7 +9631,7 @@ try {
     // lm.log(`AFTER CLONING CONTEXT`);
     const prompt  = expand_wildcards(AST, context);
 
-    if (! is_empty_object(config.configuration)) {
+    if (! is_empty_object(context.configuration)) {
       LOG_LINE();
       lm.log(`GENERATED CONFIGURATION:`);
       LOG_LINE();

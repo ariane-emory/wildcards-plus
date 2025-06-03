@@ -9942,14 +9942,11 @@ async function main() {
       for (const [key, val] of context.scalar_variables)
         lm.log(`$${key} = ${inspect_fun(val)}`);
     }
-    else {
-      lm.log(`WTF: ${inspect_fun(context.scalar_variables)}`)
-    }
 
     LOG_LINE();
     lm.log(`Expanded prompt #${posted_count + 1} of ${count} is:`);
     LOG_LINE();
-    lm.log(prompt);
+    lm.log(`${prompt}`);
     
     if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
       LOG_LINE();
