@@ -2674,6 +2674,12 @@ const enclosing       = (left, enclosed, right) =>
 // =================================================================================================
 // BASIC JSON GRAMMAR SECTION:
 // =================================================================================================
+const make_JsonArray_rule = value_rule => 
+      wst_cutting_enc(lsqr,
+                      wst_star(value_rule,
+                               comma),
+                      rsqr);
+// -------------------------------------------------------------------------------------------------
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
 const Json = choice(() => JsonObject,
                     () => JsonArray,
@@ -2690,12 +2696,6 @@ const JsonObject = xform(arr =>  Object.fromEntries(arr),
                                                  wst_seq(() => json_string, colon, Json)),
                                            comma),
                                          rbrc));
-const make_JsonArray_rule = value_rule => 
-      wst_cutting_enc(lsqr,
-                      wst_star(value_rule,
-                               comma),
-                      rsqr);
-
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
 const JsonArray = make_JsonArray_rule(Json);
 
@@ -2757,8 +2757,6 @@ json_fractionalPart.abbreviate_str_repr('json_fractionalPart');
 json_exponentPart.abbreviate_str_repr('json_exponentPart');
 json_number.abbreviate_str_repr('json_number');
 json_S.abbreviate_str_repr('json_S');
-// -------------------------------------------------------------------------------------------------
-Json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
 // =================================================================================================
 // END OF BASIC JSON GRAMMAR SECTION.
 // =================================================================================================
@@ -2767,26 +2765,19 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =================================================================================================
 // JSONC GRAMMAR SECTION:
 // =================================================================================================
-const jsonc_comment = choice(c_block_comment, c_line_comment);
-
 const make_Jsonc_rule = (object_rule, array_rule, string_rule,
-                         comment_rule = jsonc_comment) =>
+                         comment_rule = () => jsonc_comment) =>
       second(wst_seq(wst_star(comment_rule),
                      choice(object_rule, array_rule, string_rule,
                             json_null,           json_true,
                             json_false,          json_number),
                      wst_star(comment_rule)));
-
 const make_JsoncArray_rule = (value_rule,
-                              comment_rule = jsonc_comment) => 
+                              comment_rule = () => jsonc_comment) => 
       make_JsonArray_rule(second(seq(wst_star(comment_rule),
                                      value_rule,
                                      wst_star(comment_rule))));
-// -------------------------------------------------------------------------------------------------
-const Jsonc = make_Jsonc_rule(() => JsoncObject, () => JsoncArray, json_string)
-const JsoncArray = make_JsoncArray_rule(Jsonc);
-
-const make_JsoncObject_rule = (key_rule, value_rule, comment_rule = jsonc_comment) => 
+const make_JsoncObject_rule = (key_rule, value_rule, comment_rule = () => jsonc_comment) => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
@@ -2811,16 +2802,16 @@ const make_JsoncObject_rule = (key_rule, value_rule, comment_rule = jsonc_commen
                                                        )),
                                           comma)),
                                )),
-                rbrc)));
-
+                rbrc)))
+// -------------------------------------------------------------------------------------------------
+const Jsonc = make_Jsonc_rule(() => JsoncObject, () => JsoncArray, json_string)
+const JsoncArray = make_JsoncArray_rule(Jsonc);
 const JsoncObject = make_JsoncObject_rule(json_string, Json);
-
+const jsonc_comment = choice(c_block_comment, c_line_comment);
 Jsonc.abbreviate_str_repr('Jsonc');
-jsonc_comment.abbreviate_str_repr('jsonc_comment');
 JsoncArray.abbreviate_str_repr('JsoncArray');
 JsoncObject.abbreviate_str_repr('JsoncObject');
-// -------------------------------------------------------------------------------------------------
-Jsonc.finalize(); 
+jsonc_comment.abbreviate_str_repr('jsonc_comment');
 // =================================================================================================
 // END OF JSONC GRAMMAR SECTION.
 // =================================================================================================
@@ -2830,15 +2821,15 @@ Jsonc.finalize();
 // 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
 // =================================================================================================
 const rjsonc_single_quoted_string =
-      xform(
-        s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
-        /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
+xform(
+  s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
+  /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
-const Rjsonc = make_Jsonc_rule(() => RjsoncObject,  () => RjsoncArray, rjsonc_string);
+const Rjsonc = make_Jsonc_rule(() => RjsoncObject, () => RjsoncArray, rjsonc_string);
 const RjsoncArray = make_JsoncArray_rule(Rjsonc);
 const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
-rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
+rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
 Rjsonc.abbreviate_str_repr('Rjsonc');
 RjsoncArray.abbreviate_str_repr('RjsoncArray');
 RjsoncObject.abbreviate_str_repr('RjsoncObject');
@@ -2877,8 +2868,6 @@ RjsoncObject.abbreviate_str_repr('RjsoncObject');
 //                                           comma)),
 //                                )),
 //                 rbrc)));
-// -------------------------------------------------------------------------------------------------
-Rjsonc.finalize(); 
 // =================================================================================================
 // END OF 'relaxed' JSONC GRAMMAR SECTION.
 // =================================================================================================
