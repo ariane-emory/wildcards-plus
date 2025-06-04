@@ -8932,6 +8932,10 @@ class ASTCheckFlags extends ASTNode {
     //   lm.log(`constructed ${inspect_fun(this)}`)
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     let str = '?';
 
@@ -9164,7 +9168,7 @@ class ASTAnonWildcard extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
-    return this.picker.options.values();
+    return this.picker.options.values().map(x => x.value);
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
