@@ -1,0 +1,10 @@
+%config += { height: 500, width: 800 }; FOO
+%config += { height: 500, width: 800 };BAR
+%config += { height: 500, width: 800 }; BAZ
+%config += { height: 500, width: 800 } CORGE
+{ %config += { height: 500, width: 800 } } GRAULT
+{ %config += { height: 666, width: 999 }|QUUX} 
+%config += { height: 500, width: 800 }
+WALDO
+
+%config += { height: 500, width: 800 }/* a comment */FRED

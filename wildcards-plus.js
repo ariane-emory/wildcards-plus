@@ -234,6 +234,11 @@ function __format_FatalParseError_message(message_body, input, index) {
 // -------------------------------------------------------------------------------------------------
 class FatalParseError extends Error {
   constructor(message_body, input, index) {
+    if (!(typeof message_body === 'string' &&
+          typeof input === 'string' &&
+          typeof index === 'number'))
+      throw new Error(`bad arges: ${inspect_fun(arguments)}`);
+    
     super(__format_FatalParseError_message(message_body, input, index));
     this.name         = 'FatalParseError';
     this.message_body = message_body
@@ -314,7 +319,9 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   __finalize(visited, unexpected) {
     if (unexpected !== undefined || ! (visited instanceof Set))
-      throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, ${unexpected})`);
+      throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, `+
+                      `${unexpected}) ` +
+                      `args: ${inspect_fun(arguments)}}`);
     
     if (visited.has(this)) {
       if (log_finalize_enabled)
@@ -347,9 +354,8 @@ class Rule {
     
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
-        log(indent,
-            `Matching ${this.constructor.name} ${this.toString()}, ` +
-            `but at end of input!`);
+        lm.indent(() => lm.log(`Matching ${this.constructor.name} ${this.toString()}, ` +
+                               `but at end of input!`));
       else 
         lm.log(`Matching ` +
                // `${this.constructor.name} `+
@@ -394,8 +400,8 @@ class Rule {
     
     if (log_match_enabled) {
       // if (ret)
-      lm.log(`<= ${this.constructor.name} ${this.toString()} ` +
-             `returned: ${compress(inspect_fun(ret))}`);
+      lm.log(`<= ${this.constructor.name} ${abbreviate(this.toString())} ` +
+             `returned: ${abbreviate(compress(inspect_fun(ret)))}`);
       // else
       //   log(indent,
       //       `<= Matching ${this.constructor.name} ${this.toString()} ` +
@@ -1271,8 +1277,8 @@ class CuttingSequence extends Sequence {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
-      `CuttingSequence expected [${this.elements.slice(1).join(" ")}] ` +
-        `after ${this.elements[0]}`,
+      `CuttingSequence expected ${this.elements[0]} to be followed by ` +
+        `[${this.elements.slice(1).join(" ")}]`,                         
       input, start_rule_result.index);
   }
   // -----------------------------------------------------------------------------------------------
@@ -1378,7 +1384,7 @@ class Expected extends Rule {
     return match_result;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);    
     lm.indent(() => this.rule.__finalize(visited))
   }
@@ -1417,7 +1423,7 @@ class Unexpected extends Rule {
         throw err instanceof Error ? err : new FatalParseError(err, input, index);
       }
       else {
-        throw new FatalParseError(`unexpected ${this.rule}`);
+        throw new FatalParseError(`unexpected ${this.rule}`, input, index);
       }
     };
     
@@ -2094,6 +2100,9 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
 // =================================================================================================
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
+const STOP = expect(never_match);
+STOP.abbreviate_str_repr("STOP");
+// -------------------------------------------------------------------------------------------------
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
@@ -2403,7 +2412,8 @@ const enclosing       = (left, enclosed, right) =>
 // =================================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
 const Json = choice(() => JsonObject,  () => JsonArray,
-                    () => json_string, () => json_true,   () => json_false,
+                    () => json_string,
+                    () => json_true,   () => json_false,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const JsonObject = xform(arr =>  Object.fromEntries(arr), 
@@ -2485,9 +2495,10 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =================================================================================================
 const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(jsonc_comments,
-                             choice(() => JsoncObject,  () => JsoncArray,
-                                    () => json_string,  () => json_true, () => json_false,
-                                    () => json_null,    () => json_number),
+                             choice(() => JsoncObject, () => JsoncArray,
+                                    json_string,
+                                    json_null,         json_true,
+                                    json_false,        json_number),
                              jsonc_comments));
 const JsoncArray =
       wst_cutting_enc(lsqr,
@@ -2506,7 +2517,7 @@ const JsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, () => json_string, colon),
+                wst_enc(lbrc, json_string, colon),
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
@@ -2514,7 +2525,7 @@ const JsoncObject =
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
-                                                        () => json_string,
+                                                        json_string,
                                                         jsonc_comments,
                                                         colon,
                                                         jsonc_comments,
@@ -2547,11 +2558,18 @@ const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
 
 const rJsonc = second(wst_seq(jsonc_comments,
-                              choice(() => rJsoncObject,  () => JsoncArray,
-                                     () => rjsonc_string,
-                                     () => json_null,     () => json_true,
-                                     () => json_false,    () => json_number),
+                              choice(() => rJsoncObject,  () => rJsoncArray,
+                                     rjsonc_string,
+                                     json_null,     json_true,
+                                     json_false,    json_number),
                               jsonc_comments));
+const rJsoncArray =
+      wst_cutting_enc(lsqr,
+                      wst_star(second(seq(jsonc_comments,
+                                          rJsonc,
+                                          jsonc_comments)),
+                               comma),
+                      rsqr);
 
 const rJsoncObject =
       choice(
@@ -2561,15 +2579,15 @@ const rJsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, () => choice(json_string, c_ident), colon), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, choice(rjsonc_string, c_ident), colon), // dumb hack for rainbow brackets sake
                 jsonc_comments,
-                Jsonc,
+                rJsonc,
                 jsonc_comments,
                 optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
-                                                        choice(json_string, c_ident),
+                                                        choice(rjsonc_string, c_ident),
                                                         jsonc_comments,
                                                         colon,
                                                         jsonc_comments,
@@ -2578,7 +2596,7 @@ const rJsoncObject =
                                                        )),
                                           comma)),
                                )),
-                rbrc))); // dumb hack for rainbow brackets sake
+                rbrc)));
 rJsonc.abbreviate_str_repr('rJsonc');
 rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
@@ -7490,8 +7508,9 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (context.named_wildcards.has(thing.name))
-          log(true, `WARNING: redefining named wildcard @${thing.name.name}, ` +
-              `you may not have intended to do this, check your template!`);
+          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
+              `you may not have intended to do this, check your template!`,
+              log_expand_and_walk_enabled);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
@@ -8361,6 +8380,7 @@ const filename                = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
 const structural_word_break   = r(/(?=[\s|}])/);
+structural_word_break.abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule =>
       first(seq(rule, structural_word_break));
@@ -8372,10 +8392,10 @@ const cutting_with_swb                = rule =>
 const cutting_seq_with_swb    = (...rules) => 
       first(cutting_seq(seq(...rules), structural_word_break));
 // -------------------------------------------------------------------------------------------------
-const swb_uint                = with_swb(uint);
+const swb_uint                = xform(parseInt, with_swb(uint));
 // -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
-comments                      .abbreviate_str_repr('comments_star');
+comments                      .abbreviate_str_repr('comments');
 discarded_comment             .abbreviate_str_repr('discarded_comment');
 discarded_comments            .abbreviate_str_repr('discarded_comments');
 dot_hash                      .abbreviate_str_repr('dot_hash');
@@ -8431,13 +8451,13 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // word breaks:
 // =================================================================================================
 // these are inadvisably complex:
-const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
-const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
-const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
-// -------------------------------------------------------------------------------------------------
-word_break                         .abbreviate_str_repr('word_break');
-simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
-simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
+// const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
+// const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
+// const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
+// // -------------------------------------------------------------------------------------------------
+// word_break                         .abbreviate_str_repr('word_break');
+// simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
+// simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
@@ -8541,9 +8561,32 @@ const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang,
 const TestFlag                     = choice(
   SimpleCheckFlag,
   SimpleNotFlag,
-  CheckFlagWithOrAlternatives,
   CheckFlagWithSetConsequent,
   NotFlagWithSetConsequent,
+  CheckFlagWithOrAlternatives,
+);
+const bad_TopLevelTestFlag = (rule, input, index) =>
+      new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
+                          `serve no purpose and so are not permitted`,
+                          input, index);
+const TopLevelTestFlag             = choice(
+  unexpected(SimpleCheckFlag, bad_TopLevelTestFlag),
+  unexpected(SimpleNotFlag, bad_TopLevelTestFlag),
+  xform(CheckFlagWithSetConsequent,
+        flag => {
+          //lm.log(`cfwsc flag: ${compress(inspect_fun(flag))}`);
+          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
+          // lm.log(`cfwsc ret:  ${inspect_fun(ret)}`);
+          return ret;
+        }),
+  xform(NotFlagWithSetConsequent,
+        flag => {
+          //lm.log(`nfwsc flag: ${compress(inspect_fun(flag))}`);
+          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
+          // lm.log(`nfwsc ret:  ${inspect_fun(ret)}`);
+          return ret;
+        }),
+  unexpected(CheckFlagWithOrAlternatives, bad_TopLevelTestFlag),
 );
 // -------------------------------------------------------------------------------------------------
 TestFlag                   .abbreviate_str_repr('TestFlag');
@@ -8558,6 +8601,8 @@ UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
+  // console.log(`m_AAWA ARR: ${compress(inspect_fun(arr))}`);
+  
   const weight = arr[1][0];
 
   if (weight == 0)
@@ -8620,14 +8665,19 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
-const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
-                                                                  choice(lws(semicolon),
-                                                                         word_break)));
+const SpecialFunctionTail = choice(
+  structural_word_break,
+  lws(semicolon),
+  c_comment,
+);
+// const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
+//                                                                   choice(lws(semicolon),
+//                                                                          word_break)));
 const TrailingCommentsAndSemicolon = discard(lws(semicolon));
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8639,7 +8689,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8654,7 +8704,7 @@ const SpecialFunctionInclude =
                           first(wst_seq(discarded_comments,      // -
                                         rjsonc_string,           // [0][1]
                                         discarded_comments))),   // -
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8668,42 +8718,43 @@ const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                               // [0]
                 discarded_comments,                                          // -
-                wst_seq(equals,                                              // [1][0]
-                        discarded_comments,                                  // -
-                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
-                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                cutting_seq(lws(equals),                                              // [1][0]
+                            discarded_comments,                                  // -
+                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
             seq('multi-pick',                                                // [0]
                 discarded_comments,                                          // -
-                wst_seq(equals,                                              // [1][0]
-                        discarded_comments,                                  // -
-                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
-                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                cutting_seq(lws(equals),                                     // [1][0]
+                            discarded_comments,                              // -
+                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                            // [0]
                 discarded_comments,                                                 // -
-                wst_cutting_seq(any_assignment_operator,                            // [1][0]
-                                discarded_comments,                                 // -
-                                choice(rJsonc, () => LimitedContentNoSemis),        // [1][1]
-                                TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                cutting_seq(lws(any_assignment_operator),                           // [1][0]
+                            discarded_comments,                                     // -
+                            lws(choice(rJsonc, () => LimitedContentNoSemis)),       // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
                 discarded_comments,                                                 // -
-                wst_cutting_seq(choice(plus_equals, equals),                        // [1][0]
-                                discarded_comments,                                 // -
-                                choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
-                                TrailingCommentFollowedBySemicolonOrWordBreak)));
+                cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
+                            discarded_comments,                                     // -
+                            lws(choice(rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
+                            SpecialFunctionTail,
+                           )));
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
@@ -8741,8 +8792,8 @@ SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-TrailingCommentFollowedBySemicolonOrWordBreak
-  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+// TrailingCommentFollowedBySemicolonOrWordBreak
+//   .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
 TrailingCommentsAndSemicolon
   .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 UnexpectedSpecialFunctionInclude
@@ -8812,29 +8863,27 @@ const ScalarAssignment        =
         new ASTScalarAssignment(arr[0],
                                 arr[1][1],
                                 arr[1][0] == '='),
-        wst_seq(ScalarDesignator,                       // [0]
-                discarded_comments,                     // - 
-                wst_cutting_seq(
-                  choice(plus_equals, equals),          // [1][0]
-                  discarded_comments,                   // -
-                  first(choice(() => seq(rjsonc_string, // [1][1]
-                                         TrailingCommentFollowedBySemicolonOrWordBreak),  
-                               () => seq(hwst_plus(choice(LimitedContentNoSemis,
-                                                          discarded_comment)),
-                                         TrailingCommentFollowedBySemicolonOrWordBreak
-                                         // TrailingCommentsAndSemicolon
-                                        ),
-                               () => seq(LimitedContentNoSemis,
-                                         TrailingCommentFollowedBySemicolonOrWordBreak))))));
+        seq(ScalarDesignator,                                 // [0]
+            discarded_comments,                               // - 
+            cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
+                        discarded_comments,                   // -
+                        lws(choice(
+                          () => rjsonc_string, // [1][1]
+                          () => LimitedContentNoSemis,
+                          // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
+                        )),
+                        SpecialFunctionTail)));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // =================================================================================================
 // Content-related rules:
 // =================================================================================================
 const make_LimitedContent_rule = plain_text_rule  =>
-      choice(NamedWildcardReference,
-             ScalarReference,
-             AnonWildcardNoLoras,
-             plain_text_rule);
+      choice(
+        NamedWildcardReference,
+        AnonWildcardNoLoras,
+        plain_text_rule,
+        ScalarReference,
+      );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent          = make_LimitedContent_rule(plain_text);
 const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis);
@@ -8873,6 +8922,7 @@ const Content                 = make_Content_rule({
 const TopLevelContent         = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
+    TopLevelTestFlag,
   ],
   after_plain_text_rules:  [
     AnonWildcard,

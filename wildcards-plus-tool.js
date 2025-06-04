@@ -75,6 +75,7 @@ function parse_file(filename) {
         console.log(`ERROR: matching threw fatal parse error, ` +
                     `halting: \n` +
                     `${inspect_fun(err)}`);
+        return null;
       }
       else {
         throw err;
@@ -217,8 +218,8 @@ function process_includes(thing, context = new Context()) {
 
         const parse_file_result = parse_file(filename);
 
-        if (! parse_file_result.is_finished)
-          throw new Error(`error parsing ${filename}! ${inspect_fun(parse_file_result)}`);
+        if (! parse_file_result?.is_finished)
+          throw new Error(`error parsing ${filename}! result = ${inspect_fun(parse_file_result)}`);
         
         res.push(walk(parse_file_result.value, context.shallow_copy()));
       }
@@ -490,6 +491,11 @@ function __format_FatalParseError_message(message_body, input, index) {
 // -------------------------------------------------------------------------------------------------
 class FatalParseError extends Error {
   constructor(message_body, input, index) {
+    if (!(typeof message_body === 'string' &&
+          typeof input === 'string' &&
+          typeof index === 'number'))
+      throw new Error(`bad arges: ${inspect_fun(arguments)}`);
+    
     super(__format_FatalParseError_message(message_body, input, index));
     this.name         = 'FatalParseError';
     this.message_body = message_body
@@ -570,7 +576,9 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   __finalize(visited, unexpected) {
     if (unexpected !== undefined || ! (visited instanceof Set))
-      throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, ${unexpected})`);
+      throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, `+
+                      `${unexpected}) ` +
+                      `args: ${inspect_fun(arguments)}}`);
     
     if (visited.has(this)) {
       if (log_finalize_enabled)
@@ -603,9 +611,8 @@ class Rule {
     
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
-        log(indent,
-            `Matching ${this.constructor.name} ${this.toString()}, ` +
-            `but at end of input!`);
+        lm.indent(() => lm.log(`Matching ${this.constructor.name} ${this.toString()}, ` +
+                               `but at end of input!`));
       else 
         lm.log(`Matching ` +
                // `${this.constructor.name} `+
@@ -650,8 +657,8 @@ class Rule {
     
     if (log_match_enabled) {
       // if (ret)
-      lm.log(`<= ${this.constructor.name} ${this.toString()} ` +
-             `returned: ${compress(inspect_fun(ret))}`);
+      lm.log(`<= ${this.constructor.name} ${abbreviate(this.toString())} ` +
+             `returned: ${abbreviate(compress(inspect_fun(ret)))}`);
       // else
       //   log(indent,
       //       `<= Matching ${this.constructor.name} ${this.toString()} ` +
@@ -1527,8 +1534,8 @@ class CuttingSequence extends Sequence {
   __fail_or_throw_error(start_rule_result, failed_rule_result,
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
-      `CuttingSequence expected [${this.elements.slice(1).join(" ")}] ` +
-        `after ${this.elements[0]}`,
+      `CuttingSequence expected ${this.elements[0]} to be followed by ` +
+        `[${this.elements.slice(1).join(" ")}]`,                         
       input, start_rule_result.index);
   }
   // -----------------------------------------------------------------------------------------------
@@ -1634,7 +1641,7 @@ class Expected extends Rule {
     return match_result;
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);    
     lm.indent(() => this.rule.__finalize(visited))
   }
@@ -1673,7 +1680,7 @@ class Unexpected extends Rule {
         throw err instanceof Error ? err : new FatalParseError(err, input, index);
       }
       else {
-        throw new FatalParseError(`unexpected ${this.rule}`);
+        throw new FatalParseError(`unexpected ${this.rule}`, input, index);
       }
     };
     
@@ -2350,6 +2357,9 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
 // =================================================================================================
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
+const STOP = expect(never_match);
+STOP.abbreviate_str_repr("STOP");
+// -------------------------------------------------------------------------------------------------
 // whitespace:
 const whites_star        = r(/\s*/);
 const whites_plus        = r(/\s+/);
@@ -2659,7 +2669,8 @@ const enclosing       = (left, enclosed, right) =>
 // =================================================================================================
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
 const Json = choice(() => JsonObject,  () => JsonArray,
-                    () => json_string, () => json_true,   () => json_false,
+                    () => json_string,
+                    () => json_true,   () => json_false,
                     () => json_null,   () => json_number);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const JsonObject = xform(arr =>  Object.fromEntries(arr), 
@@ -2741,9 +2752,10 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =================================================================================================
 const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
 const Jsonc = second(wst_seq(jsonc_comments,
-                             choice(() => JsoncObject,  () => JsoncArray,
-                                    () => json_string,  () => json_true, () => json_false,
-                                    () => json_null,    () => json_number),
+                             choice(() => JsoncObject, () => JsoncArray,
+                                    json_string,
+                                    json_null,         json_true,
+                                    json_false,        json_number),
                              jsonc_comments));
 const JsoncArray =
       wst_cutting_enc(lsqr,
@@ -2762,7 +2774,7 @@ const JsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, () => json_string, colon),
+                wst_enc(lbrc, json_string, colon),
                 jsonc_comments,
                 Jsonc,
                 jsonc_comments,
@@ -2770,7 +2782,7 @@ const JsoncObject =
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
-                                                        () => json_string,
+                                                        json_string,
                                                         jsonc_comments,
                                                         colon,
                                                         jsonc_comments,
@@ -2779,7 +2791,7 @@ const JsoncObject =
                                                        )),
                                           comma)),
                                )),
-                rbrc))); // dumb hack for rainbow brackets sake
+                rbrc))); 
 Jsonc.abbreviate_str_repr('Jsonc');
 jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
@@ -2803,11 +2815,18 @@ const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
 
 const rJsonc = second(wst_seq(jsonc_comments,
-                              choice(() => rJsoncObject,  () => JsoncArray,
-                                     () => rjsonc_string,
-                                     () => json_null,     () => json_true,
-                                     () => json_false,    () => json_number),
+                              choice(() => rJsoncObject,  () => rJsoncArray,
+                                     rjsonc_string,
+                                     json_null,     json_true,
+                                     json_false,    json_number),
                               jsonc_comments));
+const rJsoncArray =
+      wst_cutting_enc(lsqr,
+                      wst_star(second(seq(jsonc_comments,
+                                          rJsonc,
+                                          jsonc_comments)),
+                               comma),
+                      rsqr);
 
 const rJsoncObject =
       choice(
@@ -2817,15 +2836,15 @@ const rJsoncObject =
           return Object.fromEntries(new_arr);
         },
               wst_cutting_seq(
-                wst_enc(lbrc, () => choice(json_string, c_ident), colon), // dumb hack for rainbow brackets sake
+                wst_enc(lbrc, choice(rjsonc_string, c_ident), colon), // dumb hack for rainbow brackets sake
                 jsonc_comments,
-                Jsonc,
+                rJsonc,
                 jsonc_comments,
                 optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
                                                 wst_seq(jsonc_comments,
-                                                        choice(json_string, c_ident),
+                                                        choice(rjsonc_string, c_ident),
                                                         jsonc_comments,
                                                         colon,
                                                         jsonc_comments,
@@ -2834,7 +2853,7 @@ const rJsoncObject =
                                                        )),
                                           comma)),
                                )),
-                rbrc))); // dumb hack for rainbow brackets sake
+                rbrc)));
 rJsonc.abbreviate_str_repr('rJsonc');
 rJsoncObject.abbreviate_str_repr('rJsoncObject');
 // -------------------------------------------------------------------------------------------------
@@ -7746,8 +7765,9 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (context.named_wildcards.has(thing.name))
-          log(true, `WARNING: redefining named wildcard @${thing.name.name}, ` +
-              `you may not have intended to do this, check your template!`);
+          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
+              `you may not have intended to do this, check your template!`,
+              log_expand_and_walk_enabled);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
@@ -7795,361 +7815,361 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         const pick = picked?.body;
 
         if (log_expand_and_walk_enabled)
-            lm.indent_and_log(pick
-                              ? `picked ${thing_str_repr(pick)}`
-                              : `picked empty`);
+          lm.indent_and_log(pick
+                            ? `picked ${thing_str_repr(pick)}`
+                            : `picked empty`);
 
-          if (! pick)
-            throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
-      
-      throw new ThrownReturn(lm.indent(() => walk(pick)));
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUpdateConfigurationUnary ||
-             thing instanceof ASTUpdateConfigurationBinary) {
-      let value = thing.value;
-
-      // lm.log(`THING: ${thing} ${inspect_fun(thing)}`);
-      
-      if (value instanceof ASTNode) {
-        const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
-        const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
-                                              ? rJsoncObject
-                                              : rJsonc).match(expanded_value);
-
-        if (thing instanceof ASTUpdateConfigurationBinary) {
-          value = jsconc_parsed_expanded_value?.is_finished
-            ? jsconc_parsed_expanded_value.value
-            : expanded_value;
-        }
-        else { // ASTUpdateConfigurationUnary
-          throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                          `rJSONC object, rJsonc.match(...) result was ` +
-                          inspect_fun(jsconc_parsed_expanded_value));
-        }
+        if (! pick)
+          throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
+        
+        throw new ThrownReturn(lm.indent(() => walk(pick)));
       }
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUpdateConfigurationUnary ||
+               thing instanceof ASTUpdateConfigurationBinary) {
+        let value = thing.value;
+
+        // lm.log(`THING: ${thing} ${inspect_fun(thing)}`);
+        
+        if (value instanceof ASTNode) {
+          const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
+          const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
+                                                ? rJsoncObject
+                                                : rJsonc).match(expanded_value);
+
+          if (thing instanceof ASTUpdateConfigurationBinary) {
+            value = jsconc_parsed_expanded_value?.is_finished
+              ? jsconc_parsed_expanded_value.value
+              : expanded_value;
+          }
+          else { // ASTUpdateConfigurationUnary
+            throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
+                            `rJSONC object, rJsonc.match(...) result was ` +
+                            inspect_fun(jsconc_parsed_expanded_value));
+          }
+        }
+        else {
+          value = structured_clone(value);
+        }
+
+        if (thing instanceof ASTUpdateConfigurationUnary) { // ASTUpdateConfigurationUnary
+          let new_obj = value;
+
+          for (const key of Object.keys(value)) 
+            new_obj[get_our_name(key)??key] = value[key]
+          
+          context.configuration = thing.assign
+            ? new_obj
+            : { ...context.configuration, ...new_obj };
+
+          lm.indent(() => log(log_configuration_enabled,
+                              `%config ${thing.assign ? '=' : '+='} ` +
+                              `${inspect_fun(new_obj, true)}`
+                              // + `, configuration is now: ` +
+                              // `${inspect_fun(context.configuration, true)}`
+                             ));
+        }
+        else { // ASTUpdateConfigurationBinary
+          const our_name = get_our_name(thing.key); 
+          
+          if (thing.assign) {
+            context.configuration[our_name] = value;
+          }
+          else { // increment
+            if (Array.isArray(value)) {
+              const tmp_arr = context.configuration[our_name]??[];
+
+              if (! Array.isArray(tmp_arr))
+                throw new Error(`can't add array ${inspect_fun(value)} ` +
+                                `to non-array ${inspect_fun(tmp_arr)}`);
+              
+              const new_arr = [ ...tmp_arr, ...value ];
+              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+              //           `increment by array ${inspect_fun(value)}, ` +
+              //           `total ${inspect_fun(new_arr)}`);
+              context.configuration[our_name] = new_arr;
+            }
+            else if (typeof value === 'object') {
+              const tmp_obj = context.configuration[our_name]??{};
+
+              if (typeof tmp_obj !== 'object')
+                throw new Error(`can't add object ${inspect_fun(value)} `+
+                                `to non-object ${inspect_fun(tmp_obj)}`);
+
+              const new_obj = { ...tmp_obj, ...value };
+              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+              //           `increment by object ${inspect_fun(value)}, ` +
+              //           `total ${inspect_fun(new_obj)}`);
+              context.configuration[our_name] = new_obj;
+            }
+            else if (typeof value === 'number') {
+              const tmp_num = context.configuration[our_name]??0;
+              
+              if (typeof tmp_num !== 'number')
+                throw new Error(`can't add number ${inspect_fun(value)} `+
+                                `to non-number ${inspect_fun(tmp_num)}`);
+
+              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+              //           `increment by number ${inspect_fun(value)}, ` +
+              //           `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+              context.configuration[our_name] = tmp_num + value;
+            }
+            else if (typeof value === 'string') {
+              const tmp_str = context.configuration[our_name]??'';
+
+              if (typeof tmp_str !== 'string')
+                throw new Error(`can't add string ${inspect_fun(value)} `+
+                                `to non-string ${inspect_fun(tmp_str)}`);
+
+              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+              //           `increment by string ${inspect_fun(value)}, ` +
+              //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+              context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value]));
+            }
+            else {
+              // probly won't work most of the time, but let's try anyhow, I guess.
+              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
+              //           `increment by unknown ${inspect_fun(value)}, ` +
+              //           `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+              context.configuration[our_name] = (context.configuration[our_name]??null) + value;
+            }
+          }
+
+          lm.indent(() => log(log_configuration_enabled,
+                              `%${our_name} ` +
+                              `${thing.assign ? '=' : '+='} ` +
+                              `${inspect_fun(value, true)}`,
+                              log_expand_and_walk_enabled));
+        }
+        
+        throw new ThrownReturn('');
+      }
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTSetPickSingle || 
+               thing instanceof ASTSetPickMultiple) {
+        const cur_key = thing instanceof ASTSetPickSingle
+              ? 'pick_one_priority'
+              : 'pick_multiple_priority';
+        const prior_key = thing instanceof ASTSetPickSingle
+              ? 'prior_pick_one_priority'
+              : 'prior_pick_multiple_priority';
+        const cur_val   = context[cur_key];
+        const prior_val = context[prior_key];
+        const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
+                                                                           context)).toLowerCase()];
+
+        // if (log_configuration_enabled)
+        //   log(`SET PICK DATA: ` +
+        //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+        //                               cur_val: cur_val, prior_val: prior_val,
+        //                               walked: walked})}`);
+        
+        if (! picker_priority_descriptions.includes(walked))
+          throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+
+        context[prior_key] = context[cur_key];
+        context[cur_key]   = walked;
+
+        log(log_configuration_enabled,
+            `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+            `${inspect_fun(walked)}.`);
+        
+        throw new ThrownReturn('');
+      }
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
+        const sub_prompt = thing instanceof ASTUIPrompt
+              ? { desc: 'UI prompt', text: ui_prompt }
+              : { desc: 'UI negative prompt', text: ui_neg_prompt };
+        
+        lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+
+        let res = null;
+
+        try {
+          res = Prompt.match(sub_prompt.text);
+        }
+        catch(err) {
+          if (err instanceof FatalParseError)
+            throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} failed: ${err}>`);
+          else
+            throw err;
+        }
+
+        
+        if (!res || !res.is_finished)
+          throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`);
+
+        throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
+      }
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTRevertPickSingle || 
+               thing instanceof ASTRevertPickMultiple) {
+        const cur_key = thing instanceof ASTRevertPickSingle
+              ? 'pick_one_priority'
+              : 'pick_multiple_priority';
+        const prior_key = thing instanceof ASTRevertPickSingle
+              ? 'prior_pick_one_priority'
+              : 'prior_pick_multiple_priority';
+        const cur_val   = context[cur_key];
+        const prior_val = context[prior_key];
+
+        // if (log_configuration_enabled)
+        //   log(`REVERT PICK DATA: ` +
+        //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
+        //                               cur_val: cur_val, prior_val: prior_val })}`);
+        
+        // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
+        log(log_configuration_enabled,
+            `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+            `${inspect_fun(prior_val)}.`);
+        
+        context[cur_key]   = prior_val;
+        context[prior_key] = cur_val;
+
+        throw new ThrownReturn('');
+      }
+      // ---------------------------------------------------------------------------------------------
+      // ASTLora:
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTLora) {
+        // log(log_expand_and_walk_enabled,
+        //     `encountered lora ${thing} in ${context}`);
+
+        let walked_file = null;
+
+        lm.indent(() => {
+          log(log_expand_and_walk_enabled,
+              `expanding file ${compress(inspect_fun(thing.file))}`);
+          
+          walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
+
+          log(log_expand_and_walk_enabled,
+              `expanded file is ${typeof walked_file} ` +
+              `${walked_file.constructor.name} ` +
+              `${inspect_fun(walked_file)} `);
+        });
+        
+        // if (Array.isArray(walked_file))
+        //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
+
+        // if (Array.isArray(thing.weight))
+        //   throw new Error("boom");
+
+        let walked_weight = null;
+        
+        lm.indent(() => {
+          log(log_expand_and_walk_enabled,
+              `expanding weight ${compress(inspect_fun(thing.weight))}`);
+          
+          walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
+
+          log(log_expand_and_walk_enabled,
+              `expanded weight is ${typeof walked_weight} ` +
+              `${walked_weight.constructor.name} ` +
+              `${compress(inspect_fun(walked_weight))}, ` +
+              `Array.isArray(${Array.isArray(walked_weight)})`);
+        });
+
+        // log(log_expand_and_walk_enabled,
+        //     `walking weight ${compress(inspect_fun(thing.weight))}`);
+
+        // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
+        //   throw "bomb";
+        
+        
+        // if (Array.isArray(walked_weight))
+        //   walked_weight = smart_join(walked_weight);
+
+        const weight_match_result = json_number.match(walked_weight);
+
+        if (!weight_match_result || !weight_match_result.is_finished)
+          throw new Error(`LoRA weight must be a number, got ` +
+                          `${inspect_fun(walked_weight)}`);
+
+        let file = walked_file.toLowerCase();
+
+        if (file === '')
+          throw new Error(`LoRA file name is empty!`);
+        
+        // if (file.endsWith('_lora_f16.ckpt')) {
+        if (file.endsWith('.ckpt')) {
+          // do nothing 
+        }
+        else if (file.endsWith('_lora_f16')) {
+          file = `${file}.ckpt`;
+        }
+        else if (file.endsWith('_lora')) {
+          file = `${file}_f16.ckpt`;
+        }
+        else {
+          file = `${file}_lora_f16.ckpt`;
+        }
+
+        const weight = weight_match_result.value;
+        
+        context.add_lora_uniquely({ file: file, weight: weight });
+        
+        throw new ThrownReturn('');
+      }
+      // ---------------------------------------------------------------------------------------------
+      // uncrecognized type:
+      // ---------------------------------------------------------------------------------------------
       else {
-        value = structured_clone(value);
+        throw new Error(`confusing thing: ` +
+                        (typeof thing === 'object'
+                         ? thing?.constructor.name
+                         : typeof thing) +
+                        ' ' +
+                        inspect_fun(thing));
+
       }
-
-      if (thing instanceof ASTUpdateConfigurationUnary) { // ASTUpdateConfigurationUnary
-        let new_obj = value;
-
-        for (const key of Object.keys(value)) 
-          new_obj[get_our_name(key)??key] = value[key]
-        
-        context.configuration = thing.assign
-          ? new_obj
-          : { ...context.configuration, ...new_obj };
-
-        lm.indent(() => log(log_configuration_enabled,
-                            `%config ${thing.assign ? '=' : '+='} ` +
-                            `${inspect_fun(new_obj, true)}`
-                            // + `, configuration is now: ` +
-                            // `${inspect_fun(context.configuration, true)}`
-                           ));
-      }
-      else { // ASTUpdateConfigurationBinary
-        const our_name = get_our_name(thing.key); 
-        
-        if (thing.assign) {
-          context.configuration[our_name] = value;
-        }
-        else { // increment
-          if (Array.isArray(value)) {
-            const tmp_arr = context.configuration[our_name]??[];
-
-            if (! Array.isArray(tmp_arr))
-              throw new Error(`can't add array ${inspect_fun(value)} ` +
-                              `to non-array ${inspect_fun(tmp_arr)}`);
-            
-            const new_arr = [ ...tmp_arr, ...value ];
-            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-            //           `increment by array ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun(new_arr)}`);
-            context.configuration[our_name] = new_arr;
-          }
-          else if (typeof value === 'object') {
-            const tmp_obj = context.configuration[our_name]??{};
-
-            if (typeof tmp_obj !== 'object')
-              throw new Error(`can't add object ${inspect_fun(value)} `+
-                              `to non-object ${inspect_fun(tmp_obj)}`);
-
-            const new_obj = { ...tmp_obj, ...value };
-            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-            //           `increment by object ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun(new_obj)}`);
-            context.configuration[our_name] = new_obj;
-          }
-          else if (typeof value === 'number') {
-            const tmp_num = context.configuration[our_name]??0;
-            
-            if (typeof tmp_num !== 'number')
-              throw new Error(`can't add number ${inspect_fun(value)} `+
-                              `to non-number ${inspect_fun(tmp_num)}`);
-
-            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-            //           `increment by number ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
-            context.configuration[our_name] = tmp_num + value;
-          }
-          else if (typeof value === 'string') {
-            const tmp_str = context.configuration[our_name]??'';
-
-            if (typeof tmp_str !== 'string')
-              throw new Error(`can't add string ${inspect_fun(value)} `+
-                              `to non-string ${inspect_fun(tmp_str)}`);
-
-            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-            //           `increment by string ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-            context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value]));
-          }
-          else {
-            // probly won't work most of the time, but let's try anyhow, I guess.
-            // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-            //           `increment by unknown ${inspect_fun(value)}, ` +
-            //           `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
-            context.configuration[our_name] = (context.configuration[our_name]??null) + value;
-          }
-        }
-
-        lm.indent(() => log(log_configuration_enabled,
-                            `%${our_name} ` +
-                            `${thing.assign ? '=' : '+='} ` +
-                            `${inspect_fun(value, true)}`,
-                            log_expand_and_walk_enabled));
-      }
-      
-      throw new ThrownReturn('');
     }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTSetPickSingle || 
-             thing instanceof ASTSetPickMultiple) {
-      const cur_key = thing instanceof ASTSetPickSingle
-            ? 'pick_one_priority'
-            : 'pick_multiple_priority';
-      const prior_key = thing instanceof ASTSetPickSingle
-            ? 'prior_pick_one_priority'
-            : 'prior_pick_multiple_priority';
-      const cur_val   = context[cur_key];
-      const prior_val = context[prior_key];
-      const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
-                                                                         context)).toLowerCase()];
+    catch (obj) {
+      if (! (obj instanceof ThrownReturn))
+        throw obj;
 
-      // if (log_configuration_enabled)
-      //   log(`SET PICK DATA: ` +
-      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-      //                               cur_val: cur_val, prior_val: prior_val,
-      //                               walked: walked})}`);
-      
-      if (! picker_priority_descriptions.includes(walked))
-        throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+      log(log_expand_and_walk_enabled,
+          `walking ` +
+          `${thing_str_repr(thing)} in ` + 
+          `${context} returned ` +
+          `${thing_str_repr(obj.value)}`);
 
-      context[prior_key] = context[cur_key];
-      context[cur_key]   = walked;
-
-      log(log_configuration_enabled,
-          `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-          `${inspect_fun(walked)}.`);
-      
-      throw new ThrownReturn('');
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
-      const sub_prompt = thing instanceof ASTUIPrompt
-            ? { desc: 'UI prompt', text: ui_prompt }
-            : { desc: 'UI negative prompt', text: ui_neg_prompt };
-      
-      lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
-
-      let res = null;
-
-      try {
-        res = Prompt.match(sub_prompt.text);
-      }
-      catch(err) {
-        if (err instanceof FatalParseError)
-          throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} failed: ${err}>`);
-        else
-          throw err;
-      }
-
-      
-      if (!res || !res.is_finished)
-        throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`);
-
-      throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
-    }
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTRevertPickSingle || 
-             thing instanceof ASTRevertPickMultiple) {
-      const cur_key = thing instanceof ASTRevertPickSingle
-            ? 'pick_one_priority'
-            : 'pick_multiple_priority';
-      const prior_key = thing instanceof ASTRevertPickSingle
-            ? 'prior_pick_one_priority'
-            : 'prior_pick_multiple_priority';
-      const cur_val   = context[cur_key];
-      const prior_val = context[prior_key];
-
-      // if (log_configuration_enabled)
-      //   log(`REVERT PICK DATA: ` +
-      //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-      //                               cur_val: cur_val, prior_val: prior_val })}`);
-      
-      // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-      //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
-      log(log_configuration_enabled,
-          `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-          `${inspect_fun(prior_val)}.`);
-      
-      context[cur_key]   = prior_val;
-      context[prior_key] = cur_val;
-
-      throw new ThrownReturn('');
-    }
-    // ---------------------------------------------------------------------------------------------
-    // ASTLora:
-    // ---------------------------------------------------------------------------------------------
-    else if (thing instanceof ASTLora) {
-      // log(log_expand_and_walk_enabled,
-      //     `encountered lora ${thing} in ${context}`);
-
-      let walked_file = null;
-
-      lm.indent(() => {
-        log(log_expand_and_walk_enabled,
-            `expanding file ${compress(inspect_fun(thing.file))}`);
-        
-        walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
-
-        log(log_expand_and_walk_enabled,
-            `expanded file is ${typeof walked_file} ` +
-            `${walked_file.constructor.name} ` +
-            `${inspect_fun(walked_file)} `);
-      });
-      
-      // if (Array.isArray(walked_file))
-      //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
-
-      // if (Array.isArray(thing.weight))
-      //   throw new Error("boom");
-
-      let walked_weight = null;
-      
-      lm.indent(() => {
-        log(log_expand_and_walk_enabled,
-            `expanding weight ${compress(inspect_fun(thing.weight))}`);
-        
-        walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
-
-        log(log_expand_and_walk_enabled,
-            `expanded weight is ${typeof walked_weight} ` +
-            `${walked_weight.constructor.name} ` +
-            `${compress(inspect_fun(walked_weight))}, ` +
-            `Array.isArray(${Array.isArray(walked_weight)})`);
-      });
-
-      // log(log_expand_and_walk_enabled,
-      //     `walking weight ${compress(inspect_fun(thing.weight))}`);
-
-      // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
-      //   throw "bomb";
-      
-      
-      // if (Array.isArray(walked_weight))
-      //   walked_weight = smart_join(walked_weight);
-
-      const weight_match_result = json_number.match(walked_weight);
-
-      if (!weight_match_result || !weight_match_result.is_finished)
-        throw new Error(`LoRA weight must be a number, got ` +
-                        `${inspect_fun(walked_weight)}`);
-
-      let file = walked_file.toLowerCase();
-
-      if (file === '')
-        throw new Error(`LoRA file name is empty!`);
-      
-      // if (file.endsWith('_lora_f16.ckpt')) {
-      if (file.endsWith('.ckpt')) {
-        // do nothing 
-      }
-      else if (file.endsWith('_lora_f16')) {
-        file = `${file}.ckpt`;
-      }
-      else if (file.endsWith('_lora')) {
-        file = `${file}_f16.ckpt`;
-      }
-      else {
-        file = `${file}_lora_f16.ckpt`;
-      }
-
-      const weight = weight_match_result.value;
-      
-      context.add_lora_uniquely({ file: file, weight: weight });
-      
-      throw new ThrownReturn('');
-    }
-    // ---------------------------------------------------------------------------------------------
-    // uncrecognized type:
-    // ---------------------------------------------------------------------------------------------
-    else {
-      throw new Error(`confusing thing: ` +
-                      (typeof thing === 'object'
-                       ? thing?.constructor.name
-                       : typeof thing) +
-                      ' ' +
-                      inspect_fun(thing));
-
+      return obj.value;
     }
   }
-  catch (obj) {
-    if (! (obj instanceof ThrownReturn))
-      throw obj;
 
-    log(log_expand_and_walk_enabled,
-        `walking ` +
-        `${thing_str_repr(thing)} in ` + 
-        `${context} returned ` +
-        `${thing_str_repr(obj.value)}`);
+  log(log_expand_and_walk_enabled,
+      `Expanding wildcards in ` +
+      `${thing_str_repr(thing)} in ` + 
+      `${context}`);
 
-    return obj.value;
-  }
-}
+  const ret = unescape(smart_join(lm.indent(() => walk(thing))));
+  lm.indent(() => context.munge_configuration());
 
-log(log_expand_and_walk_enabled,
-    `Expanding wildcards in ` +
-    `${thing_str_repr(thing)} in ` + 
-    `${context}`);
+  // if (walked === '""' ||
+  //     walked === "''" ||
+  //     walked?.includes('""') ||
+  //     walked?.includes("''"))
+  //   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
 
-const ret = unescape(smart_join(lm.indent(() => walk(thing))));
-lm.indent(() => context.munge_configuration());
+  log(log_expand_and_walk_enabled,
+      `expanded wildcards in ` +
+      `${thing_str_repr(thing)} in ` + 
+      `${context} into ` +
+      `${thing_str_repr(ret)}`);
 
-// if (walked === '""' ||
-//     walked === "''" ||
-//     walked?.includes('""') ||
-//     walked?.includes("''"))
-//   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
+  // if (ret === undefined)
+  //   throw new Error("what");
 
-log(log_expand_and_walk_enabled,
-    `expanded wildcards in ` +
-    `${thing_str_repr(thing)} in ` + 
-    `${context} into ` +
-    `${thing_str_repr(ret)}`);
+  // if (ret.match(/^\s+$/))
+  //   throw "bombλ";
 
-// if (ret === undefined)
-//   throw new Error("what");
+  if (ret === '""' || ret === "''")
+    throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
 
-// if (ret.match(/^\s+$/))
-//   throw "bombλ";
-
-if (ret === '""' || ret === "''")
-  throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
-
-return ret;
+  return ret;
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -8617,6 +8637,7 @@ const filename                = r(/[A-Za-z0-9 ._\-()]+/);
 const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
                                       str => str.toLowerCase().replace(/-/g, '_'));
 const structural_word_break   = r(/(?=[\s|}])/);
+structural_word_break.abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule =>
       first(seq(rule, structural_word_break));
@@ -8628,10 +8649,10 @@ const cutting_with_swb                = rule =>
 const cutting_seq_with_swb    = (...rules) => 
       first(cutting_seq(seq(...rules), structural_word_break));
 // -------------------------------------------------------------------------------------------------
-const swb_uint                = with_swb(uint);
+const swb_uint                = xform(parseInt, with_swb(uint));
 // -------------------------------------------------------------------------------------------------
 any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
-comments                      .abbreviate_str_repr('comments_star');
+comments                      .abbreviate_str_repr('comments');
 discarded_comment             .abbreviate_str_repr('discarded_comment');
 discarded_comments            .abbreviate_str_repr('discarded_comments');
 dot_hash                      .abbreviate_str_repr('dot_hash');
@@ -8687,13 +8708,13 @@ A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
 // word breaks:
 // =================================================================================================
 // these are inadvisably complex:
-const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
-const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
-const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
-// -------------------------------------------------------------------------------------------------
-word_break                         .abbreviate_str_repr('word_break');
-simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
-simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
+// const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
+// const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
+// const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
+// // -------------------------------------------------------------------------------------------------
+// word_break                         .abbreviate_str_repr('word_break');
+// simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
+// simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
@@ -8797,9 +8818,32 @@ const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang,
 const TestFlag                     = choice(
   SimpleCheckFlag,
   SimpleNotFlag,
-  CheckFlagWithOrAlternatives,
   CheckFlagWithSetConsequent,
   NotFlagWithSetConsequent,
+  CheckFlagWithOrAlternatives,
+);
+const bad_TopLevelTestFlag = (rule, input, index) =>
+      new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
+                          `serve no purpose and so are not permitted`,
+                          input, index);
+const TopLevelTestFlag             = choice(
+  unexpected(SimpleCheckFlag, bad_TopLevelTestFlag),
+  unexpected(SimpleNotFlag, bad_TopLevelTestFlag),
+  xform(CheckFlagWithSetConsequent,
+        flag => {
+          //lm.log(`cfwsc flag: ${compress(inspect_fun(flag))}`);
+          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
+          // lm.log(`cfwsc ret:  ${inspect_fun(ret)}`);
+          return ret;
+        }),
+  xform(NotFlagWithSetConsequent,
+        flag => {
+          //lm.log(`nfwsc flag: ${compress(inspect_fun(flag))}`);
+          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
+          // lm.log(`nfwsc ret:  ${inspect_fun(ret)}`);
+          return ret;
+        }),
+  unexpected(CheckFlagWithOrAlternatives, bad_TopLevelTestFlag),
 );
 // -------------------------------------------------------------------------------------------------
 TestFlag                   .abbreviate_str_repr('TestFlag');
@@ -8814,6 +8858,8 @@ UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
+  // console.log(`m_AAWA ARR: ${compress(inspect_fun(arr))}`);
+  
   const weight = arr[1][0];
 
   if (weight == 0)
@@ -8876,14 +8922,19 @@ AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras')
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
-const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
-                                                                  choice(lws(semicolon),
-                                                                         word_break)));
+const SpecialFunctionTail = choice(
+  structural_word_break,
+  lws(semicolon),
+  c_comment,
+);
+// const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
+//                                                                   choice(lws(semicolon),
+//                                                                          word_break)));
 const TrailingCommentsAndSemicolon = discard(lws(semicolon));
 const SpecialFunctionUIPrompt =
       xform(() => new ASTUIPrompt(),
             seq('ui-prompt',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8895,7 +8946,7 @@ const UnexpectedSpecialFunctionUIPrompt =
 const SpecialFunctionUINegPrompt =
       xform(() => new ASTUINegPrompt(),
             seq('ui-neg-prompt',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
                  (rule, input, index)=>
@@ -8910,7 +8961,7 @@ const SpecialFunctionInclude =
                           first(wst_seq(discarded_comments,      // -
                                         rjsonc_string,           // [0][1]
                                         discarded_comments))),   // -
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8924,42 +8975,43 @@ const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
             seq('single-pick',                                               // [0]
                 discarded_comments,                                          // -
-                wst_seq(equals,                                              // [1][0]
-                        discarded_comments,                                  // -
-                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
-                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                cutting_seq(lws(equals),                                              // [1][0]
+                            discarded_comments,                                  // -
+                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
             seq('multi-pick',                                                // [0]
                 discarded_comments,                                          // -
-                wst_seq(equals,                                              // [1][0]
-                        discarded_comments,                                  // -
-                        choice(() => LimitedContentNoSemis, lc_alpha_snake), // [1][1]
-                        TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                cutting_seq(lws(equals),                                     // [1][0]
+                            discarded_comments,                              // -
+                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionRevertPickSingle =
       xform(() => new ASTRevertPickSingle(),
             seq('revert-single-pick',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const SpecialFunctionRevertPickMultiple =
       xform(() => new ASTRevertPickMultiple(),
             seq('revert-multi-pick',
-                TrailingCommentFollowedBySemicolonOrWordBreak));
+                SpecialFunctionTail));
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                            // [0]
                 discarded_comments,                                                 // -
-                wst_cutting_seq(any_assignment_operator,                            // [1][0]
-                                discarded_comments,                                 // -
-                                choice(rJsonc, () => LimitedContentNoSemis),        // [1][1]
-                                TrailingCommentFollowedBySemicolonOrWordBreak))); 
+                cutting_seq(lws(any_assignment_operator),                           // [1][0]
+                            discarded_comments,                                     // -
+                            lws(choice(rJsonc, () => LimitedContentNoSemis)),       // [1][1]
+                            SpecialFunctionTail))); 
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
             seq(/conf(?:ig)?/,                                                      // [0]
                 discarded_comments,                                                 // -
-                wst_cutting_seq(choice(plus_equals, equals),                        // [1][0]
-                                discarded_comments,                                 // -
-                                choice(rJsoncObject, () => LimitedContentNoSemis),  // [1][1]
-                                TrailingCommentFollowedBySemicolonOrWordBreak)));
+                cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
+                            discarded_comments,                                     // -
+                            lws(choice(rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
+                            SpecialFunctionTail,
+                           )));
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
@@ -8997,8 +9049,8 @@ SpecialFunctionUpdateConfigurationBinary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 SpecialFunctionUpdateConfigurationUnary
   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-TrailingCommentFollowedBySemicolonOrWordBreak
-  .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
+// TrailingCommentFollowedBySemicolonOrWordBreak
+//   .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
 TrailingCommentsAndSemicolon
   .abbreviate_str_repr('TrailingCommentsAndSemicolon');
 UnexpectedSpecialFunctionInclude
@@ -9068,29 +9120,27 @@ const ScalarAssignment        =
         new ASTScalarAssignment(arr[0],
                                 arr[1][1],
                                 arr[1][0] == '='),
-        wst_seq(ScalarDesignator,                       // [0]
-                discarded_comments,                     // - 
-                wst_cutting_seq(
-                  choice(plus_equals, equals),          // [1][0]
-                  discarded_comments,                   // -
-                  first(choice(() => seq(rjsonc_string, // [1][1]
-                                         TrailingCommentFollowedBySemicolonOrWordBreak),  
-                               () => seq(hwst_plus(choice(LimitedContentNoSemis,
-                                                          discarded_comment)),
-                                         TrailingCommentFollowedBySemicolonOrWordBreak
-                                         // TrailingCommentsAndSemicolon
-                                        ),
-                               () => seq(LimitedContentNoSemis,
-                                         TrailingCommentFollowedBySemicolonOrWordBreak))))));
+        seq(ScalarDesignator,                                 // [0]
+            discarded_comments,                               // - 
+            cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
+                        discarded_comments,                   // -
+                        lws(choice(
+                          () => rjsonc_string, // [1][1]
+                          () => LimitedContentNoSemis,
+                          // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
+                        )),
+                        SpecialFunctionTail)));
 ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
 // =================================================================================================
 // Content-related rules:
 // =================================================================================================
 const make_LimitedContent_rule = plain_text_rule  =>
-      choice(NamedWildcardReference,
-             ScalarReference,
-             AnonWildcardNoLoras,
-             plain_text_rule);
+      choice(
+        NamedWildcardReference,
+        AnonWildcardNoLoras,
+        plain_text_rule,
+        ScalarReference,
+      );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent          = make_LimitedContent_rule(plain_text);
 const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis);
@@ -9129,6 +9179,7 @@ const Content                 = make_Content_rule({
 const TopLevelContent         = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
+    TopLevelTestFlag,
   ],
   after_plain_text_rules:  [
     AnonWildcard,
@@ -9231,6 +9282,9 @@ async function main() {
   else {
     result = parse_file(args[0]);
   }
+
+  if (! result?.is_finished)
+    throw new Error(`error parsing ${inspect_fun(args[0])}! result = ${inspect_fun(result)}`);
   
   // -----------------------------------------------------------------------------------------------
   // just for debugging:
@@ -9430,3 +9484,4 @@ if (! main_disabled)
 // lm.log(inspect_fun(wst_plus(hwst_plus('x')).match(`   x  x   
 //    x    x  x `)));
 
+// expect(never_match).match("nope")
