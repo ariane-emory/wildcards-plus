@@ -8775,6 +8775,23 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
 
 // =================================================================================================
+// FLAG AUDITING FUNCTION.
+// =================================================================================================
+function audit_flags(thing, dummy_context, checked_flags_arr) {
+  lm.log(`auditing flags...`);
+  
+  if (thing === undefined ||
+      dummy_context === undefined ||
+      checked_flags_arr === undefined)
+                throw new Error(`bad adit_flags args: ${inspect_fun(arguments)}`);
+  lm.log(`done auditing flags`);
+}
+// =================================================================================================
+// END OF THE FLAG AUDITING FUNCTION.
+// =================================================================================================
+
+
+// =================================================================================================
 // SD PROMPT AST CLASSES SECTION:
 // =================================================================================================
 class ASTNode {}
@@ -9960,6 +9977,16 @@ async function main() {
     lm.log(`${JSON.stringify(AST)}`);
   }
 
+  { // audit flags:
+    const dummy_context = new Context()
+    const checked_flags_arr = [];
+
+    audit_flags(AST, dummy_context, checked_flags_arr);
+
+    lm.log(`dummy_context.flags: ${inspect_fun(dummy_context.flags)}`);
+    lm.log(`checked_flags_arr:   ${inspect_fun(checked_flags_arr)}`);
+  }
+  
   let posted_count        = 0;
   let prior_prompt        = null;
   let prior_configuration = null;
