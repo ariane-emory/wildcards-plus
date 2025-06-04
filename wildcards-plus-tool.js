@@ -8793,18 +8793,25 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_flags(ast_node, noisy = true) {
+class Warning extends Error {
+  constructor(message) {
+    if (typeof message !== 'string')
+      throw new Error(`bad Warning.construgtos args: ${inspect_fun(arguments)}, ` +
+                      `this likely indicates a programmer error`);
+
+    super(`WARNING: ${message}`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function audit_flags(root_ast_node, noisy = true) {
+  if (root_ast_node === undefined)
+    throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
+
   const log = noisy
         ? msg => lm.log(msg)
         : msg => {}; // no-op
 
-  function walk(thing, dummy_context, checked_flags_arr, /* visited, */) {
-    if (thing === undefined ||
-        dummy_context === undefined ||
-        checked_flags_arr === undefined
-        /* || visited === undefined */
-       )
-      throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
+  function walk(thing) {
     // throw new Error(`bad audit_flags args: ${compress(inspect_fun(arguments))}`);
 
     class Break {}
@@ -8828,9 +8835,9 @@ function audit_flags(ast_node, noisy = true) {
         for (const elem of thing)
           lm.indent(() => walk(elem,
                                dummy_context,
-                                      checked_flags_arr,
-                                      /* visited, */
-                                      noisy));
+                               checked_flags_arr,
+                               /* visited, */
+                               noisy));
       }
       else if (thing instanceof ASTCheckFlags) {
         // log(`IMPLEMENT ASTCheckFlags CASE!`);
@@ -8882,7 +8889,9 @@ function audit_flags(ast_node, noisy = true) {
 
   const dummy_context = new Context();
   const checked_flags_arr = [];
-  walk(ast_node, dummy_context, checked_flags_arr, /* new Set() */);
+
+  walk(root_ast_node);
+
   lm.log(`dummy_context.flags: ${inspect_fun(dummy_context.flags)}`);
   lm.log(`checked_flags_arr:   ${inspect_fun(checked_flags_arr)}`);
 }
@@ -10150,7 +10159,7 @@ async function main() {
   }
 
   // audit flags:
-  audit_flags(AST, false);
+  audit_flags(AST);
 
   let posted_count        = 0;
   let prior_prompt        = null;
