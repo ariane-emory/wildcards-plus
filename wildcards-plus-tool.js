@@ -8377,7 +8377,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() => expand_wildcards(thing.value, context,
-                                                                  { correct_articles: correct_articles })); // not walk!
+                                                                  { correct_articles: false })); // not walk!
 
           lm.log(`expanded_value: ${compress(inspect_fun(thing.value))} => ` +
                  `${inspect_fun(expanded_value)}`);
