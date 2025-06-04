@@ -8247,15 +8247,21 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           res[0] = capitalize(res[0]);
 
         let str;
+
+        const intercalate_options = thing.joiner === '&'
+              ? { final_separator: 'and' }
+              : {};
+
+        str = smart_join(intercalate(thing.joiner, res, intercalate_options), { correct_articles: true });
         
-        if (thing.joiner === ',')
-          str = smart_join(intercalate(',', res), { correct_articles: true });
-        else if (thing.joiner === '|')
-          str = smart_join(intercalate('|', res), { correct_articles: true });
-        else if (thing.joiner === '&')
-          str = smart_join(intercalate(',', res, { final_separator: 'and' }), { correct_articles: true });
-        else
-          str = smart_join(intercalate(' ', res), { correct_articles: true });
+        // if (thing.joiner === ',')
+        //   str = smart_join(intercalate(',', res), { correct_articles: true });
+        // else if (thing.joiner === '|')
+        //   str = smart_join(intercalate('|', res), { correct_articles: true });
+        // else if (thing.joiner === '&')
+        //   str = smart_join(intercalate(',', res, { final_separator: 'and' }), { correct_articles: true });
+        // else
+        //   str = smart_join(intercalate(' ', res), { correct_articles: true });
 
         // let str = thing.joiner === ','
         //       ? res.join(", ")
@@ -9306,8 +9312,8 @@ const A1111StyleLora =
                             optional(second(wst_seq(colon,                       // [3]
                                                     choice(A1111StyleLoraWeight,
                                                            () => LimitedContentNoAWCTrailers))),
-                                 "1.0"), // [4][0]
-                        rtri))
+                                     "1.0"), // [4][0]
+                            rtri))
       .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // mod RJSONC:
