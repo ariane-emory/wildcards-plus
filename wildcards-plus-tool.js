@@ -8820,6 +8820,15 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
       for (const elem of thing)
         lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
     }
+    else if (thing instanceof ASTCheckFlags) {
+      lm.log(`implement ASTCheckFlags case!`);
+    }
+    else if (thing instanceof ASTNotFlag) {
+      lm.log(`implement ASTCheckFlags case!`);
+    }
+    else if (thing instanceof ASTSetFlag) {
+      lm.log(`implement ASTSetFlag case!`);
+    }
     else if (thing instanceof ASTNode) {
       if (typeof thing.direct_children !== 'function')
         throw new Error(`no direct_children function: ${thing_str_repr(thing)}`);
