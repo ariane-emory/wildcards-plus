@@ -2895,14 +2895,14 @@ const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]
 // -------------------------------------------------------------------------------------------------
 class WeightedPicker {
   // -----------------------------------------------------------------------------------------------
-  constructor(initialOptions = []) {
-    // lm.log(`CONSTRUCT WITH ${inspect_fun(initialOptions)}`);
+  constructor(options = []) {
+    // lm.log(`CONSTRUCT WITH ${inspect_fun(options)}`);
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
     this.last_pick_index = null;
 
-    for (const [weight, value] of initialOptions)
+    for (const [weight, value] of options)
       this.add(weight, value);
   }
   // -----------------------------------------------------------------------------------------------
@@ -8801,7 +8801,9 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
     
     const children = thing.direct_children();
 
-    lm.log(`children: ${thing_str_repr(children)}`);
+    lm.log(`children: ${thing_str_repr(Array.isArray(children)
+                                         ? children
+                                         : Array.from(children))}`);
     
     for (const child of children)
       lm.indent(() => audit_flags(child, dummy_context, checked_flags_arr, visited));
@@ -8823,11 +8825,11 @@ class ASTNode {
   direct_children() {
     const ret = this.__direct_children();
 
-    if (ret.includes(undefined))
-      throw new Error(`direct_children ` +
-                      `${inspect_fun(ret)} ` +
-                      `included undefined for ` +
-                      `${inspect_fun(this)}`);
+    // if (ret.includes(undefined))
+    //   throw new Error(`direct_children ` +
+    //                   `${inspect_fun(ret)} ` +
+    //                   `included undefined for ` +
+    //                   `${inspect_fun(this)}`);
 
     return ret;
   }
@@ -9098,7 +9100,7 @@ class ASTLatchedNamedWildcardValue extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // AnonWildcards:
 // -------------------------------------------------------------------------------------------------
-class ASTAnonWildcard  extends ASTNode {
+class ASTAnonWildcard extends ASTNode {
   constructor(options, trailer = null) {
     super();
     this.picker = new WeightedPicker(options
@@ -9108,6 +9110,10 @@ class ASTAnonWildcard  extends ASTNode {
 
     // if (trailer)
     //   lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.picker.options.values();
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
@@ -9149,6 +9155,8 @@ class ASTAnonWildcard  extends ASTNode {
     // return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
   }
 }
+// -------------------------------------------------------------------------------------------------
+// AnonWildcardsAlternative::
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative extends ASTNode {
   constructor(weight, check_flags, not_flags, body) {
