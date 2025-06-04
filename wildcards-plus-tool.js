@@ -4205,6 +4205,9 @@ class Context {
 
       if (got)
         munged_configuration.sampler = got;
+      else
+        lm.log(`WARNING: did not find samples '${munged_configuration.sampler}', ` +
+               `we're probably going to crash in a moment`);
     }
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
@@ -4212,7 +4215,18 @@ class Context {
         lm.log(`correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
                `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`,
                log_expand_and_walk_enabled);
-        munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
+        const index = dt_samplers.indexOf(munged_configuration.sampler);
+
+        if (index === -1) {
+          lm.log(`WARNING: could not find index of sampler '${munged_configuration.sampler}'. `+
+                 `Are you sure you used the ` +
+                 `correct name? deleting sampler from configuration.`);
+
+          delete munged_configuration.sampler;
+        }
+        else {
+          munged_configuration.sampler = index;
+        }
       }
     }
     // when running in Node.js, sampler needs to be a string::
