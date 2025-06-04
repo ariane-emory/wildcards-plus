@@ -8017,7 +8017,9 @@ function load_prelude(into_context = new Context()) {
     }
 
     // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
-    const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+    const ignored = expand_wildcards(prelude_parse_result.value, into_context,
+                                     { correct_articles: true });
+    
     log_flags_enabled = old_log_flags_enabled;
 
     // log_flags_enabled = true;
@@ -8041,9 +8043,9 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
-function expand_wildcards(thing, context = new Context(), { correct_articles = true } = {}) {
-  if (context == undefined)
-    throw new Error(`bad args: ${inspect_fun(arguments)}`);
+function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
+  if (context === undefined || correct_articles === undefined)
+    throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
@@ -8097,9 +8099,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     if (guard_bool) lm.log(msg, with_indentation);
   };
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, unexpected) {
-    if (unexpected !== undefined)
-      throw new Error(`bad args: ${inspect_fun(unexpected)}`);
+  function walk(thing, { correct_articles = undefined } = {}) {
+    if (correct_articles === undefined)
+      throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
+
+    // if (unexpected !== undefined)
+    //   throw new Error(`bad args: ${inspect_fun(unexpected)}`);
     
     const log = (guard_bool, msg, with_indentation = true) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
@@ -8139,7 +8144,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 `of ${thing.length} ` +
                 `${thing_str_repr(thing[ix])}`);
 
-            const elem_ret = lm.indent(() => walk(thing[ix]));
+            const elem_ret = lm.indent(() => walk(thing[ix],
+                                                  { correct_articles: correct_articles }));
 
             ret.push(elem_ret);
 
@@ -8315,7 +8321,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             `assigning ${inspect_fun(thing.source)} ` +
             `to '${thing.destination.name}'`);
         
-        let   new_val = lm.indent(() => expand_wildcards(thing.source, context));
+        let   new_val = lm.indent(() => expand_wildcards(thing.source, context,
+                                                         { correct_articles: correct_articles }));
         const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
         if (! thing.assign)
@@ -8350,7 +8357,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
 
         // const ret = lm.indent(() => walk(pick));j
-        let ret = lm.indent(() => expand_wildcards(pick, context));
+        let ret = lm.indent(() => expand_wildcards(pick, context,
+                                                   { correct_articles: correct_articles }));
 
         // console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
 
@@ -8693,7 +8701,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
 
-  const ret = unescape(smart_join(lm.indent(() => walk(thing))));
+  const ret = unescape(smart_join(lm.indent(() => walk(thing,
+                                                       { correct_articles: correct_articles }))));
   lm.indent(() => context.munge_configuration());
 
   // if (walked === '""' ||
@@ -9936,7 +9945,7 @@ async function main() {
     
     const context = base_context.clone();
     context.reset_temporaries();
-    const prompt  = expand_wildcards(AST, context);
+    const prompt  = expand_wildcards(AST, context, { correct_articles: true });
 
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
