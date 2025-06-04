@@ -4105,7 +4105,7 @@ class Context {
     let res = false;
 
     for (const flag of this.flags) {
-      if (arr_is_prefix_of_arr(test_flag, flag)) {
+      if (arr_is_prefix_of_arr(test_flag, flag, '*')) {
         res = true;
         break;
       }
@@ -9302,7 +9302,9 @@ const ExposedRjsonc =
 //                            lm.log(`FLAG_IDENT OUT: ${inspect_fun(arr)}`);
 //                            return arr;
 //                          });
-const flag_ident = xform(seq(ident, star(second(seq('.', liberal_ident)))),
+const flag_ident = xform(seq(choice(ident, '*'),
+                             star(second(seq('.',
+                                             choice(liberal_ident, '*'))))),
                          arr => {
                            // lm.log();
                            // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);

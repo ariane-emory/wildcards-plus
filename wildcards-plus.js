@@ -3155,7 +3155,7 @@ function rand_int(x, y) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
-function smart_join(arr, correct_articles) {
+function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
   
@@ -3846,7 +3846,7 @@ class Context {
     let res = false;
 
     for (const flag of this.flags) {
-      if (arr_is_prefix_of_arr(test_flag, flag)) {
+      if (arr_is_prefix_of_arr(test_flag, flag, '*')) {
         res = true;
         break;
       }
@@ -7939,15 +7939,18 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         
         if (got instanceof ASTLatchedNamedWildcardValue) {
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-            res.push(lm.indent(() => expand_wildcards(got.latched_value, context))); // not walk!
+            res.push(lm.indent(() => expand_wildcards(got.latched_value, context,
+                                                      { correct_articles: correct_articles}))); // not walk!
         }
         else {
           const priority = thing.min_count === 1 && thing.max_count === 1
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context,
-                                                              { correct_articles: correct_articles}));
+          const each  = p => lm.indent(() =>
+            expand_wildcards(p?.body ?? '', context,
+                             { correct_articles: correct_articles }));
+          
           const picks = got.pick(thing.min_count, thing.max_count,
                                  allow_fun, forbid_fun, each, 
                                  priority);
@@ -7973,7 +7976,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                   : res.join(" ")));
 
         if (thing.trailer && str.length > 0)
-          str = smart_join([str, thing.trailer], false); // no need to correct articles
+          str = smart_join([str, thing.trailer],
+                           { correct_articles: false });
+        // * never need to correct articles for trailers since punctuation couldn't trigger correction
         
         throw new ThrownReturn(str);
       }
@@ -7988,7 +7993,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           got = capitalize(got);
 
         if (thing.trailer && got.length > 0)
-          got = smart_join([got, thing.trailer]);
+          got = smart_join([got, thing.trailer],
+                           { correct_articles: false });
+        // * never need to correct articles for trailers since punctuation couldn't trigger correction
         
         throw new ThrownReturn(got);
       }
@@ -8074,7 +8081,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
         if (! thing.assign)
-          new_val = smart_join([old_val, new_val], true);
+          new_val = smart_join([old_val, new_val],
+                               { correct_articles: true }); // always correct articles here?
         
         context.scalar_variables.set(thing.destination.name, new_val);
 
@@ -8111,7 +8119,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         // console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
 
         if (thing.trailer && ret.length > 0)
-          ret = smart_join([ret, thing.trailer], false); // no need to correct articles
+          ret = smart_join([ret, thing.trailer],
+                           { correct_articles: false });
+        // * never need to correct articles for trailers since punctuation couldn't trigger correction
 
         throw new ThrownReturn(ret);
       }
@@ -8227,7 +8237,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
               //           `increment by string ${inspect_fun(value)}, ` +
               //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-              context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value], true));
+              context.configuration[our_name] =
+                lm.indent(() => smart_join([tmp_str, value],
+                                           { correct_articles: false })); // never correct here?
             }
             else {
               // probly won't work most of the time, but let's try anyhow, I guess.
@@ -8360,12 +8372,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               `${inspect_fun(walked_file)} `);
         });
         
-        // if (Array.isArray(walked_file))
-        //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
-
-        // if (Array.isArray(thing.weight))
-        //   throw new Error("boom");
-
         let walked_weight = null;
         
         lm.indent(() => {
@@ -8381,16 +8387,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               `${compress(inspect_fun(walked_weight))}, ` +
               `Array.isArray(${Array.isArray(walked_weight)})`);
         });
-
-        // log(log_expand_and_walk_enabled,
-        //     `walking weight ${compress(inspect_fun(thing.weight))}`);
-
-        // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
-        //   throw "bomb";
-        
-        
-        // if (Array.isArray(walked_weight))
-        //   walked_weight = smart_join(walked_weight);
 
         const weight_match_result = json_number.match(walked_weight);
 
@@ -8457,7 +8453,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
   const ret = unescape(smart_join(lm.indent(() => walk(thing,
                                                        { correct_articles: correct_articles })),
-                                  correct_articles));
+                                  { correct_articles: correct_articles }));
   
   lm.indent(() => context.munge_configuration());
 
@@ -9047,7 +9043,9 @@ const ExposedRjsonc =
 //                            lm.log(`FLAG_IDENT OUT: ${inspect_fun(arr)}`);
 //                            return arr;
 //                          });
-const flag_ident = xform(seq(ident, star(second(seq('.', liberal_ident)))),
+const flag_ident = xform(seq(choice(ident, '*'),
+                             star(second(seq('.',
+                                             choice(liberal_ident, '*'))))),
                          arr => {
                            // lm.log();
                            // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
