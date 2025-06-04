@@ -2923,17 +2923,23 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
-function arr_is_prefix_of_arr(prefix_arr, full_arr) {
+const PREFIX_WILDCARD_VALUE_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
+function arr_is_prefix_of_arr(prefix_arr, full_arr,
+                              prefix_wildcard_value = PREFIX_WILDCARD_VALUE_NOT_SUPPLIED) {
   if (prefix_arr.length > full_arr.length)
     return false;
 
-  for (let ix = 0; ix < prefix_arr.length; ix++)
-    if (prefix_arr[ix] !== full_arr[ix])
+  for (let ix = 0; ix < prefix_arr.length; ix++) {
+    if (prefix_wildcard_value !== PREFIX_WILDCARD_VALUE_NOT_SUPPLIED &&
+        prefix_arr[ix] === prefix_wildcard_value)
+      continue;
+    
+    if ( prefix_arr[ix] !== full_arr[ix])
       return false;
+  }
   
   return true;
 }
-
 // -------------------------------------------------------------------------------------------------
 function benchmark(thunk, {
   batch_count    = 50,
