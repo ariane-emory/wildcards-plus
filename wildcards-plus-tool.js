@@ -8803,7 +8803,6 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
 
   class Stop {}
   
-  lm.log(`auditing flags in ${thing_str_repr(thing)}`);
 
   try {
     if (visited.has(thing)) {
@@ -8816,7 +8815,10 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
     if (is_primitive(thing)) {
       return;
     }
-    else if (Array.isArray(thing)) { 
+
+    lm.log(`auditing flags in ${thing_str_repr(thing)}`);
+
+    if (Array.isArray(thing)) { 
       for (const elem of thing)
         lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
     }
