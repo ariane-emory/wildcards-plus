@@ -3280,73 +3280,6 @@ function benchmark(thunk, {
   return running_avg;
 }
 // -------------------------------------------------------------------------------------------------
-function format_pretty_bytes(bytes) {
-  const units = ['bytes', 'KB', 'MB', 'GB'];
-  const base = 1024;
-
-  const sign = Math.sign(bytes);
-  let absBytes = Math.abs(bytes);
-
-  let i = 0;
-  while (absBytes >= base && i < units.length - 1) {
-    absBytes /= base;
-    i++;
-  }
-
-  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
-  return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
-}
-// -------------------------------------------------------------------------------------------------
-function indent_lines(indent, str, indent_str = "| ") {
-  if (typeof str !== 'string')
-    throw new Error(`not a string: ${inspect.fun(str)}`);
-  
-  const indent_string = indent_str.repeat(indent);
-  const indented_str  = str
-        .split("\n")
-        .map(line => `${indent_string}${line}`)
-        .join("\n");
-
-  return indented_str;
-}
-// -------------------------------------------------------------------------------------------------
-function intercalate(separator, array, { final_separator = null } = {}) {
-  if (array.length === 0) return [];
-
-  const result = [array[0]];
-
-  for (let ix = 1; ix < array.length; ix++) {
-    const sep = (final_separator && ix === array.length - 1)
-          ? final_separator
-          : separator;
-    result.push(sep, array[ix]);
-  }
-
-  return result;
-}
-// -------------------------------------------------------------------------------------------------
-function measure_time(fun) {
-  const now = dt_hosted
-        ? Date.now
-        : performance.now.bind(performance);
-
-  const start = now();
-  fun();
-  const end = now();
-
-  return end - start;
-}
-// -------------------------------------------------------------------------------------------------
-function rjson_stringify(obj) {
-  if (obj === undefined)
-    return 'undefined';
-  
-  return JSON.stringify(obj)
-    .replace(/"(\w+)"\s*:/g, ' $1: ')
-    .replace(/{ /g, '{')
-    .replace(/},{/g, '}, {');
-}
-// -------------------------------------------------------------------------------------------------
 function capitalize(string) {
   // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -3387,11 +3320,22 @@ function choose_indefinite_article(word) {
 
   return 'a';
 }
-// ------------------------------------------------------------------------------------------------
-function format_pretty_number(num) {
-  const [intPart, fracPart] = num.toString().split(".");
-  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+// -------------------------------------------------------------------------------------------------
+function format_pretty_bytes(bytes) {
+  const units = ['bytes', 'KB', 'MB', 'GB'];
+  const base = 1024;
+
+  const sign = Math.sign(bytes);
+  let absBytes = Math.abs(bytes);
+
+  let i = 0;
+  while (absBytes >= base && i < units.length - 1) {
+    absBytes /= base;
+    i++;
+  }
+
+  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
 }
 // -------------------------------------------------------------------------------------------------
 function format_pretty_list(arr) {
@@ -3408,6 +3352,12 @@ function format_pretty_list(arr) {
   
   return ret;
 }
+// ------------------------------------------------------------------------------------------------
+function format_pretty_number(num) {
+  const [intPart, fracPart] = num.toString().split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+}
 // -------------------------------------------------------------------------------------------------
 function format_simple_time(date = new Date()) {
   return date.toLocaleTimeString('en-US', {
@@ -3418,10 +3368,50 @@ function format_simple_time(date = new Date()) {
   });
 }
 // -------------------------------------------------------------------------------------------------
+function indent_lines(indent, str, indent_str = "| ") {
+  if (typeof str !== 'string')
+    throw new Error(`not a string: ${inspect.fun(str)}`);
+  
+  const indent_string = indent_str.repeat(indent);
+  const indented_str  = str
+        .split("\n")
+        .map(line => `${indent_string}${line}`)
+        .join("\n");
+
+  return indented_str;
+}
+// -------------------------------------------------------------------------------------------------
+function intercalate(separator, array, { final_separator = null } = {}) {
+  if (array.length === 0) return [];
+
+  const result = [array[0]];
+
+  for (let ix = 1; ix < array.length; ix++) {
+    const sep = (final_separator && ix === array.length - 1)
+          ? final_separator
+          : separator;
+    result.push(sep, array[ix]);
+  }
+
+  return result;
+}
+// -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
     Object.keys(obj).length === 0 &&
     obj.constructor === Object;
+}
+// -------------------------------------------------------------------------------------------------
+function measure_time(fun) {
+  const now = dt_hosted
+        ? Date.now
+        : performance.now.bind(performance);
+
+  const start = now();
+  fun();
+  const end = now();
+
+  return end - start;
 }
 // -------------------------------------------------------------------------------------------------
 function rand_int(x, y) {
@@ -3429,6 +3419,25 @@ function rand_int(x, y) {
   const min = Math.min(x, y);
   const max = Math.max(x, y);
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+// -------------------------------------------------------------------------------------------------
+function raw(strings, ...values) {
+  return String.raw(strings, ...values);
+}
+// -------------------------------------------------------------------------------------------------
+function RegExp_raw(strings, ...values) {
+  const raw_source = raw(strings, ...values);
+  return new RegExp(raw_source);
+}
+// -------------------------------------------------------------------------------------------------
+function rjson_stringify(obj) {
+  if (obj === undefined)
+    return 'undefined';
+  
+  return JSON.stringify(obj)
+    .replace(/"(\w+)"\s*:/g, ' $1: ')
+    .replace(/{ /g, '{')
+    .replace(/},{/g, '}, {');
 }
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
@@ -3629,15 +3638,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     lm.log(`JOINED ${inspect_fun(str)}`, true);
 
   return str;
-}
-// -------------------------------------------------------------------------------------------------
-function raw(strings, ...values) {
-  return String.raw(strings, ...values);
-}
-// -------------------------------------------------------------------------------------------------
-function RegExp_raw(strings, ...values) {
-  const raw_source = raw(strings, ...values);
-  return new RegExp(raw_source);
 }
 // -------------------------------------------------------------------------------------------------
 // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
