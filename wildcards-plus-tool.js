@@ -8779,42 +8779,53 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
-  lm.log(`auditing flags in ${thing_str_repr(thing)}`);
-  
   if (thing === undefined ||
       dummy_context === undefined ||
       checked_flags_arr === undefined ||
       visited === undefined)
-    throw new Error(`bad adit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}`);
-  lm.log(`done auditing flags`);
+    throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}`);
 
-  if (visited.has(thing))
-    return;
-
-  visited.add(thing);
+  class Stop {}
   
-  if (is_primitive(thing)) {
-    return;
-  }
-  else if (Array.isArray(thing)) { 
-    for (const elem of thing)
-      lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
-  }
-  else if (thing instanceof ASTNode) {
-    if (typeof thing.direct_children !== 'function')
-      throw new Error(`no direct_children function: ${thing_str_repr(thing)}`);
-    
-    const children = thing.direct_children();
+  lm.log(`auditing flags in ${thing_str_repr(thing)}`);
 
-    lm.log(`children: ${thing_str_repr(Array.isArray(children)
+  try {
+    if (visited.has(thing))
+      return;
+
+    visited.add(thing);
+    
+    if (is_primitive(thing)) {
+      return;
+    }
+    else if (Array.isArray(thing)) { 
+      for (const elem of thing)
+        lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
+    }
+    else if (thing instanceof ASTNode) {
+      if (typeof thing.direct_children !== 'function')
+        throw new Error(`no direct_children function: ${thing_str_repr(thing)}`);
+      
+      const children = thing.direct_children();
+
+      lm.log(`children: ${thing_str_repr(Array.isArray(children)
                                          ? children
                                          : Array.from(children))}`);
-    
-    for (const child of children)
-      lm.indent(() => audit_flags(child, dummy_context, checked_flags_arr, visited));
+      
+      for (const child of children)
+        lm.indent(() => audit_flags(child, dummy_context, checked_flags_arr, visited));
+    }
+    else {
+      throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+    }
   }
-  else {
-    throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+  catch (exc) {
+    if (exc instanceof Stop) {
+      lm.log(`done auditing flags in ${thing_str_repr(thing)}`);
+      return;
+    }
+
+    throw exc;
   }
 }
 // =================================================================================================
