@@ -4134,7 +4134,7 @@ class Context {
     return res;
   }
   // -----------------------------------------------------------------------------------------------
-  set_flag(new_flag) {
+  set_flag(new_flag, replace_existing = true) {
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
       // if (log_flags_enabled)
@@ -4146,7 +4146,7 @@ class Context {
     //   lm.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
 
     const new_flag_head = new_flag.slice(0, -1);
-    
+
     this.flags = this.flags.filter(existing_flag => {
       if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
         if (log_flags_enabled)
@@ -4154,17 +4154,19 @@ class Context {
                  `new flag ${compress(inspect_fun(new_flag))}`);
         return false;
       }
-      
-      if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
+
+      if (replace_existing &&
+          new_flag_head.length != 0 &&
+          arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
         if (log_flags_enabled)
-          lm.log(`discard ${inspect_fun(existing_flag)} because it is a suffix of ` +
+          lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
                  `new flag's head ${compress(inspect_fun(new_flag_head))}`);
         return false; 
       }
       
       return true;
     });
-
+    
     this.flags.push(new_flag);
   }
   // -----------------------------------------------------------------------------------------------
