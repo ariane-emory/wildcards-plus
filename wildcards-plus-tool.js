@@ -8790,8 +8790,10 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
   lm.log(`auditing flags in ${thing_str_repr(thing)}`);
 
   try {
-    if (visited.has(thing))
+    if (visited.has(thing)) {
+      lm.log(`skip visited ${thing_str_repr(thing)}`);
       return;
+    }
 
     visited.add(thing);
     
@@ -8812,8 +8814,13 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
                                          ? children
                                          : Array.from(children))}`);
       
-      for (const child of children)
-        lm.indent(() => audit_flags(child, dummy_context, checked_flags_arr, visited));
+      for (const child of children) {
+        lm.indent(() => {
+          lm.log(`child: ${thing_str_repr(child)}`);
+          audit_flags(child, dummy_context, checked_flags_arr, visited);
+        });
+      }
+      
     }
     else {
       throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
