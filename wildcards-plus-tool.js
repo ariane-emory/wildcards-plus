@@ -8796,7 +8796,15 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
       lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
   }
   else if (thing instanceof ASTNode) {
-    return;
+    if (typeof thing.direct_children !== 'function')
+      throw new Error(`no direct_children function: ${thing_str_repr(thing)}`);
+    
+    const children = thing.direct_children();
+
+    lm.log(`children: ${thing_str_repr(children)}`);
+    
+    for (const child of children)
+          lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
   }
   else {
     throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
