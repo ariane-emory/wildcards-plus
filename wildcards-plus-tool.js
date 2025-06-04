@@ -8793,11 +8793,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_flags(thing, dummy_context, checked_flags_arr, visited, noisy = true) {
+function audit_flags(thing, dummy_context, checked_flags_arr, /* visited, */ noisy = true) {
   if (thing === undefined ||
       dummy_context === undefined ||
-      checked_flags_arr === undefined ||
-      visited === undefined)
+      checked_flags_arr === undefined
+      /* || visited === undefined */
+     )
     throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // throw new Error(`bad audit_flags args: ${compress(inspect_fun(arguments))}`);
 
@@ -8806,13 +8807,15 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited, noisy = t
         ? msg => lm.log(msg)
         : msg => {}; // no-op
   try {
+    /*
     if (visited.has(thing)) {
-      log(`skip visited ${thing_str_repr(thing)}`);
-      return;
-    }
+     log(`skip visited ${thing_str_repr(thing)}`);
+     return;
+     }
 
-    visited.add(thing);
-    
+     visited.add(thing);
+    */
+
     if (is_primitive(thing)) {
       return;
     }
@@ -8821,7 +8824,11 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited, noisy = t
 
     if (Array.isArray(thing)) { 
       for (const elem of thing)
-        lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited, noisy));
+        lm.indent(() => audit_flags(elem,
+                                    dummy_context,
+                                    checked_flags_arr,
+                                    /* visited, */
+                                    noisy));
     }
     else if (thing instanceof ASTCheckFlags) {
       log(`IMPLEMENT ASTCheckFlags CASE!`);
@@ -8847,7 +8854,7 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited, noisy = t
             lm.indent (() => audit_flags(child,
                                          dummy_context,
                                          checked_flags_arr,
-                                         visited,
+                                         /* visited, */
                                          noisy));
           });
         }
@@ -10134,7 +10141,7 @@ async function main() {
     const checked_flags_arr = [];
     const visited = new Set();
     
-    audit_flags(AST, dummy_context, checked_flags_arr, visited);
+    audit_flags(AST, dummy_context, checked_flags_arr, /* visited, */ false);
 
     lm.log(`dummy_context.flags: ${inspect_fun(dummy_context.flags)}`);
     lm.log(`checked_flags_arr:   ${inspect_fun(checked_flags_arr)}`);
