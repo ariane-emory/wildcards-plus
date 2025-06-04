@@ -8834,7 +8834,7 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
             lm.log(`child: ${thing_str_repr(child)}`);
             lm.indent (() => audit_flags(child,
                                          dummy_context,
-                        checked_flags_arr,
+                                         checked_flags_arr,
                                          visited));
           });
         }
