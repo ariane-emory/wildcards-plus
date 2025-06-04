@@ -8248,15 +8248,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         let str;
 
+        const joiner = thing.joiner === '&'
+              ? ','
+              : thing.joiner;
+
         const intercalate_options = thing.joiner === '&'
               ? { final_separator: 'and' }
               : {};
 
-        const joiner = thing.joiner === '&'
-              ? ','
-              : thing.joiner;
-        
-        str = smart_join(intercalate(joiner, res, intercalate_options), { correct_articles: true });
+        str = smart_join(intercalate(joiner, res, intercalate_options),
+                         { correct_articles: false });
         
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
@@ -10115,6 +10116,6 @@ if (! main_disabled)
 // log_match_enabled = true;
 //sconsole.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')))
 
-lm.log(smart_join(intercalate('|', ['foo', 'bar', 'baz']),  { correct_articles: true }));
-lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz']),  { correct_articles: true }));
-lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz'], { final_separator: 'and' }), { correct_articles: true }));
+// lm.log(smart_join(intercalate('|', ['foo', 'bar', 'baz']),  { correct_articles: true }));
+// lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz']),  { correct_articles: true }));
+// lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz'], { final_separator: 'and' }), { correct_articles: true }));

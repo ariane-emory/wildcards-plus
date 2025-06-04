@@ -2923,6 +2923,21 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
+function intercalate(separator, array, { final_separator = null } = {}) {
+  if (array.length === 0) return [];
+
+  const result = [array[0]];
+
+  for (let ix = 1; ix < array.length; ix++) {
+    const sep = (final_separator && ix === array.length - 1)
+          ? final_separator
+          : separator;
+    result.push(sep, array[ix]);
+  }
+
+  return result;
+}
+// -------------------------------------------------------------------------------------------------
 const arr_is_prefix_of_arr = (() => {
   const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
 
@@ -3020,7 +3035,7 @@ function benchmark(thunk, {
   console.log();
   return running_avg;
 }
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 function format_pretty_bytes(bytes) {
   const units = ['bytes', 'KB', 'MB', 'GB'];
   const base = 1024;
@@ -3181,7 +3196,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return '';
   
   if (log_smart_join_enabled)
-    lm.log(`JOINING ${compress(inspect_fun(arr))}`);
+    lm.log(`JOINING ${compress(inspect_fun(arr))}`, true);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
@@ -3201,6 +3216,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   let str       = left_word;
   
   for (let ix = 1; ix < arr.length; ix++)  {
+    // if (str.includes(`,,`))
+    //   throw new Error("STOP");
+    
     let right_word           = null;
     let prev_char            = null;
     let prev_char_is_escaped = null;
@@ -3209,7 +3227,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const add_a_space = () => {
       if (log_smart_join_enabled)
-        lm.log(`SPACE!`);
+        lm.log(`SPACE!`, true);
 
       prev_char  = ' ';
       str       += ' ';
@@ -3217,7 +3235,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const chomp_left_side = () => {
       if (log_smart_join_enabled)
-        lm.log(`CHOMP LEFT!`);
+        lm.log(`CHOMP LEFT!`, true);
       
       str      = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
@@ -3227,7 +3245,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     
     const chomp_right_side = () => {
       if (log_smart_join_enabled)
-        lm.log(`CHOMP RIGHT!`);
+        lm.log(`CHOMP RIGHT!`, true);
 
       arr[ix] = arr[ix].slice(1);
 
@@ -3236,7 +3254,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const consume_right_word = () => {
       if (log_smart_join_enabled)
-        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+        lm.log(`CONSUME ${inspect_fun(right_word)}!`, true);
 
       // if (right_word === '""' || right_word === "''")
       //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
@@ -3247,7 +3265,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const move_chars_left = (n) => {
       if (log_smart_join_enabled)
-        lm.log(`SHIFT ${n} CHARACTERS!`);
+        lm.log(`SHIFT ${n} CHARACTERS!`, true);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
       const shifted_str = right_word.substring(0, n);
@@ -3274,14 +3292,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
                `prev_char = ${inspect_fun(prev_char)}, ` +         
                `next_char = ${inspect_fun(next_char)}, ` + 
                `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-               `next_char_is_escaped = ${next_char_is_escaped}`);
+               `next_char_is_escaped = ${next_char_is_escaped}`, true);
     };
     
     update_pos_vars();
     
     if (right_word === '') {
       if (log_smart_join_enabled)
-        lm.log(`JUMP EMPTY!`);
+        lm.log(`JUMP EMPTY!`, true);
 
       continue;
     }
@@ -3329,7 +3347,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     if (right_word === '') {
       if (log_smart_join_enabled)
-        lm.log(`JUMP EMPTY (LATE)!`);
+        lm.log(`JUMP EMPTY (LATE)!`, true);
 
       continue;
     }
@@ -3349,7 +3367,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   }
 
   if (log_smart_join_enabled)
-    lm.log(`JOINED ${inspect_fun(str)}`);
+    lm.log(`JOINED ${inspect_fun(str)}`, true);
 
   return str;
 }
@@ -7969,14 +7987,19 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
-        let str = thing.joiner === ','
-            ? res.join(", ")
-            : (thing.joiner == '|'
-               ? res.join(' | ')
-               : (thing.joiner == '&'
-                  ? format_pretty_list(res)
-                  : res.join(" ")));
+        let str;
 
+        const joiner = thing.joiner === '&'
+              ? ','
+              : thing.joiner;
+
+        const intercalate_options = thing.joiner === '&'
+              ? { final_separator: 'and' }
+              : {};
+
+        str = smart_join(intercalate(joiner, res, intercalate_options),
+                         { correct_articles: false });
+        
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
                            { correct_articles: false });
@@ -9365,7 +9388,7 @@ const NamedWildcardReference  =
               const ident   = arr[5];
               const min_ct  = arr[2];
               const max_ct  = arr[3] ?? min_ct;
-              const join    = arr[4]; // ??''
+              const joiner  = arr[4]; // ??''
               const caret   = arr[1];
               const trailer = arr[6];
 
@@ -9380,7 +9403,7 @@ const NamedWildcardReference  =
               }
               
               return new ASTNamedWildcardReference(ident,
-                                                   join,
+                                                   joiner,
                                                    caret,
                                                    min_ct,
                                                    max_ct,
