@@ -3149,9 +3149,9 @@ function rand_int(x, y) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
-function smart_join(arr, unexpected) {
-  if (unexpected !== undefined)
-    throw new Error("bad args");
+function smart_join(arr, correct_articles) {
+  if (correct_articles === undefined)
+    throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
   
   // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   // const log = msg => {
@@ -3290,14 +3290,16 @@ function smart_join(arr, unexpected) {
       move_chars_left(1);
 
     // Normalize article if needed:
-    const article_match = str.match(/(?:^|\s)([Aa])$/);
-    
-    if (article_match) {
-      const originalArticle = article_match[1];
-      const updatedArticle = articleCorrection(originalArticle, right_word);
+    if (correct_articles) {
+      const article_match = str.match(/(?:^|\s)([Aa])$/);
+      
+      if (article_match) {
+        const originalArticle = article_match[1];
+        const updatedArticle = articleCorrection(originalArticle, right_word);
 
-      if (updatedArticle !== originalArticle) 
-        str = str.slice(0, -originalArticle.length) + updatedArticle;
+        if (updatedArticle !== originalArticle) 
+          str = str.slice(0, -originalArticle.length) + updatedArticle;
+      }
     }
 
     let chomped = false;
@@ -7756,7 +7758,9 @@ function load_prelude(into_context = new Context()) {
     }
 
     // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
-    const ignored = expand_wildcards(prelude_parse_result.value, into_context);
+    const ignored = expand_wildcards(prelude_parse_result.value, into_context,
+                                     { correct_articles: true });
+    
     log_flags_enabled = old_log_flags_enabled;
 
     // log_flags_enabled = true;
@@ -7780,9 +7784,9 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
-function expand_wildcards(thing, context = new Context(), unexpected = undefined) {
-  if (unexpected !== undefined)
-    throw new Error("bad args");
+function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
+  if (context === undefined || correct_articles === undefined)
+    throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
@@ -7836,9 +7840,12 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
     if (guard_bool) lm.log(msg, with_indentation);
   };
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, undexpected) {
-    if (unexpected !== undefined)
-      throw new Error("bad args");
+  function walk(thing, { correct_articles = undefined } = {}) {
+    if (correct_articles === undefined)
+      throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
+
+    // if (unexpected !== undefined)
+    //   throw new Error(`bad args: ${inspect_fun(unexpected)}`);
     
     const log = (guard_bool, msg, with_indentation = true) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
@@ -7878,7 +7885,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                 `of ${thing.length} ` +
                 `${thing_str_repr(thing[ix])}`);
 
-            const elem_ret = lm.indent(() => walk(thing[ix]));
+            const elem_ret = lm.indent(() => walk(thing[ix],
+                                                  { correct_articles: correct_articles }));
 
             ret.push(elem_ret);
 
@@ -7932,7 +7940,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context));
+          const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context,
+                                                              { correct_articles: correct_articles}));
           const picks = got.pick(thing.min_count, thing.max_count,
                                  allow_fun, forbid_fun, each, 
                                  priority);
@@ -7958,7 +7967,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                   : res.join(" ")));
 
         if (thing.trailer && str.length > 0)
-          str = smart_join([str, thing.trailer]);
+          str = smart_join([str, thing.trailer], false); // no need to correct articles
         
         throw new ThrownReturn(str);
       }
@@ -8054,11 +8063,12 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
             `assigning ${inspect_fun(thing.source)} ` +
             `to '${thing.destination.name}'`);
         
-        let   new_val = lm.indent(() => expand_wildcards(thing.source, context));
+        let   new_val = lm.indent(() => expand_wildcards(thing.source, context,
+                                                         { correct_articles: correct_articles }));
         const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
         if (! thing.assign)
-          new_val = smart_join([ old_val, new_val ]);
+          new_val = smart_join([old_val, new_val], true);
         
         context.scalar_variables.set(thing.destination.name, new_val);
 
@@ -8089,12 +8099,13 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
 
         // const ret = lm.indent(() => walk(pick));j
-        let ret = lm.indent(() => expand_wildcards(pick, context));
+        let ret = lm.indent(() => expand_wildcards(pick, context,
+                                                   { correct_articles: correct_articles }));
 
         // console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
 
         if (thing.trailer && ret.length > 0)
-          ret = smart_join([ret, thing.trailer]);
+          ret = smart_join([ret, thing.trailer], false); // no need to correct articles
 
         throw new ThrownReturn(ret);
       }
@@ -8106,9 +8117,14 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         // lm.log(`THING: ${thing} ${inspect_fun(thing)}`);
         
         if (value instanceof ASTNode) {
-          const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
+          const expanded_value = lm.indent(() =>
+            // don't correct articles in config values so that we don't mess up, e.g.,
+            // %sampled = { Euler A AYS };
+            expand_wildcards(thing.value, context, // not walk!
+                             { correct_articles: false })); 
 
-          // lm.log(`expanded_value: ${inspect_fun(expanded_value)}`);
+          // lm.log(`expanded value: ${compress(inspect_fun(thing.value))} => ` +
+          //        `${inspect_fun(expanded_value)}`);
 
           // log_match_enabled  = true;
 
@@ -8205,7 +8221,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
               // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
               //           `increment by string ${inspect_fun(value)}, ` +
               //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-              context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value]));
+              context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value], true));
             }
             else {
               // probly won't work most of the time, but let's try anyhow, I guess.
@@ -8329,7 +8345,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           log(log_expand_and_walk_enabled,
               `expanding file ${compress(inspect_fun(thing.file))}`);
           
-          walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context)); // not walk!
+          walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
+                                                         { correct_articles: correct_articles })); // not walk!
 
           log(log_expand_and_walk_enabled,
               `expanded file is ${typeof walked_file} ` +
@@ -8349,7 +8366,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           log(log_expand_and_walk_enabled,
               `expanding weight ${compress(inspect_fun(thing.weight))}`);
           
-          walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context)); // not walk!
+          walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
+                                                           { correct_articles: correct_articles })); // not walk!
 
           log(log_expand_and_walk_enabled,
               `expanded weight is ${typeof walked_weight} ` +
@@ -8431,7 +8449,10 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
 
-  const ret = unescape(smart_join(lm.indent(() => walk(thing))));
+  const ret = unescape(smart_join(lm.indent(() => walk(thing,
+                                                       { correct_articles: correct_articles })),
+                                  correct_articles));
+  
   lm.indent(() => context.munge_configuration());
 
   // if (walked === '""' ||

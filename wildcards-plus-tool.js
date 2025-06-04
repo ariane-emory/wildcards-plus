@@ -8382,8 +8382,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             expand_wildcards(thing.value, context, // not walk!
                              { correct_articles: false })); 
 
-          lm.log(`expanded_value: ${compress(inspect_fun(thing.value))} => ` +
-                 `${inspect_fun(expanded_value)}`);
+          // lm.log(`expanded value: ${compress(inspect_fun(thing.value))} => ` +
+          //        `${inspect_fun(expanded_value)}`);
 
           // log_match_enabled  = true;
 
