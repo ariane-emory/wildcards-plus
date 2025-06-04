@@ -8871,7 +8871,7 @@ class ASTNode {
                       `${inspect_fun(this)} ` +
                       `${inspect_fun(ret)} ` +
                       `included non-ASTNode: ` +
-                      `${inspect_fun(ret.find(x => !(x instanceof ASTNode)))}`
+                      `${inspect_fun(ret.find(x => !((x instanceof ASTNode) || Array.isArray(x))))}`
                      ); 
     
     return ret;
