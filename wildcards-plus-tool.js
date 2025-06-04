@@ -3411,7 +3411,7 @@ function rand_int(x, y) {
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
-    
+  
   // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   // const log = msg => {
   //   return console.log(`${' '.repeat(indent*2)}${msg}`);
@@ -8227,7 +8227,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
-                           { correct_articles: false }); // no need to correct articles
+                           { correct_articles: false });
+        // * never need to correct articles for trailers since punctuation couldn't trigger correction
         
         throw new ThrownReturn(str);
       }
@@ -8242,7 +8243,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           got = capitalize(got);
 
         if (thing.trailer && got.length > 0)
-          got = smart_join([got, thing.trailer]);
+          got = smart_join([got, thing.trailer],
+                           { correct_articles: false });
+        // * never need to correct articles for trailers since punctuation couldn't trigger correction
         
         throw new ThrownReturn(got);
       }
@@ -8367,7 +8370,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         if (thing.trailer && ret.length > 0)
           ret = smart_join([ret, thing.trailer],
-                           { correct_articles: false }); // never need to correct articles for trailers
+                           { correct_articles: false });
+        // * never need to correct articles for trailers since punctuation couldn't trigger correction
 
         throw new ThrownReturn(ret);
       }
