@@ -8796,11 +8796,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // -------------------------------------------------------------------------------------------------
 function audit_flags(root_ast_node, noisy = true) {
   if (root_ast_node === undefined)
-    throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
+    throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `this likely indicates a programmer error`);
 
-  const log = noisy
-        ? msg => lm.log(msg)
-        : msg => {}; // no-op
+  const log = noisy ? msg => lm.log(msg) : msg => {};
 
   function walk(thing) {
     // throw new Error(`bad audit_flags args: ${compress(inspect_fun(arguments))}`);
