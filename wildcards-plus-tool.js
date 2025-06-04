@@ -8793,7 +8793,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
+function audit_flags(thing, dummy_context, checked_flags_arr, visited, noisy = true) {
   if (thing === undefined ||
       dummy_context === undefined ||
       checked_flags_arr === undefined ||
@@ -8802,11 +8802,12 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
   // throw new Error(`bad audit_flags args: ${compress(inspect_fun(arguments))}`);
 
   class Stop {}
-  
-
+  const log = noisy
+        ? msg => lm.log(msg)
+        : msg => {}; // no-op
   try {
     if (visited.has(thing)) {
-      lm.log(`skip visited ${thing_str_repr(thing)}`);
+      log(`skip visited ${thing_str_repr(thing)}`);
       return;
     }
 
@@ -8816,20 +8817,20 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
       return;
     }
 
-    lm.log(`auditing flags in ${thing_str_repr(thing)}`);
+    log(`auditing flags in ${thing_str_repr(thing)}`);
 
     if (Array.isArray(thing)) { 
       for (const elem of thing)
-        lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
+        lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited, noisy));
     }
     else if (thing instanceof ASTCheckFlags) {
-      lm.log(`IMPLEMENT ASTCheckFlags CASE!`);
+      log(`IMPLEMENT ASTCheckFlags CASE!`);
     }
     else if (thing instanceof ASTNotFlag) {
-      lm.log(`IMPLEMENT ASTCheckFlags CASE!`);
+      log(`IMPLEMENT ASTCheckFlags CASE!`);
     }
     else if (thing instanceof ASTSetFlag) {
-      lm.log(`IMPLEMENT ASTSetFlag CASE!`);
+      log(`IMPLEMENT ASTSetFlag CASE!`);
     }
     else if (thing instanceof ASTNode) {
       if (typeof thing.direct_children !== 'function')
@@ -8838,15 +8839,16 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
       const children = Array.from(thing.direct_children());
 
       lm.indent(() => {
-        lm.log(`children: ${thing_str_repr(children)}`);
+        log(`children: ${thing_str_repr(children)}`);
         
         for (const child of children) {
           lm.indent(() => {
-            lm.log(`child: ${thing_str_repr(child)}`);
+            log(`child: ${thing_str_repr(child)}`);
             lm.indent (() => audit_flags(child,
                                          dummy_context,
                                          checked_flags_arr,
-                                         visited));
+                                         visited,
+                                         noisy));
           });
         }
       });
@@ -8857,7 +8859,7 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
   }
   catch (exc) {
     if (exc instanceof Stop) {
-      lm.log(`done auditing flags in ${thing_str_repr(thing)}`);
+      log(`done auditing flags in ${thing_str_repr(thing)}`);
       return;
     }
 
@@ -8895,7 +8897,12 @@ class ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Flags:
 // -------------------------------------------------------------------------------------------------
-class ASTFlagOperation extends ASTNode {}
+class ASTFlagOperation extends ASTNode {
+  // -----------------------------------------------------------------------------------------------
+  direct_children() {
+    return [];
+  }
+}
 // -------------------------------------------------------------------------------------------------
 class ASTSetFlag extends ASTFlagOperation {
   constructor(flag_arr) {
