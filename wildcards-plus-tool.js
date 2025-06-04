@@ -8872,6 +8872,12 @@ class ASTNode {
     //                   `included undefined for ` +
     //                   `${inspect_fun(this)}`);
 
+    if (ret.some(x => !(x instanceof ASTNode)))
+      throw new Error(`direct_children ` +
+                      `${inspect_fun(ret)} ` +
+                      `included non-ASTNode for ` +
+                      `${inspect_fun(this)}`);
+    
     return ret;
   }
   // -----------------------------------------------------------------------------------------------
