@@ -8798,8 +8798,8 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
       dummy_context === undefined ||
       checked_flags_arr === undefined ||
       visited === undefined)
-    // throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}`);
-    throw new Error(`bad audit_flags args: ${compress(inspect_fun(arguments))}`);
+    throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}`);
+  // throw new Error(`bad audit_flags args: ${compress(inspect_fun(arguments))}`);
 
   class Stop {}
   
@@ -8826,21 +8826,23 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
       
       const children = Array.from(thing.direct_children());
 
-      lm.log(`children: ${thing_str_repr(children)}`);
-      
-      for (const child of children) {
-        lm.indent(() => {
-          lm.log(`child: ${thing_str_repr(child)}`);
-          audit_flags(child.value.direct_children(),
-                      dummy_context,
-                      checked_flags_arr,
-                      visited);
-        });
+      lm.indent(() => {
+        lm.log(`children: ${thing_str_repr(children)}`);
+        
+        for (const child of children) {
+          lm.indent(() => {
+            lm.log(`child: ${thing_str_repr(child)}`);
+            lm.indent (() => audit_flags(child,
+                                         dummy_context,
+                        checked_flags_arr,
+                                         visited));
+          });
+        }
+      });
+    }
+      else {
+        throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
       }
-    }
-    else {
-      throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
-    }
   }
   catch (exc) {
     if (exc instanceof Stop) {
@@ -9203,7 +9205,7 @@ class ASTAnonWildcard extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// AnonWildcardsAlternative::
+// AnonWildcardsAlternative:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative extends ASTNode {
   constructor(weight, check_flags, not_flags, body) {
