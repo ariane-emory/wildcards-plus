@@ -3408,9 +3408,9 @@ function rand_int(x, y) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
-function smart_join(arr, unexpected) {
-  if (unexpected !== undefined)
-    throw new Error("bad args");
+function smart_join(arr, correct_articles = true) {
+  // if (unexpected !== undefined)
+  //   throw new Error("bad args");
   
   // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   // const log = msg => {
@@ -3549,14 +3549,16 @@ function smart_join(arr, unexpected) {
       move_chars_left(1);
 
     // Normalize article if needed:
-    const article_match = str.match(/(?:^|\s)([Aa])$/);
-    
-    if (article_match) {
-      const originalArticle = article_match[1];
-      const updatedArticle = articleCorrection(originalArticle, right_word);
+    if (correct_articles) {
+      const article_match = str.match(/(?:^|\s)([Aa])$/);
+      
+      if (article_match) {
+        const originalArticle = article_match[1];
+        const updatedArticle = articleCorrection(originalArticle, right_word);
 
-      if (updatedArticle !== originalArticle) 
-        str = str.slice(0, -originalArticle.length) + updatedArticle;
+        if (updatedArticle !== originalArticle) 
+          str = str.slice(0, -originalArticle.length) + updatedArticle;
+      }
     }
 
     let chomped = false;
@@ -8039,9 +8041,7 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
-function expand_wildcards(thing, context = new Context(), unexpected = undefined) {
-  if (unexpected !== undefined)
-    throw new Error("bad args");
+function expand_wildcards(thing, context = new Context(), { correct_articles = true } = {}) {
   // -----------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
@@ -8095,9 +8095,9 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
     if (guard_bool) lm.log(msg, with_indentation);
   };
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, undexpected) {
+  function walk(thing, unexpected) {
     if (unexpected !== undefined)
-      throw new Error("bad args");
+      throw new Error(`bad args: ${inspect_fun(unexpected)}`);
     
     const log = (guard_bool, msg, with_indentation = true) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
@@ -8367,7 +8367,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
 
-          // lm.log(`expanded_value: ${inspect_fun(expanded_value)}`);
+          lm.log(`expanded_value: ${compress(inspect_fun(thing.value))} => ` +
+                 `${inspect_fun(expanded_value)}`);
 
           // log_match_enabled  = true;
 

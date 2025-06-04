@@ -3949,7 +3949,6 @@ class Context {
       else
         lm.log(`WARNING: did not find samples '${munged_configuration.sampler}', ` +
                `we're probably going to crash in a moment`);
-
     }
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
