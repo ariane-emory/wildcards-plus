@@ -8249,9 +8249,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (thing.joiner === ',')
           str = smart_join(intercalate(',', res), { correct_articles: true });
         else if (thing.joiner === '|')
-          str = smart_join(interalate('|', res),  { correct_articles: true });
+          str = smart_join(intercalate('|', res), { correct_articles: true });
         else if (thing.joiner === '&')
-          str = smart_join(interalate(',', res, { final_separator: 'and' }),  { correct_articles: true });
+          str = smart_join(intercalate(',', res, { final_separator: 'and' }), { correct_articles: true });
         else
           str = smart_join(intercalate(' ', res), { correct_articles: true });
 
@@ -10120,3 +10120,6 @@ if (! main_disabled)
 // log_match_enabled = true;
 //sconsole.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')))
 
+// lm.log(smart_join(intercalate('|', ['foo', 'bar', 'baz']),  { correct_articles: true }));
+// lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz']),  { correct_articles: true }));
+// lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz'], { final_separator: 'and' }), { correct_articles: true }));
