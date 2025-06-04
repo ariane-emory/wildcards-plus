@@ -3408,10 +3408,10 @@ function rand_int(x, y) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
-function smart_join(arr, correct_articles = true) {
-  // if (unexpected !== undefined)
-  //   throw new Error("bad args");
-  
+function smart_join(arr, correct_articles) {
+  if (correct_articles === undefined)
+    throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
+    
   // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   // const log = msg => {
   //   return console.log(`${' '.repeat(indent*2)}${msg}`);
@@ -8199,7 +8199,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context));
+          const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context,
+                                                              { correct_articles: correct_articles}));
           const picks = got.pick(thing.min_count, thing.max_count,
                                  allow_fun, forbid_fun, each, 
                                  priority);
@@ -8225,7 +8226,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                   : res.join(" ")));
 
         if (thing.trailer && str.length > 0)
-          str = smart_join([str, thing.trailer]);
+          str = smart_join([str, thing.trailer], false); // no need to correct articles
         
         throw new ThrownReturn(str);
       }
@@ -8326,7 +8327,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
         if (! thing.assign)
-          new_val = smart_join([ old_val, new_val ]);
+          new_val = smart_join([old_val, new_val], true);
         
         context.scalar_variables.set(thing.destination.name, new_val);
 
@@ -8363,7 +8364,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         // console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
 
         if (thing.trailer && ret.length > 0)
-          ret = smart_join([ret, thing.trailer]);
+          ret = smart_join([ret, thing.trailer], false); // no need to correct articles
 
         throw new ThrownReturn(ret);
       }
@@ -8375,7 +8376,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         // lm.log(`THING: ${thing} ${inspect_fun(thing)}`);
         
         if (value instanceof ASTNode) {
-          const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
+          const expanded_value = lm.indent(() => expand_wildcards(thing.value, context,
+                                                                  { correct_articles: correct_articles })); // not walk!
 
           lm.log(`expanded_value: ${compress(inspect_fun(thing.value))} => ` +
                  `${inspect_fun(expanded_value)}`);
@@ -8475,7 +8477,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
               //           `increment by string ${inspect_fun(value)}, ` +
               //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-              context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value]));
+              context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value], true));
             }
             else {
               // probly won't work most of the time, but let's try anyhow, I guess.
@@ -8599,7 +8601,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           log(log_expand_and_walk_enabled,
               `expanding file ${compress(inspect_fun(thing.file))}`);
           
-          walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context)); // not walk!
+          walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
+                                                         { correct_articles: correct_articles })); // not walk!
 
           log(log_expand_and_walk_enabled,
               `expanded file is ${typeof walked_file} ` +
@@ -8619,7 +8622,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           log(log_expand_and_walk_enabled,
               `expanding weight ${compress(inspect_fun(thing.weight))}`);
           
-          walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context)); // not walk!
+          walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
+                                                           { correct_articles: correct_articles })); // not walk!
 
           log(log_expand_and_walk_enabled,
               `expanded weight is ${typeof walked_weight} ` +
@@ -8702,7 +8706,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       `${context}`);
 
   const ret = unescape(smart_join(lm.indent(() => walk(thing,
-                                                       { correct_articles: correct_articles }))));
+                                                       { correct_articles: correct_articles })),
+                                  correct_articles));
+  
   lm.indent(() => context.munge_configuration());
 
   // if (walked === '""' ||
