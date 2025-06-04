@@ -8122,9 +8122,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     return `${type_str} ${thing_str}`
   }
   // -----------------------------------------------------------------------------------------------
-  const thing_type_str = thing =>
-        typeof thing === 'object' ? thing.constructor.name : typeof thing;
-  // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg, with_indentation = true) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
     if (guard_bool) lm.log(msg, with_indentation);
