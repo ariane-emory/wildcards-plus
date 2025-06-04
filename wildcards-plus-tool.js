@@ -8831,13 +8831,17 @@ function audit_flags(thing, dummy_context, checked_flags_arr, /* visited, */ noi
                                     noisy));
     }
     else if (thing instanceof ASTCheckFlags) {
-      log(`IMPLEMENT ASTCheckFlags CASE!`);
+      // log(`IMPLEMENT ASTCheckFlags CASE!`);
+      for (const flag of thing.flags)
+        checked_flags_arr.push(flag);
     }
     else if (thing instanceof ASTNotFlag) {
-      log(`IMPLEMENT ASTCheckFlags CASE!`);
+      // log(`IMPLEMENT ASTCheckFlags CASE!`);
+      checked_flags_arr.push(thing.flag);
     }
     else if (thing instanceof ASTSetFlag) {
-      log(`IMPLEMENT ASTSetFlag CASE!`);
+      // log(`IMPLEMENT ASTSetFlag CASE!`);
+      dummy_context.set_flag(thing.flag, false);
     }
     else if (thing instanceof ASTNode) {
       if (typeof thing.direct_children !== 'function')
