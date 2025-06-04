@@ -4184,7 +4184,7 @@ const prelude_text = prelude_disabled ? '' : `
 @xl_magic_medium_1_to_1_os6 =
 { %h   = 1024;  %w    = 1024;   
   %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152
+  %tw  = 1536;  %th   = 1152;
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
