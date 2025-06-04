@@ -60,7 +60,7 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  // log_match_enabled  = true;
+  log_match_enabled  = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -8345,7 +8345,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           new_val = smart_join([old_val, new_val],
                                { correct_articles: true }); // always correct articles here?
         
-                               context.scalar_variables.set(thing.destination.name, new_val);
+        context.scalar_variables.set(thing.destination.name, new_val);
 
         log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
             log_expand_and_walk_enabled);
@@ -9306,7 +9306,7 @@ const ExposedRjsonc =
 //                          });
 const flag_ident = xform(seq(choice(ident, '*'),
                              star(second(seq('.',
-                                             choice(liberal_ident, '*'))))),
+                                             choice(xform(parseInt, /\d+\b/), liberal_ident, '*'))))),
                          arr => {
                            // lm.log();
                            // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
