@@ -8953,7 +8953,25 @@ class ASTNotFlag extends ASTNode  {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// NamedWildcard references:
+// Named wildcard definitions:
+// -------------------------------------------------------------------------------------------------
+class ASTNamedWildcardDefinition extends ASTNode {
+  constructor(name, wildcard) {
+    super();
+    this.name = name;
+    this.wildcard = wildcard;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.wildcard ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@${this.name} = ${this.wildcard}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Named wildcard references:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardReference extends ASTNode {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1, trailer = '') {
@@ -8965,6 +8983,10 @@ class ASTNamedWildcardReference extends ASTNode {
     this.max_count  = max_count;
     this.trailer    = trailer;
     // lm.log(`BUILT ${inspect_fun(this)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -9072,20 +9094,6 @@ class ASTUnlatchNamedWildcard extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     return `@!${this.name}`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// Named wildcard definitions:
-// -------------------------------------------------------------------------------------------------
-class ASTNamedWildcardDefinition extends ASTNode {
-  constructor(name, wildcard) {
-    super();
-    this.name = name;
-    this.wildcard    = wildcard;
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `@${this.name} = ${this.wildcard}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
