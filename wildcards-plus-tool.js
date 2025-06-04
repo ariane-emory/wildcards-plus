@@ -8773,15 +8773,17 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_flags(thing, dummy_context, checked_flags_arr) {
+function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
   lm.log(`auditing flags...`);
   
   if (thing === undefined ||
       dummy_context === undefined ||
-      checked_flags_arr === undefined)
-                throw new Error(`bad adit_flags args: ${inspect_fun(arguments)}`);
+      checked_flags_arr === undefined ||
+      visited === undefined)
+    throw new Error(`bad adit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   lm.log(`done auditing flags`);
 }
+
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
 // =================================================================================================
@@ -9976,8 +9978,9 @@ async function main() {
   { // audit flags:
     const dummy_context = new Context()
     const checked_flags_arr = [];
-
-    audit_flags(AST, dummy_context, checked_flags_arr);
+    const visited = new Set();
+    
+    audit_flags(AST, dummy_context, checked_flags_arr, visited);
 
     lm.log(`dummy_context.flags: ${inspect_fun(dummy_context.flags)}`);
     lm.log(`checked_flags_arr:   ${inspect_fun(checked_flags_arr)}`);
