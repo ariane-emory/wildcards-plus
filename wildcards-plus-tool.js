@@ -3408,7 +3408,7 @@ function rand_int(x, y) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
-function smart_join(arr, { correct_articles = undefined } = {}) {
+function smart_join(arr, { correct_articles = true } = {}) {
   if (correct_articles === undefined)
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
   
@@ -8331,8 +8331,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
         if (! thing.assign)
-          new_val = smart_join([old_val, new_val],
-                               { correct_articles: true }); // always correct articles here?
+          new_val = smart_join([old_val, new_val]); // always correct articles here?
         
         context.scalar_variables.set(thing.destination.name, new_val);
 
@@ -8622,12 +8621,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               `${inspect_fun(walked_file)} `);
         });
         
-        // if (Array.isArray(walked_file))
-        //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
-
-        // if (Array.isArray(thing.weight))
-        //   throw new Error("boom");
-
         let walked_weight = null;
         
         lm.indent(() => {
@@ -8643,16 +8636,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               `${compress(inspect_fun(walked_weight))}, ` +
               `Array.isArray(${Array.isArray(walked_weight)})`);
         });
-
-        // log(log_expand_and_walk_enabled,
-        //     `walking weight ${compress(inspect_fun(thing.weight))}`);
-
-        // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
-        //   throw "bomb";
-        
-        
-        // if (Array.isArray(walked_weight))
-        //   walked_weight = smart_join(walked_weight);
 
         const weight_match_result = json_number.match(walked_weight);
 
