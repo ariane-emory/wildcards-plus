@@ -3182,21 +3182,6 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
-function intercalate(separator, array, { final_separator = null } = {}) {
-  if (array.length === 0) return [];
-
-  const result = [array[0]];
-
-  for (let ix = 1; ix < array.length; ix++) {
-    const sep = (final_separator && ix === array.length - 1)
-          ? final_separator
-          : separator;
-    result.push(sep, array[ix]);
-  }
-
-  return result;
-}
-// -------------------------------------------------------------------------------------------------
 const arr_is_prefix_of_arr = (() => {
   const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
 
@@ -3323,6 +3308,21 @@ function indent_lines(indent, str, indent_str = "| ") {
         .join("\n");
 
   return indented_str;
+}
+// -------------------------------------------------------------------------------------------------
+function intercalate(separator, array, { final_separator = null } = {}) {
+  if (array.length === 0) return [];
+
+  const result = [array[0]];
+
+  for (let ix = 1; ix < array.length; ix++) {
+    const sep = (final_separator && ix === array.length - 1)
+          ? final_separator
+          : separator;
+    result.push(sep, array[ix]);
+  }
+
+  return result;
 }
 // -------------------------------------------------------------------------------------------------
 function measure_time(fun) {
@@ -3758,6 +3758,18 @@ if (test_structured_clone) {
     else
       lm.log(`test #3 failed as intended.`);
   }
+}
+// -------------------------------------------------------------------------------------------------
+function thing_str_repr(thing) {
+  const type_str  = typeof thing === 'object'
+        ? thing.constructor.name
+        : typeof thing;
+  const thing_str = abbreviate(Array.isArray(thing)
+                               ? compress(inspect_fun(thing)) 
+                               : (typeof thing === 'string'
+                                  ? inspect_fun(thing)
+                                  : thing.toString()));
+  return `${type_str} ${thing_str}`
 }
 // -------------------------------------------------------------------------------------------------
 function unescape(str) {
@@ -8106,18 +8118,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     
     return allowed;
   };
-  // -----------------------------------------------------------------------------------------------
-  const thing_str_repr = thing => {
-    const type_str  = typeof thing === 'object'
-          ? thing.constructor.name
-          : typeof thing;
-    const thing_str = abbreviate(Array.isArray(thing)
-                                 ? compress(inspect_fun(thing)) 
-                                 : (typeof thing === 'string'
-                                    ? inspect_fun(thing)
-                                    : thing.toString()));
-    return `${type_str} ${thing_str}`
-  }
   // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg, with_indentation = true) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
