@@ -8836,20 +8836,16 @@ function audit_flags(root_ast_node, noisy = true) {
           lm.indent(() => walk(elem,
                                dummy_context,
                                checked_flags_arr,
-                               /* visited, */
                                noisy));
       }
       else if (thing instanceof ASTCheckFlags) {
-        // log(`IMPLEMENT ASTCheckFlags CASE!`);
         for (const flag of thing.flags)
           checked_flags_arr.push(flag);
       }
       else if (thing instanceof ASTNotFlag) {
-        // log(`IMPLEMENT ASTCheckFlags CASE!`);
         checked_flags_arr.push(thing.flag);
       }
       else if (thing instanceof ASTSetFlag) {
-        // log(`IMPLEMENT ASTSetFlag CASE!`);
         dummy_context.set_flag(thing.flag, false);
       }
       else if (thing instanceof ASTNode) {
@@ -8864,11 +8860,7 @@ function audit_flags(root_ast_node, noisy = true) {
           for (const child of children) {
             lm.indent(() => {
               log(`child: ${thing_str_repr(child)}`);
-              lm.indent (() => walk(child,
-                                    dummy_context,
-                                    checked_flags_arr,
-                                    /* visited, */
-                                    noisy));
+              lm.indent (() => walk(child, dummy_context, checked_flags_arr, noisy));
             });
           }
         });
