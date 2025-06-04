@@ -8042,6 +8042,8 @@ function load_prelude(into_context = new Context()) {
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
 function expand_wildcards(thing, context = new Context(), { correct_articles = true } = {}) {
+  if (context == undefined)
+    throw new Error(`bad args: ${inspect_fun(arguments)}`);
   // -----------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
