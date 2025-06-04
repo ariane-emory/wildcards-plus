@@ -9664,7 +9664,7 @@ try {
     // lm.log(`BEFORE CLONING CONTEXT...`);
     const context = base_context.clone();
     // lm.log(`AFTER CLONING CONTEXT`);
-    const prompt  = expand_wildcards(AST, context);
+    const prompt  = expand_wildcards(AST, context, { correct_articles: true });
 
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
