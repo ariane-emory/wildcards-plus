@@ -8252,25 +8252,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               ? { final_separator: 'and' }
               : {};
 
-        str = smart_join(intercalate(thing.joiner, res, intercalate_options), { correct_articles: true });
+        const joiner = thing.joiner === '&'
+              ? ','
+              : thing.joiner;
         
-        // if (thing.joiner === ',')
-        //   str = smart_join(intercalate(',', res), { correct_articles: true });
-        // else if (thing.joiner === '|')
-        //   str = smart_join(intercalate('|', res), { correct_articles: true });
-        // else if (thing.joiner === '&')
-        //   str = smart_join(intercalate(',', res, { final_separator: 'and' }), { correct_articles: true });
-        // else
-        //   str = smart_join(intercalate(' ', res), { correct_articles: true });
-
-        // let str = thing.joiner === ','
-        //       ? res.join(", ")
-        //       : (thing.joiner == '|'
-        //          ? res.join(' | ')
-        //          : (thing.joiner == '&'
-        //             ? format_pretty_list(res)
-        //             : res.join(" ")));
-
+        str = smart_join(intercalate(joiner, res, intercalate_options), { correct_articles: true });
+        
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
                            { correct_articles: false });
@@ -9659,7 +9646,7 @@ const NamedWildcardReference  =
               const ident   = arr[5];
               const min_ct  = arr[2];
               const max_ct  = arr[3] ?? min_ct;
-              const join    = arr[4]; // ??''
+              const joiner  = arr[4]; // ??''
               const caret   = arr[1];
               const trailer = arr[6];
 
@@ -9674,7 +9661,7 @@ const NamedWildcardReference  =
               }
               
               return new ASTNamedWildcardReference(ident,
-                                                   join,
+                                                   joiner,
                                                    caret,
                                                    min_ct,
                                                    max_ct,
