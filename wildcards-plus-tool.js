@@ -3408,7 +3408,7 @@ function rand_int(x, y) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
-function smart_join(arr, { correct_articles = true } = {}) {
+function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
   
@@ -8192,15 +8192,18 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         
         if (got instanceof ASTLatchedNamedWildcardValue) {
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-            res.push(lm.indent(() => expand_wildcards(got.latched_value, context))); // not walk!
+            res.push(lm.indent(() => expand_wildcards(got.latched_value, context,
+                                                      { correct_articles: correct_articles}))); // not walk!
         }
         else {
           const priority = thing.min_count === 1 && thing.max_count === 1
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context,
-                                                              { correct_articles: correct_articles}));
+          const each  = p => lm.indent(() =>
+            expand_wildcards(p?.body ?? '', context,
+                             { correct_articles: correct_articles }));
+          
           const picks = got.pick(thing.min_count, thing.max_count,
                                  allow_fun, forbid_fun, each, 
                                  priority);
@@ -8331,9 +8334,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
         if (! thing.assign)
-          new_val = smart_join([old_val, new_val]); // always correct articles here?
+          new_val = smart_join([old_val, new_val],
+                               { correct_articles: true }); // always correct articles here?
         
-        context.scalar_variables.set(thing.destination.name, new_val);
+                               context.scalar_variables.set(thing.destination.name, new_val);
 
         log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
             log_expand_and_walk_enabled);
