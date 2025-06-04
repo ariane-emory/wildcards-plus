@@ -291,7 +291,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_smart_join_enabled            = false;
+let log_smart_join_enabled            = true;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
@@ -3440,7 +3440,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return '';
   
   if (log_smart_join_enabled)
-    lm.log(`JOINING ${compress(inspect_fun(arr))}`);
+    lm.log(`JOINING ${compress(inspect_fun(arr))}`, true);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
@@ -3460,6 +3460,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   let str       = left_word;
   
   for (let ix = 1; ix < arr.length; ix++)  {
+    if (str.includes(`,,`))
+      throw new Error("STOP");
+    
     let right_word           = null;
     let prev_char            = null;
     let prev_char_is_escaped = null;
@@ -3468,7 +3471,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const add_a_space = () => {
       if (log_smart_join_enabled)
-        lm.log(`SPACE!`);
+        lm.log(`SPACE!`, true);
 
       prev_char  = ' ';
       str       += ' ';
@@ -3476,7 +3479,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const chomp_left_side = () => {
       if (log_smart_join_enabled)
-        lm.log(`CHOMP LEFT!`);
+        lm.log(`CHOMP LEFT!`, true);
       
       str      = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
@@ -3486,7 +3489,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     
     const chomp_right_side = () => {
       if (log_smart_join_enabled)
-        lm.log(`CHOMP RIGHT!`);
+        lm.log(`CHOMP RIGHT!`, true);
 
       arr[ix] = arr[ix].slice(1);
 
@@ -3495,7 +3498,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const consume_right_word = () => {
       if (log_smart_join_enabled)
-        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+        lm.log(`CONSUME ${inspect_fun(right_word)}!`, true);
 
       // if (right_word === '""' || right_word === "''")
       //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
@@ -3506,7 +3509,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const move_chars_left = (n) => {
       if (log_smart_join_enabled)
-        lm.log(`SHIFT ${n} CHARACTERS!`);
+        lm.log(`SHIFT ${n} CHARACTERS!`, true);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
       const shifted_str = right_word.substring(0, n);
@@ -3533,14 +3536,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
                `prev_char = ${inspect_fun(prev_char)}, ` +         
                `next_char = ${inspect_fun(next_char)}, ` + 
                `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-               `next_char_is_escaped = ${next_char_is_escaped}`);
+               `next_char_is_escaped = ${next_char_is_escaped}`, true);
     };
     
     update_pos_vars();
     
     if (right_word === '') {
       if (log_smart_join_enabled)
-        lm.log(`JUMP EMPTY!`);
+        lm.log(`JUMP EMPTY!`, true);
 
       continue;
     }
@@ -3588,7 +3591,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     if (right_word === '') {
       if (log_smart_join_enabled)
-        lm.log(`JUMP EMPTY (LATE)!`);
+        lm.log(`JUMP EMPTY (LATE)!`, true);
 
       continue;
     }
@@ -3608,7 +3611,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   }
 
   if (log_smart_join_enabled)
-    lm.log(`JOINED ${inspect_fun(str)}`);
+    lm.log(`JOINED ${inspect_fun(str)}`, true);
 
   return str;
 }
