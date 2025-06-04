@@ -8883,7 +8883,8 @@ function audit_flags(ast_node, noisy = true) {
   const dummy_context = new Context();
   const checked_flags_arr = [];
   walk(ast_node, dummy_context, checked_flags_arr, /* new Set() */);
-  
+  lm.log(`dummy_context.flags: ${inspect_fun(dummy_context.flags)}`);
+  lm.log(`checked_flags_arr:   ${inspect_fun(checked_flags_arr)}`);
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
@@ -10148,14 +10149,9 @@ async function main() {
     lm.log(`${JSON.stringify(AST)}`);
   }
 
-  { // audit flags:
-    
-    audit_flags(AST, false);
+  // audit flags:
+  audit_flags(AST, false);
 
-    lm.log(`dummy_context.flags: ${inspect_fun(dummy_context.flags)}`);
-    lm.log(`checked_flags_arr:   ${inspect_fun(checked_flags_arr)}`);
-  }
-  
   let posted_count        = 0;
   let prior_prompt        = null;
   let prior_configuration = null;
