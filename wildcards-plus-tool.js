@@ -3182,14 +3182,16 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
-let intercalate = function (separator, array, { final_separator = null } = {}) {
+function intercalate(separator, array, { final_separator = null } = {}) {
   if (array.length === 0) return [];
 
   const result = [array[0]];
 
-  for (let i = 1; i < array.length; i++) {
-    const sep = (final_separator && i === array.length - 1) ? final_separator : separator;
-    result.push(sep, array[i]);
+  for (let ix = 1; ix < array.length; ix++) {
+    const sep = (final_separator && ix === array.length - 1)
+          ? final_separator
+          : separator;
+    result.push(sep, array[ix]);
   }
 
   return result;
@@ -10120,6 +10122,6 @@ if (! main_disabled)
 // log_match_enabled = true;
 //sconsole.log(inspect_fun(SpecialFunctionUpdateConfigurationBinary.match('height = 768')))
 
-// lm.log(smart_join(intercalate('|', ['foo', 'bar', 'baz']),  { correct_articles: true }));
-// lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz']),  { correct_articles: true }));
-// lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz'], { final_separator: 'and' }), { correct_articles: true }));
+lm.log(smart_join(intercalate('|', ['foo', 'bar', 'baz']),  { correct_articles: true }));
+lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz']),  { correct_articles: true }));
+lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz'], { final_separator: 'and' }), { correct_articles: true }));
