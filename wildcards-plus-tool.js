@@ -8804,7 +8804,7 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
     lm.log(`children: ${thing_str_repr(children)}`);
     
     for (const child of children)
-      lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
+      lm.indent(() => audit_flags(child, dummy_context, checked_flags_arr, visited));
   }
   else {
     throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
