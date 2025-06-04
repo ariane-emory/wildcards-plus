@@ -8840,9 +8840,9 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
         }
       });
     }
-      else {
-        throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
-      }
+    else {
+      throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+    }
   }
   catch (exc) {
     if (exc instanceof Stop) {
@@ -8864,19 +8864,15 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
 class ASTNode {
   // -----------------------------------------------------------------------------------------------
   direct_children() {
-    const ret = this.__direct_children();
+    const ret = Array.from(this.__direct_children());
 
-    // if (ret.includes(undefined))
-    //   throw new Error(`direct_children ` +
-    //                   `${inspect_fun(ret)} ` +
-    //                   `included undefined for ` +
-    //                   `${inspect_fun(this)}`);
-
-    if (ret.some(x => !(x instanceof ASTNode)))
-      throw new Error(`direct_children ` +
+    if (ret.some(x => !((x instanceof ASTNode) || Array.isArray(x))))
+      throw new Error(`direct_children of ` +
+                      `${inspect_fun(this)} ` +
                       `${inspect_fun(ret)} ` +
-                      `included non-ASTNode for ` +
-                      `${inspect_fun(this)}`);
+                      `included non-ASTNode: ` +
+                      `${inspect_fun(ret.find(x => !(x instanceof ASTNode)))}`
+                     ); 
     
     return ret;
   }
