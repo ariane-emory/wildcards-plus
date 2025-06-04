@@ -8821,13 +8821,13 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
         lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
     }
     else if (thing instanceof ASTCheckFlags) {
-      lm.log(`implement ASTCheckFlags case!`);
+      lm.log(`IMPLEMENT ASTCheckFlags CASE!`);
     }
     else if (thing instanceof ASTNotFlag) {
-      lm.log(`implement ASTCheckFlags case!`);
+      lm.log(`IMPLEMENT ASTCheckFlags CASE!`);
     }
     else if (thing instanceof ASTSetFlag) {
-      lm.log(`implement ASTSetFlag case!`);
+      lm.log(`IMPLEMENT ASTSetFlag CASE!`);
     }
     else if (thing instanceof ASTNode) {
       if (typeof thing.direct_children !== 'function')
@@ -8875,13 +8875,13 @@ class ASTNode {
   direct_children() {
     const ret = Array.from(this.__direct_children());
 
-    if (ret.some(x => !((x instanceof ASTNode) || Array.isArray(x))))
-      throw new Error(`direct_children of ` +
-                      `${inspect_fun(this)} ` +
-                      `${inspect_fun(ret)} ` +
-                      `included non-ASTNode: ` +
-                      `${inspect_fun(ret.find(x => !((x instanceof ASTNode) || Array.isArray(x))))}`
-                     ); 
+    // if (ret.some(x => !((x instanceof ASTNode) || Array.isArray(x))))
+    //   throw new Error(`direct_children of ` +
+    //                   `${inspect_fun(this)} ` +
+    //                   `${inspect_fun(ret)} ` +
+    //                   `included non-ASTNode: ` +
+    //                   `${inspect_fun(ret.find(x => !((x instanceof ASTNode) || Array.isArray(x))))}`
+    //                  ); 
     
     return ret;
   }
@@ -9233,9 +9233,9 @@ class ASTAnonWildcardAlternative extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
     return  [
-      this.check_flags,
-      this.not_flags,
-      this.body
+      ...this.check_flags,
+      ...this.not_flags,
+      ...this.body,
     ];
   }
   // -----------------------------------------------------------------------------------------------
