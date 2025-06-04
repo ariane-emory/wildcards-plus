@@ -9118,6 +9118,10 @@ class ASTLora extends ASTNode {
     // lm.log(`Constructed LoRa ${this}!`);
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.file, this.weight ];
+  }
+  // -----------------------------------------------------------------------------------------------
   toString(with_types = false ) {
     return `<lora:${with_types ? `${this.file.constructor.name} ` : ``}${this.file}: ` +
       `${with_types ? `${this.weight.constructor.name} ` : ``}${this.weight}>`;
