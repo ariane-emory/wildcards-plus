@@ -3766,15 +3766,30 @@ if (test_structured_clone) {
 }
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing) {
-  const type_str  = typeof thing === 'object'
-        ? thing.constructor.name
+  const type_str = typeof thing === 'object'
+        ? (thing === null ? 'null' : thing.constructor?.name ?? 'Object')
         : typeof thing;
-  const thing_str = abbreviate(Array.isArray(thing)
-                               ? compress(inspect_fun(thing)) 
-                               : (typeof thing === 'string'
-                                  ? inspect_fun(thing)
-                                  : thing.toString()));
-  return `${type_str} ${thing_str}`
+
+  let thing_str;
+
+  if (Array.isArray(thing)) {
+    thing_str = abbreviate(compress(inspect_fun(thing)));
+  }
+  else if (typeof thing === 'string') {
+    thing_str = inspect_fun(thing);
+  }
+  else if (typeof thing === 'object') {
+    try {
+      thing_str = abbreviate(compress(inspect_fun(thing)));
+    } catch {
+      thing_str = thing.toString(); // fallback
+    }
+  }
+  else {
+    thing_str = String(thing);
+  }
+
+  return `${type_str} ${thing_str}`;
 }
 // -------------------------------------------------------------------------------------------------
 function unescape(str) {
