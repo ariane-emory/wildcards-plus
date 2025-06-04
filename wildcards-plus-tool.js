@@ -291,7 +291,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_smart_join_enabled            = true;
+let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
@@ -3182,6 +3182,19 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
+let intercalate = function (separator, array, { final_separator = null } = {}) {
+  if (array.length === 0) return [];
+
+  const result = [array[0]];
+
+  for (let i = 1; i < array.length; i++) {
+    const sep = (final_separator && i === array.length - 1) ? final_separator : separator;
+    result.push(sep, array[i]);
+  }
+
+  return result;
+}
+// -------------------------------------------------------------------------------------------------
 const arr_is_prefix_of_arr = (() => {
   const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
 
@@ -3279,7 +3292,7 @@ function benchmark(thunk, {
   console.log();
   return running_avg;
 }
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 function format_pretty_bytes(bytes) {
   const units = ['bytes', 'KB', 'MB', 'GB'];
   const base = 1024;
@@ -3460,8 +3473,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   let str       = left_word;
   
   for (let ix = 1; ix < arr.length; ix++)  {
-    if (str.includes(`,,`))
-      throw new Error("STOP");
+    // if (str.includes(`,,`))
+    //   throw new Error("STOP");
     
     let right_word           = null;
     let prev_char            = null;
@@ -8231,13 +8244,24 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
-        let str = thing.joiner === ','
-            ? res.join(", ")
-            : (thing.joiner == '|'
-               ? res.join(' | ')
-               : (thing.joiner == '&'
-                  ? format_pretty_list(res)
-                  : res.join(" ")));
+        let str;
+        
+        if (thing.joiner === ',')
+          str = smart_join(intercalate(',', res), { correct_articles: true });
+        else if (thing.joiner === '|')
+          str = smart_join(interalate('|', res),  { correct_articles: true });
+        else if (thing.joiner === '&')
+          str = smart_join(interalate(',', res, { final_separator: 'and' }),  { correct_articles: true });
+        else
+          str = smart_join(intercalate(' ', res), { correct_articles: true });
+
+        // let str = thing.joiner === ','
+        //       ? res.join(", ")
+        //       : (thing.joiner == '|'
+        //          ? res.join(' | ')
+        //          : (thing.joiner == '&'
+        //             ? format_pretty_list(res)
+        //             : res.join(" ")));
 
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
