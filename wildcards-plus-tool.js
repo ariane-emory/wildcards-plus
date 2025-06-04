@@ -8108,12 +8108,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
   };
   // -----------------------------------------------------------------------------------------------
   const thing_str_repr = thing => {
-    const type_str  = typeof thing === 'object' ? thing.constructor.name : typeof thing;
-    // const thing_str = abbreviate(Array.isArray(thing)
-    //                              ? inspect_fun(thing) 
-    //                              : (typeof thing === 'string'
-    //                                 ? inspect_fun(thing)
-    //                                 : thing.toString()));
+    const type_str  = typeof thing === 'object'
+          ? thing.constructor.name
+          : typeof thing;
     const thing_str = abbreviate(Array.isArray(thing)
                                  ? compress(inspect_fun(thing)) 
                                  : (typeof thing === 'string'
