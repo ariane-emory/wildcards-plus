@@ -8895,7 +8895,9 @@ class ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Flags:
 // -------------------------------------------------------------------------------------------------
-class ASTSetFlag extends ASTNode {
+class ASTFlagOperation extends ASTNode {}
+// -------------------------------------------------------------------------------------------------
+class ASTSetFlag extends ASTFlagOperation {
   constructor(flag_arr) {
     // if (! Array.isArray(flag_arr))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
@@ -8912,7 +8914,7 @@ class ASTSetFlag extends ASTNode {
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTUnsetFlag extends ASTNode {
+class ASTUnsetFlag extends ASTFlagOperation {
   constructor(flag_arr) {
     // if (! Array.isArray(flag_arr))
     //   throw new Error(`${this.constructor.name} ` +
@@ -8927,7 +8929,7 @@ class ASTUnsetFlag extends ASTNode {
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTCheckFlags extends ASTNode {
+class ASTCheckFlags extends ASTFlagOperation {
   constructor(flag_arrs, consequently_set_flag_tail) {
     // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
     //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
@@ -8967,7 +8969,7 @@ class ASTCheckFlags extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTNotFlag extends ASTNode  { 
+class ASTNotFlag extends ASTFlagOperation  { 
   constructor(flag_arr, { set_immediately = undefined,
                           consequently_set_flag_tail = undefined } = {}) {
     // if (! Array.isArray(flag_arr))
