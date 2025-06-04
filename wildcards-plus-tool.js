@@ -8793,89 +8793,97 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_flags(thing, dummy_context, checked_flags_arr, /* visited, */ noisy = true) {
-  if (thing === undefined ||
-      dummy_context === undefined ||
-      checked_flags_arr === undefined
-      /* || visited === undefined */
-     )
-    throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}`);
-  // throw new Error(`bad audit_flags args: ${compress(inspect_fun(arguments))}`);
-
-  class Stop {}
+function audit_flags(ast_node, noisy = true) {
   const log = noisy
         ? msg => lm.log(msg)
         : msg => {}; // no-op
-  try {
-    /*
-    if (visited.has(thing)) {
-     log(`skip visited ${thing_str_repr(thing)}`);
-     return;
-     }
 
-     visited.add(thing);
-    */
+  function walk(thing, dummy_context, checked_flags_arr, /* visited, */) {
+    if (thing === undefined ||
+        dummy_context === undefined ||
+        checked_flags_arr === undefined
+        /* || visited === undefined */
+       )
+      throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
+    // throw new Error(`bad audit_flags args: ${compress(inspect_fun(arguments))}`);
 
-    if (is_primitive(thing)) {
-      return;
-    }
+    class Break {}
+    try {
+      /*
+        if (visited.has(thing)) {
+        log(`skip visited ${thing_str_repr(thing)}`);
+        return;
+        }
 
-    log(`auditing flags in ${thing_str_repr(thing)}`);
+        visited.add(thing);
+      */
 
-    if (Array.isArray(thing)) { 
-      for (const elem of thing)
-        lm.indent(() => audit_flags(elem,
+      if (is_primitive(thing)) {
+        return;
+      }
+
+      log(`auditing flags in ${thing_str_repr(thing)}`);
+
+      if (Array.isArray(thing)) { 
+        for (const elem of thing)
+          lm.indent(() => walk(elem,
+                               dummy_context,
+                                      checked_flags_arr,
+                                      /* visited, */
+                                      noisy));
+      }
+      else if (thing instanceof ASTCheckFlags) {
+        // log(`IMPLEMENT ASTCheckFlags CASE!`);
+        for (const flag of thing.flags)
+          checked_flags_arr.push(flag);
+      }
+      else if (thing instanceof ASTNotFlag) {
+        // log(`IMPLEMENT ASTCheckFlags CASE!`);
+        checked_flags_arr.push(thing.flag);
+      }
+      else if (thing instanceof ASTSetFlag) {
+        // log(`IMPLEMENT ASTSetFlag CASE!`);
+        dummy_context.set_flag(thing.flag, false);
+      }
+      else if (thing instanceof ASTNode) {
+        if (typeof thing.direct_children !== 'function')
+          throw new Error(`no direct_children function: ${thing_str_repr(thing)}`);
+        
+        const children = Array.from(thing.direct_children());
+
+        lm.indent(() => {
+          log(`children: ${thing_str_repr(children)}`);
+          
+          for (const child of children) {
+            lm.indent(() => {
+              log(`child: ${thing_str_repr(child)}`);
+              lm.indent (() => walk(child,
                                     dummy_context,
                                     checked_flags_arr,
                                     /* visited, */
                                     noisy));
+            });
+          }
+        });
+      }
+      else {
+        throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+      }
     }
-    else if (thing instanceof ASTCheckFlags) {
-      // log(`IMPLEMENT ASTCheckFlags CASE!`);
-      for (const flag of thing.flags)
-        checked_flags_arr.push(flag);
-    }
-    else if (thing instanceof ASTNotFlag) {
-      // log(`IMPLEMENT ASTCheckFlags CASE!`);
-      checked_flags_arr.push(thing.flag);
-    }
-    else if (thing instanceof ASTSetFlag) {
-      // log(`IMPLEMENT ASTSetFlag CASE!`);
-      dummy_context.set_flag(thing.flag, false);
-    }
-    else if (thing instanceof ASTNode) {
-      if (typeof thing.direct_children !== 'function')
-        throw new Error(`no direct_children function: ${thing_str_repr(thing)}`);
-      
-      const children = Array.from(thing.direct_children());
+    catch (exc) {
+      if (exc instanceof Break) {
+        log(`done auditing flags in ${thing_str_repr(thing)}`);
+        return;
+      }
 
-      lm.indent(() => {
-        log(`children: ${thing_str_repr(children)}`);
-        
-        for (const child of children) {
-          lm.indent(() => {
-            log(`child: ${thing_str_repr(child)}`);
-            lm.indent (() => audit_flags(child,
-                                         dummy_context,
-                                         checked_flags_arr,
-                                         /* visited, */
-                                         noisy));
-          });
-        }
-      });
-    }
-    else {
-      throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+      throw exc;
     }
   }
-  catch (exc) {
-    if (exc instanceof Stop) {
-      log(`done auditing flags in ${thing_str_repr(thing)}`);
-      return;
-    }
 
-    throw exc;
-  }
+  const dummy_context = new Context();
+  const checked_flags_arr = [];
+  walk(ast_node, dummy_context, checked_flags_arr, /* new Set() */);
+  
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
@@ -10141,11 +10149,8 @@ async function main() {
   }
 
   { // audit flags:
-    const dummy_context = new Context()
-    const checked_flags_arr = [];
-    const visited = new Set();
     
-    audit_flags(AST, dummy_context, checked_flags_arr, /* visited, */ false);
+    audit_flags(AST, false);
 
     lm.log(`dummy_context.flags: ${inspect_fun(dummy_context.flags)}`);
     lm.log(`checked_flags_arr:   ${inspect_fun(checked_flags_arr)}`);
