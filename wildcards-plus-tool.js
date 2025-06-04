@@ -8804,7 +8804,7 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
     lm.log(`children: ${thing_str_repr(children)}`);
     
     for (const child of children)
-          lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
+      lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
   }
   else {
     throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
@@ -8818,7 +8818,24 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
 // =================================================================================================
 // SD PROMPT AST CLASSES SECTION:
 // =================================================================================================
-class ASTNode {}
+class ASTNode {
+  // -----------------------------------------------------------------------------------------------
+  direct_children() {
+    const ret = this.__direct_children();
+
+    if (ret.includes(undefined))
+      throw new Error(`direct_children ` +
+                      `${inspect_fun(ret)} ` +
+                      `included undefined for ` +
+                      `${inspect_fun(this)}`);
+
+    return ret;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    throw new Error(`__direct_children is not implemented by ${this.constructor.name}`);
+  }
+}
 // -------------------------------------------------------------------------------------------------
 // Flags:
 // -------------------------------------------------------------------------------------------------
@@ -8994,6 +9011,10 @@ class ASTScalarAssignment extends ASTNode  {
     this.destination = destination;
     this.source      = source;
     this.assign      = assign;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.destination, this.source ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
