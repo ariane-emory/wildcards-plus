@@ -8774,7 +8774,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
-  lm.log(`auditing flags...`);
+  lm.log(`auditing flags in ${thing_str_repr(thing)}`);
   
   if (thing === undefined ||
       dummy_context === undefined ||
@@ -8782,8 +8782,26 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
       visited === undefined)
     throw new Error(`bad adit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   lm.log(`done auditing flags`);
-}
 
+  if (visited.has(thing))
+    return;
+
+  visited.add(thing);
+  
+  if (typeof thing === 'string') {
+    return;
+  }
+  else if (Array.isArray(thing)) { 
+    for (const elem of thing)
+      lm.indent(() => audit_flags(elem, dummy_context, checked_flags_arr, visited));
+  }
+  else if (thing instanceof ASTNode) {
+    return;
+  }
+  else {
+    throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+  }
+}
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
 // =================================================================================================
