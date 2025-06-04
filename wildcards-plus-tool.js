@@ -9270,16 +9270,15 @@ const plain_text           = make_plain_text_rule('')
 const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
       .abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora =
-      xform(arr => new ASTLora(arr[3], arr[4]),
-            wst_seq(ltri,                                   // [0]
-                    'lora',                                 // [1]
-                    colon,                                  // [2]
-                    choice(filename, () => LimitedContentNoAWCTrailers), // [3]
-                    optional(second(wst_seq(colon,
-                                            choice(A1111StyleLoraWeight,
-                                                   () => LimitedContentNoAWCTrailers))),
-                             "1.0"), // [4][0]
-                    rtri))
+      xform(arr => new ASTLora(arr[2], arr[3]),
+            wst_cutting_seq(wst_seq(ltri, 'lora'),                               // [0]
+                            colon,                                               // [1] 
+                            choice(filename, () => LimitedContentNoAWCTrailers), // [2]
+                            optional(second(wst_seq(colon,                       // [3]
+                                                    choice(A1111StyleLoraWeight,
+                                                           () => LimitedContentNoAWCTrailers))),
+                                 "1.0"), // [4][0]
+                        rtri))
       .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // mod RJSONC:
