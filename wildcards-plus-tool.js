@@ -3402,6 +3402,11 @@ function is_empty_object(obj) {
     obj.constructor === Object;
 }
 // -------------------------------------------------------------------------------------------------
+function is_primitive(val) {
+  return val === null ||
+    (typeof val !== 'object' && typeof val !== 'function');
+}
+// -------------------------------------------------------------------------------------------------
 function measure_time(fun) {
   const now = dt_hosted
         ? Date.now
@@ -8788,7 +8793,7 @@ function audit_flags(thing, dummy_context, checked_flags_arr, visited) {
 
   visited.add(thing);
   
-  if (typeof thing === 'string') {
+  if (is_primitive(thing)) {
     return;
   }
   else if (Array.isArray(thing)) { 
@@ -9214,6 +9219,10 @@ class ASTUpdateConfigurationUnary extends ASTNode {
     this.assign = assign; // otherwise update
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.value ];
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `%config ${this.assign? '=' : '+='} ` +
       `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
@@ -9226,6 +9235,10 @@ class ASTUpdateConfigurationBinary extends ASTNode {
     this.key    = key;
     this.value  = value;
     this.assign = assign;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.value ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
