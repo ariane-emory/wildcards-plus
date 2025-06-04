@@ -8793,15 +8793,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-class Warning extends Error {
-  constructor(message) {
-    if (typeof message !== 'string')
-      throw new Error(`bad Warning.construgtos args: ${inspect_fun(arguments)}, ` +
-                      `this likely indicates a programmer error`);
-
-    super(`WARNING: ${message}`);
-  }
-}
 // -------------------------------------------------------------------------------------------------
 function audit_flags(root_ast_node, noisy = true) {
   if (root_ast_node === undefined)
