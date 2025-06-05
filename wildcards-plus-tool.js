@@ -10048,34 +10048,35 @@ const wrap_TestFlag_in_AnonWildcard    = rule =>
       xform(rule, flag =>
         new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
 // -------------------------------------------------------------------------------------------------
-const TestFlagInGuardPosition = choice(SimpleCheckFlag,
-                                       SimpleNotFlag,
-                        CheckFlagWithSetConsequent,
-                        NotFlagWithSetConsequent,
-                        CheckFlagWithOrAlternatives)
-      .abbreviate_str_repr('TestFlagInGuardPosition');
+const TestFlagInGuardPosition =
+      with_swb(choice(SimpleCheckFlag,
+                      SimpleNotFlag,
+                      CheckFlagWithSetConsequent,
+                      NotFlagWithSetConsequent,
+                      CheckFlagWithOrAlternatives)
+               .abbreviate_str_repr('TestFlagInGuardPosition'));
 const TopLevelTestFlag =
-      choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
-             .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
-             unexpected_TestFlag_at_top_level(SimpleNotFlag)
-             .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
-             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
-             unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
-             .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
+      with_swb(choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
+                      .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
+                      unexpected_TestFlag_at_top_level(SimpleNotFlag)
+                      .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
+                      wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+                      .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+                      wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+                      .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+                      unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
+                      .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel')));
 const TestFlagInAlternativeContent =
-      choice(innapropriately_placed_TestFlag(SimpleCheckFlag)
-             .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
-             innapropriately_placed_TestFlag(SimpleNotFlag)
-             .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
-             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
-             innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
-             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
+      with_swb(choice(innapropriately_placed_TestFlag(SimpleCheckFlag)
+                      .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
+                      innapropriately_placed_TestFlag(SimpleNotFlag)
+                      .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
+                      wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+                      .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+                      wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+                      .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+                      innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
+                      .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives')));
 // =================================================================================================
 // AnonWildcard-related rules:
 // =================================================================================================
