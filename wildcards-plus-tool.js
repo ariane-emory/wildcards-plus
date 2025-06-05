@@ -292,7 +292,7 @@ let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
-let prelude_disabled                  = false;
+let prelude_disabled                  = true;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
@@ -10007,23 +10007,26 @@ const CheckFlagWithOrAlternatives = // last check alternative
             })
       .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const CheckFlagWithSetConsequent =
-      xform(cutting_seq_with_swb(question,    // [0]
-                                 flag_ident,  // [1]
-                                 dot_hash,    // [2]
-                                 flag_ident), // [3]
+      xform(with_swb(seq(question,    // [0]
+                         flag_ident,  // [1]
+                         dot_hash,    // [2]
+                         flag_ident)), // [3]
             arr => {
               const args = [ [ arr[1] ], arr[3] ]; 
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
 const NotFlagWithSetConsequent = // last not alternative
-      xform(cutting_seq_with_swb(bang,
-                                 flag_ident,
-                                 dot_hash,
-                                 flag_ident),
+      xform(cutting_seq(bang,
+                        cutting_with_swb(seq(flag_ident,
+                                             dot_hash,
+                                             flag_ident))),
             arr => {
-              const args = [arr[1],
-                            { consequently_set_flag_tail: arr[3] }]; 
+              lm.log(``);
+              lm.log(`ARR: ${inspect_fun(arr)}`);
+              const args = [arr[1][0],
+                            { consequently_set_flag_tail: arr[1][2] }]; 
+              lm.log(`ARGS: ${inspect_fun(args)}`);
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
