@@ -8844,7 +8844,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
-  const checked_flags_arr = [];
+  // const checked_flags_arr = [];
 
   // -----------------------------------------------------------------------------------------------
   function warn_or_throw(msg) {
@@ -8885,7 +8885,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
             return;
           
           log(`child: ${thing_str_repr(child)}`);
-          lm.indent (() => walk(child, dummy_context, checked_flags_arr, noisy));
+          lm.indent (() => walk(child, dummy_context));
         });
       }
     })
@@ -8903,10 +8903,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     if (Array.isArray(thing)) { 
       for (const elem of thing)
         if (!is_primitive(elem))
-          lm.indent(() => walk(elem,
-                               dummy_context,
-                               checked_flags_arr,
-                               noisy));
+          lm.indent(() => walk(elem));
     }
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (dummy_context.named_wildcards.has(thing.name))
@@ -8945,17 +8942,14 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       walk(got);
     }
     else if (thing instanceof ASTCheckFlags) {
-      for (const flag of thing.flags) {
+      for (const flag of thing.flags) 
         warn_or_throw_unless_flag_could_be_set_by_now(flag);
-        checked_flags_arr.push(flag);
-      }
     }
     else if (thing instanceof ASTNotFlag) {
       if (thing.set_immediately) 
         dummy_context.set_flag(thing.flag, false);
-      
-      warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
-      checked_flags_arr.push(thing.flag);
+      else 
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
     }
     else if (thing instanceof ASTSetFlag) {
       dummy_context.set_flag(thing.flag, false);
