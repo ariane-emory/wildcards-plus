@@ -8827,10 +8827,11 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
 
     if (Array.isArray(thing)) { 
       for (const elem of thing)
-        lm.indent(() => walk(elem,
-                             dummy_context,
-                             checked_flags_arr,
-                             noisy));
+        if (!is_primitive(elem))
+          lm.indent(() => walk(elem,
+                               dummy_context,
+                               checked_flags_arr,
+                               noisy));
     }
     else if (thing instanceof ASTNamedWildcardReference) {
       const got = dummy_context.named_wildcards.get(thing.name);
