@@ -8801,12 +8801,12 @@ function audit_flags(root_ast_node, base_context = null, noisy = true, throws = 
   const log = noisy ? msg => lm.log(msg) : msg => {};
 
   function walk(thing) {
+    if (is_primitive(thing))
+    return;
+
     log(`auditing flags in ${thing_str_repr(thing)}`);
 
-    if (is_primitive(thing)) {
-      /* do nothing */
-    }
-    else if (Array.isArray(thing)) { 
+    if (Array.isArray(thing)) { 
       for (const elem of thing)
         lm.indent(() => walk(elem,
                              dummy_context,
