@@ -8809,14 +8809,13 @@ function audit_flags(root_ast_node, noisy = true, throws = false) {
       if (is_primitive(thing))
         return;
 
-
-      if (Array.isArray(thing)) { 
+      else if (Array.isArray(thing)) { 
         for (const elem of thing)
-          lm.indent(() => walk(elem,
-                               dummy_context,
-                               checked_flags_arr,
-                               noisy));
-      }
+            lm.indent(() => walk(elem,
+                                 dummy_context,
+                                 checked_flags_arr,
+                                 noisy));
+        }
       else if (thing instanceof ASTCheckFlags) {
         for (const flag of thing.flags)
           checked_flags_arr.push(flag);
