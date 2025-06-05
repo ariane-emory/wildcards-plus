@@ -10028,6 +10028,7 @@ const NotFlagWithSetConsequent =
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
+// -------------------------------------------------------------------------------------------------
 const SetFlag = xform(with_swb(second(cutting_seq_with_swb(hash, flag_ident))),
                       arr => new ASTSetFlag(arr))
       .abbreviate_str_repr('SetFlag');
