@@ -9346,12 +9346,12 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
         warn_or_throw_unless_flag_could_be_set_by_now(flag);
     }
     else if (thing instanceof ASTNotFlag) {
-      if (thing.set_immediately) 
-        // this case probably doesn't deserve a warning, avoid one:
-        dummy_context.set_flag(thing.flag, false);
-      else if (thing.consequently_set_flag_tail)
+      if (thing.consequently_set_flag_tail)
         // undecided on whether this case deserves a warning... for now, let's avoid one:
         dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
+      else if (thing.set_immediately) 
+        // this case probably doesn't deserve a warning, avoid one:
+        dummy_context.set_flag(thing.flag, false);
       else 
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
     }
