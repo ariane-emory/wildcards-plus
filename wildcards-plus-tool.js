@@ -10034,12 +10034,6 @@ const SetFlag = xform(second(cutting_seq_with_swb(hash, flag_ident)),
 const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, flag_ident)),
                         arr => new ASTUnsetFlag(arr))
       .abbreviate_str_repr('UnsetFlag');
-const TestFlag = choice(SimpleCheckFlag,
-                        SimpleNotFlag,
-                        CheckFlagWithSetConsequent,
-                        NotFlagWithSetConsequent,
-                        CheckFlagWithOrAlternatives)
-      .abbreviate_str_repr('TestFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
       unexpected(rule, (rule, input, index) =>
@@ -10054,6 +10048,12 @@ const wrap_TestFlag_in_AnonWildcard    = rule =>
       xform(rule, flag =>
         new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
 // -------------------------------------------------------------------------------------------------
+const TestFlagInGuardPosition = choice(SimpleCheckFlag,
+                                       SimpleNotFlag,
+                        CheckFlagWithSetConsequent,
+                        NotFlagWithSetConsequent,
+                        CheckFlagWithOrAlternatives)
+      .abbreviate_str_repr('TestFlagInGuardPosition');
 const TopLevelTestFlag =
       choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
              .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
@@ -10118,9 +10118,9 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
+            seq(wst_star(choice(TestFlagInGuardPosition, SetFlag, discarded_comment, UnsetFlag)),
                 lws(optional(swb_uint, 1)),
-                wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
+                wst_star(choice(SetFlag, TestFlagInGuardPosition, discarded_comment, UnsetFlag)),
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
