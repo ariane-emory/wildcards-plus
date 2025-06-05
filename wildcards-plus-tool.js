@@ -4344,6 +4344,8 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = prelude_disabled ? '' : `
+@maybe_set_some_flag    = { | #some_flag } 
+
 @__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
                            |?male   #gender.male
                            |?neuter #gender.neuter}
@@ -8793,9 +8795,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_flags(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
+function audit_semantics(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
   if (root_ast_node === undefined)
-    throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
+    throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
 
   const log = noisy ? msg => lm.log(msg) : msg => {};
@@ -8803,13 +8805,13 @@ function audit_flags(root_ast_node, { base_context = null, noisy = true, throws 
         ? base_context.clone()
         : new Context();
   const checked_flags_arr = [];
-
+  
   function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
     if (dummy_context.flag_is_set(flag))
       return;
 
     const msg = `WARNING: flag '${flag.join(".")}' is checked but is either not set yet or is ` +
-          `never set this suggests that you may have  made a typo in your template.`;
+          `never set this suggests that you may have made a typo in your template.`;
 
     if (throws)
       throw new Error(msg);
@@ -8829,6 +8831,9 @@ function audit_flags(root_ast_node, { base_context = null, noisy = true, throws 
                              dummy_context,
                              checked_flags_arr,
                              noisy));
+    }
+    else if (thing instanceof ASTNamedWildcardReference) {
+      walk(dummy_context.named_wildcards.get(thing.name));
     }
     else if (thing instanceof ASTCheckFlags) {
       for (const flag of thing.flags) {
@@ -10128,7 +10133,7 @@ async function main() {
   }
 
   // audit flags:
-  audit_flags(AST);
+  audit_semantics(AST, { base_context: base_context });
 
   let posted_count        = 0;
   let prior_prompt        = null;
