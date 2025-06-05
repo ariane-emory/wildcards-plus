@@ -3947,13 +3947,13 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
-    if (log_flags_enabled)
-      lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    // if (log_flags_enabled)
+    //   lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
     this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
 
-    if (log_flags_enabled)
-      lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    // if (log_flags_enabled)
+    //   lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -4175,6 +4175,40 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 512,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_1_to_1_os6 =
+{ %w    = 512;  %h    = 512;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 512,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_3_to_2 =
 { %w    = 768;  %h    = 512;   
@@ -4187,18 +4221,86 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 768,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_3_to_2_os6 =
+{ %w    = 768;  %h    = 512;   
+  %ow   = 768;  %oh   = 6;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_2_to_3 =
 { %w    = 512;  %h    = 768;   
-  %ow   = 576;  %oh   = 768;   
-  %tw   = 768;  %th   = 1024;  
-  %nw   = 1344; %nh   = 1792;  
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1024; %th   = 768;   
+  %nw   = 1792; %nh   = 1344;  
   %hrf  = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 512,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_2_to_3_os6 =
+{ %w    = 512;  %h    = 768;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 512,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_4_to_3 =
 { %w   = 768;  %h     = 576;    
@@ -4211,18 +4313,86 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 768,
+// "height": 576,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_4_to_3_os6 = 
+{ %w   = 768;  %h     = 576;    
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1536; %th    = 1152;   
+  %nw  = 1792; %nh    = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 576,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_3_to_4 =
 { %w   = 576;  %h     = 768;    
-  %ow  = 576;  %oh    = 768;    
-  %tw  = 768;  %th    = 1024;   
-  %nw  = 1344; %nh    = 1792;   
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1024; %th    = 768;    
+  %nw  = 1792; %nh    = 1344;   
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 576,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_3_to_4_os6 = 
+{ %w   = 576;  %h     = 768;    
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1536; %th    = 1152;   
+  %nw  = 1792; %nh    = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 576,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_16_to_9 =
 { %w   = 1024;  %h    = 576;    
@@ -4235,18 +4405,85 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.16.9
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 1024,
+// "height": 576,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_16_to_9_os6 = 
+{ %w   = 1024;  %h    = 576;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 1024,
+// "height": 576,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_9_to_16 =
 { %w   = 576;  %h     = 1024;   
-  %ow  = 576;  %oh    = 768;    
-  %tw  = 768;  %th    = 1024;   
-  %nw  = 1344; %nh    = 1792;   
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1024; %th    = 768;    
+  %nw  = 1792; %nh    = 1344;   
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.9.16
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 576,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_9_to_16_os6 = 
+{ %w   = 576;  %h     = 1024;   
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1536; %th    = 1152;   
+  %nw  = 1792; %nh    = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 576,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 // -------------------------------------------------------------------------------------------------
 // medium:
@@ -4261,6 +4498,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic.aspect_ratio_1_to_1
   #xl_magic_size.medium
 }
+// {
+// "width": 1024,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_1_to_1_os6 =
 { %h   = 1024;  %w    = 1024;   
@@ -4273,6 +4521,62 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.6
 }
+// {
+// "width": 1024,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_medium_2_to_3 =
+{ %w   = 832;   %h    = 1216;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 179,;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 832,
+// "height": 1216,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHei// "hiresFix": false
+// }
+
+@xl_magic_medium_2_to_3_os6 =
+{ %w   = 832;   %h    = 1216;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 832,
+// "height": 1216,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_3_to_2 =
 { %w   = 1216;  %h    = 832;    
@@ -4285,6 +4589,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 1216,
+// "height": 832,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_3_to_2_os6 =
 { %w   = 1216;  %h    = 832; 
@@ -4297,30 +4612,40 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.6
 }
+// {
+// "width": 1216,
+// "height": 832,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
-@xl_magic_medium_2_to_3 =
-{ %w   = 832;   %h    = 1216;   
-  %ow  = 576;   %oh   = 768;    
-  %tw  = 768;   %th   = 1024;   
-  %nw  = 1344;  %nh   = 1792;   
+@xl_magic_medium_3_to_4 =
+{ %w   = 896;   %h    = 1152;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
+  #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.4
 }
-
-@xl_magic_medium_2_to_3_os6 =
-{ %w   = 832;   %h    = 1216;   
-  %ow  = 576;   %oh   = 768;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1344;  %nh   = 1792;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.6
-}
+// {
+// "width": 896,
+// "height": 1152,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_4_to_3 =
 { %w    = 1152; %h    = 896;    
@@ -4333,6 +4658,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 1152,
+// "height": 896,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_4_to_3_os6 =
 { %w    = 1152; %h    = 896;     
@@ -4345,30 +4681,86 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.6
 }
-
-@xl_magic_medium_3_to_4 =
-{ %w   = 896;   %h    = 1152;   
-  %ow  = 576;   %oh   = 768;    
-  %tw  = 768;   %th   = 1024;   
-  %nw  = 1344;  %nh   = 1792;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.4
-}
+// {
+// "width": 1152,
+// "height": 896,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_3_to_4_os6 =
 { %w   = 896;   %h    = 1152;   
-  %ow  = 576;   %oh   = 768;    
+  %ow  = 768;   %oh   = 576;    
   %tw  = 1536;  %th   = 1152;   
-  %nw  = 1344;  %nh   = 1792;   
+  %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.6
 }
+// {
+// "width": 896,
+// "height": 1152,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_medium_9_to_16 =
+{ %w   = 768;   %h    = 1344;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 768,
+// "height": 1344,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_medium_9_to_16_os6 = 
+{ %w   = 768;   %h    = 1344;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 1344,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_16_to_9 =
 { %w   = 1344;  %h    = 768;    
@@ -4381,6 +4773,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.16.9
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 1344,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_16_to_9_os6 =
 { %w   = 1344;  %h    = 768;    
@@ -4393,30 +4796,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.16.9
   #xl_magic_object_scaling.6
 }
-
-@xl_magic_medium_9_to_16 =
-{ %w   = 768;   %h    = 1344;   
-  %ow  = 576;   %oh   = 768;    
-  %tw  = 768;   %th   = 1024;   
-  %nw  = 1344;  %nh   = 1792;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.4
-}
-
-@xl_magic_medium_9_to_16_os6 = 
-{ %w   = 768;   %h    = 1344;   
-  %ow  = 576;   %oh   = 768;    
-  %tw  = 768;   %th   = 1024;   
-  %nw  = 1533;  %nh   = 1152;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.6
-}
+// {
+// "width": 1344,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 // -------------------------------------------------------------------------------------------------
 // large:
@@ -4532,7 +4922,16 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_small_4_to_3
 | @xl_magic_small_9_to_16
 | @xl_magic_small_16_to_9
-  #xl_magic_object_scaling.object_scaling_4
+}
+
+@xl_magic_small_random_os6 = 
+{ @xl_magic_small_1_to_1_os6
+| @xl_magic_small_2_to_3_os6
+| @xl_magic_small_3_to_2_os6
+| @xl_magic_small_3_to_4_os6
+| @xl_magic_small_4_to_3_os6
+| @xl_magic_small_9_to_16_os6
+| @xl_magic_small_16_to_9_os6
 }
 
 @xl_magic_medium_random =
@@ -4545,7 +4944,7 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_medium_16_to_9
 }
 
-@xl_magic_medium_os6_random =
+@xl_magic_medium_random_os6 =
 { @xl_magic_medium_1_to_1_os6
 | @xl_magic_medium_2_to_3_os6
 | @xl_magic_medium_3_to_2_os6
@@ -7962,8 +8361,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        log(log_flags_enabled,
-            `unsetting flag '${thing.flag}'.`);
+        // log(log_flags_enabled,
+        //     `unsetting flag '${thing.flag}'.`);
 
         context.unset_flag(thing.flag);
         
@@ -8345,7 +8744,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               ? { desc: 'UI prompt', text: ui_prompt }
               : { desc: 'UI negative prompt', text: ui_neg_prompt };
         
-        lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+        // lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
 
         let res = null;
 
@@ -8721,68 +9120,49 @@ class ASTNode {
   // -----------------------------------------------------------------------------------------------
   direct_children() {
     const ret = Array.from(this.__direct_children());
-
-    // if (ret.some(x => !((x instanceof ASTNode) || Array.isArray(x))))
-    //   throw new Error(`direct_children of ` +
-    //                   `${inspect_fun(this)} ` +
-    //                   `${inspect_fun(ret)} ` +
-    //                   `included non-ASTNode: ` +
-    //                   `${inspect_fun(ret.find(x => !((x instanceof ASTNode) || Array.isArray(x))))}`
-    //                  ); 
     
     return ret;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
+    // doesn't necessarily need to (but could) include whildren that are not ASTNodes.
     throw new Error(`__direct_children is not implemented by ${this.constructor.name}`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTLeafNode extends ASTNode {
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
   }
 }
 // -------------------------------------------------------------------------------------------------
 // Flags:
 // -------------------------------------------------------------------------------------------------
-class ASTFlagOperation extends ASTNode {
-  // -----------------------------------------------------------------------------------------------
-  direct_children() {
-    return [];
-  }
-}
-// -------------------------------------------------------------------------------------------------
-class ASTSetFlag extends ASTFlagOperation {
+class ASTSetFlag extends ASTLeafNode {
   constructor(flag_arr) {
-    // if (! Array.isArray(flag_arr))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
     super();
     this.flag = flag_arr;
-    
-    // if (this.flag === undefined)
-    //   throw new Error("stop after constructing ASTSetFlag");
   }
-  // --------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `#${this.flag.join('.')}`;
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTUnsetFlag extends ASTFlagOperation {
+class ASTUnsetFlag extends ASTLeafNode {
   constructor(flag_arr) {
-    // if (! Array.isArray(flag_arr))
-    //   throw new Error(`${this.constructor.name} ` +
-    //                   `ARG NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
     super();
     this.flag = flag_arr;
   }
-  // --------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `#!${this.flag.join('.')}`;
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTCheckFlags extends ASTFlagOperation {
+class ASTCheckFlags extends ASTLeafNode {
   constructor(flag_arrs, consequently_set_flag_tail) {
-    // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
-    //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
     super();
 
     if (consequently_set_flag_tail && flag_arrs.length != 1 )
@@ -8790,13 +9170,6 @@ class ASTCheckFlags extends ASTFlagOperation {
 
     this.flags = flag_arrs;
     this.consequently_set_flag_tail = consequently_set_flag_tail;
-
-    // if (log_flags_enabled)
-    //   lm.log(`constructed ${inspect_fun(this)}`)
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8815,16 +9188,12 @@ class ASTCheckFlags extends ASTFlagOperation {
     }
 
     return str;
-    // return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTNotFlag extends ASTFlagOperation  { 
+class ASTNotFlag extends ASTLeafNode  { 
   constructor(flag_arr, { set_immediately = undefined,
                           consequently_set_flag_tail = undefined } = {}) {
-    // if (! Array.isArray(flag_arr))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
     super();
 
     if (set_immediately && consequently_set_flag_tail)
@@ -8833,14 +9202,8 @@ class ASTNotFlag extends ASTFlagOperation  {
     this.flag                       = flag_arr;
     this.consequently_set_flag_tail = consequently_set_flag_tail
     this.set_immediately            = set_immediately;
-
-    // if (log_flags_enabled)
-    //   lm.log(`constructed ${inspect_fun(this)}`)
-    
-    // if (this.set_immediately)
-    //   lm.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
-  // -------------------------------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------------------------
   toString() {
     let str = `!`;
 
@@ -8858,7 +9221,7 @@ class ASTNotFlag extends ASTFlagOperation  {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Named wildcard definitions:
+// ASTNamedWildcardDefinition;
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardDefinition extends ASTNode {
   constructor(name, wildcard) {
@@ -8876,9 +9239,9 @@ class ASTNamedWildcardDefinition extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Named wildcard references:
+// ASTNamedWildcardReference:
 // -------------------------------------------------------------------------------------------------
-class ASTNamedWildcardReference extends ASTNode {
+class ASTNamedWildcardReference extends ASTLeafNode {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1, trailer = '') {
     super();
     this.name       = name;
@@ -8887,11 +9250,6 @@ class ASTNamedWildcardReference extends ASTNode {
     this.min_count  = min_count;
     this.max_count  = max_count;
     this.trailer    = trailer;
-    // lm.log(`BUILT ${inspect_fun(this)}`);
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8917,16 +9275,12 @@ class ASTNamedWildcardReference extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Scalar references:
 // -------------------------------------------------------------------------------------------------
-class ASTScalarReference extends ASTNode {
+class ASTScalarReference extends ASTLeafNode {
   constructor(name, capitalize = '', trailer = '') {
     super();
     this.name       = name;
     this.capitalize = capitalize;
     this.trailer    = trailer;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8960,14 +9314,13 @@ class ASTScalarAssignment extends ASTNode  {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// A1111-style Loras:
+// ASTLora (for A1111-style LoRA syntax);
 // -------------------------------------------------------------------------------------------------
 class ASTLora extends ASTNode {
   constructor(file, weight) {
     super();
     this.file   = file;
     this.weight = weight;
-    // lm.log(`Constructed LoRa ${this}!`);
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -8980,9 +9333,9 @@ class ASTLora extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Latch a NamedWildcard:
+// ASTLatchNamedWildcard:
 // -------------------------------------------------------------------------------------------------
-class ASTLatchNamedWildcard extends ASTNode {
+class ASTLatchNamedWildcard extends ASTLeafNode {
   constructor(name) {
     super();
     this.name = name;
@@ -8993,9 +9346,9 @@ class ASTLatchNamedWildcard extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Unlatch a NamedWildcard:
+// ASTUnlatchNamedWildcard:
 // -------------------------------------------------------------------------------------------------
-class ASTUnlatchNamedWildcard extends ASTNode {
+class ASTUnlatchNamedWildcard extends ASTLeafNode {
   constructor(name) {
     super();
     this.name = name;
@@ -9006,13 +9359,17 @@ class ASTUnlatchNamedWildcard extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Internal usage.. might not /really/ be part of the AST per se?
+// ASTLatchedNamedWildcardValue:
 // -------------------------------------------------------------------------------------------------
 class ASTLatchedNamedWildcardValue extends ASTNode {
   constructor(latched_value, original_value) {
     super();
     this.latched_value  = latched_value;
     this.original_value = original_value;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.original_value ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -9029,9 +9386,6 @@ class ASTAnonWildcard extends ASTNode {
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     this.trailer = trailer;
-
-    // if (trailer)
-    //   lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -9051,12 +9405,8 @@ class ASTAnonWildcard extends ASTNode {
       const has_weight = option.weight != 1;
       const is_empty   = repr == '';
       const is_last    = ix == (this.picker.options.length - 1);
-      const has_guards = (option.value.check_flags?.length > 0) || (option.value.not_flags?.length > 0);
-
-      // lm.log(`option:     ${inspect_fun(option)}`);
-      // lm.log(`cfs.l:      ${option.value.check_flags?.length}`);
-      // lm.log(`nfs.l:      ${option.value.not_flags?.length}`);
-      // lm.log(`has_guards: ${has_guards}`);
+      const has_guards = (option.value.check_flags?.length > 0 ||
+                          option.value.not_flags?.length   > 0);
       
       if (!is_empty && !has_weight && !has_guards)
         str += ' ';
@@ -9073,8 +9423,6 @@ class ASTAnonWildcard extends ASTNode {
     str += '}';
     
     return str;
-
-    // return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9103,22 +9451,19 @@ class ASTAnonWildcardAlternative extends ASTNode {
     if (this.weight !== 1)
       str += `${this.weight} `;
 
-    var bits = [];
+    var strs = [];
 
     for (const check of this.check_flags)
-      bits.push(check.toString());
+      strs.push(check.toString());
     
     for (const not of this.not_flags)
-      bits.push(not.toString());
+      strs.push(not.toString());
     
     for (const thing of this.body) {
-      // lm.log(`push bit ${thing.toString()} (${thing.toString().length})`)
-      bits.push(thing.toString());
+      strs.push(thing.toString());
     }
 
-    str += bits.join(' ');
-
-    // lm.log(`BITS: ${inspect_fun(bits)}`);
+    str += strs.join(' ');
     
     return str;
   }
@@ -9126,7 +9471,7 @@ class ASTAnonWildcardAlternative extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // ASTInclude:
 // -------------------------------------------------------------------------------------------------
-class ASTInclude extends ASTNode {
+class ASTInclude extends ASTLeafNode {
   constructor(args) {
     super();
     this.args      = args;
@@ -9136,6 +9481,8 @@ class ASTInclude extends ASTNode {
     return `include(${this.args})`;
   }
 }
+// -------------------------------------------------------------------------------------------------
+// ASTUpdateConfigurationUnary:
 // -------------------------------------------------------------------------------------------------
 class ASTUpdateConfigurationUnary extends ASTNode {
   constructor(value, assign) {
@@ -9153,6 +9500,8 @@ class ASTUpdateConfigurationUnary extends ASTNode {
       `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
+// -------------------------------------------------------------------------------------------------
+// ASTUpdateConfigurationBinary:
 // -------------------------------------------------------------------------------------------------
 class ASTUpdateConfigurationBinary extends ASTNode {
   constructor(key, value, assign) {
@@ -9172,10 +9521,16 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
+// ASTSetPickMultiple:
+// -------------------------------------------------------------------------------------------------
 class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.limited_content ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -9183,10 +9538,16 @@ class ASTSetPickMultiple extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
+// ASTSetPickSingle:
+// -------------------------------------------------------------------------------------------------
 class ASTSetPickSingle extends ASTNode {
   constructor(limited_content) {
     super();
     this.limited_content = limited_content;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.limited_content ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -9194,7 +9555,9 @@ class ASTSetPickSingle extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTRevertPickMultiple extends ASTNode {
+// ASTRevertPickMultiple:
+// -------------------------------------------------------------------------------------------------
+class ASTRevertPickMultiple extends ASTLeafNode {
   constructor() {
     super();
   }
@@ -9204,7 +9567,9 @@ class ASTRevertPickMultiple extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTRevertPickSingle extends ASTNode {
+// ASTRevertPickSingle:
+// -------------------------------------------------------------------------------------------------
+class ASTRevertPickSingle extends ASTLeafNode {
   constructor() {
     super();
   }
@@ -9214,7 +9579,9 @@ class ASTRevertPickSingle extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTUIPrompt extends ASTNode {
+// ASTUIPrompt:
+// -------------------------------------------------------------------------------------------------
+class ASTUIPrompt extends ASTLeafNode {
   constructor() {
     super();
   }
@@ -9224,7 +9591,9 @@ class ASTUIPrompt extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTUINegPrompt extends ASTNode {
+// ASTUINegPrompt:
+// -------------------------------------------------------------------------------------------------
+class ASTUINegPrompt extends ASTLeafNode {
   constructor() {
     super();
   }
@@ -9504,16 +9873,10 @@ const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = fal
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
       .abbreviate_str_repr('AnonWildcardAlternative');
-// const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
-//       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative,        true)
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative,        false)
+const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative, false)
       .abbreviate_str_repr('AnonWildcardNoTrailer');
-// const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, true)
-//       .abbreviate_str_repr('AnonWildcardNoLoras');
-// const AnonWildcardNoLorasNoTrailer   = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, false)
-//       .abbreviate_str_repr('AnonWildcardNoLorasNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
@@ -9848,7 +10211,6 @@ Prompt.finalize();
 // =================================================================================================
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =================================================================================================
-
 
 
 // =================================================================================================
