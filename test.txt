@@ -1,0 +1,37 @@
+// { ?foo foo is true } #foo // couldn't be set yet, audit_flags warns
+
+// { /* empty alternative */ | #foo }
+// { ?foo foo is true } // foo may or may not be set yet, no audit_flags warning
+
+// @maybe_set_some_flag { ?some_flag some_flag is set }
+
+// { !#foo foo }
+
+// @foo = { @bar }
+// @bar = { bar }
+
+
+// @animals =
+// {0
+// |1 #cat  cat
+// |1 #dog  dog
+// |1 #bird bird
+// }
+
+// @animals
+
+// $animal = pig
+
+// $animol
+
+// #corge
+// #!corge
+
+// #!poop
+// #zap
+#poop
+
+{ ?poop.#pop FIRST HERE }
+// { ?poop,corge.grault AND HERE }
+// { !corge.#grault HERE }
+// { ?zap.#boom AND ALSO HERE }

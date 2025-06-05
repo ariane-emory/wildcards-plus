@@ -9342,8 +9342,14 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       walk_children(thing);
     }
     else if (thing instanceof ASTCheckFlags) {
-      for (const flag of thing.flags) 
-        warn_or_throw_unless_flag_could_be_set_by_now(flag);
+      if (thing.consequently_set_flag_tail) {
+        throw new Error("STOP");
+        // undecided on whether this case deserves a warning... for now, let's avoid one:
+        dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
+      }
+      else
+        for (const flag of thing.flags) 
+          warn_or_throw_unless_flag_could_be_set_by_now(flag);
     }
     else if (thing instanceof ASTNotFlag) {
       if (thing.consequently_set_flag_tail)
