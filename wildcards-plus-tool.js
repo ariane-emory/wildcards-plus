@@ -4475,12 +4475,24 @@ const prelude_text = prelude_disabled ? '' : `
 { %w    = 512;  %h    = 768;   
   %ow   = 576;  %oh   = 768;   
   %tw   = 768;  %th   = 1024;  
-  %nw   = 1344; %nh   = 1792;  
+  %nw   = 1792; %nh   = 1344;  
   %hrf  = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
   #xl_magic_object_scaling.4
+}
+
+@xl_magic_small_2_to_3_os6 =
+{ %w    = 512;  %h    = 768;   
+  %ow   = 576;  %oh   = 768;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_small_4_to_3 =
