@@ -8793,7 +8793,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-// -------------------------------------------------------------------------------------------------
 function audit_flags(root_ast_node, noisy = true, throws = false) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
