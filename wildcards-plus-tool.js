@@ -8903,7 +8903,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     if (Array.isArray(thing)) { 
       for (const elem of thing)
         /// if (!is_primitive(elem))
-      lm.indent(() => walk(elem));
+        lm.indent(() => walk(elem));
     }
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (dummy_context.named_wildcards.has(thing.name))
@@ -10231,7 +10231,7 @@ async function main() {
   }
 
   // audit flags:
-  audit_semantics(AST, { base_context: base_context, noisy: false, throws: false });
+  audit_semantics(AST, { base_context: base_context, noisy: true, throws: false });
 
   let posted_count        = 0;
   let prior_prompt        = null;
