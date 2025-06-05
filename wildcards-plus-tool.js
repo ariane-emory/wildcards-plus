@@ -8359,10 +8359,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
-        if (context.named_wildcards.has(thing.name))
-          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
-              `you may not have intended to do this, check your template!`,
-              log_expand_and_walk_enabled);
+        // if (context.named_wildcards.has(thing.name))
+        //   log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
+        //       `you may not have intended to do this, check your template!`,
+        //       log_expand_and_walk_enabled);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
@@ -8808,6 +8808,8 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
   const checked_flags_arr = [];
   
   function warn_or_throw(msg) {
+    msg = `${throws ? 'ERROR' : 'WARNING' }: ${msg}`;
+
     if (throws) {
       throw new Error(msg);
     }
@@ -8829,6 +8831,9 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
 
     log(`auditing flags in ${thing_str_repr(thing)}`);
 
+    // ---------------------------------------------------------------------------------------------
+    // typecases:
+    // ---------------------------------------------------------------------------------------------
     if (Array.isArray(thing)) { 
       for (const elem of thing)
         if (!is_primitive(elem))
@@ -8839,14 +8844,18 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     }
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (dummy_context.named_wildcards.has(thing.name))
-        warn_or_throw(`WARNING: redefining named wildcard @${thing.name}, ` +
+        warn_or_throw(`redefining named wildcard @${thing.name}, ` +
                       `you may not have intended to do this, check your template!`);
 
       dummy_context.named_wildcards.set(thing.name, thing.wildcard);
     }
     else if (thing instanceof ASTNamedWildcardReference) {
+      if (!dummy_context.named_wildcards.has(thing.name))
+        warn_or_throw(`named wildcard @${thing.name} not found, ` +
+                      `this suggests that you may have made a typo in your template.`);
+        
       const got = dummy_context.named_wildcards.get(thing.name);
-
+      
       walk(got);
     }
     else if (thing instanceof ASTCheckFlags) {
