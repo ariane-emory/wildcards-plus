@@ -4435,6 +4435,18 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_object_scaling.4
 }
 
+@xl_magic_small_1_to_1_os6 =
+{ %w    = 512;  %h    = 512;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.6
+}
+
 @xl_magic_small_3_to_2 =
 { %w    = 768;  %h    = 512;   
   %ow   = 768;  %oh   = 576;   
@@ -4445,6 +4457,18 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
+}
+
+@xl_magic_small_3_to_2_os6 =
+{ %w    = 768;  %h    = 512;   
+  %ow   = 768;  %oh   = 6;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
 }
 
 @xl_magic_small_2_to_3 =
