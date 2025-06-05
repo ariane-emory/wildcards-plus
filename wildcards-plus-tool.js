@@ -8902,8 +8902,8 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     // ---------------------------------------------------------------------------------------------
     if (Array.isArray(thing)) { 
       for (const elem of thing)
-        if (!is_primitive(elem))
-          lm.indent(() => walk(elem));
+        /// if (!is_primitive(elem))
+      lm.indent(() => walk(elem));
     }
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (dummy_context.named_wildcards.has(thing.name))
@@ -8914,7 +8914,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     }
     else if (thing instanceof ASTScalarAssignment) {
       dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-      lm.log(`this: ${inspect_fun(dummy_context.scalar_variables)}`);
+      // lm.log(`this: ${inspect_fun(dummy_context.scalar_variables)}`);
       walk_children(thing);
     }
     else if (thing instanceof ASTNamedWildcardReference) {
