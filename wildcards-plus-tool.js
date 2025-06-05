@@ -294,7 +294,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -8833,7 +8833,12 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
                              noisy));
     }
     else if (thing instanceof ASTNamedWildcardReference) {
-      walk(dummy_context.named_wildcards.get(thing.name));
+      const got = dummy_context.named_wildcards.get(thing.name);
+
+      if (! got) {
+      }
+      
+      walk(got);
     }
     else if (thing instanceof ASTCheckFlags) {
       for (const flag of thing.flags) {
@@ -8842,7 +8847,8 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       }
     }
     else if (thing instanceof ASTNotFlag) {
-      warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+      if (! thing.set_immediately) // is this a hack or sensible? not sure yet.
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
       checked_flags_arr.push(thing.flag);
     }
     else if (thing instanceof ASTSetFlag) {
@@ -10133,7 +10139,7 @@ async function main() {
   }
 
   // audit flags:
-  audit_semantics(AST, { base_context: base_context });
+  audit_semantics(AST, { base_context: base_context, throws: false });
 
   let posted_count        = 0;
   let prior_prompt        = null;
