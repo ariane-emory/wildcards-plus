@@ -8799,6 +8799,23 @@ function audit_flags(root_ast_node, { base_context = null, noisy = true, throws 
                     `this likely indicates a programmer error`);
 
   const log = noisy ? msg => lm.log(msg) : msg => {};
+  const dummy_context = base_context
+        ? base_context.clone()
+        : new Context();
+  const checked_flags_arr = [];
+
+  function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
+    if (dummy_context.flag_is_set(flag))
+      return;
+
+    const msg = `WARNING: flag '${flag.join(".")}' is checked but is either not set yet or is ` +
+          `never set this suggests that you may have  made a typo in your template.`;
+
+    if (throws)
+      throw new Error(msg);
+    else
+      lm.log(msg, false); // false arg for no indentation.
+  }
 
   function walk(thing) {
     if (is_primitive(thing))
@@ -8814,15 +8831,18 @@ function audit_flags(root_ast_node, { base_context = null, noisy = true, throws 
                              noisy));
     }
     else if (thing instanceof ASTCheckFlags) {
-      for (const flag of thing.flags)
+      for (const flag of thing.flags) {
+        warn_or_throw_unless_flag_could_be_set_by_now(flag);
         checked_flags_arr.push(flag);
+      }
     }
     else if (thing instanceof ASTNotFlag) {
+      warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
       checked_flags_arr.push(thing.flag);
     }
     else if (thing instanceof ASTSetFlag) {
       dummy_context.set_flag(thing.flag, false);
-    }
+    } 
     else if (thing instanceof ASTNode) {
       lm.indent(() => {
         const children = thing.direct_children();
@@ -8842,26 +8862,7 @@ function audit_flags(root_ast_node, { base_context = null, noisy = true, throws 
     }
   }
 
-  const dummy_context = base_context
-        ? base_context.clone()
-        : new Context();
-  
-  const checked_flags_arr = [];
-
   walk(root_ast_node);
-
-  for (const flag of checked_flags_arr) {
-    if (dummy_context.flag_is_set(flag))
-      continue;
-
-    const msg = `WARNING: flag '${flag.join(".")}' is checked but is never set, ` +
-          `this suggests that you may have  made a typo in your template.`;
-
-    if (throws)
-      throw new Error(msg);
-    else
-      lm.log(msg, false); // false arg for no indentation.
-  }
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
