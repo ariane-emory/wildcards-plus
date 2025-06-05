@@ -8793,7 +8793,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_flags(root_ast_node, noisy = true, throws = false) {
+function audit_flags(root_ast_node, noisy = true, throws = true) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
@@ -8804,7 +8804,7 @@ function audit_flags(root_ast_node, noisy = true, throws = false) {
     log(`auditing flags in ${thing_str_repr(thing)}`);
 
     if (is_primitive(thing)) {
-      return;
+      /* do nothing */
     }
     else if (Array.isArray(thing)) { 
       for (const elem of thing)
@@ -8840,15 +8840,26 @@ function audit_flags(root_ast_node, noisy = true, throws = false) {
     else {
       throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
     }
-    }
+  }
 
   const dummy_context = new Context();
   const checked_flags_arr = [];
 
   walk(root_ast_node);
 
-  lm.log(`dummy_context.flags: ${inspect_fun(dummy_context.flags)}`);
-  lm.log(`checked_flags_arr:   ${inspect_fun(checked_flags_arr)}`);
+
+  for (const flag of checked_flags_arr) {
+    if (dummy_context.flag_is_set(flag))
+      continue;
+
+    const msg = `WARNING: flag '${flag.join(".")}' is checked but is never set, ` +
+          `this suggests that you may have  made a typo in your template.`;
+
+    if (throws)
+      throw new Error(msg);
+    else
+      lm.log(msg, false); // false arg for no indentation.
+  }
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
