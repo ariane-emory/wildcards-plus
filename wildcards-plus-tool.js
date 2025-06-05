@@ -4680,16 +4680,48 @@ const prelude_text = prelude_disabled ? '' : `
 
 @xl_magic_small_9_to_16 =
 { %w   = 576;  %h     = 1024;   
-  %ow  = 576;  %oh    = 768;    
-  %tw  = 768;  %th    = 1024;   
-  %nw  = 1344; %nh    = 1792;   
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1024; %th    = 768;    
+  %nw  = 1792; %nh    = 1344;   
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.9.16
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 576,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
+@xl_magic_small_9_to_16_os6 = 
+{ %w   = 576;  %h     = 1024;   
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1536; %th    = 1152;   
+  %nw  = 1792; %nh    = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 576,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 // -------------------------------------------------------------------------------------------------
 // medium:
 // -------------------------------------------------------------------------------------------------
