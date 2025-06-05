@@ -8802,7 +8802,7 @@ function audit_flags(root_ast_node, base_context = null, noisy = true, throws = 
 
   function walk(thing) {
     if (is_primitive(thing))
-    return;
+      return;
 
     log(`auditing flags in ${thing_str_repr(thing)}`);
 
