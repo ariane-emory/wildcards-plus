@@ -4183,18 +4183,18 @@ class Context {
 
       this.flags = this.flags.filter(existing_flag => {
         if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
-          if (log_flags_enabled)
-            lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
-                   `new flag ${compress(inspect_fun(new_flag))}`);
+          // if (log_flags_enabled)
+          //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+          //          `new flag ${compress(inspect_fun(new_flag))}`);
           return false;
         }
 
         if (replace_existing)
           if (new_flag_head.length != 0 &&
               arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
-            if (log_flags_enabled)
-              lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
-                     `new flag's head ${compress(inspect_fun(new_flag_head))}`);
+            // if (log_flags_enabled)
+            //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
+            //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
             return false; 
           }
         
@@ -9343,13 +9343,13 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     }
     else if (thing instanceof ASTCheckFlags) {
       if (thing.consequently_set_flag_tail) {
-        throw new Error("STOP");
         // undecided on whether this case deserves a warning... for now, let's avoid one:
         dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
       }
-      else
+      else {
         for (const flag of thing.flags) 
           warn_or_throw_unless_flag_could_be_set_by_now(flag);
+      }
     }
     else if (thing instanceof ASTNotFlag) {
       if (thing.consequently_set_flag_tail)
