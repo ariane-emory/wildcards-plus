@@ -33,7 +33,7 @@ let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
-let prelude_disabled                  = false;
+let prelude_disabled                  = true;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
@@ -3924,18 +3924,18 @@ class Context {
 
       this.flags = this.flags.filter(existing_flag => {
         if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
-          if (log_flags_enabled)
-            lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
-                   `new flag ${compress(inspect_fun(new_flag))}`);
+          // if (log_flags_enabled)
+          //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+          //          `new flag ${compress(inspect_fun(new_flag))}`);
           return false;
         }
 
         if (replace_existing)
           if (new_flag_head.length != 0 &&
               arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
-            if (log_flags_enabled)
-              lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
-                     `new flag's head ${compress(inspect_fun(new_flag_head))}`);
+            // if (log_flags_enabled)
+            //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
+            //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
             return false; 
           }
         
@@ -9083,11 +9083,21 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       walk_children(thing);
     }
     else if (thing instanceof ASTCheckFlags) {
-      for (const flag of thing.flags) 
-        warn_or_throw_unless_flag_could_be_set_by_now(flag);
+      if (thing.consequently_set_flag_tail) {
+        // undecided on whether this case deserves a warning... for now, let's avoid one:
+        dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
+      }
+      else {
+        for (const flag of thing.flags) 
+          warn_or_throw_unless_flag_could_be_set_by_now(flag);
+      }
     }
     else if (thing instanceof ASTNotFlag) {
-      if (thing.set_immediately) 
+      if (thing.consequently_set_flag_tail)
+        // undecided on whether this case deserves a warning... for now, let's avoid one:
+        dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
+      else if (thing.set_immediately) 
+        // this case probably doesn't deserve a warning, avoid one:
         dummy_context.set_flag(thing.flag, false);
       else 
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
@@ -9616,9 +9626,8 @@ const structural_word_break   = r(/(?=[\s|}]|$)/)
       .abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule => first(seq(rule, structural_word_break));
-const seq_with_swb            = (...rules) => first(seq(seq(...rules), structural_word_break));
-// these cut after ALL rules if a SWB isn't found, NOT after first rule:
 const cutting_with_swb        = rule => first(cutting_seq(rule, structural_word_break));
+// these cut after ALL rules if a SWB isn't found, NOT after first rule:
 const cutting_seq_with_swb    = (...rules) => first(cutting_seq(seq(...rules),
                                                                 structural_word_break));
 // =================================================================================================
@@ -9723,64 +9732,65 @@ const flag_ident = xform(seq(choice(ident, '*'),
                            return ret;
                          });
 const SimpleCheckFlag =
-      xform(seq_with_swb(question,
-                         flag_ident),
+      xform(with_swb(seq(question,
+                         flag_ident)),
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(args);
             })
       .abbreviate_str_repr('SimpleCheckFlag');
 const SimpleNotFlag =
-      xform(seq_with_swb(bang,
+      xform(with_swb(seq(bang,
                          optional(hash),
-                         flag_ident),
+                         flag_ident)),
             arr => {
               const args = [arr[2],
                             { set_immediately: !!arr[1]}];
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('SimpleNotFlag');
-const CheckFlagWithOrAlternatives =
-      xform(cutting_seq_with_swb(question,
-                                 plus(flag_ident, comma)),
-            arr => {
-              const args = [arr[1]];
-              return new ASTCheckFlags(...args);
-            })
-      .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const CheckFlagWithSetConsequent =
-      xform(cutting_seq_with_swb(question,    // [0]
-                                 flag_ident,  // [1]
-                                 dot_hash,    // [2]
-                                 flag_ident), // [3]
+      xform(cutting_with_swb(seq(question,     // [0]
+                                 flag_ident,   // [1]
+                                 dot_hash,     // [2]
+                                 flag_ident)), // [3]
             arr => {
               const args = [ [ arr[1] ], arr[3] ]; 
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
-const NotFlagWithSetConsequent =
-      xform(cutting_seq_with_swb(bang,
-                                 flag_ident,
-                                 dot_hash,
-                                 flag_ident),
+const CheckFlagWithOrAlternatives = // last check alternative
+      xform(cutting_seq(question,                // [0]
+                        plus(flag_ident, comma), // [1]
+                        structural_word_break),  // [2]
+            arr => {
+              const args = [arr[1]];
+              return new ASTCheckFlags(...args);
+            })
+      .abbreviate_str_repr('CheckFlagWithOrAlternatives');
+const NotFlagWithSetConsequent = // last not alternative
+      xform(cutting_seq(bang,                   // [0]
+                        flag_ident,             // [1]
+                        dot_hash,               // [2]
+                        flag_ident,             // [3]
+                        structural_word_break), // - 
             arr => {
               const args = [arr[1],
-                            { consequently_set_flag_tail: arr[3] }]; 
+                            { consequently_set_flag_tail: arr[3]}]; 
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
+// -------------------------------------------------------------------------------------------------
 const SetFlag = xform(second(cutting_seq_with_swb(hash, flag_ident)),
                       arr => new ASTSetFlag(arr))
       .abbreviate_str_repr('SetFlag');
 const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, flag_ident)),
                         arr => new ASTUnsetFlag(arr))
       .abbreviate_str_repr('UnsetFlag');
-const TestFlag = choice(SimpleCheckFlag,
-                        SimpleNotFlag,
-                        CheckFlagWithSetConsequent,
-                        NotFlagWithSetConsequent,
-                        CheckFlagWithOrAlternatives)
-      .abbreviate_str_repr('TestFlag');
+const SetFlagWithSWB = with_swb(SetFlag)
+      .abbreviate_str_repr('SetFlagWithSWB');
+const UnsetFlagWithSWB = with_swb(UnsetFlag)
+      .abbreviate_str_repr('UnsetFlagWithSWB');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
       unexpected(rule, (rule, input, index) =>
@@ -9795,6 +9805,14 @@ const wrap_TestFlag_in_AnonWildcard    = rule =>
       xform(rule, flag =>
         new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
 // -------------------------------------------------------------------------------------------------
+const TestFlagInGuardPosition =
+      choice(SimpleCheckFlag,
+             SimpleNotFlag,
+             CheckFlagWithSetConsequent,
+             NotFlagWithSetConsequent,
+             CheckFlagWithOrAlternatives,
+            )
+      .abbreviate_str_repr('TestFlagInGuardPosition');
 const TopLevelTestFlag =
       choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
              .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
@@ -9859,9 +9877,11 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
-                lws(optional(swb_uint, 1)),
-                wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
+            seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
+                                SetFlagWithSWB, UnsetFlagWithSWB)),
+                lws(optional(swb_uint, 1)),                                 
+                wst_star(choice(TestFlagInGuardPosition, discarded_comment,
+                                SetFlagWithSWB, UnsetFlagWithSWB)),
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
@@ -10164,8 +10184,8 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         NamedWildcardReference,
         NamedWildcardUsage,
         SpecialFunctionNotInclude,
-        SetFlag,
-        UnsetFlag,
+        SetFlagWithSWB,
+        UnsetFlagWithSWB,
         ScalarAssignment,
         ScalarReference,
         make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
