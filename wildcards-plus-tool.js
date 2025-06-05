@@ -8864,10 +8864,9 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     if (dummy_context.flag_is_set(flag))
       return;
 
-    const flag_str = flag.join(".");
+    const flag_str = flag.join(".").toLowerCase();
     const known_flags = dummy_context.flags.map(f => f.join("."));
     const suggestion = suggest_closest(flag_str, known_flags);
-
     warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set,` +
                   ` this suggests a typo in your template.${suggestion}`);
   }
@@ -8902,8 +8901,8 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     // ---------------------------------------------------------------------------------------------
     if (Array.isArray(thing)) { 
       for (const elem of thing)
-        /// if (!is_primitive(elem))
-        lm.indent(() => walk(elem));
+        if (!is_primitive(elem))
+          lm.indent(() => walk(elem));
     }
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (dummy_context.named_wildcards.has(thing.name))
@@ -8938,8 +8937,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     }
     else if (thing instanceof ASTScalarAssignment) {
       dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-      // lm.log(`this: ${inspect_fun(dummy_context.scalar_variables)}`);
-      walk_children(thing);
+       walk_children(thing);
     }
     else if (thing instanceof ASTCheckFlags) {
       for (const flag of thing.flags) 
