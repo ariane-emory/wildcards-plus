@@ -294,7 +294,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -8800,6 +8800,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
 
+  const already_warned_msgs = new Set();
   const log = noisy ? msg => lm.log(msg) : msg => {};
   const dummy_context = base_context
         ? base_context.clone()
@@ -8807,16 +8808,19 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
   const checked_flags_arr = [];
   
   function warn_or_throw(msg) {
-    if (throws)
+    if (throws) {
       throw new Error(msg);
-    else
+    }
+    else if (! already_warned_msgs.has(msg)) {
       lm.log(msg, false); // false arg for no indentation.
+      already_warned_msgs.add(msg);
+    }
   }
 
   function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
     if (! dummy_context.flag_is_set(flag))
       warn_or_throw(`WARNING: flag '${flag.join(".")}' is checked but is either not set yet or is ` +
-                    `never set this suggests that you may have made a typo in your template.`);
+                    `never set, this suggests that you may have made a typo in your template.`);
   }
 
   function walk(thing) {
@@ -8833,6 +8837,13 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
                                checked_flags_arr,
                                noisy));
     }
+    else if (thing instanceof ASTNamedWildcardDefinition) {
+      if (dummy_context.named_wildcards.has(thing.name))
+        warn_or_throw(`WARNING: redefining named wildcard @${thing.name}, ` +
+                      `you may not have intended to do this, check your template!`);
+
+      dummy_context.named_wildcards.set(thing.name, thing.wildcard);
+    }
     else if (thing instanceof ASTNamedWildcardReference) {
       const got = dummy_context.named_wildcards.get(thing.name);
 
@@ -8845,12 +8856,17 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       }
     }
     else if (thing instanceof ASTNotFlag) {
-      if (! thing.set_immediately) // is this a hack or sensible? not sure yet.
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+      if (thing.set_immediately) 
+        dummy_context.set_flag(thing.flag, false);
+      
+      warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
       checked_flags_arr.push(thing.flag);
     }
     else if (thing instanceof ASTSetFlag) {
       dummy_context.set_flag(thing.flag, false);
+    } 
+    else if (thing instanceof ASTUnsetFlag) {
+      lm.log(`ASTUnsetFlag case not implemented yet.`);
     } 
     else if (thing instanceof ASTNode) {
       lm.indent(() => {
@@ -10140,7 +10156,7 @@ async function main() {
   }
 
   // audit flags:
-  audit_semantics(AST, { base_context: base_context, throws: false });
+  audit_semantics(AST, { base_context: base_context, noisy: false, throws: false });
 
   let posted_count        = 0;
   let prior_prompt        = null;
