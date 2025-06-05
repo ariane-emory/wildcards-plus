@@ -8814,11 +8814,9 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
   }
 
   function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
-    if (dummy_context.flag_is_set(flag))
-      return;
-
-    warn_or_throw(`WARNING: flag '${flag.join(".")}' is checked but is either not set yet or is ` +
-                  `never set this suggests that you may have made a typo in your template.`);
+    if (! dummy_context.flag_is_set(flag))
+      warn_or_throw(`WARNING: flag '${flag.join(".")}' is checked but is either not set yet or is ` +
+                    `never set this suggests that you may have made a typo in your template.`);
   }
 
   function walk(thing) {
@@ -8837,9 +8835,6 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     else if (thing instanceof ASTNamedWildcardReference) {
       const got = dummy_context.named_wildcards.get(thing.name);
 
-      if (! got) {
-      }
-      
       walk(got);
     }
     else if (thing instanceof ASTCheckFlags) {
