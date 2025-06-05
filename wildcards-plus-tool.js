@@ -294,7 +294,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -4206,13 +4206,13 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
-    if (log_flags_enabled)
-      lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    // if (log_flags_enabled)
+    //   lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
     this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
 
-    if (log_flags_enabled)
-      lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    // if (log_flags_enabled)
+    //   lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -8221,8 +8221,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        log(log_flags_enabled,
-            `unsetting flag '${thing.flag}'.`);
+        // log(log_flags_enabled,
+        //     `unsetting flag '${thing.flag}'.`);
 
         context.unset_flag(thing.flag);
         
@@ -9004,7 +9004,7 @@ class ASTSetFlag extends ASTLeafNode {
     super();
     this.flag = flag_arr;
   }
-  // --------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `#${this.flag.join('.')}`;
   }
@@ -9015,7 +9015,7 @@ class ASTUnsetFlag extends ASTLeafNode {
     super();
     this.flag = flag_arr;
   }
-  // --------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `#!${this.flag.join('.')}`;
   }
@@ -9063,7 +9063,7 @@ class ASTNotFlag extends ASTLeafNode  {
     this.consequently_set_flag_tail = consequently_set_flag_tail
     this.set_immediately            = set_immediately;
   }
-  // -------------------------------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------------------------
   toString() {
     let str = `!`;
 
@@ -9265,8 +9265,9 @@ class ASTAnonWildcard extends ASTNode {
       const has_weight = option.weight != 1;
       const is_empty   = repr == '';
       const is_last    = ix == (this.picker.options.length - 1);
-      const has_guards = (option.value.check_flags?.length > 0) || (option.value.not_flags?.length > 0);
-      
+      const has_guards = (option.value.check_flags?.length > 0 ||
+                          option.value.not_flags?.length   > 0);
+                          
       if (!is_empty && !has_weight && !has_guards)
         str += ' ';
 
@@ -9732,16 +9733,10 @@ const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = fal
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
       .abbreviate_str_repr('AnonWildcardAlternative');
-// const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
-//       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative,        true)
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative,        false)
+const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative, false)
       .abbreviate_str_repr('AnonWildcardNoTrailer');
-// const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, true)
-//       .abbreviate_str_repr('AnonWildcardNoLoras');
-// const AnonWildcardNoLorasNoTrailer   = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, false)
-//       .abbreviate_str_repr('AnonWildcardNoLorasNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
