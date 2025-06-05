@@ -8795,6 +8795,45 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,     // deletion
+        dp[i][j - 1] + 1,     // insertion
+        dp[i - 1][j - 1] + cost  // substitution
+      );
+    }
+  }
+
+  return dp[m][n];
+}
+// -------------------------------------------------------------------------------------------------
+function suggest_closest(name, candidates) {
+  let closest = null;
+  let closest_distance = Infinity;
+
+  for (const cand of candidates) {
+    const dist = levenshtein(name, cand);
+    if (dist < closest_distance) {
+      closest = cand;
+      closest_distance = dist;
+    }
+  }
+
+  // If it's reasonably close (adjust threshold as needed)
+  return (closest && closest_distance <= 2)
+    ? ` Did you mean '${closest}'?`
+    : '';
+}
+// -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
@@ -8806,7 +8845,8 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
         ? base_context.clone()
         : new Context();
   const checked_flags_arr = [];
-  
+
+  // -----------------------------------------------------------------------------------------------
   function warn_or_throw(msg) {
     msg = `${throws ? 'ERROR' : 'WARNING' }: ${msg}`;
 
@@ -8818,13 +8858,21 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       already_warned_msgs.add(msg);
     }
   }
-
+  
+  // -----------------------------------------------------------------------------------------------
   function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
-    if (! dummy_context.flag_is_set(flag))
-      warn_or_throw(`flag '${flag.join(".")}' is checked before it could possibly be ` +
-                    `set, this suggests that you may have made a typo in your template.`);
-  }
+    if (dummy_context.flag_is_set(flag))
+      return;
 
+    const flag_str = flag.join(".");
+    const known_flags = dummy_context.flags.map(f => f.join("."));
+    const suggestion = suggest_closest(flag_str, known_flags);
+
+    warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set,` +
+                  ` this suggests a typo in your template.${suggestion}`);
+  }
+  
+  // -----------------------------------------------------------------------------------------------
   function walk(thing) {
     if (is_primitive(thing))
       return;
@@ -8850,9 +8898,12 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       dummy_context.named_wildcards.set(thing.name, thing.wildcard);
     }
     else if (thing instanceof ASTNamedWildcardReference) {
-      if (!dummy_context.named_wildcards.has(thing.name))
-        warn_or_throw(`named wildcard @${thing.name} refereces before definition, ` +
-                      `this suggests that you may have made a typo in your template.`);
+      if (!dummy_context.named_wildcards.has(thing.name)) {
+        const known_names = Array.from(dummy_context.named_wildcards.keys());
+        const suggestion = suggest_closest(thing.name, known_names);
+        warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
+                      `this suggests a typo in your template.${suggestion}`);
+      }
         
       const got = dummy_context.named_wildcards.get(thing.name);
       
