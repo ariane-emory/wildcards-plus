@@ -5008,7 +5008,7 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_small_16_to_9
 }
 
-@xl_magic_small_os6_random = 
+@xl_magic_small_random_os6 = 
 { @xl_magic_small_1_to_1_os6
 | @xl_magic_small_2_to_3_os6
 | @xl_magic_small_3_to_2_os6
@@ -5028,7 +5028,7 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_medium_16_to_9
 }
 
-@xl_magic_medium_os6_random =
+@xl_magic_medium_random_os6 =
 { @xl_magic_medium_1_to_1_os6
 | @xl_magic_medium_2_to_3_os6
 | @xl_magic_medium_3_to_2_os6
