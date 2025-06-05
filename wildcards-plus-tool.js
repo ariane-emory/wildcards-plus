@@ -3407,6 +3407,30 @@ function is_primitive(val) {
     (typeof val !== 'object' && typeof val !== 'function');
 }
 // -------------------------------------------------------------------------------------------------
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,     // deletion
+        dp[i][j - 1] + 1,     // insertion
+        dp[i - 1][j - 1] + cost  // substitution
+      );
+    }
+  }
+
+  // lm.log(`Levenshtein distance between '${a}' and '${b}':`);
+  // lm.log(`${inspect_fun(dp)}.`);
+
+  return dp[m][n];
+}
+// -------------------------------------------------------------------------------------------------
 function measure_time(fun) {
   const now = dt_hosted
         ? Date.now
@@ -3763,6 +3787,24 @@ if (test_structured_clone) {
     else
       lm.log(`test #3 failed as intended.`);
   }
+}
+// -------------------------------------------------------------------------------------------------
+function suggest_closest(name, candidates) {
+  let closest = null;
+  let closest_distance = Infinity;
+
+  for (const cand of candidates) {
+    const dist = levenshtein(name, cand);
+    if (dist < closest_distance) {
+      closest = cand;
+      closest_distance = dist;
+    }
+  }
+
+  // If it's reasonably close (adjust threshold as needed)
+  return (closest && closest_distance <= 2)
+    ? ` Did you mean '${closest}'?`
+    : '';
 }
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing) {
@@ -9194,48 +9236,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
-
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      dp[i][j] = Math.min(
-        dp[i - 1][j] + 1,     // deletion
-        dp[i][j - 1] + 1,     // insertion
-        dp[i - 1][j - 1] + cost  // substitution
-      );
-    }
-  }
-
-  // lm.log(`Levenshtein distance between '${a}' and '${b}':`);
-  // lm.log(`${inspect_fun(dp)}.`);
-
-  return dp[m][n];
-}
-// -------------------------------------------------------------------------------------------------
-function suggest_closest(name, candidates) {
-  let closest = null;
-  let closest_distance = Infinity;
-
-  for (const cand of candidates) {
-    const dist = levenshtein(name, cand);
-    if (dist < closest_distance) {
-      closest = cand;
-      closest_distance = dist;
-    }
-  }
-
-  // If it's reasonably close (adjust threshold as needed)
-  return (closest && closest_distance <= 2)
-    ? ` Did you mean '${closest}'?`
-    : '';
-}
-// -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
