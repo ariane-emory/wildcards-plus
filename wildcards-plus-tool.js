@@ -8912,6 +8912,11 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
 
       dummy_context.named_wildcards.set(thing.name, thing.wildcard);
     }
+    else if (thing instanceof ASTScalarAssignment) {
+      dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
+      lm.log(`this: ${inspect_fun(dummy_context.scalar_variables)}`);
+      walk_children(thing);
+    }
     else if (thing instanceof ASTNamedWildcardReference) {
       if (!dummy_context.named_wildcards.has(thing.name)) {
         const known_names = Array.from(dummy_context.named_wildcards.keys());
@@ -8923,11 +8928,6 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       const got = dummy_context.named_wildcards.get(thing.name);
       
       walk(got);
-    }
-    else if (thing instanceof ASTScalarAssignment) {
-      dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-      lm.log(`this: ${inspect_fun(dummy_context.scalar_variables)}`);
-      walk_children(thing);
     }
     else if (thing instanceof ASTScalarReference) {
       if (!dummy_context.scalar_variables.has(thing.name)) {
