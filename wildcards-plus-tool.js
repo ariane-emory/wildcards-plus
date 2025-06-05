@@ -8794,7 +8794,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 // -------------------------------------------------------------------------------------------------
-function audit_flags(root_ast_node, noisy = true) {
+function audit_flags(root_ast_node, noisy = true, throws = false) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
@@ -8802,24 +8802,14 @@ function audit_flags(root_ast_node, noisy = true) {
   const log = noisy ? msg => lm.log(msg) : msg => {};
 
   function walk(thing) {
-    // throw new Error(`bad audit_flags args: ${compress(inspect_fun(arguments))}`);
-
     class Break {}
+
+    log(`auditing flags in ${thing_str_repr(thing)}`);
+
     try {
-      /*
-        if (visited.has(thing)) {
-        log(`skip visited ${thing_str_repr(thing)}`);
+      if (is_primitive(thing))
         return;
-        }
 
-        visited.add(thing);
-      */
-
-      if (is_primitive(thing)) {
-        return;
-      }
-
-      log(`auditing flags in ${thing_str_repr(thing)}`);
 
       if (Array.isArray(thing)) { 
         for (const elem of thing)
