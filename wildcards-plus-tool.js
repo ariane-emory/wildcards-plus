@@ -8793,7 +8793,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_flags(root_ast_node, noisy = true, throws = true) {
+function audit_flags(root_ast_node, base_context = null, noisy = true, throws = true) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_flags args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
@@ -8842,11 +8842,13 @@ function audit_flags(root_ast_node, noisy = true, throws = true) {
     }
   }
 
-  const dummy_context = new Context();
+  const dummy_context = base_context
+        ? base_context.clone()
+        : new Context();
+  
   const checked_flags_arr = [];
 
   walk(root_ast_node);
-
 
   for (const flag of checked_flags_arr) {
     if (dummy_context.flag_is_set(flag))
