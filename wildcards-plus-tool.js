@@ -10019,12 +10019,13 @@ const CheckFlagWithOrAlternatives = // last check alternative
       .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const NotFlagWithSetConsequent = // last not alternative
       xform(cutting_seq(bang,
-                        cutting_with_swb(seq(flag_ident,
-                                             dot_hash,
-                                             flag_ident))),
+                        flag_ident,
+                        dot_hash,
+                        flag_ident,
+                        structural_word_break),
             arr => {
-              const args = [arr[1][0],
-                            { consequently_set_flag_tail: arr[1][2] }]; 
+              const args = [arr[1],
+                            { consequently_set_flag_tail: arr[3]}]; 
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
