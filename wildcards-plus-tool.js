@@ -9998,8 +9998,8 @@ const SimpleNotFlag =
             })
       .abbreviate_str_repr('SimpleNotFlag');
 const CheckFlagWithOrAlternatives =
-      xform(cutting_seq_with_swb(question,
-                                 plus(flag_ident, comma)),
+      xform(cutting_seq(question,
+                        with_swb(plus(flag_ident, comma))),
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
@@ -10054,9 +10054,10 @@ const wrap_TestFlag_in_AnonWildcard    = rule =>
 const TestFlagInGuardPosition =
       choice(SimpleCheckFlag,
              SimpleNotFlag,
+             CheckFlagWithOrAlternatives,
              CheckFlagWithSetConsequent,
              NotFlagWithSetConsequent,
-             CheckFlagWithOrAlternatives)
+             )
       .abbreviate_str_repr('TestFlagInGuardPosition');
 const TopLevelTestFlag =
       choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
