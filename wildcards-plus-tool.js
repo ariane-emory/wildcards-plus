@@ -8827,10 +8827,7 @@ function audit_flags(root_ast_node, noisy = true, throws = false) {
         dummy_context.set_flag(thing.flag, false);
       }
       else if (thing instanceof ASTNode) {
-        if (typeof thing.direct_children !== 'function')
-          throw new Error(`no direct_children function: ${thing_str_repr(thing)}`);
-        
-        const children = Array.from(thing.direct_children());
+        const children = thing.direct_children();
 
         lm.indent(() => {
           log(`children: ${thing_str_repr(children)}`);
