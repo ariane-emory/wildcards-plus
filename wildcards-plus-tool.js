@@ -8993,7 +8993,7 @@ class ASTNode {
 // -------------------------------------------------------------------------------------------------
 class ASTLeafNode extends ASTNode {
   // -----------------------------------------------------------------------------------------------
-  direct_children() {
+  __direct_children() {
     return [];
   }
 }
@@ -9031,10 +9031,6 @@ class ASTCheckFlags extends ASTLeafNode {
     this.consequently_set_flag_tail = consequently_set_flag_tail;
   }
   // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [];
-  }
-  // -----------------------------------------------------------------------------------------------
   toString() {
     let str = '?';
 
@@ -9051,16 +9047,12 @@ class ASTCheckFlags extends ASTLeafNode {
     }
 
     return str;
-    // return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
 class ASTNotFlag extends ASTLeafNode  { 
   constructor(flag_arr, { set_immediately = undefined,
                           consequently_set_flag_tail = undefined } = {}) {
-    // if (! Array.isArray(flag_arr))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
     super();
 
     if (set_immediately && consequently_set_flag_tail)
@@ -9069,12 +9061,6 @@ class ASTNotFlag extends ASTLeafNode  {
     this.flag                       = flag_arr;
     this.consequently_set_flag_tail = consequently_set_flag_tail
     this.set_immediately            = set_immediately;
-
-    // if (log_flags_enabled)
-    //   lm.log(`constructed ${inspect_fun(this)}`)
-    
-    // if (this.set_immediately)
-    //   lm.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
   // -------------------------------------------------------------------------------------------------
   toString() {
@@ -9114,7 +9100,7 @@ class ASTNamedWildcardDefinition extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // ASTNamedWildcardReference:
 // -------------------------------------------------------------------------------------------------
-class ASTNamedWildcardReference extends ASTNode {
+class ASTNamedWildcardReference extends ASTLeafNode {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1, trailer = '') {
     super();
     this.name       = name;
@@ -9123,11 +9109,6 @@ class ASTNamedWildcardReference extends ASTNode {
     this.min_count  = min_count;
     this.max_count  = max_count;
     this.trailer    = trailer;
-    // lm.log(`BUILT ${inspect_fun(this)}`);
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -9153,16 +9134,12 @@ class ASTNamedWildcardReference extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Scalar references:
 // -------------------------------------------------------------------------------------------------
-class ASTScalarReference extends ASTNode {
+class ASTScalarReference extends ASTLeafNode {
   constructor(name, capitalize = '', trailer = '') {
     super();
     this.name       = name;
     this.capitalize = capitalize;
     this.trailer    = trailer;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
