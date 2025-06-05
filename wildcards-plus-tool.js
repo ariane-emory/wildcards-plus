@@ -10010,7 +10010,8 @@ const CheckFlagWithSetConsequent =
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
 const CheckFlagWithOrAlternatives = // last check alternative
       xform(cutting_seq(question,
-                        cutting_with_swb(plus(flag_ident, comma))),
+                        plus(flag_ident, comma),
+                        structural_word_break),
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
