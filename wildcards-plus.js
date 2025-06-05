@@ -26,7 +26,7 @@ let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
 let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
-let log_flags_enabled                 = false;
+let log_flags_enabled                 = true;
 let log_loading_prelude               = true;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
@@ -2636,14 +2636,14 @@ const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]
 // -------------------------------------------------------------------------------------------------
 class WeightedPicker {
   // -----------------------------------------------------------------------------------------------
-  constructor(initialOptions = []) {
-    // lm.log(`CONSTRUCT WITH ${inspect_fun(initialOptions)}`);
+  constructor(options = []) {
+    // lm.log(`CONSTRUCT WITH ${inspect_fun(options)}`);
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
     this.last_pick_index = null;
 
-    for (const [weight, value] of initialOptions)
+    for (const [weight, value] of options)
       this.add(weight, value);
   }
   // -----------------------------------------------------------------------------------------------
@@ -2923,21 +2923,6 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
-function intercalate(separator, array, { final_separator = null } = {}) {
-  if (array.length === 0) return [];
-
-  const result = [array[0]];
-
-  for (let ix = 1; ix < array.length; ix++) {
-    const sep = (final_separator && ix === array.length - 1)
-          ? final_separator
-          : separator;
-    result.push(sep, array[ix]);
-  }
-
-  return result;
-}
-// -------------------------------------------------------------------------------------------------
 const arr_is_prefix_of_arr = (() => {
   const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
 
@@ -3036,58 +3021,6 @@ function benchmark(thunk, {
   return running_avg;
 }
 // -------------------------------------------------------------------------------------------------
-function format_pretty_bytes(bytes) {
-  const units = ['bytes', 'KB', 'MB', 'GB'];
-  const base = 1024;
-
-  const sign = Math.sign(bytes);
-  let absBytes = Math.abs(bytes);
-
-  let i = 0;
-  while (absBytes >= base && i < units.length - 1) {
-    absBytes /= base;
-    i++;
-  }
-
-  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
-  return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
-}
-// -------------------------------------------------------------------------------------------------
-function indent_lines(indent, str, indent_str = "| ") {
-  if (typeof str !== 'string')
-    throw new Error(`not a string: ${inspect.fun(str)}`);
-  
-  const indent_string = indent_str.repeat(indent);
-  const indented_str  = str
-        .split("\n")
-        .map(line => `${indent_string}${line}`)
-        .join("\n");
-
-  return indented_str;
-}
-// -------------------------------------------------------------------------------------------------
-function measure_time(fun) {
-  const now = dt_hosted
-        ? Date.now
-        : performance.now.bind(performance);
-
-  const start = now();
-  fun();
-  const end = now();
-
-  return end - start;
-}
-// -------------------------------------------------------------------------------------------------
-function rjson_stringify(obj) {
-  if (obj === undefined)
-    return 'undefined';
-  
-  return JSON.stringify(obj)
-    .replace(/"(\w+)"\s*:/g, ' $1: ')
-    .replace(/{ /g, '{')
-    .replace(/},{/g, '}, {');
-}
-// -------------------------------------------------------------------------------------------------
 function capitalize(string) {
   // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -3128,11 +3061,22 @@ function choose_indefinite_article(word) {
 
   return 'a';
 }
-// ------------------------------------------------------------------------------------------------
-function format_pretty_number(num) {
-  const [intPart, fracPart] = num.toString().split(".");
-  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+// -------------------------------------------------------------------------------------------------
+function format_pretty_bytes(bytes) {
+  const units = ['bytes', 'KB', 'MB', 'GB'];
+  const base = 1024;
+
+  const sign = Math.sign(bytes);
+  let absBytes = Math.abs(bytes);
+
+  let i = 0;
+  while (absBytes >= base && i < units.length - 1) {
+    absBytes /= base;
+    i++;
+  }
+
+  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
 }
 // -------------------------------------------------------------------------------------------------
 function format_pretty_list(arr) {
@@ -3149,6 +3093,12 @@ function format_pretty_list(arr) {
   
   return ret;
 }
+// ------------------------------------------------------------------------------------------------
+function format_pretty_number(num) {
+  const [intPart, fracPart] = num.toString().split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+}
 // -------------------------------------------------------------------------------------------------
 function format_simple_time(date = new Date()) {
   return date.toLocaleTimeString('en-US', {
@@ -3159,10 +3109,55 @@ function format_simple_time(date = new Date()) {
   });
 }
 // -------------------------------------------------------------------------------------------------
+function indent_lines(indent, str, indent_str = "| ") {
+  if (typeof str !== 'string')
+    throw new Error(`not a string: ${inspect.fun(str)}`);
+  
+  const indent_string = indent_str.repeat(indent);
+  const indented_str  = str
+        .split("\n")
+        .map(line => `${indent_string}${line}`)
+        .join("\n");
+
+  return indented_str;
+}
+// -------------------------------------------------------------------------------------------------
+function intercalate(separator, array, { final_separator = null } = {}) {
+  if (array.length === 0) return [];
+
+  const result = [array[0]];
+
+  for (let ix = 1; ix < array.length; ix++) {
+    const sep = (final_separator && ix === array.length - 1)
+          ? final_separator
+          : separator;
+    result.push(sep, array[ix]);
+  }
+
+  return result;
+}
+// -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
     Object.keys(obj).length === 0 &&
     obj.constructor === Object;
+}
+// -------------------------------------------------------------------------------------------------
+function is_primitive(val) {
+  return val === null ||
+    (typeof val !== 'object' && typeof val !== 'function');
+}
+// -------------------------------------------------------------------------------------------------
+function measure_time(fun) {
+  const now = dt_hosted
+        ? Date.now
+        : performance.now.bind(performance);
+
+  const start = now();
+  fun();
+  const end = now();
+
+  return end - start;
 }
 // -------------------------------------------------------------------------------------------------
 function rand_int(x, y) {
@@ -3170,6 +3165,25 @@ function rand_int(x, y) {
   const min = Math.min(x, y);
   const max = Math.max(x, y);
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+// -------------------------------------------------------------------------------------------------
+function raw(strings, ...values) {
+  return String.raw(strings, ...values);
+}
+// -------------------------------------------------------------------------------------------------
+function RegExp_raw(strings, ...values) {
+  const raw_source = raw(strings, ...values);
+  return new RegExp(raw_source);
+}
+// -------------------------------------------------------------------------------------------------
+function rjson_stringify(obj) {
+  if (obj === undefined)
+    return 'undefined';
+  
+  return JSON.stringify(obj)
+    .replace(/"(\w+)"\s*:/g, ' $1: ')
+    .replace(/{ /g, '{')
+    .replace(/},{/g, '}, {');
 }
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
@@ -3372,15 +3386,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   return str;
 }
 // -------------------------------------------------------------------------------------------------
-function raw(strings, ...values) {
-  return String.raw(strings, ...values);
-}
-// -------------------------------------------------------------------------------------------------
-function RegExp_raw(strings, ...values) {
-  const raw_source = raw(strings, ...values);
-  return new RegExp(raw_source);
-}
-// -------------------------------------------------------------------------------------------------
 // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
 // -------------------------------------------------------------------------------------------------
 function structured_clone(value, {
@@ -3499,6 +3504,33 @@ if (test_structured_clone) {
     else
       lm.log(`test #3 failed as intended.`);
   }
+}
+// -------------------------------------------------------------------------------------------------
+function thing_str_repr(thing) {
+  const type_str = typeof thing === 'object'
+        ? (thing === null ? 'null' : thing.constructor?.name ?? 'Object')
+        : typeof thing;
+
+  let thing_str;
+
+  if (Array.isArray(thing)) {
+    thing_str = abbreviate(compress(inspect_fun(thing)));
+  }
+  else if (typeof thing === 'string') {
+    thing_str = inspect_fun(thing);
+  }
+  else if (typeof thing === 'object') {
+    try {
+      thing_str = abbreviate(compress(inspect_fun(thing)));
+    } catch {
+      thing_str = thing.toString(); // fallback
+    }
+  }
+  else {
+    thing_str = String(thing);
+  }
+
+  return `${type_str} ${thing_str}`;
 }
 // -------------------------------------------------------------------------------------------------
 function unescape(str) {
@@ -3875,7 +3907,7 @@ class Context {
     return res;
   }
   // -----------------------------------------------------------------------------------------------
-  set_flag(new_flag) {
+  set_flag(new_flag, replace_existing = false) {
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
       // if (log_flags_enabled)
@@ -3886,26 +3918,31 @@ class Context {
     // if (log_flags_enabled) 
     //   lm.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
 
-    const new_flag_head = new_flag.slice(0, -1);
-    
-    this.flags = this.flags.filter(existing_flag => {
-      if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
-        if (log_flags_enabled)
-          lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
-                 `new flag ${compress(inspect_fun(new_flag))}`);
-        return false;
-      }
-      
-      if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
-        if (log_flags_enabled)
-          lm.log(`discard ${inspect_fun(existing_flag)} because it is a suffix of ` +
-                 `new flag's head ${compress(inspect_fun(new_flag_head))}`);
-        return false; 
-      }
-      
-      return true;
-    });
+    //if (replace_existing)
+    {
+      const new_flag_head = new_flag.slice(0, -1);
 
+      this.flags = this.flags.filter(existing_flag => {
+        if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
+          if (log_flags_enabled)
+            lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+                   `new flag ${compress(inspect_fun(new_flag))}`);
+          return false;
+        }
+
+        if (replace_existing)
+          if (new_flag_head.length != 0 &&
+              arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
+            if (log_flags_enabled)
+              lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
+                     `new flag's head ${compress(inspect_fun(new_flag_head))}`);
+            return false; 
+          }
+        
+        return true;
+      });
+    }
+    
     this.flags.push(new_flag);
   }
   // -----------------------------------------------------------------------------------------------
@@ -4048,6 +4085,8 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = prelude_disabled ? '' : `
+@maybe_set_some_flag    = { | #some_flag } 
+
 @__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
                            |?male   #gender.male
                            |?neuter #gender.neuter}
@@ -7811,15 +7850,10 @@ function load_prelude(into_context = new Context()) {
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
 function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
-  if (context === undefined || correct_articles === undefined)
+  if (thing == undefined ||
+      context === undefined ||
+      correct_articles === undefined)
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
-  // -----------------------------------------------------------------------------------------------
-  function forbid_fun(option) {
-    for (const not_flag of option.not_flags)
-      if (context.flag_is_set(not_flag.flag))
-        return true;
-    return false;
-  };
   // -----------------------------------------------------------------------------------------------
   function allow_fun(option) {
     let allowed = true;
@@ -7843,23 +7877,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
-  const thing_str_repr = thing => {
-    const type_str  = typeof thing === 'object' ? thing.constructor.name : typeof thing;
-    // const thing_str = abbreviate(Array.isArray(thing)
-    //                              ? inspect_fun(thing) 
-    //                              : (typeof thing === 'string'
-    //                                 ? inspect_fun(thing)
-    //                                 : thing.toString()));
-    const thing_str = abbreviate(Array.isArray(thing)
-                                 ? compress(inspect_fun(thing)) 
-                                 : (typeof thing === 'string'
-                                    ? inspect_fun(thing)
-                                    : thing.toString()));
-    return `${type_str} ${thing_str}`
-  }
-  // -----------------------------------------------------------------------------------------------
-  const thing_type_str = thing =>
-        typeof thing === 'object' ? thing.constructor.name : typeof thing;
+  function forbid_fun(option) {
+    for (const not_flag of option.not_flags)
+      if (context.flag_is_set(not_flag.flag))
+        return true;
+    return false;
+  };
   // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg, with_indentation = true) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
@@ -8077,10 +8100,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
-        if (context.named_wildcards.has(thing.name))
-          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
-              `you may not have intended to do this, check your template!`,
-              log_expand_and_walk_enabled);
+        // if (context.named_wildcards.has(thing.name))
+        //   log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
+        //       `you may not have intended to do this, check your template!`,
+        //       log_expand_and_walk_enabled);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
@@ -8511,13 +8534,220 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
 
 // =================================================================================================
+// FLAG AUDITING FUNCTION.
+// =================================================================================================
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,     // deletion
+        dp[i][j - 1] + 1,     // insertion
+        dp[i - 1][j - 1] + cost  // substitution
+      );
+    }
+  }
+
+  // lm.log(`Levenshtein distance between '${a}' and '${b}':`);
+  // lm.log(`${inspect_fun(dp)}.`);
+
+  return dp[m][n];
+}
+// -------------------------------------------------------------------------------------------------
+function suggest_closest(name, candidates) {
+  let closest = null;
+  let closest_distance = Infinity;
+
+  for (const cand of candidates) {
+    const dist = levenshtein(name, cand);
+    if (dist < closest_distance) {
+      closest = cand;
+      closest_distance = dist;
+    }
+  }
+
+  // If it's reasonably close (adjust threshold as needed)
+  return (closest && closest_distance <= 2)
+    ? ` Did you mean '${closest}'?`
+    : '';
+}
+// -------------------------------------------------------------------------------------------------
+function audit_semantics(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
+  if (root_ast_node === undefined)
+    throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `this likely indicates a programmer error`);
+
+  const already_warned_msgs = new Set();
+  const log = noisy ? msg => lm.log(msg) : msg => {};
+  const dummy_context = base_context
+        ? base_context.clone()
+        : new Context();
+  // const checked_flags_arr = [];
+
+  // -----------------------------------------------------------------------------------------------
+  function warn_or_throw(msg) {
+    msg = `${throws ? 'ERROR' : 'WARNING' }: ${msg}`;
+
+    if (throws) {
+      throw new Error(msg);
+    }
+    else if (! already_warned_msgs.has(msg)) {
+      lm.log(msg, false); // false arg for no indentation.
+      already_warned_msgs.add(msg);
+    }
+  }
+  
+  // -----------------------------------------------------------------------------------------------
+  function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
+    if (dummy_context.flag_is_set(flag))
+      return;
+
+    const flag_str = flag.join(".").toLowerCase();
+    const known_flags = dummy_context.flags.map(f => f.join("."));
+    const suggestion = suggest_closest(flag_str, known_flags);
+    warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set,` +
+                  ` this suggests a typo in your template.${suggestion}`);
+  }
+  
+  // -----------------------------------------------------------------------------------------------
+  function walk_children(thing) {
+    lm.indent(() => {
+      const children = thing.direct_children();
+
+      log(`children: ${thing_str_repr(children)}`);
+      
+      for (const child of children) {
+        lm.indent(() => {
+          if (is_primitive(child))
+            return;
+          
+          log(`child: ${thing_str_repr(child)}`);
+          lm.indent (() => walk(child, dummy_context));
+        });
+      }
+    })
+  }
+  // -----------------------------------------------------------------------------------------------
+  function walk(thing) {
+    if (is_primitive(thing))
+      return;
+
+    log(`auditing semantics in ${thing_str_repr(thing)}`);
+
+    // ---------------------------------------------------------------------------------------------
+    // typecases:
+    // ---------------------------------------------------------------------------------------------
+    if (Array.isArray(thing)) { 
+      for (const elem of thing)
+        if (!is_primitive(elem))
+          lm.indent(() => walk(elem));
+    }
+    else if (thing instanceof ASTNamedWildcardDefinition) {
+      if (dummy_context.named_wildcards.has(thing.name))
+        warn_or_throw(`redefining named wildcard @${thing.name}, ` +
+                      `you may not have intended to do this, check your template!`);
+
+      dummy_context.named_wildcards.set(thing.name, thing.wildcard);
+    }
+    else if (thing instanceof ASTNamedWildcardReference) {
+      if (!dummy_context.named_wildcards.has(thing.name)) {
+        const known_names = Array.from(dummy_context.named_wildcards.keys());
+        const suggestion = suggest_closest(thing.name, known_names);
+        warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
+                      `this suggests a typo in your template.${suggestion}`);
+      }
+      
+      const got = dummy_context.named_wildcards.get(thing.name);
+      
+      walk(got);
+    }
+    else if (thing instanceof ASTScalarReference) {
+      if (!dummy_context.scalar_variables.has(thing.name)) {
+        const known_names = Array.from(dummy_context.scalar_variables.keys());
+        const suggestion = suggest_closest(thing.name, known_names);
+        warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
+                      `this suggests a typo in your template.${suggestion}`);
+      }
+      
+      const got = dummy_context.named_wildcards.get(thing.name);
+      
+      walk(got);
+    }
+    else if (thing instanceof ASTScalarAssignment) {
+      dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
+      walk_children(thing);
+    }
+    else if (thing instanceof ASTCheckFlags) {
+      for (const flag of thing.flags) 
+        warn_or_throw_unless_flag_could_be_set_by_now(flag);
+    }
+    else if (thing instanceof ASTNotFlag) {
+      if (thing.set_immediately) 
+        dummy_context.set_flag(thing.flag, false);
+      else 
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+    }
+    else if (thing instanceof ASTSetFlag) {
+      dummy_context.set_flag(thing.flag, false);
+    } 
+    else if (thing instanceof ASTUnsetFlag) {
+      warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+    } 
+    else if (thing instanceof ASTNode) {
+      walk_children(thing);;
+    }
+    else {
+      throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+    }
+  }
+
+  walk(root_ast_node);
+}
+// =================================================================================================
+// END OF THE FLAG AUDITING FUNCTION.
+// =================================================================================================
+
+
+// =================================================================================================
 // SD PROMPT AST CLASSES SECTION:
 // =================================================================================================
-class ASTNode {}
+class ASTNode {
+  // -----------------------------------------------------------------------------------------------
+  direct_children() {
+    const ret = Array.from(this.__direct_children());
+
+    // if (ret.some(x => !((x instanceof ASTNode) || Array.isArray(x))))
+    //   throw new Error(`direct_children of ` +
+    //                   `${inspect_fun(this)} ` +
+    //                   `${inspect_fun(ret)} ` +
+    //                   `included non-ASTNode: ` +
+    //                   `${inspect_fun(ret.find(x => !((x instanceof ASTNode) || Array.isArray(x))))}`
+    //                  ); 
+    
+    return ret;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    throw new Error(`__direct_children is not implemented by ${this.constructor.name}`);
+  }
+}
 // -------------------------------------------------------------------------------------------------
 // Flags:
 // -------------------------------------------------------------------------------------------------
-class ASTSetFlag extends ASTNode {
+class ASTFlagOperation extends ASTNode {
+  // -----------------------------------------------------------------------------------------------
+  direct_children() {
+    return [];
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTSetFlag extends ASTFlagOperation {
   constructor(flag_arr) {
     // if (! Array.isArray(flag_arr))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
@@ -8534,7 +8764,7 @@ class ASTSetFlag extends ASTNode {
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTUnsetFlag extends ASTNode {
+class ASTUnsetFlag extends ASTFlagOperation {
   constructor(flag_arr) {
     // if (! Array.isArray(flag_arr))
     //   throw new Error(`${this.constructor.name} ` +
@@ -8549,7 +8779,7 @@ class ASTUnsetFlag extends ASTNode {
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTCheckFlags extends ASTNode {
+class ASTCheckFlags extends ASTFlagOperation {
   constructor(flag_arrs, consequently_set_flag_tail) {
     // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
     //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
@@ -8563,6 +8793,10 @@ class ASTCheckFlags extends ASTNode {
 
     // if (log_flags_enabled)
     //   lm.log(`constructed ${inspect_fun(this)}`)
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8585,7 +8819,7 @@ class ASTCheckFlags extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTNotFlag extends ASTNode  { 
+class ASTNotFlag extends ASTFlagOperation  { 
   constructor(flag_arr, { set_immediately = undefined,
                           consequently_set_flag_tail = undefined } = {}) {
     // if (! Array.isArray(flag_arr))
@@ -8624,7 +8858,25 @@ class ASTNotFlag extends ASTNode  {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// NamedWildcard references:
+// Named wildcard definitions:
+// -------------------------------------------------------------------------------------------------
+class ASTNamedWildcardDefinition extends ASTNode {
+  constructor(name, wildcard) {
+    super();
+    this.name = name;
+    this.wildcard = wildcard;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.wildcard ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@${this.name} = ${this.wildcard}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Named wildcard references:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardReference extends ASTNode {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1, trailer = '') {
@@ -8636,6 +8888,10 @@ class ASTNamedWildcardReference extends ASTNode {
     this.max_count  = max_count;
     this.trailer    = trailer;
     // lm.log(`BUILT ${inspect_fun(this)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8669,6 +8925,10 @@ class ASTScalarReference extends ASTNode {
     this.trailer    = trailer;
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     let str = '$';
 
@@ -8691,6 +8951,10 @@ class ASTScalarAssignment extends ASTNode  {
     this.assign      = assign;
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.source ]; // exclude this.destination, it's just a boxed name
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `$${this.destination} ${this.assign? '=' : '+='} ${this.destination}`;
   }
@@ -8704,6 +8968,10 @@ class ASTLora extends ASTNode {
     this.file   = file;
     this.weight = weight;
     // lm.log(`Constructed LoRa ${this}!`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.file, this.weight ];
   }
   // -----------------------------------------------------------------------------------------------
   toString(with_types = false ) {
@@ -8738,20 +9006,6 @@ class ASTUnlatchNamedWildcard extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Named wildcard definitions:
-// -------------------------------------------------------------------------------------------------
-class ASTNamedWildcardDefinition extends ASTNode {
-  constructor(name, wildcard) {
-    super();
-    this.name = name;
-    this.wildcard    = wildcard;
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `@${this.name} = ${this.wildcard}`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
 // Internal usage.. might not /really/ be part of the AST per se?
 // -------------------------------------------------------------------------------------------------
 class ASTLatchedNamedWildcardValue extends ASTNode {
@@ -8768,7 +9022,7 @@ class ASTLatchedNamedWildcardValue extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // AnonWildcards:
 // -------------------------------------------------------------------------------------------------
-class ASTAnonWildcard  extends ASTNode {
+class ASTAnonWildcard extends ASTNode {
   constructor(options, trailer = null) {
     super();
     this.picker = new WeightedPicker(options
@@ -8778,6 +9032,10 @@ class ASTAnonWildcard  extends ASTNode {
 
     // if (trailer)
     //   lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.picker.options.values().map(x => x.value);
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
@@ -8820,6 +9078,8 @@ class ASTAnonWildcard  extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
+// AnonWildcardsAlternative:
+// -------------------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative extends ASTNode {
   constructor(weight, check_flags, not_flags, body) {
     super();
@@ -8827,6 +9087,14 @@ class ASTAnonWildcardAlternative extends ASTNode {
     this.check_flags = check_flags;
     this.not_flags   = not_flags;
     this.body        = body;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return  [
+      ...this.check_flags,
+      ...this.not_flags,
+      ...this.body,
+    ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8876,6 +9144,10 @@ class ASTUpdateConfigurationUnary extends ASTNode {
     this.assign = assign; // otherwise update
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.value ];
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `%config ${this.assign? '=' : '+='} ` +
       `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
@@ -8888,6 +9160,10 @@ class ASTUpdateConfigurationBinary extends ASTNode {
     this.key    = key;
     this.value  = value;
     this.assign = assign;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.value ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {

@@ -8813,6 +8813,9 @@ function levenshtein(a, b) {
     }
   }
 
+  // lm.log(`Levenshtein distance between '${a}' and '${b}':`);
+  // lm.log(`${inspect_fun(dp)}.`);
+
   return dp[m][n];
 }
 // -------------------------------------------------------------------------------------------------
@@ -10229,7 +10232,7 @@ async function main() {
   }
 
   // audit flags:
-  audit_semantics(AST, { base_context: base_context, noisy: true, throws: false });
+  audit_semantics(AST, { base_context: base_context, noisy: false, throws: false });
 
   let posted_count        = 0;
   let prior_prompt        = null;
