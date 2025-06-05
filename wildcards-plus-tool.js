@@ -8980,14 +8980,6 @@ class ASTNode {
   // -----------------------------------------------------------------------------------------------
   direct_children() {
     const ret = Array.from(this.__direct_children());
-
-    // if (ret.some(x => !((x instanceof ASTNode) || Array.isArray(x))))
-    //   throw new Error(`direct_children of ` +
-    //                   `${inspect_fun(this)} ` +
-    //                   `${inspect_fun(ret)} ` +
-    //                   `included non-ASTNode: ` +
-    //                   `${inspect_fun(ret.find(x => !((x instanceof ASTNode) || Array.isArray(x))))}`
-    //                  ); 
     
     return ret;
   }
@@ -9008,14 +9000,8 @@ class ASTLeafNode extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 class ASTSetFlag extends ASTLeafNode {
   constructor(flag_arr) {
-    // if (! Array.isArray(flag_arr))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-    
     super();
     this.flag = flag_arr;
-    
-    // if (this.flag === undefined)
-    //   throw new Error("stop after constructing ASTSetFlag");
   }
   // --------------------------------------------------------------------------------------------------
   toString() {
@@ -9025,10 +9011,6 @@ class ASTSetFlag extends ASTLeafNode {
 // --------------------------------------------------------------------------------------------------
 class ASTUnsetFlag extends ASTLeafNode {
   constructor(flag_arr) {
-    // if (! Array.isArray(flag_arr))
-    //   throw new Error(`${this.constructor.name} ` +
-    //                   `ARG NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
     super();
     this.flag = flag_arr;
   }
@@ -9040,8 +9022,6 @@ class ASTUnsetFlag extends ASTLeafNode {
 // --------------------------------------------------------------------------------------------------
 class ASTCheckFlags extends ASTLeafNode {
   constructor(flag_arrs, consequently_set_flag_tail) {
-    // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
-    //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
     super();
 
     if (consequently_set_flag_tail && flag_arrs.length != 1 )
@@ -9049,9 +9029,6 @@ class ASTCheckFlags extends ASTLeafNode {
 
     this.flags = flag_arrs;
     this.consequently_set_flag_tail = consequently_set_flag_tail;
-
-    // if (log_flags_enabled)
-    //   lm.log(`constructed ${inspect_fun(this)}`)
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
