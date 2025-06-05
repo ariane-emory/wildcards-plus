@@ -5007,7 +5007,16 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_small_4_to_3
 | @xl_magic_small_9_to_16
 | @xl_magic_small_16_to_9
-  #xl_magic_object_scaling.object_scaling_4
+}
+
+@xl_magic_small_os_6_random = 
+{ @xl_magic_small_1_to_1_os6
+| @xl_magic_small_2_to_3_os6
+| @xl_magic_small_3_to_2_os6
+| @xl_magic_small_3_to_4_os6
+| @xl_magic_small_4_to_3_os6
+| @xl_magic_small_9_to_16_os6
+| @xl_magic_small_16_to_9_os6
 }
 
 @xl_magic_medium_random =
