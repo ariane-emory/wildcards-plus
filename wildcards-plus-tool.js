@@ -4608,7 +4608,6 @@ const prelude_text = prelude_disabled ? '' : `
 // "hiresFix": false
 // }
 
-
 @xl_magic_small_3_to_4_os6 = 
 { %w   = 576;  %h     = 768;    
   %ow  = 768;  %oh    = 576;    
@@ -5009,7 +5008,7 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_small_16_to_9
 }
 
-@xl_magic_small_os_6_random = 
+@xl_magic_small_os6_random = 
 { @xl_magic_small_1_to_1_os6
 | @xl_magic_small_2_to_3_os6
 | @xl_magic_small_3_to_2_os6
