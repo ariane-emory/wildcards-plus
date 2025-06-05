@@ -9339,7 +9339,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     }
     else if (thing instanceof ASTScalarAssignment) {
       dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-       walk_children(thing);
+      walk_children(thing);
     }
     else if (thing instanceof ASTCheckFlags) {
       for (const flag of thing.flags) 
@@ -9357,8 +9357,8 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     else if (thing instanceof ASTUnsetFlag) {
       warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
     } 
-   else if (thing instanceof ASTNode) {
-     walk_children(thing);;
+    else if (thing instanceof ASTNode) {
+      walk_children(thing);;
     }
     else {
       throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
@@ -9666,7 +9666,7 @@ class ASTAnonWildcard extends ASTNode {
       const is_last    = ix == (this.picker.options.length - 1);
       const has_guards = (option.value.check_flags?.length > 0 ||
                           option.value.not_flags?.length   > 0);
-                          
+      
       if (!is_empty && !has_weight && !has_guards)
         str += ' ';
 
@@ -10050,34 +10050,34 @@ const wrap_TestFlag_in_AnonWildcard    = rule =>
         new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
 // -------------------------------------------------------------------------------------------------
 const TestFlagInGuardPosition =
-      with_swb(choice(SimpleCheckFlag,
-                      SimpleNotFlag,
-                      CheckFlagWithSetConsequent,
-                      NotFlagWithSetConsequent,
-                      CheckFlagWithOrAlternatives)
-               .abbreviate_str_repr('TestFlagInGuardPosition'));
+      choice(SimpleCheckFlag,
+             SimpleNotFlag,
+             CheckFlagWithSetConsequent,
+             NotFlagWithSetConsequent,
+             CheckFlagWithOrAlternatives)
+      .abbreviate_str_repr('TestFlagInGuardPosition');
 const TopLevelTestFlag =
-      with_swb(choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
-                      .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
-                      unexpected_TestFlag_at_top_level(SimpleNotFlag)
-                      .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
-                      wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-                      .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-                      wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-                      .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
-                      unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
-                      .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel')));
+      choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
+             .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
+             unexpected_TestFlag_at_top_level(SimpleNotFlag)
+             .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
+             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
+             .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
 const TestFlagInAlternativeContent =
-      with_swb(choice(innapropriately_placed_TestFlag(SimpleCheckFlag)
-                      .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
-                      innapropriately_placed_TestFlag(SimpleNotFlag)
-                      .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
-                      wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-                      .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-                      wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-                      .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
-                      innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
-                      .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives')));
+      choice(innapropriately_placed_TestFlag(SimpleCheckFlag)
+             .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
+             innapropriately_placed_TestFlag(SimpleNotFlag)
+             .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
+             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
+             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
 // =================================================================================================
 // AnonWildcard-related rules:
 // =================================================================================================
