@@ -8604,7 +8604,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               ? { desc: 'UI prompt', text: ui_prompt }
               : { desc: 'UI negative prompt', text: ui_neg_prompt };
         
-        lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+        // lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
 
         let res = null;
 
