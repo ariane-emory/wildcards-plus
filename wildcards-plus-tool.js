@@ -9875,6 +9875,7 @@ const structural_word_break   = r(/(?=[\s|}]|$)/)
       .abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule => first(seq(rule, structural_word_break));
+const cutting_with_swb        = rule => first(cutting_seq(rule, structural_word_break));
 // these cut after ALL rules if a SWB isn't found, NOT after first rule:
 const cutting_seq_with_swb    = (...rules) => first(cutting_seq(seq(...rules),
                                                                 structural_word_break));
