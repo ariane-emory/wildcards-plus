@@ -8873,6 +8873,24 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
   }
   
   // -----------------------------------------------------------------------------------------------
+  function walk_children(thing) {
+    lm.indent(() => {
+      const children = thing.direct_children();
+
+      log(`children: ${thing_str_repr(children)}`);
+      
+      for (const child of children) {
+        lm.indent(() => {
+          if (is_primitive(child))
+            return;
+          
+          log(`child: ${thing_str_repr(child)}`);
+          lm.indent (() => walk(child, dummy_context, checked_flags_arr, noisy));
+        });
+      }
+    })
+  }
+  // -----------------------------------------------------------------------------------------------
   function walk(thing) {
     if (is_primitive(thing))
       return;
@@ -8904,7 +8922,22 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
         warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
                       `this suggests a typo in your template.${suggestion}`);
       }
-        
+      
+      const got = dummy_context.named_wildcards.get(thing.name);
+      
+      walk(got);
+    }
+    else if (thing instanceof ASTScalarAssignment) {
+      dummy_context.scalar_variables.set(thing.name, "doesn't matter");
+    }
+    else if (thing instanceof ASTScalarReference) {
+      if (!dummy_context.scalar_variables.has(thing.name)) {
+        const known_names = Array.from(dummy_context.scalar_variables.keys());
+        const suggestion = suggest_closest(thing.name, known_names);
+        warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
+                      `this suggests a typo in your template.${suggestion}`);
+      }
+      
       const got = dummy_context.named_wildcards.get(thing.name);
       
       walk(got);
@@ -8929,21 +8962,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       lm.log(`TODO: ASTUnsetFlag semantics check not implemented yet.`);
     } 
     else if (thing instanceof ASTNode) {
-      lm.indent(() => {
-        const children = thing.direct_children();
-
-        log(`children: ${thing_str_repr(children)}`);
-        
-        for (const child of children) {
-          lm.indent(() => {
-            if (is_primitive(child))
-              return;
-            
-            log(`child: ${thing_str_repr(child)}`);
-            lm.indent (() => walk(child, dummy_context, checked_flags_arr, noisy));
-          });
-        }
-      });
+      walk_children(thing);;
     }
     else {
       throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
