@@ -9998,14 +9998,6 @@ const SimpleNotFlag =
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('SimpleNotFlag');
-const CheckFlagWithOrAlternatives = // last check alternative
-      xform(cutting_seq(question,
-                        cutting_with_swb(plus(flag_ident, comma))),
-            arr => {
-              const args = [arr[1]];
-              return new ASTCheckFlags(...args);
-            })
-      .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const CheckFlagWithSetConsequent =
       xform(with_swb(seq(question,    // [0]
                          flag_ident,  // [1]
@@ -10016,6 +10008,14 @@ const CheckFlagWithSetConsequent =
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
+const CheckFlagWithOrAlternatives = // last check alternative
+      xform(cutting_seq(question,
+                        cutting_with_swb(plus(flag_ident, comma))),
+            arr => {
+              const args = [arr[1]];
+              return new ASTCheckFlags(...args);
+            })
+      .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const NotFlagWithSetConsequent = // last not alternative
       xform(cutting_seq(bang,
                         cutting_with_swb(seq(flag_ident,
