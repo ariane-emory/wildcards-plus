@@ -10028,10 +10028,10 @@ const NotFlagWithSetConsequent =
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
-const SetFlag = xform(second(cutting_seq_with_swb(hash, flag_ident)),
+const SetFlag = xform(with_swb(second(cutting_seq_with_swb(hash, flag_ident))),
                       arr => new ASTSetFlag(arr))
       .abbreviate_str_repr('SetFlag');
-const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, flag_ident)),
+const UnsetFlag = xform(with_swb(second(cutting_seq_with_swb(shebang, flag_ident))),
                         arr => new ASTUnsetFlag(arr))
       .abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
