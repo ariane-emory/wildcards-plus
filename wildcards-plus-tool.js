@@ -8999,14 +8999,14 @@ class ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Flags:
 // -------------------------------------------------------------------------------------------------
-class ASTFlagOperation extends ASTNode {
+class ASTLeafNode extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   direct_children() {
     return [];
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTSetFlag extends ASTFlagOperation {
+class ASTSetFlag extends ASTLeafNode {
   constructor(flag_arr) {
     // if (! Array.isArray(flag_arr))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
@@ -9023,7 +9023,7 @@ class ASTSetFlag extends ASTFlagOperation {
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTUnsetFlag extends ASTFlagOperation {
+class ASTUnsetFlag extends ASTLeafNode {
   constructor(flag_arr) {
     // if (! Array.isArray(flag_arr))
     //   throw new Error(`${this.constructor.name} ` +
@@ -9038,7 +9038,7 @@ class ASTUnsetFlag extends ASTFlagOperation {
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTCheckFlags extends ASTFlagOperation {
+class ASTCheckFlags extends ASTLeafNode {
   constructor(flag_arrs, consequently_set_flag_tail) {
     // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
     //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
@@ -9078,7 +9078,7 @@ class ASTCheckFlags extends ASTFlagOperation {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTNotFlag extends ASTFlagOperation  { 
+class ASTNotFlag extends ASTLeafNode  { 
   constructor(flag_arr, { set_immediately = undefined,
                           consequently_set_flag_tail = undefined } = {}) {
     // if (! Array.isArray(flag_arr))
