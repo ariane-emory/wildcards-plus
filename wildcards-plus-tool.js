@@ -8801,58 +8801,46 @@ function audit_flags(root_ast_node, noisy = true, throws = false) {
   const log = noisy ? msg => lm.log(msg) : msg => {};
 
   function walk(thing) {
-    class Break {}
-
     log(`auditing flags in ${thing_str_repr(thing)}`);
 
-    try {
-      if (is_primitive(thing))
-        return;
-
-      else if (Array.isArray(thing)) { 
-        for (const elem of thing)
-          lm.indent(() => walk(elem,
-                               dummy_context,
-                               checked_flags_arr,
-                               noisy));
-      }
-      else if (thing instanceof ASTCheckFlags) {
-        for (const flag of thing.flags)
-          checked_flags_arr.push(flag);
-      }
-      else if (thing instanceof ASTNotFlag) {
-        checked_flags_arr.push(thing.flag);
-      }
-      else if (thing instanceof ASTSetFlag) {
-        dummy_context.set_flag(thing.flag, false);
-      }
-      else if (thing instanceof ASTNode) {
+    if (is_primitive(thing)) {
+      return;
+    }
+    else if (Array.isArray(thing)) { 
+      for (const elem of thing)
+        lm.indent(() => walk(elem,
+                             dummy_context,
+                             checked_flags_arr,
+                             noisy));
+    }
+    else if (thing instanceof ASTCheckFlags) {
+      for (const flag of thing.flags)
+        checked_flags_arr.push(flag);
+    }
+    else if (thing instanceof ASTNotFlag) {
+      checked_flags_arr.push(thing.flag);
+    }
+    else if (thing instanceof ASTSetFlag) {
+      dummy_context.set_flag(thing.flag, false);
+    }
+    else if (thing instanceof ASTNode) {
+      lm.indent(() => {
         const children = thing.direct_children();
 
-        lm.indent(() => {
-          log(`children: ${thing_str_repr(children)}`);
-          
-          for (const child of children) {
-            lm.indent(() => {
-              log(`child: ${thing_str_repr(child)}`);
-              lm.indent (() => walk(child, dummy_context, checked_flags_arr, noisy));
-            });
-          }
-        });
-      }
-      else {
-        throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
-      }
+        log(`children: ${thing_str_repr(children)}`);
+        
+        for (const child of children) {
+          lm.indent(() => {
+            log(`child: ${thing_str_repr(child)}`);
+            lm.indent (() => walk(child, dummy_context, checked_flags_arr, noisy));
+          });
+        }
+      });
     }
-    catch (exc) {
-      if (exc instanceof Break) {
-        log(`done auditing flags in ${thing_str_repr(thing)}`);
-        return;
-      }
-
-      throw exc;
+    else {
+      throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
     }
-  }
+    }
 
   const dummy_context = new Context();
   const checked_flags_arr = [];
