@@ -294,7 +294,7 @@ let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -4434,6 +4434,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 512,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_1_to_1_os6 =
 { %w    = 512;  %h    = 512;   
@@ -4446,6 +4457,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.6
 }
+// {
+// "width": 512,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_3_to_2 =
 { %w    = 768;  %h    = 512;   
@@ -4735,6 +4757,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic.aspect_ratio_1_to_1
   #xl_magic_size.medium
 }
+// {
+// "width": 1024,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_1_to_1_os6 =
 { %h   = 1024;  %w    = 1024;   
@@ -4747,6 +4780,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.6
 }
+// {
+// "width": 1024,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_3_to_2 =
 { %w   = 1216;  %h    = 832;    
@@ -4759,6 +4803,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 1216,
+// "height": 832,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_3_to_2_os6 =
 { %w   = 1216;  %h    = 832; 
