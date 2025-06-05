@@ -8859,6 +8859,9 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
         
         for (const child of children) {
           lm.indent(() => {
+            if (is_primitive(child))
+              return;
+            
             log(`child: ${thing_str_repr(child)}`);
             lm.indent (() => walk(child, dummy_context, checked_flags_arr, noisy));
           });
