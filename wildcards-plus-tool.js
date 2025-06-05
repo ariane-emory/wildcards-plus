@@ -9346,8 +9346,12 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
         warn_or_throw_unless_flag_could_be_set_by_now(flag);
     }
     else if (thing instanceof ASTNotFlag) {
+      // this case probably doesn't deserve a warning, avoid one:
       if (thing.set_immediately) 
         dummy_context.set_flag(thing.flag, false);
+      else if (thing.consequently_set_flag_tail)
+        // undecided on whether this case deserves a warning... for now, let's avoid one:
+        dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
       else 
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
     }
@@ -10009,20 +10013,20 @@ const CheckFlagWithSetConsequent =
             })
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
 const CheckFlagWithOrAlternatives = // last check alternative
-      xform(cutting_seq(question,
-                        plus(flag_ident, comma),
-                        structural_word_break),
+      xform(cutting_seq(question,                // [0]
+                        plus(flag_ident, comma), // [1]
+                        structural_word_break),  // [2]
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const NotFlagWithSetConsequent = // last not alternative
-      xform(cutting_seq(bang,
-                        flag_ident,
-                        dot_hash,
-                        flag_ident,
-                        structural_word_break),
+      xform(cutting_seq(bang,                   // [0]
+                        flag_ident,             // [1]
+                        dot_hash,               // [2]
+                        flag_ident,             // [3]
+                        structural_word_break), // - 
             arr => {
               const args = [arr[1],
                             { consequently_set_flag_tail: arr[3]}]; 
