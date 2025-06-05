@@ -8935,9 +8935,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     else if (thing instanceof ASTScalarReference) {
       if (!dummy_context.scalar_variables.has(thing.name)) {
         const known_names = Array.from(dummy_context.scalar_variables.keys());
-        const sc_args = [ thing.name, known_names ];
-        lm.log(`args: ${inspect_fun(sc_args)}`);
-        const suggestion = suggest_closest(...sc_args);
+        const suggestion = suggest_closest(thing.name, known_names);
         warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
                       `this suggests a typo in your template.${suggestion}`);
       }
@@ -8963,7 +8961,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       dummy_context.set_flag(thing.flag, false);
     } 
     else if (thing instanceof ASTUnsetFlag) {
-      lm.log(`TODO: ASTUnsetFlag semantics check not implemented yet.`);
+      warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
     } 
     else if (thing instanceof ASTNode) {
       walk_children(thing);;
