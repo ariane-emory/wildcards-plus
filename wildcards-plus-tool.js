@@ -9010,7 +9010,7 @@ class ASTSetFlag extends ASTFlagOperation {
   constructor(flag_arr) {
     // if (! Array.isArray(flag_arr))
     //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
+    
     super();
     this.flag = flag_arr;
     
@@ -9117,7 +9117,7 @@ class ASTNotFlag extends ASTFlagOperation  {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Named wildcard definitions:
+// ASTNamedWildcardDefinition;
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardDefinition extends ASTNode {
   constructor(name, wildcard) {
@@ -9135,7 +9135,7 @@ class ASTNamedWildcardDefinition extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Named wildcard references:
+// ASTNamedWildcardReference:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardReference extends ASTNode {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1, trailer = '') {
