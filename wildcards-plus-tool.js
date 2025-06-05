@@ -10029,12 +10029,16 @@ const NotFlagWithSetConsequent =
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
 // -------------------------------------------------------------------------------------------------
-const SetFlag = xform(with_swb(second(cutting_seq_with_swb(hash, flag_ident))),
+const SetFlag = xform(second(cutting_seq_with_swb(hash, flag_ident)),
                       arr => new ASTSetFlag(arr))
       .abbreviate_str_repr('SetFlag');
-const UnsetFlag = xform(with_swb(second(cutting_seq_with_swb(shebang, flag_ident))),
+const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, flag_ident)),
                         arr => new ASTUnsetFlag(arr))
       .abbreviate_str_repr('UnsetFlag');
+const SetFlagWithSWB = with_swb(SetFlag)
+      .abbreviate_str_repr('SetFlagWithSWB');
+const UnsetFlagWithSWB = with_swb(UnsetFlag)
+      .abbreviate_str_repr('UnsetFlagWithSWB');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
       unexpected(rule, (rule, input, index) =>
