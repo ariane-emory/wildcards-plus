@@ -10120,7 +10120,7 @@ const make_AnonWildcardAlternative_rule = content_rule =>
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlagInGuardPosition, SetFlag, discarded_comment, UnsetFlag)),
                 lws(optional(swb_uint, 1)),
-                wst_star(choice(SetFlag, TestFlagInGuardPosition, discarded_comment, UnsetFlag)),
+                wst_star(choice(TestFlagInGuardPosition, SetFlag, discarded_comment, UnsetFlag)),
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
