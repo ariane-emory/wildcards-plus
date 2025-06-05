@@ -8821,15 +8821,15 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
 
   function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
     if (! dummy_context.flag_is_set(flag))
-      warn_or_throw(`WARNING: flag '${flag.join(".")}' is checked but is either not set yet or is ` +
-                    `never set, this suggests that you may have made a typo in your template.`);
+      warn_or_throw(`flag '${flag.join(".")}' is checked before it could possibly be ` +
+                    `set, this suggests that you may have made a typo in your template.`);
   }
 
   function walk(thing) {
     if (is_primitive(thing))
       return;
 
-    log(`auditing flags in ${thing_str_repr(thing)}`);
+    log(`auditing semantics in ${thing_str_repr(thing)}`);
 
     // ---------------------------------------------------------------------------------------------
     // typecases:
@@ -8851,7 +8851,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     }
     else if (thing instanceof ASTNamedWildcardReference) {
       if (!dummy_context.named_wildcards.has(thing.name))
-        warn_or_throw(`named wildcard @${thing.name} not found, ` +
+        warn_or_throw(`named wildcard @${thing.name} refereces before definition, ` +
                       `this suggests that you may have made a typo in your template.`);
         
       const got = dummy_context.named_wildcards.get(thing.name);
@@ -8875,7 +8875,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       dummy_context.set_flag(thing.flag, false);
     } 
     else if (thing instanceof ASTUnsetFlag) {
-      lm.log(`ASTUnsetFlag case not implemented yet.`);
+      lm.log(`TODO: ASTUnsetFlag semantics check not implemented yet.`);
     } 
     else if (thing instanceof ASTNode) {
       lm.indent(() => {
