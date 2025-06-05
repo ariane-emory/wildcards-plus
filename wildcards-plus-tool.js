@@ -10055,10 +10055,10 @@ const wrap_TestFlag_in_AnonWildcard    = rule =>
 const TestFlagInGuardPosition =
       choice(SimpleCheckFlag,
              SimpleNotFlag,
-             CheckFlagWithOrAlternatives,
              CheckFlagWithSetConsequent,
              NotFlagWithSetConsequent,
-             )
+             CheckFlagWithOrAlternatives,
+            )
       .abbreviate_str_repr('TestFlagInGuardPosition');
 const TopLevelTestFlag =
       choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
