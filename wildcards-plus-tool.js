@@ -8928,12 +8928,16 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       walk(got);
     }
     else if (thing instanceof ASTScalarAssignment) {
-      dummy_context.scalar_variables.set(thing.name, "doesn't matter");
+      dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
+      lm.log(`this: ${inspect_fun(dummy_context.scalar_variables)}`);
+      walk_children(thing);
     }
     else if (thing instanceof ASTScalarReference) {
       if (!dummy_context.scalar_variables.has(thing.name)) {
         const known_names = Array.from(dummy_context.scalar_variables.keys());
-        const suggestion = suggest_closest(thing.name, known_names);
+        const sc_args = [ thing.name, known_names ];
+        lm.log(`args: ${inspect_fun(sc_args)}`);
+        const suggestion = suggest_closest(...sc_args);
         warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
                       `this suggests a typo in your template.${suggestion}`);
       }
@@ -9214,7 +9218,7 @@ class ASTScalarAssignment extends ASTNode  {
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
-    return [ this.destination, this.source ];
+    return [ this.source ]; // exclude this.destination, it's just a boxed name
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
