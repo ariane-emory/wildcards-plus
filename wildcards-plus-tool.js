@@ -10000,7 +10000,7 @@ const SimpleNotFlag =
       .abbreviate_str_repr('SimpleNotFlag');
 const CheckFlagWithOrAlternatives =
       xform(cutting_seq(question,
-                        with_swb(plus(flag_ident, comma))),
+                        cutting_with_swb(plus(flag_ident, comma))),
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
