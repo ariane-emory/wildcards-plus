@@ -292,7 +292,7 @@ let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
-let prelude_disabled                  = true;
+let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
@@ -10040,16 +10040,14 @@ const NotFlagWithSetConsequent = // last not alternative
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
 // -------------------------------------------------------------------------------------------------
-const SetFlag = xform(second(cutting_seq_with_swb(hash, flag_ident)),
-                      arr => new ASTSetFlag(arr))
+const SetFlag =
+      with_swb(xform(second(cutting_seq_with_swb(hash, flag_ident)),
+                     arr => new ASTSetFlag(arr)))
       .abbreviate_str_repr('SetFlag');
-const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, flag_ident)),
-                        arr => new ASTUnsetFlag(arr))
+const UnsetFlag =
+      with_swb(xform(second(cutting_seq_with_swb(shebang, flag_ident)),
+                     arr => new ASTUnsetFlag(arr)))
       .abbreviate_str_repr('UnsetFlag');
-const SetFlagWithSWB = with_swb(SetFlag)
-      .abbreviate_str_repr('SetFlagWithSWB');
-const UnsetFlagWithSWB = with_swb(UnsetFlag)
-      .abbreviate_str_repr('UnsetFlagWithSWB');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
       unexpected(rule, (rule, input, index) =>
@@ -10137,10 +10135,10 @@ const make_ASTAnonWildcardAlternative = arr => {
 const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                SetFlagWithSWB, UnsetFlagWithSWB)),
+                                SetFlag, UnsetFlag)),
                 lws(optional(swb_uint, 1)),                                 
                 wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                SetFlagWithSWB, UnsetFlagWithSWB)),
+                                SetFlag, UnsetFlag)),
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
@@ -10443,8 +10441,8 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         NamedWildcardReference,
         NamedWildcardUsage,
         SpecialFunctionNotInclude,
-        SetFlagWithSWB,
-        UnsetFlagWithSWB,
+        SetFlag,
+        UnsetFlag,
         ScalarAssignment,
         ScalarReference,
         make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
