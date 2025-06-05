@@ -9877,7 +9877,6 @@ const structural_word_break   = r(/(?=[\s|}]|$)/)
 const with_swb                = rule => first(seq(rule, structural_word_break));
 const seq_with_swb            = (...rules) => first(seq(seq(...rules), structural_word_break));
 // these cut after ALL rules if a SWB isn't found, NOT after first rule:
-const cutting_with_swb        = rule => first(cutting_seq(rule, structural_word_break));
 const cutting_seq_with_swb    = (...rules) => first(cutting_seq(seq(...rules),
                                                                 structural_word_break));
 // =================================================================================================
@@ -10124,9 +10123,11 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlagInGuardPosition, SetFlag, discarded_comment, UnsetFlag)),
-                lws(optional(swb_uint, 1)),
-                wst_star(choice(TestFlagInGuardPosition, SetFlag, discarded_comment, UnsetFlag)),
+            seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
+                                SetFlagWithSWB, UnsetFlagWithSWB)),
+                lws(optional(swb_uint, 1)),                                 
+                wst_star(choice(TestFlagInGuardPosition, discarded_comment,
+                                SetFlagWithSWB, UnsetFlagWithSWB)),
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
@@ -10429,8 +10430,8 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         NamedWildcardReference,
         NamedWildcardUsage,
         SpecialFunctionNotInclude,
-        SetFlag,
-        UnsetFlag,
+        SetFlagWithSWB,
+        UnsetFlagWithSWB,
         ScalarAssignment,
         ScalarReference,
         make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
