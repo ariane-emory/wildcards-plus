@@ -8912,11 +8912,6 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
 
       dummy_context.named_wildcards.set(thing.name, thing.wildcard);
     }
-    else if (thing instanceof ASTScalarAssignment) {
-      dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-      // lm.log(`this: ${inspect_fun(dummy_context.scalar_variables)}`);
-      walk_children(thing);
-    }
     else if (thing instanceof ASTNamedWildcardReference) {
       if (!dummy_context.named_wildcards.has(thing.name)) {
         const known_names = Array.from(dummy_context.named_wildcards.keys());
@@ -8941,6 +8936,11 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       
       walk(got);
     }
+    else if (thing instanceof ASTScalarAssignment) {
+      dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
+      // lm.log(`this: ${inspect_fun(dummy_context.scalar_variables)}`);
+      walk_children(thing);
+    }
     else if (thing instanceof ASTCheckFlags) {
       for (const flag of thing.flags) 
         warn_or_throw_unless_flag_could_be_set_by_now(flag);
@@ -8957,8 +8957,8 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     else if (thing instanceof ASTUnsetFlag) {
       warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
     } 
-    else if (thing instanceof ASTNode) {
-      walk_children(thing);;
+   else if (thing instanceof ASTNode) {
+     walk_children(thing);;
     }
     else {
       throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
