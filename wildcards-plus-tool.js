@@ -8936,7 +8936,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
           lm.indent(() => log(log_configuration_enabled,
                               `%config ${thing.assign ? '=' : '+='} ` +
-                              `${inspect_fun(new_obj, true)}`
+                              `${inspect_fun(new_obj, true)}`,
+                              log_expand_and_walk_enabled
                               // + `, configuration is now: ` +
                               // `${inspect_fun(context.configuration, true)}`
                              ));
@@ -10253,9 +10254,12 @@ const SpecialFunctionRevertPickMultiple =
       .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1], arr[0][1] == '='),
-            cutting_seq(head(c_ident,                                                // [0][0]
-                             discarded_comments,                                     // -
+      xform(arr => {
+        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
+        return new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '=');
+      },
+            cutting_seq(seq(c_ident,                                                // [0][0]
+                            discarded_comments,                                     // -
                              lws(any_assignment_operator),                           // [0][1]
                              discarded_comments),                                    // -
                         lws(choice(ExposedRjsonc,                                    // [1]
@@ -10264,7 +10268,10 @@ const SpecialFunctionUpdateConfigurationBinary =
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1]== '='),
+      xform(arr => {
+        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
+        return new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '=');
+      },
             seq(/conf(?:ig)?/,                                                        // [0]
                 discarded_comments,                                                   // -
                 cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
