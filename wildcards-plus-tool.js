@@ -9263,7 +9263,7 @@ function audit_semantics(root_ast_node,
 
   const visited = new Set();
   const already_warned_msgs = new Set();
-  const log = noisy ? msg => lm.log(msg) : msg => {};
+  const log = noisy ? (msg, indent = true) => lm.log(msg, indent) : msg => {};
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
@@ -9276,7 +9276,7 @@ function audit_semantics(root_ast_node,
       throw new Error(msg);
     }
     else if (! already_warned_msgs.has(msg)) {
-      lm.log(msg, false); // false arg for no indentation.
+      log(msg, false); // false arg for no indentation.
       // already_warned_msgs.add(msg);
     }
   }
@@ -9323,7 +9323,9 @@ function audit_semantics(root_ast_node,
     
     visited.add(thing);
 
-    log(`auditing semantics in ${thing.constructor.name} '${thing.toString()}', flags: ${compress(inspect_fun(dummy_context.flags))}'`);
+    log(`audit semantics in ${thing.constructor.name} ` +
+        `'${abbreviate(compress(thing.toString()), 200)}, ` +
+        `flags: ${compress(inspect_fun(dummy_context.flags))}'`);
     // log(`auditing semantics in ${thing_str_repr(thing)}`);
 
     // ---------------------------------------------------------------------------------------------
@@ -9355,9 +9357,6 @@ function audit_semantics(root_ast_node,
       
       lm.indent(() => walk(got));
     }
-    // else if (thing instanceof ASTLatchNamedWildcard) {
-    //   lm.indent(() => walk(thing.target));
-    // }
     else if (thing instanceof ASTScalarReference) {
       if (!dummy_context.scalar_variables.has(thing.name)) {
         const known_names = Array.from(dummy_context.scalar_variables.keys());
