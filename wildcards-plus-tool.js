@@ -8767,16 +8767,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // NamedWildcards:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLatchNamedWildcard) {
-        const got = context.named_wildcards.get(thing.name);
+        const got = context.named_wildcards.get(thing.target.name);
         
         if (!got)
-          throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.name} not found!>`);
+          throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.target.name} not found!>`);
 
         // lm.log(`CONSIDER ${inspect_fun(got)}`);
 
         if (got instanceof ASTLatchedNamedWildcardValue) {
           throw new ThrownReturn(`\\<WARNING: tried to latch already-latched NamedWildcard ` +
-                                 `@${thing.name}, check your template!>`);
+                                 `@${thing.target.name}, check your template!>`);
         } /* else {
              lm.log(`LATCHING ${inspect_fun(got)}`);
              
@@ -8790,9 +8790,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         // lm.log(`LATCHED IS ${inspect_fun(latched)}`);
         
         log(context.noisy,
-            `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+            `LATCHED ${thing.target.name} TO ${inspect_fun(latched.latched_value)}`);
         
-        context.named_wildcards.set(thing.name, latched);
+        context.named_wildcards.set(thing.target.name, latched);
 
         throw new ThrownReturn('');
       }
@@ -9255,7 +9255,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_semantics(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
+function audit_semantics(root_ast_node, { base_context = null, noisy = false, throws = true } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
@@ -9354,7 +9354,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       lm.indent(() => walk(got));
     }
     else if (thing instanceof ASTLatchNamedWildcard) {
-      lm.indent(() => walk(new ASTNamedWildcardReference(thing.name)));
+      lm.indent(() => walk(thing.target));
     }
     else if (thing instanceof ASTScalarReference) {
       if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -9636,9 +9636,9 @@ class ASTLora extends ASTNode {
 // ASTLatchNamedWildcard:
 // -------------------------------------------------------------------------------------------------
 class ASTLatchNamedWildcard extends ASTLeafNode {
-  constructor(name) {
+  constructor(target) {
     super();
-    this.name = name;
+    this.target = target;
   }
   // // -----------------------------------------------------------------------------------------------
   // __direct_children() {
@@ -9646,7 +9646,7 @@ class ASTLatchNamedWildcard extends ASTLeafNode {
   // }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `@#${this.name}`;
+    return `@#${this.target}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -10389,7 +10389,7 @@ const NamedWildcardUsage      =
                 objs.push(new ASTUnlatchNamedWildcard(ident));
 
               if (hash)
-                objs.push(new ASTLatchNamedWildcard(ident));
+                objs.push(new ASTLatchNamedWildcard(new ASTNamedWildcardReference(ident)));
 
               return objs;
             })
