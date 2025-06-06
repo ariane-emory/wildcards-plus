@@ -9959,9 +9959,9 @@ const A1111StyleLora =
             wst_cutting_seq(wst_seq(ltri, 'lora'),                               // [0]
                             colon,                                               // [1] 
                             choice(filename, () => LimitedContentNoAWCTrailers), // [2]
-                            optional(second(wst_seq(colon,                       // [3]
-                                                    choice(A1111StyleLoraWeight,
-                                                           () => LimitedContentNoAWCTrailers))),
+                            optional(wst_cadr(colon,                       // [3]
+                                              choice(A1111StyleLoraWeight,
+                                                     () => LimitedContentNoAWCTrailers)),
                                      "1.0"), // [4][0]
                             rtri))
       .abbreviate_str_repr('A1111StyleLora');
