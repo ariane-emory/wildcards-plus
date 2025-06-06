@@ -9360,7 +9360,7 @@ function audit_semantics(root_ast_node,
       lm.indent(() => {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode)
+            walk(elem, local_audit_semantics_mode) // propogate, I guess? 
       });
     }
     else if (thing instanceof ASTNamedWildcardDefinition) {
