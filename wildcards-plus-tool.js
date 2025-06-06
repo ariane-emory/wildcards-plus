@@ -10253,14 +10253,14 @@ const SpecialFunctionRevertPickMultiple =
       .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                            // [0]
-                discarded_comments,                                                 // -
-                cutting_seq(lws(any_assignment_operator),                           // [1][0]
-                            discarded_comments,                                     // -
-                            lws(choice(ExposedRjsonc,
-                                       first(seq(() => LimitedContent,
-                                                 optional(SpecialFunctionTail))))))))         // [1][1]
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1], arr[0][1] == '='),
+            cutting_seq(head(c_ident,                                                // [0][0]
+                             discarded_comments,                                     // -
+                             lws(any_assignment_operator),                           // [0][1]
+                             discarded_comments),                                    // -
+                        lws(choice(ExposedRjsonc,                                    // [1]
+                                   head(() => LimitedContent,
+                                        optional(SpecialFunctionTail))))))           // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
@@ -10269,8 +10269,8 @@ const SpecialFunctionUpdateConfigurationUnary =
                 discarded_comments,                                                   // -
                 cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
                             discarded_comments,                                       // -
-                            lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
-                                                 optional(SpecialFunctionTail))),
+                            lws(choice(head(RjsoncObject, // mod_RjsoncObject,
+                                            optional(SpecialFunctionTail)),
                                        head(() => LimitedContentNoAWCTrailers,
                                             optional(SpecialFunctionTail))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
@@ -10339,7 +10339,7 @@ const NamedWildcardDefinition =
       xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1]),
             cutting_seq(head(NamedWildcardDesignator,
                              discarded_comments,
-                                 lws(equals)),
+                             lws(equals)),
                         discarded_comments,
                         head(AnonWildcard,
                              optional(SpecialFunctionTail))))
