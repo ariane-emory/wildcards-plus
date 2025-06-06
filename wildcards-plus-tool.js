@@ -9436,20 +9436,23 @@ function audit_semantics(root_ast_node,
     }
   }
 
-  const time = measure_time(() => {
-    for (const [nwc_name, awc] of dummy_context.named_wildcards) {
-      // lm.log(`maybe walk predefined ${nwc_name}`);
-      // sthrow new Error("stop");
-      
-      if (nwc_name.startsWith('__')) {
-        log(`walking unsafe code in NWS ${nwc_name}`);
-        lm.indent(() => walk(awc, audit_semantics_modes.unsafe));
+  let time = 0;
+  log(`auditing prelude content...`);
+  lm.indent(() => {
+    time = measure_time(() => {
+      for (const [nwc_name, awc] of dummy_context.named_wildcards) {
+        // lm.log(`maybe walk predefined ${nwc_name}`);
+        // sthrow new Error("stop");
+        
+        if (nwc_name.startsWith('__')) {
+          log(`walking unsafe code in NWS ${nwc_name}`);
+          lm.indent(() => walk(awc, audit_semantics_modes.unsafe));
+        }
       }
-    }
+    });
   });
-
   log(`auditing prelude content took ${time.toFixed(2)} ms`);
-               
+  
   walk(root_ast_node, audit_semantics_mode);
 }
 // =================================================================================================
