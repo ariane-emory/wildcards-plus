@@ -1,11 +1,2 @@
-// unsafe { ?foo { foo1 | foo2 } | bar }
-// { ?corge { corge1 | corge2 } | grault }
-
-unsafe { ?fred { fred | waldo } | quux }
-
-// @__set_gender_if_unset  = unsafe { unsafe {?female #gender.female // just to make forcing an option a little terser.
-//                                           |?male   #gender.male
-//                                           |?neuter #gender.neuter}
-//                                    {3 !gender.#female #female
-//                                    |2 !gender.#male   #male
-//                                    |1 !gender.#neuter #neuter}}
+@nwc = unsafe { ?fred { fred | waldo } | quux }
+@nwc!
