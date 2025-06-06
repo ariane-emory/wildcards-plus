@@ -9276,32 +9276,6 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw(msg) {
-    msg = `${audit_semantics_mode.toUpperCase()}: ${msg}`;
-
-    if (audit_semantics_mode == audit_semantics_mode.error) {
-      throw new Error(msg);
-    }
-    else if (audit_semantics_mode == audit_semantics_modes.warning &&
-             ! already_warned_msgs.has(msg)) {
-      lm.log(msg, false); // false arg for no indentation.
-      // already_warned_msgs.add(msg);
-    }
-  }
-  
-  // -----------------------------------------------------------------------------------------------
-  function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
-    if (dummy_context.flag_is_set(flag))
-      return;
-
-    const flag_str = flag.join(".").toLowerCase();
-    const known_flags = dummy_context.flags.map(f => f.join("."));
-    const suggestion = suggest_closest(flag_str, known_flags);
-    warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set,` +
-                  ` this suggests a typo in your template.${suggestion}`);
-  }
-  
-  // -----------------------------------------------------------------------------------------------
   function walk_children(thing) {
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
@@ -9314,12 +9288,44 @@ function audit_semantics(root_ast_node,
           return;
         
         // log(`child: ${abbreviate(child.toString())}`);
-        walk(child, dummy_context);
+        walk(child, audit_semantics_mode);
       });
     }
   }
   // -----------------------------------------------------------------------------------------------
-  function walk(thing) {
+  function walk(thing, audit_semantics_mode) {
+    if (typeof audit_semantics_mode !== 'string')
+      throw new Error(`bad walk audit_semantics_mode`);
+    //+ `${inspect_fun(audit_semantics_mode)}`);
+    // ---------------------------------------------------------------------------------------------
+    function warn_or_throw(msg) {
+      if (audit_semantics_mode instanceof Context)
+        throw new Error("stop");
+      
+      msg = `${audit_semantics_mode.toUpperCase()}: ${msg}`;
+
+      if (audit_semantics_mode == audit_semantics_mode.error) {
+        throw new Error(msg);
+      }
+      else if (audit_semantics_mode == audit_semantics_modes.warning &&
+               ! already_warned_msgs.has(msg)) {
+        lm.log(msg, false); // false arg for no indentation.
+        // already_warned_msgs.add(msg);
+      }
+    }
+    
+    // ---------------------------------------------------------------------------------------------
+    function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
+      if (dummy_context.flag_is_set(flag))
+        return;
+
+      const flag_str = flag.join(".").toLowerCase();
+      const known_flags = dummy_context.flags.map(f => f.join("."));
+      const suggestion = suggest_closest(flag_str, known_flags);
+      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set,` +
+                    ` this suggests a typo in your template.${suggestion}`);
+    }
+    
     if (is_primitive(thing))
       return;
 
@@ -9342,7 +9348,7 @@ function audit_semantics(root_ast_node,
       lm.indent(() => {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem)
+            walk(elem, audit_semantics_mode)
       });
     }
     else if (thing instanceof ASTNamedWildcardDefinition) {
@@ -9351,6 +9357,10 @@ function audit_semantics(root_ast_node,
                       `you may not have intended to do this, check your template!`);
 
       dummy_context.named_wildcards.set(thing.name, thing.wildcard);
+
+      if (thing.name.startsWith('__')) {
+        
+      }
     }
     else if (thing instanceof ASTNamedWildcardReference) {
       if (!dummy_context.named_wildcards.has(thing.name)) {
@@ -9362,7 +9372,7 @@ function audit_semantics(root_ast_node,
       
       const got = dummy_context.named_wildcards.get(thing.name);
       
-      lm.indent(() => walk(got));
+      lm.indent(() => walk(got, audit_semantics_mode));
     }
     // else if (thing instanceof ASTLatchNamedWildcard) {
     //   lm.indent(() => walk(thing.target));
@@ -9377,7 +9387,7 @@ function audit_semantics(root_ast_node,
       
       const got = dummy_context.named_wildcards.get(thing.name);
       
-      walk(got);
+      walk(got, audit_semantics_mode);
     }
     else if (thing instanceof ASTScalarAssignment) {
       dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
@@ -9417,7 +9427,7 @@ function audit_semantics(root_ast_node,
     }
   }
 
-  walk(root_ast_node);
+  walk(root_ast_node, audit_semantics_mode);
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
