@@ -10058,7 +10058,7 @@ const unexpected_TestFlag_at_top_level = rule =>
                             input, index));
 const innapropriately_placed_TestFlag = rule => 
       unexpected(rule, (rule, input, index) =>
-        new FatalParseError(`innapropriately placed 'check' or 'not' flag`,
+        new FatalParseError(`innapropriately placed test flag`,
                             input, index));
 const wrap_TestFlag_in_AnonWildcard    = rule =>
       xform(rule, flag =>
@@ -10086,11 +10086,15 @@ const TestFlagInAlternativeContent =
              .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
              innapropriately_placed_TestFlag(SimpleNotFlag)
              .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
+             innapropriately_placed_TestFlag(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('InappropriatelyPlacedNotFlagWithSetConsequent'),
              // Maybe these next two shouldn't be here?
-             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             // wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             // .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             // wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             // .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
              innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
              .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
 // =================================================================================================
