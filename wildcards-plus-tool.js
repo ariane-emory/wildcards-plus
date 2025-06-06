@@ -9277,15 +9277,19 @@ function audit_semantics(root_ast_node,
 
   // -----------------------------------------------------------------------------------------------
   function walk(thing, local_audit_semantics_mode) {
-    const log = noisy && local_audit_semantics_mode !== audit_semantics_modes.unsafe
-          ? (msg, indent = true) => lm.log(`${local_audit_semantics_mode[0]} ${msg}`, indent)
-          : msg => {};
-
     if (typeof local_audit_semantics_mode !== 'string')
       throw new Error(`bad walk local_audit_semantics_mode: ` +
                       `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
-    // -----------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
+    const log = noisy && local_audit_semantics_mode !== audit_semantics_modes.unsafe
+          ? (msg, indent = true) => lm.log(`${local_audit_semantics_mode[0]} ${msg}`, indent)
+          : msg => {};
+    // ---------------------------------------------------------------------------------------------
     function walk_children(thing, local_audit_semantics_mode) {
+      if (typeof local_audit_semantics_mode !== 'string')
+        throw new Error(`bad walk_children local_audit_semantics_mode: ` +
+                        `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
+
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
       if (children?.length > 0)
@@ -9296,8 +9300,7 @@ function audit_semantics(root_ast_node,
           if (is_primitive(child))
             return;
           
-          // log(`child: ${abbreviate(child.toString())}`);
-          walk(child, local_audit_semantics_mode);
+          walk(child, local_audit_semantics_mode); // propogate
         });
       }
     }
@@ -9393,7 +9396,7 @@ function audit_semantics(root_ast_node,
     }
     else if (thing instanceof ASTScalarAssignment) {
       dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-      walk_children(thing, local_audit_semantics_mode);
+      walk_children(thing, audit_semantics_mode); // don't propogate
     }
     else if (thing instanceof ASTCheckFlags) {
       if (thing.consequently_set_flag_tail) {
@@ -9420,33 +9423,40 @@ function audit_semantics(root_ast_node,
     } 
     else if (thing instanceof ASTUnsetFlag) {
       warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
-    } 
-    else if (thing instanceof ASTNode) {
-      walk_children(thing, local_audit_semantics_mode);
     }
-    else {
-      throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+    else if (thing instanceof ASTAnonWildcard) {
+      // v propogate sometimes?
+      walk_children(thing,
+                    thing.unsafe
+                    ? audit_semantics_modes.unsafe
+                    : local_audit_semantics_mode);
     }
+      else if (thing instanceof ASTNode) {
+        walk_children(thing, audit_semantics_mode); // don't propogate 
+      }
+      else {
+        throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+      }
   }
 
-  if (false) {
-    let time = 0;
-    log(`auditing prelude content...`);
-    lm.indent(() => {
-      time = measure_time(() => {
-        for (const [nwc_name, awc] of dummy_context.named_wildcards) {
-          // lm.log(`maybe walk predefined ${nwc_name}`);
-          // sthrow new Error("stop");
-          
-          if (nwc_name.startsWith('__')) {
-            log(`walking unsafe code in NWS ${nwc_name}`);
-            lm.indent(() => walk(awc, audit_semantics_modes.unsafe));
-          }
-        }
-      });
-    });
-    log(`auditing prelude content took ${time.toFixed(2)} ms`);
-  }
+  // if (false) {
+  //   let time = 0;
+  //   log(`auditing prelude content...`);
+  //   lm.indent(() => {
+  //     time = measure_time(() => {
+  //       for (const [nwc_name, awc] of dummy_context.named_wildcards) {
+  //         // lm.log(`maybe walk predefined ${nwc_name}`);
+  //         // sthrow new Error("stop");
+  
+  //         if (nwc_name.startsWith('__')) {
+  //           log(`walking unsafe code in NWS ${nwc_name}`);
+  //           lm.indent(() => walk(awc, audit_semantics_modes.unsafe));
+  //         }
+  //       }
+  //     });
+  //   });
+  //   log(`auditing prelude content took ${time.toFixed(2)} ms`);
+  // }
   
   walk(root_ast_node, audit_semantics_mode);
 }
