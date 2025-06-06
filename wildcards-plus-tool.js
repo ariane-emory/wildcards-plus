@@ -2660,10 +2660,10 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const head          = (rule, ...rules) => first(seq(rule, ...rules));
-const cadr          = (rule1, rule2, ...rules) => second(seq(rule1, rule2, ...rules));
-const cutting_cadr  = (rule1, rule2, ...rules) => second(cutting_seq(rule1, rule2, ...rules));
-const cutting_head  = (rule, ...rules) => first(cutting_seq(rule, ...rules));
+const head          = (...rules) => first(seq(...rules));
+const cadr          = (...rules) => second(seq(...rules));
+const cutting_cadr  = (...rules) => second(cutting_seq(...rules));
+const cutting_head  = (...rules) => first(cutting_seq(...rules));
 const push          = ((value, rule) =>
   xform(rule, arr => [value, ...arr]));
 const enclosing     = (left, enclosed, right) =>
@@ -9915,10 +9915,10 @@ const ident                   =
       xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
             str => str.toLowerCase().replace(/-/g, '_'))
       .abbreviate_str_repr('ident');
-const liberal_ident           =
-      xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-            str => str.toLowerCase().replace(/-/g, '_'))
-      .abbreviate_str_repr('ident');
+// const liberal_ident           =
+//       xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+//             str => str.toLowerCase().replace(/-/g, '_'))
+//       .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
 const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
@@ -9988,8 +9988,8 @@ const ExposedRjsonc =
 //                            return arr;
 //                          });
 const flag_ident = xform(seq(choice(ident, '*'),
-                             star(second(seq('.',
-                                             choice(xform(parseInt, /\d+\b/), liberal_ident, '*'))))),
+                             star(cadr('.',
+                                       choice(xform(parseInt, /\d+\b/), ident, '*')))),
                          arr => {
                            // lm.log();
                            // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
