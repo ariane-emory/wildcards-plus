@@ -9286,6 +9286,8 @@ function audit_semantics(root_ast_node,
           : msg => {};
     // ---------------------------------------------------------------------------------------------
     function walk_children(thing, local_audit_semantics_mode) {
+      log(`walk_children(..., ${local_audit_semantics_mode})`);
+      
       if (typeof local_audit_semantics_mode !== 'string')
         throw new Error(`bad walk_children local_audit_semantics_mode: ` +
                         `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
@@ -9293,7 +9295,7 @@ function audit_semantics(root_ast_node,
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
       if (children?.length > 0)
-        log(`children: ${children.toString()}`);
+        log(`children: ${children.map(thing_str_repr)}`);
       
       for (const child of children) {
         lm.indent(() => {
@@ -9426,18 +9428,20 @@ function audit_semantics(root_ast_node,
     }
     else if (thing instanceof ASTAnonWildcard) {
       // v propogate sometimes?
-      log(`walking anon wildcard ${thing.unsage}`);
-      walk_children(thing,
-                    thing.unsafe
-                    ? audit_semantics_modes.unsafe
-                    : local_audit_semantics_mode);
+      const tmp = thing.unsafe
+            ? audit_semantics_modes.unsafe
+            : local_audit_semantics_mode;
+      
+      // log(`walking anon wildcard ${thing.unsafe} ${tmp}`);
+      
+      walk_children(thing, tmp);
     }
-      else if (thing instanceof ASTNode) {
-        walk_children(thing, audit_semantics_mode); // don't propogate 
-      }
-      else {
-        throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
-      }
+    else if (thing instanceof ASTNode) {
+      walk_children(thing, audit_semantics_mode); // don't propogate 
+    }
+    else {
+      throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+    }
   }
 
   // if (false) {
@@ -9448,7 +9452,7 @@ function audit_semantics(root_ast_node,
   //       for (const [nwc_name, awc] of dummy_context.named_wildcards) {
   //         // lm.log(`maybe walk predefined ${nwc_name}`);
   //         // sthrow new Error("stop");
-  
+
   //         if (nwc_name.startsWith('__')) {
   //           log(`walking unsafe code in NWS ${nwc_name}`);
   //           lm.indent(() => walk(awc, audit_semantics_modes.unsafe));
@@ -9458,7 +9462,7 @@ function audit_semantics(root_ast_node,
   //   });
   //   log(`auditing prelude content took ${time.toFixed(2)} ms`);
   // }
-  
+
   walk(root_ast_node, audit_semantics_mode);
 }
 // =================================================================================================
