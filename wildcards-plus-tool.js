@@ -9353,6 +9353,9 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       
       lm.indent(() => walk(got));
     }
+    else if (thing instanceof ASTLatchNamedWildcard) {
+      lm.indent(() => walk(new NamedWildcardReference(thing.name)));
+    }
     else if (thing instanceof ASTScalarReference) {
       if (!dummy_context.scalar_variables.has(thing.name)) {
         const known_names = Array.from(dummy_context.scalar_variables.keys());
@@ -9632,15 +9635,15 @@ class ASTLora extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // ASTLatchNamedWildcard:
 // -------------------------------------------------------------------------------------------------
-class ASTLatchNamedWildcard extends ASTNode {
+class ASTLatchNamedWildcard extends ASTLeafNode {
   constructor(name) {
     super();
     this.name = name;
   }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [ new ASTNamedWildcardReference(this.name) ]; // ugly?
-  }
+  // // -----------------------------------------------------------------------------------------------
+  // __direct_children() {
+  //   return [ new ASTNamedWildcardReference(this.name) ]; // ugly?
+  // }
   // -----------------------------------------------------------------------------------------------
   toString() {
     return `@#${this.name}`;
