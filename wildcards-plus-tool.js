@@ -9255,7 +9255,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_semantics(root_ast_node, { base_context = null, noisy = false, throws = true } = {}) {
+function audit_semantics(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
@@ -9323,16 +9323,18 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = false, th
     
     visited.add(thing);
 
-    log(`auditing semantics in ${thing.constructor.name} '${thing.toString()}, flags: ${compress(inspect_fun(dummy_context.flags))}'`);
+    log(`auditing semantics in ${thing.constructor.name} '${thing.toString()}', flags: ${compress(inspect_fun(dummy_context.flags))}'`);
     // log(`auditing semantics in ${thing_str_repr(thing)}`);
 
     // ---------------------------------------------------------------------------------------------
     // typecases:
     // ---------------------------------------------------------------------------------------------
-    if (Array.isArray(thing)) { 
-      for (const elem of thing)
-        if (!is_primitive(elem))
-          lm.indent(() => walk(elem));
+    if (Array.isArray(thing)) {
+      lm.indent(() => {
+        for (const elem of thing)
+          if (!is_primitive(elem))
+            walk(elem)
+      });
     }
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (dummy_context.named_wildcards.has(thing.name))
