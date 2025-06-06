@@ -1,1 +1,1 @@
-unsafe { foo | bar }
+unsafe { ?foo foo | bar }

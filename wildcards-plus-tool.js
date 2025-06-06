@@ -9426,6 +9426,7 @@ function audit_semantics(root_ast_node,
     }
     else if (thing instanceof ASTAnonWildcard) {
       // v propogate sometimes?
+      log(`walking anon wildcard ${thing.unsage}`);
       walk_children(thing,
                     thing.unsafe
                     ? audit_semantics_modes.unsafe
@@ -9754,7 +9755,12 @@ class ASTAnonWildcard extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    let str = '{';
+    let str = '';
+
+    if (this.unsafe)
+      str += "unsafe ";
+    
+    str += '{';
 
     for (let ix = 0; ix < this.picker.options.length; ix++) {
       const option     = this.picker.options[ix];
