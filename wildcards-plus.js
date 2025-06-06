@@ -2401,9 +2401,14 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const push            = ((value, rule) =>
+const head          = (...rules) => first(seq(...rules));
+const cadr          = (...rules) => second(seq(...rules));
+const wst_cadr      = (...rules) => second(wst_seq(...rules));
+const cutting_cadr  = (...rules) => second(cutting_seq(...rules));
+const cutting_head  = (...rules) => first(cutting_seq(...rules));
+const push          = ((value, rule) =>
   xform(rule, arr => [value, ...arr]));
-const enclosing       = (left, enclosed, right) =>
+const enclosing     = (left, enclosed, right) =>
       xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
 // =================================================================================================
 // END of COMMON-GRAMMAR.JS CONTENT SECTION.
@@ -3148,6 +3153,38 @@ function is_primitive(val) {
     (typeof val !== 'object' && typeof val !== 'function');
 }
 // -------------------------------------------------------------------------------------------------
+function is_plain_object(value) {
+  return (
+    typeof value === 'object' &&
+      value !== null &&
+      Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+// -------------------------------------------------------------------------------------------------
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,     // deletion
+        dp[i][j - 1] + 1,     // insertion
+        dp[i - 1][j - 1] + cost  // substitution
+      );
+    }
+  }
+
+  // lm.log(`Levenshtein distance between '${a}' and '${b}':`);
+  // lm.log(`${inspect_fun(dp)}.`);
+
+  return dp[m][n];
+}
+// -------------------------------------------------------------------------------------------------
 function measure_time(fun) {
   const now = dt_hosted
         ? Date.now
@@ -3504,6 +3541,24 @@ if (test_structured_clone) {
     else
       lm.log(`test #3 failed as intended.`);
   }
+}
+// -------------------------------------------------------------------------------------------------
+function suggest_closest(name, candidates) {
+  let closest = null;
+  let closest_distance = Infinity;
+
+  for (const cand of candidates) {
+    const dist = levenshtein(name, cand);
+    if (dist < closest_distance) {
+      closest = cand;
+      closest_distance = dist;
+    }
+  }
+
+  // If it's reasonably close (adjust threshold as needed)
+  return (closest && closest_distance <= 2)
+    ? ` Did you mean '${closest}'?`
+    : '';
 }
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing) {
@@ -8933,48 +8988,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
-
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      dp[i][j] = Math.min(
-        dp[i - 1][j] + 1,     // deletion
-        dp[i][j - 1] + 1,     // insertion
-        dp[i - 1][j - 1] + cost  // substitution
-      );
-    }
-  }
-
-  // lm.log(`Levenshtein distance between '${a}' and '${b}':`);
-  // lm.log(`${inspect_fun(dp)}.`);
-
-  return dp[m][n];
-}
-// -------------------------------------------------------------------------------------------------
-function suggest_closest(name, candidates) {
-  let closest = null;
-  let closest_distance = Infinity;
-
-  for (const cand of candidates) {
-    const dist = levenshtein(name, cand);
-    if (dist < closest_distance) {
-      closest = cand;
-      closest_distance = dist;
-    }
-  }
-
-  // If it's reasonably close (adjust threshold as needed)
-  return (closest && closest_distance <= 2)
-    ? ` Did you mean '${closest}'?`
-    : '';
-}
-// -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
@@ -9021,8 +9034,8 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       
       for (const child of children) {
         lm.indent(() => {
-          if (is_primitive(child))
-            return;
+          // if (is_primitive(child))
+          //   return;
           
           log(`child: ${thing_str_repr(child)}`);
           lm.indent (() => walk(child, dummy_context));
@@ -9500,7 +9513,7 @@ class ASTUpdateConfigurationUnary extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
-    return [ this.value ];
+    return is_plain_object(this.value) ? [] : [ this.value ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -9520,7 +9533,7 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
-    return [ this.value ];
+    return is_primitive(this.value) ? [] :  [ this.value ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -9623,11 +9636,8 @@ class ASTUINegPrompt extends ASTLeafNode {
 const structural_word_break   = r(/(?=[\s|}]|$)/)
       .abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
-const with_swb                = rule => first(seq(rule, structural_word_break));
-const cutting_with_swb        = rule => first(cutting_seq(rule, structural_word_break));
-// these cut after ALL rules if a SWB isn't found, NOT after first rule:
-const cutting_seq_with_swb    = (...rules) => first(cutting_seq(seq(...rules),
-                                                                structural_word_break));
+const with_swb                = rule => head(rule, structural_word_break);
+const cutting_with_swb        = rule => cutting_head(rule, structural_word_break);
 // =================================================================================================
 // terminals:
 // =================================================================================================
@@ -9647,10 +9657,10 @@ const ident                   =
       xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
             str => str.toLowerCase().replace(/-/g, '_'))
       .abbreviate_str_repr('ident');
-const liberal_ident           =
-      xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-            str => str.toLowerCase().replace(/-/g, '_'))
-      .abbreviate_str_repr('ident');
+// const liberal_ident           =
+//       xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+//             str => str.toLowerCase().replace(/-/g, '_'))
+//       .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
 const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
@@ -9687,12 +9697,12 @@ const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
       .abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora =
       xform(arr => new ASTLora(arr[2], arr[3]),
-            wst_cutting_seq(wst_seq(ltri, 'lora'),                               // [0]
+            wst_cutting_seq(seq(ltri, lws('lora')),                              // [0]
                             colon,                                               // [1] 
                             choice(filename, () => LimitedContentNoAWCTrailers), // [2]
-                            optional(second(wst_seq(colon,                       // [3]
-                                                    choice(A1111StyleLoraWeight,
-                                                           () => LimitedContentNoAWCTrailers))),
+                            optional(wst_cadr(colon,                             // [3]
+                                              choice(A1111StyleLoraWeight,
+                                                     () => LimitedContentNoAWCTrailers)),
                                      "1.0"), // [4][0]
                             rtri))
       .abbreviate_str_repr('A1111StyleLora');
@@ -9700,15 +9710,15 @@ const A1111StyleLora =
 // mod RJSONC:
 // =================================================================================================
 const ExposedRjsonc = 
-      make_Jsonc_rule(first(choice(seq(choice(RjsoncObject,
-                                              RjsoncArray,
-                                              rjsonc_string),
-                                       optional(() => SpecialFunctionTail)),
-                                   seq(choice(json_null,
-                                              json_true,
-                                              json_false,
-                                              json_number),
-                                       () => SpecialFunctionTail)))); 
+      make_Jsonc_rule(choice(head(choice(RjsoncObject,
+                                         RjsoncArray,
+                                         rjsonc_string),
+                                  optional(() => SpecialFunctionTail)),
+                             head(choice(json_null,
+                                         json_true,
+                                         json_false,
+                                         json_number),
+                                  () => SpecialFunctionTail))); 
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
@@ -9720,15 +9730,9 @@ const ExposedRjsonc =
 //                            return arr;
 //                          });
 const flag_ident = xform(seq(choice(ident, '*'),
-                             star(second(seq('.',
-                                             choice(xform(parseInt, /\d+\b/), liberal_ident, '*'))))),
-                         arr => {
-                           // lm.log();
-                           // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
-                           const ret = arr.flat(1);
-                           // lm.log(`FLAG_IDENT OUT: ${inspect_fun(ret)}`);
-                           return ret;
-                         });
+                             star(cadr('.',
+                                       choice(xform(parseInt, /\d+\b/), ident, '*')))),
+                         arr => [arr[0], ...arr[1]]);
 const SimpleCheckFlag =
       xform(with_swb(seq(question,
                          flag_ident)),
@@ -9780,12 +9784,12 @@ const NotFlagWithSetConsequent = // last not alternative
       .abbreviate_str_repr('NotFlagWithSetConsequent');
 // -------------------------------------------------------------------------------------------------
 const SetFlag =
-      with_swb(xform(second(cutting_seq_with_swb(hash, flag_ident)),
-                     arr => new ASTSetFlag(arr)))
+      xform(arr => new ASTSetFlag(arr),
+            cutting_cadr(hash, flag_ident, structural_word_break))
       .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
-      with_swb(xform(second(cutting_seq_with_swb(shebang, flag_ident)),
-                     arr => new ASTUnsetFlag(arr)))
+      xform(arr=> new ASTUnsetFlag(arr),
+            cutting_cadr(shebang, flag_ident, structural_word_break))
       .abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
@@ -9806,9 +9810,7 @@ const TestFlagInGuardPosition =
              SimpleNotFlag,
              CheckFlagWithSetConsequent,
              NotFlagWithSetConsequent,
-             CheckFlagWithOrAlternatives,
-            )
-      .abbreviate_str_repr('TestFlagInGuardPosition');
+             CheckFlagWithOrAlternatives);
 const TopLevelTestFlag =
       choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
              .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
@@ -9932,13 +9934,13 @@ const UnexpectedSpecialFunctionUINegPrompt =
       .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude =
-      xform(arr => new ASTInclude(arr[0][1]),
-            seq(c_funcall('%include',                            // [0][0]
-                          first(wst_seq(discarded_comments,      // -
-                                        rjsonc_string,           // [0][1]
-                                        discarded_comments,      // -
-                                       ))),  
-                optional(SpecialFunctionTail)))
+      xform(arr => new ASTInclude(arr[1]),
+            head(c_funcall('%include',                   // [0][0]
+                           head(discarded_comments,      // -
+                                lws(rjsonc_string),      // [0][1]
+                                discarded_comments,      // -
+                               )),  
+                 optional(SpecialFunctionTail)))
       .abbreviate_str_repr('SpecialFunctionInclude');
 // -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionInclude =
@@ -9987,44 +9989,44 @@ const SpecialFunctionRevertPickMultiple =
       .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                            // [0]
-                discarded_comments,                                                 // -
-                cutting_seq(lws(any_assignment_operator),                           // [1][0]
-                            discarded_comments,                                     // -
-                            lws(choice(ExposedRjsonc,
-                                       first(seq(() => LimitedContent,
-                                                 optional(SpecialFunctionTail))))))))         // [1][1]
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1], arr[0][1] == '='),
+            cutting_seq(head(c_ident,                                                // [0][0]
+                             discarded_comments,                                     // -
+                             lws(any_assignment_operator),                           // [0][1]
+                             discarded_comments),                                    // -
+                        lws(choice(ExposedRjsonc,                                    // [1]
+                                   head(() => LimitedContent,
+                                        optional(SpecialFunctionTail))))))           // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1]== '='),
             seq(/conf(?:ig)?/,                                                        // [0]
                 discarded_comments,                                                   // -
                 cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
                             discarded_comments,                                       // -
-                            lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
-                                                 optional(SpecialFunctionTail))),
-                                       first(seq(() => LimitedContentNoAWCTrailers,
-                                                 optional(SpecialFunctionTail)))))))) // [1][1]
+                            lws(choice(head(RjsoncObject, // mod_RjsoncObject,
+                                            optional(SpecialFunctionTail)),
+                                       head(() => LimitedContentNoAWCTrailers,
+                                            optional(SpecialFunctionTail))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
-      second(cutting_seq(percent,
-                         choice(
-                           SpecialFunctionUpdateConfigurationUnary,  // before binary!
-                           SpecialFunctionUpdateConfigurationBinary,
-                           (dt_hosted
-                            ? SpecialFunctionUIPrompt
-                            : UnexpectedSpecialFunctionUIPrompt),
-                           (dt_hosted
-                            ? SpecialFunctionUINegPrompt
-                            : UnexpectedSpecialFunctionUINegPrompt),
-                           SpecialFunctionSetPickSingle,
-                           SpecialFunctionSetPickMultiple,
-                           SpecialFunctionRevertPickSingle,
-                           SpecialFunctionRevertPickMultiple,
-                         )))
+      cutting_cadr(percent,
+                   choice(
+                     SpecialFunctionUpdateConfigurationUnary,  // before binary!
+                     SpecialFunctionUpdateConfigurationBinary,
+                     (dt_hosted
+                      ? SpecialFunctionUIPrompt
+                      : UnexpectedSpecialFunctionUIPrompt),
+                     (dt_hosted
+                      ? SpecialFunctionUINegPrompt
+                      : UnexpectedSpecialFunctionUINegPrompt),
+                     SpecialFunctionSetPickSingle,
+                     SpecialFunctionSetPickMultiple,
+                     SpecialFunctionRevertPickSingle,
+                     SpecialFunctionRevertPickMultiple,
+                   ))
       .abbreviate_str_repr('SpecialFunctionNotInclude');
 // =================================================================================================
 // other non-terminals:
@@ -10034,7 +10036,7 @@ const NamedWildcardReference  =
                 optional(caret),                           // [1]
                 optional(xform(parseInt, uint), 1),        // [2]
                 optional(xform(parseInt,                   // [3]
-                               second(seq(dash, uint)))),
+                               cadr(dash, uint))),
                 optional(/[,&|]/),                         // [4]
                 ident,                                     // [5]
                 optional_punctuation_trailer,  // [6]
@@ -10066,17 +10068,17 @@ const NamedWildcardReference  =
             })
       .abbreviate_str_repr('NamedWildcardReference');
 // -------------------------------------------------------------------------------------------------
-const NamedWildcardDesignator = second(seq(at, ident))
+const NamedWildcardDesignator = cadr(at, ident)
       .abbreviate_str_repr('NamedWildcardDesignator');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDefinition =
-      xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
-            seq(NamedWildcardDesignator,
-                discarded_comments,
-                cutting_seq(lws(equals), 
-                            discarded_comments,
-                            first(seq(AnonWildcard,
-                                      optional(SpecialFunctionTail))))))
+      xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1]),
+            cutting_seq(head(NamedWildcardDesignator,
+                             discarded_comments,
+                             lws(equals)),
+                        discarded_comments,
+                        head(AnonWildcard,
+                             optional(SpecialFunctionTail))))
       .abbreviate_str_repr('NamedWildcardDefinition');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardUsage      =
@@ -10180,8 +10182,8 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         NamedWildcardReference,
         NamedWildcardUsage,
         SpecialFunctionNotInclude,
+        UnsetFlag, // before SetFlag!
         SetFlag,
-        UnsetFlag,
         ScalarAssignment,
         ScalarReference,
         make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
