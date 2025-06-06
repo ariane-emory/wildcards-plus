@@ -2662,6 +2662,7 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 const head          = (...rules) => first(seq(...rules));
 const cadr          = (...rules) => second(seq(...rules));
+const wst_cadr      = (...rules) => second(wst_seq(...rules));
 const cutting_cadr  = (...rules) => second(cutting_seq(...rules));
 const cutting_head  = (...rules) => first(cutting_seq(...rules));
 const push          = ((value, rule) =>
