@@ -292,7 +292,7 @@ let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
-let prelude_disabled                  = false;
+let prelude_disabled                  = true;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
@@ -4405,12 +4405,12 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = prelude_disabled ? '' : `
-@__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
-                           |?male   #gender.male
-                           |?neuter #gender.neuter}
-                           {3 !gender.#female #female
-                           |2 !gender.#male   #male
-                           |1 !gender.#neuter #neuter}}
+@__set_gender_if_unset  = unsafe { unsafe {?female #gender.female // just to make forcing an option a little terser.
+                                          |?male   #gender.male
+                                          |?neuter #gender.neuter}
+                                   {3 !gender.#female #female
+                                   |2 !gender.#male   #male
+                                   |1 !gender.#neuter #neuter}}
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
@@ -9286,25 +9286,26 @@ function audit_semantics(root_ast_node,
           ? (msg, indent = true) => lm.log(`${local_audit_semantics_mode[0]} ${msg}`, indent)
           : msg => {};
     // ---------------------------------------------------------------------------------------------
-    function walk_children(thing, local_audit_semantics_mode) {
-      if (typeof local_audit_semantics_mode !== 'string')
-        throw new Error(`bad walk_children local_audit_semantics_mode: ` +
-                        `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
+    function walk_children(thing, mode) {
+      if (typeof mode !== 'string')
+        throw new Error(`bad walk_children mode: ` +
+                        `${abbreviate(compress(inspect_fun(mode)))}`);
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
       if (children?.length > 0)
         log(`children: ${children.map(thing_str_repr)}`);
 
-
-      lm.indent(() => walk(children, local_audit_semantics_mode)); // propogate
+      lm.indent(() => {
+        walk(children, mode);
+      }); // propogate arg
       
       // for (const child of children) {
       //   lm.indent(() => {
       //     if (is_primitive(child))
       //       return;
       
-      //     walk(child, local_audit_semantics_mode); // propogate
+      //     walk(child, mode); // propogate
       //   });
       // }
     }
@@ -9326,7 +9327,8 @@ function audit_semantics(root_ast_node,
     }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
-      if (dummy_context.flag_is_set(flag))
+      if (dummy_context.flag_is_set(flag) ||
+          local_audit_semantics_mode === audit_semantics_modes.unsafe)
         return;
 
       const flag_str = flag.join(".").toLowerCase();
