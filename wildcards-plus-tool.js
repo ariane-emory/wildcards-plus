@@ -9270,7 +9270,7 @@ function audit_semantics(root_ast_node,
 
   const visited = new Set();
   const already_warned_msgs = new Set();
-  const log = noisy ? msg => lm.log(msg) : msg => {};
+  const log = noisy ? (msg, indent = true) => lm.log(msg, indent) : msg => {};
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
@@ -9278,7 +9278,7 @@ function audit_semantics(root_ast_node,
   // -----------------------------------------------------------------------------------------------
   function walk(thing, audit_semantics_mode) {
     const log = noisy && audit_semantics_mode !== audit_semantics_modes.unsafe
-          ? msg => lm.log(`${audit_semantics_mode[0]} ${msg}`)
+          ? (msg, indent = true) => lm.log(`${audit_semantics_mode[0]} ${msg}`, indent)
           : msg => {};
 
     if (typeof audit_semantics_mode !== 'string')
@@ -9314,7 +9314,7 @@ function audit_semantics(root_ast_node,
       }
       else if (audit_semantics_mode == audit_semantics_modes.warning &&
                ! already_warned_msgs.has(msg)) {
-        lm.log(msg, false); // false arg for no indentation.
+        log(msg, false); // false arg for no indentation.
         // already_warned_msgs.add(msg);
       }
     }
@@ -9436,16 +9436,20 @@ function audit_semantics(root_ast_node,
     }
   }
 
-  for (const [nwc_name, awc] of dummy_context.named_wildcards) {
-    // lm.log(`maybe walk predefined ${nwc_name}`);
-    // sthrow new Error("stop");
-    
-    if (nwc_name.startsWith('__')) {
-      lm.log(`walking unsafe code in NWS ${nwc_name}`);
-      lm.indent(() => walk(awc, audit_semantics_modes.unsafe));
+  const time = measure_time(() => {
+    for (const [nwc_name, awc] of dummy_context.named_wildcards) {
+      // lm.log(`maybe walk predefined ${nwc_name}`);
+      // sthrow new Error("stop");
+      
+      if (nwc_name.startsWith('__')) {
+        log(`walking unsafe code in NWS ${nwc_name}`);
+        lm.indent(() => walk(awc, audit_semantics_modes.unsafe));
+      }
     }
-  }
-  
+  });
+
+  log(`auditing prelude content took ${time.toFixed(2)} ms`);
+               
   walk(root_ast_node, audit_semantics_mode);
 }
 // =================================================================================================
