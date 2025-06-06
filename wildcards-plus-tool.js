@@ -9255,7 +9255,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_semantics(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
+function audit_semantics(root_ast_node,
+                         { base_context = null, noisy = true, throws = false } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
@@ -9266,7 +9267,6 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
-  // const checked_flags_arr = [];
 
   // -----------------------------------------------------------------------------------------------
   function warn_or_throw(msg) {
@@ -10649,7 +10649,7 @@ async function main() {
   }
 
   // audit flags:
-  audit_semantics(AST, { base_context: base_context, throws: false });
+  audit_semantics(AST, { base_context: base_context });
 
   let posted_count        = 0;
   let prior_prompt        = null;
