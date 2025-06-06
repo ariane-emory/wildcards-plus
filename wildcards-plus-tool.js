@@ -9436,8 +9436,8 @@ function audit_semantics(root_ast_node,
         // v propogate sometimes?
         const tmp = thing.unsafe
               ? audit_semantics_modes.unsafe
-              : local_audit_semantics_mode;
-
+              : audit_semantics_mode;
+        
         // log(`walking anon wildcard ${thing.unsafe} ${tmp}`);
         
         walk_children(thing, tmp);
