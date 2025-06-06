@@ -8778,7 +8778,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
              // throw new Error('bomb');
              } */
 
-        const latched = new ASTLatchedNamedWildcardValue(lm.indent(() => walk(got, context)), got);
+        const latched =
+              new ASTLatchedNamedWildcardValue(
+                lm.indent(() => walk(got,
+                                     { correct_articles: false })), got);
 
         // lm.log(`LATCHED IS ${inspect_fun(latched)}`);
         
@@ -9248,11 +9251,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_semantics(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
+function audit_semantics(root_ast_node, { base_context = null, noisy = false, throws = true } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
 
+  const visited = new Set();
   const already_warned_msgs = new Set();
   const log = noisy ? msg => lm.log(msg) : msg => {};
   const dummy_context = base_context
@@ -9269,7 +9273,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
     }
     else if (! already_warned_msgs.has(msg)) {
       lm.log(msg, false); // false arg for no indentation.
-      already_warned_msgs.add(msg);
+      // already_warned_msgs.add(msg);
     }
   }
   
@@ -9287,28 +9291,36 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
   
   // -----------------------------------------------------------------------------------------------
   function walk_children(thing) {
-    lm.indent(() => {
-      const children = thing.direct_children();
+    const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      log(`children: ${thing_str_repr(children)}`);
-      
-      for (const child of children) {
-        lm.indent(() => {
-          // if (is_primitive(child))
-          //   return;
-          
-          log(`child: ${thing_str_repr(child)}`);
-          lm.indent (() => walk(child, dummy_context));
-        });
-      }
-    })
+    if (children?.length > 0)
+      log(`children: ${children.toString()}`);
+    
+    for (const child of children) {
+      lm.indent(() => {
+        if (is_primitive(child))
+          return;
+        
+        // log(`child: ${abbreviate(child.toString())}`);
+        walk(child, dummy_context);
+      });
+    }
   }
   // -----------------------------------------------------------------------------------------------
   function walk(thing) {
     if (is_primitive(thing))
       return;
 
-    log(`auditing semantics in ${thing_str_repr(thing)}`);
+    if (visited.has(thing)) {
+      log(`already audited ${thing.constructor.name} '${thing.toString()}'`);
+      
+      return;
+    }
+    
+    visited.add(thing);
+
+    log(`auditing semantics in ${thing.constructor.name} '${thing.toString()}'`);
+    // log(`auditing semantics in ${thing_str_repr(thing)}`);
 
     // ---------------------------------------------------------------------------------------------
     // typecases:
@@ -9335,7 +9347,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       
       const got = dummy_context.named_wildcards.get(thing.name);
       
-      walk(got);
+      lm.indent(() => walk(got));
     }
     else if (thing instanceof ASTScalarReference) {
       if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -10624,7 +10636,7 @@ async function main() {
   }
 
   // audit flags:
-  audit_semantics(AST, { base_context: base_context, noisy: false, throws: false });
+  audit_semantics(AST, { base_context: base_context, throws: false });
 
   let posted_count        = 0;
   let prior_prompt        = null;
