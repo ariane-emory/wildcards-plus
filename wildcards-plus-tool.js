@@ -2661,6 +2661,7 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
 const head         = (rule, ...rules) => first(seq(rule, ...rules));
+const cadr         = (rule1, rule2, ...rules) => second(seq(rule1, rule2, ...rules));
 const cutting_head = (rule, ...rules) => first(cutting_seq(rule, ...rules));
 const push         = ((value, rule) =>
   xform(rule, arr => [value, ...arr]));
@@ -9986,8 +9987,8 @@ const ExposedRjsonc =
 //                            return arr;
 //                          });
 const flag_ident = xform(seq(choice(ident, '*'),
-                             star(second(cutting_seq('.',
-                                                     choice(xform(parseInt, /\d+\b/), liberal_ident, '*'))))),
+                             star(second(seq('.',
+                                             choice(xform(parseInt, /\d+\b/), liberal_ident, '*'))))),
                          arr => {
                            // lm.log();
                            // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
@@ -10332,7 +10333,7 @@ const NamedWildcardReference  =
             })
       .abbreviate_str_repr('NamedWildcardReference');
 // -------------------------------------------------------------------------------------------------
-const NamedWildcardDesignator = second(seq(at, ident))
+const NamedWildcardDesignator = cadr(at, ident)
       .abbreviate_str_repr('NamedWildcardDesignator');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDefinition =
