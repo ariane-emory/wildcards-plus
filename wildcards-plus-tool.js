@@ -9371,13 +9371,6 @@ function audit_semantics(root_ast_node,
                         `you may not have intended to do this, check your template!`);
 
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
-
-        // if (thing.name.startsWith('__')) { // hack for dealing with 'unsafe' code
-        //   lm.log('walking unsafe code:');
-        //   lm.indent(() => {
-        //     walk(thing.wildcard, audit_semantics_mode.unsafe);
-        //   });
-        // }
       }
       else if (thing instanceof ASTNamedWildcardReference) {
         if (!dummy_context.named_wildcards.has(thing.name)) {
