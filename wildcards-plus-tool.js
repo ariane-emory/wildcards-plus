@@ -9293,12 +9293,13 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (children?.length > 0)
+      if (children?.length > 0) {
         log(`children: ${children.map(thing_str_repr)}`);
 
-      //lm.indent(() => {
-      walk(children, mode);
-      //}); // propogate arg
+        lm.indent(() => {
+          walk(children, mode);
+        }); // propogate arg
+      }
       
       // for (const child of children) {
       //   lm.indent(() => {
