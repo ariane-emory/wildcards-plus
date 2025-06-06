@@ -10198,7 +10198,7 @@ const UnexpectedSpecialFunctionUINegPrompt =
       .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude =
-      xform(arr => new ASTInclude(ar[1]),
+      xform(arr => new ASTInclude(arr[1]),
             head(c_funcall('%include',                   // [0][0]
                            head(discarded_comments,      // -
                             lws(rjsonc_string),      // [0][1]
