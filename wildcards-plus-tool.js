@@ -9276,14 +9276,14 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, inner_audit_semantics_mode) {
-    const log = noisy && inner_audit_semantics_mode !== audit_semantics_modes.unsafe
-          ? (msg, indent = true) => lm.log(`${inner_audit_semantics_mode[0]} ${msg}`, indent)
+  function walk(thing, local_audit_semantics_mode) {
+    const log = noisy && local_audit_semantics_mode !== audit_semantics_modes.unsafe
+          ? (msg, indent = true) => lm.log(`${local_audit_semantics_mode[0]} ${msg}`, indent)
           : msg => {};
 
-    if (typeof inner_audit_semantics_mode !== 'string')
-      throw new Error(`bad walk inner_audit_semantics_mode: ` +
-                      `${abbreviate(compress(inspect_fun(inner_audit_semantics_mode)))}`);
+    if (typeof local_audit_semantics_mode !== 'string')
+      throw new Error(`bad walk local_audit_semantics_mode: ` +
+                      `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
     // -----------------------------------------------------------------------------------------------
     function walk_children(thing) {
       const children = thing.direct_children().filter(child => !is_primitive(child));
@@ -9297,21 +9297,21 @@ function audit_semantics(root_ast_node,
             return;
           
           // log(`child: ${abbreviate(child.toString())}`);
-          walk(child, inner_audit_semantics_mode);
+          walk(child, local_audit_semantics_mode);
         });
       }
     }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw(msg) {
-      if (inner_audit_semantics_mode instanceof Context)
+      if (local_audit_semantics_mode instanceof Context)
         throw new Error("got Context");
       
-      msg = `${inner_audit_semantics_mode.toUpperCase()}: ${msg}`;
+      msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
 
-      if (inner_audit_semantics_mode == audit_semantics_mode.error) {
+      if (local_audit_semantics_mode == audit_semantics_mode.error) {
         throw new Error(msg);
       }
-      else if (inner_audit_semantics_mode == audit_semantics_modes.warning &&
+      else if (local_audit_semantics_mode == audit_semantics_modes.warning &&
                ! already_warned_msgs.has(msg)) {
         log(msg, false); // false arg for no indentation.
         // already_warned_msgs.add(msg);
@@ -9350,7 +9350,7 @@ function audit_semantics(root_ast_node,
       lm.indent(() => {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, inner_audit_semantics_mode)
+            walk(elem, local_audit_semantics_mode)
       });
     }
     else if (thing instanceof ASTNamedWildcardDefinition) {
@@ -9377,7 +9377,7 @@ function audit_semantics(root_ast_node,
       
       const got = dummy_context.named_wildcards.get(thing.name);
       
-      lm.indent(() => walk(got, inner_audit_semantics_mode));
+      lm.indent(() => walk(got, local_audit_semantics_mode));
     }
     // else if (thing instanceof ASTLatchNamedWildcard) {
     //   lm.indent(() => walk(thing.target));
@@ -9392,7 +9392,7 @@ function audit_semantics(root_ast_node,
       
       const got = dummy_context.named_wildcards.get(thing.name);
       
-      walk(got, inner_audit_semantics_mode);
+      walk(got, local_audit_semantics_mode);
     }
     else if (thing instanceof ASTScalarAssignment) {
       dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
