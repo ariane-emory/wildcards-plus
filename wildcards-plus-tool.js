@@ -2660,7 +2660,7 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const leftmost        = (...rules) => first(seq(...rules));
+const head        = (...rules) => first(seq(...rules));
 const push            = ((value, rule) =>
   xform(rule, arr => [value, ...arr]));
 const enclosing       = (left, enclosed, right) =>
@@ -10271,8 +10271,8 @@ const SpecialFunctionUpdateConfigurationUnary =
                             discarded_comments,                                       // -
                             lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
                                                  optional(SpecialFunctionTail))),
-                                       leftmost(() => LimitedContentNoAWCTrailers,
-                                                optional(SpecialFunctionTail))))))) // [1][1]
+                                       head(() => LimitedContentNoAWCTrailers,
+                                            optional(SpecialFunctionTail))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
@@ -10337,12 +10337,12 @@ const NamedWildcardDesignator = second(seq(at, ident))
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDefinition =
       xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1]),
-            cutting_seq(leftmost(NamedWildcardDesignator,
-                                 discarded_comments,
+            cutting_seq(head(NamedWildcardDesignator,
+                             discarded_comments,
                                  lws(equals)),
                         discarded_comments,
-                        leftmost(AnonWildcard,
-                                 optional(SpecialFunctionTail))))
+                        head(AnonWildcard,
+                             optional(SpecialFunctionTail))))
       .abbreviate_str_repr('NamedWildcardDefinition');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardUsage      =
@@ -10784,3 +10784,4 @@ if (! main_disabled)
 // lm.log(smart_join(intercalate('|', ['foo', 'bar', 'baz']),  { correct_articles: true }));
 // lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz']),  { correct_articles: true }));
 // lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz'], { final_separator: 'and' }), { correct_articles: true }));
+
