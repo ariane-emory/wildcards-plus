@@ -9358,11 +9358,11 @@ function audit_semantics(root_ast_node,
       // typecases:
       // ---------------------------------------------------------------------------------------------
       if (Array.isArray(thing)) {
-        lm.indent(() => {
-          for (const elem of thing)
-            if (!is_primitive(elem))
-              walk(elem, audit_semantics_mode) // don't propogate, I guess? 
-        });
+        //lm.indent(() => {
+        for (const elem of thing)
+          if (!is_primitive(elem))
+            walk(elem, audit_semantics_mode) // don't propogate, I guess? 
+        // });
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (dummy_context.named_wildcards.has(thing.name))
