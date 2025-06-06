@@ -2660,12 +2660,13 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const head         = (rule, ...rules) => first(seq(rule, ...rules));
-const cadr         = (rule1, rule2, ...rules) => second(seq(rule1, rule2, ...rules));
-const cutting_head = (rule, ...rules) => first(cutting_seq(rule, ...rules));
-const push         = ((value, rule) =>
+const head          = (rule, ...rules) => first(seq(rule, ...rules));
+const cadr          = (rule1, rule2, ...rules) => second(seq(rule1, rule2, ...rules));
+const cutting_cadr  = (rule1, rule2, ...rules) => second(cutting_seq(rule1, rule2, ...rules));
+const cutting_head  = (rule, ...rules) => first(cutting_seq(rule, ...rules));
+const push          = ((value, rule) =>
   xform(rule, arr => [value, ...arr]));
-const enclosing    = (left, enclosed, right) =>
+const enclosing     = (left, enclosed, right) =>
       xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
 // =================================================================================================
 // END of COMMON-GRAMMAR.JS CONTENT SECTION.
@@ -10277,8 +10278,8 @@ const SpecialFunctionUpdateConfigurationUnary =
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
-      second(cutting_seq(percent,
-                         choice(
+      cutting_cadr(percent,
+                   choice(
                            SpecialFunctionUpdateConfigurationUnary,  // before binary!
                            SpecialFunctionUpdateConfigurationBinary,
                            (dt_hosted
@@ -10291,7 +10292,7 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionSetPickMultiple,
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
-                         )))
+                         ))
       .abbreviate_str_repr('SpecialFunctionNotInclude');
 // =================================================================================================
 // other non-terminals:
@@ -10301,7 +10302,7 @@ const NamedWildcardReference  =
                 optional(caret),                           // [1]
                 optional(xform(parseInt, uint), 1),        // [2]
                 optional(xform(parseInt,                   // [3]
-                               second(seq(dash, uint)))),
+                               cadr(dash, uint))),
                 optional(/[,&|]/),                         // [4]
                 ident,                                     // [5]
                 optional_punctuation_trailer,  // [6]
