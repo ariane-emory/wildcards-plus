@@ -9350,8 +9350,8 @@ function audit_semantics(root_ast_node,
         `'${abbreviate(compress(thing.toString()), 200)}', ` +
         `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
-    if (thing instanceof ASTAnonWildcardAlternative)
-      throw new Error("stop!");
+    // if (thing instanceof ASTAnonWildcardAlternative)
+    //   throw new Error("stop!");
     
     // ---------------------------------------------------------------------------------------------
     // typecases:
