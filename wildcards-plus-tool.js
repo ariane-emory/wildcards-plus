@@ -3408,6 +3408,14 @@ function is_primitive(val) {
     (typeof val !== 'object' && typeof val !== 'function');
 }
 // -------------------------------------------------------------------------------------------------
+function is_plain_object(value) {
+  return (
+    typeof value === 'object' &&
+      value !== null &&
+      Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+// -------------------------------------------------------------------------------------------------
 function levenshtein(a, b) {
   const m = a.length, n = b.length;
   const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
@@ -9760,7 +9768,7 @@ class ASTUpdateConfigurationUnary extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
-    return [ this.value ];
+    return is_plain_object(this.value) ? [] : [ this.value ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -10256,15 +10264,15 @@ const SpecialFunctionUpdateConfigurationBinary =
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1]== '='),
             seq(/conf(?:ig)?/,                                                        // [0]
                 discarded_comments,                                                   // -
                 cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
                             discarded_comments,                                       // -
                             lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
                                                  optional(SpecialFunctionTail))),
-                                       first(seq(() => LimitedContentNoAWCTrailers,
-                                                 optional(SpecialFunctionTail)))))))) // [1][1]
+                                       leftmost(() => LimitedContentNoAWCTrailers,
+                                                optional(SpecialFunctionTail))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
