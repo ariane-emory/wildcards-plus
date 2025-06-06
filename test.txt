@@ -27,7 +27,8 @@
 // #corge
 // #!corge
 
-// #!poop
+#!poop
+
 // #zap
 #poop
 

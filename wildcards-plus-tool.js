@@ -10052,9 +10052,8 @@ const SetFlag =
             cutting_cadr(hash, flag_ident, structural_word_break))
       .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
-      with_swb(xform(second(cutting_head(seq(shebang, flag_ident),
-                                         structural_word_break)),
-                     arr => new ASTUnsetFlag(arr)))
+      xform(arr=> new ASTUnsetFlag(arr),
+            cutting_cadr(shebang, flag_ident, structural_word_break))
       .abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
@@ -10447,8 +10446,8 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         NamedWildcardReference,
         NamedWildcardUsage,
         SpecialFunctionNotInclude,
+        UnsetFlag, // before SetFlag!
         SetFlag,
-        UnsetFlag,
         ScalarAssignment,
         ScalarReference,
         make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
