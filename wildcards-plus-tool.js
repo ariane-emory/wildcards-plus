@@ -10328,13 +10328,13 @@ const NamedWildcardDesignator = second(seq(at, ident))
       .abbreviate_str_repr('NamedWildcardDesignator');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDefinition =
-      xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
-            seq(NamedWildcardDesignator,
-                discarded_comments,
-                cutting_seq(lws(equals), 
-                            discarded_comments,
-                            leftmost(AnonWildcard,
-                                     optional(SpecialFunctionTail)))))
+      xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1]),
+            cutting_seq(leftmost(NamedWildcardDesignator,
+                                 discarded_comments,
+                                 lws(equals)),
+                        discarded_comments,
+                        leftmost(AnonWildcard,
+                                 optional(SpecialFunctionTail))))
       .abbreviate_str_repr('NamedWildcardDefinition');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardUsage      =
