@@ -293,8 +293,8 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_then_die                = true;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -9733,12 +9733,13 @@ class ASTLatchedNamedWildcardValue extends ASTNode {
 // AnonWildcards:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard extends ASTNode {
-  constructor(options, trailer = null) {
+  constructor(options, { trailer = null, unsafe = false } = {}) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     this.trailer = trailer;
+    this.unsafe  = unsafe;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -10220,9 +10221,11 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
-      xform(arr => new ASTAnonWildcard(arr[0], arr[1]),
-            seq(wst_brc_enc(wst_star(alternative_rule, pipe)),
-                can_have_trailer
+      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2] }),
+            seq(
+              optional('unsafe'),
+              lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
+              can_have_trailer
                 ? optional_punctuation_trailer
                 : unexpected_punctuation_trailer));
 // -------------------------------------------------------------------------------------------------
