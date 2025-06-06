@@ -9287,7 +9287,7 @@ function audit_semantics(root_ast_node,
           : msg => {};
     // ---------------------------------------------------------------------------------------------
     function walk_children(thing, local_audit_semantics_mode) {
-      log(`walk_children(..., ${local_audit_semantics_mode})`);
+      // log(`walk_children(..., ${local_audit_semantics_mode})`);
       
       if (typeof local_audit_semantics_mode !== 'string')
         throw new Error(`bad walk_children local_audit_semantics_mode: ` +
@@ -9440,6 +9440,9 @@ function audit_semantics(root_ast_node,
       // log(`walking anon wildcard ${thing.unsafe} ${tmp}`);
       
       walk_children(thing, tmp);
+    }
+    else if (thing instanceof ASTAnonWildcardAlternative) {
+      walk_children(thing, local_audit_semantics_mode); // propogate
     }
     else if (thing instanceof ASTNode) {
       walk_children(thing, audit_semantics_mode); // don't propogate 
