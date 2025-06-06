@@ -9285,7 +9285,7 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad walk local_audit_semantics_mode: ` +
                       `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
     // -----------------------------------------------------------------------------------------------
-    function walk_children(thing) {
+    function walk_children(thing, local_audit_semantics_mode) {
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
       if (children?.length > 0)
@@ -9379,9 +9379,6 @@ function audit_semantics(root_ast_node,
       
       lm.indent(() => walk(got, local_audit_semantics_mode));
     }
-    // else if (thing instanceof ASTLatchNamedWildcard) {
-    //   lm.indent(() => walk(thing.target));
-    // }
     else if (thing instanceof ASTScalarReference) {
       if (!dummy_context.scalar_variables.has(thing.name)) {
         const known_names = Array.from(dummy_context.scalar_variables.keys());
@@ -9396,7 +9393,7 @@ function audit_semantics(root_ast_node,
     }
     else if (thing instanceof ASTScalarAssignment) {
       dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-      walk_children(thing);
+      walk_children(thing, local_audit_semantics_mode);
     }
     else if (thing instanceof ASTCheckFlags) {
       if (thing.consequently_set_flag_tail) {
@@ -9425,7 +9422,7 @@ function audit_semantics(root_ast_node,
       warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
     } 
     else if (thing instanceof ASTNode) {
-      walk_children(thing);
+      walk_children(thing, local_audit_semantics_mode);
     }
     else {
       throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
