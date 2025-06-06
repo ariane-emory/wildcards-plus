@@ -10065,9 +10065,7 @@ const TestFlagInGuardPosition =
              SimpleNotFlag,
              CheckFlagWithSetConsequent,
              NotFlagWithSetConsequent,
-             CheckFlagWithOrAlternatives,
-            )
-      .abbreviate_str_repr('TestFlagInGuardPosition');
+             CheckFlagWithOrAlternatives);
 const TopLevelTestFlag =
       choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
              .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
