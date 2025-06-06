@@ -10048,9 +10048,8 @@ const NotFlagWithSetConsequent = // last not alternative
       .abbreviate_str_repr('NotFlagWithSetConsequent');
 // -------------------------------------------------------------------------------------------------
 const SetFlag =
-      with_swb(xform(second(cutting_head(seq(hash, flag_ident),
-                                         structural_word_break)),
-                     arr => new ASTSetFlag(arr)))
+      xform(arr => new ASTSetFlag(arr),
+            cutting_cadr(hash, flag_ident, structural_word_break))
       .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
       with_swb(xform(second(cutting_head(seq(shebang, flag_ident),
@@ -10280,19 +10279,19 @@ const SpecialFunctionUpdateConfigurationUnary =
 const SpecialFunctionNotInclude =
       cutting_cadr(percent,
                    choice(
-                           SpecialFunctionUpdateConfigurationUnary,  // before binary!
-                           SpecialFunctionUpdateConfigurationBinary,
-                           (dt_hosted
-                            ? SpecialFunctionUIPrompt
-                            : UnexpectedSpecialFunctionUIPrompt),
-                           (dt_hosted
-                            ? SpecialFunctionUINegPrompt
-                            : UnexpectedSpecialFunctionUINegPrompt),
-                           SpecialFunctionSetPickSingle,
-                           SpecialFunctionSetPickMultiple,
-                           SpecialFunctionRevertPickSingle,
-                           SpecialFunctionRevertPickMultiple,
-                         ))
+                     SpecialFunctionUpdateConfigurationUnary,  // before binary!
+                     SpecialFunctionUpdateConfigurationBinary,
+                     (dt_hosted
+                      ? SpecialFunctionUIPrompt
+                      : UnexpectedSpecialFunctionUIPrompt),
+                     (dt_hosted
+                      ? SpecialFunctionUINegPrompt
+                      : UnexpectedSpecialFunctionUINegPrompt),
+                     SpecialFunctionSetPickSingle,
+                     SpecialFunctionSetPickMultiple,
+                     SpecialFunctionRevertPickSingle,
+                     SpecialFunctionRevertPickMultiple,
+                   ))
       .abbreviate_str_repr('SpecialFunctionNotInclude');
 // =================================================================================================
 // other non-terminals:
