@@ -544,6 +544,11 @@ class Rule {
   direct_children() {
     const ret = this.__direct_children();
 
+    if (ret === null)
+      throw new Error(`${this.constructor.name}.__direct children() must return an Array, ` +
+                      `got ${inspect_fun(ret)}` +
+                      `this most likely indicated a programmer error`);
+
     if (ret.includes(undefined))
       throw new Error(`direct_children ` +
                       `${inspect_fun(ret)} ` +
@@ -8780,8 +8785,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         const latched =
               new ASTLatchedNamedWildcardValue(
-                lm.indent(() => walk(got,
-                                     { correct_articles: false })), got);
+                lm.indent(() => walk(got, { correct_articles: false })), got);
 
         // lm.log(`LATCHED IS ${inspect_fun(latched)}`);
         
@@ -9251,7 +9255,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
-function audit_semantics(root_ast_node, { base_context = null, noisy = false, throws = true } = {}) {
+function audit_semantics(root_ast_node, { base_context = null, noisy = true, throws = true } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
@@ -9319,7 +9323,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = false, th
     
     visited.add(thing);
 
-    log(`auditing semantics in ${thing.constructor.name} '${thing.toString()}'`);
+    log(`auditing semantics in ${thing.constructor.name} '${thing.toString()}, flags: ${compress(inspect_fun(dummy_context.flags))}'`);
     // log(`auditing semantics in ${thing_str_repr(thing)}`);
 
     // ---------------------------------------------------------------------------------------------
@@ -9628,10 +9632,14 @@ class ASTLora extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // ASTLatchNamedWildcard:
 // -------------------------------------------------------------------------------------------------
-class ASTLatchNamedWildcard extends ASTLeafNode {
+class ASTLatchNamedWildcard extends ASTNode {
   constructor(name) {
     super();
     this.name = name;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ new ASTNamedWildcardReference(this.name) ]; // ugly?
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -9662,7 +9670,7 @@ class ASTLatchedNamedWildcardValue extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
-    return [ this.original_value ];
+    return [ this.original_value, /* this.latched_value */ ]; // not sure?
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -10272,8 +10280,8 @@ const SpecialFunctionUpdateConfigurationBinary =
       },
             cutting_seq(seq(c_ident,                                                // [0][0]
                             discarded_comments,                                     // -
-                             lws(any_assignment_operator),                           // [0][1]
-                             discarded_comments),                                    // -
+                            lws(any_assignment_operator),                           // [0][1]
+                            discarded_comments),                                    // -
                         lws(choice(ExposedRjsonc,                                    // [1]
                                    head(() => LimitedContent,
                                         optional(SpecialFunctionTail))))))           // [1][1]
