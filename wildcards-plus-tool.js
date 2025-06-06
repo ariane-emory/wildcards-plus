@@ -9986,8 +9986,8 @@ const ExposedRjsonc =
 //                            return arr;
 //                          });
 const flag_ident = xform(seq(choice(ident, '*'),
-                             star(second(seq('.',
-                                             choice(xform(parseInt, /\d+\b/), liberal_ident, '*'))))),
+                             star(second(cutting_seq('.',
+                                                     choice(xform(parseInt, /\d+\b/), liberal_ident, '*'))))),
                          arr => {
                            // lm.log();
                            // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
