@@ -9289,8 +9289,8 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       
       for (const child of children) {
         lm.indent(() => {
-          if (is_primitive(child))
-            return;
+          // if (is_primitive(child))
+          //   return;
           
           log(`child: ${thing_str_repr(child)}`);
           lm.indent (() => walk(child, dummy_context));
@@ -9788,7 +9788,7 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
-    return [ this.value ];
+    return is_primitive(this.value) ? [] :  [ this.value ];
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
