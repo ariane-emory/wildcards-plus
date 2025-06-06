@@ -3827,7 +3827,8 @@ function suggest_closest(name, candidates) {
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing) {
   const type_str = typeof thing === 'object'
-        ? (thing === null ? 'null' : thing.constructor?.name ?? 'Object')
+  // ? (thing === null ? 'null' : thing.constructor?.name ?? 'Object')
+        ? (thing === null ? 'null' : '' ?? 'Object')
         : typeof thing;
 
   let thing_str;
@@ -9276,7 +9277,7 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode) {
+  function walk(thing, local_audit_semantics_mode) {    
     if (typeof local_audit_semantics_mode !== 'string')
       throw new Error(`bad walk local_audit_semantics_mode: ` +
                       `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
@@ -9344,6 +9345,9 @@ function audit_semantics(root_ast_node,
     }
     
     visited.add(thing);
+
+    // if (thing instanceof ASTAnonWildcardAlternative)
+    //   throw new Error("stop");
 
     log(`audit semantics in ${thing.constructor.name} ` +
         `'${abbreviate(compress(thing.toString()), 200)}', ` +
