@@ -10086,6 +10086,7 @@ const TestFlagInAlternativeContent =
              .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
              innapropriately_placed_TestFlag(SimpleNotFlag)
              .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
+             // Maybe these next two shouldn't be here?
              wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
              .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
              wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
