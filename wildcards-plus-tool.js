@@ -9429,7 +9429,7 @@ function audit_semantics(root_ast_node,
       warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
     } 
     else if (thing instanceof ASTNode) {
-      walk_children(thing);;
+      walk_children(thing);
     }
     else {
       throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
@@ -10221,7 +10221,7 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
-      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2] }),
+      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe: arr[0] == 'unsafe' }),
             seq(
               optional('unsafe'),
               lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
@@ -10544,19 +10544,19 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
 const Content                 = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
+    AnonWildcard,
   ],
   after_plain_text_rules:  [
-    AnonWildcard,
   ],
 });
 const TopLevelContent         = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
     TopLevelTestFlag,
+    AnonWildcard,
   ],
   after_plain_text_rules:  [
     make_malformed_token_rule(r_raw`}\S*`),
-    AnonWildcard,
     NamedWildcardDefinition,
     SpecialFunctionInclude,
   ],
