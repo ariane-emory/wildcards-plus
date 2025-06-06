@@ -9256,9 +9256,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
-  error: 'error',
+  error:   'error',
   warning: 'warning',
-  silent: 'silent',
+  unsafe:  'unsafe',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9276,31 +9276,36 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk_children(thing) {
-    const children = thing.direct_children().filter(child => !is_primitive(child));
-
-    if (children?.length > 0)
-      log(`children: ${children.toString()}`);
-    
-    for (const child of children) {
-      lm.indent(() => {
-        if (is_primitive(child))
-          return;
-        
-        // log(`child: ${abbreviate(child.toString())}`);
-        walk(child, audit_semantics_mode);
-      });
-    }
-  }
-  // -----------------------------------------------------------------------------------------------
   function walk(thing, audit_semantics_mode) {
+    const log = noisy && audit_semantics_mode !== audit_semantics_modes.unsafe
+          ? msg => lm.log(`${audit_semantics_mode[0]} ${msg}`)
+          : msg => {};
+
     if (typeof audit_semantics_mode !== 'string')
-      throw new Error(`bad walk audit_semantics_mode`);
+      throw new Error(`bad walk audit_semantics_mode: ` +
+                      `${abbreviate(compress(inspect_fun(audit_semantics_mode)))}`);
     //+ `${inspect_fun(audit_semantics_mode)}`);
+    // -----------------------------------------------------------------------------------------------
+    function walk_children(thing) {
+      const children = thing.direct_children().filter(child => !is_primitive(child));
+
+      if (children?.length > 0)
+        log(`children: ${children.toString()}`);
+      
+      for (const child of children) {
+        lm.indent(() => {
+          if (is_primitive(child))
+            return;
+          
+          // log(`child: ${abbreviate(child.toString())}`);
+          walk(child, audit_semantics_mode);
+        });
+      }
+    }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw(msg) {
       if (audit_semantics_mode instanceof Context)
-        throw new Error("stop");
+        throw new Error("got Context");
       
       msg = `${audit_semantics_mode.toUpperCase()}: ${msg}`;
 
@@ -9337,8 +9342,9 @@ function audit_semantics(root_ast_node,
     
     visited.add(thing);
 
-    log(`audit semantics in ${thing.constructor.name} '${thing.toString()}', ` +
-        `flags: ${compress(inspect_fun(dummy_context.flags))}`);
+    log(`audit semantics in ${thing.constructor.name} ` +
+        `'${abbreviate(compress(thing.toString()), 200)}', ` +
+        `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
     // log(`auditing semantics in ${thing_str_repr(thing)}`);
 
     // ---------------------------------------------------------------------------------------------
@@ -9358,9 +9364,12 @@ function audit_semantics(root_ast_node,
 
       dummy_context.named_wildcards.set(thing.name, thing.wildcard);
 
-      if (thing.name.startsWith('__')) {
-        
-      }
+      // if (thing.name.startsWith('__')) { // hack for dealing with 'unsafe' code
+      //   lm.log('walking unsafe code:');
+      //   lm.indent(() => {
+      //     walk(thing.wildcard, audit_semantics_mode.unsafe);
+      //   });
+      // }
     }
     else if (thing instanceof ASTNamedWildcardReference) {
       if (!dummy_context.named_wildcards.has(thing.name)) {
@@ -9427,6 +9436,16 @@ function audit_semantics(root_ast_node,
     }
   }
 
+  for (const [nwc_name, awc] of dummy_context.named_wildcards) {
+    // lm.log(`maybe walk predefined ${nwc_name}`);
+    // sthrow new Error("stop");
+    
+    if (nwc_name.startsWith('__')) {
+      lm.log(`walking unsafe code in NWS ${nwc_name}`);
+      lm.indent(() => walk(awc, audit_semantics_modes.unsafe));
+    }
+  }
+  
   walk(root_ast_node, audit_semantics_mode);
 }
 // =================================================================================================
