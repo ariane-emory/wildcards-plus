@@ -293,8 +293,8 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
-let print_ast_then_die                = true;
-let print_ast_before_includes_enabled = true;
+let print_ast_then_die                = false;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -9284,7 +9284,6 @@ function audit_semantics(root_ast_node,
     if (typeof audit_semantics_mode !== 'string')
       throw new Error(`bad walk audit_semantics_mode: ` +
                       `${abbreviate(compress(inspect_fun(audit_semantics_mode)))}`);
-    //+ `${inspect_fun(audit_semantics_mode)}`);
     // -----------------------------------------------------------------------------------------------
     function walk_children(thing) {
       const children = thing.direct_children().filter(child => !is_primitive(child));
@@ -9318,7 +9317,6 @@ function audit_semantics(root_ast_node,
         // already_warned_msgs.add(msg);
       }
     }
-    
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
       if (dummy_context.flag_is_set(flag))
@@ -9330,7 +9328,7 @@ function audit_semantics(root_ast_node,
       warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set,` +
                     ` this suggests a typo in your template.${suggestion}`);
     }
-    
+    // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
       return;
 
