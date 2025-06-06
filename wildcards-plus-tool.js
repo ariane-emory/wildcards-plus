@@ -9637,10 +9637,10 @@ class ASTLora extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // ASTLatchNamedWildcard:
 // -------------------------------------------------------------------------------------------------
-class ASTLatchNamedWildcard extends ASTLeafNode {
-  constructor(target) {
+class ASTLatchNamedWildcard extends ASTNode {
+  constructor(ident) {
     super();
-    this.target = target;
+    this.target = new ASTNamedWildcardReference(ident);
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -10391,7 +10391,7 @@ const NamedWildcardUsage      =
                 objs.push(new ASTUnlatchNamedWildcard(ident));
 
               if (hash)
-                objs.push(new ASTLatchNamedWildcard(new ASTNamedWildcardReference(ident)));
+                objs.push(new ASTLatchNamedWildcard(ident));
 
               return objs;
             })
