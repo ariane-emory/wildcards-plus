@@ -9276,6 +9276,53 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
+  function walk_children(thing, audit_semantics_mode) {
+    const children = thing.direct_children().filter(child => !is_primitive(child));
+
+    if (children?.length > 0)
+      log(`children: ${children.toString()}`);
+    
+    for (const child of children) {
+      lm.indent(() => {
+        if (is_primitive(child))
+          return;
+        
+        // log(`child: ${abbreviate(child.toString())}`);
+        walk(child, audit_semantics_mode);
+      });
+    }
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  function warn_or_throw(msg, audit_semantics_mode) {
+    msg = `${audit_semantics_mode.toUpperCase()}: ${msg}`;
+
+    if (audit_semantics_mode == audit_semantics_mode.error) {
+      throw new Error(msg);
+    }
+    else if (audit_semantics_mode == audit_semantics_modes.warning &&
+             ! already_warned_msgs.has(msg)) {
+      lm.log(msg, false); // false arg for no indentation.
+      // already_warned_msgs.add(msg);
+    }
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  function warn_or_throw_unless_flag_could_be_set_by_now(flag, audit_semantics_mode) {
+    if (typeof audit_semantics_mode !== 'string')
+      throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args`);
+    
+    if (dummy_context.flag_is_set(flag))
+          return;
+
+    const flag_str = flag.join(".").toLowerCase();
+    const known_flags = dummy_context.flags.map(f => f.join("."));
+    const suggestion = suggest_closest(flag_str, known_flags);
+    warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set,` +
+                  ` this suggests a typo in your template.${suggestion}`,
+                  audit_semantics_mode);
+  }
+  // ===============================================================================================
   function walk(thing, audit_semantics_mode) {
     const log = noisy && audit_semantics_mode !== audit_semantics_modes.unsafe
           ? msg => lm.log(`${audit_semantics_mode[0]} ${msg}`)
@@ -9285,51 +9332,7 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad walk audit_semantics_mode: ` +
                       `${abbreviate(compress(inspect_fun(audit_semantics_mode)))}`);
     //+ `${inspect_fun(audit_semantics_mode)}`);
-    // -----------------------------------------------------------------------------------------------
-    function walk_children(thing) {
-      const children = thing.direct_children().filter(child => !is_primitive(child));
-
-      if (children?.length > 0)
-        log(`children: ${children.toString()}`);
-      
-      for (const child of children) {
-        lm.indent(() => {
-          if (is_primitive(child))
-            return;
-          
-          // log(`child: ${abbreviate(child.toString())}`);
-          walk(child, audit_semantics_mode);
-        });
-      }
-    }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw(msg) {
-      if (audit_semantics_mode instanceof Context)
-        throw new Error("got Context");
-      
-      msg = `${audit_semantics_mode.toUpperCase()}: ${msg}`;
-
-      if (audit_semantics_mode == audit_semantics_mode.error) {
-        throw new Error(msg);
-      }
-      else if (audit_semantics_mode == audit_semantics_modes.warning &&
-               ! already_warned_msgs.has(msg)) {
-        lm.log(msg, false); // false arg for no indentation.
-        // already_warned_msgs.add(msg);
-      }
-    }
-    
-    // ---------------------------------------------------------------------------------------------
-    function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
-      if (dummy_context.flag_is_set(flag))
-        return;
-
-      const flag_str = flag.join(".").toLowerCase();
-      const known_flags = dummy_context.flags.map(f => f.join("."));
-      const suggestion = suggest_closest(flag_str, known_flags);
-      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set,` +
-                    ` this suggests a typo in your template.${suggestion}`);
-    }
     
     if (is_primitive(thing))
       return;
@@ -9360,7 +9363,8 @@ function audit_semantics(root_ast_node,
     else if (thing instanceof ASTNamedWildcardDefinition) {
       if (dummy_context.named_wildcards.has(thing.name))
         warn_or_throw(`redefining named wildcard @${thing.name}, ` +
-                      `you may not have intended to do this, check your template!`);
+                      `you may not have intended to do this, check your template!`,
+                      audit_semantics_mode);
 
       dummy_context.named_wildcards.set(thing.name, thing.wildcard);
 
@@ -9376,7 +9380,8 @@ function audit_semantics(root_ast_node,
         const known_names = Array.from(dummy_context.named_wildcards.keys());
         const suggestion = suggest_closest(thing.name, known_names);
         warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
-                      `this suggests a typo in your template.${suggestion}`);
+                      `this suggests a typo in your template.${suggestion}`,
+                      audit_semantics_mode);
       }
       
       const got = dummy_context.named_wildcards.get(thing.name);
@@ -9391,7 +9396,8 @@ function audit_semantics(root_ast_node,
         const known_names = Array.from(dummy_context.scalar_variables.keys());
         const suggestion = suggest_closest(thing.name, known_names);
         warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
-                      `this suggests a typo in your template.${suggestion}`);
+                      `this suggests a typo in your template.${suggestion}`,
+                      audit_semantics_mode);
       }
       
       const got = dummy_context.named_wildcards.get(thing.name);
@@ -9400,7 +9406,7 @@ function audit_semantics(root_ast_node,
     }
     else if (thing instanceof ASTScalarAssignment) {
       dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-      walk_children(thing);
+      walk_children(thing, audit_semantics_mods);
     }
     else if (thing instanceof ASTCheckFlags) {
       if (thing.consequently_set_flag_tail) {
@@ -9409,7 +9415,7 @@ function audit_semantics(root_ast_node,
       }
       else {
         for (const flag of thing.flags) 
-          warn_or_throw_unless_flag_could_be_set_by_now(flag);
+          warn_or_throw_unless_flag_could_be_set_by_now(flag, audit_semantics_mode);
       }
     }
     else if (thing instanceof ASTNotFlag) {
@@ -9429,7 +9435,7 @@ function audit_semantics(root_ast_node,
       warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
     } 
     else if (thing instanceof ASTNode) {
-      walk_children(thing);;
+      walk_children(thing, audit_semantics_mode);
     }
     else {
       throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
@@ -9437,13 +9443,10 @@ function audit_semantics(root_ast_node,
   }
 
   for (const [nwc_name, awc] of dummy_context.named_wildcards) {
-    // lm.log(`maybe walk predefined ${nwc_name}`);
-    // sthrow new Error("stop");
-    
-    if (nwc_name.startsWith('__')) {
-      lm.log(`walking unsafe code in NWS ${nwc_name}`);
-      lm.indent(() => walk(awc, audit_semantics_modes.unsafe));
-    }
+    // if (nwc_name.startsWith('__')) {
+    // lm.log(`walking unsafe code in NWC ${nwc_name}`);
+    lm.indent(() => walk(awc, audit_semantics_modes.unsafe));
+    // }
   }
   
   walk(root_ast_node, audit_semantics_mode);
