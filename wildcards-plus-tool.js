@@ -9282,13 +9282,11 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad walk local_audit_semantics_mode: ` +
                       `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
     // ---------------------------------------------------------------------------------------------
-    const log = noisy // && local_audit_semantics_mode !== audit_semantics_modes.unsafe
+    const log = noisy 
           ? (msg, indent = true) => lm.log(`${local_audit_semantics_mode[0]} ${msg}`, indent)
           : msg => {};
     // ---------------------------------------------------------------------------------------------
     function walk_children(thing, local_audit_semantics_mode) {
-      // log(`walk_children(..., ${local_audit_semantics_mode})`);
-      
       if (typeof local_audit_semantics_mode !== 'string')
         throw new Error(`bad walk_children local_audit_semantics_mode: ` +
                         `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
@@ -9297,15 +9295,18 @@ function audit_semantics(root_ast_node,
 
       if (children?.length > 0)
         log(`children: ${children.map(thing_str_repr)}`);
+
+
+      lm.indent(() => walk(children, local_audit_semantics_mode)); 
       
-      for (const child of children) {
-        lm.indent(() => {
-          if (is_primitive(child))
-            return;
-          
-          walk(child, local_audit_semantics_mode); // propogate
-        });
-      }
+      // for (const child of children) {
+      //   lm.indent(() => {
+      //     if (is_primitive(child))
+      //       return;
+      
+      //     walk(child, local_audit_semantics_mode); // propogate
+      //   });
+      // }
     }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw(msg) {
@@ -9361,7 +9362,7 @@ function audit_semantics(root_ast_node,
         //lm.indent(() => {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, audit_semantics_mode) // don't propogate, I guess? 
+            walk(elem, local_audit_semantics_mode) // propogate, I guess? 
         // });
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
@@ -9433,12 +9434,9 @@ function audit_semantics(root_ast_node,
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
       }
       else if (thing instanceof ASTAnonWildcard) {
-        // v propogate sometimes?
         const tmp = thing.unsafe
               ? audit_semantics_modes.unsafe
               : audit_semantics_mode;
-        
-        // log(`walking anon wildcard ${thing.unsafe} ${tmp}`);
         
         walk_children(thing, tmp);
       }
