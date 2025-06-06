@@ -9354,7 +9354,7 @@ function audit_semantics(root_ast_node, { base_context = null, noisy = true, thr
       lm.indent(() => walk(got));
     }
     else if (thing instanceof ASTLatchNamedWildcard) {
-      lm.indent(() => walk(new NamedWildcardReference(thing.name)));
+      lm.indent(() => walk(new ASTNamedWildcardReference(thing.name)));
     }
     else if (thing instanceof ASTScalarReference) {
       if (!dummy_context.scalar_variables.has(thing.name)) {
