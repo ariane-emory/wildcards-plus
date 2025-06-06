@@ -9297,7 +9297,7 @@ function audit_semantics(root_ast_node,
         log(`children: ${children.map(thing_str_repr)}`);
 
 
-      lm.indent(() => walk(children, local_audit_semantics_mode)); 
+      lm.indent(() => walk(children, local_audit_semantics_mode)); // propogate
       
       // for (const child of children) {
       //   lm.indent(() => {
