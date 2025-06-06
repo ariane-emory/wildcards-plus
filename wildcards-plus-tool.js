@@ -2660,6 +2660,7 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
+const leftmost        = (...rules) => first(seq(...rules));
 const push            = ((value, rule) =>
   xform(rule, arr => [value, ...arr]));
 const enclosing       = (left, enclosed, right) =>
@@ -10332,8 +10333,8 @@ const NamedWildcardDefinition =
                 discarded_comments,
                 cutting_seq(lws(equals), 
                             discarded_comments,
-                            first(seq(AnonWildcard,
-                                      optional(SpecialFunctionTail))))))
+                            leftmost(AnonWildcard,
+                                     optional(SpecialFunctionTail)))))
       .abbreviate_str_repr('NamedWildcardDefinition');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardUsage      =
