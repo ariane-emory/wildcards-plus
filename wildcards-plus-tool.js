@@ -9282,7 +9282,7 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad walk local_audit_semantics_mode: ` +
                       `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
     // ---------------------------------------------------------------------------------------------
-    const log = noisy && local_audit_semantics_mode !== audit_semantics_modes.unsafe
+    const log = noisy // && local_audit_semantics_mode !== audit_semantics_modes.unsafe
           ? (msg, indent = true) => lm.log(`${local_audit_semantics_mode[0]} ${msg}`, indent)
           : msg => {};
     // ---------------------------------------------------------------------------------------------
@@ -9346,12 +9346,13 @@ function audit_semantics(root_ast_node,
     
     visited.add(thing);
 
-    // if (thing instanceof ASTAnonWildcardAlternative)
-    //   throw new Error("stop");
-
     log(`audit semantics in ${thing.constructor.name} ` +
         `'${abbreviate(compress(thing.toString()), 200)}', ` +
         `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+
+    if (thing instanceof ASTAnonWildcardAlternative)
+      throw new Error("stop!");
+    
     // ---------------------------------------------------------------------------------------------
     // typecases:
     // ---------------------------------------------------------------------------------------------
