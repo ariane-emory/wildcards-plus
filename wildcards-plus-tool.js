@@ -9255,8 +9255,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // =================================================================================================
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
+const audit_semantics_modes = Object.freeze({
+  error: 'error',
+  warning: 'warning',
+  silent: 'silent',
+});
+// -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
-                         { base_context = null, noisy = true, throws = false } = {}) {
+                         { base_context = null, noisy = true,
+                           audit_semantics_mode = audit_semantics_modes.warning } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
@@ -9270,12 +9277,13 @@ function audit_semantics(root_ast_node,
 
   // -----------------------------------------------------------------------------------------------
   function warn_or_throw(msg) {
-    msg = `${throws ? 'ERROR' : 'WARNING' }: ${msg}`;
+    msg = `${audit_semantics_mode.toUpperCase()}: ${msg}`;
 
-    if (throws) {
+    if (audit_semantics_mode == audit_semantics_mode.error) {
       throw new Error(msg);
     }
-    else if (! already_warned_msgs.has(msg)) {
+    else if (audit_semantics_mode == audit_semantics_modes.warning &&
+             ! already_warned_msgs.has(msg)) {
       lm.log(msg, false); // false arg for no indentation.
       // already_warned_msgs.add(msg);
     }
@@ -9323,7 +9331,8 @@ function audit_semantics(root_ast_node,
     
     visited.add(thing);
 
-    log(`auditing semantics in ${thing.constructor.name} '${thing.toString()}', flags: ${compress(inspect_fun(dummy_context.flags))}'`);
+    log(`audit semantics in ${thing.constructor.name} '${thing.toString()}', ` +
+        `flags: ${compress(inspect_fun(dummy_context.flags))}`);
     // log(`auditing semantics in ${thing_str_repr(thing)}`);
 
     // ---------------------------------------------------------------------------------------------
