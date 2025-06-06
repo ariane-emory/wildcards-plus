@@ -2660,7 +2660,7 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const head         = (...rules) => first(seq(...rules));
+const head         = (rule, ...rules) => first(seq(rule, ...rules));
 const cutting_head = (rule, ...rules) => first(cutting_seq(rule, ...rules));
 const push         = ((value, rule) =>
   xform(rule, arr => [value, ...arr]));
@@ -9892,8 +9892,8 @@ class ASTUINegPrompt extends ASTLeafNode {
 const structural_word_break   = r(/(?=[\s|}]|$)/)
       .abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
-const with_swb                = rule => first(seq(rule, structural_word_break));
-const cutting_with_swb        = rule => first(cutting_seq(rule, structural_word_break));
+const with_swb                = rule => head(rule, structural_word_break);
+const cutting_with_swb        = rule => cutting_head(rule, structural_word_break);
 // =================================================================================================
 // terminals:
 // =================================================================================================
