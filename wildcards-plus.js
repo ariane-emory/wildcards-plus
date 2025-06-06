@@ -8677,7 +8677,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
           lm.indent(() => log(log_configuration_enabled,
                               `%config ${thing.assign ? '=' : '+='} ` +
-                              `${inspect_fun(new_obj, true)}`
+                              `${inspect_fun(new_obj, true)}`,
+                              log_expand_and_walk_enabled
                               // + `, configuration is now: ` +
                               // `${inspect_fun(context.configuration, true)}`
                              ));
@@ -9799,7 +9800,7 @@ const unexpected_TestFlag_at_top_level = rule =>
                             input, index));
 const innapropriately_placed_TestFlag = rule => 
       unexpected(rule, (rule, input, index) =>
-        new FatalParseError(`innapropriately placed 'check' or 'not' flag`,
+        new FatalParseError(`innapropriately placed test flag`,
                             input, index));
 const wrap_TestFlag_in_AnonWildcard    = rule =>
       xform(rule, flag =>
@@ -9827,10 +9828,15 @@ const TestFlagInAlternativeContent =
              .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
              innapropriately_placed_TestFlag(SimpleNotFlag)
              .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
-             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('InappropriatelyPlacedNotFlagWithSetConsequent'),
+             // Maybe these next two shouldn't be here?
+             // wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             // .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             // wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             // .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
              innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
              .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
 // =================================================================================================
@@ -9989,18 +9995,24 @@ const SpecialFunctionRevertPickMultiple =
       .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1], arr[0][1] == '='),
-            cutting_seq(head(c_ident,                                                // [0][0]
-                             discarded_comments,                                     // -
-                             lws(any_assignment_operator),                           // [0][1]
-                             discarded_comments),                                    // -
+      xform(arr => {
+        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
+        return new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '=');
+      },
+            cutting_seq(seq(c_ident,                                                // [0][0]
+                            discarded_comments,                                     // -
+                            lws(any_assignment_operator),                           // [0][1]
+                            discarded_comments),                                    // -
                         lws(choice(ExposedRjsonc,                                    // [1]
                                    head(() => LimitedContent,
                                         optional(SpecialFunctionTail))))))           // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1]== '='),
+      xform(arr => {
+        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
+        return new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '=');
+      },
             seq(/conf(?:ig)?/,                                                        // [0]
                 discarded_comments,                                                   // -
                 cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
