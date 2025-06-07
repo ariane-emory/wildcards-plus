@@ -9263,7 +9263,14 @@ function audit_semantics(root_ast_node,
 
   const visited = new Set();
   const already_warned_msgs = new Set();
-  const log = noisy ? (msg, indent = true) => lm.log(msg, indent) : msg => {};
+  const log = (msg_thunk, indent = true) => {
+    if (typeof msg_thunk !== 'function')
+      throw new Error("bad log args");
+    
+    if (noisy)
+      lm.log(msg, indent);
+  };
+  
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
@@ -9320,7 +9327,8 @@ function audit_semantics(root_ast_node,
 
     log(`audit semantics in ${thing.constructor.name} ` +
         `'${abbreviate(compress(thing.toString()), 200)}', ` +
-        `flags: ${compress(inspect_fun(dummy_context.flags))}`);
+        `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+
     // log(`auditing semantics in ${thing_str_repr(thing)}`);
 
     lm.indent(() => {
