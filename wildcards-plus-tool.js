@@ -9262,9 +9262,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
-  error:   'error',
-  warning: 'warning',
-  unsafe_guards:  'unsafe_guards',
+  error:          'error',
+  warning:        'warning',
+  ignore_unsafe_guards:  'ignore_unsafe_guards',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9302,7 +9302,7 @@ function audit_semantics(root_ast_node,
 
         lm.indent(() => {
           walk(children, mode);
-        }); // propogate arg
+        }); // propagate arg
       }
     }
     // ---------------------------------------------------------------------------------------------
@@ -9324,7 +9324,7 @@ function audit_semantics(root_ast_node,
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
       if (dummy_context.flag_is_set(flag) ||
-          local_audit_semantics_mode === audit_semantics_modes.unsafe_guards)
+          local_audit_semantics_mode === audit_semantics_modes.ignore_unsafe_guards)
         return;
 
       const flag_str = flag.join(".").toLowerCase();
@@ -9350,17 +9350,14 @@ function audit_semantics(root_ast_node,
         `'${abbreviate(compress(thing.toString()), 200)}', ` +
         `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
-    // if (thing instanceof ASTAnonWildcardAlternative)
-    //   throw new Error("stop!");
-
     lm.indent(() => {
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       // typecases:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode) // propogate, I guess? 
+            walk(elem, local_audit_semantics_mode) // propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (dummy_context.named_wildcards.has(thing.name))
@@ -9380,7 +9377,7 @@ function audit_semantics(root_ast_node,
         
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        lm.indent(() => walk(got, local_audit_semantics_mode));
+        lm.indent(() => walk(got, local_audit_semantics_mode)); // propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -9393,11 +9390,11 @@ function audit_semantics(root_ast_node,
         
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        walk(got, local_audit_semantics_mode);
+        walk(got, local_audit_semantics_mode); // propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, audit_semantics_mode); // don't propogate
+        walk_children(thing, audit_semantics_mode); // don't propagate
       }
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
@@ -9426,17 +9423,17 @@ function audit_semantics(root_ast_node,
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
       }
       else if (thing instanceof ASTAnonWildcard) {
-        const tmp = thing.unsafe_guards
-              ? audit_semantics_modes.unsafe_guards
+        const mode = thing.unsafe_guards
+              ? audit_semantics_modes.ignore_unsafe_guards
               : audit_semantics_mode;
         
-        walk_children(thing, tmp);
+        walk_children(thing, mode);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode); // propogate
+        walk_children(thing, local_audit_semantics_mode); // propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNode) {
-        walk_children(thing, audit_semantics_mode); // don't propogate 
+        walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
