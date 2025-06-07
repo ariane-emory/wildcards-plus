@@ -1,2 +1,10 @@
-@nwc = unsafe { ?fred { fred | waldo } | quux }
+@nwc = unsafe { ?fred unsafe { fred | waldo } | quux }
 @nwc!
+
+@test  = unsafe { unsafe {?female #gender.female // just to make forcing an option a little terser.
+                         |?male   #gender.male
+                         |?neuter #gender.neuter}
+                  {3 !gender.#female #female
+                  |2 !gender.#male   #male
+                  |1 !gender.#neuter #neuter}}
+
