@@ -9256,7 +9256,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 function audit_semantics(root_ast_node,
-                         { base_context = null, noisy = true, throws = false } = {}) {
+                         { base_context = null, noisy = false, throws = false } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
