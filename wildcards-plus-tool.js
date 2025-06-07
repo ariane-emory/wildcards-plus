@@ -8826,19 +8826,20 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             throw new ThrownReturn('');
         }
         
-        const latched =
-              new ASTLatchedNamedWildcardValue(
-                lm.indent(() => walk(got, { correct_articles: false })), got);
 
-        // lm.log(`LATCHED IS ${inspect_fun(latched)}`);
-        
-        log(true, // context.noisy,
-            `latched @${thing.target.name} to value: ` +
-            `${typeof latched.latched_value} ` +
-            `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
-        
-        context.named_wildcards.set(thing.target.name, latched);
+        lm.indent(() => {
+          const latched =
+                new ASTLatchedNamedWildcardValue(
+                walk(got, { correct_articles: false }), got);
 
+          // log(true, // context.noisy,
+          //     `latched @${thing.target.name} to value: ` +
+          //     `${typeof latched.latched_value} ` +
+          //     `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
+
+          context.named_wildcards.set(thing.target.name, latched);
+        });
+        
         throw new ThrownReturn('');
       }
       // -------------------------------------------------------------------------------------------
