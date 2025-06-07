@@ -8627,6 +8627,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     return false;
   };
   // -----------------------------------------------------------------------------------------------
+  function each(pick) {
+    return lm.indent(() =>
+      expand_wildcards(pick?.body ?? '', context,
+                       { correct_articles: correct_articles }));
+  }
+  // -----------------------------------------------------------------------------------------------
   function warning_str(str) {
     return `[WARNING: ${str}!]`;
   }
@@ -8736,10 +8742,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           const priority = thing.min_count === 1 && thing.max_count === 1
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
-          
-          const each  = pick => lm.indent(() =>
-            expand_wildcards(pick?.body ?? '', context,
-                             { correct_articles: correct_articles }));
           
           const picks = got.pick(thing.min_count, thing.max_count,
                                  picker_allow, picker_forbid, each, 
