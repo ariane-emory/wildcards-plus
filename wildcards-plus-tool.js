@@ -8631,9 +8631,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     const ret = lm.indent(() =>
       expand_wildcards(pick?.body ?? '', context,
                        { correct_articles: correct_articles }));
-    lm.log(`PICKER_EACH: ${abbreviate(compress(inspect_fun(pick)))} ` +
-           `<${thing_str_repr(pick)}> => ` + 
-           `${thing_str_repr(ret)}`, false)
+
+    if (log_level__expand_and_walk >= 2)
+      lm.log(`picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
+             `<${thing_str_repr(pick)}> => ` + 
+             `${thing_str_repr(ret)}`, false)
+
     return ret;
   }
   // -----------------------------------------------------------------------------------------------
@@ -8667,9 +8670,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       return thing;
     }
 
-    log(true, // log_level__expand_and_walk,
-        `Walking ${thing_str_repr(thing)}`
-       );
+    log(log_level__expand_and_walk,
+        `Walking ${thing_str_repr(thing)}`);
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -8706,16 +8708,17 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // flags:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetFlag) {
-        // log(`SET FLAG '${thing.name}'.`);
-        
+        log(log_flags_enabled >= 2,
+            `setting flag '${thing.flag}'.`);
+
         context.set_flag(thing.flag);
 
         throw new ThrownReturn(''); // produce nothing
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        // log(log_flags_enabled,
-        //     `unsetting flag '${thing.flag}'.`);
+        log(log_flags_enabled >= 2,
+            `unsetting flag '${thing.flag}'.`);
 
         context.unset_flag(thing.flag);
         
@@ -8909,7 +8912,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const picked = thing.pick(1, 1,
                                   picker_allow, picker_forbid, picker_each, 
                                   context.pick_one_priority)[0];
-
+        
         log(log_level__expand_and_walk,
             `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
         
