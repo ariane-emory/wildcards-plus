@@ -285,7 +285,6 @@ let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
-let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
 let log_loading_prelude               = true;
@@ -293,6 +292,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
+let log_level__expand_and_walk        = 1;
 let log_level__smart_join             = 1;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
@@ -4217,7 +4217,6 @@ class Context {
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
     this.configuration.loras ||= [];
 
-    // const log = msg => lm.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
     const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
 
     if (index !== -1) {
@@ -4323,7 +4322,7 @@ class Context {
     if (munged_configuration.model === '') {
       lm.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
              `what you meant to do, your prompt template may contain an error!`,
-             log_expand_and_walk_enabled);
+             log_level__expand_and_walk);
       delete munged_configuration.model;
     }
     else if (munged_configuration.model) {
@@ -4360,7 +4359,7 @@ class Context {
       if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
         lm.log(`correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
                `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`,
-               log_expand_and_walk_enabled);
+               log_level__expand_and_walk);
         const index = dt_samplers.indexOf(munged_configuration.sampler);
 
         if (index === -1) {
@@ -4379,7 +4378,7 @@ class Context {
     else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
       lm.log(`correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
              `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
-             log_expand_and_walk_enabled);
+             log_level__expand_and_walk);
       munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
 
@@ -4391,7 +4390,7 @@ class Context {
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
           lm.log(`%seed = -1 due to n_iter > 1`,
-                 log_expand_and_walk_enabled);
+                 log_level__expand_and_walk);
 
         munged_configuration.seed = -1;
       }
@@ -4400,7 +4399,7 @@ class Context {
         
         if (log_configuration_enabled)
           lm.log(`%seed = ${random} due to no seed`,
-                 log_expand_and_walk_enabled);
+                 log_level__expand_and_walk);
 
         munged_configuration.seed = random;
       }
@@ -8658,7 +8657,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       return thing;
     }
 
-    log(true, // log_expand_and_walk_enabled,
+    log(true, // log_level__expand_and_walk,
         `Walking ${thing_str_repr(thing)}`
        );
 
@@ -8671,7 +8670,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         lm.indent(() => {
           for (let ix = 0; ix < thing.length; ix++) {
-            log(log_expand_and_walk_enabled,
+            log(log_level__expand_and_walk,
                 `Walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
                 `${thing_str_repr(thing[ix])} `
@@ -8682,7 +8681,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             if (elem_ret)
               ret.push(elem_ret);
 
-            log(log_expand_and_walk_enabled,
+            log(log_level__expand_and_walk,
                 `walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
                 `${thing_str_repr(thing[ix])} ` +
@@ -8746,7 +8745,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                                  allow_fun, forbid_fun, each, 
                                  priority);
 
-          if (log_expand_and_walk_enabled)
+          if (log_level__expand_and_walk)
             lm.indent_and_log(`picked items ${thing_str_repr(picks)}`);
 
           res.push(...picks);
@@ -8860,7 +8859,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         // if (context.named_wildcards.has(thing.name))
         //   log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
         //       `you may not have intended to do this, check your template!`,
-        //       log_expand_and_walk_enabled);
+        //       log_level__expand_and_walk);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
@@ -8893,7 +8892,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         context.scalar_variables.set(thing.destination.name, new_val);
 
         log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
-            log_expand_and_walk_enabled);
+            log_level__expand_and_walk);
         
         throw new ThrownReturn('');
       }
@@ -8905,12 +8904,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                                   allow_fun, forbid_fun, id, 
                                   context.pick_one_priority)[0];
 
-        log(log_expand_and_walk_enabled,
+        log(log_level__expand_and_walk,
             `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
         
         const pick = picked?.body;
 
-        if (log_expand_and_walk_enabled)
+        if (log_level__expand_and_walk)
           lm.indent_and_log(pick
                             ? `picked ${thing_str_repr(pick)}`
                             : `picked empty`);
@@ -8986,7 +8985,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           lm.indent(() => log(log_configuration_enabled,
                               `%config ${thing.assign ? '=' : '+='} ` +
                               `${inspect_fun(new_obj, true)}`,
-                              log_expand_and_walk_enabled
+                              log_level__expand_and_walk
                               // + `, configuration is now: ` +
                               // `${inspect_fun(context.configuration, true)}`
                              ));
@@ -9063,7 +9062,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                               `%${our_name} ` +
                               `${thing.assign ? '=' : '+='} ` +
                               `${inspect_fun(value, true)}`,
-                              log_expand_and_walk_enabled));
+                              log_level__expand_and_walk));
         }
         
         throw new ThrownReturn('');
@@ -9158,7 +9157,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // ASTLora:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLora) {
-        // log(log_expand_and_walk_enabled,
+        // log(log_level__expand_and_walk,
         //     `encountered lora ${thing} in ${context}`);
 
         if (context.in_lora)
@@ -9169,13 +9168,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         let walked_file = null;
 
         lm.indent(() => {
-          log(log_expand_and_walk_enabled,
+          log(log_level__expand_and_walk,
               `expanding file ${compress(inspect_fun(thing.file))}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
                                                          { correct_articles: correct_articles })); // not walk!
 
-          log(log_expand_and_walk_enabled,
+          log(log_level__expand_and_walk,
               `expanded file is ${typeof walked_file} ` +
               `${walked_file.constructor.name} ` +
               `${inspect_fun(walked_file)} `);
@@ -9184,13 +9183,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         let walked_weight = null;
         
         lm.indent(() => {
-          log(log_expand_and_walk_enabled,
+          log(log_level__expand_and_walk,
               `expanding weight ${compress(inspect_fun(thing.weight))}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
                                                            { correct_articles: correct_articles })); // not walk!
 
-          log(log_expand_and_walk_enabled,
+          log(log_level__expand_and_walk,
               `expanded weight is ${typeof walked_weight} ` +
               `${walked_weight.constructor.name} ` +
               `${compress(inspect_fun(walked_weight))}, ` +
@@ -9245,7 +9244,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         throw obj;
 
       if (! obj.quiet)
-        log(true, // log_expand_and_walk_enabled,
+        log(true, // log_level__expand_and_walk,
             `walking ` +
             `${thing_str_repr(thing)} ` + 
             //`in ${context} ` +
@@ -9256,7 +9255,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     }
   }
 
-  log(true, // log_expand_and_walk_enabled,
+  log(true, // log_level__expand_and_walk,
       `Expanding wildcards in ` +
       `${thing_str_repr(thing)} ` // + 
       // `in ${context}`
@@ -9273,7 +9272,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     context.munge_configuration();
   });
   
-  log(true, // log_expand_and_walk_enabled,
+  log(true, // log_level__expand_and_walk,
       `expanded wildcards in ` +
       `${thing_str_repr(thing)} in ` + 
       // `${context} into ` +
@@ -10726,7 +10725,7 @@ async function main() {
   lm.log(`audit took ${elapsed.toFixed(2)} ms`);
 
   // log_match_enabled           = true;
-  // log_expand_and_walk_enabled = true;
+  // log_level__expand_and_walk = true;
   // log_flags_enabled           = true;
 
   let posted_count        = 0;
