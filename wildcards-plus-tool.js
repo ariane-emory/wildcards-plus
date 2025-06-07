@@ -4456,13 +4456,13 @@ const prelude_text = prelude_disabled ? '' : `
 @low_digit              = {\\0|\\1|\\2|\\3|\\4}
 @high_digit             = {\\5|\\6|\\7|\\8|\\9}
 
-@low_random_weight      = {0.< @low_digit }
-@lt1_random_weight      = {0.< @digit } 
-@lowish_random_weight   = {0.< @high_digit}
-@random_weight          = {1.< @digit }
-@highish_random_weight  = {1.< @low_digit }
-@gt1_random_weight      = {1.< @digit }
-@high_random_weight     = {1.< @high_digit}
+@low_random_weight      = {0.< @low_digit  }
+@lt1_random_weight      = {0.< @digit      } 
+@lowish_random_weight   = {0.< @high_digit }
+@random_weight          = {1.< @digit      }
+@highish_random_weight  = {1.< @low_digit  }
+@gt1_random_weight      = {1.< @digit      }
+@high_random_weight     = {1.< @high_digit }
 
 @pony_score_9           = { score_9,                                                             }
 @pony_score_8_up        = { score_9, score_8_up,                                                 }
