@@ -8599,8 +8599,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
   }
   // -----------------------------------------------------------------------------------------------
   function picker_allow(option) {
-    let allowed = true;
-    
     for (const check_flag of option.check_flags) {
       let found = false;
       
@@ -8611,13 +8609,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         }
       }
       
-      if (!found) {
-        allowed = false;
-        break;
-      }
+      if (!found)
+        return false;
     }
     
-    return allowed;
+    return true;
   };
   // -----------------------------------------------------------------------------------------------
   function picker_forbid(option) {
