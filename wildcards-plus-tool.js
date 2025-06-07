@@ -112,7 +112,6 @@ function parse_file(filename) {
   return result;
 }
 // -------------------------------------------------------------------------------------------------
-// sus arg signature, why didn't I include = {}?
 function post_prompt({ prompt = '', configuration = {}, hostname = '127.0.0.1', port = 7860 }) {
   // console.log(`POSTing with configuration: ${JSON.stringify(configuration)}`);
 
