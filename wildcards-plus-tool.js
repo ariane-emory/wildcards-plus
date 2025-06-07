@@ -9282,12 +9282,8 @@ function audit_semantics(root_ast_node,
                       `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
     // ---------------------------------------------------------------------------------------------
     const log = (msg_thunk, indent = true) => {
-      // if (typeof msg_thunk !== 'function')
-      //   throw new Error("bad log args");
-
-      if (! noisy) return 
-        
-      lm.log(`${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
+      if (noisy)
+        lm.log(`${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
     };
     function walk_children(thing, mode) {
       if (typeof mode !== 'string')
