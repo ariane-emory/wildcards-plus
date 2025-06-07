@@ -8810,8 +8810,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         // lm.log(`LATCHED IS ${inspect_fun(latched)}`);
         
-        log(context.noisy,
-            `LATCHED ${thing.target.name} TO ${inspect_fun(latched.latched_value)}`);
+        log(true, // context.noisy,
+            `latched '${thing.target.name}' to value: ` +
+            `${typeof latched.latched_value} ` +
+            `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
         
         context.named_wildcards.set(thing.target.name, latched);
 
@@ -8852,6 +8854,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // internal objects:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLatchedNamedWildcardValue) {
+        throw new Error("stop");
         throw new ThrownReturn(thing.latched_value);
       }
       // -------------------------------------------------------------------------------------------

@@ -351,5 +351,5 @@ A
 
 @foo = { foo bar baz }
 
-@4foo
+@#foo
 
