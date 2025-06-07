@@ -8605,6 +8605,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     return false;
   };
   // -----------------------------------------------------------------------------------------------
+  function warning_str(str) {
+    return `[WARNING: ${str}!]`;
+  }
+  // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg, with_indentation = true) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
     if (guard_bool) lm.log(msg, with_indentation);
@@ -8700,15 +8704,23 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const got = context.named_wildcards.get(thing.name);
 
         if (!got)
-          throw new ThrownReturn(`\\<WARNING: named wildcard '${thing.name}' not found!>`);
+          throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
 
         let res = [];
         
         if (got instanceof ASTLatchedNamedWildcardValue) {
-          for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-            res.push(lm.indent(() => expand_wildcards(got.latched_value, context,
-                                                      { correct_articles: correct_articles}))); // not walk!
-          // ^ wait, why not walk? I forget.
+          for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
+            const walked = walk(got.latched_value, 
+                                { correct_articles: correct_articles})
+            const expanded = expand_wildcards(got.latched_value, context,
+                                              { correct_articles: correct_articles})
+            lm.log(``);
+            lm.log(`${abbreviate(compress(inspect_fun(walked)))}`);
+            lm.log(`${abbreviate(compress(inspect_fun(expanded)))}`);
+            
+            res.push(lm.indent(() => expanded)); // not walk!
+            // ^ wait, why not walk? I forget.
+          }
         }
         else {
           const priority = thing.min_count === 1 && thing.max_count === 1
@@ -8758,7 +8770,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
         let got = context.scalar_variables.get(thing.name) ??
-            `\\<WARNING: scalar '${thing.name}' not found!>`;
+            warning_str(`scalar '${thing.name}' not found`);
 
         log(false, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
@@ -8779,13 +8791,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const got = context.named_wildcards.get(thing.target.name);
         
         if (!got)
-          throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.target.name} not found!>`);
+          throw new ThrownReturn(
+            warning_str(`Named wildcard @${thing.target.name} not found`));
 
 
         if (double_latching_is_an_error &&
             got instanceof ASTLatchedNamedWildcardValue) {
-          throw new ThrownReturn(`\\<WARNING: tried to latch already-latched NamedWildcard ` +
-                                 `@${thing.target.name}, check your template!>`);
+          throw new ThrownReturn(
+            warning_str(`tried to latch already-latched named wildcard ` +
+                        `'${thing.target.name}', check your template`));
         } 
 
         const latched =
@@ -8806,13 +8820,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         let got = context.named_wildcards.get(thing.name);
 
         if (!got)
-          throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.name} not found!>`);
+          throw new ThrownReturn(warning_str(`Named wildcard '${thing.name}' not found`));
 
         if (double_unlatching_is_an_error &&
             (! (got instanceof ASTLatchedNamedWildcardValue))) {
-          throw new ThrownReturn(`\\<WARNING: tried to unlatch already-unlatched NamedWildcard ` +
-                                 `@${thing.name}, ` +
-                                 `check your template!>`);
+          throw new ThrownReturn(warning_str(`tried to unlatch already-unlatched NamedWildcard ` +
+                                             `'${thing.name}', check your template`));
         }
 
         context.named_wildcards.set(thing.name, got.original_value);
@@ -9079,14 +9092,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         }
         catch(err) {
           if (err instanceof FatalParseError)
-            throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} failed: ${err}>`);
+            throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} failed: ${err}`));
           else
             throw err;
         }
 
         
         if (!res || !res.is_finished)
-          throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`);
+          throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
         throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
       }
@@ -9331,7 +9344,7 @@ function audit_semantics(root_ast_node,
       const known_flags = dummy_context.flags.map(f => f.join("."));
       const suggestion = suggest_closest(flag_str, known_flags);
       warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
-                    `this suggests that you may have a typo or other error in your template.` +
+                    `this suggests that you may have a typo or other error in your template. ` +
                     `${suggestion}`);
     }
     // ---------------------------------------------------------------------------------------------
@@ -9371,7 +9384,7 @@ function audit_semantics(root_ast_node,
           const known_names = Array.from(dummy_context.named_wildcards.keys());
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a typo or other error in your template.` +
+                        `this suggests that you may have a typo or other error in your template. ` +
                         `${suggestion}`);
         }
         
