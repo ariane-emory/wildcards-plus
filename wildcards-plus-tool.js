@@ -8907,25 +8907,27 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
         const picked = thing.pick(1, 1,
-                                  picker_allow, picker_forbid, id, 
+                                  picker_allow, picker_forbid, picker_each, 
                                   context.pick_one_priority)[0];
 
         log(log_level__expand_and_walk,
             `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
         
-        const pick = picked?.body;
+        const pick = picked; // picked?.body;
 
         if (log_level__expand_and_walk)
           lm.indent_and_log(pick
                             ? `picked ${thing_str_repr(pick)}`
                             : `picked empty`);
+          
+        // if (! pick)
+        //   throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
 
-        if (! pick)
-          throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
+        // // const ret = lm.indent(() => walk(pick));j
+        // let ret = lm.indent(() => expand_wildcards(pick, context,
+        //                                            { correct_articles: correct_articles }));
 
-        // const ret = lm.indent(() => walk(pick));j
-        let ret = lm.indent(() => expand_wildcards(pick, context,
-                                                   { correct_articles: correct_articles }));
+        let ret = picked;
 
         // console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
 
