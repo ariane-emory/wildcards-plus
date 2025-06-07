@@ -9271,7 +9271,6 @@ function audit_semantics(root_ast_node,
 
   const visited = new Set();
   const already_warned_msgs = new Set();
-  const log = noisy ? (msg, indent = true) => lm.log(msg, indent) : msg => {};
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
@@ -9282,10 +9281,14 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad walk local_audit_semantics_mode: ` +
                       `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
     // ---------------------------------------------------------------------------------------------
-    const log = noisy 
-          ? (msg, indent = true) => lm.log(`${local_audit_semantics_mode[0]} ${msg}`, indent)
-          : msg => {};
-    // ---------------------------------------------------------------------------------------------
+    const log = (msg_thunk, indent = true) => {
+      // if (typeof msg_thunk !== 'function')
+      //   throw new Error("bad log args");
+
+      if (! noisy) return 
+        
+      lm.log(`${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
+    };
     function walk_children(thing, mode) {
       if (typeof mode !== 'string')
         throw new Error(`bad walk_children mode: ` +
@@ -9294,21 +9297,12 @@ function audit_semantics(root_ast_node,
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
       if (children?.length > 0) {
-        log(`children: ${children.map(thing_str_repr)}`);
+        log(() => `children: ${children.map(thing_str_repr)}`);
 
         lm.indent(() => {
           walk(children, mode);
         }); // propogate arg
       }
-      
-      // for (const child of children) {
-      //   lm.indent(() => {
-      //     if (is_primitive(child))
-      //       return;
-      
-      //     walk(child, mode); // propogate
-      //   });
-      // }
     }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw(msg) {
@@ -9322,7 +9316,7 @@ function audit_semantics(root_ast_node,
       }
       else if (local_audit_semantics_mode == audit_semantics_modes.warning &&
                ! already_warned_msgs.has(msg)) {
-        lm.log(msg, false); // not local log function, false arg for no indentation.
+        lm.log(msg, false); // false arg for no indentation and not local log function
         // already_warned_msgs.add(msg);
       }
     }
@@ -9343,14 +9337,14 @@ function audit_semantics(root_ast_node,
       return;
 
     if (visited.has(thing)) {
-      log(`already audited ${thing.constructor.name} '${thing.toString()}'`);
+      log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
       
       return;
     }
     
     visited.add(thing);
 
-    log(`audit semantics in ${thing.constructor.name} ` +
+    log(() => `audit semantics in ${thing.constructor.name} ` +
         `'${abbreviate(compress(thing.toString()), 200)}', ` +
         `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
@@ -9362,11 +9356,9 @@ function audit_semantics(root_ast_node,
       // typecases:
       // ---------------------------------------------------------------------------------------------
       if (Array.isArray(thing)) {
-        //lm.indent(() => {
         for (const elem of thing)
           if (!is_primitive(elem))
             walk(elem, local_audit_semantics_mode) // propogate, I guess? 
-        // });
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (dummy_context.named_wildcards.has(thing.name))
