@@ -8598,7 +8598,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     return thing;
   }
   // -----------------------------------------------------------------------------------------------
-  function allow_fun(option) {
+  function picker_allow(option) {
     let allowed = true;
     
     for (const check_flag of option.check_flags) {
@@ -8620,7 +8620,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
-  function forbid_fun(option) {
+  function picker_forbid(option) {
     for (const not_flag of option.not_flags)
       if (context.flag_is_set(not_flag.flag))
         return true;
@@ -8742,7 +8742,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                              { correct_articles: correct_articles }));
           
           const picks = got.pick(thing.min_count, thing.max_count,
-                                 allow_fun, forbid_fun, each, 
+                                 picker_allow, picker_forbid, each, 
                                  priority);
 
           if (log_level__expand_and_walk)
@@ -8901,7 +8901,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
         const picked = thing.pick(1, 1,
-                                  allow_fun, forbid_fun, id, 
+                                  picker_allow, picker_forbid, id, 
                                   context.pick_one_priority)[0];
 
         log(log_level__expand_and_walk,
