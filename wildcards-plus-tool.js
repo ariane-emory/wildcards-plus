@@ -8674,8 +8674,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 // `${thing_str_repr(thing[ix])}`
                );
 
-            const elem_ret = lm.indent(() => walk(thing[ix],
-                                                  { correct_articles: correct_articles }));
+            // const elem_ret = lm.indent(() => walk(thing[ix],
+            //                                       { correct_articles: correct_articles }));
+            const elem_ret = walk(thing[ix], { correct_articles: correct_articles });
 
             ret.push(elem_ret);
 
