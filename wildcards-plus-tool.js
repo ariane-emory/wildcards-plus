@@ -293,7 +293,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_smart_join_enabled            = false;
+let log_smart_join_enabled            = 1;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
@@ -3500,12 +3500,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   if (! arr || typeof arr === 'string')
     return arr;
 
-  lm.log(`smart_join #${smart_join_trap_counter }!`);
-  smart_join_trap_counter  += 1;
-
-  // if (smart_join_trap_counter  === 2)
-  //   throw new Error(`trap`);
-  
   arr = [...arr.flat(Infinity).filter(x=> x)];
 
   // if (arr.includes("''") || arr.includes('""'))
@@ -3514,8 +3508,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   if (arr.length === 0) // i forget why this is necessary.
     return '';
   
-  if (log_smart_join_enabled)
-    lm.log(`JOINING ${compress(inspect_fun(arr))}`, true);
+  if (log_smart_join_enabled >= 2)
+    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
@@ -3545,7 +3539,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     let next_char            = null;
 
     const add_a_space = () => {
-      if (log_smart_join_enabled)
+      if (log_smart_join_enabled >= 2)
         lm.log(`SPACE!`, true);
 
       prev_char  = ' ';
@@ -3553,7 +3547,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     }
 
     const chomp_left_side = () => {
-      if (log_smart_join_enabled)
+      if (log_smart_join_enabled >= 2)
         lm.log(`CHOMP LEFT!`, true);
       
       str      = str.slice(0, -1);
@@ -3563,7 +3557,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     };
     
     const chomp_right_side = () => {
-      if (log_smart_join_enabled)
+      if (log_smart_join_enabled >= 2)
         lm.log(`CHOMP RIGHT!`, true);
 
       arr[ix] = arr[ix].slice(1);
@@ -3572,7 +3566,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     }
 
     const consume_right_word = () => {
-      if (log_smart_join_enabled)
+      if (log_smart_join_enabled >= 2)
         lm.log(`CONSUME ${inspect_fun(right_word)}!`, true);
 
       // if (right_word === '""' || right_word === "''")
@@ -3583,7 +3577,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     }
 
     const move_chars_left = (n) => {
-      if (log_smart_join_enabled)
+      if (log_smart_join_enabled >= 2)
         lm.log(`SHIFT ${n} CHARACTERS!`, true);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
@@ -3603,7 +3597,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       next_char_is_escaped = right_word[0] === '\\';
       next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
 
-      if (log_smart_join_enabled)
+      if (log_smart_join_enabled >= 2)
         lm.log(`ix = ${inspect_fun(ix)}, ` +
                `str = ${inspect_fun(str)}, ` +
                `left_word = ${inspect_fun(left_word)}, ` +         
@@ -3617,7 +3611,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     update_pos_vars();
     
     if (right_word === '') {
-      if (log_smart_join_enabled)
+      if (log_smart_join_enabled >= 2)
         lm.log(`JUMP EMPTY!`, true);
 
       continue;
@@ -3665,7 +3659,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     }
 
     if (right_word === '') {
-      if (log_smart_join_enabled)
+      if (log_smart_join_enabled >= 2)
         lm.log(`JUMP EMPTY (LATE)!`, true);
 
       continue;
@@ -3685,9 +3679,13 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     consume_right_word();
   }
 
-  if (log_smart_join_enabled)
-    lm.log(`JOINED ${inspect_fun(str)}`, true);
+  smart_join_trap_counter  += 1;
 
+  if (log_smart_join_enabled >= 2)
+    lm.log(`smart_joined ${thing_str_repr(str)} (#${smart_join_trap_counter})`);
+
+  // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
+  
   return str;
 }
 // -------------------------------------------------------------------------------------------------
@@ -8587,6 +8585,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       correct_articles === undefined)
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
+  if (typeof thing === 'string')
+    lm.log(`nothing to expand in ${thing_str_repr(thing)}, returning as is`);
+  // -----------------------------------------------------------------------------------------------
   function allow_fun(option) {
     let allowed = true;
     
@@ -8639,10 +8640,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     };
 
     class ThrownReturn {
-      constructor(value) {
+      constructor(value, quiet = false) {
         this.value = value;
+        this.quiet = quiet;
       }
     }
+
+    if (typeof thing === 'string')
+      return thing;
 
     log(true, // log_expand_and_walk_enabled,
         `Walking ` +
@@ -8655,10 +8660,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // -------------------------------------------------------------------------------------------
       // basic types (strings and Arrays):
       // -------------------------------------------------------------------------------------------
-      if (typeof thing === 'string')
-        throw new ThrownReturn(thing);
-      // -------------------------------------------------------------------------------------------
-      else if (Array.isArray(thing)) {
+      if (Array.isArray(thing)) {
         const ret = [];
 
         // for (const t of thing) {
@@ -8729,15 +8731,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
             // const walked = walk(got.latched_value, 
             //                     { correct_articles: correct_articles})
-            const expanded = expand_wildcards(got.latched_value, context,
-                                              { correct_articles: correct_articles})
+            const expanded = lm.indent(() => expand_wildcards(got.latched_value, context,
+                                                              { correct_articles: correct_articles}));
             // lm.log(``);
             // lm.log(`LATCHEDVAL WALKED:   ` +
             //        `${typeof walked} ${abbreviate(compress(inspect_fun(walked)))}`);
             // lm.log(`LATCHEDVAL EXPANDED: ` +
             //        `${typeof expanded} ${abbreviate(compress(inspect_fun(expanded)))}`);
             
-            res.push(lm.indent(() => expanded)); // not walk!
+            res.push(expanded); // not walk!
             // ^ wait, why not walk? I forget.
           }
         }
@@ -9247,12 +9249,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       if (! (obj instanceof ThrownReturn))
         throw obj;
 
-      log(true, // log_expand_and_walk_enabled,
-          `walking ` +
-          `${thing_str_repr(thing)} ` + 
-          //`in ${context} ` +
-          `returned ` +
-          `${thing_str_repr(obj.value)}`);
+      if (! obj.quiet)
+        log(true, // log_expand_and_walk_enabled,
+            `walking ` +
+            `${thing_str_repr(thing)} ` + 
+            //`in ${context} ` +
+            `returned ` +
+            `${thing_str_repr(obj.value)}`);
 
       return obj.value;
     }
