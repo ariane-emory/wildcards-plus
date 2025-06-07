@@ -301,7 +301,7 @@ let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
 let unnecessary_choice_is_an_error    = false;
-let double_latching_is_an_error       = false;
+let double_latching_is_an_error       = true;
 let double_unlatching_is_an_error     = false;
 // =================================================================================================
 
@@ -8700,7 +8700,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const got = context.named_wildcards.get(thing.name);
 
         if (!got)
-          throw new ThrownReturn(`\\<WARNING: named wildcard @${thing.name} not found!>`);
+          throw new ThrownReturn(`\\<WARNING: named wildcard '${thing.name}' not found!>`);
 
         let res = [];
         
@@ -8757,7 +8757,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
         let got = context.scalar_variables.get(thing.name) ??
-            `\\<WARNING: scalar '${thing.name}' not found}>`;
+            `\\<WARNING: scalar '${thing.name}' not found!>`;
 
         log(false, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
@@ -8778,12 +8778,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const got = context.named_wildcards.get(thing.target.name);
         
         if (!got)
-          throw new ThrownReturn(`\\\\<WARNING: Named wildcard @${thing.target.name} not found!>`);
+          throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.target.name} not found!>`);
 
 
         if (double_latching_is_an_error &&
             got instanceof ASTLatchedNamedWildcardValue) {
-          throw new ThrownReturn(`\\\\<WARNING: tried to latch already-latched NamedWildcard ` +
+          throw new ThrownReturn(`\\<WARNING: tried to latch already-latched NamedWildcard ` +
                                  `@${thing.target.name}, check your template!>`);
         } 
 

@@ -347,3 +347,10 @@ A
 {|6 @cyborg_feature_sentence}
 {|6 @alien_feature_sentence}
 {|8 @sky_sentence}
+$foo
+@oof
+
+@#gender
+@#gender
+@#gender
+@#gender
