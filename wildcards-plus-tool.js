@@ -288,7 +288,7 @@ let log_configuration_enabled         = true;
 let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
-let log_loading_prelude               = true;
+let log_loading_prelude               = false;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
@@ -8632,7 +8632,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     
     const log = (guard_bool, msg, with_indentation = true) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
-      // if (guard_bool) lm.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
       if (guard_bool) lm.log(msg, with_indentation);
     };
 
@@ -8642,7 +8641,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       }
     }
 
-    log(true, // log_expand_and_walk_enabled,
+    log(log_expand_and_walk_enabled,
         `Walking ` +
         `${thing_str_repr(thing)} ` // + 
         // `${thing_str_repr(thing)} in ` + 
@@ -9244,7 +9243,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       if (! (obj instanceof ThrownReturn))
         throw obj;
 
-      log(true, // log_expand_and_walk_enabled,
+      log(log_expand_and_walk_enabled,
           `walking ` +
           `${abbreviate(compress(thing_str_repr(thing)))} ` + 
           //`in ${context} ` +
@@ -9255,7 +9254,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     }
   }
 
-  log(true, // log_expand_and_walk_enabled,
+  log(log_expand_and_walk_enabled,
       `Expanding wildcards in ` +
       `${thing_str_repr(thing)} ` // + 
       // `in ${context}`
