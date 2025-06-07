@@ -8861,10 +8861,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
-        // if (context.named_wildcards.has(thing.name))
-        //   log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
-        //       `you may not have intended to do this, check your template!`,
-        //       log_level__expand_and_walk);
+        if (context.named_wildcards.has(thing.name))
+          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
+              `you may not have intended to do this, check your template!`,
+              log_level__expand_and_walk);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
