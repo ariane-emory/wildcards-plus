@@ -8874,25 +8874,27 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // internal objects:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLatchedNamedWildcardValue) {
-        throw new Error("stop");
-        throw new ThrownReturn(thing.latched_value);
+        throw new Error(`something has gone awry, ASTLatchedNamedWildcardValues shouldn't be ` +
+                        `reached by walk, stop`);
+        
       }
       // -------------------------------------------------------------------------------------------
       // scalar assignment:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        log(context.noisy, '');
-        log(context.noisy,
+        log(log_level__expand_and_walk >= 2, '');
+        log(log_level__expand_and_walk >= 2,
             `assigning ${inspect_fun(thing.source)} ` +
             `to '${thing.destination.name}'`);
         
         let   new_val = lm.indent(() => expand_wildcards(thing.source, context,
                                                          { correct_articles: correct_articles }));
-        const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
-        if (! thing.assign)
+        if (! thing.assign) {
+          const old_val = context.scalar_variables.get(thing.destination.name)??'';
           new_val = smart_join([old_val, new_val],
                                { correct_articles: true }); // always correct articles here?
+        }
         
         context.scalar_variables.set(thing.destination.name, new_val);
 
@@ -8922,7 +8924,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (thing.trailer && ret.length > 0)
           ret = smart_join([ret, thing.trailer],
                            { correct_articles: false });
-        // * never need to correct articles for trailers since punctuation couldn't trigger correction
+        // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
 
         throw new ThrownReturn(ret);
       }
@@ -8932,8 +8934,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       else if (thing instanceof ASTUpdateConfigurationUnary ||
                thing instanceof ASTUpdateConfigurationBinary) {
         let value = thing.value;
-
-        // lm.log(`THING: ${thing} ${inspect_fun(thing)}`);
         
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() =>
@@ -8942,17 +8942,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             expand_wildcards(thing.value, context, // not walk!
                              { correct_articles: false })); 
 
-          // lm.log(`expanded value: ${compress(inspect_fun(thing.value))} => ` +
-          //        `${inspect_fun(expanded_value)}`);
-
-          // log_match_enabled  = true;
-
           const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                                 ? RjsoncObject
                                                 : Rjsonc).match(expanded_value);
 
-          // log_match_enabled  = false;
-          
           if (thing instanceof ASTUpdateConfigurationBinary) {
             value = jsconc_parsed_expanded_value?.is_finished
               ? jsconc_parsed_expanded_value.value
@@ -8965,10 +8958,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           }
         }
         else {
-          value = structured_clone(value);
+          value = structured_clone(value); // do we need to do this? I forget.
         }
 
-        if (thing instanceof ASTUpdateConfigurationUnary) { // ASTUpdateConfigurationUnary
+        if (thing instanceof ASTUpdateConfigurationUnary) { 
           let new_obj = value;
 
           for (const key of Object.keys(value)) 
@@ -8981,10 +8974,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           lm.indent(() => log(log_configuration_enabled,
                               `%config ${thing.assign ? '=' : '+='} ` +
                               `${inspect_fun(new_obj, true)}`,
-                              log_level__expand_and_walk
-                              // + `, configuration is now: ` +
-                              // `${inspect_fun(context.configuration, true)}`
-                             ));
+                              log_level__expand_and_walk));
         }
         else { // ASTUpdateConfigurationBinary
           const our_name = get_our_name(thing.key); 
@@ -9001,9 +8991,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                                 `to non-array ${inspect_fun(tmp_arr)}`);
               
               const new_arr = [ ...tmp_arr, ...value ];
-              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-              //           `increment by array ${inspect_fun(value)}, ` +
-              //           `total ${inspect_fun(new_arr)}`);
+              log(log_expand_and_walk_enabled >= 2,
+                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                  `increment by array ${inspect_fun(value)}, ` +
+                  `total ${inspect_fun(new_arr)}`);
+              
               context.configuration[our_name] = new_arr;
             }
             else if (typeof value === 'object') {
@@ -9014,9 +9006,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                                 `to non-object ${inspect_fun(tmp_obj)}`);
 
               const new_obj = { ...tmp_obj, ...value };
-              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-              //           `increment by object ${inspect_fun(value)}, ` +
-              //           `total ${inspect_fun(new_obj)}`);
+              log(log_expand_and_walk_enabled >= 2,
+                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                  `increment by object ${inspect_fun(value)}, ` +
+                  `total ${inspect_fun(new_obj)}`);
+
               context.configuration[our_name] = new_obj;
             }
             else if (typeof value === 'number') {
@@ -9026,9 +9020,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 throw new Error(`can't add number ${inspect_fun(value)} `+
                                 `to non-number ${inspect_fun(tmp_num)}`);
 
-              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-              //           `increment by number ${inspect_fun(value)}, ` +
-              //           `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+              log(log_expand_and_walk_enabled >= 2,
+                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                  `increment by number ${inspect_fun(value)}, ` +
+                  `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+              
               context.configuration[our_name] = tmp_num + value;
             }
             else if (typeof value === 'string') {
@@ -9038,18 +9034,23 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 throw new Error(`can't add string ${inspect_fun(value)} `+
                                 `to non-string ${inspect_fun(tmp_str)}`);
 
-              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-              //           `increment by string ${inspect_fun(value)}, ` +
-              //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+              log(log_level__expand_and_walk >= 2,
+                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                  `increment by string ${inspect_fun(value)}, ` +
+                  `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+
               context.configuration[our_name] =
                 lm.indent(() => smart_join([tmp_str, value],
                                            { correct_articles: false })); // never correct here?
             }
             else {
               // probly won't work most of the time, but let's try anyhow, I guess.
-              // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
-              //           `increment by unknown ${inspect_fun(value)}, ` +
-              //           `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+
+              log(log_level__expand_and_walk >= 2,
+                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                  `increment by unknown ${inspect_fun(value)}, ` +
+                  `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+
               context.configuration[our_name] = (context.configuration[our_name]??null) + value;
             }
           }
@@ -9077,12 +9078,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
                                                                            context)).toLowerCase()];
 
-        // if (log_configuration_enabled)
-        //   log(`SET PICK DATA: ` +
-        //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-        //                               cur_val: cur_val, prior_val: prior_val,
-        //                               walked: walked})}`);
-        
         if (! picker_priority_descriptions.includes(walked))
           throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
@@ -9101,7 +9096,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               ? { desc: 'UI prompt', text: ui_prompt }
               : { desc: 'UI negative prompt', text: ui_neg_prompt };
         
-        // lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+        if (log_level__expand_and_walk >= 2)
+          lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
 
         let res = null;
 
@@ -9115,7 +9111,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             throw err;
         }
 
-        
         if (!res || !res.is_finished)
           throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
@@ -9132,14 +9127,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               : 'prior_pick_multiple_priority';
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
-
-        // if (log_configuration_enabled)
-        //   log(`REVERT PICK DATA: ` +
-        //               `${inspect_fun({cur_key: cur_key, prior_key: prior_key,
-        //                               cur_val: cur_val, prior_val: prior_val })}`);
         
-        // log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-        //             `${inspect_fun(prior_val)}: ${cur_key}, ${prior_key}, ${inspect_fun(context)}`);
         log(log_configuration_enabled,
             `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
             `${inspect_fun(prior_val)}.`);
@@ -9153,9 +9141,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // ASTLora:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLora) {
-        // log(log_level__expand_and_walk,
-        //     `encountered lora ${thing} in ${context}`);
-
         if (context.in_lora)
           throw new Error(`don't nest LoRA inclusions, it's needlessly confusing!`);
 
@@ -9203,7 +9188,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (file === '')
           throw new Error(`LoRA file name is empty!`);
         
-        // if (file.endsWith('_lora_f16.ckpt')) {
         if (file.endsWith('.ckpt')) {
           // do nothing 
         }
@@ -9251,11 +9235,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     }
   }
 
-  log(true, // log_level__expand_and_walk,
+  log(log_level__expand_and_walk,
       `Expanding wildcards in ` +
-      `${thing_str_repr(thing)} ` // + 
-      // `in ${context}`
-     );
+      `${thing_str_repr(thing)} `);
 
   let ret;
 
@@ -9264,11 +9246,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                                    { correct_articles: correct_articles }),
                               { correct_articles: correct_articles })).replace(/^</, '');
     // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
+    //   unescape probably should too.
 
     context.munge_configuration();
   });
   
-  log(true, // log_level__expand_and_walk,
+  log(log_level__expand_and_walk,
       `expanded wildcards in ` +
       `${thing_str_repr(thing)} in ` + 
       `returned ` +
