@@ -4140,7 +4140,7 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = prelude_disabled ? '' : `
-@__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
+@__set_gender_if_unset  = {{?female #gender.female
                            |?male   #gender.male
                            |?neuter #gender.neuter}
                            {3 !gender.#female #female
