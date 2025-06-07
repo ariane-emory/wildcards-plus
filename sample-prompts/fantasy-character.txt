@@ -136,12 +136,12 @@ a
 {|#outdoors}
 {|?outdoors #mounted}
 
-{?maleounted {sitting on|mounted on|riding on|astride|leading}
-          @pro_pos_rand
-          {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
-          {3 beast|wolf|2 lizard|reptile|snake|serpent|insect|2 steed|2 destrier
-          |2 horse|2 dragon}
-          ,
+{?male {sitting on|mounted on|riding on|astride|leading}
+       @pro_pos_rand
+       {|mighty|infernal|#scary terrifying|majestic|?warrior armored}
+       {3 beast|wolf|2 lizard|reptile|snake|serpent|insect|2 steed|2 destrier
+       |2 horse|2 dragon}
+       ,
 }
 
 {!outdoors {|standing|crouching|lurking
