@@ -3507,8 +3507,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   // if (arr.includes("''") || arr.includes('""'))
   //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
 
-  if (arr.length === 0) // i forget why this is necessary.
+  if (arr.length === 0) 
     return '';
+  else if (arr.length === 1)
+    return arr[0];
 
   smart_join_trap_counter += 1;
 
@@ -3866,7 +3868,7 @@ function thing_str_repr(thing, length = thing_str_repr.abbrev_length) {
     thing_str = String(thing);
   }
 
-  return abbreviate(compress(`${type_str}${thing_str}`), true, thing_str_repr.abbrev_length); // thing_str_repr.abbrev_length);
+  return `${type_str}${abbreviate(compress(thing_str), true, thing_str_repr.abbrev_length)}`; // thing_str_repr.abbrev_length);
 }
 thing_str_repr.abbrev_length = 100;
 // -------------------------------------------------------------------------------------------------
@@ -8791,14 +8793,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               ? { final_separator: 'and' }
               : {};
 
-        lm.indent(() => 
+        lm.indent(() => {
           str = smart_join(intercalate(joiner, res, intercalate_options),
-                           { correct_articles: false }));
-        
-        if (thing.trailer && str.length > 0)
-          str = smart_join([str, thing.trailer],
                            { correct_articles: false });
-        // * never need to correct articles for trailers since punctuation couldn't trigger correction
+          
+          if (thing.trailer && str.length > 0)
+            str = smart_join([str, thing.trailer],
+                             { correct_articles: false });
+          // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
+        });
         
         throw new ThrownReturn(str);
       }
@@ -9287,13 +9290,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           unescape(smart_join(walk(thing,
                                    { correct_articles: correct_articles }),
                               { correct_articles: correct_articles })).replace(/^</, ''));
+  // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
   
   lm.indent(() => context.munge_configuration());
 
   log(true, // log_expand_and_walk_enabled,
       `expanded wildcards in ` +
       `${thing_str_repr(thing)} in ` + 
-      `${context} into ` +
+      // `${context} into ` +
       `${thing_str_repr(ret)}`);
 
   // if (ret === undefined)
