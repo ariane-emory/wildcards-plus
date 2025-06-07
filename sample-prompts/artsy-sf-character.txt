@@ -1,4 +1,5 @@
-
+// -*- fill-column: 100; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
+// =================================================================================================
 { #wizards_artist.helen_frankenthaler
 | #wizards_artist.frank_frazetta
 | #wizards_artist.boris_vallejo

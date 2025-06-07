@@ -1,5 +1,5 @@
 // -*- fill-column: 100; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
-// =======================================================================================
+// =================================================================================================
 // use wildcards to randomize some parts of the configuration before we get on with the
 // actual textual content of the prompt:
 // =================================================================================================
