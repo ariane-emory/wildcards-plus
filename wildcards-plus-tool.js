@@ -9264,9 +9264,6 @@ function audit_semantics(root_ast_node,
   const visited = new Set();
   const already_warned_msgs = new Set();
   const log = (msg_thunk, indent = true) => {
-    // if (typeof msg_thunk !== 'function')
-    //   throw new Error("bad log args");
-    
     if (noisy)
       lm.log(msg_thunk(), indent);
   };
