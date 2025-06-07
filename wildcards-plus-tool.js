@@ -292,8 +292,8 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_level__expand_and_walk        = 1;
-let log_level__smart_join             = 1;
+let log_level__expand_and_walk        = 0;
+let log_level__smart_join             = 0;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
@@ -3518,7 +3518,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   //   throw stop();
   
   if (log_level__smart_join >= 1)
-    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`);
+    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
+           log_level__expand_and_walk);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
@@ -3689,7 +3690,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   }
 
   if (log_level__smart_join >= 1)
-    lm.log(`smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`);
+    lm.log(`smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`,
+           log_level__expand_and_walk);
 
   // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
 
@@ -4424,12 +4426,13 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = prelude_disabled ? '' : `
-@__set_gender_if_unset  = unsafe_guards { {?female #gender.female // just to make forcing an option a little terser.
-                                          |?male   #gender.male
-                                          |?neuter #gender.neuter }
-                                          {3 !gender.#female #female
-                                          |2 !gender.#male   #male
-                                          |1 !gender.#neuter #neuter } } 
+@__set_gender_if_unset  = unsafe_guards
+                          { {?female #gender.female // just to make forcing an option a little terser.
+                            |?male   #gender.male
+                            |?neuter #gender.neuter }
+                            {3 !gender.#female #female
+                            |2 !gender.#male   #male
+                            |1 !gender.#neuter #neuter } } 
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
@@ -8594,7 +8597,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
   if (typeof thing === 'string') {
-    lm.log(`nothing to expand in ${thing_str_repr(thing)}, returning as is`);
+    if (log_level__expand_and_walk >= 1)
+      lm.log(`nothing to expand in ${thing_str_repr(thing)}, returning as is`);
     return thing;
   }
   // -----------------------------------------------------------------------------------------------
@@ -8662,7 +8666,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     }
 
     if (typeof thing === 'string') {
-      lm.log(`nothing to walk in ${thing_str_repr(thing)}, returning as is`);
+      if (log_level__expand_and_walk)
+        lm.log(`nothing to walk in ${thing_str_repr(thing)}, returning as is`);
       return thing;
     }
 
@@ -9224,7 +9229,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         throw obj;
 
       if (! obj.quiet)
-        log(true, // log_level__expand_and_walk,
+        log(log_level__expand_and_walk,
             `walking ` +
             `${thing_str_repr(thing)} ` + 
             //`in ${context} ` +
