@@ -27,15 +27,16 @@ let log_configuration_enabled         = true;
 let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
 let log_flags_enabled                 = false;
+let log_loading_prelude               = true;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
+let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
-let print_ast_then_die                = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
 let unnecessary_choice_is_error       = false;
@@ -65,7 +66,9 @@ class Logger {
   }
   // -----------------------------------------------------------------------------------------------
   log(thing = '', with_indent = true) {
-    console.log(this.indent_thing(thing, with_indent));
+    const full_output = this.indent_thing(thing, with_indent);
+    for (const line of full_output.split('\n'))
+      console.log(line);
   }
   // -----------------------------------------------------------------------------------------------
   indent_lines(str) {
@@ -275,6 +278,8 @@ class Rule {
     
     // this.__direct_children = () => [];
     this.abbreviated       = true;
+
+    return this;
   }
   // -----------------------------------------------------------------------------------------------
   direct_children() {
@@ -812,15 +817,14 @@ class Element extends Rule {
     //       `${inspect_fun(rule_match_result)}'s value.`);
     // }
 
-    // I forget why I did this? Could be a bad idea?
     const ret = rule_match_result.value[this.index] === undefined
-          ? DISCARD
+          ? DISCARD // <- I forget why I did this? Could be a bad idea?
           : rule_match_result.value[this.index];
     
     if (log_match_enabled) 
       lm.log(`get elem ${this.index} from ` +
              `${compress(inspect_fun(rule_match_result.value))} = ` +
-             `${typeof ret === 'symbol' ? ret.toString() : compress(inspect_fun(ret))}`);
+             `${typeof ret === 'symbol' ? ret.toString() : abbreviate(compress(inspect_fun(ret)))}`);
     
     rule_match_result.value = ret;
     
@@ -1091,10 +1095,7 @@ class Optional extends Rule {
     const match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (match_result === null) {
-      const mr = new MatchResult(this.default_value !== null
-                                 ? [ this.default_value ]
-                                 : [],
-                                 input, index);
+      const mr = new MatchResult(this.default_value, input, index);
 
       if (log_match_enabled)
         lm.log(`returning default ${inspect_fun(mr)}`);
@@ -1102,7 +1103,7 @@ class Optional extends Rule {
       return mr;
     }
     
-    match_result.value = [ match_result.value ];
+    match_result.value = match_result.value;
 
     return match_result;
   }
@@ -1158,7 +1159,8 @@ class Sequence extends Rule {
 
     if (log_match_enabled)
       lm.indent_and_log(`matching first sequence element #1 out of ` +
-                        `${this.elements.length}: ${this.elements[0]} ` +
+                        `${this.elements.length}: ` +
+                        `${abbreviate(compress(this.elements[0].toString()))} ` +
                         `at char #${index} ` +
                         `at '${abbreviate(input.substring(index))}'`);
     
@@ -1204,8 +1206,9 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        lm.indent_and_log(`matching sequence element #${ix+ 1} out of ` +
-                          `${this.elements.length}: ${this.elements[ix]} ` +
+        lm.indent_and_log(`matching sequence element #${ix + 1} out of ` +
+                          `${this.elements.length}: ` +
+                          `${abbreviate(compress(this.elements[ix].toString()))} ` +
                           `at char #${index}: ` +
                           `'${abbreviate(input.substring(index))}'`);
       
@@ -1278,7 +1281,7 @@ class CuttingSequence extends Sequence {
                         input, index) {
     throw new FatalParseError(// `(#2) ` +
       `CuttingSequence expected ${this.elements[0]} to be followed by ` +
-        `[${this.elements.slice(1).join(" ")}]`,                         
+        `[${this.elements.slice(1).join(" ")}]`,
       input, start_rule_result.index);
   }
   // -----------------------------------------------------------------------------------------------
@@ -1419,7 +1422,7 @@ class Unexpected extends Rule {
     
     if (match_result) {
       if (this.error_func) {
-        const err = this.error_func(this, input, index);
+        const err = this.error_func(this, input, index, match_result);
         throw err instanceof Error ? err : new FatalParseError(err, input, index);
       }
       else {
@@ -1642,7 +1645,7 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      lm.indent_and_log(`testing /${this.regexp.source}/ at char ${index}: ` +
+      lm.indent_and_log(`testing /${this.regexp.source}/ at char #${index}: ` +
                         `'${abbreviate(input.substring(index))}'`);
 
     const re_match = this.regexp.exec(input);
@@ -2366,7 +2369,7 @@ c_shift_assign           .abbreviate_str_repr('c_shift_assign');
 c_unicode_ident          .abbreviate_str_repr('c_unicode_ident');
 // -------------------------------------------------------------------------------------------------
 // dotted chains:
-const dot_chain          = rule => plus(rule, dot); 
+const dot_chained        = rule => plus(rule, dot); 
 // -------------------------------------------------------------------------------------------------
 // common comment styles:
 const c_block_comment    = r(/\/\*[^]*?\*\//);
@@ -2410,11 +2413,20 @@ const enclosing       = (left, enclosed, right) =>
 // =================================================================================================
 // BASIC JSON GRAMMAR SECTION:
 // =================================================================================================
+const make_JsonArray_rule = value_rule => 
+      wst_cutting_enc(lsqr,
+                      wst_star(value_rule,
+                               comma),
+                      rsqr);
+// -------------------------------------------------------------------------------------------------
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
-const Json = choice(() => JsonObject,  () => JsonArray,
+const Json = choice(() => JsonObject,
+                    () => JsonArray,
+                    () => json_number,
                     () => json_string,
-                    () => json_true,   () => json_false,
-                    () => json_null,   () => json_number);
+                    () => json_true,
+                    () => json_false,
+                    () => json_null);
 // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
 const JsonObject = xform(arr =>  Object.fromEntries(arr), 
                          wst_cutting_enc(lbrc,
@@ -2424,7 +2436,8 @@ const JsonObject = xform(arr =>  Object.fromEntries(arr),
                                            comma),
                                          rbrc));
 // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-const JsonArray = wst_cutting_enc(lsqr, wst_star(Json, comma), rsqr);
+const JsonArray = make_JsonArray_rule(Json);
+
 // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
 const json_string = xform(JSON.parse,
                           /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
@@ -2448,7 +2461,9 @@ const json_fractionalPart = r(/\.[0-9]+/);
 const json_exponentPart = r(/[eE][+-]?\d+/);
 // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
 const reify_json_number = arr => {
-  const multiplier      = arr[0].length > 0 ? -1 : 1;
+  // lm.log(`REIFY ${inspect_fun(arr)}`);
+  
+  const multiplier      = arr[0] ? -1 : 1;
   const integer_part    = arr[1];
   const fractional_part = arr[2];
   const exponent        = arr[3];
@@ -2460,12 +2475,9 @@ const reify_json_number = arr => {
 };
 const json_number = xform(reify_json_number,
                           seq(optional(json_minus),
-                              xform(parseInt, json_integralPart), 
-                              xform(arr => {
-                                // lm.log(`fractional part ARR: ${inspect_fun(arr)}`);
-                                return parseFloat(arr[0]);
-                              }, optional(json_fractionalPart, 0.0)),
-                              xform(parseInt, first(optional(json_exponentPart, 1)))));
+                              xform(parseInt, json_integralPart),
+                              optional(xform(parseFloat, json_fractionalPart), 0.0),
+                              xform(parseInt, optional(json_exponentPart, 1))));
 // S ← [ U+0009 U+000A U+000D U+0020 ]+
 const json_S = r(/\s+/);
 Json.abbreviate_str_repr('Json');
@@ -2483,8 +2495,6 @@ json_fractionalPart.abbreviate_str_repr('json_fractionalPart');
 json_exponentPart.abbreviate_str_repr('json_exponentPart');
 json_number.abbreviate_str_repr('json_number');
 json_S.abbreviate_str_repr('json_S');
-// -------------------------------------------------------------------------------------------------
-Json.finalize(); // .finalize-ing resolves the thunks that were used the in json and JsonObject for forward references to not-yet-defined rules.
 // =================================================================================================
 // END OF BASIC JSON GRAMMAR SECTION.
 // =================================================================================================
@@ -2493,54 +2503,55 @@ Json.finalize(); // .finalize-ing resolves the thunks that were used the in json
 // =================================================================================================
 // JSONC GRAMMAR SECTION:
 // =================================================================================================
-const jsonc_comments = wst_star(choice(c_block_comment, c_line_comment));
-const Jsonc = second(wst_seq(jsonc_comments,
-                             choice(() => JsoncObject, () => JsoncArray,
-                                    json_string,
-                                    json_null,         json_true,
-                                    json_false,        json_number),
-                             jsonc_comments));
-const JsoncArray =
-      wst_cutting_enc(lsqr,
-                      wst_star(second(seq(jsonc_comments,
-                                          Jsonc,
-                                          jsonc_comments)),
-                               comma),
-                      rsqr);
-const JsoncObject =
+const make_Jsonc_rule = (choice_rule, comment_rule = () => jsonc_comment) =>
+      second(wst_seq(wst_star(comment_rule),
+                     choice_rule,
+                     wst_star(comment_rule)));
+const make_JsoncArray_rule = (value_rule,
+                              comment_rule = () => jsonc_comment) => 
+      make_JsonArray_rule(second(seq(wst_star(comment_rule),
+                                     value_rule,
+                                     wst_star(comment_rule))));
+const make_JsoncObject_rule = (key_rule, value_rule,
+                               { comment_rule = () => jsonc_comment,
+                                 sequence_combinator = wst_cutting_seq } = {}) => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
-          // lm.log(`\nARR:  ${JSON.stringify(arr, null, 2)}`);
-          const new_arr = [ [arr[0], arr[2] ], ...(arr[4][0]??[]) ];
-          // lm.log(`ARR2: ${JSON.stringify(arr2, null, 2)}`);
+          const new_arr = [ [arr[0], arr[2] ], ...(arr[4]??[]) ];
           return Object.fromEntries(new_arr);
         },
-              wst_cutting_seq(
-                wst_enc(lbrc, json_string, colon),
-                jsonc_comments,
-                Jsonc,
-                jsonc_comments,
+              sequence_combinator(
+                wst_enc(lbrc, key_rule, colon),
+                wst_star(comment_rule),
+                value_rule,
+                wst_star(comment_rule),
                 optional(second(wst_seq(comma,
                                         wst_star(
                                           xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(jsonc_comments,
-                                                        json_string,
-                                                        jsonc_comments,
+                                                wst_seq(wst_star(comment_rule),
+                                                        key_rule,
+                                                        wst_star(comment_rule),
                                                         colon,
-                                                        jsonc_comments,
-                                                        Jsonc, 
-                                                        jsonc_comments
+                                                        wst_star(comment_rule),
+                                                        value_rule, 
+                                                        wst_star(comment_rule)
                                                        )),
                                           comma)),
                                )),
-                rbrc))); // dumb hack for rainbow brackets sake
+                rbrc)))
+// -------------------------------------------------------------------------------------------------
+const Jsonc = make_Jsonc_rule(
+  choice(() => JsoncObject, () => JsoncArray, json_string,
+         json_null,           json_true,
+         json_false,          json_number));
+const JsoncArray = make_JsoncArray_rule(Jsonc);
+const JsoncObject = make_JsoncObject_rule(json_string, Json);
+const jsonc_comment = choice(c_block_comment, c_line_comment);
 Jsonc.abbreviate_str_repr('Jsonc');
-jsonc_comments.abbreviate_str_repr('jsonc_comments');
 JsoncArray.abbreviate_str_repr('JsoncArray');
 JsoncObject.abbreviate_str_repr('JsoncObject');
-// -------------------------------------------------------------------------------------------------
-Jsonc.finalize(); 
+jsonc_comment.abbreviate_str_repr('jsonc_comment');
 // =================================================================================================
 // END OF JSONC GRAMMAR SECTION.
 // =================================================================================================
@@ -2553,54 +2564,53 @@ const rjsonc_single_quoted_string =
       xform(
         s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
         /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
-
 const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
+const Rjsonc = make_Jsonc_rule(
+  choice(() => RjsoncObject, () => RjsoncArray, rjsonc_string,
+         json_null,           json_true,
+         json_false,          json_number));
+const RjsoncArray = make_JsoncArray_rule(Rjsonc);
+const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
-
-const rJsonc = second(wst_seq(jsonc_comments,
-                              choice(() => rJsoncObject,  () => rJsoncArray,
-                                     rjsonc_string,
-                                     json_null,     json_true,
-                                     json_false,    json_number),
-                              jsonc_comments));
-const rJsoncArray =
-      wst_cutting_enc(lsqr,
-                      wst_star(second(seq(jsonc_comments,
-                                          rJsonc,
-                                          jsonc_comments)),
-                               comma),
-                      rsqr);
-
-const rJsoncObject =
-      choice(
-        xform(arr => ({}), wst_seq(lbrc, rbrc)),
-        xform(arr => {
-          const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
-          return Object.fromEntries(new_arr);
-        },
-              wst_cutting_seq(
-                wst_enc(lbrc, choice(rjsonc_string, c_ident), colon), // dumb hack for rainbow brackets sake
-                jsonc_comments,
-                rJsonc,
-                jsonc_comments,
-                optional(second(wst_seq(comma,
-                                        wst_star(
-                                          xform(arr =>  [arr[1], arr[5]],
-                                                wst_seq(jsonc_comments,
-                                                        choice(rjsonc_string, c_ident),
-                                                        jsonc_comments,
-                                                        colon,
-                                                        jsonc_comments,
-                                                        Jsonc, 
-                                                        jsonc_comments
-                                                       )),
-                                          comma)),
-                               )),
-                rbrc)));
-rJsonc.abbreviate_str_repr('rJsonc');
-rJsoncObject.abbreviate_str_repr('rJsoncObject');
+rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
+Rjsonc.abbreviate_str_repr('Rjsonc');
+RjsoncArray.abbreviate_str_repr('RjsoncArray');
+RjsoncObject.abbreviate_str_repr('RjsoncObject');
 // -------------------------------------------------------------------------------------------------
-rJsonc.finalize(); 
+// wst_cutting_enc(lsqr,
+//                 wst_star(second(seq(jsonc_comments,
+//                                     Rjsonc,
+//                                     jsonc_comments)),
+//                          comma),
+//                 rsqr);
+
+
+// const make_RjsoncObject_rule = (key_rule, value_rule)  => 
+//       choice(
+//         xform(arr => ({}), wst_seq(lbrc, rbrc)),
+//         xform(arr => {
+//           const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+//           return Object.fromEntries(new_arr);
+//         },
+//               wst_cutting_seq(
+//                 wst_enc(lbrc, key_rule, colon), 
+//                 jsonc_comments,
+//                 value_rule,
+//                 jsonc_comments,
+//                 optional(second(wst_seq(comma,
+//                                         wst_star(
+//                                           xform(arr =>  [arr[1], arr[5]],
+//                                                 wst_seq(jsonc_comments,
+//                                                         key_rule,
+//                                                         jsonc_comments,
+//                                                         colon,
+//                                                         jsonc_comments,
+//                                                         value_rule,
+//                                                         jsonc_comments
+//                                                        )),
+//                                           comma)),
+//                                )),
+//                 rbrc)));
 // =================================================================================================
 // END OF 'relaxed' JSONC GRAMMAR SECTION.
 // =================================================================================================
@@ -2627,7 +2637,7 @@ const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]
 class WeightedPicker {
   // -----------------------------------------------------------------------------------------------
   constructor(initialOptions = []) {
-    // lm.log(`CONSTRUCT WITH ${JSON.stringify(initialOptions)}`);
+    // lm.log(`CONSTRUCT WITH ${inspect_fun(initialOptions)}`);
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
@@ -2787,7 +2797,7 @@ class WeightedPicker {
 
     if (log_picker_enabled) {
       lm.log(`PICK_ONE!`);
-      lm.log(`PICK FROM ${JSON.stringify(this)}`);
+      lm.log(`PICK FROM ${inspect_fun(this)}`);
     }
 
     if (this.options.length === 0) {
@@ -2865,14 +2875,14 @@ class WeightedPicker {
     // Since we now avoid adding options with a weight of 0, this should never be true:
     if (total_weight === 0) {
       throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                      `legal_options = ${JSON.stringify(legal_option_indices.map(ix =>
-                        [
-                          ix,
-                          this.__effective_weight(ix, priority),
-                          this.options[ix]
-                        ]
-                      ), null, 2)}, ` +
-                      `used_indices = ${JSON.stringify(this.used_indices, null, 2)}`);
+                      `legal_options = ${inspect_fun(legal_option_indices.map(ix =>
+                          [
+                            ix,
+                            this.__effective_weight(ix, priority),
+                            this.options[ix]
+                          ]
+                        ))}, ` +
+                      `used_indices = ${inspect_fun(this.used_indices)}`);
     }
     
     let random = Math.random() * total_weight;
@@ -2892,7 +2902,7 @@ class WeightedPicker {
         continue;
       
       if (log_picker_enabled)
-        lm.log(`ADJUSTED_WEIGHT OF ${JSON.stringify(option)} IS ${adjusted_weight}`);
+        lm.log(`ADJUSTED_WEIGHT OF ${inspect_fun(option)} IS ${adjusted_weight}`);
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -2913,17 +2923,40 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
-function arr_is_prefix_of_arr(prefix_arr, full_arr) {
-  if (prefix_arr.length > full_arr.length)
-    return false;
+function intercalate(separator, array, { final_separator = null } = {}) {
+  if (array.length === 0) return [];
 
-  for (let ix = 0; ix < prefix_arr.length; ix++)
-    if (prefix_arr[ix] !== full_arr[ix])
-      return false;
-  
-  return true;
+  const result = [array[0]];
+
+  for (let ix = 1; ix < array.length; ix++) {
+    const sep = (final_separator && ix === array.length - 1)
+          ? final_separator
+          : separator;
+    result.push(sep, array[ix]);
+  }
+
+  return result;
 }
+// -------------------------------------------------------------------------------------------------
+const arr_is_prefix_of_arr = (() => {
+  const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
 
+  return function(prefix_arr, full_arr, prefix_wildcard_value = PREFIX_WILDCARD_NOT_SUPPLIED) {
+    if (prefix_arr.length > full_arr.length)
+      return false;
+
+    for (let ix = 0; ix < prefix_arr.length; ix++) {
+      if (prefix_wildcard_value !== PREFIX_WILDCARD_NOT_SUPPLIED &&
+          prefix_arr[ix] === prefix_wildcard_value)
+        continue;
+
+      if (prefix_arr[ix] !== full_arr[ix])
+        return false;
+    }
+
+    return true;
+  };
+})();
 // -------------------------------------------------------------------------------------------------
 function benchmark(thunk, {
   batch_count    = 50,
@@ -3002,7 +3035,7 @@ function benchmark(thunk, {
   console.log();
   return running_avg;
 }
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 function format_pretty_bytes(bytes) {
   const units = ['bytes', 'KB', 'MB', 'GB'];
   const base = 1024;
@@ -3034,11 +3067,15 @@ function indent_lines(indent, str, indent_str = "| ") {
 }
 // -------------------------------------------------------------------------------------------------
 function measure_time(fun) {
-  const start    = performance.now();
+  const now = dt_hosted
+        ? Date.now
+        : performance.now.bind(performance);
+
+  const start = now();
   fun();
-  const end      = performance.now();
-  const duration = end - start;
-  return duration;
+  const end = now();
+
+  return end - start;
 }
 // -------------------------------------------------------------------------------------------------
 function rjson_stringify(obj) {
@@ -3101,11 +3138,14 @@ function format_pretty_number(num) {
 function format_pretty_list(arr) {
   const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
 
-  if (items.length === 0) return "";
-  if (items.length === 1) return items[0];
-  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  if (items.length === 0)
+    return '';
+  if (items.length === 1)
+    return items[0];
+  if (items.length === 2)
+    return `${items[0]} and ${items[1]}`;
 
-  const ret = `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  const ret = `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
   
   return ret;
 }
@@ -3132,9 +3172,9 @@ function rand_int(x, y) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 // -------------------------------------------------------------------------------------------------
-function smart_join(arr, unexpected) {
-  if (unexpected !== undefined)
-    throw new Error("bad args");
+function smart_join(arr, { correct_articles = undefined } = {}) {
+  if (correct_articles === undefined)
+    throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
   
   // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
   // const log = msg => {
@@ -3156,7 +3196,7 @@ function smart_join(arr, unexpected) {
     return '';
   
   if (log_smart_join_enabled)
-    lm.log(`JOINING ${compress(inspect_fun(arr))}`);
+    lm.log(`JOINING ${compress(inspect_fun(arr))}`, true);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
@@ -3176,6 +3216,9 @@ function smart_join(arr, unexpected) {
   let str       = left_word;
   
   for (let ix = 1; ix < arr.length; ix++)  {
+    // if (str.includes(`,,`))
+    //   throw new Error("STOP");
+    
     let right_word           = null;
     let prev_char            = null;
     let prev_char_is_escaped = null;
@@ -3184,7 +3227,7 @@ function smart_join(arr, unexpected) {
 
     const add_a_space = () => {
       if (log_smart_join_enabled)
-        lm.log(`SPACE!`);
+        lm.log(`SPACE!`, true);
 
       prev_char  = ' ';
       str       += ' ';
@@ -3192,7 +3235,7 @@ function smart_join(arr, unexpected) {
 
     const chomp_left_side = () => {
       if (log_smart_join_enabled)
-        lm.log(`CHOMP LEFT!`);
+        lm.log(`CHOMP LEFT!`, true);
       
       str      = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
@@ -3202,7 +3245,7 @@ function smart_join(arr, unexpected) {
     
     const chomp_right_side = () => {
       if (log_smart_join_enabled)
-        lm.log(`CHOMP RIGHT!`);
+        lm.log(`CHOMP RIGHT!`, true);
 
       arr[ix] = arr[ix].slice(1);
 
@@ -3211,7 +3254,7 @@ function smart_join(arr, unexpected) {
 
     const consume_right_word = () => {
       if (log_smart_join_enabled)
-        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+        lm.log(`CONSUME ${inspect_fun(right_word)}!`, true);
 
       // if (right_word === '""' || right_word === "''")
       //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
@@ -3222,7 +3265,7 @@ function smart_join(arr, unexpected) {
 
     const move_chars_left = (n) => {
       if (log_smart_join_enabled)
-        lm.log(`SHIFT ${n} CHARACTERS!`);
+        lm.log(`SHIFT ${n} CHARACTERS!`, true);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
       const shifted_str = right_word.substring(0, n);
@@ -3238,8 +3281,8 @@ function smart_join(arr, unexpected) {
       right_word           = arr[ix]; // ?.toString() ?? "";
       prev_char            = left_word[left_word.length - 1] ?? "";
       prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-      next_char            = right_word[0] ?? '';
       next_char_is_escaped = right_word[0] === '\\';
+      next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
 
       if (log_smart_join_enabled)
         lm.log(`ix = ${inspect_fun(ix)}, ` +
@@ -3249,15 +3292,20 @@ function smart_join(arr, unexpected) {
                `prev_char = ${inspect_fun(prev_char)}, ` +         
                `next_char = ${inspect_fun(next_char)}, ` + 
                `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-               `next_char_is_escaped = ${next_char_is_escaped}`);
+               `next_char_is_escaped = ${next_char_is_escaped}`, true);
     };
     
     update_pos_vars();
     
     if (right_word === '') {
       if (log_smart_join_enabled)
-        lm.log(`JUMP EMPTY!`);
+        lm.log(`JUMP EMPTY!`, true);
 
+      continue;
+    }
+
+    if (right_word === '<') {
+      str += '<';
       continue;
     }
 
@@ -3266,16 +3314,18 @@ function smart_join(arr, unexpected) {
     
     while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
       move_chars_left(1);
-    
-    // Normalize article if needed:
-    const article_match = str.match(/(?:^|\s)([Aa])$/);
-    
-    if (article_match) {
-      const originalArticle = article_match[1];
-      const updatedArticle = articleCorrection(originalArticle, right_word);
 
-      if (updatedArticle !== originalArticle) 
-        str = str.slice(0, -originalArticle.length) + updatedArticle;
+    // Normalize article if needed:
+    if (correct_articles) {
+      const article_match = str.match(/(?:^|\s)([Aa])$/);
+      
+      if (article_match) {
+        const originalArticle = article_match[1];
+        const updatedArticle = articleCorrection(originalArticle, right_word);
+
+        if (updatedArticle !== originalArticle) 
+          str = str.slice(0, -originalArticle.length) + updatedArticle;
+      }
     }
 
     let chomped = false;
@@ -3285,6 +3335,11 @@ function smart_join(arr, unexpected) {
       chomped = true;
     }
     
+    if (str.endsWith('<')) {
+      chomp_left_side();
+      chomped = true;
+    }
+
     if (right_word.startsWith('<')) {
       chomp_right_side();
       chomped = true;
@@ -3292,7 +3347,7 @@ function smart_join(arr, unexpected) {
 
     if (right_word === '') {
       if (log_smart_join_enabled)
-        lm.log(`JUMP EMPTY (LATE)!`);
+        lm.log(`JUMP EMPTY (LATE)!`, true);
 
       continue;
     }
@@ -3312,7 +3367,7 @@ function smart_join(arr, unexpected) {
   }
 
   if (log_smart_join_enabled)
-    lm.log(`JOINED ${inspect_fun(str)}`);
+    lm.log(`JOINED ${inspect_fun(str)}`, true);
 
   return str;
 }
@@ -3495,7 +3550,6 @@ const configuration_key_names = [
   // -----------------------------------------------------------------------------------------------
   { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
   { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
-  { dt_name: 'height',                            automatic1111_name: 'height'                                     },
   { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
   { dt_name: 'model',                             automatic1111_name: 'model'                                      },
   { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
@@ -3506,8 +3560,24 @@ const configuration_key_names = [
   { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
   { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
   { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
-  { dt_name: 'width',                             automatic1111_name: 'width'                                      },
   { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
+
+  { dt_name: 'height',                            automatic1111_name: 'height',
+    shorthands: [ 'h', 'ih', ] },
+  { dt_name: 'width',                             automatic1111_name: 'width',
+    shorthands: [ 'w', 'iw', ] },
+  { dt_name: 'negativeOriginalImageHeight',       automatic1111_name: 'negative_original_height',
+    shorthands: [ 'noih', 'noh', 'nih', 'nh', 'negativeOriginalHeight', ] },
+  { dt_name: 'negativeOriginalImageWidth',        automatic1111_name: 'negative_original_width',
+    shorthands: [ 'noiw', 'now', 'niw', 'nw', 'negativeOriginalWidth',  ] },
+  { dt_name: 'originalImageHeight',               automatic1111_name: 'original_height',
+    shorthands: [ 'oih', 'oh', 'originalHeight', ] },
+  { dt_name: 'originalImageWidth',                automatic1111_name: 'original_width',
+    shorthands: [ 'oiw', 'ow', 'originalWidth'   ] },
+  { dt_name: 'targetImageHeight',                 automatic1111_name: 'target_height',
+    shorthands: [ 'tih', 'th', 'targetHeight', ] },
+  { dt_name: 'targetImageWidth',                  automatic1111_name: 'target_width',
+    shorthands: [ 'tiw', 'tw', 'targetWidth',  ] },
   // -----------------------------------------------------------------------------------------------
   // differing keys:
   // -----------------------------------------------------------------------------------------------
@@ -3532,27 +3602,24 @@ const configuration_key_names = [
     shorthands: [ 'guidance',                                                                                    ] },
   { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug'                                   },
   { dt_name: 'hiresFix',                          automatic1111_name: 'high_resolution_fix',
-    shorthands: [ 'enable_hr',                                                                                   ] },
-  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height_explanation',
-    shorthands: [ 'firstphase_height',                                                                           ] },
-  { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail'          },
-  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width_explanation',
-    shorthands: [ 'firstphase_width',                                                                            ] },
+    shorthands: [ 'enable_hr', 'hrf' ]                                                                             },
+  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height', /*_explanation', */
+    shorthands: [ 'firstphase_height', 'hrfh', ] },
+  { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail',
+    shorthands: [ 'hrf_strength', ] },
+  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width', /*_explanation', */
+    shorthands: [ 'firstphase_width', 'hrfw', ] },
   { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
   { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
   { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
   { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
   { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
   { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
-  { dt_name: 'negativeOriginalHeight',            automatic1111_name: 'negative_original_height'                   },
-  { dt_name: 'negativeOriginalWidth',             automatic1111_name: 'negative_original_width'                    },
   { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
     shorthands: ['neg', 'negative' ] },
   { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
   { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
     shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
-  { dt_name: 'originalHeight',                    automatic1111_name: 'original_height'                            },
-  { dt_name: 'originalWidth',                     automatic1111_name: 'original_width'                             },
   { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
   { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
   { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
@@ -3573,8 +3640,6 @@ const configuration_key_names = [
   { dt_name: 't5Text',                            automatic1111_name: 't5_text',
     shorthands: [ 't5' ] },
   { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
-  { dt_name: 'targetHeight',                      automatic1111_name: 'target_height'                              },
-  { dt_name: 'targetWidth',                       automatic1111_name: 'target_width'                               },
   { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
   { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
   { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
@@ -3583,7 +3648,8 @@ const configuration_key_names = [
   { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
   { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
   { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
-  { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt'                       },
+  { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt',
+    shorthands: [ "znp" ] },
 ];
 // -------------------------------------------------------------------------------------------------
 function get_other_name(return_key, find_key, find_value) {
@@ -3681,6 +3747,8 @@ function get_next_context_id() {
 }
 // -------------------------------------------------------------------------------------------------
 class Context {
+  #configuration;
+  // -----------------------------------------------------------------------------------------------
   constructor({ 
     flags                        = [], 
     scalar_variables             = new Map(),
@@ -3694,6 +3762,7 @@ class Context {
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
     negative_prompt              = null,
+    in_lora                      = false,
   } = {}) {
     this.context_id                   = get_next_context_id();
     this.flags                        = flags;
@@ -3701,15 +3770,77 @@ class Context {
     this.named_wildcards              = named_wildcards;
     this.noisy                        = noisy;
     this.files                        = files;
-    this.configuration                = structured_clone(configuration, { unshare: true });
+    this.configuration                = configuration;
     this.top_file                     = top_file;
     this.pick_one_priority            = pick_one_priority;
     this.prior_pick_one_priority      = prior_pick_one_priority;
     this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-
+    this.in_lora                      = in_lora;
+    
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
+  }
+  // -----------------------------------------------------------------------------------------------
+  clone(obj = {}) {
+    // lm.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    
+    const copy = new Context({
+      flags:                        structured_clone(this.flags),
+      scalar_variables:             new Map(this.scalar_variables), // slightly shared
+      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
+      noisy:                        this.noisy,
+      files:                        structured_clone(this.files),
+      configuration:                this.configuration, 
+      top_file:                     this.top_file,
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.pick_multiple_priority,
+    });
+
+    if (this.configuration.loras && copy.configuration.loras &&
+        this.configuration.loras === copy.configuration.loras)
+      throw new Error("oh no");
+
+    // lm.log(`CLONED CONTEXT`);
+    
+    Object.assign(copy, obj);
+
+    return copy;
+  }
+  // -----------------------------------------------------------------------------------------------
+  shallow_copy(obj = {}) {
+    var copy = new Context({
+      flags:                        this.flags,
+      scalar_variables:             this.scalar_variables,
+      named_wildcards:              this.named_wildcards,
+      noisy:                        this.noisy,
+      files:                        this.files,
+      top_file:                     this.top_file,
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,
+      prior_pick_multiple_priority: this.pick_multiple_priority,      
+      negative_prompt:              this.negative_prompt,
+    });
+
+    // avoid copying this by assigning to #configuration instead of using
+    // configuration argument to constructor:
+    copy.#configuration = this.configuration;
+
+    Object.assign(copy, obj);
+    
+    return copy;
+  }
+  // -----------------------------------------------------------------------------------------------
+  get configuration() {
+    return this.#configuration;
+  }
+  // -----------------------------------------------------------------------------------------------
+  set configuration(config) {
+    // lm.log(`CLONING CONFIGURATION!`);
+    this.#configuration = structured_clone(config, { unshare: true });
   }
   // -----------------------------------------------------------------------------------------------
   add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
@@ -3735,7 +3866,7 @@ class Context {
     let res = false;
 
     for (const flag of this.flags) {
-      if (arr_is_prefix_of_arr(test_flag, flag)) {
+      if (arr_is_prefix_of_arr(test_flag, flag, '*')) {
         res = true;
         break;
       }
@@ -3801,49 +3932,6 @@ class Context {
            } */
     }
   }
-  // -----------------------------------------------------------------------------------------------
-  clone() {
-    // lm.log(`CLONING CONTEXT ${inspect_fun(this)}`);
-    
-    const copy = new Context({
-      flags:                        structured_clone(this.flags),
-      scalar_variables:             new Map(this.scalar_variables), // slightly shared
-      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
-      noisy:                        this.noisy,
-      files:                        structured_clone(this.files),
-      configuration:                structured_clone(this.configuration, { unshare: true }),
-      top_file:                     this.top_file,
-      pick_one_priority:            this.pick_one_priority,
-      prior_pick_one_priority:      this.prior_pick_one_priority,
-      pick_multiple_priority:       this.pick_multiple_priority,      
-      prior_pick_multiple_priority: this.pick_multiple_priority,
-    });
-
-    if (this.configuration.loras && copy.configuration.loras &&
-        this.configuration.loras === copy.configuration.loras)
-      throw new Error("oh no");
-
-    // lm.log(`CLONED CONTEXT`);
-    
-    return copy;
-  }
-  // -----------------------------------------------------------------------------------------------
-  shallow_copy() {
-    return new Context({
-      flags:                        this.flags,
-      scalar_variables:             this.scalar_variables,
-      named_wildcards:              this.named_wildcards,
-      noisy:                        this.noisy,
-      files:                        this.files,
-      configuration:                this.configuration,
-      top_file:                     false, // deliberately not copied!
-      pick_one_priority:            this.pick_one_priority,
-      prior_pick_one_priority:      this.prior_pick_one_priority,
-      pick_multiple_priority:       this.pick_multiple_priority,
-      prior_pick_multiple_priority: this.pick_multiple_priority,      
-      negative_prompt:              this.negative_prompt,
-    });
-  }
   // -------------------------------------------------------------------------------------------------
   munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
     // const log = msg => lm.log(`${' '.repeat(indent*2)}${msg}`);
@@ -3886,6 +3974,9 @@ class Context {
 
       if (got)
         munged_configuration.sampler = got;
+      else
+        lm.log(`WARNING: did not find samples '${munged_configuration.sampler}', ` +
+               `we're probably going to crash in a moment`);
     }
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
@@ -3893,7 +3984,18 @@ class Context {
         lm.log(`correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
                `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`,
                log_expand_and_walk_enabled);
-        munged_configuration.sampler = dt_samplers.indexOf(munged_configuration.sampler);
+        const index = dt_samplers.indexOf(munged_configuration.sampler);
+
+        if (index === -1) {
+          lm.log(`WARNING: could not find index of sampler '${munged_configuration.sampler}'. `+
+                 `Are you sure you used the ` +
+                 `correct name? deleting sampler from configuration.`);
+
+          delete munged_configuration.sampler;
+        }
+        else {
+          munged_configuration.sampler = index;
+        }
       }
     }
     // when running in Node.js, sampler needs to be a string::
@@ -3928,7 +4030,7 @@ class Context {
     }
 
     // if (log_configuration_enabled)
-    //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration, null, 2)}`);
+    //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
 
     this.configuration =  munged_configuration;
   }
@@ -3972,29 +4074,460 @@ const prelude_text = prelude_disabled ? '' : `
                            {?gender.female hers
                            |?gender.male   his
                            |?gender.neuter its       }}
-@any_digit              = {\\0|\\1|\\2|\\3|\\4
+
+@digit                  = {\\0|\\1|\\2|\\3|\\4
                           |\\5|\\6|\\7|\\8|\\9}
 @low_digit              = {\\0|\\1|\\2|\\3|\\4}
 @high_digit             = {\\5|\\6|\\7|\\8|\\9}
+
 @low_random_weight      = {0.< @low_digit }
-@lt1_random_weight      = {0.< @any_digit } 
+@lt1_random_weight      = {0.< @digit } 
 @lowish_random_weight   = {0.< @high_digit}
-@random_weight          = {1.< @any_digit }
+@random_weight          = {1.< @digit }
 @highish_random_weight  = {1.< @low_digit }
-@gt1_random_weight      = {1.< @any_digit }
+@gt1_random_weight      = {1.< @digit }
 @high_random_weight     = {1.< @high_digit}
-@pony_score_9           = {                                                             score_9, }
-@pony_score_8_up        = {                                                 score_8_up, score_9, }
-@pony_score_7_up        = {                                     score_7_up, score_8_up, score_9, }
-@pony_score_6_up        = {                         score_6_up, score_7_up, score_8_up, score_9, }
-@pony_score_5_up        = {             score_5_up, score_6_up, score_7_up, score_8_up, score_9, }
-@pony_score_4_up        = { score_4_up, score_5_up, score_6_up, score_7_up, score_8_up, score_9, }
+
+@pony_score_9           = { score_9,                                                             }
+@pony_score_8_up        = { score_9, score_8_up,                                                 }
+@pony_score_7_up        = { score_9, score_8_up, score_7_up,                                     }
+@pony_score_6_up        = { score_9, score_8_up, score_7_up, score_6_up,                         }
+@pony_score_5_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up,             }
+@pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, }
+
+@pony_scores =
+{0
+|@pony score_4_up
+|@pony score_5_up
+|@pony score_6_up
+|@pony score_7_up
+|@pony score_8_up
+|@pony score_9
+}
+
+@high_pony_scores =
+{0
+|@pony_score_7_up
+|@pony_score_8_up
+|@pony_score_9
+}
+
 @aris_defaults          = { masterpiece, best quality, absurdres, aesthetic, 8k,
                             high depth of field, ultra high resolution, detailed background,
                             wide shot,}
 
+
+// =================================================================================================
+// content based on XL Magic Config:
+// =================================================================================================
+
+// -------------------------------------------------------------------------------------------------
+// small
+// -------------------------------------------------------------------------------------------------
+
+@xl_magic_small_1_to_1 =
+{ %w    = 512;  %h    = 512;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1024; %th   = 768;   
+  %nw   = 1792; %nh   = 1344;  
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_small_3_to_2 =
+{ %w    = 768;  %h    = 512;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1024; %th   = 768;   
+  %nw   = 1792; %nh   = 1344;  
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_small_2_to_3 =
+{ %w    = 512;  %h    = 768;   
+  %ow   = 576;  %oh   = 768;   
+  %tw   = 768;  %th   = 1024;  
+  %nw   = 1344; %nh   = 1792;  
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_small_4_to_3 =
+{ %w   = 768;  %h     = 576;    
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1024; %th    = 768;    
+  %nw  = 1792; %nh    = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_small_3_to_4 =
+{ %w   = 576;  %h     = 768;    
+  %ow  = 576;  %oh    = 768;    
+  %tw  = 768;  %th    = 1024;   
+  %nw  = 1344; %nh    = 1792;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_small_16_to_9 =
+{ %w   = 1024;  %h    = 576;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_small_9_to_16 =
+{ %w   = 576;  %h     = 1024;   
+  %ow  = 576;  %oh    = 768;    
+  %tw  = 768;  %th    = 1024;   
+  %nw  = 1344; %nh    = 1792;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
+}
+
+// -------------------------------------------------------------------------------------------------
+// medium:
+// -------------------------------------------------------------------------------------------------
+
+@xl_magic_medium_1_to_1 =
+{ %h   = 1024;  %w    = 1024;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic.aspect_ratio_1_to_1
+  #xl_magic_size.medium
+}
+
+@xl_magic_medium_1_to_1_os6 =
+{ %h   = 1024;  %w    = 1024;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.6
+}
+
+@xl_magic_medium_3_to_2 =
+{ %w   = 1216;  %h    = 832;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_3_to_2_os6 =
+{ %w   = 1216;  %h    = 832; 
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
+}
+
+@xl_magic_medium_2_to_3 =
+{ %w   = 832;   %h    = 1216;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 768;   %th   = 1024;   
+  %nw  = 1344;  %nh   = 1792;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_2_to_3_os6 =
+{ %w   = 832;   %h    = 1216;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1344;  %nh   = 1792;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+
+@xl_magic_medium_4_to_3 =
+{ %w    = 1152; %h    = 896;    
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_4_to_3_os6 =
+{ %w    = 1152; %h    = 896;     
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1536; %th   = 1152 
+  %nw   = 1792; %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.6
+}
+
+@xl_magic_medium_3_to_4 =
+{ %w   = 896;   %h    = 1152;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 768;   %th   = 1024;   
+  %nw  = 1344;  %nh   = 1792;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_3_to_4_os6 =
+{ %w   = 896;   %h    = 1152;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1344;  %nh   = 1792;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.6
+}
+
+@xl_magic_medium_16_to_9 =
+{ %w   = 1344;  %h    = 768;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_16_to_9_os6 =
+{ %w   = 1344;  %h    = 768;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.6
+}
+
+@xl_magic_medium_9_to_16 =
+{ %w   = 768;   %h    = 1344;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 768;   %th   = 1024;   
+  %nw  = 1344;  %nh   = 1792;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_medium_9_to_16_os6 = 
+{ %w   = 768;   %h    = 1344;   
+  %ow  = 576;   %oh   = 768;    
+  %tw  = 768;   %th   = 1024;   
+  %nw  = 1533;  %nh   = 1152;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+
+// -------------------------------------------------------------------------------------------------
+// large:
+// -------------------------------------------------------------------------------------------------
+
+@xl_magic_large_1_to_1 = 
+{ %w    = 1536; %h    = 1536;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 512;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_3_to_2 =
+{ %w    = 1920; %h    = 1280;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 768;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_2_to_3 =
+{ %w    = 1280; %h    = 1920;   
+  %ow   = 576;  %oh   = 768;    
+  %tw   = 768;  %th   = 1024;   
+  %nw   = 1344; %nh   = 1792;   
+  %hrfw = 512;  %hrfh = 768;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_3_to_4 =
+{ %w    = 1344; %h    = 1792;   
+  %ow   = 576;  %oh   = 768;    
+  %tw   = 768;  %th   = 1024;   
+  %nw   = 1344; %nh   = 1792;   
+  %hrfw = 576;  %hrfh = 768;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_4_to_3 =
+{ %w    = 1792; %h    = 1344;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 768;  %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_16_to_9 =
+{ %w    = 2048; %h    = 1152;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 1024; %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_9_to_16 =
+{ %w    = 1152; %h    = 2048;   
+  %ow   = 576;  %oh   = 768;    
+  %tw   = 768;  %th   = 1024;   
+  %nw   = 1344; %nh   = 1792;   
+  %hrfw = 576;  %hrfh = 1024;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
+}
+
+// --------------------------------------------------------------------------------------------------
+// pickers:
+// -------------------------------------------------------------------------------------------------
+
+@xl_magic_small_random =
+{ @xl_magic_small_1_to_1
+| @xl_magic_small_2_to_3
+| @xl_magic_small_3_to_2
+| @xl_magic_small_3_to_4
+| @xl_magic_small_4_to_3
+| @xl_magic_small_9_to_16
+| @xl_magic_small_16_to_9
+  #xl_magic_object_scaling.object_scaling_4
+}
+
+@xl_magic_medium_random =
+{ @xl_magic_medium_1_to_1
+| @xl_magic_medium_2_to_3
+| @xl_magic_medium_3_to_2
+| @xl_magic_medium_3_to_4
+| @xl_magic_medium_4_to_3
+| @xl_magic_medium_9_to_16
+| @xl_magic_medium_16_to_9
+}
+
+@xl_magic_medium_os6_random =
+{ @xl_magic_medium_1_to_1_os6
+| @xl_magic_medium_2_to_3_os6
+| @xl_magic_medium_3_to_2_os6
+| @xl_magic_medium_3_to_4_os6
+| @xl_magic_medium_4_to_3_os6
+| @xl_magic_medium_9_to_16_os6
+| @xl_magic_medium_16_to_9_os6
+}
+
+@xl_magic_large_random =
+{ @xl_magic_large_1_to_1
+| @xl_magic_large_2_to_3
+| @xl_magic_large_3_to_2
+| @xl_magic_large_3_to_4
+| @xl_magic_large_4_to_3
+| @xl_magic_large_9_to_16
+| @xl_magic_large_16_to_9
+}
+
 //--------------------------------------------------------------------------------------------------
-// Integrated conntent adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
+// Integrated content adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
 // Artist Summoning':
 //--------------------------------------------------------------------------------------------------
 
@@ -7236,25 +7769,37 @@ const prelude_text = prelude_disabled ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
-  const old_log_flags_enabled = log_flags_enabled;
-  log_flags_enabled = false;
-  
-  if (! prelude_parse_result) {
-    const old_log_match_enabled = log_match_enabled;
-    log_match_enabled = false; 
-    prelude_parse_result = Prompt.match(prelude_text);
-    log_match_enabled = old_log_match_enabled;
-  }
+  if (log_loading_prelude)
+    lm.log(`loading prelude...`);
 
-  // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
-  const ignored = expand_wildcards(prelude_parse_result.value, into_context);
-  log_flags_enabled = old_log_flags_enabled;
+  const elapsed = measure_time(() => {
+    const old_log_flags_enabled = log_flags_enabled;
+    log_flags_enabled = false;
+    
+    if (! prelude_parse_result) {
+      const old_log_match_enabled = log_match_enabled;
+      log_match_enabled = false; 
+      prelude_parse_result = Prompt.match(prelude_text);
+      log_match_enabled = old_log_match_enabled;
+    }
 
-  // log_flags_enabled = true;
+    // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
+    const ignored = expand_wildcards(prelude_parse_result.value, into_context,
+                                     { correct_articles: true });
+    
+    log_flags_enabled = old_log_flags_enabled;
+
+    // log_flags_enabled = true;
+    
+    if (ignored === undefined)
+      throw new Error("crap");
+
+    // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
+  });
   
-  if (ignored === undefined)
-    throw new Error("crap");
-  
+  if (log_loading_prelude)
+    lm.log(`loading prelude took ${elapsed.toFixed(3)} ms`);
+
   return into_context;
 }
 // =================================================================================================
@@ -7265,9 +7810,9 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
-function expand_wildcards(thing, context = new Context(), unexpected = undefined) {
-  if (unexpected !== undefined)
-    throw new Error("bad args");
+function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
+  if (context === undefined || correct_articles === undefined)
+    throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
   function forbid_fun(option) {
     for (const not_flag of option.not_flags)
@@ -7321,9 +7866,12 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
     if (guard_bool) lm.log(msg, with_indentation);
   };
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, undexpected) {
-    if (unexpected !== undefined)
-      throw new Error("bad args");
+  function walk(thing, { correct_articles = undefined } = {}) {
+    if (correct_articles === undefined)
+      throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
+
+    // if (unexpected !== undefined)
+    //   throw new Error(`bad args: ${inspect_fun(unexpected)}`);
     
     const log = (guard_bool, msg, with_indentation = true) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
@@ -7363,7 +7911,8 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
                 `of ${thing.length} ` +
                 `${thing_str_repr(thing[ix])}`);
 
-            const elem_ret = lm.indent(() => walk(thing[ix]));
+            const elem_ret = lm.indent(() => walk(thing[ix],
+                                                  { correct_articles: correct_articles }));
 
             ret.push(elem_ret);
 
@@ -7410,14 +7959,18 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         
         if (got instanceof ASTLatchedNamedWildcardValue) {
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-            res.push(lm.indent(() => expand_wildcards(got.latched_value, context))); // not walk!
+            res.push(lm.indent(() => expand_wildcards(got.latched_value, context,
+                                                      { correct_articles: correct_articles}))); // not walk!
         }
         else {
           const priority = thing.min_count === 1 && thing.max_count === 1
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          const each  = p => lm.indent(() => expand_wildcards(p?.body ?? '', context));
+          const each  = p => lm.indent(() =>
+            expand_wildcards(p?.body ?? '', context,
+                             { correct_articles: correct_articles }));
+          
           const picks = got.pick(thing.min_count, thing.max_count,
                                  allow_fun, forbid_fun, each, 
                                  priority);
@@ -7431,15 +7984,28 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         
         res = res.filter(s => s !== '');
 
-        if (thing.capitalize && res.length > 0) {
+        if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
-        }
 
-        throw new ThrownReturn(thing.joiner == ','
-                               ? res.join(", ")
-                               : (thing.joiner == '&'
-                                  ? format_pretty_list(res)
-                                  : res.join(" ")));
+        let str;
+
+        const joiner = thing.joiner === '&'
+              ? ','
+              : thing.joiner;
+
+        const intercalate_options = thing.joiner === '&'
+              ? { final_separator: 'and' }
+              : {};
+
+        str = smart_join(intercalate(joiner, res, intercalate_options),
+                         { correct_articles: false });
+        
+        if (thing.trailer && str.length > 0)
+          str = smart_join([str, thing.trailer],
+                           { correct_articles: false });
+        // * never need to correct articles for trailers since punctuation couldn't trigger correction
+        
+        throw new ThrownReturn(str);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
@@ -7451,6 +8017,10 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         if (thing.capitalize)
           got = capitalize(got);
 
+        if (thing.trailer && got.length > 0)
+          got = smart_join([got, thing.trailer],
+                           { correct_articles: false });
+        // * never need to correct articles for trailers since punctuation couldn't trigger correction
         
         throw new ThrownReturn(got);
       }
@@ -7531,11 +8101,13 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
             `assigning ${inspect_fun(thing.source)} ` +
             `to '${thing.destination.name}'`);
         
-        let   new_val = lm.indent(() => expand_wildcards(thing.source, context));
+        let   new_val = lm.indent(() => expand_wildcards(thing.source, context,
+                                                         { correct_articles: correct_articles }));
         const old_val = context.scalar_variables.get(thing.destination.name)??'';
 
         if (! thing.assign)
-          new_val = smart_join([ old_val, new_val ]);
+          new_val = smart_join([old_val, new_val],
+                               { correct_articles: true }); // always correct articles here?
         
         context.scalar_variables.set(thing.destination.name, new_val);
 
@@ -7564,8 +8136,19 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
 
         if (! pick)
           throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
-        
-        throw new ThrownReturn(lm.indent(() => walk(pick)));
+
+        // const ret = lm.indent(() => walk(pick));j
+        let ret = lm.indent(() => expand_wildcards(pick, context,
+                                                   { correct_articles: correct_articles }));
+
+        // console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
+
+        if (thing.trailer && ret.length > 0)
+          ret = smart_join([ret, thing.trailer],
+                           { correct_articles: false });
+        // * never need to correct articles for trailers since punctuation couldn't trigger correction
+
+        throw new ThrownReturn(ret);
       }
       // ---------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUpdateConfigurationUnary ||
@@ -7575,11 +8158,23 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         // lm.log(`THING: ${thing} ${inspect_fun(thing)}`);
         
         if (value instanceof ASTNode) {
-          const expanded_value = lm.indent(() => expand_wildcards(thing.value, context)); // not walk!
-          const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
-                                                ? rJsoncObject
-                                                : rJsonc).match(expanded_value);
+          const expanded_value = lm.indent(() =>
+            // don't correct articles in config values so that we don't mess up, e.g.,
+            // %sampled = { Euler A AYS };
+            expand_wildcards(thing.value, context, // not walk!
+                             { correct_articles: false })); 
 
+          // lm.log(`expanded value: ${compress(inspect_fun(thing.value))} => ` +
+          //        `${inspect_fun(expanded_value)}`);
+
+          // log_match_enabled  = true;
+
+          const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
+                                                ? RjsoncObject
+                                                : Rjsonc).match(expanded_value);
+
+          // log_match_enabled  = false;
+          
           if (thing instanceof ASTUpdateConfigurationBinary) {
             value = jsconc_parsed_expanded_value?.is_finished
               ? jsconc_parsed_expanded_value.value
@@ -7587,7 +8182,7 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
           }
           else { // ASTUpdateConfigurationUnary
             throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                            `rJSONC object, rJsonc.match(...) result was ` +
+                            `rJSONC object, Rjsonc.match(...) result was ` +
                             inspect_fun(jsconc_parsed_expanded_value));
           }
         }
@@ -7667,7 +8262,9 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
               // log(true, `current value ${inspect_fun(context.configuration[our_name])}, ` +
               //           `increment by string ${inspect_fun(value)}, ` +
               //           `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-              context.configuration[our_name] = lm.indent(() => smart_join([tmp_str, value]));
+              context.configuration[our_name] =
+                lm.indent(() => smart_join([tmp_str, value],
+                                           { correct_articles: false })); // never correct here?
             }
             else {
               // probly won't work most of the time, but let's try anyhow, I guess.
@@ -7780,13 +8377,19 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
         // log(log_expand_and_walk_enabled,
         //     `encountered lora ${thing} in ${context}`);
 
+        if (context.in_lora)
+          throw new Error(`don't nest LoRA inclusions, it's needlessly confusing!`);
+
+        const in_lora_context = context.shallow_copy({ in_lora: true });
+        
         let walked_file = null;
 
         lm.indent(() => {
           log(log_expand_and_walk_enabled,
               `expanding file ${compress(inspect_fun(thing.file))}`);
           
-          walked_file = lm.indent(() => expand_wildcards(thing.file, context)); // not walk!
+          walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
+                                                         { correct_articles: correct_articles })); // not walk!
 
           log(log_expand_and_walk_enabled,
               `expanded file is ${typeof walked_file} ` +
@@ -7794,19 +8397,14 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
               `${inspect_fun(walked_file)} `);
         });
         
-        // if (Array.isArray(walked_file))
-        //   walked_file = smart_join(walked_file); // unnecessary/impossible maybe?
-
-        // if (Array.isArray(thing.weight))
-        //   throw new Error("boom");
-
         let walked_weight = null;
         
         lm.indent(() => {
           log(log_expand_and_walk_enabled,
               `expanding weight ${compress(inspect_fun(thing.weight))}`);
           
-          walked_weight = lm.indent(() => expand_wildcards(thing.weight, context)); // not walk!
+          walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
+                                                           { correct_articles: correct_articles })); // not walk!
 
           log(log_expand_and_walk_enabled,
               `expanded weight is ${typeof walked_weight} ` +
@@ -7814,16 +8412,6 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
               `${compress(inspect_fun(walked_weight))}, ` +
               `Array.isArray(${Array.isArray(walked_weight)})`);
         });
-
-        // log(log_expand_and_walk_enabled,
-        //     `walking weight ${compress(inspect_fun(thing.weight))}`);
-
-        // if (Array.isArray(walked_weight) || walked_weight.startsWith('['))
-        //   throw "bomb";
-        
-        
-        // if (Array.isArray(walked_weight))
-        //   walked_weight = smart_join(walked_weight);
 
         const weight_match_result = json_number.match(walked_weight);
 
@@ -7888,7 +8476,10 @@ function expand_wildcards(thing, context = new Context(), unexpected = undefined
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
 
-  const ret = unescape(smart_join(lm.indent(() => walk(thing))));
+  const ret = unescape(smart_join(lm.indent(() => walk(thing,
+                                                       { correct_articles: correct_articles })),
+                                  { correct_articles: correct_articles }));
+  
   lm.indent(() => context.munge_configuration());
 
   // if (walked === '""' ||
@@ -8036,13 +8627,14 @@ class ASTNotFlag extends ASTNode  {
 // NamedWildcard references:
 // -------------------------------------------------------------------------------------------------
 class ASTNamedWildcardReference extends ASTNode {
-  constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1) {
+  constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1, trailer = '') {
     super();
     this.name       = name;
-    this.min_count  = min_count;
-    this.max_count  = max_count;
     this.joiner     = joiner;
     this.capitalize = capitalize;
+    this.min_count  = min_count;
+    this.max_count  = max_count;
+    this.trailer    = trailer;
     // lm.log(`BUILT ${inspect_fun(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
@@ -8070,10 +8662,11 @@ class ASTNamedWildcardReference extends ASTNode {
 // Scalar references:
 // -------------------------------------------------------------------------------------------------
 class ASTScalarReference extends ASTNode {
-  constructor(name, capitalize) {
+  constructor(name, capitalize = '', trailer = '') {
     super();
     this.name       = name;
     this.capitalize = capitalize;
+    this.trailer    = trailer;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8176,12 +8769,15 @@ class ASTLatchedNamedWildcardValue extends ASTNode {
 // AnonWildcards:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard  extends ASTNode {
-  constructor(options) {
+  constructor(options, trailer = null) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
-    // lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+    this.trailer = trailer;
+
+    // if (trailer)
+    //   lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
@@ -8369,48 +8965,55 @@ class ASTUINegPrompt extends ASTNode {
 // =================================================================================================
 // SD PROMPT GRAMMAR SECTION:
 // =================================================================================================
+// structural_word_break and its helper combinators:
+// =================================================================================================
+const structural_word_break   = r(/(?=[\s|}]|$)/)
+      .abbreviate_str_repr('structural_word_break');
+// -------------------------------------------------------------------------------------------------
+const with_swb                = rule => first(seq(rule, structural_word_break));
+const seq_with_swb            = (...rules) => first(seq(seq(...rules), structural_word_break));
+// these cut after ALL rules if a SWB isn't found, NOT after first rule:
+const cutting_with_swb        = rule => first(cutting_seq(rule, structural_word_break));
+const cutting_seq_with_swb    = (...rules) => first(cutting_seq(seq(...rules),
+                                                                structural_word_break));
+// =================================================================================================
 // terminals:
 // =================================================================================================
-const comments                = wst_star(c_comment);
-const discarded_comment       = discard(c_comment);
-const discarded_comments      = discard(wst_star(c_comment));
-const any_assignment_operator = choice(equals, plus_equals);
-const dot_hash                = l('.#');
-const filename                = r(/[A-Za-z0-9 ._\-()]+/);
-const ident                   = xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-                                      str => str.toLowerCase().replace(/-/g, '_'));
-const structural_word_break   = r(/(?=[\s|}])/);
-structural_word_break.abbreviate_str_repr('structural_word_break');
-// -------------------------------------------------------------------------------------------------
-const with_swb                = rule =>
-      first(seq(rule, structural_word_break));
-const seq_with_swb            = (...rules) =>
-      first(seq(seq(...rules), structural_word_break));
-// these cut after ALL rules if a SWB isn't found, NOT after first rule:
-const cutting_with_swb                = rule =>
-      first(cutting_seq(rule, structural_word_break));
-const cutting_seq_with_swb    = (...rules) => 
-      first(cutting_seq(seq(...rules), structural_word_break));
-// -------------------------------------------------------------------------------------------------
-const swb_uint                = xform(parseInt, with_swb(uint));
-// -------------------------------------------------------------------------------------------------
-any_assignment_operator       .abbreviate_str_repr('any_assignment_operator');
-comments                      .abbreviate_str_repr('comments');
-discarded_comment             .abbreviate_str_repr('discarded_comment');
-discarded_comments            .abbreviate_str_repr('discarded_comments');
-dot_hash                      .abbreviate_str_repr('dot_hash');
-filename                      .abbreviate_str_repr('filename');
-ident                         .abbreviate_str_repr('ident');
-swb_uint                      .abbreviate_str_repr('swb_uint');
+const any_assignment_operator = choice(equals, plus_equals)
+      .abbreviate_str_repr('any_assignment_operator');
+const comments                = wst_star(c_comment)
+      .abbreviate_str_repr('comments');
+const discarded_comment       = discard(c_comment)
+      .abbreviate_str_repr('discarded_comment');
+const discarded_comments      = discard(wst_star(c_comment))
+      .abbreviate_str_repr('discarded_comments');
+const dot_hash                = l('.#')
+      .abbreviate_str_repr('dot_hash');
+const filename                = r(/[A-Za-z0-9 ._\-()]+/)
+      .abbreviate_str_repr('filename');
+const ident                   =
+      xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+            str => str.toLowerCase().replace(/-/g, '_'))
+      .abbreviate_str_repr('ident');
+const liberal_ident           =
+      xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+            str => str.toLowerCase().replace(/-/g, '_'))
+      .abbreviate_str_repr('ident');
+const swb_uint                = xform(parseInt, with_swb(uint))
+      .abbreviate_str_repr('swb_uint');
+const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
+const optional_punctuation_trailer = optional(punctuation_trailer)
+      .abbreviate_str_repr('optional_punctuation_trailer');
+const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
+      .abbreviate_str_repr('unexpected_punctuation_trailer');
 // =================================================================================================
-// plain_text variants:
+// plain_text terminal variants:
 // =================================================================================================
 const structural_chars        = '{|}';
-const syntax_chars            = '@#$%';
+const syntax_chars            = '@#$%;';
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_char_Regexp_source_str = (additional_excluded_chars) =>
-      // raw`${brackets}|` +
+const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
       raw`(?:\\.|` +
       raw`(?!`+
       raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
@@ -8418,212 +9021,179 @@ const make_plain_text_char_Regexp_source_str = (additional_excluded_chars) =>
       raw`)` +
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_rule = (additional_excluded_chars) => 
+const make_plain_text_rule = additional_excluded_chars => 
       r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
 // -------------------------------------------------------------------------------------------------
-const plain_text               = make_plain_text_rule('');
-const plain_text_no_semis      = make_plain_text_rule(';');
-// -------------------------------------------------------------------------------------------------
-plain_text                     .abbreviate_str_repr('plain_text');
-plain_text_no_semis            .abbreviate_str_repr('plain_text_no_semis');
-// -------------------------------------------------------------------------------------------------
-// lm.log(`plain_text:              ${inspect_fun(plain_text.regexp.source)}`);
-// lm.log(`plain_text_no_semis:     ${inspect_fun(plain_text_no_semis.regexp.source)}`);
+const plain_text           = make_plain_text_rule('')
+      .abbreviate_str_repr('plain_text');
+// const plain_text_no_semis  = make_plain_text_rule(';')
+//       .abbreviate_str_repr('plain_text_no_semis');
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
-const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint);
-const A1111StyleLora       =
-      xform(arr => new ASTLora(arr[3], arr[4][0]),
-            wst_seq(ltri,                                   // [0]
-                    'lora',                                 // [1]
-                    colon,                                  // [2]
-                    choice(filename, () => LimitedContent), // [3]
-                    optional(second(wst_seq(colon,
-                                            choice(A1111StyleLoraWeight,
-                                                   () => LimitedContent))),
-                             "1.0"), // [4][0]
-                    rtri));
-// -------------------------------------------------------------------------------------------------
-A1111StyleLoraWeight.abbreviate_str_repr('A1111StyleLoraWeight');
-A1111StyleLora      .abbreviate_str_repr('A1111StyleLora');
+const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
+      .abbreviate_str_repr('A1111StyleLoraWeight');
+const A1111StyleLora =
+      xform(arr => new ASTLora(arr[2], arr[3]),
+            wst_cutting_seq(wst_seq(ltri, 'lora'),                               // [0]
+                            colon,                                               // [1] 
+                            choice(filename, () => LimitedContentNoAWCTrailers), // [2]
+                            optional(second(wst_seq(colon,                       // [3]
+                                                    choice(A1111StyleLoraWeight,
+                                                           () => LimitedContentNoAWCTrailers))),
+                                     "1.0"), // [4][0]
+                            rtri))
+      .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
-// word breaks:
+// mod RJSONC:
 // =================================================================================================
-// these are inadvisably complex:
-// const word_break                   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,\.])/);
-// const simple_not_flag_word_break   = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)\,])/);
-// const simple_check_flag_word_break = r(/(?=$|\s|[{|}\;\:\#\%\$\@\?\!\[\]\(\)])/);
-// // -------------------------------------------------------------------------------------------------
-// word_break                         .abbreviate_str_repr('word_break');
-// simple_not_flag_word_break         .abbreviate_str_repr('simple_not_flag_word_break');
-// simple_check_flag_word_break       .abbreviate_str_repr('simple_check_flag_word_break');
+const ExposedRjsonc = 
+      make_Jsonc_rule(first(choice(seq(choice(RjsoncObject,
+                                              RjsoncArray,
+                                              rjsonc_string),
+                                       optional(() => SpecialFunctionTail)),
+                                   seq(choice(json_null,
+                                              json_true,
+                                              json_false,
+                                              json_number),
+                                       () => SpecialFunctionTail)))); 
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-const SimpleCheckFlag              = xform(seq_with_swb(question,
-                                                        plus(ident, dot)),
-                                           arr => {
-                                             // lm.log(`ARR: ${inspect_fun(arr)}`);
-                                             
-                                             const args = [arr[1]];
-
-                                             // if (log_flags_enabled) {
-                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (simple) ` +
-                                             //               `GOT ARR ${inspect_fun(arr)}`);
-                                             //   lm.log(`CONSTRUCTING CHECKFLAG (simple) ` +
-                                             //               `WITH ARGS ${inspect_fun(args)}`);
-                                             // }
-
-                                             return new ASTCheckFlags(args);
-                                           });
-const SimpleNotFlag                = xform(seq_with_swb(bang,
-                                                        optional(hash),
-                                                        plus(ident, dot)),
-                                           arr => {
-                                             const args = [arr[2],
-                                                           { set_immediately: !!arr[1][0]}];
-
-                                             // if (log_flags_enabled) {
-                                             //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
-                                             //               `GOT arr ${inspect_fun(arr)}`);
-                                             //   lm.log(`CONSTRUCTING NOTFLAG (simple) ` +
-                                             //               `WITH ARGS ${inspect_fun(args)}`);
-                                             // }
-
-                                             return new ASTNotFlag(...args);
-                                           })
-const CheckFlagWithOrAlternatives  = xform(cutting_seq_with_swb(question,
-                                                                plus(plus(ident, dot), comma)),
-                                           arr => {
-                                             const args = [arr[1]];
-
-                                             // if (log_flags_enabled) {
-                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (or) ` +
-                                             //               `GOT ARR ${inspect_fun(arr)}`);
-                                             //   lm.log(`CONSTRUCTING CHECKFLAG (or) ` +
-                                             //               `WITH ARGS ${inspect_fun(args)}`);
-                                             // }
-
-                                             return new ASTCheckFlags(...args);
-                                           });
-const CheckFlagWithSetConsequent   = xform(cutting_seq_with_swb(question,          // [0]
-                                                                plus(ident, dot),  // [1]
-                                                                dot_hash,          // [2]
-                                                                plus(ident, dot)), // [3]
-                                           arr => {
-                                             const args = [ [ arr[1] ], arr[3] ]; 
-
-                                             // if (log_flags_enabled) {
-                                             //   lm.log(`\nCONSTRUCTING CHECKFLAG (set) ` +
-                                             //               `GOT ARR ${inspect_fun(arr)}`);
-                                             //   lm.log(`CONSTRUCTING CHECKFLAG (set) ` +
-                                             //               `WITH ARGS ${inspect_fun(args)}`);
-                                             // }
-
-                                             return new ASTCheckFlags(...args);
-                                           });
-const NotFlagWithSetConsequent     = xform(cutting_seq_with_swb(bang,
-                                                                plus(ident, dot),
-                                                                dot_hash,
-                                                                plus(ident, dot)),
-                                           arr => {
-                                             const args = [arr[1],
-                                                           { consequently_set_flag_tail: arr[3] }]; 
-
-                                             // if (log_flags_enabled) {
-                                             //   lm.log(`CONSTRUCTING NOTFLAG (set) `+
-                                             //               `GOT arr ${inspect_fun(arr)}`);
-                                             //   lm.log(`CONSTRUCTING NOTFLAG (set) ` +
-                                             //               `WITH ARGS ${inspect_fun(args)}`);
-                                             // }
-                                             
-                                             return new ASTNotFlag(...args);
-                                           })
-const SetFlag                      = xform(second(cutting_seq_with_swb(hash,
-                                                                       plus(ident, dot))),
-                                           arr => {
-                                             // if (log_flags_enabled)
-                                             //   if (arr.length > 1)
-                                             //     lm.log(`CONSTRUCTING SETFLAG WITH ` +
-                                             //                 `${inspect_fun(arr)}`);
-                                             return new ASTSetFlag(arr);
-                                           });
-const UnsetFlag                    = xform(second(cutting_seq_with_swb(shebang,
-                                                                       plus(ident, dot))),
-                                           arr => {
-                                             // if (log_flags_enabled)
-                                             //   if (arr.length > 1)
-                                             //     lm.log(`CONSTRUCTING UNSETFLAG WITH` +
-                                             //                 ` ${inspect_fun(arr)}`);
-                                             return new ASTUnsetFlag(arr);
-                                           });
-const TestFlag                     = choice(
-  SimpleCheckFlag,
-  SimpleNotFlag,
-  CheckFlagWithSetConsequent,
-  NotFlagWithSetConsequent,
-  CheckFlagWithOrAlternatives,
-);
-const bad_TopLevelTestFlag = (rule, input, index) =>
-      new FatalParseError(`check/not flag guards without set consequents at the top level would ` +
-                          `serve no purpose and so are not permitted`,
-                          input, index);
-const TopLevelTestFlag             = choice(
-  unexpected(SimpleCheckFlag, bad_TopLevelTestFlag),
-  unexpected(SimpleNotFlag, bad_TopLevelTestFlag),
-  xform(CheckFlagWithSetConsequent,
-        flag => {
-          //lm.log(`cfwsc flag: ${compress(inspect_fun(flag))}`);
-          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
-          // lm.log(`cfwsc ret:  ${inspect_fun(ret)}`);
-          return ret;
-        }),
-  xform(NotFlagWithSetConsequent,
-        flag => {
-          //lm.log(`nfwsc flag: ${compress(inspect_fun(flag))}`);
-          const ret = new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]);
-          // lm.log(`nfwsc ret:  ${inspect_fun(ret)}`);
-          return ret;
-        }),
-  unexpected(CheckFlagWithOrAlternatives, bad_TopLevelTestFlag),
-);
+// const flag_ident = xform(dot_chained(ident),
+//                          arr => {
+//                            lm.log();
+//                            lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
+//                            lm.log(`FLAG_IDENT OUT: ${inspect_fun(arr)}`);
+//                            return arr;
+//                          });
+const flag_ident = xform(seq(choice(ident, '*'),
+                             star(second(seq('.',
+                                             choice(xform(parseInt, /\d+\b/), liberal_ident, '*'))))),
+                         arr => {
+                           // lm.log();
+                           // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
+                           const ret = arr.flat(1);
+                           // lm.log(`FLAG_IDENT OUT: ${inspect_fun(ret)}`);
+                           return ret;
+                         });
+const SimpleCheckFlag =
+      xform(seq_with_swb(question,
+                         flag_ident),
+            arr => {
+              const args = [arr[1]];
+              return new ASTCheckFlags(args);
+            })
+      .abbreviate_str_repr('SimpleCheckFlag');
+const SimpleNotFlag =
+      xform(seq_with_swb(bang,
+                         optional(hash),
+                         flag_ident),
+            arr => {
+              const args = [arr[2],
+                            { set_immediately: !!arr[1]}];
+              return new ASTNotFlag(...args);
+            })
+      .abbreviate_str_repr('SimpleNotFlag');
+const CheckFlagWithOrAlternatives =
+      xform(cutting_seq_with_swb(question,
+                                 plus(flag_ident, comma)),
+            arr => {
+              const args = [arr[1]];
+              return new ASTCheckFlags(...args);
+            })
+      .abbreviate_str_repr('CheckFlagWithOrAlternatives');
+const CheckFlagWithSetConsequent =
+      xform(cutting_seq_with_swb(question,    // [0]
+                                 flag_ident,  // [1]
+                                 dot_hash,    // [2]
+                                 flag_ident), // [3]
+            arr => {
+              const args = [ [ arr[1] ], arr[3] ]; 
+              return new ASTCheckFlags(...args);
+            })
+      .abbreviate_str_repr('CheckFlagWithSetConsequent');
+const NotFlagWithSetConsequent =
+      xform(cutting_seq_with_swb(bang,
+                                 flag_ident,
+                                 dot_hash,
+                                 flag_ident),
+            arr => {
+              const args = [arr[1],
+                            { consequently_set_flag_tail: arr[3] }]; 
+              return new ASTNotFlag(...args);
+            })
+      .abbreviate_str_repr('NotFlagWithSetConsequent');
+const SetFlag = xform(second(cutting_seq_with_swb(hash, flag_ident)),
+                      arr => new ASTSetFlag(arr))
+      .abbreviate_str_repr('SetFlag');
+const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, flag_ident)),
+                        arr => new ASTUnsetFlag(arr))
+      .abbreviate_str_repr('UnsetFlag');
+const TestFlag = choice(SimpleCheckFlag,
+                        SimpleNotFlag,
+                        CheckFlagWithSetConsequent,
+                        NotFlagWithSetConsequent,
+                        CheckFlagWithOrAlternatives)
+      .abbreviate_str_repr('TestFlag');
 // -------------------------------------------------------------------------------------------------
-TestFlag                   .abbreviate_str_repr('TestFlag');
-SimpleCheckFlag            .abbreviate_str_repr('SimpleCheckFlag');
-SimpleNotFlag              .abbreviate_str_repr('SimpleNotFlag');
-CheckFlagWithOrAlternatives.abbreviate_str_repr('CheckFlagWithOrAlternatives');
-CheckFlagWithSetConsequent .abbreviate_str_repr('CheckFlagWithSetConsequent');
-NotFlagWithSetConsequent   .abbreviate_str_repr('NotFlagWithSetConsequent');
-SetFlag                    .abbreviate_str_repr('SetFlag');
-UnsetFlag                  .abbreviate_str_repr('UnsetFlag');
+const unexpected_TestFlag_at_top_level = rule => 
+      unexpected(rule, (rule, input, index) =>
+        new FatalParseError(`check/not flag guards without set consequents at the top level ` +
+                            `would serve no purpose and so are not permitted`,
+                            input, index));
+const innapropriately_placed_TestFlag = rule => 
+      unexpected(rule, (rule, input, index) =>
+        new FatalParseError(`innapropriately placed 'check' or 'not' flag`,
+                            input, index));
+const wrap_TestFlag_in_AnonWildcard    = rule =>
+      xform(rule, flag =>
+        new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
+// -------------------------------------------------------------------------------------------------
+const TopLevelTestFlag =
+      choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
+             .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
+             unexpected_TestFlag_at_top_level(SimpleNotFlag)
+             .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
+             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
+             .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
+const TestFlagInAlternativeContent =
+      choice(innapropriately_placed_TestFlag(SimpleCheckFlag)
+             .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
+             innapropriately_placed_TestFlag(SimpleNotFlag)
+             .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
+             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
+             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
 // =================================================================================================
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
-  // console.log(`m_AAWA ARR: ${compress(inspect_fun(arr))}`);
-  
-  const weight = arr[1][0];
+  // console.log(`ARR: ${inspect_fun(arr)}`);
+  const weight = arr[1];
 
   if (weight == 0)
     return DISCARD;
   
-  // console.log(`ARR: ${inspect_fun(arr)}`);
   const flags = ([ ...arr[0], ...arr[2] ]);
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
-
   const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails =
         check_flags
         .filter(f => f.consequently_set_flag_tail)
         .map(f => new ASTSetFlag([ ...f.flags[0], ...f.consequently_set_flag_tail ]));
-
   const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails =
         not_flags
         .filter(f => f.consequently_set_flag_tail)
         .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
-  
   const ASTSetFlags_for_ASTNotFlags_with_set_immediately =
         not_flags
         .filter(f => f.set_immediately)
@@ -8642,42 +9212,45 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 }
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcardAlternative_rule = content_star_rule => 
+const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
                 lws(optional(swb_uint, 1)),
                 wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
-                lws(content_star_rule)));
+                lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcard_rule  = alternative_rule  =>
-      xform(arr => new ASTAnonWildcard(arr),
-            wst_brc_enc(wst_star(alternative_rule, pipe)));
+const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
+      xform(arr => new ASTAnonWildcard(arr[0], arr[1]),
+            seq(wst_brc_enc(wst_star(alternative_rule, pipe)),
+                can_have_trailer
+                ? optional_punctuation_trailer
+                : unexpected_punctuation_trailer));
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => ContentStar);
-const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLorasStar);
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative);
-const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras);
-// -------------------------------------------------------------------------------------------------
-AnonWildcardAlternative              .abbreviate_str_repr('AnonWildcardAlternative');
-AnonWildcardAlternativeNoLoras       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-AnonWildcard                         .abbreviate_str_repr('AnonWildcard');
-AnonWildcardNoLoras                  .abbreviate_str_repr('AnonWildcardNoLoras');
+const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
+      .abbreviate_str_repr('AnonWildcardAlternative');
+// const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
+//       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative,        true)
+      .abbreviate_str_repr('AnonWildcard');
+const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative,        false)
+      .abbreviate_str_repr('AnonWildcardNoTrailer');
+// const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, true)
+//       .abbreviate_str_repr('AnonWildcardNoLoras');
+// const AnonWildcardNoLorasNoTrailer   = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, false)
+//       .abbreviate_str_repr('AnonWildcardNoLorasNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
-const SpecialFunctionTail = choice(
-  structural_word_break,
-  lws(semicolon),
-  c_comment,
-);
-// const TrailingCommentFollowedBySemicolonOrWordBreak = discard(seq(comments,
-//                                                                   choice(lws(semicolon),
-//                                                                          word_break)));
-const TrailingCommentsAndSemicolon = discard(lws(semicolon));
+const SpecialFunctionTail =
+      choice(seq(discarded_comments, lws(semicolon)),
+             structural_word_break)
+      .abbreviate_str_repr('SpecialFunctionTail');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
-      xform(() => new ASTUIPrompt(),
-            seq('ui-prompt',
-                SpecialFunctionTail));
+      xform(seq('ui-prompt', SpecialFunctionTail),
+            () => new ASTUIPrompt())
+      .abbreviate_str_repr('SpecialFunctionUIPrompt');
+// -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUIPrompt =
       unexpected(SpecialFunctionUIPrompt,
                  (rule, input, index) =>
@@ -8685,26 +9258,34 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      "using wildcards-plus.js inside Draw Things, " +
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
-                                     input, index - 1));
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionUINegPrompt =
-      xform(() => new ASTUINegPrompt(),
-            seq('ui-neg-prompt',
-                SpecialFunctionTail));
+      xform(seq('ui-neg-prompt', SpecialFunctionTail),
+            () => new ASTUINegPrompt())
+      .abbreviate_str_repr('SpecialFunctionUINegPrompt');
+// -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUINegPrompt =
       unexpected(SpecialFunctionUINegPrompt,
-                 (rule, input, index)=>
+                 (rule, input, index) =>
                  new FatalParseError("%ui-neg-prompt is only supported when " +
                                      "using wildcards-plus.js inside Draw Things, " +
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
-                                     input, index - 1));
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[0][1]),
             seq(c_funcall('%include',                            // [0][0]
                           first(wst_seq(discarded_comments,      // -
                                         rjsonc_string,           // [0][1]
-                                        discarded_comments))),   // -
-                SpecialFunctionTail));
+                                        discarded_comments,      // -
+                                       ))),  
+                optional(SpecialFunctionTail)))
+      .abbreviate_str_repr('SpecialFunctionInclude');
+// -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
@@ -8713,48 +9294,66 @@ const UnexpectedSpecialFunctionInclude =
                                      `NOT when ` +
                                      "running the wildcards-plus.js script " +
                                      "inside Draw Things",
-                                     input, index - 1));
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionSetPickSingle =
       xform(arr => new ASTSetPickSingle(arr[1][1]),
-            seq('single-pick',                                               // [0]
-                discarded_comments,                                          // -
-                cutting_seq(lws(equals),                                              // [1][0]
-                            discarded_comments,                                  // -
-                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
-                            SpecialFunctionTail))); 
+            seq('single-pick',                                            // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),        
+                            optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('SpecialFunctionSetPickSingle');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionSetPickMultiple =
       xform(arr => new ASTSetPickMultiple(arr[1][1]),
-            seq('multi-pick',                                                // [0]
-                discarded_comments,                                          // -
-                cutting_seq(lws(equals),                                     // [1][0]
-                            discarded_comments,                              // -
-                            lws(choice(() => LimitedContentNoSemis, lc_alpha_snake)), // [1][1]
-                            SpecialFunctionTail))); 
+            seq('multi-pick',                                             // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),
+                            optional(SpecialFunctionTail)))) 
+      .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionRevertPickSingle =
-      xform(() => new ASTRevertPickSingle(),
-            seq('revert-single-pick',
-                SpecialFunctionTail));
+      xform(seq('revert-single-pick',
+                optional(SpecialFunctionTail)),
+            () => new ASTRevertPickSingle())
+      .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionRevertPickMultiple =
-      xform(() => new ASTRevertPickMultiple(),
-            seq('revert-multi-pick',
-                SpecialFunctionTail));
+      xform(seq('revert-multi-pick',
+                optional(SpecialFunctionTail)),
+            () => new ASTRevertPickMultiple())
+      .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
             seq(c_ident,                                                            // [0]
                 discarded_comments,                                                 // -
                 cutting_seq(lws(any_assignment_operator),                           // [1][0]
                             discarded_comments,                                     // -
-                            lws(choice(rJsonc, () => LimitedContentNoSemis)),       // [1][1]
-                            SpecialFunctionTail))); 
+                            lws(choice(ExposedRjsonc,
+                                       first(seq(() => LimitedContent,
+                                                 optional(SpecialFunctionTail))))))))         // [1][1]
+      .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-            seq(/conf(?:ig)?/,                                                      // [0]
-                discarded_comments,                                                 // -
-                cutting_seq(lws(choice(plus_equals, equals)),                       // [1][0]
-                            discarded_comments,                                     // -
-                            lws(choice(rJsoncObject, () => LimitedContentNoSemis)), // [1][1]
-                            SpecialFunctionTail,
-                           )));
+            seq(/conf(?:ig)?/,                                                        // [0]
+                discarded_comments,                                                   // -
+                cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
+                            discarded_comments,                                       // -
+                            lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
+                                                 optional(SpecialFunctionTail))),
+                                       first(seq(() => LimitedContentNoAWCTrailers,
+                                                 optional(SpecialFunctionTail)))))))) // [1][1]
+      .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+// -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
       second(cutting_seq(percent,
                          choice(
@@ -8770,94 +9369,96 @@ const SpecialFunctionNotInclude =
                            SpecialFunctionSetPickMultiple,
                            SpecialFunctionRevertPickSingle,
                            SpecialFunctionRevertPickMultiple,
-                         )));
-// -------------------------------------------------------------------------------------------------
-SpecialFunctionInclude
-  .abbreviate_str_repr('SpecialFunctionInclude');
-SpecialFunctionNotInclude
-  .abbreviate_str_repr('SpecialFunctionNotInclude');
-SpecialFunctionRevertPickMultiple
-  .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
-SpecialFunctionRevertPickSingle
-  .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
-SpecialFunctionSetPickMultiple
-  .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
-SpecialFunctionSetPickSingle
-  .abbreviate_str_repr('SpecialFunctionSetPickSingle');
-SpecialFunctionUINegPrompt
-  .abbreviate_str_repr('SpecialFunctionUINegPrompt');
-SpecialFunctionUIPrompt
-  .abbreviate_str_repr('SpecialFunctionUIPrompt');
-SpecialFunctionUpdateConfigurationBinary
-  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
-SpecialFunctionUpdateConfigurationUnary
-  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-// TrailingCommentFollowedBySemicolonOrWordBreak
-//   .abbreviate_str_repr('TrailingCommentFollowedBySemicolonOrWordBreak');
-TrailingCommentsAndSemicolon
-  .abbreviate_str_repr('TrailingCommentsAndSemicolon');
-UnexpectedSpecialFunctionInclude
-  .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
-UnexpectedSpecialFunctionUINegPrompt
-  .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-UnexpectedSpecialFunctionUIPrompt
-  .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+                         )))
+      .abbreviate_str_repr('SpecialFunctionNotInclude');
 // =================================================================================================
 // other non-terminals:
 // =================================================================================================
-const NamedWildcardReference  = xform(seq(at,                                        // [0]
-                                          optional(caret),                           // [1]
-                                          optional(xform(parseInt, uint)),           // [2]
-                                          optional(xform(parseInt,
-                                                         second(seq(dash, uint)))),  // [3]
-                                          optional(/[,&]/),                          // [4]
-                                          ident),                                    // [5]
-                                      arr => {
-                                        const ident  = arr[5];
-                                        const min_ct = arr[2][0] ?? 1;
-                                        const max_ct = arr[3][0] ?? min_ct;
-                                        const join   = arr[4][0] ?? '';
-                                        const caret  = arr[1][0];
-                                        
-                                        return new ASTNamedWildcardReference(ident,
-                                                                             join,
-                                                                             caret,
-                                                                             min_ct,
-                                                                             max_ct);
-                                      });
-NamedWildcardReference.abbreviate_str_repr('NamedWildcardReference');
-const NamedWildcardDesignator = second(seq(at, ident)); 
-NamedWildcardDesignator.abbreviate_str_repr('NamedWildcardDesignator');
-const NamedWildcardDefinition = xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
-                                      wst_seq(NamedWildcardDesignator,
-                                              wst_cutting_seq(equals, 
-                                                              discarded_comments,
-                                                              AnonWildcard)));  
-NamedWildcardDefinition.abbreviate_str_repr('NamedWildcardDefinition');
-const NamedWildcardUsage      = xform(seq(at, optional(bang), optional(hash), ident),
-                                      arr => {
-                                        const [ bang, hash, ident, objs ] =
-                                              [ arr[1][0], arr[2][0], arr[3], []];
-                                        
-                                        if (!bang && !hash)
-                                          return new ASTNamedWildcardReference(ident);
+const NamedWildcardReference  =
+      xform(seq(at,                                        // [0]
+                optional(caret),                           // [1]
+                optional(xform(parseInt, uint), 1),        // [2]
+                optional(xform(parseInt,                   // [3]
+                               second(seq(dash, uint)))),
+                optional(/[,&|]/),                         // [4]
+                ident,                                     // [5]
+                optional_punctuation_trailer,  // [6]
+               ), 
+            arr => {
+              const ident   = arr[5];
+              const min_ct  = arr[2];
+              const max_ct  = arr[3] ?? min_ct;
+              const joiner  = arr[4]; // ??''
+              const caret   = arr[1];
+              const trailer = arr[6];
 
-                                        // goes before hash so that "@!#" works correctly:
-                                        if (bang) 
-                                          objs.push(new ASTUnlatchNamedWildcard(ident));
+              if (min_ct == 0 && max_ct == 0) {
+                lm.log(`WARNING: retrieving 0 items from a named ` +
+                       `wildcard is a strange thing to do. We'll allow ` +
+                       `it, but you may have made a mistake in your ` +
+                       `template.`,
+                       false)
+                
+                return DISCARD;
+              }
+              
+              return new ASTNamedWildcardReference(ident,
+                                                   joiner,
+                                                   caret,
+                                                   min_ct,
+                                                   max_ct,
+                                                   trailer);
+            })
+      .abbreviate_str_repr('NamedWildcardReference');
+// -------------------------------------------------------------------------------------------------
+const NamedWildcardDesignator = second(seq(at, ident))
+      .abbreviate_str_repr('NamedWildcardDesignator');
+// -------------------------------------------------------------------------------------------------
+const NamedWildcardDefinition =
+      xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
+            seq(NamedWildcardDesignator,
+                discarded_comments,
+                cutting_seq(lws(equals), 
+                            discarded_comments,
+                            first(seq(AnonWildcard,
+                                      optional(SpecialFunctionTail))))))
+      .abbreviate_str_repr('NamedWildcardDefinition');
+// -------------------------------------------------------------------------------------------------
+const NamedWildcardUsage      =
+      xform(seq(at, optional(bang), optional(hash), ident),
+            arr => {
+              const [ bang, hash, ident, objs ] =
+                    [ arr[1], arr[2], arr[3], []];
+              
+              if (!bang && !hash)
+                return new ASTNamedWildcardReference(ident);
 
-                                        if (hash)
-                                          objs.push(new ASTLatchNamedWildcard(ident));
+              // goes before hash so that "@!#" works correctly:
+              if (bang) 
+                objs.push(new ASTUnlatchNamedWildcard(ident));
 
-                                        return objs;
-                                      });
-NamedWildcardUsage.abbreviate_str_repr('NamedWildcardUsage');
-const ScalarReference         = xform(seq(dollar, optional(caret), ident),
-                                      arr => new ASTScalarReference(arr[2], arr[1][0]));
-ScalarReference.abbreviate_str_repr('ScalarReference');
-const ScalarDesignator        = xform(seq(dollar, ident),
-                                      arr => new ASTScalarReference(arr[1]));
-ScalarDesignator.abbreviate_str_repr('ScalarDesignator');
+              if (hash)
+                objs.push(new ASTLatchNamedWildcard(ident));
+
+              return objs;
+            })
+      .abbreviate_str_repr('NamedWildcardUsage');
+// -------------------------------------------------------------------------------------------------
+const ScalarReference         =
+      xform(seq(dollar,
+                optional(caret),
+                ident,
+                optional_punctuation_trailer),
+            arr => new ASTScalarReference(arr[2],
+                                          arr[1],
+                                          arr[3]))
+      .abbreviate_str_repr('ScalarReference');
+// -------------------------------------------------------------------------------------------------
+const ScalarDesignator        =
+      xform(seq(dollar, ident),
+            arr => new ASTScalarReference(arr[1]))
+      .abbreviate_str_repr('ScalarDesignator');
+// -------------------------------------------------------------------------------------------------
 const ScalarAssignment        =
       xform(arr =>
         new ASTScalarAssignment(arr[0],
@@ -8869,48 +9470,74 @@ const ScalarAssignment        =
                         discarded_comments,                   // -
                         lws(choice(
                           () => rjsonc_string, // [1][1]
-                          () => LimitedContentNoSemis,
+                          () => LimitedContent,
                           // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
                         )),
-                        SpecialFunctionTail)));
-ScalarAssignment.abbreviate_str_repr('ScalarAssignment');
+                        optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('ScalarAssignment');
 // =================================================================================================
 // Content-related rules:
 // =================================================================================================
-const make_LimitedContent_rule = plain_text_rule  =>
+const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       choice(
         NamedWildcardReference,
-        AnonWildcardNoLoras,
-        plain_text_rule,
+        anon_wildcard_rule,
+        ...(plain_text_rule ? [ plain_text_rule ] : []),
         ScalarReference,
       );
 // -------------------------------------------------------------------------------------------------
-const LimitedContent          = make_LimitedContent_rule(plain_text);
-const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis);
-LimitedContent                .abbreviate_str_repr('LimitedContent');
-LimitedContentNoSemis         .abbreviate_str_repr('LimitedContentNoSemis');
+const LimitedContent =
+      make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
+      .abbreviate_str_repr('LimitedContent');
+
+const LimitedContentNoAWCTrailers =
+      make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
+      .abbreviate_str_repr('LimitedContentNoAWCTrailers');
+
+// const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
+//       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
+// lm.log(`THIS:  ${inspect_fun(plain_text)}`);
+// lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
+
+// const malformed_token =
+//       // tokens starting with % are actually usually caught before getting here.
+//       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
+//                  (rule, input, index, match_result) => 
+//                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
+
+
+const make_malformed_token_rule = rule => 
+      unexpected(rule,
+                 (rule, input, index, match_result) => {
+                   // throw new Error('bomb');
+                   return new FatalParseError(`encountered malformed token: ` +
+                                              `${inspect_fun(match_result.value)}`, input, index);
+                 }).abbreviate_str_repr(`malformed(${rule.toString()})`);
+
 const make_Content_rule       = ({ before_plain_text_rules = [],
                                    after_plain_text_rules  = [] } = {}) =>
       choice(
         ...before_plain_text_rules,
         plain_text,
         ...after_plain_text_rules,
-        NamedWildcardReference,
-        SpecialFunctionNotInclude,
         discarded_comment,
+        NamedWildcardReference,
         NamedWildcardUsage,
+        SpecialFunctionNotInclude,
         SetFlag,
         UnsetFlag,
         ScalarAssignment,
         ScalarReference,
+        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
       );
+
 // -------------------------------------------------------------------------------------------------
-const ContentNoLoras          = make_Content_rule({
-  after_plain_text_rules: [
-    AnonWildcardNoLoras,
-  ],
-});
+// const ContentNoLoras          = make_Content_rule({
+//   after_plain_text_rules: [
+//     AnonWildcardNoLoras,
+//   ],
+// });
 const Content                 = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
@@ -8925,12 +9552,13 @@ const TopLevelContent         = make_Content_rule({
     TopLevelTestFlag,
   ],
   after_plain_text_rules:  [
+    make_malformed_token_rule(r_raw`}\S*`),
     AnonWildcard,
     NamedWildcardDefinition,
     SpecialFunctionInclude,
   ],
 });
-const ContentNoLorasStar      = wst_star(ContentNoLoras);
+// const ContentNoLorasStar      = wst_star(ContentNoLoras);
 const ContentStar             = wst_star(Content);
 const TopLevelContentStar     = wst_star(TopLevelContent);
 const Prompt                  = tws(TopLevelContentStar);
@@ -8951,13 +9579,13 @@ Prompt.finalize();
 // MAIN SECTION: all of the Draw Things-specific code goes down here.
 // -------------------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
-const fallback_prompt             = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
-const ui_prompt                   = pipeline.prompts.prompt;
-const ui_neg_prompt               = pipeline.prompts.negativePrompt;
-const ui_hint                     = "";
-let   prompt_string               = ui_prompt;
-const default_batch_count         = 150;
-LOG_LINE.line_width               = 113;
+const fallback_prompt     = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
+const ui_prompt           = pipeline.prompts.prompt;
+const ui_neg_prompt       = pipeline.prompts.negativePrompt;
+const ui_hint             = "";
+let   prompt_string       = ui_prompt;
+const default_batch_count = 150;
+LOG_LINE.line_width       = 113;
 // -------------------------------------------------------------------------------------------------
 
 
@@ -8977,7 +9605,7 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
 	  this.section('Prompt', ui_hint,
                  [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
     this.section("Batch count", "",
-                 [ this.slider(default_batch_count, this.slider.fractional(0), 1, 250) ]),
+                 [ this.slider(default_batch_count, this.slider.fractional(0), 1, 500) ]),
     this.switch(true, "Clear canvas first (maybe img2img if disabled):"),
     this.section("When picking a single item, prioritize:", "",
                  [ this.menu(picker_priority_descriptions.indexOf(picker_priority.ensure_weighted_distribution),
@@ -8989,23 +9617,23 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
   ];
 });
 
-// console.log(`USER SELECTION:`);
-// console.log(JSON.stringify(user_selection, null, 2));
+// lm.log(`USER SELECTION:`);
+// lm.log(JSON.stringify(user_selection));
 
 prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
 const clear_first = user_selection[2];
 const user_selected_pick_one_priority =
       picker_priority_descriptions[user_selection[3][0]];
-// console.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
+// lm.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 const user_selected_pick_multiple_priority =
       picker_priority_descriptions[user_selection[4][0]];
-// console.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
+// lm.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
-console.log(`Single pick priority:   ${user_selected_pick_one_priority}`);
-console.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
+lm.log(`Single pick priority:   ${user_selected_pick_one_priority}`);
+lm.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
 
 // -------------------------------------------------------------------------------------------------
 // parse the prompt_string here:
@@ -9021,23 +9649,32 @@ try {
 
   // -----------------------------------------------------------------------------------------------
 
-  LOG_LINE();
-  console.log(`pipeline.configuration is:`);
-  LOG_LINE();
-  console.log(`${JSON.stringify(pipeline.configuration, null, 2)}`);
-  // LOG_LINE();
-  // console.log(`pipeline.prompts is:`);
-  // LOG_LINE();
-  // console.log(`${JSON.stringify(pipeline.prompts, null, 2)}`);
-  LOG_LINE();
-  console.log(`The wildcards-plus prompt is:`);
-  LOG_LINE();
-  console.log(`${prompt_string}`);
-
   const base_context = load_prelude();
   base_context.configuration          = pipeline.configuration;
   base_context.pick_one_priority      = user_selected_pick_one_priority;
   base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
+
+  // delete base_context.configuration["negativeOriginalImageHeight"];
+  // delete base_context.configuration["negativeOriginalImageWidth"];
+  // delete base_context.configuration["originalImageHeight"];
+  // delete base_context.configuration["originalImageWidth"];
+  // delete base_context.configuration["targetImageHeight"];
+  // delete base_context.configuration["targetImageWidth"];
+
+  LOG_LINE();
+  lm.log(`pipeline.configuration is:`);
+  LOG_LINE();
+  lm.log(`${inspect_fun(pipeline.configuration)}`);
+
+  LOG_LINE();
+  lm.log(`base_context.configuration is:`);
+  LOG_LINE();
+  lm.log(`${inspect_fun(base_context.configuration)}`);
+
+  LOG_LINE();
+  lm.log(`The wildcards-plus prompt is:`);
+  LOG_LINE();
+  lm.log(`${prompt_string}`);
 
   // -----------------------------------------------------------------------------------------------
   // main loop:
@@ -9046,37 +9683,53 @@ try {
     const start_date = new Date();
 
     LOG_LINE();
-    console.log(`Beginning expansion #${ix+1} out of ${batch_count} at ` +
-                `${format_simple_time(start_date)}:`);
+    lm.log(`Beginning expansion #${ix+1} out of ${batch_count} at ` +
+           `${format_simple_time(start_date)}:`);
     LOG_LINE();
 
     // expand the wildcards using a cloned context and generate a new configuration:
     
+    // lm.log(`BEFORE CLONING CONTEXT...`);
     const context = base_context.clone();
-    const prompt  = expand_wildcards(AST, context);
-    context.munge_configuration();
+    // lm.log(`AFTER CLONING CONTEXT`);
+    const prompt  = expand_wildcards(AST, context, { correct_articles: true });
 
-    LOG_LINE();
-    console.log(`GENERATED CONFIGURATION:`);
-    LOG_LINE();
-    console.log(`${JSON.stringify(context.configuration, null, 2)}`);
+    if (! is_empty_object(context.configuration)) {
+      LOG_LINE();
+      lm.log(`GENERATED CONFIGURATION:`);
+      LOG_LINE();
+      lm.log(`${inspect_fun(context.configuration)}`);
+    }
 
-    // throw new Error("stop here");
+    if (context.flags.length > 0) {
+      LOG_LINE();
+      lm.log(`Flags after:`);
+      LOG_LINE();
+      lm.log(`${inspect_fun(context.flags)}`);
+    }
     
+    if (context.scalar_variables.size > 0) {
+      LOG_LINE();
+      lm.log(`Scalars after:`);
+      LOG_LINE();
+      for (const [key, val] of context.scalar_variables)
+        lm.log(`$${key} = ${inspect_fun(val)}`);
+    }
+
     LOG_LINE();
-    console.log(`The expanded prompt is:`);
+    lm.log(`The expanded prompt is:`);
     LOG_LINE();
-    console.log(`${prompt}`);
+    lm.log(`${prompt}`);
     
     if (context.configuration.negativePrompt || context.configuration.negativePrompt === '') {
       LOG_LINE();
-      console.log(`Expanded negative prompt:`);
+      lm.log(`Expanded negative prompt:`);
       LOG_LINE();
-      console.log(context.configuration.negativePrompt);
+      lm.log(context.configuration.negativePrompt);
     } else {
       LOG_LINE();
-      console.log(`No negative prompt, using negative prompt from UI: ` +
-                  `${inspect_fun(ui_neg_prompt)}.`);
+      lm.log(`No negative prompt, using negative prompt from UI: ` +
+             `${inspect_fun(ui_neg_prompt)}.`);
       
       context.configuration.negativePrompt = ui_neg_prompt;
     }
@@ -9084,13 +9737,13 @@ try {
     LOG_LINE();
 
     if (clear_first) {
-      console.log(`Clearing canvas...`);
+      lm.log(`Clearing canvas...`);
       canvas.clear();
     } else {
-      console.log(`Not clearing canvas`);
+      lm.log(`Not clearing canvas`);
     }
 
-    console.log(`Generating image #${ix+1} out of ${batch_count} at ${format_simple_time()}...`);
+    lm.log(`Generating image #${ix+1} out of ${batch_count} at ${format_simple_time()}...`);
 
     // ---------------------------------------------------------------------------------------------
     // run the pipeline:
@@ -9108,24 +9761,24 @@ try {
     const end_time     = new Date().getTime();
     const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
-    console.log(`... image generated in ${elapsed_time} seconds.`);
+    lm.log(`... image generated in ${elapsed_time} seconds.`);
   }
 
   LOG_LINE();
-  console.log('Job complete. Open the console to see the job report.');
+  lm.log('Job complete. Open the console to see the job report.');
 }
 catch(ex) {
   if (ex instanceof Error) {
     if (ex.message === 'cancelled')
-      console.log(`Cancelled.`);
+      lm.log(`Cancelled.`);
     else
-      console.log(`wildcards-plus caught a fatal exception, ` +
-                  `click here to open the console for more details\n\n` + 
-                  `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
+      lm.log(`wildcards-plus caught a fatal exception, ` +
+             `click here to open the console for more details\n\n` + 
+             `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
   } else {
-    console.log(`wildcards-plus caught a fatal exception, ` +
-                `click here to open the console for more details\n` +
-                `exception:\n${inspect_fun(ex)}`);
+    lm.log(`wildcards-plus caught a fatal exception, ` +
+           `click here to open the console for more details\n` +
+           `exception:\n${inspect_fun(ex)}`);
   }
 }
 // =================================================================================================
