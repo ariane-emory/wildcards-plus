@@ -8737,8 +8737,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          const each  = p => lm.indent(() =>
-            expand_wildcards(p?.body ?? '', context,
+          const each  = pick => lm.indent(() =>
+            expand_wildcards(pick?.body ?? '', context,
                              { correct_articles: correct_articles }));
           
           const picks = got.pick(thing.min_count, thing.max_count,
