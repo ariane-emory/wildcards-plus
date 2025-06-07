@@ -61,6 +61,8 @@ function parse_file(filename) {
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
   // log_match_enabled  = true;
+  // log_expand_and_walk_enabled = true;
+  // log_flags_enabled           = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -285,7 +287,7 @@ let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
 let log_expand_and_walk_enabled       = false;
 let log_finalize_enabled              = false;
-let log_flags_enabled                 = true;
+let log_flags_enabled                 = false;
 let log_loading_prelude               = true;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
@@ -2170,7 +2172,7 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
 
   let factory_fun = (rule, noisy = false) => {
     if (noisy)
-      throw new Error('bomb');
+      throw new Error('noisy bomb');
     
     // const log = noisy ? lm.log : () => {};
     rule = make_rule_func(rule);
@@ -4235,8 +4237,9 @@ class Context {
       return;
     }
     
-    // if (log_flags_enabled) 
-    //   lm.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
+    if (log_flags_enabled) 
+      lm.log(`adding ${compress(inspect_fun(new_flag))} to flags ` +
+             `${abbreviate(compress(inspect_fun(this.flags)))}`);
 
     //if (replace_existing)
     {
@@ -4262,7 +4265,7 @@ class Context {
         return true;
       });
     }
-    
+
     this.flags.push(new_flag);
   }
   // -----------------------------------------------------------------------------------------------
@@ -8642,8 +8645,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         // for (const t of thing) {
         lm.indent(() => {
-          if (log_expand_and_walk_enabled)
-            throw new Error("bomb");
+          // if (log_expand_and_walk_enabled)
+          //   throw new Error("bomb");
           
           for (let ix = 0; ix < thing.length; ix++) {
             log(log_expand_and_walk_enabled,
@@ -10688,7 +10691,11 @@ async function main() {
   lm.log(`auditing...`);
   const elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
   lm.log(`audit took ${elapsed.toFixed(2)} ms`);
-  
+
+  log_match_enabled           = true;
+  log_expand_and_walk_enabled = true;
+  log_flags_enabled           = true;
+
   let posted_count        = 0;
   let prior_prompt        = null;
   let prior_configuration = null;
