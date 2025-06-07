@@ -9275,7 +9275,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
   log(true, // log_level__expand_and_walk,
       `expanded wildcards in ` +
       `${thing_str_repr(thing)} in ` + 
-      // `${context} into ` +
+      `returned ` +
       `${thing_str_repr(ret)}`);
 
   if (ret === '""' || ret === "''")
