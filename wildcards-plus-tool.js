@@ -293,7 +293,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_smart_join_enabled            = true;
+let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
@@ -3830,26 +3830,27 @@ function suggest_closest(name, candidates) {
 }
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing) {
-  const type_str =
-        typeof thing === 'object'
-        ? (thing === null
-           ? 'null'
-           : `${thing.constructor.name} ` ?? 'Object ')
-        : `${typeof thing} `;
+  let type_str =
+      typeof thing === 'object'
+      ? (thing === null
+         ? 'null'
+         : `${thing.constructor.name} ` ?? 'Object ')
+      : `${typeof thing} `;
 
   if (type_str === '')
     throw new Error("wtf");
   
   let thing_str;
 
-  if (Array.isArray(thing)) {
+  if (thing instanceof ASTNode) {
+    thing_str = thing.toString();
+    type_str  = '';
+  }
+  else if (Array.isArray(thing)) {
     thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
   }
   else if (typeof thing === 'string') {
     thing_str = inspect_fun(thing);
-  }
-  else if (thing instanceof ASTNode) {
-    thing_str = thing.toString();
   }
   else if (typeof thing === 'object') {
     try {
