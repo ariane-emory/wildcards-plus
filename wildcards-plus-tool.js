@@ -8627,7 +8627,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     return false;
   };
   // -----------------------------------------------------------------------------------------------
-  function each(pick) {
+  function picker_each(pick) {
     return lm.indent(() =>
       expand_wildcards(pick?.body ?? '', context,
                        { correct_articles: correct_articles }));
@@ -8744,7 +8744,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 : context.pick_multiple_priority;
           
           const picks = got.pick(thing.min_count, thing.max_count,
-                                 picker_allow, picker_forbid, each, 
+                                 picker_allow, picker_forbid, picker_each, 
                                  priority);
 
           if (log_level__expand_and_walk)
