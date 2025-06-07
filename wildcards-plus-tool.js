@@ -8586,7 +8586,7 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
-let expand_wildcards_trap_counter  = 0; // not used yet
+let expand_wildcards_trap_counter = 0; // not yet used
 // -------------------------------------------------------------------------------------------------
 function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
   if (thing == undefined ||
@@ -8641,12 +8641,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     if (correct_articles === undefined)
       throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
 
-    // if (unexpected !== undefined)
-    //   throw new Error(`bad args: ${inspect_fun(unexpected)}`);
-    
     const log = (guard_bool, msg, with_indentation = true) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
-      // if (guard_bool) lm.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
       if (guard_bool) lm.log(msg, with_indentation);
     };
 
@@ -8663,34 +8659,24 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     }
 
     log(true, // log_expand_and_walk_enabled,
-        `Walking ` +
-        `${thing_str_repr(thing)} ` // + 
-        // `${thing_str_repr(thing)} in ` + 
-        // `in ${context}`
+        `Walking ${thing_str_repr(thing)}`
        );
 
     try {
       // -------------------------------------------------------------------------------------------
-      // basic types (strings and Arrays):
+      // Arrays:
       // -------------------------------------------------------------------------------------------
       if (Array.isArray(thing)) {
         const ret = [];
 
-        // for (const t of thing) {
         lm.indent(() => {
-          // if (log_expand_and_walk_enabled)
-          //   throw new Error("bomb");
-          
           for (let ix = 0; ix < thing.length; ix++) {
             log(log_expand_and_walk_enabled,
                 `Walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
                 `${thing_str_repr(thing[ix])} `
-                // `${thing_str_repr(thing[ix])}`
                );
 
-            // const elem_ret = lm.indent(() => walk(thing[ix],
-            //                                       { correct_articles: correct_articles }));
             const elem_ret = walk(thing[ix], { correct_articles: correct_articles });
 
             if (elem_ret)
@@ -8699,15 +8685,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             log(log_expand_and_walk_enabled,
                 `walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
-                //`${thing_str_repr(thing[ix])} ` +
                 `${thing_str_repr(thing[ix])} ` +
                 `returned ${thing_str_repr(elem_ret)}`
                );
           }
         });
-
-        // log(true, `Returning array: ` +
-        //     `${thing_str_repr(ret)}`);
 
         throw new ThrownReturn(ret);
       }
@@ -8743,17 +8725,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         
         if (got instanceof ASTLatchedNamedWildcardValue) {
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
-            // const walked = walk(got.latched_value, 
-            //                     { correct_articles: correct_articles})
             const expanded = lm.indent(() => expand_wildcards(got.latched_value, context,
                                                               { correct_articles: correct_articles})); // not walk!
             // ^ wait, why not walk? I forget.
-            
-            // lm.log(``);
-            // lm.log(`latchedval ref walked:   ` +
-            //        `${typeof walked} ${abbreviate(compress(inspect_fun(walked)))}`);
-            // lm.log(`latchedval ref expanded: ` +
-            //        `${typeof expanded} ${abbreviate(compress(inspect_fun(expanded)))}`);
             
             if (expanded)
               res.push(expanded); 
@@ -8793,6 +8767,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               ? { final_separator: 'and' }
               : {};
 
+        // v maybe unnecessary indentation?
         lm.indent(() => {
           str = smart_join(intercalate(joiner, res, intercalate_options),
                            { correct_articles: false });
@@ -8818,7 +8793,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (thing.trailer && got.length > 0)
           got = smart_join([got, thing.trailer],
                            { correct_articles: false });
-        // * never need to correct articles for trailers since punctuation couldn't trigger correction
+        // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
         
         throw new ThrownReturn(got);
       }
@@ -8832,13 +8807,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           throw new ThrownReturn(
             warning_str(`Named wildcard @${thing.target.name} not found`));
 
-
         if (got instanceof ASTLatchedNamedWildcardValue) {
           if (double_latching_is_an_error)
             throw new ThrownReturn(
               warning_str(`tried to latch already-latched named wildcard ` +
                           `'${thing.target.name}', check your template`));
-          
           else 
             throw new ThrownReturn('');
         }
@@ -8849,10 +8822,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 new ASTLatchedNamedWildcardValue(
                   walk(got, { correct_articles: false }), got);
 
-          // log(true, // context.noisy,
-          //     `latched @${thing.target.name} to value: ` +
-          //     `${typeof latched.latched_value} ` +
-          //     `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
+          log(context.noisy,
+              `latched @${thing.target.name} to value: ` +
+              `${typeof latched.latched_value} ` +
+              `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
 
           context.named_wildcards.set(thing.target.name, latched);
         });
@@ -8866,16 +8839,19 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (!got)
           throw new ThrownReturn(warning_str(`Named wildcard '${thing.name}' not found`));
 
-        if (double_unlatching_is_an_error &&
-            (! (got instanceof ASTLatchedNamedWildcardValue))) {
-          throw new ThrownReturn(warning_str(`tried to unlatch already-unlatched NamedWildcard ` +
-                                             `'${thing.name}', check your template`));
+        if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+          if (double_unlatching_is_an_error)
+            throw new ThrownReturn(warning_str(`tried to unlatch already-unlatched NamedWildcard ` +
+                                               `'${thing.name}', check your template`));
+          else
+            throw new ThrownReturn('');
         }
-
+        
         context.named_wildcards.set(thing.name, got.original_value);
-
-        log(context.noisy,
-            `UNLATCHED ${thing.name} TO ${inspect_fun(got.original_value)}`);
+        
+        lm.indent(() =>
+          log(context.noisy,
+              `unlatched ${thing.name} back to ${thing_str_repr(got.original_value)}`));
 
         throw new ThrownReturn(''); // produce no text.
       } 
@@ -8955,7 +8931,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         throw new ThrownReturn(ret);
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
+      // UpdateConfigurations:
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUpdateConfigurationUnary ||
                thing instanceof ASTUpdateConfigurationBinary) {
         let value = thing.value;
@@ -9148,7 +9126,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTRevertPickSingle || 
                thing instanceof ASTRevertPickMultiple) {
         const cur_key = thing instanceof ASTRevertPickSingle
@@ -9176,9 +9154,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         throw new ThrownReturn('');
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       // ASTLora:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLora) {
         // log(log_expand_and_walk_enabled,
         //     `encountered lora ${thing} in ${context}`);
@@ -9260,7 +9238,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                          : typeof thing) +
                         ' ' +
                         inspect_fun(thing));
-
       }
     }
     catch (obj) {
@@ -9285,26 +9262,22 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // `in ${context}`
      );
 
-  const ret =
-        lm.indent(() =>
-          unescape(smart_join(walk(thing,
-                                   { correct_articles: correct_articles }),
-                              { correct_articles: correct_articles })).replace(/^</, ''));
-  // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
-  
-  lm.indent(() => context.munge_configuration());
+  let ret;
 
+  lm.indent(() => {
+    ret = unescape(smart_join(walk(thing,
+                                   { correct_articles: correct_articles }),
+                              { correct_articles: correct_articles })).replace(/^</, '');
+    // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
+
+    context.munge_configuration();
+  });
+  
   log(true, // log_expand_and_walk_enabled,
       `expanded wildcards in ` +
       `${thing_str_repr(thing)} in ` + 
       // `${context} into ` +
       `${thing_str_repr(ret)}`);
-
-  // if (ret === undefined)
-  //   throw new Error("what");
-
-  // if (ret.match(/^\s+$/))
-  //   throw "bombλ";
 
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
