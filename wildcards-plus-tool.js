@@ -4426,10 +4426,10 @@ class Context {
 const prelude_text = prelude_disabled ? '' : `
 @__set_gender_if_unset  = unsafe_guards { {?female #gender.female // just to make forcing an option a little terser.
                                           |?male   #gender.male
-                                          |?neuter #gender.neuter}
-                          {3 !gender.#female #female
-                          |2 !gender.#male   #male
-                          |100 !gender.#neuter #neuter}} // temporary alteration
+                                          |?neuter #gender.neuter }
+                                          {3 !gender.#female #female
+                                          |2 !gender.#male   #male
+                                          |1 !gender.#neuter #neuter } } 
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
