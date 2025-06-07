@@ -4407,7 +4407,7 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = prelude_disabled ? '' : `
-@__set_gender_if_unset  = unsafe { unsafe {?female #gender.female // just to make forcing an option a little terser.
+@__set_gender_if_unset  = unsafe_guards { unsafe_guards {?female #gender.female // just to make forcing an option a little terser.
                                           |?male   #gender.male
                                           |?neuter #gender.neuter}
                                    {3 !gender.#female #female
@@ -9264,7 +9264,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 const audit_semantics_modes = Object.freeze({
   error:   'error',
   warning: 'warning',
-  unsafe:  'unsafe',
+  unsafe_guards:  'unsafe_guards',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9324,7 +9324,7 @@ function audit_semantics(root_ast_node,
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
       if (dummy_context.flag_is_set(flag) ||
-          local_audit_semantics_mode === audit_semantics_modes.unsafe)
+          local_audit_semantics_mode === audit_semantics_modes.unsafe_guards)
         return;
 
       const flag_str = flag.join(".").toLowerCase();
@@ -9426,8 +9426,8 @@ function audit_semantics(root_ast_node,
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
       }
       else if (thing instanceof ASTAnonWildcard) {
-        const tmp = thing.unsafe
-              ? audit_semantics_modes.unsafe
+        const tmp = thing.unsafe_guards
+              ? audit_semantics_modes.unsafe_guards
               : audit_semantics_mode;
         
         walk_children(thing, tmp);
@@ -9722,13 +9722,13 @@ class ASTLatchedNamedWildcardValue extends ASTNode {
 // AnonWildcards:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard extends ASTNode {
-  constructor(options, { trailer = null, unsafe = false } = {}) {
+  constructor(options, { trailer = null, unsafe_guards = false } = {}) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     this.trailer = trailer;
-    this.unsafe  = unsafe;
+    this.unsafe_guards  = unsafe_guards;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -9742,8 +9742,8 @@ class ASTAnonWildcard extends ASTNode {
   toString() {
     let str = '';
 
-    if (this.unsafe)
-      str += "unsafe ";
+    if (this.unsafe_guards)
+      str += "unsafe_guards ";
     
     str += '{';
 
@@ -10215,9 +10215,9 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
-      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe: arr[0] == 'unsafe' }),
+      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe_guards: arr[0] == 'unsafe_guards' }),
             seq(
-              optional('unsafe'),
+              optional('unsafe_guards'),
               lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
               can_have_trailer
                 ? optional_punctuation_trailer
