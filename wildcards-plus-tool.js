@@ -8913,23 +8913,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         log(log_level__expand_and_walk,
             `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
         
-        const pick = picked; // picked?.body;
-
         if (log_level__expand_and_walk)
-          lm.indent_and_log(pick
-                            ? `picked ${thing_str_repr(pick)}`
-                            : `picked empty`);
-          
-        // if (! pick)
-        //   throw new ThrownReturn(''); // inelegant... investigate why this is necessary?
-
-        // // const ret = lm.indent(() => walk(pick));j
-        // let ret = lm.indent(() => expand_wildcards(pick, context,
-        //                                            { correct_articles: correct_articles }));
+          lm.indent_and_log(picked
+                            ? `picked item = ${thing_str_repr(picked)}`
+                            : `picked item = empty`);          
 
         let ret = picked;
-
-        // console.log(`RET: ${abbreviate(compress(inspect_fun(ret)))}`);
 
         if (thing.trailer && ret.length > 0)
           ret = smart_join([ret, thing.trailer],
