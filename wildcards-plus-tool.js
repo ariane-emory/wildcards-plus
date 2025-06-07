@@ -8821,7 +8821,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               warning_str(`tried to latch already-latched named wildcard ` +
                           `'${thing.target.name}', check your template`));
           else 
-            throw new ThrownReturn('');
+            throw new ThrownReturn(''); // produce nothing
         }
         
 
@@ -8838,7 +8838,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           context.named_wildcards.set(thing.target.name, latched);
         });
         
-        throw new ThrownReturn('');
+        throw new ThrownReturn(''); // produce nothing
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnlatchNamedWildcard) {
@@ -8852,7 +8852,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             throw new ThrownReturn(warning_str(`tried to unlatch already-unlatched NamedWildcard ` +
                                                `'${thing.name}', check your template`));
           else
-            throw new ThrownReturn('');
+            throw new ThrownReturn(''); // produce nothing
         }
         
         context.named_wildcards.set(thing.name, got.original_value);
@@ -8872,7 +8872,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
-        throw new ThrownReturn('');
+        throw new ThrownReturn(''); // produce nothing
       }
       // -------------------------------------------------------------------------------------------
       // internal objects:
@@ -8903,7 +8903,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
             log_level__expand_and_walk);
         
-        throw new ThrownReturn('');
+        throw new ThrownReturn(''); // produce nothing
       }
       // -------------------------------------------------------------------------------------------
       // AnonWildcards:
@@ -9065,7 +9065,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                               log_level__expand_and_walk));
         }
         
-        throw new ThrownReturn('');
+        throw new ThrownReturn(''); // produce nothing
       }
       // ---------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetPickSingle || 
@@ -9097,7 +9097,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
             `${inspect_fun(walked)}.`);
         
-        throw new ThrownReturn('');
+        throw new ThrownReturn(''); // produce nothing
       }
       // ---------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
@@ -9151,7 +9151,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         context[cur_key]   = prior_val;
         context[prior_key] = cur_val;
 
-        throw new ThrownReturn('');
+        throw new ThrownReturn(''); // produce nothing
       }
       // -------------------------------------------------------------------------------------------
       // ASTLora:
@@ -9225,7 +9225,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         
         context.add_lora_uniquely({ file: file, weight: weight });
         
-        throw new ThrownReturn('');
+        throw new ThrownReturn(''); // produce nothing
       }
       // ---------------------------------------------------------------------------------------------
       // uncrecognized type:
