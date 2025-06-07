@@ -9296,19 +9296,13 @@ function audit_semantics(root_ast_node,
   // -----------------------------------------------------------------------------------------------
   function walk_children(thing) {
     const children = thing.direct_children().filter(child => !is_primitive(child));
+    
+    if (children.length > 0) {
+      log(`children: ${children.map(thing_str_repr)}`);
 
-    if (children?.length > 0) {
-      log(`children: ${abbreviate(compress(children.toString()))}`);
-      
-      for (const child of children) {
-        lm.indent(() => {
-          if (is_primitive(child))
-            return;
-          
-          // log(`child: ${abbreviate(child.toString())}`);
-          walk(child, dummy_context);
-        });
-      }
+      lm.indent(() => {
+        walk(children);
+      }); 
     }
   }
   // -----------------------------------------------------------------------------------------------
@@ -9325,8 +9319,8 @@ function audit_semantics(root_ast_node,
     visited.add(thing);
 
     log(`audit semantics in ${thing.constructor.name} ` +
-        `'${abbreviate(compress(thing.toString()), 200)}, ` +
-        `flags: ${compress(inspect_fun(dummy_context.flags))}'`);
+        `'${abbreviate(compress(thing.toString()), 200)}', ` +
+        `flags: ${compress(inspect_fun(dummy_context.flags))}`);
     // log(`auditing semantics in ${thing_str_repr(thing)}`);
 
     // ---------------------------------------------------------------------------------------------
