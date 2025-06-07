@@ -8579,14 +8579,18 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
+let expand_wildcards_trap_counter  = 0; // not used yet
+// -------------------------------------------------------------------------------------------------
 function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
   if (thing == undefined ||
       context === undefined ||
       correct_articles === undefined)
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
-  if (typeof thing === 'string')
+  if (typeof thing === 'string') {
     lm.log(`nothing to expand in ${thing_str_repr(thing)}, returning as is`);
+    return thing;
+  }
   // -----------------------------------------------------------------------------------------------
   function allow_fun(option) {
     let allowed = true;
@@ -8830,7 +8834,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         lm.indent(() => {
           const latched =
                 new ASTLatchedNamedWildcardValue(
-                walk(got, { correct_articles: false }), got);
+                  walk(got, { correct_articles: false }), got);
 
           // log(true, // context.noisy,
           //     `latched @${thing.target.name} to value: ` +
