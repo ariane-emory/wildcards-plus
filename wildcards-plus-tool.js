@@ -3679,12 +3679,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     consume_right_word();
   }
 
-  smart_join_trap_counter  += 1;
-
-  if (log_smart_join_enabled >= 2)
+  if (log_smart_join_enabled >= 1)
     lm.log(`smart_joined ${thing_str_repr(str)} (#${smart_join_trap_counter})`);
 
   // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
+
+  smart_join_trap_counter  += 1;
   
   return str;
 }
