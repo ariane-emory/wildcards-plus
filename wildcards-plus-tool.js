@@ -9284,8 +9284,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
   const ret =
         lm.indent(() =>
-          unescape(smart_join(lm.indent(() => walk(thing,
-                                                   { correct_articles: correct_articles })),
+          unescape(smart_join(walk(thing,
+                                   { correct_articles: correct_articles }),
                               { correct_articles: correct_articles })).replace(/^</, ''));
   
   lm.indent(() => context.munge_configuration());
