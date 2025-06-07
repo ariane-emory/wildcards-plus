@@ -126,7 +126,7 @@
 // ---------------------------------------------------------------------------------------
 // character adjectives:
 // ---------------------------------------------------------------------------------------
-@char_early_adj =
+@char_early_adj = { @#gender
 {adventurous
 |androgynous
 |?neuter 2 androgynous
@@ -146,7 +146,7 @@
 |muscular
 |youthful
 |beautiful
-}
+}}
 
 @char_late_adj =
 {4
@@ -345,6 +345,7 @@ science fiction,
 .
 
 \n\n
+
 
 A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role

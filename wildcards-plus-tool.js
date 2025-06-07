@@ -3823,7 +3823,7 @@ function suggest_closest(name, candidates) {
 
   // If it's reasonably close (adjust threshold as needed)
   return (closest && closest_distance <= 2)
-    ? ` Did you mean '${closest}'?`
+    ? `Did you mean '${closest}'?`
     : '';
 }
 // -------------------------------------------------------------------------------------------------
@@ -9330,8 +9330,9 @@ function audit_semantics(root_ast_node,
       const flag_str = flag.join(".").toLowerCase();
       const known_flags = dummy_context.flags.map(f => f.join("."));
       const suggestion = suggest_closest(flag_str, known_flags);
-      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set,` +
-                    ` this suggests a typo in your template.${suggestion}`);
+      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
+                    `this suggests that you may have a typo or other error in your template.` +
+                    `${suggestion}`);
     }
     // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
@@ -9373,7 +9374,8 @@ function audit_semantics(root_ast_node,
           const known_names = Array.from(dummy_context.named_wildcards.keys());
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
-                        `this suggests a typo in your template.${suggestion}`);
+                        `this suggests that you may have a typo or other error in your template.` +
+                        `${suggestion}`);
         }
         
         const got = dummy_context.named_wildcards.get(thing.name);
@@ -9385,7 +9387,8 @@ function audit_semantics(root_ast_node,
           const known_names = Array.from(dummy_context.scalar_variables.keys());
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
-                        `this suggests a typo in your template.${suggestion}`);
+                        `this suggests that you may have a typo or other error in your template. ` +
+                        `${suggestion}`);
         }
         
         const got = dummy_context.named_wildcards.get(thing.name);
