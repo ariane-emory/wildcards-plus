@@ -8628,9 +8628,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
   };
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
-    return lm.indent(() =>
+    const ret = lm.indent(() =>
       expand_wildcards(pick?.body ?? '', context,
                        { correct_articles: correct_articles }));
+    lm.log(`PICKER_EACH: ${abbreviate(compress(inspect_fun(pick)))} ` +
+           `<${thing_str_repr(pick)}> => ` + 
+           `${thing_str_repr(ret)}`, false)
+    return ret;
   }
   // -----------------------------------------------------------------------------------------------
   function warning_str(str) {
