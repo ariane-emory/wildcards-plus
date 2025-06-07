@@ -10715,7 +10715,6 @@ async function main() {
   }
 
   // audit flags:
-
   lm.log(`auditing...`);
   const elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
   lm.log(`audit took ${elapsed.toFixed(2)} ms`);
