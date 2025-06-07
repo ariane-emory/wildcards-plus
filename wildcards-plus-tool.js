@@ -293,7 +293,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_smart_join_enabled            = false;
+let log_smart_join_enabled            = true;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
@@ -3531,10 +3531,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return originalArticle;
   };
   
-  let left_word = '';  // ?.toString() ?? "";
+  let left_word = arr[0];  // ?.toString() ?? "";
   let str       = left_word;
 
-  for (let ix = 0; ix < arr.length; ix++)  {
+  for (let ix = 1; ix < arr.length; ix++)  {
     // if (str.includes(`,,`))
     //   throw new Error("STOP");
     
@@ -3862,8 +3862,9 @@ function thing_str_repr(thing) {
     thing_str = String(thing);
   }
 
-  return abbreviate(compress(`${type_str}${thing_str}`));
+  return abbreviate(compress(`${type_str}${thing_str}`), thing_str_repr.abbrev_length);
 }
+thing_str_repr.abbrev_length = 200;
 // -------------------------------------------------------------------------------------------------
 function unescape(str) {
   if (typeof str !== 'string')
@@ -8828,7 +8829,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         // lm.log(`LATCHED IS ${inspect_fun(latched)}`);
         
         log(true, // context.noisy,
-            `latched '${thing.target.name}' to value: ` +
+            `latched @${thing.target.name} to value: ` +
             `${typeof latched.latched_value} ` +
             `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
         
@@ -9246,7 +9247,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
       log(true, // log_expand_and_walk_enabled,
           `walking ` +
-          `${abbreviate(compress(thing_str_repr(thing)))} ` + 
+          `${thing_str_repr(thing)} ` + 
           //`in ${context} ` +
           `returned ` +
           `${thing_str_repr(obj.value)}`);
@@ -9263,7 +9264,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
   const ret = unescape(smart_join(lm.indent(() => walk(thing,
                                                        { correct_articles: correct_articles })),
-                                  { correct_articles: correct_articles }));
+                                  { correct_articles: correct_articles })).replace(/^</, '');
   
   lm.indent(() => context.munge_configuration());
 
