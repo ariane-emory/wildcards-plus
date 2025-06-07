@@ -61,6 +61,8 @@ function parse_file(filename) {
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
   // log_match_enabled  = true;
+  // log_expand_and_walk_enabled = true;
+  // log_flags_enabled           = true;
   let  result        = null;
 
   if (dt_hosted) {
@@ -298,7 +300,9 @@ let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
-let unnecessary_choice_is_error       = false;
+let unnecessary_choice_is_an_error    = false;
+let double_latching_is_an_error       = false;
+let double_unlatching_is_an_error     = false;
 // =================================================================================================
 
 
@@ -543,6 +547,11 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   direct_children() {
     const ret = this.__direct_children();
+
+    if (ret === null)
+      throw new Error(`${this.constructor.name}.__direct children() must return an Array, ` +
+                      `got ${inspect_fun(ret)}` +
+                      `this most likely indicated a programmer error`);
 
     if (ret.includes(undefined))
       throw new Error(`direct_children ` +
@@ -990,7 +999,7 @@ function choice(...options) { // convenience constructor
   if (options.length == 1) {
     console.log("WARNING: unnecessary use of choice!");
 
-    if (unnecessary_choice_is_error)
+    if (unnecessary_choice_is_an_error)
       throw new Error("unnecessary use of choice");
     
     return make_rule_func(options[0]);
@@ -2165,7 +2174,7 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
 
   let factory_fun = (rule, noisy = false) => {
     if (noisy)
-      throw new Error('bomb');
+      throw new Error('noisy bomb');
     
     // const log = noisy ? lm.log : () => {};
     rule = make_rule_func(rule);
@@ -2660,9 +2669,14 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const push            = ((value, rule) =>
+const head          = (...rules) => first(seq(...rules));
+const cadr          = (...rules) => second(seq(...rules));
+const wst_cadr      = (...rules) => second(wst_seq(...rules));
+const cutting_cadr  = (...rules) => second(cutting_seq(...rules));
+const cutting_head  = (...rules) => first(cutting_seq(...rules));
+const push          = ((value, rule) =>
   xform(rule, arr => [value, ...arr]));
-const enclosing       = (left, enclosed, right) =>
+const enclosing     = (left, enclosed, right) =>
       xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
 // =================================================================================================
 // END of COMMON-GRAMMAR.JS CONTENT SECTION.
@@ -2895,14 +2909,14 @@ const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]
 // -------------------------------------------------------------------------------------------------
 class WeightedPicker {
   // -----------------------------------------------------------------------------------------------
-  constructor(initialOptions = []) {
-    // lm.log(`CONSTRUCT WITH ${inspect_fun(initialOptions)}`);
+  constructor(options = []) {
+    // lm.log(`CONSTRUCT WITH ${inspect_fun(options)}`);
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
     this.last_pick_index = null;
 
-    for (const [weight, value] of initialOptions)
+    for (const [weight, value] of options)
       this.add(weight, value);
   }
   // -----------------------------------------------------------------------------------------------
@@ -3182,21 +3196,6 @@ class WeightedPicker {
 // =================================================================================================
 // MISCELLANEOUS HELPER FUNCTIONS SECTION:
 // =================================================================================================
-function intercalate(separator, array, { final_separator = null } = {}) {
-  if (array.length === 0) return [];
-
-  const result = [array[0]];
-
-  for (let ix = 1; ix < array.length; ix++) {
-    const sep = (final_separator && ix === array.length - 1)
-          ? final_separator
-          : separator;
-    result.push(sep, array[ix]);
-  }
-
-  return result;
-}
-// -------------------------------------------------------------------------------------------------
 const arr_is_prefix_of_arr = (() => {
   const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
 
@@ -3295,58 +3294,6 @@ function benchmark(thunk, {
   return running_avg;
 }
 // -------------------------------------------------------------------------------------------------
-function format_pretty_bytes(bytes) {
-  const units = ['bytes', 'KB', 'MB', 'GB'];
-  const base = 1024;
-
-  const sign = Math.sign(bytes);
-  let absBytes = Math.abs(bytes);
-
-  let i = 0;
-  while (absBytes >= base && i < units.length - 1) {
-    absBytes /= base;
-    i++;
-  }
-
-  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
-  return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
-}
-// -------------------------------------------------------------------------------------------------
-function indent_lines(indent, str, indent_str = "| ") {
-  if (typeof str !== 'string')
-    throw new Error(`not a string: ${inspect.fun(str)}`);
-  
-  const indent_string = indent_str.repeat(indent);
-  const indented_str  = str
-        .split("\n")
-        .map(line => `${indent_string}${line}`)
-        .join("\n");
-
-  return indented_str;
-}
-// -------------------------------------------------------------------------------------------------
-function measure_time(fun) {
-  const now = dt_hosted
-        ? Date.now
-        : performance.now.bind(performance);
-
-  const start = now();
-  fun();
-  const end = now();
-
-  return end - start;
-}
-// -------------------------------------------------------------------------------------------------
-function rjson_stringify(obj) {
-  if (obj === undefined)
-    return 'undefined';
-  
-  return JSON.stringify(obj)
-    .replace(/"(\w+)"\s*:/g, ' $1: ')
-    .replace(/{ /g, '{')
-    .replace(/},{/g, '}, {');
-}
-// -------------------------------------------------------------------------------------------------
 function capitalize(string) {
   // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -3387,11 +3334,22 @@ function choose_indefinite_article(word) {
 
   return 'a';
 }
-// ------------------------------------------------------------------------------------------------
-function format_pretty_number(num) {
-  const [intPart, fracPart] = num.toString().split(".");
-  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+// -------------------------------------------------------------------------------------------------
+function format_pretty_bytes(bytes) {
+  const units = ['bytes', 'KB', 'MB', 'GB'];
+  const base = 1024;
+
+  const sign = Math.sign(bytes);
+  let absBytes = Math.abs(bytes);
+
+  let i = 0;
+  while (absBytes >= base && i < units.length - 1) {
+    absBytes /= base;
+    i++;
+  }
+
+  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
 }
 // -------------------------------------------------------------------------------------------------
 function format_pretty_list(arr) {
@@ -3408,6 +3366,12 @@ function format_pretty_list(arr) {
   
   return ret;
 }
+// ------------------------------------------------------------------------------------------------
+function format_pretty_number(num) {
+  const [intPart, fracPart] = num.toString().split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+}
 // -------------------------------------------------------------------------------------------------
 function format_simple_time(date = new Date()) {
   return date.toLocaleTimeString('en-US', {
@@ -3418,10 +3382,87 @@ function format_simple_time(date = new Date()) {
   });
 }
 // -------------------------------------------------------------------------------------------------
+function indent_lines(indent, str, indent_str = "| ") {
+  if (typeof str !== 'string')
+    throw new Error(`not a string: ${inspect.fun(str)}`);
+  
+  const indent_string = indent_str.repeat(indent);
+  const indented_str  = str
+        .split("\n")
+        .map(line => `${indent_string}${line}`)
+        .join("\n");
+
+  return indented_str;
+}
+// -------------------------------------------------------------------------------------------------
+function intercalate(separator, array, { final_separator = null } = {}) {
+  if (array.length === 0) return [];
+
+  const result = [array[0]];
+
+  for (let ix = 1; ix < array.length; ix++) {
+    const sep = (final_separator && ix === array.length - 1)
+          ? final_separator
+          : separator;
+    result.push(sep, array[ix]);
+  }
+
+  return result;
+}
+// -------------------------------------------------------------------------------------------------
 function is_empty_object(obj) {
   return obj && typeof obj === 'object' &&
     Object.keys(obj).length === 0 &&
     obj.constructor === Object;
+}
+// -------------------------------------------------------------------------------------------------
+function is_primitive(val) {
+  return val === null ||
+    (typeof val !== 'object' && typeof val !== 'function');
+}
+// -------------------------------------------------------------------------------------------------
+function is_plain_object(value) {
+  return (
+    typeof value === 'object' &&
+      value !== null &&
+      Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+// -------------------------------------------------------------------------------------------------
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,     // deletion
+        dp[i][j - 1] + 1,     // insertion
+        dp[i - 1][j - 1] + cost  // substitution
+      );
+    }
+  }
+
+  // lm.log(`Levenshtein distance between '${a}' and '${b}':`);
+  // lm.log(`${inspect_fun(dp)}.`);
+
+  return dp[m][n];
+}
+// -------------------------------------------------------------------------------------------------
+function measure_time(fun) {
+  const now = dt_hosted
+        ? Date.now
+        : performance.now.bind(performance);
+
+  const start = now();
+  fun();
+  const end = now();
+
+  return end - start;
 }
 // -------------------------------------------------------------------------------------------------
 function rand_int(x, y) {
@@ -3429,6 +3470,25 @@ function rand_int(x, y) {
   const min = Math.min(x, y);
   const max = Math.max(x, y);
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+// -------------------------------------------------------------------------------------------------
+function raw(strings, ...values) {
+  return String.raw(strings, ...values);
+}
+// -------------------------------------------------------------------------------------------------
+function RegExp_raw(strings, ...values) {
+  const raw_source = raw(strings, ...values);
+  return new RegExp(raw_source);
+}
+// -------------------------------------------------------------------------------------------------
+function rjson_stringify(obj) {
+  if (obj === undefined)
+    return 'undefined';
+  
+  return JSON.stringify(obj)
+    .replace(/"(\w+)"\s*:/g, ' $1: ')
+    .replace(/{ /g, '{')
+    .replace(/},{/g, '}, {');
 }
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
@@ -3451,7 +3511,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   // if (arr.includes("''") || arr.includes('""'))
   //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
 
-  if (arr.length === 0) // investigate why this is necessary.
+  if (arr.length === 0) // i forget why this is necessary.
     return '';
   
   if (log_smart_join_enabled)
@@ -3471,10 +3531,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return originalArticle;
   };
   
-  let left_word = arr[0]; // ?.toString() ?? "";
+  let left_word = '';  // ?.toString() ?? "";
   let str       = left_word;
-  
-  for (let ix = 1; ix < arr.length; ix++)  {
+
+  for (let ix = 0; ix < arr.length; ix++)  {
     // if (str.includes(`,,`))
     //   throw new Error("STOP");
     
@@ -3631,15 +3691,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   return str;
 }
 // -------------------------------------------------------------------------------------------------
-function raw(strings, ...values) {
-  return String.raw(strings, ...values);
-}
-// -------------------------------------------------------------------------------------------------
-function RegExp_raw(strings, ...values) {
-  const raw_source = raw(strings, ...values);
-  return new RegExp(raw_source);
-}
-// -------------------------------------------------------------------------------------------------
 // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
 // -------------------------------------------------------------------------------------------------
 function structured_clone(value, {
@@ -3758,6 +3809,60 @@ if (test_structured_clone) {
     else
       lm.log(`test #3 failed as intended.`);
   }
+}
+// -------------------------------------------------------------------------------------------------
+function suggest_closest(name, candidates) {
+  let closest = null;
+  let closest_distance = Infinity;
+
+  for (const cand of candidates) {
+    const dist = levenshtein(name, cand);
+    if (dist < closest_distance) {
+      closest = cand;
+      closest_distance = dist;
+    }
+  }
+
+  // If it's reasonably close (adjust threshold as needed)
+  return (closest && closest_distance <= 2)
+    ? `Did you mean '${closest}'?`
+    : '';
+}
+// -------------------------------------------------------------------------------------------------
+function thing_str_repr(thing) {
+  const type_str =
+        typeof thing === 'object'
+        ? (thing === null
+           ? 'null'
+           : `${thing.constructor.name} ` ?? 'Object ')
+        : `${typeof thing} `;
+
+  if (type_str === '')
+    throw new Error("wtf");
+  
+  let thing_str;
+
+  if (Array.isArray(thing)) {
+    thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
+  }
+  else if (typeof thing === 'string') {
+    thing_str = inspect_fun(thing);
+  }
+  else if (thing instanceof ASTNode) {
+    thing_str = thing.toString();
+  }
+  else if (typeof thing === 'object') {
+    try {
+      thing_str = abbreviate(compress(inspect_fun(thing)));
+    } catch {
+      thing_str = thing.toString(); // fallback
+    }
+  }
+  else {
+    thing_str = String(thing);
+  }
+
+  return abbreviate(compress(`${type_str}${thing_str}`));
 }
 // -------------------------------------------------------------------------------------------------
 function unescape(str) {
@@ -4134,7 +4239,7 @@ class Context {
     return res;
   }
   // -----------------------------------------------------------------------------------------------
-  set_flag(new_flag) {
+  set_flag(new_flag, replace_existing = false) {
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
       // if (log_flags_enabled)
@@ -4142,40 +4247,46 @@ class Context {
       return;
     }
     
-    // if (log_flags_enabled) 
-    //   lm.log(`adding ${compress(inspect_fun(new_flag))} to flags: ${compress(inspect_fun(this.flags))}`);
+    if (log_flags_enabled) 
+      lm.log(`adding ${compress(inspect_fun(new_flag))} to flags ` +
+             `${abbreviate(compress(inspect_fun(this.flags)))}`);
 
-    const new_flag_head = new_flag.slice(0, -1);
-    
-    this.flags = this.flags.filter(existing_flag => {
-      if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
-        if (log_flags_enabled)
-          lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
-                 `new flag ${compress(inspect_fun(new_flag))}`);
-        return false;
-      }
-      
-      if (new_flag_head.length != 0 && arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
-        if (log_flags_enabled)
-          lm.log(`discard ${inspect_fun(existing_flag)} because it is a suffix of ` +
-                 `new flag's head ${compress(inspect_fun(new_flag_head))}`);
-        return false; 
-      }
-      
-      return true;
-    });
+    //if (replace_existing)
+    {
+      const new_flag_head = new_flag.slice(0, -1);
+
+      this.flags = this.flags.filter(existing_flag => {
+        if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
+          // if (log_flags_enabled)
+          //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+          //          `new flag ${compress(inspect_fun(new_flag))}`);
+          return false;
+        }
+
+        if (replace_existing)
+          if (new_flag_head.length != 0 &&
+              arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
+            // if (log_flags_enabled)
+            //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
+            //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
+            return false; 
+          }
+        
+        return true;
+      });
+    }
 
     this.flags.push(new_flag);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
-    if (log_flags_enabled)
-      lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    // if (log_flags_enabled)
+    //   lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
     this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
 
-    if (log_flags_enabled)
-      lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    // if (log_flags_enabled)
+    //   lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -4307,12 +4418,12 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = prelude_disabled ? '' : `
-@__set_gender_if_unset  = {{?female #gender.female // just to make forcing an option a little terser.
-                           |?male   #gender.male
-                           |?neuter #gender.neuter}
-                           {3 !gender.#female #female
-                           |2 !gender.#male   #male
-                           |1 !gender.#neuter #neuter}}
+@__set_gender_if_unset  = unsafe_guards { {?female #gender.female // just to make forcing an option a little terser.
+                                          |?male   #gender.male
+                                          |?neuter #gender.neuter}
+                          {3 !gender.#female #female
+                          |2 !gender.#male   #male
+                          |100 !gender.#neuter #neuter}} // temporary alteration
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
@@ -4395,6 +4506,40 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 512,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_1_to_1_os6 =
+{ %w    = 512;  %h    = 512;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 512,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_3_to_2 =
 { %w    = 768;  %h    = 512;   
@@ -4407,18 +4552,86 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 768,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_3_to_2_os6 =
+{ %w    = 768;  %h    = 512;   
+  %ow   = 768;  %oh   = 6;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_2_to_3 =
 { %w    = 512;  %h    = 768;   
-  %ow   = 576;  %oh   = 768;   
-  %tw   = 768;  %th   = 1024;  
-  %nw   = 1344; %nh   = 1792;  
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1024; %th   = 768;   
+  %nw   = 1792; %nh   = 1344;  
   %hrf  = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 512,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_2_to_3_os6 =
+{ %w    = 512;  %h    = 768;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 512,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_4_to_3 =
 { %w   = 768;  %h     = 576;    
@@ -4431,18 +4644,86 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 768,
+// "height": 576,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_4_to_3_os6 = 
+{ %w   = 768;  %h     = 576;    
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1536; %th    = 1152;   
+  %nw  = 1792; %nh    = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 576,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_3_to_4 =
 { %w   = 576;  %h     = 768;    
-  %ow  = 576;  %oh    = 768;    
-  %tw  = 768;  %th    = 1024;   
-  %nw  = 1344; %nh    = 1792;   
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1024; %th    = 768;    
+  %nw  = 1792; %nh    = 1344;   
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 576,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_3_to_4_os6 = 
+{ %w   = 576;  %h     = 768;    
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1536; %th    = 1152;   
+  %nw  = 1792; %nh    = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 576,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_16_to_9 =
 { %w   = 1024;  %h    = 576;    
@@ -4455,18 +4736,85 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.16.9
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 1024,
+// "height": 576,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_16_to_9_os6 = 
+{ %w   = 1024;  %h    = 576;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 1024,
+// "height": 576,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_small_9_to_16 =
 { %w   = 576;  %h     = 1024;   
-  %ow  = 576;  %oh    = 768;    
-  %tw  = 768;  %th    = 1024;   
-  %nw  = 1344; %nh    = 1792;   
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1024; %th    = 768;    
+  %nw  = 1792; %nh    = 1344;   
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.9.16
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 576,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_9_to_16_os6 = 
+{ %w   = 576;  %h     = 1024;   
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1536; %th    = 1152;   
+  %nw  = 1792; %nh    = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 576,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 // -------------------------------------------------------------------------------------------------
 // medium:
@@ -4481,6 +4829,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic.aspect_ratio_1_to_1
   #xl_magic_size.medium
 }
+// {
+// "width": 1024,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_1_to_1_os6 =
 { %h   = 1024;  %w    = 1024;   
@@ -4493,6 +4852,62 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.6
 }
+// {
+// "width": 1024,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_medium_2_to_3 =
+{ %w   = 832;   %h    = 1216;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 179,;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 832,
+// "height": 1216,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHei// "hiresFix": false
+// }
+
+@xl_magic_medium_2_to_3_os6 =
+{ %w   = 832;   %h    = 1216;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 832,
+// "height": 1216,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_3_to_2 =
 { %w   = 1216;  %h    = 832;    
@@ -4505,6 +4920,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 1216,
+// "height": 832,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_3_to_2_os6 =
 { %w   = 1216;  %h    = 832; 
@@ -4517,30 +4943,40 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.6
 }
+// {
+// "width": 1216,
+// "height": 832,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
-@xl_magic_medium_2_to_3 =
-{ %w   = 832;   %h    = 1216;   
-  %ow  = 576;   %oh   = 768;    
-  %tw  = 768;   %th   = 1024;   
-  %nw  = 1344;  %nh   = 1792;   
+@xl_magic_medium_3_to_4 =
+{ %w   = 896;   %h    = 1152;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
+  #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.4
 }
-
-@xl_magic_medium_2_to_3_os6 =
-{ %w   = 832;   %h    = 1216;   
-  %ow  = 576;   %oh   = 768;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1344;  %nh   = 1792;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.6
-}
+// {
+// "width": 896,
+// "height": 1152,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_4_to_3 =
 { %w    = 1152; %h    = 896;    
@@ -4553,6 +4989,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 1152,
+// "height": 896,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_4_to_3_os6 =
 { %w    = 1152; %h    = 896;     
@@ -4565,30 +5012,86 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.6
 }
-
-@xl_magic_medium_3_to_4 =
-{ %w   = 896;   %h    = 1152;   
-  %ow  = 576;   %oh   = 768;    
-  %tw  = 768;   %th   = 1024;   
-  %nw  = 1344;  %nh   = 1792;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.4
-}
+// {
+// "width": 1152,
+// "height": 896,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_3_to_4_os6 =
 { %w   = 896;   %h    = 1152;   
-  %ow  = 576;   %oh   = 768;    
+  %ow  = 768;   %oh   = 576;    
   %tw  = 1536;  %th   = 1152;   
-  %nw  = 1344;  %nh   = 1792;   
+  %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.6
 }
+// {
+// "width": 896,
+// "height": 1152,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_medium_9_to_16 =
+{ %w   = 768;   %h    = 1344;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 768,
+// "height": 1344,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_medium_9_to_16_os6 = 
+{ %w   = 768;   %h    = 1344;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 1344,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_16_to_9 =
 { %w   = 1344;  %h    = 768;    
@@ -4601,6 +5104,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.16.9
   #xl_magic_object_scaling.4
 }
+// {
+// "width": 1344,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 @xl_magic_medium_16_to_9_os6 =
 { %w   = 1344;  %h    = 768;    
@@ -4613,30 +5127,17 @@ const prelude_text = prelude_disabled ? '' : `
   #xl_magic_aspect_ratio.16.9
   #xl_magic_object_scaling.6
 }
-
-@xl_magic_medium_9_to_16 =
-{ %w   = 768;   %h    = 1344;   
-  %ow  = 576;   %oh   = 768;    
-  %tw  = 768;   %th   = 1024;   
-  %nw  = 1344;  %nh   = 1792;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.4
-}
-
-@xl_magic_medium_9_to_16_os6 = 
-{ %w   = 768;   %h    = 1344;   
-  %ow  = 576;   %oh   = 768;    
-  %tw  = 768;   %th   = 1024;   
-  %nw  = 1533;  %nh   = 1152;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.6
-}
+// {
+// "width": 1344,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
 // -------------------------------------------------------------------------------------------------
 // large:
@@ -4752,7 +5253,16 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_small_4_to_3
 | @xl_magic_small_9_to_16
 | @xl_magic_small_16_to_9
-  #xl_magic_object_scaling.object_scaling_4
+}
+
+@xl_magic_small_random_os6 = 
+{ @xl_magic_small_1_to_1_os6
+| @xl_magic_small_2_to_3_os6
+| @xl_magic_small_3_to_2_os6
+| @xl_magic_small_3_to_4_os6
+| @xl_magic_small_4_to_3_os6
+| @xl_magic_small_9_to_16_os6
+| @xl_magic_small_16_to_9_os6
 }
 
 @xl_magic_medium_random =
@@ -4765,7 +5275,7 @@ const prelude_text = prelude_disabled ? '' : `
 | @xl_magic_medium_16_to_9
 }
 
-@xl_magic_medium_os6_random =
+@xl_magic_medium_random_os6 =
 { @xl_magic_medium_1_to_1_os6
 | @xl_magic_medium_2_to_3_os6
 | @xl_magic_medium_3_to_2_os6
@@ -8070,15 +8580,10 @@ function load_prelude(into_context = new Context()) {
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
 function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
-  if (context === undefined || correct_articles === undefined)
+  if (thing == undefined ||
+      context === undefined ||
+      correct_articles === undefined)
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
-  // -----------------------------------------------------------------------------------------------
-  function forbid_fun(option) {
-    for (const not_flag of option.not_flags)
-      if (context.flag_is_set(not_flag.flag))
-        return true;
-    return false;
-  };
   // -----------------------------------------------------------------------------------------------
   function allow_fun(option) {
     let allowed = true;
@@ -8102,23 +8607,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     return allowed;
   };
   // -----------------------------------------------------------------------------------------------
-  const thing_str_repr = thing => {
-    const type_str  = typeof thing === 'object' ? thing.constructor.name : typeof thing;
-    // const thing_str = abbreviate(Array.isArray(thing)
-    //                              ? inspect_fun(thing) 
-    //                              : (typeof thing === 'string'
-    //                                 ? inspect_fun(thing)
-    //                                 : thing.toString()));
-    const thing_str = abbreviate(Array.isArray(thing)
-                                 ? compress(inspect_fun(thing)) 
-                                 : (typeof thing === 'string'
-                                    ? inspect_fun(thing)
-                                    : thing.toString()));
-    return `${type_str} ${thing_str}`
-  }
+  function forbid_fun(option) {
+    for (const not_flag of option.not_flags)
+      if (context.flag_is_set(not_flag.flag))
+        return true;
+    return false;
+  };
   // -----------------------------------------------------------------------------------------------
-  const thing_type_str = thing =>
-        typeof thing === 'object' ? thing.constructor.name : typeof thing;
+  function warning_str(str) {
+    return `[WARNING: ${str}!]`;
+  }
   // -----------------------------------------------------------------------------------------------
   const log = (guard_bool, msg, with_indentation = true) => { 
     if (! msg && msg !== '') throw new Error("bomb 1");
@@ -8144,10 +8642,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       }
     }
 
-    log(log_expand_and_walk_enabled,
+    log(true, // log_expand_and_walk_enabled,
         `Walking ` +
-        `${thing_str_repr(thing)} in ` + 
-        `${context}`);
+        `${thing_str_repr(thing)} ` // + 
+        // `${thing_str_repr(thing)} in ` + 
+        // `in ${context}`
+       );
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -8161,14 +8661,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         // for (const t of thing) {
         lm.indent(() => {
-          if (log_expand_and_walk_enabled)
-            throw new Error("bomb");
+          // if (log_expand_and_walk_enabled)
+          //   throw new Error("bomb");
           
           for (let ix = 0; ix < thing.length; ix++) {
             log(log_expand_and_walk_enabled,
                 `Walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix])}`);
+                `${abbreviate(thing[ix].toString())} `
+                // `${thing_str_repr(thing[ix])}`
+               );
 
             const elem_ret = lm.indent(() => walk(thing[ix],
                                                   { correct_articles: correct_articles }));
@@ -8178,11 +8680,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             log(log_expand_and_walk_enabled,
                 `walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix])} ` +
-                `returned ${thing_str_repr(elem_ret)}`);
-
+                //`${thing_str_repr(thing[ix])} ` +
+                `${abbreviate(thing[ix].toString())} ` +
+                `returned ${thing_str_repr(elem_ret)}`
+               );
           }
         });
+
+        // log(true, `Returning array: ` +
+        //     `${thing_str_repr(ret)}`);
 
         throw new ThrownReturn(ret);
       }
@@ -8198,8 +8704,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        log(log_flags_enabled,
-            `unsetting flag '${thing.flag}'.`);
+        // log(log_flags_enabled,
+        //     `unsetting flag '${thing.flag}'.`);
 
         context.unset_flag(thing.flag);
         
@@ -8212,14 +8718,25 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const got = context.named_wildcards.get(thing.name);
 
         if (!got)
-          throw new ThrownReturn(`\\<WARNING: named wildcard @${thing.name} not found!>`);
+          throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
 
         let res = [];
         
         if (got instanceof ASTLatchedNamedWildcardValue) {
-          for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
-            res.push(lm.indent(() => expand_wildcards(got.latched_value, context,
-                                                      { correct_articles: correct_articles}))); // not walk!
+          for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
+            // const walked = walk(got.latched_value, 
+            //                     { correct_articles: correct_articles})
+            const expanded = expand_wildcards(got.latched_value, context,
+                                              { correct_articles: correct_articles})
+            // lm.log(``);
+            // lm.log(`LATCHEDVAL WALKED:   ` +
+            //        `${typeof walked} ${abbreviate(compress(inspect_fun(walked)))}`);
+            // lm.log(`LATCHEDVAL EXPANDED: ` +
+            //        `${typeof expanded} ${abbreviate(compress(inspect_fun(expanded)))}`);
+            
+            res.push(lm.indent(() => expanded)); // not walk!
+            // ^ wait, why not walk? I forget.
+          }
         }
         else {
           const priority = thing.min_count === 1 && thing.max_count === 1
@@ -8269,7 +8786,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
         let got = context.scalar_variables.get(thing.name) ??
-            `\\<WARNING: scalar '${thing.name}' not found}>`;
+            warning_str(`scalar '${thing.name}' not found`);
 
         log(false, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
@@ -8287,30 +8804,35 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // NamedWildcards:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLatchNamedWildcard) {
-        const got = context.named_wildcards.get(thing.name);
+        const got = context.named_wildcards.get(thing.target.name);
         
         if (!got)
-          throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.name} not found!>`);
+          throw new ThrownReturn(
+            warning_str(`Named wildcard @${thing.target.name} not found`));
 
-        // lm.log(`CONSIDER ${inspect_fun(got)}`);
 
         if (got instanceof ASTLatchedNamedWildcardValue) {
-          throw new ThrownReturn(`\\<WARNING: tried to latch already-latched NamedWildcard ` +
-                                 `@${thing.name}, check your template!>`);
-        } /* else {
-             lm.log(`LATCHING ${inspect_fun(got)}`);
-             
-             // throw new Error('bomb');
-             } */
-
-        const latched = new ASTLatchedNamedWildcardValue(lm.indent(() => walk(got, context)), got);
+          if (double_latching_is_an_error)
+            throw new ThrownReturn(
+              warning_str(`tried to latch already-latched named wildcard ` +
+                          `'${thing.target.name}', check your template`));
+          
+          else 
+            throw new ThrownReturn('');
+        }
+        
+        const latched =
+              new ASTLatchedNamedWildcardValue(
+                lm.indent(() => walk(got, { correct_articles: false })), got);
 
         // lm.log(`LATCHED IS ${inspect_fun(latched)}`);
         
-        log(context.noisy,
-            `LATCHED ${thing.name} TO ${inspect_fun(latched.latched_value)}`);
+        log(true, // context.noisy,
+            `latched '${thing.target.name}' to value: ` +
+            `${typeof latched.latched_value} ` +
+            `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
         
-        context.named_wildcards.set(thing.name, latched);
+        context.named_wildcards.set(thing.target.name, latched);
 
         throw new ThrownReturn('');
       }
@@ -8319,12 +8841,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         let got = context.named_wildcards.get(thing.name);
 
         if (!got)
-          throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.name} not found!>`);
+          throw new ThrownReturn(warning_str(`Named wildcard '${thing.name}' not found`));
 
-        if (! (got instanceof ASTLatchedNamedWildcardValue)) {
-          throw new ThrownReturn(`\\<WARNING: tried to unlatch already-unlatched NamedWildcard ` +
-                                 `@${thing.name}, ` +
-                                 `check your template!>`);
+        if (double_unlatching_is_an_error &&
+            (! (got instanceof ASTLatchedNamedWildcardValue))) {
+          throw new ThrownReturn(warning_str(`tried to unlatch already-unlatched NamedWildcard ` +
+                                             `'${thing.name}', check your template`));
         }
 
         context.named_wildcards.set(thing.name, got.original_value);
@@ -8336,10 +8858,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
-        if (context.named_wildcards.has(thing.name))
-          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
-              `you may not have intended to do this, check your template!`,
-              log_expand_and_walk_enabled);
+        // if (context.named_wildcards.has(thing.name))
+        //   log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
+        //       `you may not have intended to do this, check your template!`,
+        //       log_expand_and_walk_enabled);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
@@ -8349,6 +8871,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // internal objects:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTLatchedNamedWildcardValue) {
+        throw new Error("stop");
         throw new ThrownReturn(thing.latched_value);
       }
       // -------------------------------------------------------------------------------------------
@@ -8461,7 +8984,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
           lm.indent(() => log(log_configuration_enabled,
                               `%config ${thing.assign ? '=' : '+='} ` +
-                              `${inspect_fun(new_obj, true)}`
+                              `${inspect_fun(new_obj, true)}`,
+                              log_expand_and_walk_enabled
                               // + `, configuration is now: ` +
                               // `${inspect_fun(context.configuration, true)}`
                              ));
@@ -8581,7 +9105,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               ? { desc: 'UI prompt', text: ui_prompt }
               : { desc: 'UI negative prompt', text: ui_neg_prompt };
         
-        lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+        // lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
 
         let res = null;
 
@@ -8590,14 +9114,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         }
         catch(err) {
           if (err instanceof FatalParseError)
-            throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} failed: ${err}>`);
+            throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} failed: ${err}`));
           else
             throw err;
         }
 
         
         if (!res || !res.is_finished)
-          throw new ThrownReturn(`\\<WARNING: parsing ${sub_prompt.desc} did not finish!>`);
+          throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
         throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
       }
@@ -8720,20 +9244,22 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       if (! (obj instanceof ThrownReturn))
         throw obj;
 
-      log(log_expand_and_walk_enabled,
+      log(true, // log_expand_and_walk_enabled,
           `walking ` +
-          `${thing_str_repr(thing)} in ` + 
-          `${context} returned ` +
+          `${abbreviate(compress(thing_str_repr(thing)))} ` + 
+          //`in ${context} ` +
+          `returned ` +
           `${thing_str_repr(obj.value)}`);
 
       return obj.value;
     }
   }
 
-  log(log_expand_and_walk_enabled,
+  log(true, // log_expand_and_walk_enabled,
       `Expanding wildcards in ` +
-      `${thing_str_repr(thing)} in ` + 
-      `${context}`);
+      `${thing_str_repr(thing)} ` // + 
+      // `in ${context}`
+     );
 
   const ret = unescape(smart_join(lm.indent(() => walk(thing,
                                                        { correct_articles: correct_articles })),
@@ -8770,48 +9296,245 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
 
 // =================================================================================================
+// FLAG AUDITING FUNCTION.
+// =================================================================================================
+const audit_semantics_modes = Object.freeze({
+  error:                'error',
+  warning:              'warning', 
+  allow_unsafe_guards:  'allow_unsafe_guards',
+});
+// -------------------------------------------------------------------------------------------------
+function audit_semantics(root_ast_node,
+                         { base_context = null, noisy = false,
+                           audit_semantics_mode = audit_semantics_modes.warning } = {}) {
+  if (root_ast_node === undefined)
+    throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `this likely indicates a programmer error`);
+
+  const visited = new Set();
+  const already_warned_msgs = new Set();
+  const dummy_context = base_context
+        ? base_context.clone()
+        : new Context();
+
+  // -----------------------------------------------------------------------------------------------
+  function walk(thing, local_audit_semantics_mode) {    
+    if (typeof local_audit_semantics_mode !== 'string')
+      throw new Error(`bad walk local_audit_semantics_mode: ` +
+                      `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
+    // ---------------------------------------------------------------------------------------------
+    const log = (msg_thunk, indent = true) => {
+      if (noisy)
+        lm.log(`${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
+    };
+    function walk_children(thing, mode) {
+      if (typeof mode !== 'string')
+        throw new Error(`bad walk_children mode: ` +
+                        `${abbreviate(compress(inspect_fun(mode)))}`);
+
+      const children = thing.direct_children().filter(child => !is_primitive(child));
+
+      if (children?.length > 0) {
+        log(() => `children: ${children.map(thing_str_repr)}`);
+
+        lm.indent(() => {
+          walk(children, mode);
+        }); // propagate arg
+      }
+    }
+    // ---------------------------------------------------------------------------------------------
+    function warn_or_throw(msg) {
+      if (local_audit_semantics_mode instanceof Context)
+        throw new Error("got Context");
+      
+      msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
+
+      if (local_audit_semantics_mode == audit_semantics_mode.error) {
+        throw new Error(msg);
+      }
+      else if (local_audit_semantics_mode == audit_semantics_modes.warning &&
+               ! already_warned_msgs.has(msg)) {
+        lm.log(msg, false); // false arg for no indentation and not local log function
+        // already_warned_msgs.add(msg);
+      }
+    }
+    // ---------------------------------------------------------------------------------------------
+    function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
+      if (dummy_context.flag_is_set(flag) ||
+          local_audit_semantics_mode === audit_semantics_modes.allow_unsafe_guards)
+        return;
+
+      const flag_str = flag.join(".").toLowerCase();
+      const known_flags = dummy_context.flags.map(f => f.join("."));
+      const suggestion = suggest_closest(flag_str, known_flags);
+      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
+                    `this suggests that you may have a typo or other error in your template. ` +
+                    `${suggestion}`);
+    }
+    // ---------------------------------------------------------------------------------------------
+    if (is_primitive(thing))
+      return;
+
+    if (visited.has(thing)) {
+      log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
+      
+      return;
+    }
+    
+    visited.add(thing);
+
+    log(() => `audit semantics in ${thing.constructor.name} ` +
+        `'${abbreviate(compress(thing.toString()), 200)}', ` +
+        `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+
+    lm.indent(() => {
+      // -------------------------------------------------------------------------------------------
+      // typecases:
+      // -------------------------------------------------------------------------------------------
+      if (Array.isArray(thing)) {
+        for (const elem of thing)
+          if (!is_primitive(elem))
+            walk(elem, local_audit_semantics_mode) // propagate local_audit_semantics_mode
+      }
+      else if (thing instanceof ASTNamedWildcardDefinition) {
+        if (dummy_context.named_wildcards.has(thing.name))
+          warn_or_throw(`redefining named wildcard @${thing.name}, ` +
+                        `you may not have intended to do this, check your template!`);
+
+        dummy_context.named_wildcards.set(thing.name, thing.wildcard);
+      }
+      else if (thing instanceof ASTNamedWildcardReference) {
+        if (!dummy_context.named_wildcards.has(thing.name)) {
+          const known_names = Array.from(dummy_context.named_wildcards.keys());
+          const suggestion = suggest_closest(thing.name, known_names);
+          warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
+                        `this suggests that you may have a typo or other error in your template. ` +
+                        `${suggestion}`);
+        }
+        
+        const got = dummy_context.named_wildcards.get(thing.name);
+        
+        lm.indent(() => walk(got, audit_semantics_mode)); // don't propagate local_audit_semantics_mode
+      }
+      else if (thing instanceof ASTScalarReference) {
+        if (!dummy_context.scalar_variables.has(thing.name)) {
+          const known_names = Array.from(dummy_context.scalar_variables.keys());
+          const suggestion = suggest_closest(thing.name, known_names);
+          warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
+                        `this suggests that you may have a typo or other error in your template. ` +
+                        `${suggestion}`);
+        }
+        
+        const got = dummy_context.named_wildcards.get(thing.name);
+        
+        walk(got, local_audit_semantics_mode); // propagate local_audit_semantics_mode
+      }
+      else if (thing instanceof ASTScalarAssignment) {
+        dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
+        walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
+      }
+      else if (thing instanceof ASTCheckFlags) {
+        if (thing.consequently_set_flag_tail) {
+          // undecided on whether this case deserves a warning... for now, let's avoid one:
+          dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
+        }
+        else {
+          for (const flag of thing.flags) 
+            warn_or_throw_unless_flag_could_be_set_by_now(flag);
+        }
+      }
+      else if (thing instanceof ASTNotFlag) {
+        if (thing.consequently_set_flag_tail)
+          // undecided on whether this case deserves a warning... for now, let's avoid one:
+          dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
+        else if (thing.set_immediately) 
+          // this case probably doesn't deserve a warning, avoid one:
+          dummy_context.set_flag(thing.flag, false);
+        else 
+          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+      }
+      else if (thing instanceof ASTSetFlag) {
+        dummy_context.set_flag(thing.flag, false);
+      } 
+      else if (thing instanceof ASTUnsetFlag) {
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+      }
+      else if (thing instanceof ASTAnonWildcard) {
+        const mode = thing.unsafe_guards
+              ? audit_semantics_modes.allow_unsafe_guards
+              : local_audit_semantics_mode; // propagate local_audit_semantics_mode
+        
+        walk_children(thing, mode);
+      }
+      else if (thing instanceof ASTAnonWildcardAlternative) {
+        walk_children(thing, local_audit_semantics_mode); // propagate local_audit_semantics_mode
+      }
+      else if (thing instanceof ASTNode) {
+        walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
+      }
+      else {
+        throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+      }
+    });
+  }
+
+  walk(root_ast_node, audit_semantics_mode);
+}
+// =================================================================================================
+// END OF THE FLAG AUDITING FUNCTION.
+// =================================================================================================
+
+
+// =================================================================================================
 // SD PROMPT AST CLASSES SECTION:
 // =================================================================================================
-class ASTNode {}
+class ASTNode {
+  // -----------------------------------------------------------------------------------------------
+  direct_children() {
+    const ret = Array.from(this.__direct_children());
+    
+    return ret;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    // doesn't necessarily need to (but could) include whildren that are not ASTNodes.
+    throw new Error(`__direct_children is not implemented by ${this.constructor.name}`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTLeafNode extends ASTNode {
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+}
 // -------------------------------------------------------------------------------------------------
 // Flags:
 // -------------------------------------------------------------------------------------------------
-class ASTSetFlag extends ASTNode {
+class ASTSetFlag extends ASTLeafNode {
   constructor(flag_arr) {
-    // if (! Array.isArray(flag_arr))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
     super();
     this.flag = flag_arr;
-    
-    // if (this.flag === undefined)
-    //   throw new Error("stop after constructing ASTSetFlag");
   }
-  // --------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `#${this.flag.join('.')}`;
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTUnsetFlag extends ASTNode {
+class ASTUnsetFlag extends ASTLeafNode {
   constructor(flag_arr) {
-    // if (! Array.isArray(flag_arr))
-    //   throw new Error(`${this.constructor.name} ` +
-    //                   `ARG NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
     super();
     this.flag = flag_arr;
   }
-  // --------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `#!${this.flag.join('.')}`;
   }
 }
 // --------------------------------------------------------------------------------------------------
-class ASTCheckFlags extends ASTNode {
+class ASTCheckFlags extends ASTLeafNode {
   constructor(flag_arrs, consequently_set_flag_tail) {
-    // if (! flag_arrs.every(flag_arr => Array.isArray(flag_arr)))
-    //   throw new Error(`NOT ALL ARRAYS: ${inspect_fun(flag_arrs)}`);
     super();
 
     if (consequently_set_flag_tail && flag_arrs.length != 1 )
@@ -8819,9 +9542,6 @@ class ASTCheckFlags extends ASTNode {
 
     this.flags = flag_arrs;
     this.consequently_set_flag_tail = consequently_set_flag_tail;
-
-    // if (log_flags_enabled)
-    //   lm.log(`constructed ${inspect_fun(this)}`)
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8840,16 +9560,12 @@ class ASTCheckFlags extends ASTNode {
     }
 
     return str;
-    // return `?${this.flag_arrs.map(x => x.join('.')).join(',')}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTNotFlag extends ASTNode  { 
+class ASTNotFlag extends ASTLeafNode  { 
   constructor(flag_arr, { set_immediately = undefined,
                           consequently_set_flag_tail = undefined } = {}) {
-    // if (! Array.isArray(flag_arr))
-    //   throw new Error(`NOT AN ARRAY: ${inspect_fun(flag_arr)}`);
-
     super();
 
     if (set_immediately && consequently_set_flag_tail)
@@ -8858,14 +9574,8 @@ class ASTNotFlag extends ASTNode  {
     this.flag                       = flag_arr;
     this.consequently_set_flag_tail = consequently_set_flag_tail
     this.set_immediately            = set_immediately;
-
-    // if (log_flags_enabled)
-    //   lm.log(`constructed ${inspect_fun(this)}`)
-    
-    // if (this.set_immediately)
-    //   lm.log(`SET IMMEDIATELY = '${inspect_fun(this.set_immediately)}'`);
   }
-  // -------------------------------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------------------------
   toString() {
     let str = `!`;
 
@@ -8883,9 +9593,27 @@ class ASTNotFlag extends ASTNode  {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// NamedWildcard references:
+// ASTNamedWildcardDefinition;
 // -------------------------------------------------------------------------------------------------
-class ASTNamedWildcardReference extends ASTNode {
+class ASTNamedWildcardDefinition extends ASTNode {
+  constructor(name, wildcard) {
+    super();
+    this.name = name;
+    this.wildcard = wildcard;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.wildcard ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@${this.name} = ${this.wildcard}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTNamedWildcardReference:
+// -------------------------------------------------------------------------------------------------
+class ASTNamedWildcardReference extends ASTLeafNode {
   constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1, trailer = '') {
     super();
     this.name       = name;
@@ -8894,7 +9622,6 @@ class ASTNamedWildcardReference extends ASTNode {
     this.min_count  = min_count;
     this.max_count  = max_count;
     this.trailer    = trailer;
-    // lm.log(`BUILT ${inspect_fun(this)}`);
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8920,7 +9647,7 @@ class ASTNamedWildcardReference extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // Scalar references:
 // -------------------------------------------------------------------------------------------------
-class ASTScalarReference extends ASTNode {
+class ASTScalarReference extends ASTLeafNode {
   constructor(name, capitalize = '', trailer = '') {
     super();
     this.name       = name;
@@ -8950,19 +9677,26 @@ class ASTScalarAssignment extends ASTNode  {
     this.assign      = assign;
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.source ]; // exclude this.destination, it's just a boxed name
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `$${this.destination} ${this.assign? '=' : '+='} ${this.destination}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
-// A1111-style Loras:
+// ASTLora (for A1111-style LoRA syntax);
 // -------------------------------------------------------------------------------------------------
 class ASTLora extends ASTNode {
   constructor(file, weight) {
     super();
     this.file   = file;
     this.weight = weight;
-    // lm.log(`Constructed LoRa ${this}!`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.file, this.weight ];
   }
   // -----------------------------------------------------------------------------------------------
   toString(with_types = false ) {
@@ -8971,22 +9705,26 @@ class ASTLora extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Latch a NamedWildcard:
+// ASTLatchNamedWildcard:
 // -------------------------------------------------------------------------------------------------
 class ASTLatchNamedWildcard extends ASTNode {
-  constructor(name) {
+  constructor(ident) {
     super();
-    this.name = name;
+    this.target = new ASTNamedWildcardReference(ident);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.target ]; 
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `@#${this.name}`;
+    return `@#${this.target.name}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Unlatch a NamedWildcard:
+// ASTUnlatchNamedWildcard:
 // -------------------------------------------------------------------------------------------------
-class ASTUnlatchNamedWildcard extends ASTNode {
+class ASTUnlatchNamedWildcard extends ASTLeafNode {
   constructor(name) {
     super();
     this.name = name;
@@ -8997,27 +9735,17 @@ class ASTUnlatchNamedWildcard extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// Named wildcard definitions:
-// -------------------------------------------------------------------------------------------------
-class ASTNamedWildcardDefinition extends ASTNode {
-  constructor(name, wildcard) {
-    super();
-    this.name = name;
-    this.wildcard    = wildcard;
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `@${this.name} = ${this.wildcard}`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// Internal usage.. might not /really/ be part of the AST per se?
+// ASTLatchedNamedWildcardValue:
 // -------------------------------------------------------------------------------------------------
 class ASTLatchedNamedWildcardValue extends ASTNode {
   constructor(latched_value, original_value) {
     super();
     this.latched_value  = latched_value;
     this.original_value = original_value;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.original_value, /* this.latched_value */ ]; // not sure?
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -9027,16 +9755,18 @@ class ASTLatchedNamedWildcardValue extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // AnonWildcards:
 // -------------------------------------------------------------------------------------------------
-class ASTAnonWildcard  extends ASTNode {
-  constructor(options, trailer = null) {
+class ASTAnonWildcard extends ASTNode {
+  constructor(options, { trailer = null, unsafe_guards = false } = {}) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     this.trailer = trailer;
-
-    // if (trailer)
-    //   lm.log(`CONSTRUCTED ${JSON.stringify(this)}`);
+    this.unsafe_guards  = unsafe_guards;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.picker.options.values().map(x => x.value);
   }
   // -----------------------------------------------------------------------------------------------
   pick(...args) {
@@ -9044,7 +9774,12 @@ class ASTAnonWildcard  extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    let str = '{';
+    let str = '';
+
+    if (this.unsafe_guards)
+      str += "unsafe_guards ";
+    
+    str += '{';
 
     for (let ix = 0; ix < this.picker.options.length; ix++) {
       const option     = this.picker.options[ix];
@@ -9052,12 +9787,8 @@ class ASTAnonWildcard  extends ASTNode {
       const has_weight = option.weight != 1;
       const is_empty   = repr == '';
       const is_last    = ix == (this.picker.options.length - 1);
-      const has_guards = (option.value.check_flags?.length > 0) || (option.value.not_flags?.length > 0);
-
-      // lm.log(`option:     ${inspect_fun(option)}`);
-      // lm.log(`cfs.l:      ${option.value.check_flags?.length}`);
-      // lm.log(`nfs.l:      ${option.value.not_flags?.length}`);
-      // lm.log(`has_guards: ${has_guards}`);
+      const has_guards = (option.value.check_flags?.length > 0 ||
+                          option.value.not_flags?.length   > 0);
       
       if (!is_empty && !has_weight && !has_guards)
         str += ' ';
@@ -9074,10 +9805,10 @@ class ASTAnonWildcard  extends ASTNode {
     str += '}';
     
     return str;
-
-    // return `{ ${this.picker.options.map(x => x.value).join(" | ")} }`;
   }
 }
+// -------------------------------------------------------------------------------------------------
+// AnonWildcardsAlternative:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative extends ASTNode {
   constructor(weight, check_flags, not_flags, body) {
@@ -9088,28 +9819,33 @@ class ASTAnonWildcardAlternative extends ASTNode {
     this.body        = body;
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return  [
+      ...this.check_flags,
+      ...this.not_flags,
+      ...this.body,
+    ];
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     var str = '';
 
     if (this.weight !== 1)
       str += `${this.weight} `;
 
-    var bits = [];
+    var strs = [];
 
     for (const check of this.check_flags)
-      bits.push(check.toString());
+      strs.push(check.toString());
     
     for (const not of this.not_flags)
-      bits.push(not.toString());
+      strs.push(not.toString());
     
     for (const thing of this.body) {
-      // lm.log(`push bit ${thing.toString()} (${thing.toString().length})`)
-      bits.push(thing.toString());
+      strs.push(thing.toString());
     }
 
-    str += bits.join(' ');
-
-    // lm.log(`BITS: ${inspect_fun(bits)}`);
+    str += strs.join(' ');
     
     return str;
   }
@@ -9117,7 +9853,7 @@ class ASTAnonWildcardAlternative extends ASTNode {
 // -------------------------------------------------------------------------------------------------
 // ASTInclude:
 // -------------------------------------------------------------------------------------------------
-class ASTInclude extends ASTNode {
+class ASTInclude extends ASTLeafNode {
   constructor(args) {
     super();
     this.args      = args;
@@ -9128,6 +9864,8 @@ class ASTInclude extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
+// ASTUpdateConfigurationUnary:
+// -------------------------------------------------------------------------------------------------
 class ASTUpdateConfigurationUnary extends ASTNode {
   constructor(value, assign) {
     super();
@@ -9135,11 +9873,17 @@ class ASTUpdateConfigurationUnary extends ASTNode {
     this.assign = assign; // otherwise update
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return is_plain_object(this.value) ? [] : [ this.value ];
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `%config ${this.assign? '=' : '+='} ` +
       `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
+// -------------------------------------------------------------------------------------------------
+// ASTUpdateConfigurationBinary:
 // -------------------------------------------------------------------------------------------------
 class ASTUpdateConfigurationBinary extends ASTNode {
   constructor(key, value, assign) {
@@ -9149,11 +9893,17 @@ class ASTUpdateConfigurationBinary extends ASTNode {
     this.assign = assign;
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return is_primitive(this.value) ? [] :  [ this.value ];
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `%${get_our_name(this.key)} ${this.assign? '=' : '+='} ` +
       `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
+// -------------------------------------------------------------------------------------------------
+// ASTSetPickMultiple:
 // -------------------------------------------------------------------------------------------------
 class ASTSetPickMultiple extends ASTNode {
   constructor(limited_content) {
@@ -9161,10 +9911,16 @@ class ASTSetPickMultiple extends ASTNode {
     this.limited_content = limited_content;
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.limited_content ];
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `%set-pick-multiple = ${this.limited_content}`;
   }
 }
+// -------------------------------------------------------------------------------------------------
+// ASTSetPickSingle:
 // -------------------------------------------------------------------------------------------------
 class ASTSetPickSingle extends ASTNode {
   constructor(limited_content) {
@@ -9172,12 +9928,18 @@ class ASTSetPickSingle extends ASTNode {
     this.limited_content = limited_content;
   }
   // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.limited_content ];
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `%set-pick-single = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTRevertPickMultiple extends ASTNode {
+// ASTRevertPickMultiple:
+// -------------------------------------------------------------------------------------------------
+class ASTRevertPickMultiple extends ASTLeafNode {
   constructor() {
     super();
   }
@@ -9187,7 +9949,9 @@ class ASTRevertPickMultiple extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTRevertPickSingle extends ASTNode {
+// ASTRevertPickSingle:
+// -------------------------------------------------------------------------------------------------
+class ASTRevertPickSingle extends ASTLeafNode {
   constructor() {
     super();
   }
@@ -9197,7 +9961,9 @@ class ASTRevertPickSingle extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTUIPrompt extends ASTNode {
+// ASTUIPrompt:
+// -------------------------------------------------------------------------------------------------
+class ASTUIPrompt extends ASTLeafNode {
   constructor() {
     super();
   }
@@ -9207,7 +9973,9 @@ class ASTUIPrompt extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-class ASTUINegPrompt extends ASTNode {
+// ASTUINegPrompt:
+// -------------------------------------------------------------------------------------------------
+class ASTUINegPrompt extends ASTLeafNode {
   constructor() {
     super();
   }
@@ -9229,12 +9997,8 @@ class ASTUINegPrompt extends ASTNode {
 const structural_word_break   = r(/(?=[\s|}]|$)/)
       .abbreviate_str_repr('structural_word_break');
 // -------------------------------------------------------------------------------------------------
-const with_swb                = rule => first(seq(rule, structural_word_break));
-const seq_with_swb            = (...rules) => first(seq(seq(...rules), structural_word_break));
-// these cut after ALL rules if a SWB isn't found, NOT after first rule:
-const cutting_with_swb        = rule => first(cutting_seq(rule, structural_word_break));
-const cutting_seq_with_swb    = (...rules) => first(cutting_seq(seq(...rules),
-                                                                structural_word_break));
+const with_swb                = rule => head(rule, structural_word_break);
+const cutting_with_swb        = rule => cutting_head(rule, structural_word_break);
 // =================================================================================================
 // terminals:
 // =================================================================================================
@@ -9254,10 +10018,10 @@ const ident                   =
       xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
             str => str.toLowerCase().replace(/-/g, '_'))
       .abbreviate_str_repr('ident');
-const liberal_ident           =
-      xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-            str => str.toLowerCase().replace(/-/g, '_'))
-      .abbreviate_str_repr('ident');
+// const liberal_ident           =
+//       xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+//             str => str.toLowerCase().replace(/-/g, '_'))
+//       .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
 const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
@@ -9294,12 +10058,12 @@ const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
       .abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora =
       xform(arr => new ASTLora(arr[2], arr[3]),
-            wst_cutting_seq(wst_seq(ltri, 'lora'),                               // [0]
+            wst_cutting_seq(seq(ltri, lws('lora')),                              // [0]
                             colon,                                               // [1] 
                             choice(filename, () => LimitedContentNoAWCTrailers), // [2]
-                            optional(second(wst_seq(colon,                       // [3]
-                                                    choice(A1111StyleLoraWeight,
-                                                           () => LimitedContentNoAWCTrailers))),
+                            optional(wst_cadr(colon,                             // [3]
+                                              choice(A1111StyleLoraWeight,
+                                                     () => LimitedContentNoAWCTrailers)),
                                      "1.0"), // [4][0]
                             rtri))
       .abbreviate_str_repr('A1111StyleLora');
@@ -9307,15 +10071,15 @@ const A1111StyleLora =
 // mod RJSONC:
 // =================================================================================================
 const ExposedRjsonc = 
-      make_Jsonc_rule(first(choice(seq(choice(RjsoncObject,
-                                              RjsoncArray,
-                                              rjsonc_string),
-                                       optional(() => SpecialFunctionTail)),
-                                   seq(choice(json_null,
-                                              json_true,
-                                              json_false,
-                                              json_number),
-                                       () => SpecialFunctionTail)))); 
+      make_Jsonc_rule(choice(head(choice(RjsoncObject,
+                                         RjsoncArray,
+                                         rjsonc_string),
+                                  optional(() => SpecialFunctionTail)),
+                             head(choice(json_null,
+                                         json_true,
+                                         json_false,
+                                         json_number),
+                                  () => SpecialFunctionTail))); 
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
@@ -9327,74 +10091,67 @@ const ExposedRjsonc =
 //                            return arr;
 //                          });
 const flag_ident = xform(seq(choice(ident, '*'),
-                             star(second(seq('.',
-                                             choice(xform(parseInt, /\d+\b/), liberal_ident, '*'))))),
-                         arr => {
-                           // lm.log();
-                           // lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
-                           const ret = arr.flat(1);
-                           // lm.log(`FLAG_IDENT OUT: ${inspect_fun(ret)}`);
-                           return ret;
-                         });
+                             star(cadr('.',
+                                       choice(xform(parseInt, /\d+\b/), ident, '*')))),
+                         arr => [arr[0], ...arr[1]]);
 const SimpleCheckFlag =
-      xform(seq_with_swb(question,
-                         flag_ident),
+      xform(with_swb(seq(question,
+                         flag_ident)),
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(args);
             })
       .abbreviate_str_repr('SimpleCheckFlag');
 const SimpleNotFlag =
-      xform(seq_with_swb(bang,
+      xform(with_swb(seq(bang,
                          optional(hash),
-                         flag_ident),
+                         flag_ident)),
             arr => {
               const args = [arr[2],
                             { set_immediately: !!arr[1]}];
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('SimpleNotFlag');
-const CheckFlagWithOrAlternatives =
-      xform(cutting_seq_with_swb(question,
-                                 plus(flag_ident, comma)),
-            arr => {
-              const args = [arr[1]];
-              return new ASTCheckFlags(...args);
-            })
-      .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const CheckFlagWithSetConsequent =
-      xform(cutting_seq_with_swb(question,    // [0]
-                                 flag_ident,  // [1]
-                                 dot_hash,    // [2]
-                                 flag_ident), // [3]
+      xform(cutting_with_swb(seq(question,     // [0]
+                                 flag_ident,   // [1]
+                                 dot_hash,     // [2]
+                                 flag_ident)), // [3]
             arr => {
               const args = [ [ arr[1] ], arr[3] ]; 
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
-const NotFlagWithSetConsequent =
-      xform(cutting_seq_with_swb(bang,
-                                 flag_ident,
-                                 dot_hash,
-                                 flag_ident),
+const CheckFlagWithOrAlternatives = // last check alternative
+      xform(cutting_seq(question,                // [0]
+                        plus(flag_ident, comma), // [1]
+                        structural_word_break),  // [2]
+            arr => {
+              const args = [arr[1]];
+              return new ASTCheckFlags(...args);
+            })
+      .abbreviate_str_repr('CheckFlagWithOrAlternatives');
+const NotFlagWithSetConsequent = // last not alternative
+      xform(cutting_seq(bang,                   // [0]
+                        flag_ident,             // [1]
+                        dot_hash,               // [2]
+                        flag_ident,             // [3]
+                        structural_word_break), // - 
             arr => {
               const args = [arr[1],
-                            { consequently_set_flag_tail: arr[3] }]; 
+                            { consequently_set_flag_tail: arr[3]}]; 
               return new ASTNotFlag(...args);
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
-const SetFlag = xform(second(cutting_seq_with_swb(hash, flag_ident)),
-                      arr => new ASTSetFlag(arr))
+// -------------------------------------------------------------------------------------------------
+const SetFlag =
+      xform(arr => new ASTSetFlag(arr),
+            cutting_cadr(hash, flag_ident, structural_word_break))
       .abbreviate_str_repr('SetFlag');
-const UnsetFlag = xform(second(cutting_seq_with_swb(shebang, flag_ident)),
-                        arr => new ASTUnsetFlag(arr))
+const UnsetFlag =
+      xform(arr=> new ASTUnsetFlag(arr),
+            cutting_cadr(shebang, flag_ident, structural_word_break))
       .abbreviate_str_repr('UnsetFlag');
-const TestFlag = choice(SimpleCheckFlag,
-                        SimpleNotFlag,
-                        CheckFlagWithSetConsequent,
-                        NotFlagWithSetConsequent,
-                        CheckFlagWithOrAlternatives)
-      .abbreviate_str_repr('TestFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
       unexpected(rule, (rule, input, index) =>
@@ -9403,12 +10160,18 @@ const unexpected_TestFlag_at_top_level = rule =>
                             input, index));
 const innapropriately_placed_TestFlag = rule => 
       unexpected(rule, (rule, input, index) =>
-        new FatalParseError(`innapropriately placed 'check' or 'not' flag`,
+        new FatalParseError(`innapropriately placed test flag`,
                             input, index));
 const wrap_TestFlag_in_AnonWildcard    = rule =>
       xform(rule, flag =>
         new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
 // -------------------------------------------------------------------------------------------------
+const TestFlagInGuardPosition =
+      choice(SimpleCheckFlag,
+             SimpleNotFlag,
+             CheckFlagWithSetConsequent,
+             NotFlagWithSetConsequent,
+             CheckFlagWithOrAlternatives);
 const TopLevelTestFlag =
       choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
              .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
@@ -9425,10 +10188,15 @@ const TestFlagInAlternativeContent =
              .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
              innapropriately_placed_TestFlag(SimpleNotFlag)
              .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
-             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('InappropriatelyPlacedNotFlagWithSetConsequent'),
+             // Maybe these next two shouldn't be here?
+             // wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             // .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             // wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             // .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
              innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
              .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
 // =================================================================================================
@@ -9473,30 +10241,28 @@ const make_ASTAnonWildcardAlternative = arr => {
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlag, SetFlag, discarded_comment, UnsetFlag)),
-                lws(optional(swb_uint, 1)),
-                wst_star(choice(SetFlag, TestFlag, discarded_comment, UnsetFlag)),
+            seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
+                                SetFlag, UnsetFlag)),
+                lws(optional(swb_uint, 1)),                                 
+                wst_star(choice(TestFlagInGuardPosition, discarded_comment,
+                                SetFlag, UnsetFlag)),
                 lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
-      xform(arr => new ASTAnonWildcard(arr[0], arr[1]),
-            seq(wst_brc_enc(wst_star(alternative_rule, pipe)),
-                can_have_trailer
+      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe_guards: arr[0] == 'unsafe_guards' }),
+            seq(
+              optional('unsafe_guards'),
+              lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
+              can_have_trailer
                 ? optional_punctuation_trailer
                 : unexpected_punctuation_trailer));
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
       .abbreviate_str_repr('AnonWildcardAlternative');
-// const AnonWildcardAlternativeNoLoras = make_AnonWildcardAlternative_rule(() => ContentNoLoras)
-//       .abbreviate_str_repr('AnonWildcardAlternativeNoLoras');
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative,        true)
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative,        false)
+const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative, false)
       .abbreviate_str_repr('AnonWildcardNoTrailer');
-// const AnonWildcardNoLoras            = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, true)
-//       .abbreviate_str_repr('AnonWildcardNoLoras');
-// const AnonWildcardNoLorasNoTrailer   = make_AnonWildcard_rule(AnonWildcardAlternativeNoLoras, false)
-//       .abbreviate_str_repr('AnonWildcardNoLorasNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
@@ -9536,13 +10302,13 @@ const UnexpectedSpecialFunctionUINegPrompt =
       .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude =
-      xform(arr => new ASTInclude(arr[0][1]),
-            seq(c_funcall('%include',                            // [0][0]
-                          first(wst_seq(discarded_comments,      // -
-                                        rjsonc_string,           // [0][1]
-                                        discarded_comments,      // -
-                                       ))),  
-                optional(SpecialFunctionTail)))
+      xform(arr => new ASTInclude(arr[1]),
+            head(c_funcall('%include',                   // [0][0]
+                           head(discarded_comments,      // -
+                                lws(rjsonc_string),      // [0][1]
+                                discarded_comments,      // -
+                               )),  
+                 optional(SpecialFunctionTail)))
       .abbreviate_str_repr('SpecialFunctionInclude');
 // -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionInclude =
@@ -9591,44 +10357,50 @@ const SpecialFunctionRevertPickMultiple =
       .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => new ASTUpdateConfigurationBinary(arr[0], arr[1][1], arr[1][0] == '='),
-            seq(c_ident,                                                            // [0]
-                discarded_comments,                                                 // -
-                cutting_seq(lws(any_assignment_operator),                           // [1][0]
+      xform(arr => {
+        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
+        return new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '=');
+      },
+            cutting_seq(seq(c_ident,                                                // [0][0]
                             discarded_comments,                                     // -
-                            lws(choice(ExposedRjsonc,
-                                       first(seq(() => LimitedContent,
-                                                 optional(SpecialFunctionTail))))))))         // [1][1]
+                            lws(any_assignment_operator),                           // [0][1]
+                            discarded_comments),                                    // -
+                        lws(choice(ExposedRjsonc,                                    // [1]
+                                   head(() => LimitedContent,
+                                        optional(SpecialFunctionTail))))))           // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+      xform(arr => {
+        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
+        return new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '=');
+      },
             seq(/conf(?:ig)?/,                                                        // [0]
                 discarded_comments,                                                   // -
                 cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
                             discarded_comments,                                       // -
-                            lws(choice(first(seq(RjsoncObject, // mod_RjsoncObject,
-                                                 optional(SpecialFunctionTail))),
-                                       first(seq(() => LimitedContentNoAWCTrailers,
-                                                 optional(SpecialFunctionTail)))))))) // [1][1]
+                            lws(choice(head(RjsoncObject, // mod_RjsoncObject,
+                                            optional(SpecialFunctionTail)),
+                                       head(() => LimitedContentNoAWCTrailers,
+                                            optional(SpecialFunctionTail))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
-      second(cutting_seq(percent,
-                         choice(
-                           SpecialFunctionUpdateConfigurationUnary,  // before binary!
-                           SpecialFunctionUpdateConfigurationBinary,
-                           (dt_hosted
-                            ? SpecialFunctionUIPrompt
-                            : UnexpectedSpecialFunctionUIPrompt),
-                           (dt_hosted
-                            ? SpecialFunctionUINegPrompt
-                            : UnexpectedSpecialFunctionUINegPrompt),
-                           SpecialFunctionSetPickSingle,
-                           SpecialFunctionSetPickMultiple,
-                           SpecialFunctionRevertPickSingle,
-                           SpecialFunctionRevertPickMultiple,
-                         )))
+      cutting_cadr(percent,
+                   choice(
+                     SpecialFunctionUpdateConfigurationUnary,  // before binary!
+                     SpecialFunctionUpdateConfigurationBinary,
+                     (dt_hosted
+                      ? SpecialFunctionUIPrompt
+                      : UnexpectedSpecialFunctionUIPrompt),
+                     (dt_hosted
+                      ? SpecialFunctionUINegPrompt
+                      : UnexpectedSpecialFunctionUINegPrompt),
+                     SpecialFunctionSetPickSingle,
+                     SpecialFunctionSetPickMultiple,
+                     SpecialFunctionRevertPickSingle,
+                     SpecialFunctionRevertPickMultiple,
+                   ))
       .abbreviate_str_repr('SpecialFunctionNotInclude');
 // =================================================================================================
 // other non-terminals:
@@ -9638,7 +10410,7 @@ const NamedWildcardReference  =
                 optional(caret),                           // [1]
                 optional(xform(parseInt, uint), 1),        // [2]
                 optional(xform(parseInt,                   // [3]
-                               second(seq(dash, uint)))),
+                               cadr(dash, uint))),
                 optional(/[,&|]/),                         // [4]
                 ident,                                     // [5]
                 optional_punctuation_trailer,  // [6]
@@ -9670,17 +10442,17 @@ const NamedWildcardReference  =
             })
       .abbreviate_str_repr('NamedWildcardReference');
 // -------------------------------------------------------------------------------------------------
-const NamedWildcardDesignator = second(seq(at, ident))
+const NamedWildcardDesignator = cadr(at, ident)
       .abbreviate_str_repr('NamedWildcardDesignator');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDefinition =
-      xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1][1]),
-            seq(NamedWildcardDesignator,
-                discarded_comments,
-                cutting_seq(lws(equals), 
-                            discarded_comments,
-                            first(seq(AnonWildcard,
-                                      optional(SpecialFunctionTail))))))
+      xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1]),
+            cutting_seq(head(NamedWildcardDesignator,
+                             discarded_comments,
+                             lws(equals)),
+                        discarded_comments,
+                        head(lws(AnonWildcard),
+                             optional(SpecialFunctionTail))))
       .abbreviate_str_repr('NamedWildcardDefinition');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardUsage      =
@@ -9784,8 +10556,8 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         NamedWildcardReference,
         NamedWildcardUsage,
         SpecialFunctionNotInclude,
+        UnsetFlag, // before SetFlag!
         SetFlag,
-        UnsetFlag,
         ScalarAssignment,
         ScalarReference,
         make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
@@ -9800,19 +10572,19 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
 const Content                 = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
+    AnonWildcard,
   ],
   after_plain_text_rules:  [
-    AnonWildcard,
   ],
 });
 const TopLevelContent         = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
     TopLevelTestFlag,
+    AnonWildcard,
   ],
   after_plain_text_rules:  [
     make_malformed_token_rule(r_raw`}\S*`),
-    AnonWildcard,
     NamedWildcardDefinition,
     SpecialFunctionInclude,
   ],
@@ -9831,7 +10603,6 @@ Prompt.finalize();
 // =================================================================================================
 // DEV NOTE: Copy into wildcards-plus.js through this line!
 // =================================================================================================
-
 
 
 // =================================================================================================
@@ -9949,16 +10720,25 @@ async function main() {
     lm.log(`after process_includes:`);
     LOG_LINE();
     lm.log(`${inspect_fun(AST)}`);
-    LOG_LINE();
-    lm.log(`after process_includes (as JSON):`);
-    LOG_LINE();
-    lm.log(`${JSON.stringify(AST)}`);
+    // LOG_LINE();
+    // lm.log(`after process_includes (as JSON):`);
+    // LOG_LINE();
+    // lm.log(`${JSON.stringify(AST)}`);
   }
+
+  // audit flags:
+  lm.log(`auditing...`);
+  const elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
+  lm.log(`audit took ${elapsed.toFixed(2)} ms`);
+
+  // log_match_enabled           = true;
+  // log_expand_and_walk_enabled = true;
+  // log_flags_enabled           = true;
 
   let posted_count        = 0;
   let prior_prompt        = null;
   let prior_configuration = null;
-  
+
   const stash_priors = (prompt, configuration) => {
     prior_prompt        = prompt;
     prior_configuration = structured_clone(configuration);
@@ -10119,3 +10899,4 @@ if (! main_disabled)
 // lm.log(smart_join(intercalate('|', ['foo', 'bar', 'baz']),  { correct_articles: true }));
 // lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz']),  { correct_articles: true }));
 // lm.log(smart_join(intercalate(',', ['foo', 'bar', 'baz'], { final_separator: 'and' }), { correct_articles: true }));
+

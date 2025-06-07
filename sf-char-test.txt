@@ -1,5 +1,5 @@
-// -*- fill-column: 100; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
-// =================================================================================================
+#neuter
+
 { #wizards_artist.helen_frankenthaler
 | #wizards_artist.frank_frazetta
 | #wizards_artist.boris_vallejo
@@ -25,12 +25,12 @@
 @ship_term     = {starship|spacecraft|space ship|shuttle}
 @ship_late_adj = {space|interstellar}
 @ship_term2    = {starship|spacecraft|@ship_late_adj ship|{|interplanetary} shuttle
-                  |@ship_late_adj frigate
-                  |@ship_late_adj battleship|@ship_late_adj destroyer
-                  |{|@ship_late_adj} merchant vessel
-                  |{|@ship_late_adj} freighter
-                  |{|@ship_late_adj} liner
-                  |{|@ship_late_adj} vessel}
+                 |@ship_late_adj frigate
+                 |@ship_late_adj battleship|@ship_late_adj destroyer
+                 |{|@ship_late_adj} merchant vessel
+                 |{|@ship_late_adj} freighter
+                 |{|@ship_late_adj} liner
+                 |{|@ship_late_adj} vessel}
 
 // ---------------------------------------------------------------------------------------
 // 'level 2' places, for phrases like 'in $place in a $largerPlace':
@@ -122,18 +122,16 @@
 }
 
 @place_phrase = {2 in {a|the} @#place_to_be_in @place_to_be_in_adj @place_to_be_in
-                |1 at {a|the} @#place_to_be_at @place_to_be_at}
+                 |at {a|the} @#place_to_be_at @place_to_be_at}
 
 // ---------------------------------------------------------------------------------------
 // character adjectives:
 // ---------------------------------------------------------------------------------------
-
-@char_early_adj = { @#gender
+@char_early_adj =
 {adventurous
 |androgynous
-|?neuter 2 androgynous
+|?neuter 20000 androgynous
 |mysterious
-|enigmatic
 |solitary #solo
 |inscrutable
 |independant #solo
@@ -149,7 +147,7 @@
 |muscular
 |youthful
 |beautiful
-}}
+}
 
 @char_late_adj =
 {4
@@ -327,9 +325,7 @@
 // ---------------------------------------------------------------------------------------
 // colour palette/lighting stuff:
 // ---------------------------------------------------------------------------------------
-
-@colour_modifiers = { @#place_phrase
-{warm color pallete|warm lighting|natural lighting|?outdoors golden hour}}
+@colour_modifiers = {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
 
 // =======================================================================================
 // generate the prompt body:
@@ -352,7 +348,7 @@ science fiction,
 \n\n
 
 A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
-@0-2&char_early_adj @char_late_adj @role
+@1-2&char_early_adj @char_late_adj @role
 {2|@early_alien_feature_sentence}
 {2|@early_cyborg_feature_sentence}
 @place_phrase {|3 @l2_place_phrase|5 ?outdoors @l2_place_phrase}

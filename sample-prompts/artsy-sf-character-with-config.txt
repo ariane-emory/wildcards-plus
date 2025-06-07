@@ -282,7 +282,7 @@
 // ---------------------------------------------------------------------------------------
 // character adjectives:
 // ---------------------------------------------------------------------------------------
-@char_early_adj =
+@char_early_adj = { @#gender
 {adventurous
 |androgynous
 |?neuter 2 androgynous
@@ -303,7 +303,7 @@
 |muscular
 |youthful
 |beautiful
-}
+}}
 
 @char_late_adj =
 {4
@@ -481,7 +481,9 @@
 // ---------------------------------------------------------------------------------------
 // colour palette/lighting stuff:
 // ---------------------------------------------------------------------------------------
-@colour_modifiers = {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
+
+@colour_modifiers = { @#place_phrase
+{warm color pallete|warm lighting|natural lighting|?outdoors golden hour}}
 
 // =======================================================================================
 // generate the prompt body:
