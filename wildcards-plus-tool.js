@@ -8708,6 +8708,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++)
             res.push(lm.indent(() => expand_wildcards(got.latched_value, context,
                                                       { correct_articles: correct_articles}))); // not walk!
+          // ^ wait, why not walk? I forget.
         }
         else {
           const priority = thing.min_count === 1 && thing.max_count === 1
