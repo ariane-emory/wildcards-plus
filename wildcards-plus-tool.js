@@ -303,6 +303,8 @@ let save_post_requests_enable         = true;
 let unnecessary_choice_is_an_error    = false;
 let double_latching_is_an_error       = false;
 let double_unlatching_is_an_error     = false;
+// -------------------------------------------------------------------------------------------------
+const stop = () => new Error(`STOP`);
 // =================================================================================================
 
 
@@ -3507,8 +3509,13 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
   if (arr.length === 0) // i forget why this is necessary.
     return '';
+
+  smart_join_trap_counter += 1;
+
+  // if (smart_join_trap_counter === 3)
+  //   throw stop();
   
-  if (log_smart_join_enabled >= 2)
+  if (log_smart_join_enabled >= 1)
     lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
@@ -3684,8 +3691,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
   // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
 
-  smart_join_trap_counter  += 1;
-  
   return str;
 }
 // -------------------------------------------------------------------------------------------------
@@ -8763,12 +8768,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           if (log_expand_and_walk_enabled)
             lm.indent_and_log(`picked items ${thing_str_repr(picks)}`);
 
-          // const walked_picks = picks.map(each);
-          res.push(...picks); // not walk!
+          res.push(...picks);
+
+          res = res.filter(s => s !== '');
         }
         
-        res = res.filter(s => s !== '');
-
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
@@ -8782,11 +8786,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               ? { final_separator: 'and' }
               : {};
 
-        str = smart_join(intercalate(joiner, res, intercalate_options),
-                         { correct_articles: false });
-        
+        lm.indent(() => 
+          str = smart_join(intercalate(joiner, res, intercalate_options),
+                           { correct_articles: false }));
+          
         if (thing.trailer && str.length > 0)
-          str = smart_join([str, thing.trailer],
+                    str = smart_join([str, thing.trailer],
                            { correct_articles: false });
         // * never need to correct articles for trailers since punctuation couldn't trigger correction
         
