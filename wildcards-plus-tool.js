@@ -301,7 +301,7 @@ let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
 let unnecessary_choice_is_an_error    = false;
-let double_latching_is_an_error       = true;
+let double_latching_is_an_error       = false;
 let double_unlatching_is_an_error     = false;
 // =================================================================================================
 
@@ -8710,13 +8710,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         
         if (got instanceof ASTLatchedNamedWildcardValue) {
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
-            const walked = walk(got.latched_value, 
-                                { correct_articles: correct_articles})
+            // const walked = walk(got.latched_value, 
+            //                     { correct_articles: correct_articles})
             const expanded = expand_wildcards(got.latched_value, context,
                                               { correct_articles: correct_articles})
-            lm.log(``);
-            lm.log(`${abbreviate(compress(inspect_fun(walked)))}`);
-            lm.log(`${abbreviate(compress(inspect_fun(expanded)))}`);
+            // lm.log(``);
+            // lm.log(`LATCHEDVAL WALKED:   ` +
+            //        `${typeof walked} ${abbreviate(compress(inspect_fun(walked)))}`);
+            // lm.log(`LATCHEDVAL EXPANDED: ` +
+            //        `${typeof expanded} ${abbreviate(compress(inspect_fun(expanded)))}`);
             
             res.push(lm.indent(() => expanded)); // not walk!
             // ^ wait, why not walk? I forget.
