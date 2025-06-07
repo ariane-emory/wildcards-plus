@@ -9322,7 +9322,7 @@ function audit_semantics(root_ast_node,
       }
       else if (local_audit_semantics_mode == audit_semantics_modes.warning &&
                ! already_warned_msgs.has(msg)) {
-        log(msg, false); // false arg for no indentation.
+        lm.log(msg, false); // not local log function, false arg for no indentation.
         // already_warned_msgs.add(msg);
       }
     }
@@ -10715,12 +10715,15 @@ async function main() {
   }
 
   // audit flags:
-  audit_semantics(AST, { base_context: base_context });
 
+  lm.log(`auditing...`);
+  const elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
+  lm.log(`audit took ${elapsed.toFixed(2)} ms`);
+  
   let posted_count        = 0;
   let prior_prompt        = null;
   let prior_configuration = null;
-  
+
   const stash_priors = (prompt, configuration) => {
     prior_prompt        = prompt;
     prior_configuration = structured_clone(configuration);
