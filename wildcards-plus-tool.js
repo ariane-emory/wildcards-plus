@@ -9297,17 +9297,18 @@ function audit_semantics(root_ast_node,
   function walk_children(thing) {
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
-    if (children?.length > 0)
-      log(`children: ${children.toString()}`);
-    
-    for (const child of children) {
-      lm.indent(() => {
-        if (is_primitive(child))
-          return;
-        
-        // log(`child: ${abbreviate(child.toString())}`);
-        walk(child, dummy_context);
-      });
+    if (children?.length > 0) {
+      log(`children: ${abbreviate(compress(children.toString()))}`);
+      
+      for (const child of children) {
+        lm.indent(() => {
+          if (is_primitive(child))
+            return;
+          
+          // log(`child: ${abbreviate(child.toString())}`);
+          walk(child, dummy_context);
+        });
+      }
     }
   }
   // -----------------------------------------------------------------------------------------------
@@ -10648,8 +10649,10 @@ async function main() {
   }
 
   // audit flags:
-  audit_semantics(AST, { base_context: base_context });
-
+  lm.log(`auditing...`);
+  const elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
+  lm.log(`audit took ${elapsed.toFixed(2)} ms`);
+  
   let posted_count        = 0;
   let prior_prompt        = null;
   let prior_configuration = null;
