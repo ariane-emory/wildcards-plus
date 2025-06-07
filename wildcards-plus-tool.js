@@ -3492,6 +3492,7 @@ function rjson_stringify(obj) {
 }
 // -------------------------------------------------------------------------------------------------
 let smart_join_trap_counter  = 0;
+// -------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
