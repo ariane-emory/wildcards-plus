@@ -3831,16 +3831,21 @@ function suggest_closest(name, candidates) {
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing) {
   const type_str = typeof thing === 'object'
-        ? (thing === null ? 'null' : '' ?? 'Object ')
+        ? (thing === null ?
+           'null'
+           : `${thing.constructor.name} ` ?? 'Object ')
         : `${typeof thing} `;
 
   let thing_str;
 
   if (Array.isArray(thing)) {
-    thing_str = abbreviate(compress(inspect_fun(thing)));
+    thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
   }
   else if (typeof thing === 'string') {
     thing_str = inspect_fun(thing);
+  }
+  else if (thing instanceof ASTNode) {
+    return abbreviate(compress(thing.toString()));
   }
   else if (typeof thing === 'object') {
     try {
@@ -8635,7 +8640,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
     log(true, // log_expand_and_walk_enabled,
         `Walking ` +
-        `${abbreviate(compress(thing.toString()))} ` // + 
+        `${abbreviate(compress(thing_str_repr(thing)))} ` // + 
         // `${thing_str_repr(thing)} in ` + 
         // `in ${context}`
        );
@@ -9236,7 +9241,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
       log(true, // log_expand_and_walk_enabled,
           `walking ` +
-          `${abbreviate(compress(thing.toString()))} ` + 
+          `${abbreviate(compress(thing_str_repr(thing)))} ` + 
           //`in ${context} ` +
           `returned ` +
           `${thing_str_repr(obj.value)}`);
@@ -9247,8 +9252,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
   log(true, // log_expand_and_walk_enabled,
       `Expanding wildcards in ` +
-      `${thing_str_repr(thing)} in ` + 
-      `${context}`);
+      `${thing_str_repr(thing)} ` // + 
+      // `in ${context}`
+     );
 
   const ret = unescape(smart_join(lm.indent(() => walk(thing,
                                                        { correct_articles: correct_articles })),
