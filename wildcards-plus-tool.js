@@ -9323,85 +9323,87 @@ function audit_semantics(root_ast_node,
         `flags: ${compress(inspect_fun(dummy_context.flags))}`);
     // log(`auditing semantics in ${thing_str_repr(thing)}`);
 
-    // ---------------------------------------------------------------------------------------------
-    // typecases:
-    // ---------------------------------------------------------------------------------------------
-    if (Array.isArray(thing)) {
-      lm.indent(() => {
-        for (const elem of thing)
-          if (!is_primitive(elem))
-            walk(elem)
-      });
-    }
-    else if (thing instanceof ASTNamedWildcardDefinition) {
-      if (dummy_context.named_wildcards.has(thing.name))
-        warn_or_throw(`redefining named wildcard @${thing.name}, ` +
-                      `you may not have intended to do this, check your template!`);
+    lm.indent(() => {
+      // ---------------------------------------------------------------------------------------------
+      // typecases:
+      // ---------------------------------------------------------------------------------------------
+      if (Array.isArray(thing)) {
+        lm.indent(() => {
+          for (const elem of thing)
+            if (!is_primitive(elem))
+              walk(elem)
+        });
+      }
+      else if (thing instanceof ASTNamedWildcardDefinition) {
+        if (dummy_context.named_wildcards.has(thing.name))
+          warn_or_throw(`redefining named wildcard @${thing.name}, ` +
+                        `you may not have intended to do this, check your template!`);
 
-      dummy_context.named_wildcards.set(thing.name, thing.wildcard);
-    }
-    else if (thing instanceof ASTNamedWildcardReference) {
-      if (!dummy_context.named_wildcards.has(thing.name)) {
-        const known_names = Array.from(dummy_context.named_wildcards.keys());
-        const suggestion = suggest_closest(thing.name, known_names);
-        warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
-                      `this suggests a typo in your template.${suggestion}`);
+        dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
-      
-      const got = dummy_context.named_wildcards.get(thing.name);
-      
-      lm.indent(() => walk(got));
-    }
-    else if (thing instanceof ASTScalarReference) {
-      if (!dummy_context.scalar_variables.has(thing.name)) {
-        const known_names = Array.from(dummy_context.scalar_variables.keys());
-        const suggestion = suggest_closest(thing.name, known_names);
-        warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
-                      `this suggests a typo in your template.${suggestion}`);
+      else if (thing instanceof ASTNamedWildcardReference) {
+        if (!dummy_context.named_wildcards.has(thing.name)) {
+          const known_names = Array.from(dummy_context.named_wildcards.keys());
+          const suggestion = suggest_closest(thing.name, known_names);
+          warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
+                        `this suggests a typo in your template.${suggestion}`);
+        }
+        
+        const got = dummy_context.named_wildcards.get(thing.name);
+        
+        lm.indent(() => walk(got));
       }
-      
-      const got = dummy_context.named_wildcards.get(thing.name);
-      
-      walk(got);
-    }
-    else if (thing instanceof ASTScalarAssignment) {
-      dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-      walk_children(thing);
-    }
-    else if (thing instanceof ASTCheckFlags) {
-      if (thing.consequently_set_flag_tail) {
-        // undecided on whether this case deserves a warning... for now, let's avoid one:
-        dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
+      else if (thing instanceof ASTScalarReference) {
+        if (!dummy_context.scalar_variables.has(thing.name)) {
+          const known_names = Array.from(dummy_context.scalar_variables.keys());
+          const suggestion = suggest_closest(thing.name, known_names);
+          warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
+                        `this suggests a typo in your template.${suggestion}`);
+        }
+        
+        const got = dummy_context.named_wildcards.get(thing.name);
+        
+        walk(got);
+      }
+      else if (thing instanceof ASTScalarAssignment) {
+        dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
+        walk_children(thing);
+      }
+      else if (thing instanceof ASTCheckFlags) {
+        if (thing.consequently_set_flag_tail) {
+          // undecided on whether this case deserves a warning... for now, let's avoid one:
+          dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
+        }
+        else {
+          for (const flag of thing.flags) 
+            warn_or_throw_unless_flag_could_be_set_by_now(flag);
+        }
+      }
+      else if (thing instanceof ASTNotFlag) {
+        if (thing.consequently_set_flag_tail)
+          // undecided on whether this case deserves a warning... for now, let's avoid one:
+          dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
+        else if (thing.set_immediately) 
+          // this case probably doesn't deserve a warning, avoid one:
+          dummy_context.set_flag(thing.flag, false);
+        else 
+          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+      }
+      else if (thing instanceof ASTSetFlag) {
+        dummy_context.set_flag(thing.flag, false);
+      } 
+      else if (thing instanceof ASTUnsetFlag) {
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+      } 
+      else if (thing instanceof ASTNode) {
+        walk_children(thing);;
       }
       else {
-        for (const flag of thing.flags) 
-          warn_or_throw_unless_flag_could_be_set_by_now(flag);
+        throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
       }
-    }
-    else if (thing instanceof ASTNotFlag) {
-      if (thing.consequently_set_flag_tail)
-        // undecided on whether this case deserves a warning... for now, let's avoid one:
-        dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
-      else if (thing.set_immediately) 
-        // this case probably doesn't deserve a warning, avoid one:
-        dummy_context.set_flag(thing.flag, false);
-      else 
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
-    }
-    else if (thing instanceof ASTSetFlag) {
-      dummy_context.set_flag(thing.flag, false);
-    } 
-    else if (thing instanceof ASTUnsetFlag) {
-      warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
-    } 
-    else if (thing instanceof ASTNode) {
-      walk_children(thing);;
-    }
-    else {
-      throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
-    }
+    });
   }
-
+  
   walk(root_ast_node);
 }
 // =================================================================================================
