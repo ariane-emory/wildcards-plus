@@ -293,7 +293,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_smart_join_enabled            = false;
+let log_smart_join_enabled            = true;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
@@ -3511,7 +3511,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   // if (arr.includes("''") || arr.includes('""'))
   //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
 
-  if (arr.length === 0) // investigate why this is necessary.
+  if (arr.length === 0) // i forget why this is necessary.
     return '';
   
   if (log_smart_join_enabled)
@@ -3531,10 +3531,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return originalArticle;
   };
   
-  let left_word = arr[0]; // ?.toString() ?? "";
+  let left_word = '';  // ?.toString() ?? "";
   let str       = left_word;
-  
-  for (let ix = 1; ix < arr.length; ix++)  {
+
+  for (let ix = 0; ix < arr.length; ix++)  {
     // if (str.includes(`,,`))
     //   throw new Error("STOP");
     
