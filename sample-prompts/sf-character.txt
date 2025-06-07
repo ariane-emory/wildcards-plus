@@ -112,7 +112,7 @@
 // ---------------------------------------------------------------------------------------
 // character adjectives:
 // ---------------------------------------------------------------------------------------
-@char_early_adj =
+@char_early_adj = { @#gender
 {adventurous
 |androgynous
 |?neuter 2 androgynous
@@ -132,7 +132,7 @@
 |muscular
 |youthful
 |beautiful
-}
+}}
 
 @char_late_adj =
 {4
