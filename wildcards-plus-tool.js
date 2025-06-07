@@ -3687,7 +3687,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   }
 
   if (log_smart_join_enabled >= 1)
-    lm.log(`smart_joined ${thing_str_repr(str)} (#${smart_join_trap_counter})`);
+    lm.log(`smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`);
 
   // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
 
@@ -8655,8 +8655,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       }
     }
 
-    if (typeof thing === 'string')
+    if (typeof thing === 'string') {
+      lm.log(`nothing to walk in ${thing_str_repr(thing)}, returning as is`);
       return thing;
+    }
 
     log(true, // log_expand_and_walk_enabled,
         `Walking ` +
@@ -8689,7 +8691,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             //                                       { correct_articles: correct_articles }));
             const elem_ret = walk(thing[ix], { correct_articles: correct_articles });
 
-            ret.push(elem_ret);
+            if (elem_ret)
+              ret.push(elem_ret);
 
             log(log_expand_and_walk_enabled,
                 `walking array element #${ix + 1} `+
@@ -8741,15 +8744,17 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             // const walked = walk(got.latched_value, 
             //                     { correct_articles: correct_articles})
             const expanded = lm.indent(() => expand_wildcards(got.latched_value, context,
-                                                              { correct_articles: correct_articles}));
+                                                              { correct_articles: correct_articles})); // not walk!
+            // ^ wait, why not walk? I forget.
+            
             // lm.log(``);
-            // lm.log(`LATCHEDVAL WALKED:   ` +
+            // lm.log(`latchedval ref walked:   ` +
             //        `${typeof walked} ${abbreviate(compress(inspect_fun(walked)))}`);
-            // lm.log(`LATCHEDVAL EXPANDED: ` +
+            // lm.log(`latchedval ref expanded: ` +
             //        `${typeof expanded} ${abbreviate(compress(inspect_fun(expanded)))}`);
             
-            res.push(expanded); // not walk!
-            // ^ wait, why not walk? I forget.
+            if (expanded)
+              res.push(expanded); 
           }
         }
         else {
@@ -8789,9 +8794,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         lm.indent(() => 
           str = smart_join(intercalate(joiner, res, intercalate_options),
                            { correct_articles: false }));
-          
+        
         if (thing.trailer && str.length > 0)
-                    str = smart_join([str, thing.trailer],
+          str = smart_join([str, thing.trailer],
                            { correct_articles: false });
         // * never need to correct articles for trailers since punctuation couldn't trigger correction
         
@@ -9277,19 +9282,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // `in ${context}`
      );
 
-  const ret = unescape(smart_join(lm.indent(() => walk(thing,
-                                                       { correct_articles: correct_articles })),
-                                  { correct_articles: correct_articles })).replace(/^</, '');
+  const ret =
+        lm.indent(() =>
+          unescape(smart_join(lm.indent(() => walk(thing,
+                                                   { correct_articles: correct_articles })),
+                              { correct_articles: correct_articles })).replace(/^</, ''));
   
   lm.indent(() => context.munge_configuration());
 
-  // if (walked === '""' ||
-  //     walked === "''" ||
-  //     walked?.includes('""') ||
-  //     walked?.includes("''"))
-  //   throw new Error(`sus walk result ${inspect_fun(walked)} of ${inspect_fun(thing)}`);
-
-  log(log_expand_and_walk_enabled,
+  log(true, // log_expand_and_walk_enabled,
       `expanded wildcards in ` +
       `${thing_str_repr(thing)} in ` + 
       `${context} into ` +
