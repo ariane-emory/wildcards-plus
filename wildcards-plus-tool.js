@@ -3491,22 +3491,19 @@ function rjson_stringify(obj) {
     .replace(/},{/g, '}, {');
 }
 // -------------------------------------------------------------------------------------------------
+let smart_join_trap_counter  = 0;
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
-  
-  // const log = msg => console.log(`${' '.repeat(log_expand_and_walk_enabled ? indent*2 : 0)}${msg}`);
-  // const log = msg => {
-  //   return console.log(`${' '.repeat(indent*2)}${msg}`);
-  // };
-  
-  if (! arr)
-    return arr;
-  
-  if (typeof arr === 'string')
+
+  if (! arr || typeof arr === 'string')
     return arr;
 
-  lm.log(`smart_join!`);
+  lm.log(`smart_join #${smart_join_trap_counter }!`);
+  smart_join_trap_counter  += 1;
+
+  // if (smart_join_trap_counter  === 2)
+  //   throw new Error(`trap`);
   
   arr = [...arr.flat(Infinity).filter(x=> x)];
 
