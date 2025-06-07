@@ -8683,8 +8683,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           }
         });
 
-        log(true, `Returning array: ` +
-            `${thing_str_repr(ret)}`);
+        // log(true, `Returning array: ` +
+        //     `${thing_str_repr(ret)}`);
+
         throw new ThrownReturn(ret);
       }
       // -------------------------------------------------------------------------------------------
