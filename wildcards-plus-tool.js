@@ -9264,11 +9264,11 @@ function audit_semantics(root_ast_node,
   const visited = new Set();
   const already_warned_msgs = new Set();
   const log = (msg_thunk, indent = true) => {
-    if (typeof msg_thunk !== 'function')
-      throw new Error("bad log args");
+    // if (typeof msg_thunk !== 'function')
+    //   throw new Error("bad log args");
     
     if (noisy)
-      lm.log(msg, indent);
+      lm.log(msg_thunk(), indent);
   };
   
   const dummy_context = base_context
@@ -9305,7 +9305,7 @@ function audit_semantics(root_ast_node,
     const children = thing.direct_children().filter(child => !is_primitive(child));
     
     if (children.length > 0) {
-      log(`children: ${children.map(thing_str_repr)}`);
+      log(() => `children: ${children.map(thing_str_repr)}`);
 
       lm.indent(() => {
         walk(children);
@@ -9318,14 +9318,14 @@ function audit_semantics(root_ast_node,
       return;
 
     if (visited.has(thing)) {
-      log(`already audited ${thing.constructor.name} '${thing.toString()}'`);
+      log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
       
       return;
     }
     
     visited.add(thing);
 
-    log(`audit semantics in ${thing.constructor.name} ` +
+    log(() => `audit semantics in ${thing.constructor.name} ` +
         `'${abbreviate(compress(thing.toString()), 200)}', ` +
         `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
