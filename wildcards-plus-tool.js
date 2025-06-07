@@ -8651,7 +8651,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             log(log_expand_and_walk_enabled,
                 `Walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix])}`);
+                `${abbreviate(thing[ix].toString())} `
+                // `${thing_str_repr(thing[ix])}`
+               );
 
             const elem_ret = lm.indent(() => walk(thing[ix],
                                                   { correct_articles: correct_articles }));
@@ -8661,9 +8663,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             log(log_expand_and_walk_enabled,
                 `walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix])} ` +
-                `returned ${thing_str_repr(elem_ret)}`);
-
+                //`${thing_str_repr(thing[ix])} ` +
+                `${abbreviate(thing[ix].toString())} ` +
+                `returned ${thing_str_repr(elem_ret)}`
+               );
           }
         });
 

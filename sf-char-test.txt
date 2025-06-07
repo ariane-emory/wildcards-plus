@@ -130,7 +130,7 @@
 @char_early_adj =
 {adventurous
 |androgynous
-|?neuter 20 androgynous
+|?neuter 2000 androgynous
 |mysterious
 |solitary #solo
 |inscrutable
