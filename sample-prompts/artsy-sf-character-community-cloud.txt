@@ -471,7 +471,8 @@
 // colour palette/lighting stuff:
 // -------------------------------------------------------------------------------------------------
 
-@colour_modifiers = {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
+@colour_modifiers = { @#place_phrase
+{warm color pallete|warm lighting|natural lighting|?outdoors golden hour}}
 
 // =================================================================================================
 // generate separate ClipL text:

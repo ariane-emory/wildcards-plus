@@ -327,7 +327,9 @@
 // ---------------------------------------------------------------------------------------
 // colour palette/lighting stuff:
 // ---------------------------------------------------------------------------------------
-@colour_modifiers = {warm color pallete|warm lighting|natural lighting|?outdoors golden hour}
+
+@colour_modifiers = { @#place_phrase
+{warm color pallete|warm lighting|natural lighting|?outdoors golden hour}}
 
 // =======================================================================================
 // generate the prompt body:
@@ -348,7 +350,6 @@ science fiction,
 .
 
 \n\n
-
 
 A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which depicts|depicting} a }
 @0-2&char_early_adj @char_late_adj @role
