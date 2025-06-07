@@ -3829,8 +3829,7 @@ function suggest_closest(name, candidates) {
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing) {
   const type_str = typeof thing === 'object'
-  // ? (thing === null ? 'null' : thing.constructor?.name ?? 'Object')
-        ? (thing === null ? 'null' : '' ?? 'Object')
+        ? (thing === null ? 'null' : '' ?? 'Object ')
         : typeof thing;
 
   let thing_str;
@@ -3852,7 +3851,7 @@ function thing_str_repr(thing) {
     thing_str = String(thing);
   }
 
-  return `${type_str} ${thing_str}`;
+  return `${type_str}${thing_str}`;
 }
 // -------------------------------------------------------------------------------------------------
 function unescape(str) {
@@ -4413,7 +4412,7 @@ const prelude_text = prelude_disabled ? '' : `
                                           |?neuter #gender.neuter}
                                    {3 !gender.#female #female
                                    |2 !gender.#male   #male
-                                   |1 !gender.#neuter #neuter}}
+                                   |100 !gender.#neuter #neuter}} // temporary alteration
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
