@@ -3505,6 +3505,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   
   if (typeof arr === 'string')
     return arr;
+
+  lm.log(`smart_join!`);
   
   arr = [...arr.flat(Infinity).filter(x=> x)];
 
@@ -3829,7 +3831,7 @@ function suggest_closest(name, candidates) {
     : '';
 }
 // -------------------------------------------------------------------------------------------------
-function thing_str_repr(thing) {
+function thing_str_repr(thing, length = thing_str_repr.abbrev_length) {
   let type_str =
       typeof thing === 'object'
       ? (thing === null
@@ -3863,9 +3865,9 @@ function thing_str_repr(thing) {
     thing_str = String(thing);
   }
 
-  return abbreviate(compress(`${type_str}${thing_str}`), thing_str_repr.abbrev_length);
+  return abbreviate(compress(`${type_str}${thing_str}`), true, thing_str_repr.abbrev_length); // thing_str_repr.abbrev_length);
 }
-thing_str_repr.abbrev_length = 200;
+thing_str_repr.abbrev_length = 100;
 // -------------------------------------------------------------------------------------------------
 function unescape(str) {
   if (typeof str !== 'string')
@@ -8670,7 +8672,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             log(log_expand_and_walk_enabled,
                 `Walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
-                `${abbreviate(thing[ix].toString())} `
+                `${thing_str_repr(thing[ix])} `
                 // `${thing_str_repr(thing[ix])}`
                );
 
@@ -8683,7 +8685,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 `walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
                 //`${thing_str_repr(thing[ix])} ` +
-                `${abbreviate(thing[ix].toString())} ` +
+                `${thing_str_repr(thing[ix])} ` +
                 `returned ${thing_str_repr(elem_ret)}`
                );
           }
