@@ -63,6 +63,7 @@ function parse_file(filename) {
   // log_match_enabled  = true;
   // log_expand_and_walk_enabled = true;
   // log_flags_enabled           = true;
+  log_level__expand_and_walk = 1;
   let  result        = null;
 
   if (dt_hosted) {
@@ -294,9 +295,9 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = 0;
-let prelude_disabled                  = false;
+let prelude_disabled                  = true;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -8689,7 +8690,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 `${thing_str_repr(thing[ix])} `
                );
 
-            const elem_ret = walk(thing[ix], { correct_articles: correct_articles });
+            const elem_ret =
+                  lm.indent(() => walk(thing[ix], { correct_articles: correct_articles }));
 
             if (elem_ret)
               ret.push(elem_ret);
@@ -8726,7 +8728,32 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         throw new ThrownReturn(''); // produce nothing
       }
       // -------------------------------------------------------------------------------------------
-      // references:
+      // AnonWildcards:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTAnonWildcard) {
+        const picked = thing.pick(1, 1,
+                                  picker_allow, picker_forbid, picker_each, 
+                                  context.pick_one_priority)[0];
+        
+        log(log_level__expand_and_walk,
+            `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
+        
+        if (log_level__expand_and_walk)
+          lm.indent_and_log(picked
+                            ? `picked item = ${thing_str_repr(picked)}`
+                            : `picked item = empty`);          
+
+        let ret = picked;
+
+        if (thing.trailer && ret.length > 0)
+          ret = smart_join([ret, thing.trailer],
+                           { correct_articles: false });
+        // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
+
+        throw new ThrownReturn(ret);
+      }
+      // -------------------------------------------------------------------------------------------
+      // ASTNamedWildcardReferences;
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
         const got = context.named_wildcards.get(thing.name);
@@ -8789,6 +8816,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         
         throw new ThrownReturn(str);
       }
+      // -------------------------------------------------------------------------------------------
+      // scalar references:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
         let got = context.scalar_variables.get(thing.name) ??
@@ -8907,31 +8936,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             log_level__expand_and_walk);
         
         throw new ThrownReturn(''); // produce nothing
-      }
-      // -------------------------------------------------------------------------------------------
-      // AnonWildcards:
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTAnonWildcard) {
-        const picked = thing.pick(1, 1,
-                                  picker_allow, picker_forbid, picker_each, 
-                                  context.pick_one_priority)[0];
-        
-        log(log_level__expand_and_walk,
-            `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
-        
-        if (log_level__expand_and_walk)
-          lm.indent_and_log(picked
-                            ? `picked item = ${thing_str_repr(picked)}`
-                            : `picked item = empty`);          
-
-        let ret = picked;
-
-        if (thing.trailer && ret.length > 0)
-          ret = smart_join([ret, thing.trailer],
-                           { correct_articles: false });
-        // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
-
-        throw new ThrownReturn(ret);
       }
       // -------------------------------------------------------------------------------------------
       // UpdateConfigurations:
