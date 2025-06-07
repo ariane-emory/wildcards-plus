@@ -3563,7 +3563,7 @@ function suggest_closest(name, candidates) {
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing) {
   const type_str = typeof thing === 'object'
-        ? (thing === null ? 'null' : thing.constructor?.name ?? 'Object')
+        ? (thing === null ? 'null' : '' ?? 'Object')
         : typeof thing;
 
   let thing_str;
