@@ -3832,7 +3832,7 @@ function suggest_closest(name, candidates) {
 function thing_str_repr(thing) {
   const type_str = typeof thing === 'object'
         ? (thing === null ? 'null' : '' ?? 'Object ')
-        : typeof thing;
+        : `${typeof thing} `;
 
   let thing_str;
 
@@ -8633,10 +8633,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       }
     }
 
-    log(log_expand_and_walk_enabled,
+    log(true, // log_expand_and_walk_enabled,
         `Walking ` +
-        `${thing_str_repr(thing)} in ` + 
-        `${context}`);
+        `${abbreviate(compress(thing.toString()))} ` // + 
+        // `${thing_str_repr(thing)} in ` + 
+        // `in ${context}`
+       );
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -8676,6 +8678,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           }
         });
 
+        log(true, `Returning array: ` +
+            `${thing_str_repr(ret)}`);
         throw new ThrownReturn(ret);
       }
       // -------------------------------------------------------------------------------------------
@@ -8797,13 +8801,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             warning_str(`Named wildcard @${thing.target.name} not found`));
 
 
-        if (double_latching_is_an_error &&
-            got instanceof ASTLatchedNamedWildcardValue) {
-          throw new ThrownReturn(
-            warning_str(`tried to latch already-latched named wildcard ` +
-                        `'${thing.target.name}', check your template`));
-        } 
-
+        if (got instanceof ASTLatchedNamedWildcardValue) {
+          if (double_latching_is_an_error)
+            throw new ThrownReturn(
+              warning_str(`tried to latch already-latched named wildcard ` +
+                          `'${thing.target.name}', check your template`));
+          
+          else 
+            throw new ThrownReturn('');
+        }
+        
         const latched =
               new ASTLatchedNamedWildcardValue(
                 lm.indent(() => walk(got, { correct_articles: false })), got);
@@ -9227,17 +9234,18 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       if (! (obj instanceof ThrownReturn))
         throw obj;
 
-      log(log_expand_and_walk_enabled,
+      log(true, // log_expand_and_walk_enabled,
           `walking ` +
-          `${thing_str_repr(thing)} in ` + 
-          `${context} returned ` +
+          `${abbreviate(compress(thing.toString()))} ` + 
+          //`in ${context} ` +
+          `returned ` +
           `${thing_str_repr(obj.value)}`);
 
       return obj.value;
     }
   }
 
-  log(log_expand_and_walk_enabled,
+  log(true, // log_expand_and_walk_enabled,
       `Expanding wildcards in ` +
       `${thing_str_repr(thing)} in ` + 
       `${context}`);
@@ -9699,7 +9707,7 @@ class ASTLatchNamedWildcard extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `@#${this.target}`;
+    return `@#${this.target.name}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
