@@ -293,7 +293,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_smart_join_enabled            = true;
+let log_smart_join_enabled            = false;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
@@ -3830,12 +3830,16 @@ function suggest_closest(name, candidates) {
 }
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing) {
-  const type_str = typeof thing === 'object'
-        ? (thing === null ?
-           'null'
+  const type_str =
+        typeof thing === 'object'
+        ? (thing === null
+           ? 'null'
            : `${thing.constructor.name} ` ?? 'Object ')
         : `${typeof thing} `;
 
+  if (type_str === '')
+    throw new Error("wtf");
+  
   let thing_str;
 
   if (Array.isArray(thing)) {
@@ -3845,7 +3849,7 @@ function thing_str_repr(thing) {
     thing_str = inspect_fun(thing);
   }
   else if (thing instanceof ASTNode) {
-    return abbreviate(compress(thing.toString()));
+    thing_str = thing.toString();
   }
   else if (typeof thing === 'object') {
     try {
@@ -3858,7 +3862,7 @@ function thing_str_repr(thing) {
     thing_str = String(thing);
   }
 
-  return `${type_str}${thing_str}`;
+  return abbreviate(compress(`${type_str}${thing_str}`));
 }
 // -------------------------------------------------------------------------------------------------
 function unescape(str) {
@@ -8640,7 +8644,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
     log(true, // log_expand_and_walk_enabled,
         `Walking ` +
-        `${abbreviate(compress(thing_str_repr(thing)))} ` // + 
+        `${thing_str_repr(thing)} ` // + 
         // `${thing_str_repr(thing)} in ` + 
         // `in ${context}`
        );
