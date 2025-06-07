@@ -300,7 +300,9 @@ let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
-let unnecessary_choice_is_error       = false;
+let unnecessary_choice_is_an_error    = false;
+let double_latching_is_an_error       = false;
+let double_unlatching_is_an_error     = false;
 // =================================================================================================
 
 
@@ -997,7 +999,7 @@ function choice(...options) { // convenience constructor
   if (options.length == 1) {
     console.log("WARNING: unnecessary use of choice!");
 
-    if (unnecessary_choice_is_error)
+    if (unnecessary_choice_is_an_error)
       throw new Error("unnecessary use of choice");
     
     return make_rule_func(options[0]);
@@ -4407,12 +4409,12 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = prelude_disabled ? '' : `
-@__set_gender_if_unset  = unsafe_guards { unsafe_guards {?female #gender.female // just to make forcing an option a little terser.
+@__set_gender_if_unset  = unsafe_guards { {?female #gender.female // just to make forcing an option a little terser.
                                           |?male   #gender.male
                                           |?neuter #gender.neuter}
-                                   {3 !gender.#female #female
-                                   |2 !gender.#male   #male
-                                   |100 !gender.#neuter #neuter}} // temporary alteration
+                          {3 !gender.#female #female
+                          |2 !gender.#male   #male
+                          |100 !gender.#neuter #neuter}} // temporary alteration
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
@@ -8776,18 +8778,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const got = context.named_wildcards.get(thing.target.name);
         
         if (!got)
-          throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.target.name} not found!>`);
+          throw new ThrownReturn(`\\\\<WARNING: Named wildcard @${thing.target.name} not found!>`);
 
-        // lm.log(`CONSIDER ${inspect_fun(got)}`);
 
-        if (got instanceof ASTLatchedNamedWildcardValue) {
-          throw new ThrownReturn(`\\<WARNING: tried to latch already-latched NamedWildcard ` +
+        if (double_latching_is_an_error &&
+            got instanceof ASTLatchedNamedWildcardValue) {
+          throw new ThrownReturn(`\\\\<WARNING: tried to latch already-latched NamedWildcard ` +
                                  `@${thing.target.name}, check your template!>`);
-        } /* else {
-             lm.log(`LATCHING ${inspect_fun(got)}`);
-             
-             // throw new Error('bomb');
-             } */
+        } 
 
         const latched =
               new ASTLatchedNamedWildcardValue(
@@ -8809,7 +8807,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (!got)
           throw new ThrownReturn(`\\<WARNING: Named wildcard @${thing.name} not found!>`);
 
-        if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+        if (double_unlatching_is_an_error &&
+            (! (got instanceof ASTLatchedNamedWildcardValue))) {
           throw new ThrownReturn(`\\<WARNING: tried to unlatch already-unlatched NamedWildcard ` +
                                  `@${thing.name}, ` +
                                  `check your template!>`);
@@ -9262,9 +9261,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
-  error:          'error',
-  warning:        'warning',
-  ignore_unsafe_guards:  'ignore_unsafe_guards',
+  error:                'error',
+  warning:              'warning', 
+  allow_unsafe_guards:  'allow_unsafe_guards',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9324,7 +9323,7 @@ function audit_semantics(root_ast_node,
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
       if (dummy_context.flag_is_set(flag) ||
-          local_audit_semantics_mode === audit_semantics_modes.ignore_unsafe_guards)
+          local_audit_semantics_mode === audit_semantics_modes.allow_unsafe_guards)
         return;
 
       const flag_str = flag.join(".").toLowerCase();
@@ -9377,7 +9376,7 @@ function audit_semantics(root_ast_node,
         
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        lm.indent(() => walk(got, local_audit_semantics_mode)); // propagate local_audit_semantics_mode
+        lm.indent(() => walk(got, audit_semantics_mode)); // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -9394,7 +9393,7 @@ function audit_semantics(root_ast_node,
       }
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, audit_semantics_mode); // don't propagate
+        walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
@@ -9424,8 +9423,8 @@ function audit_semantics(root_ast_node,
       }
       else if (thing instanceof ASTAnonWildcard) {
         const mode = thing.unsafe_guards
-              ? audit_semantics_modes.ignore_unsafe_guards
-              : audit_semantics_mode;
+              ? audit_semantics_modes.allow_unsafe_guards
+              : local_audit_semantics_mode; // propagate local_audit_semantics_mode
         
         walk_children(thing, mode);
       }
