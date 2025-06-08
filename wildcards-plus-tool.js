@@ -62,6 +62,7 @@ function parse_file(filename) {
   const old_log_match_enabled = log_match_enabled;
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
+  // log_level__expand_and_walk = 1;
   let  result        = null;
 
   if (dt_hosted) {
