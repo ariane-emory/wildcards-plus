@@ -60,10 +60,9 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
-  // log_match_enabled  = true;
-  // log_expand_and_walk_enabled = true;
-  // log_flags_enabled           = true;
-  log_level__expand_and_walk = 1;
+  // log_match_enabled          = true;
+  // log_flags_enabled          = true;
+  // log_level__expand_and_walk = 1;
   let  result        = null;
 
   if (dt_hosted) {
@@ -295,9 +294,9 @@ let log_picker_enabled                = false;
 let log_post_enabled                  = true;
 let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = 0;
-let prelude_disabled                  = true;
+let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -4426,7 +4425,7 @@ class Context {
 // =================================================================================================
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
-const prelude_text = prelude_disabled ? '' : `
+const prelude_text = `
 @__set_gender_if_unset  = unsafe_guards
                           { {?female #gender.female // just to make forcing an option a little terser.
                             |?male   #gender.male
@@ -8548,6 +8547,9 @@ const prelude_text = prelude_disabled ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
+  if (prelude_disabled)
+    return into_context;
+  
   if (log_loading_prelude)
     lm.log(`loading prelude...`);
 
@@ -8808,7 +8810,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         else if (',.'.includes(anon_wildcard.trailer))
           effective_joiner = ',';
         else
-                   effective_joiner = thing.joiner;
+          effective_joiner = thing.joiner;
         
         lm.indent(() => {
           let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
