@@ -8703,8 +8703,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       return thing;
     }
 
-    log(log_level__expand_and_walk,
-        `Walking ${thing_str_repr(thing, { always_include_type_str: true })}`);
+    if (log_level__expand_and_walk)
+      lm.log(() => `Walking ${thing_str_repr(thing, { always_include_type_str: true })}`);
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -8715,11 +8715,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
         lm.indent(() => {
           for (let ix = 0; ix < thing.length; ix++) {
-            log(log_level__expand_and_walk,
-                `Walking array element #${ix + 1} `+
-                `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix], { always_include_type_str: true })} `
-               );
+            if (log_level__expand_and_walk)
+              lm.log(() => `Walking array element #${ix + 1} `+
+                     `of ${thing.length} ` +
+                     `${thing_str_repr(thing[ix], { always_include_type_str: true })} `
+                    );
 
             const elem_ret =
                   lm.indent(() => walk(thing[ix], { correct_articles: correct_articles }));
@@ -8727,12 +8727,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             if (elem_ret)
               ret.push(elem_ret);
 
-            log(log_level__expand_and_walk,
-                `walking array element #${ix + 1} `+
-                `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix])} ` +
-                `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
-               );
+            if (log_level__expand_and_walk)
+              lm.log(() => `walking array element #${ix + 1} `+
+                     `of ${thing.length} ` +
+                     `${thing_str_repr(thing[ix])} ` +
+                     `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
+                    );
           }
         });
 
@@ -8742,8 +8742,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // flags:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetFlag) {
-        log(log_flags_enabled >= 2,
-            `setting flag '${thing.flag}'.`);
+        if (log_flags_enabled >= 2)
+          lm.log(() => `setting flag '${thing.flag}'.`);
 
         context.set_flag(thing.flag);
 
@@ -8751,8 +8751,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        log(log_flags_enabled >= 2,
-            `unsetting flag '${thing.flag}'.`);
+        if (log_flags_enabled >= 2)
+          lm.log(() => `unsetting flag '${thing.flag}'.`);
 
         context.unset_flag(thing.flag);
         
@@ -8861,7 +8861,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let got = context.scalar_variables.get(thing.name) ??
             warning_str(`scalar '${thing.name}' not found`);
 
-        log(false, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
+        if (false)
+          lm.log(() => `scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
         if (thing.capitalize)
           got = capitalize(got);
@@ -8897,10 +8898,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 new ASTLatchedNamedWildcard(
                   walk(got, { correct_articles: correct_articles }), got);
 
-          log(log_level__expand_and_walk,
-              `latched @${thing.target.name} to value: ` +
-              `${typeof latched.latched_value} ` +
-              `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
+          if (log_level__expand_and_walk)
+            lm.log(() => `latched @${thing.target.name} to value: ` +
+                   `${typeof latched.latched_value} ` +
+                   `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
 
           context.named_wildcards.set(thing.target.name, latched);
         });
@@ -8924,18 +8925,20 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         
         context.named_wildcards.set(thing.name, got.original_value);
         
-        lm.indent(() =>
-          log(context.noisy,
-              `unlatched ${thing.name} back to ${thing_str_repr(got.original_value)}`));
+        lm.indent(() => {
+          if (context.noisy)
+            lm.log(() => `unlatched ${thing.name} back to ${thing_str_repr(got.original_value)}`);
+        });
 
         throw new ThrownReturn(''); // produce no text.
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (context.named_wildcards.has(thing.name))
-          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
-              `you may not have intended to do this, check your template!`,
-              log_level__expand_and_walk);
+          if (true)
+            lm.log(() => `WARNING: redefining named wildcard @${thing.name}, ` +
+                   `you may not have intended to do this, check your template!`,
+                   log_level__expand_and_walk);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
@@ -8953,10 +8956,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // scalar assignment:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        // log(log_level__expand_and_walk >= 2, '');
-        log(log_level__expand_and_walk >= 2,
-            `assigning ${inspect_fun(thing.source)} ` +
-            `to '${thing.destination.name}'`);
+        if (log_level__expand_and_walk >= 2)
+          lm.log(() => `assigning ${inspect_fun(thing.source)} ` +
+                 `to '${thing.destination.name}'`);
         
         let   new_val = lm.indent(() => smart_join(walk(thing.source,
                                                         { correct_articles: correct_articles }),
@@ -9095,7 +9097,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                           `to non-string ${inspect_fun(tmp_str)} ` +
                           `in key ${inspect_fun(our_name)}`);
 
-              if (log_expand_and_walk_enabled >= 2)
+              if (log_level__expand_and_walk >= 2)
                 lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
                        `${inspect_fun(context.configuration[our_name])}, ` +
                        `increment by string ${inspect_fun(value)}, ` +
@@ -9115,21 +9117,21 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                        `${inspect_fun(context.configuration[our_name])}, ` +
                        `incrementing by unknown type value ${inspect_fun(value)}, ` +
-                       `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+                                                                                `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
 
-              context.configuration[our_name] = (context.configuration[our_name]??null) + value;
-            }
-          }
+                                           context.configuration[our_name] = (context.configuration[our_name]??null) + value;
+                           }
+ }
 
-          lm.indent(() => log(log_configuration_enabled,
-                              `%${our_name} ` +
-                              `${thing.assign ? '=' : '+='} ` +
-                              `${inspect_fun(value, true)}`,
-                              log_level__expand_and_walk));
-        }
-        
-        throw new ThrownReturn(''); // produce nothing
-      }
+                                   lm.indent(() => log(log_configuration_enabled,
+                                                       `%${our_name} ` +
+                                                       `${thing.assign ? '=' : '+='} ` +
+                                                       `${inspect_fun(value, true)}`,
+                                                       log_level__expand_and_walk));
+         }
+                                               
+                                               throw new ThrownReturn(''); // produce nothing
+                                              }
       // ---------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetPickSingle || 
                thing instanceof ASTSetPickMultiple) {
