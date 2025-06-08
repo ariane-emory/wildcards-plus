@@ -4393,9 +4393,10 @@ class Sequence extends Rule {
           const index = dt_samplers.indexOf(munged_configuration.sampler);
 
           if (index === -1) {
-            lm.log(() => `WARNING: could not find index of sampler '${munged_configuration.sampler}'. `+
-                   `Are you sure you used the ` +
-                   `correct name? deleting sampler from configuration.`);
+            lm.log(() => `WARNING: could not find index of sampler ` +
+                   `'${munged_configuration.sampler}'. `+
+                   `Are you sure you used the correct name? ` +
+                   `deleting sampler from configuration.`);
 
             delete munged_configuration.sampler;
           }
