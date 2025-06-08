@@ -4396,7 +4396,7 @@ class Sequence extends Rule {
             lm.log(() => `WARNING: could not find index of sampler ` +
                    `'${munged_configuration.sampler}'. `+
                    `Are you sure you used the correct name? ` +
-                   `deleting sampler from configuration.`);
+                   `deleting sampler from configuration`);
 
             delete munged_configuration.sampler;
           }
