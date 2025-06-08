@@ -74,9 +74,9 @@ function parse_file(filename) {
     }
     catch (err) {
       if (err instanceof FatalParseError) {
-        console.log(`ERROR: matching threw fatal parse error, ` +
-                    `halting: \n` +
-                    `${inspect_fun(err)}`);
+        lm.log(() => `ERROR: matching threw fatal parse error, ` +
+               `halting: \n` +
+               `${inspect_fun(err)}`);
         return null;
       }
       else {
