@@ -326,17 +326,17 @@ class Logger {
     this.indent_str = indent_str;
   }
   // -----------------------------------------------------------------------------------------------
-  error(thing = '', with_indent = true) {
-    console.error(this.indent_thing(thing, with_indent));
+  error(...args) {
+    this.#write(error, ...args);
   }
   // -----------------------------------------------------------------------------------------------
   log(...args) {
-    this.__write(console, ...args);
+    this.#write(console, ...args);
   }
   // -----------------------------------------------------------------------------------------------
-  __write(destination, str = '', with_indent = true) {    
+  #write(destination, str = '', with_indent = true) {    
     if ((!destination) ||
-        (typeof str !== 'string') // ||
+        (typeof str !== 'string') // g||
         //(typeof with_indent !== 'boolean')
        )
       throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
