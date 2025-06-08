@@ -113,13 +113,13 @@ function parse_file(filename) {
 }
 // -------------------------------------------------------------------------------------------------
 function post_prompt({ prompt = '', configuration = {}, hostname = '127.0.0.1', port = 7860 }) {
-  // console.log(`POSTing with configuration: ${JSON.stringify(configuration)}`);
+  // lm.log(() => `POSTing with configuration: ${JSON.stringify(configuration)}`);
 
   const data        = { prompt: prompt, ...configuration };
   const string_data = JSON.stringify(data);
 
   if (log_post_enabled)
-    console.log(`POST data is: ${inspect_fun(data)}`);
+    lm.log(() => `POST data is: ${inspect_fun(data)}`);
   
   const options = {
     hostname: hostname,
@@ -147,10 +147,10 @@ function post_prompt({ prompt = '', configuration = {}, hostname = '127.0.0.1', 
         socket.destroy(); // don't wait for the response.
       }
       else {
-        console.log(`POSTing..`);
+        lm.log(() => `POSTing..`);
         socket.on('data', chunk => {
           if (! printed)
-            console.log(`Response: ${abbreviate(chunk.toString(), 1000)}`);
+            lm.log(() => `Response: ${abbreviate(chunk.toString(), 1000)}`);
           printed = true;
         });
       }
@@ -179,14 +179,14 @@ function save_post_request(options, data) {
         `${json}`;
   
   if (log_post_enabled)
-    console.log(`Saving POST data to '${filename}'...`);
+    lm.log(() => `Saving POST data to '${filename}'...`);
 
   if (!fs.existsSync(dir))
     fs.mkdirSync(dir, { recursive: true });
 
   try {
     fs.writeFileSync(filename, file_data);
-    console.log(`Saved POST data.`);
+    lm.log(() => `Saved POST data.`);
     
     return true;
   }
@@ -203,7 +203,7 @@ function process_includes(thing, context = new Context()) {
       const current_file = context.files[context.files.length - 1];
       const res = []
 
-      // console.log(`INSPECT: ${inspect_fun(thing, null, 2)}`);
+      // lm.log(() => `INSPECT: ${inspect_fun(thing, null, 2)}`);
 
       const copied = context.shallow_copy({ top_file: false });
       
@@ -1012,7 +1012,7 @@ class Choice extends Rule  {
 // -------------------------------------------------------------------------------------------------
 function choice(...options) { // convenience constructor
   if (options.length == 1) {
-    console.log("WARNING: unnecessary use of choice!");
+    lm.log(() => "WARNING: unnecessary use of choice!");
 
     if (unnecessary_choice_is_an_error)
       throw new Error("unnecessary use of choice");
@@ -3269,52 +3269,52 @@ class Sequence extends Rule {
       }
       else if (((oix + 1) % print_div) == 0) {
         process.stdout.write('\n');
-        console.log();
-        console.log(`${ordinal_string(oix + 1)} batch of ` +
+        lm.log(() => '');
+        lm.log(() => `${ordinal_string(oix + 1)} batch of ` +
                     `${format_pretty_number(reps_per_batch)} ` +
                     `(out of ${format_pretty_number(batch_count)}): `);
-        console.log(`result:                 ${rjson_stringify(result)}`);
-        console.log(`mem at start:           ${format_pretty_bytes(start_mem)}`);
+        lm.log(() => `result:                 ${rjson_stringify(result)}`);
+        lm.log(() => `mem at start:           ${format_pretty_bytes(start_mem)}`);
         const now = process.memoryUsage().heapUsed;
-        console.log(`mem now:                ${format_pretty_bytes(now)}`);
-        console.log(`mem diff:               ${format_pretty_bytes(now - start_mem)}`);
-        console.log(`time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
-        console.log(`time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
-        console.log(`total runtime:          ` +
+        lm.log(() => `mem now:                ${format_pretty_bytes(now)}`);
+        lm.log(() => `mem diff:               ${format_pretty_bytes(now - start_mem)}`);
+        lm.log(() => `time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
+        lm.log(() => `time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
+        lm.log(() => `total runtime:          ` +
                     `${((performance.now() - start_time)/1000).toFixed(2)} ` +
                     `seconds`);
-        console.log(`rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
-        console.log(`est. runs/second:       ${Math.round(runs_per_second_est)}`);
-        console.log(`EST. TIME PER MILLION:  ` +
+        lm.log(() => `rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
+        lm.log(() => `est. runs/second:       ${Math.round(runs_per_second_est)}`);
+        lm.log(() => `EST. TIME PER MILLION:  ` +
                     `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
         process.stdout.write('\n');
       }
     }
     
-    console.log();
-    console.log(`batch_count:            ${batch_count}`);
-    console.log(`reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
-    console.log(`total reps:             ${format_pretty_number(batch_count * reps_per_batch)}`);
-    console.log(`last result:            ${rjson_stringify(result)}`);
+    lm.log(() => '');
+    lm.log(() => `batch_count:            ${batch_count}`);
+    lm.log(() => `reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
+    lm.log(() => `total reps:             ${format_pretty_number(batch_count * reps_per_batch)}`);
+    lm.log(() => `last result:            ${rjson_stringify(result)}`);
     const now = process.memoryUsage().heapUsed;
-    console.log(`final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
-    console.log(`total runtime:          ` +
+    lm.log(() => `final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
+    lm.log(() => `total runtime:          ` +
                 `${((performance.now() - start_time)/1000).toFixed(2)} ` +
                 `seconds`);
-    console.log(`rounded avg time/batch: ${format_pretty_number(Math.round(running_avg))} ms`);
+    lm.log(() => `rounded avg time/batch: ${format_pretty_number(Math.round(running_avg))} ms`);
     const single_run_est = running_avg / reps_per_batch;
     const runs_per_second_est = 1_000_000 / running_avg;
-    console.log(`est. runs/second:       ` +
+    lm.log(() => `est. runs/second:       ` +
                 `${format_pretty_number(Math.round(runs_per_second_est))}`);
-    console.log(`EST. TIME PER MILLION:  ` +
+    lm.log(() => `EST. TIME PER MILLION:  ` +
                 `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
                 `ms`);
-    console.log();
+    lm.log(() => '');
     return running_avg;
   }
   // -------------------------------------------------------------------------------------------------
   function capitalize(string) {
-    // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
+    // lm.log(() => `Capitalizing ${typeof string} ${inspect_fun(string)}`);
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
   // -------------------------------------------------------------------------------------------------
@@ -10220,7 +10220,7 @@ class Sequence extends Rule {
   // AnonWildcard-related rules:
   // =================================================================================================
   const make_ASTAnonWildcardAlternative = arr => {
-    // console.log(`ARR: ${inspect_fun(arr)}`);
+    // lm.log(() => `ARR: ${inspect_fun(arr)}`);
     const weight = arr[1];
 
     if (weight == 0)
@@ -10685,7 +10685,7 @@ class Sequence extends Rule {
       }
       catch (err) {
         if (err instanceof FatalParseError) {
-          console.log(`got fatal parse error, halting: ${inspect_fun(err)}`);
+          lm.log(() => `got fatal parse error, halting: ${inspect_fun(err)}`);
           process.exit(0);
         }
         else {
@@ -10708,10 +10708,10 @@ class Sequence extends Rule {
     // just for debugging:
     // -----------------------------------------------------------------------------------------------
     // if (print_ast_enabled)
-    //   console.log(`result: ${inspect_fun(result.value)}`);
+    //   lm.log(() => `result: ${inspect_fun(result.value)}`);
 
     // if (print_ast_json_enabled)
-    //   console.log(`result (JSON): ${JSON.stringify(result.value)}`);
+    //   lm.log(() => `result (JSON): ${JSON.stringify(result.value)}`);
 
     let   AST          = result.value;
     const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
