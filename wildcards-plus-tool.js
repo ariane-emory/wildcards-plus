@@ -1486,7 +1486,7 @@ class Sequence extends Rule {
       //   throw new Error("STOP @ PUSH 1");
     }
     else if (log_match_enabled)
-      lm.indent(() => lm.log((() => `discarding ${inspect_fun(last_match_result)}!`)));
+      lm.indent(() => lm.log(() => `discarding ${inspect_fun(last_match_result)}!`));
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
