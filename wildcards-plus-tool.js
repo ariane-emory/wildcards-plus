@@ -334,15 +334,15 @@ class Logger {
     this.__write(console.log, ...args);
   }
   // -----------------------------------------------------------------------------------------------
-  __write(destination, str_fun, with_indent = true) {    
-    if ((typeof destination !== 'function') ||
-        (typeof str_fun !== 'function') // ||
-        //(typeof with_indent !== 'boolean')
-       )
-      throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
+  __write(destination, str_or_fun, with_indent = true) {    
+    // if ((typeof destination !== 'function') ||
+    //     (typeof str_fun !== 'function'))
+    //   throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
 
-    let str = str_fun();
-    
+    let str = typeof str_or_fun === 'function'
+        ? str_or_fun()
+        : str_or_fun;
+        
     if (with_indent)
       str = this.indent_thing(str);
     
@@ -10829,7 +10829,7 @@ async function main() {
         const question_str = `POST this prompt as #${posted_count+1} out of ${count} ` +
               `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
               `POST the prior prompt)? `;
-        const answer   = await ask(question_str);
+        const answer = await ask(question_str);
 
         if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
           stash_priors(prompt, context.configuration);
