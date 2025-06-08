@@ -414,9 +414,9 @@ const lm = { // logger manager
     }
   },
   // -----------------------------------------------------------------------------------------------
-  indent_and_log(...args) {
-    this.indent(() => this.log(...args));
-  }
+  // indent_and_log(...args) {
+  //   this.indent(() => this.log(...args));
+  // }
 }
 // -------------------------------------------------------------------------------------------------
 if (false) {
@@ -1440,11 +1440,11 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      lm.indent_and_log(`matching first sequence element #1 out of ` +
-                        `${this.elements.length}: ` +
-                        `${abbreviate(compress(this.elements[0].toString()))} ` +
-                        `at char #${index} ` +
-                        `at '${abbreviate(input.substring(index))}'`);
+      lm.indent(() => lm.log(() => `matching first sequence element #1 out of ` +
+                             `${this.elements.length}: ` +
+                             `${abbreviate(compress(this.elements[0].toString()))} ` +
+                             `at char #${index} ` +
+                             `at '${abbreviate(input.substring(index))}'`));
     
     const start_rule_match_result =
           lm.indent2(() => this.elements[0].match(input, index, cache));
@@ -1465,18 +1465,18 @@ class Sequence extends Rule {
     index        = last_match_result.index;
 
     if (log_match_enabled)
-      lm.indent_and_log(`matched first sequence element #1: ` +
-                        `${compress(inspect_fun(last_match_result))}, ` +
-                        `now at char #${index}: ` +
-                        `'${abbreviate(input.substring(index))}'`);
+      lm.indent(() => lm.log(() => `matched first sequence element #1: ` +
+                             `${compress(inspect_fun(last_match_result))}, ` +
+                             `now at char #${index}: ` +
+                             `'${abbreviate(input.substring(index))}'`));
 
     // if (log_match_enabled)
     //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
-        lm.indent_and_log(`seq pushing first item ` +
-                          `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
+        lm.indent(() => lm.log(() => `seq pushing first item ` +
+                               `${abbreviate(compress(inspect_fun(last_match_result.value)))}`));
 
       values.push(last_match_result.value);
 
@@ -1488,11 +1488,11 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        lm.indent_and_log(`matching sequence element #${ix + 1} out of ` +
-                          `${this.elements.length}: ` +
-                          `${abbreviate(compress(this.elements[ix].toString()))} ` +
-                          `at char #${index}: ` +
-                          `'${abbreviate(input.substring(index))}'`);
+        lm.indent(() => lm.log(() => `matching sequence element #${ix + 1} out of ` +
+                               `${this.elements.length}: ` +
+                               `${abbreviate(compress(this.elements[ix].toString()))} ` +
+                               `at char #${index}: ` +
+                               `'${abbreviate(input.substring(index))}'`));
       
       const element = this.elements[ix];
 
@@ -1500,7 +1500,7 @@ class Sequence extends Rule {
 
       if (! last_match_result) {
         if (log_match_enabled)
-          lm.indent_and_log(`did not match sequence item #${ix}.`);
+          lm.indent(() => lm.log(() => `did not match sequence item #${ix}.`));
         
         return this.__fail_or_throw_error(start_rule_match_result,
                                           last_match_result,
@@ -1508,15 +1508,15 @@ class Sequence extends Rule {
       }
 
       if (log_match_enabled)
-        lm.indent_and_log(`matched sequence element #${ix+1}: ` +
-                          `${compress(inspect_fun(last_match_result))}, ` +
-                          `now at char #${last_match_result.index}: ` +
-                          `'${abbreviate(input.substring(last_match_result.index))}'`);
+        lm.indent(() => lm.log(() => `matched sequence element #${ix+1}: ` +
+                               `${compress(inspect_fun(last_match_result))}, ` +
+                               `now at char #${last_match_result.index}: ` +
+                               `'${abbreviate(input.substring(last_match_result.index))}'`));
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
-          lm.indent_and_log(`seq pushing ` +
-                            `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
+          lm.indent(() => lm.log(() => `seq pushing ` +
+                                 `${abbreviate(compress(inspect_fun(last_match_result.value)))}`));
 
         values.push(last_match_result.value);
 
@@ -1927,14 +1927,14 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      lm.indent_and_log(`testing /${this.regexp.source}/ at char #${index}: ` +
-                        `'${abbreviate(input.substring(index))}'`);
+      lm.indent(() => lm.log(() => `testing /${this.regexp.source}/ at char #${index}: ` +
+                             `'${abbreviate(input.substring(index))}'`));
 
     const re_match = this.regexp.exec(input);
     
     if (! re_match) {
       if (log_match_enabled)
-        lm.indent_and_log(`regex did not match`);
+        lm.indent(() => lm.log(() => `regex did not match`));
       return null;
     }
 
@@ -3271,7 +3271,7 @@ function benchmark(thunk, {
       lm.log(() => '');
       lm.log(() => `${ordinal_string(oix + 1)} batch of ` +
              `${format_pretty_number(reps_per_batch)} ` +
-                  `(out of ${format_pretty_number(batch_count)}): `);
+             `(out of ${format_pretty_number(batch_count)}): `);
       lm.log(() => `result:                 ${rjson_stringify(result)}`);
       lm.log(() => `mem at start:           ${format_pretty_bytes(start_mem)}`);
       const now = process.memoryUsage().heapUsed;
@@ -3281,7 +3281,7 @@ function benchmark(thunk, {
       lm.log(() => `time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
       lm.log(() => `total runtime:          ` +
              `${((performance.now() - start_time)/1000).toFixed(2)} ` +
-                  `seconds`);
+             `seconds`);
       lm.log(() => `rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
       lm.log(() => `est. runs/second:       ${Math.round(runs_per_second_est)}`);
       lm.log(() => `EST. TIME PER MILLION:  ` +
@@ -3299,7 +3299,7 @@ function benchmark(thunk, {
   lm.log(() => `final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
   lm.log(() => `total runtime:          ` +
          `${((performance.now() - start_time)/1000).toFixed(2)} ` +
-              `seconds`);
+         `seconds`);
   lm.log(() => `rounded avg time/batch: ${format_pretty_number(Math.round(running_avg))} ms`);
   const single_run_est = running_avg / reps_per_batch;
   const runs_per_second_est = 1_000_000 / running_avg;
@@ -3307,7 +3307,7 @@ function benchmark(thunk, {
          `${format_pretty_number(Math.round(runs_per_second_est))}`);
   lm.log(() => `EST. TIME PER MILLION:  ` +
          `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
-              `ms`);
+         `ms`);
   lm.log(() => '');
   return running_avg;
 }
@@ -8607,7 +8607,7 @@ function load_prelude(into_context = new Context()) {
   });
 
   if (log_loading_prelude)
-        lm.log(() => `loading prelude took ${elapsed.toFixed(3)} ms`);
+    lm.log(() => `loading prelude took ${elapsed.toFixed(3)} ms`);
 
   return into_context;
 }
@@ -8767,7 +8767,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                              context.pick_one_priority)[0];
         
         if (log_level__expand_and_walk)
-          lm.indent_and_log(`picked item = ${thing_str_repr(str)}`);
+          lm.indent(() => lm.log(() => `picked item = ${thing_str_repr(str)}`));
         
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
@@ -8815,7 +8815,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                                    picker_priority).filter(s => s !== '');
           
           if (log_level__expand_and_walk)
-            lm.indent_and_log(`picked items ${thing_str_repr(res)}`);
+            lm.indent(() => lm.log(() => `picked items ${thing_str_repr(res)}`));
         }
         
         if (thing.capitalize && res.length > 0) 
