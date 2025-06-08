@@ -9121,8 +9121,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               : 'prior_pick_multiple_priority';
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
-        const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
-                                                                           context)).toLowerCase()];
+        const walked    = picker_priority[lm.indent(() =>
+          expand_wildcards(thing.limited_content,
+                           context,
+                           { correct_articles: correct_articles })).toLowerCase()];
 
         if (! picker_priority_descriptions.includes(walked))
           throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
@@ -9160,7 +9162,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!res || !res.is_finished)
           throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
-        throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
+        throw new ThrownReturn(lm.indent(() =>
+          walk(res.value, { correct_articles: correct_articles })));
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTRevertPickSingle || 
