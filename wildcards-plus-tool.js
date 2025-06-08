@@ -9178,9 +9178,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
         
-        log(log_configuration_enabled,
-            `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(prior_val)}.`);
+        if (log_configuration_enabled)
+          lm.log(() => `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                 `${inspect_fun(prior_val)}.`);
         
         context[cur_key]   = prior_val;
         context[prior_key] = cur_val;
