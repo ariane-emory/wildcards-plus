@@ -8736,7 +8736,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                                   context.pick_one_priority)[0];
         
         if (log_level__expand_and_walk)
-          lm.indent_and_log(`picked item = ${thing_str_repr(str)}`);s
+          lm.indent_and_log(`picked item = ${thing_str_repr(str)}`);
         
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
@@ -8768,13 +8768,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           }
         }
         else {
-          const priority = thing.min_count === 1 && thing.max_count === 1
+          const picker_priority = thing.min_count === 1 && thing.max_count === 1
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
           const picks = got.pick(thing.min_count, thing.max_count,
                                  picker_allow, picker_forbid, picker_each, 
-                                 priority);
+                                 picker_priority);
 
           if (log_level__expand_and_walk)
             lm.indent_and_log(`picked items ${thing_str_repr(picks)}`);
@@ -8786,7 +8786,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
-
 
         const joiner = thing.joiner === '&'
               ? ','
