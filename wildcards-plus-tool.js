@@ -10732,9 +10732,9 @@ async function main() {
   const elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
   lm.log(`audit took ${elapsed.toFixed(2)} ms`);
 
-  // log_match_enabled           = true;
-  log_level__expand_and_walk = 1;
-  // log_flags_enabled           = true;
+  // log_match_enabled          = true;
+  // log_level__expand_and_walk = 1;
+  // log_flags_enabled          = true;
 
   let posted_count        = 0;
   let prior_prompt        = null;
