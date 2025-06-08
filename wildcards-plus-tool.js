@@ -10401,7 +10401,7 @@ const NamedWildcardReference  =
                 optional(xform(parseInt, uint), 1),        // [2]
                 optional(xform(parseInt,                   // [3]
                                cadr(dash, uint))),
-                optional(/[,\.&|;]/),                        // [4]
+                optional(/[,\.&|;]/),                      // [4]
                 ident,                                     // [5]
                 optional_punctuation_trailer,  // [6]
                ), 
