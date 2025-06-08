@@ -62,7 +62,7 @@ function parse_file(filename) {
   const old_log_match_enabled = log_match_enabled;
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
-  log_level__expand_and_walk = 1;
+  // log_level__expand_and_walk = 1;
   let  result        = null;
 
   if (dt_hosted) {
@@ -8638,7 +8638,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
   };
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
-    lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
+    // lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
     const ret = lm.indent(() =>
       walk(pick?.body ?? '', 
            { correct_articles: correct_articles }));
