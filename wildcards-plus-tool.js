@@ -8763,12 +8763,12 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
 
         let anon_wildcard;
         
-        if (got instanceof ASTLatchedNamedWildcard) {
-          anon_wildcard = anon_wildcard.original_value;
+        if (got instanceof ASTLatchedNamedWildcard) {          
+          anon_wildcard = got.original_value;
           
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
-            const expanded = lm.indent(() => expand_wildcards(got.latched_value, context,
-                                                              { correct_articles: correct_articles})); //  not walk!
+            const expanded = lm.indent(() => walk(got.latched_value, 
+                                                  { correct_articles: correct_articles})); //  not walk!dg
             // ^ I forget why I chose to use expand_wildcards instead of walk here and left the
             //   note on the prior line - it seems like using walk instead would be fine but I
             //   must have had some reason, review this later.
@@ -8797,9 +8797,8 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
 
         let effective_joiner;
         let intercalate_options = {}
-        
         let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
-
+        
         // lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
         // lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
 
@@ -9276,7 +9275,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
   
   log(log_level__expand_and_walk,
       `expanded wildcards in ` +
-      `${thing_str_repr(thing)} in ` + 
+      `${thing_str_repr(thing)} ` + 
       `returned ` +
       `${thing_str_repr(ret, { always_include_type_str: true })}`);
 
