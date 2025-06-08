@@ -334,13 +334,15 @@ class Logger {
     this.#write(console, ...args);
   }
   // -----------------------------------------------------------------------------------------------
-  #write(destination, str = '', with_indent = true) {    
+  #write(destination, str_fun, with_indent = true) {    
     if ((!destination) ||
-        (typeof str !== 'string') // g||
+        (typeof str_fun !== 'function') // g||
         //(typeof with_indent !== 'boolean')
        )
       throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
 
+    str = str_fun();
+    
     if (with_indent)
       str = this.indent_thing(str);
     
@@ -10866,7 +10868,7 @@ let main_disabled = false;
 
 if (! main_disabled)
   main().catch(err => {
-    lm.error(`Unhandled error:\n${err.stack}`);
+    lm.error(() => `Unhandled error:\n${err.stack}`);
     // process.exit(1);
   });
 // =================================================================================================
