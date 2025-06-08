@@ -9209,7 +9209,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         
         lm.indent(() => {
           if (log_level__expand_and_walk)
-            lm.log(() => `Expanding LoRA weight weight ` +
+            lm.log(() => `Expanding LoRA weight  ` +
                    `${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
