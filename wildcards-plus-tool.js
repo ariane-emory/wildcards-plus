@@ -8791,41 +8791,34 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
-        lm.log(`JOINER: ${inspect_fun(thing.joiner)}`);
-        
         let effective_joiner;
-
-        if (thing.joiner === '&')
+        let intercalate_options = {}
+        
+        if (thing.joiner === '&') {
+          effective_joiner = ',';
+          intercalate_options.final_separator = 'and';
+        }
+        else if (anon_wildcard.trailer === ',')
           effective_joiner = ',';
         else
           effective_joiner= thing.joiner;
         
-        // effective_joiner = thing.joiner === '&'
-        //   ? ','
-        //   : thing.joiner;
-        
-        lm.log(`EFFECTIVE_JOINER: ${inspect_fun(effective_joiner)}`);
-        
-        const intercalate_options = thing.joiner === '&'
-              ? { final_separator: 'and' }
-              : {};
-
-        let str;
-
         lm.indent(() => {
-          str = smart_join(intercalate(effective_joiner, res, intercalate_options),
-                           { correct_articles: false });
+          let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
+                               { correct_articles: false });
           // ^ don't need to correct articles here since punctuation and the word 'and' both can't
           //   trigger an article correction anyhow.
-          
-          if (thing.trailer && str.length > 0)
-            str = smart_join([str, thing.trailer],
+
+          let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
+
+          if (effective_trailer && str.length > 0)
+            str = smart_join([str, effective_trailer],
                              { correct_articles: false });
           // ^ don't need to correct articles for trailers since punctuation can't trigger an
           //   article correction anyhow.
+
+          throw new ThrownReturn(str);
         });
-        
-        throw new ThrownReturn(str);
       }
       // -------------------------------------------------------------------------------------------
       // scalar references:
@@ -10403,7 +10396,7 @@ const NamedWildcardReference  =
                 optional(xform(parseInt, uint), 1),        // [2]
                 optional(xform(parseInt,                   // [3]
                                cadr(dash, uint))),
-                optional(/[,&|]/),                         // [4]
+                optional(/[,&|;]/),                        // [4]
                 ident,                                     // [5]
                 optional_punctuation_trailer,  // [6]
                ), 
