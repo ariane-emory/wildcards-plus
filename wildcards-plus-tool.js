@@ -8766,7 +8766,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             //   must have had some reason, review this later.
             
             if (expanded)
-              res.push(expanded); 
+              res.push(expanded);
+
+            // this feels like a dirty move, but it'll get the job done and it doesn't seem like
+            // there's a real reason not to:
+            got = got.original_value; 
           }
         }
         else {
