@@ -8704,7 +8704,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
                 `walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
                 `${thing_str_repr(thing[ix])} ` +
-                `returned ${thing_str_repr(elem_ret)}`
+                `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
                );
           }
         });
@@ -9251,7 +9251,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
             `${thing_str_repr(thing)} ` + 
             //`in ${context} ` +
             `returned ` +
-            `${thing_str_repr(obj.value)}`);
+            `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
 
       return obj.value;
     }
