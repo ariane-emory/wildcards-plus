@@ -8805,10 +8805,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         }
         else if (thing.joiner)
           effective_joiner = thing.joiner;
-        else if (anon_wildcard.trailer === ',')
+        else if (',.'.includes(anon_wildcard.trailer))
           effective_joiner = ',';
         else
-          effective_joiner = thing.joiner;
+                   effective_joiner = thing.joiner;
         
         lm.indent(() => {
           let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
@@ -10401,7 +10401,7 @@ const NamedWildcardReference  =
                 optional(xform(parseInt, uint), 1),        // [2]
                 optional(xform(parseInt,                   // [3]
                                cadr(dash, uint))),
-                optional(/[,&|;]/),                        // [4]
+                optional(/[,\.&|;]/),                        // [4]
                 ident,                                     // [5]
                 optional_punctuation_trailer,  // [6]
                ), 
